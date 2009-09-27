@@ -4,5 +4,5 @@
 # Ignore objects and archives.
 *.[oa]
 test.pl
-t.pl
+?.pl
 
