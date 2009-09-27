@@ -1,0 +1,75 @@
+#!/bin/sh
+#$ -S /bin/bash
+
+# --             our name                  --
+#$ -N PMiniWorm
+
+# --        virtual_free request           --
+#$ -l vf=10M
+
+#$ -cwd
+# rerun if  the  job  was aborted without leaving a consistent exit state.  (This is typically the case if  the  node  on  which  the  job  is  running crashes).
+#$ -r y
+
+# redefines the environment variables to be exported to the execution context of the job.
+# cannot use ['] or [\'], or all after become 1 value.
+#$ -v ENVA=TESTtest,ENVB="test\n rest",ENVC="test\n \"r\"e\"st",PERL5LIB,PATH
+
+
+# --     What to redirect to where         --
+#$ -e /dev/null
+#$ -o /dev/null
+
+ARC=lx26-amd64
+QSUB=$SGE_ROOT/bin/$ARC/qsub
+SLEEP=20
+
+cmd="$QSUB $0 $0 $@"
+
+# started by SGE or manually
+if [ "$JOB_ID" = "" ]; then
+	echo "submitting $0 ..."
+	$cmd
+	while [ "x$?" != "x0" ]; do
+	echo "$0: qsub failed - retrying .." >&2
+		sleep $SLEEP
+		$cmd
+	done
+else
+	if [ "$1" = "" ]; then
+		MAIN=${JOB_NAME}_${JOB_ID}${TASK_ID}
+	else
+		MAIN=$1
+	fi
+	echo \#Running @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$TASK_ID] >${MAIN}.err
+	echo \#Begin @ `date` >>${MAIN}.err
+# jobs here
+	uname -a > ${MAIN}.out 2>>${MAIN}.err
+	sleep 2
+# jobs end
+	ENDVALUE=$?
+	cat <<EOFSTAT >> ${MAIN}.err
+#  End @ `date`
+# Used $SECONDS sec.
+#Job ended as $ENDVALUE
+#\$PWD is [$PWD]
+#\$SGE_O_WORKDIR is [$SGE_O_WORKDIR]
+
+ENVIRONMENT is [$ENVIRONMENT] BATCH or not
+JOB_NAME is [$JOB_NAME] and REQUEST is [$REQUEST]
+PATH is [$PATH]
+QUEUE is [$QUEUE]
+RESTARTED is [$RESTARTED] 0 or 1
+TMPDIR is [$TMPDIR] and TMP is [$TMP]
+
+[$ENVA] [$ENVB] [$ENVC]
+PERL5LIB is [$PERL5LIB]
+PYTHONPATH is [$PYTHONPATH]
+HOME is [$HOME] 
+`which perl`	is works after -v PATH
+
+#I am [$0]
+#I was [$@]
+#All done !
+EOFSTAT
+fi
