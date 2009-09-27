@@ -6,7 +6,7 @@ use warnings;
 use Exporter 'import';
 
 our @EXPORT_OK = qw(MakeJobSH);
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 #INIT {
 #	our $Shell=$ENV{SHELL};	# fix if you are in a prefix env., which breaks `pwd`
@@ -28,9 +28,10 @@ sub new {
 		rerun => '1',
 		nodotoe => '1',
 		cmd => 'sleep 1',
+		waiter => '/share/raid010/resequencing/user/huxs/release/tools/waiter.pl',
+		marker => '/share/raid010/resequencing/user/huxs/release/tools/marker.pl',
 		@_,	# 覆盖以前的属性
 	};
-	#if
 	return bless $self, $class;
 }
 
@@ -44,6 +45,8 @@ sub format {
 		env => ['a','-v '],
 		cwd => ['b','-cwd'],
 		rerun => ['b','-r y'],
+		waitopt => ['m','waiter'],	# 'waiter' is the key of %self
+		markopt => ['m','marker'],
 		nodotoe => ['b','-o /dev/null -e /dev/null']
 	);
 
@@ -78,13 +81,13 @@ else
 		echo \#Restart @ `date` [$RESTARTED]>>${MAIN}.err
 	fi
 	echo \#$ENVIRONMENT $JOB_NAME of $QUEUE @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$TASK_ID] >>${MAIN}.err
-### job starts ###
+##### job starts #####
 EOH
 # well, ends with "\n"
 
 my $fixtail=<<'EOT';	# well, starts with "\n"
 
-### job  ends  ###
+##### job  ends  #####
 	ENDVALUE=$?
 	cat <<EOFSTAT >> ${MAIN}.err
 #  End  @ `date`
@@ -106,7 +109,7 @@ EOFSTAT
 fi
 EOT
 
-	my ($file,$cmd,$str,$key)=("#!/bin/sh\n");	# Global symbol "$file" requires explicit package name
+	my ($file,$cmd,$str,$key,%DMcmd)=("#!/bin/sh\n");	# Global symbol "$file" requires explicit package name
 	#$file="#!/bin/env bash\n";
 	#$file="#!$Shell\n";
 	my %Functions=(
@@ -114,6 +117,14 @@ EOT
 		aq => sub {$_[0] =~ s/\"//g;$file .= '#$ '.$str.'"'.$_[0]."\"\n";},
 		#as => sub {$_[0] =~ s/\'/\\\"/g;$file .= '#$ '.$str.$_[0]."\n";},	# -v cannot contail ['] in SGE 6.0u8
 		b => sub {$file .= '#$ '.$str."\n" if $_[0] !~ /^[0fn]$/i;},
+		m => sub {
+				return unless $_[0];
+				chomp $_[0];
+				if ($str eq 'marker') {$DMcmd{$str} .= "\n### $str starts ###\n";}
+				$DMcmd{$str} .= $self->{$str};
+				$DMcmd{$str} .= ' '.$_[0].' 1>&2 2>>${MAIN}.err';	# ERR4ALL
+				if ($str eq 'waiter') {$DMcmd{$str} .= "\n### $str ends ###\n";}
+				},
 	);
 	no strict 'refs';	# better to be outside of the cycle
 	for $key (keys %$self) {
@@ -146,6 +157,8 @@ EOT
 		} else { push @newcmd,$_; }
 	}
 	$thecmd = join "\n",@newcmd;
+	$thecmd = $DMcmd{waiter}.$thecmd if $DMcmd{waiter};
+	$thecmd .= $DMcmd{marker} if $DMcmd{marker};
 	return $file.$fixhead.$thecmd.$fixtail;
 }
 
@@ -163,7 +176,7 @@ sub clone {
 	#close $fh;   # 关闭mailer的管道
 #}
 
-for my $field (qw(cmd name vf req sh env cwd rerun nodotoe)) {
+for my $field (qw(cmd name vf req sh env cwd rerun nodotoe waiter marker waitopt markopt)) {
 	no strict 'refs';	# 这样指向类型团的符号引用就可以用了
 	*$field = sub {
 		my $self = shift;
