@@ -5,7 +5,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 use Galaxy::SGE::MakeJobSH 0.06;
 
-$main::VERSION=0.0.2;
+$main::VERSION=0.0.3;
 my $bin='/share/raid010/resequencing/user/huxs/release/popSNP/GLFmulti.py';
 
 our $opts='i:o:c:f:s:bv';
@@ -76,7 +76,7 @@ for my $chr (keys %ChrLen) {
 		$partfile="$opt_o/$chr/${chr}_$part";
 		push @parts,$partfile;
 		$cmd="python $bin $pos1 $pos2 $listfile $partfile ERR";
-		my $sh=Galaxy::SGE::MakeJobSH->new(vf=>'66M',cmd=>$cmd,name=>"${chr}${part}pSNP");
+		my $sh=Galaxy::SGE::MakeJobSH->new(vf=>'66M',cmd=>$cmd,name=>"${part}${chr}pSNP");
 		$sh->markopt("-i $partfile");
 		open SH,'>',"$opt_o/$chr/${chr}-$part.sh";
 		print SH $sh->format;
@@ -89,7 +89,7 @@ for my $chr (keys %ChrLen) {
 		$partfile="$opt_o/$chr/${chr}_$part";
 		push @parts,$partfile;
 		$cmd="python $bin $pos1 $chrlen $listfile $partfile ERR";
-		my $sh=Galaxy::SGE::MakeJobSH->new(vf=>'66M',cmd=>$cmd,name=>"${chr}${part}fpSNP");
+		my $sh=Galaxy::SGE::MakeJobSH->new(vf=>'66M',cmd=>$cmd,name=>"${part}${chr}fpSNP");
 		$sh->markopt("-i $partfile");
 		open SH,'>',"$opt_o/$chr/${chr}-$part.sh";
 		print SH $sh->format;
