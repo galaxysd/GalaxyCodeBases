@@ -6,13 +6,12 @@ use warnings;
 
 our $VERSION = '0.01';
 $__PACKAGE__::errstr = '';
-my $id=0;
 
 # Create an empty object
 sub new {
 	my $invocant = shift;
 	my $class = ref($invocant) || $invocant;
-	my $self = {};
+	my $self = {']' => []};	# ini section can never be ']'
 	return bless $self, $class;
 }
 # Create an object from a file
@@ -55,16 +54,15 @@ sub read_string {
 			# Create the sub-hash if it doesn't exist.
 			# Without this sections without keys will not
 			# appear at all in the completed struct.
-			$self->{$ns = $1} ||= {};
-			$self->{$ns}->{_ID_} = ++$id;
-#print $self->{$ns}->{_ID_}," $ns\n";
+			$self->{$ns = $1} ||= {'=' => []};	# ini key can never be '='
+			push @{$$self{']'}},$ns;
 			next;
 		}
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
+			push @{$$self{$ns}{'='}},$1 unless defined $$self{$ns}{$1};
 			$self->{$ns}->{$1} = $2;
-#print "$1 - $2\n";
 			next;
 		}
 
@@ -92,11 +90,11 @@ sub write {
 sub write_string {
 	my $self = shift;
 	my $contents = '';
-	foreach my $section ( sort { (($b eq '_') <=> ($a eq '_')) || ($a cmp $b) } keys %$self ) {
+	foreach my $section (@{$$self{']'}}) {
 		my $block = $self->{$section};
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
-		foreach my $property ( sort keys %$block ) {
+		foreach my $property ( @{$$block{'='}} ) {
 			$contents .= "$property=$block->{$property}\n";
 		}
 	}
@@ -115,7 +113,7 @@ __END__
 
 =head1 NAME
 
-Config::Tiny - Read/Write .ini style files with as little code as possible
+Galaxy::IO::INI - Read/Write .ini style files with as little code as possible
 
 =head1 SYNOPSIS
 
@@ -129,13 +127,13 @@ Config::Tiny - Read/Write .ini style files with as little code as possible
     empty=
 
     # In your program
-    use Config::Tiny;
+    use Galaxy::IO::INI;
 
     # Create a config
-    my $Config = Config::Tiny->new();
+    my $Config = Galaxy::IO::INI->new();
 
     # Open the config
-    $Config = Config::Tiny->read( 'file.conf' );
+    $Config = Galaxy::IO::INI->read( 'file.conf' );
 
     # Reading properties
     my $rootproperty = $Config->{_}->{rootproperty};
@@ -152,7 +150,7 @@ Config::Tiny - Read/Write .ini style files with as little code as possible
 
 =head1 DESCRIPTION
 
-C<Config::Tiny> is a perl class to read and write .ini style configuration
+C<Galaxy::IO::INI> is a perl class to read and write .ini style configuration
 files with as little code as possible, reducing load time and memory
 overhead. Most of the time it is accepted that Perl applications use a lot
 of memory and modules. The C<::Tiny> family of modules is specifically
@@ -163,6 +161,9 @@ write shouldn't need to have documentation/comments. If you need something
 with more power move up to L<Config::Simple>, L<Config::General> or one of
 the many other C<Config::> modules. To rephrase, L<Config::Tiny> does B<not>
 preserve your comments, whitespace, or the order of your config file.
+
+Well, L<Config::Tiny> WILL preserve the order of sections and keys in your
+config file. That is why I write this.
 
 =head1 CONFIGURATION FILE SYNTAX
 
@@ -187,17 +188,17 @@ something better, this module is not for you.
 
 =head2 new
 
-The constructor C<new> creates and returns an empty C<Config::Tiny> object.
+The constructor C<new> creates and returns an empty C<Galaxy::IO::INI> object.
 
 =head2 read $filename
 
 The C<read> constructor reads a config file, and returns a new
-C<Config::Tiny> object containing the properties in the file.
+C<Galaxy::IO::INI> object containing the properties in the file.
 
 Returns the object on success, or C<undef> on error.
 
-When C<read> fails, C<Config::Tiny> sets an error message internally
-you can recover via C<<Config::Tiny->errstr>>. Although in B<some>
+When C<read> fails, C<Galaxy::IO::INI> sets an error message internally
+you can recover via C<<Galaxy::IO::INI->errstr>>. Although in B<some>
 cases a failed C<read> will also set the operating system error
 variable C<$!>, not all errors do and you should not rely on using
 the C<$!> variable.
@@ -205,7 +206,7 @@ the C<$!> variable.
 =head2 read_string $string;
 
 The C<read_string> method takes as argument the contents of a config file
-as a string and returns the C<Config::Tiny> object for it.
+as a string and returns the C<Galaxy::IO::INI> object for it.
 
 =head2 write $filename
 
@@ -221,7 +222,7 @@ Generates the file content for the object and returns it as a string.
 =head2 errstr
 
 When an error occurs, you can retrieve the error message either from the
-C<$Config::Tiny::errstr> variable, or using the C<errstr()> method.
+C<$Galaxy::IO::INI::errstr> variable, or using the C<errstr()> method.
 
 =head2 property_string
 
@@ -235,17 +236,15 @@ passed the section name, property name, and value.
 
 =head1 SUPPORT
 
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Config-Tiny>
-
-For other issues, or commercial enhancement or support, contact the author.
+Bugs should be reported the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Adam Kennedy E<lt>galaxy001@gmail.comE<gt>
 
 =head1 ACKNOWLEGEMENTS
+
+This package is based on Adam Kennedy's Config::Tiny v2.12
 
 Thanks to Sherzod Ruzmetov E<lt>sherzodr@cpan.orgE<gt> for
 L<Config::Simple>, which inspired this module by being not quite
@@ -257,7 +256,7 @@ L<Config::Simple>, L<Config::General>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2007 Adam Kennedy.
+Copyright by Simba Galaxy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
