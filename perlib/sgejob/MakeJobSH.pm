@@ -6,7 +6,7 @@ use warnings;
 use Exporter 'import';
 
 our @EXPORT_OK = qw(MakeJobSH);
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 #INIT {
 #	our $Shell=$ENV{SHELL};	# fix if you are in a prefix env., which breaks `pwd`
@@ -28,8 +28,8 @@ sub new {
 		rerun => '1',
 		nodotoe => '1',
 		cmd => 'sleep 1',
-		waiter => '/share/raid010/resequencing/user/huxs/release/tools/waiter.pl',
-		marker => '/share/raid010/resequencing/user/huxs/release/tools/marker.pl',
+		waiter => 'perl /share/raid010/resequencing/user/huxs/release/tools/waiter.pl',
+		marker => 'perl /share/raid010/resequencing/user/huxs/release/tools/marker.pl',
 		@_,	# 覆盖以前的属性
 	};
 	return bless $self, $class;
