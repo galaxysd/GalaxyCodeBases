@@ -4,7 +4,7 @@ use 5.004;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 $__PACKAGE__::errstr = '';
 
 # Create an empty object
@@ -12,6 +12,7 @@ sub new {
 	my $invocant = shift;
 	my $class = ref($invocant) || $invocant;
 	my $self = {']' => []};	# ini section can never be ']'
+	tie %{$self},'INIHash';
 	return bless $self, $class;
 }
 # Create an object from a file
@@ -55,13 +56,13 @@ sub read_string {
 			# Without this sections without keys will not
 			# appear at all in the completed struct.
 			$self->{$ns = $1} ||= {'=' => []};	# ini key can never be '='
-			push @{$$self{']'}},$ns;
+			push @{$$self{']'}},$ns unless exists $$self{$ns};
 			next;
 		}
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
-			push @{$$self{$ns}{'='}},$1 unless defined $$self{$ns}{$1};
+			push @{$$self{$ns}{'='}},$1 unless exists $$self{$ns}{$1};
 			$self->{$ns}->{$1} = $2;
 			next;
 		}
@@ -107,7 +108,6 @@ sub _error { $__PACKAGE__::errstr = $_[1]; undef }
 
 1;
 
-__END__
 
 =pod
 
@@ -164,6 +164,9 @@ preserve your comments, whitespace, or the order of your config file.
 
 Well, L<Config::Tiny> WILL preserve the order of sections and keys in your
 config file. That is why I write this.
+
+The order stores as @{$Config->{']'}} and @{$Config->{section}->{'='}}, so
+do NOT parse them as hash ref.
 
 =head1 CONFIGURATION FILE SYNTAX
 
@@ -261,7 +264,29 @@ Copyright by Simba Galaxy.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
-The full text of the license can be found in the
-LICENSE file included with this module.
-
 =cut
+
+package INIHash;
+use Carp;
+require Tie::Hash;
+
+@INIHash::ISA = qw(Tie::StdHash);
+
+sub STORE {
+	if ($_[1] eq ']') {
+		carp "[!]INI section can never be ']'";
+		return;
+	}
+	#$_[0]->{$_[1]} = $_[2];
+	push @{$_[0]->{']'}},$_[1] unless exists $_[0]->{$_[1]};
+	for (keys %{$_[2]}) {
+		next if $_ eq '=';
+		push @{$_[0]->{$_[1]}->{'='}},$_ unless exists $_[0]->{$_[1]}->{$_};
+		$_[0]->{$_[1]}->{$_}=$_[2]->{$_};
+	}
+	$_[0]->{$_[1]}->{'='};	# Why ?
+}
+
+1;
+
+__END__
