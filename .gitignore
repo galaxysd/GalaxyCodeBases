@@ -6,3 +6,4 @@
 test.pl
 ?.pl
 *.[0-9]
+soap/adapterfilter/?/*
