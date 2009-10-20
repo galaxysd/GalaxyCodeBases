@@ -79,4 +79,5 @@ warn "# $read_num parsed in [$fq]
 # InBPs\t$inbp
 # FiltedReads\t$filtedreads
 # CopyedReads\t$copyedreads
-# OutBP\t$outbp\n";
+# OutBP\t$outbp
+# All done !\n";
