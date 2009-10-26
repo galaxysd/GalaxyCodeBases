@@ -12,7 +12,7 @@ my $SCRIPTS='/panfs/GAG/huxuesong/scripts';
 Note:
 If a PE Lib come with only one .adapter.list file, all will use that one. If more than 2, only (sort)[0,-1] is used as _1 and _2.
 
-./0rawfq , the path to fq file cannot contain more than 1 Lib name, since Lib is searched directly on fullpath.
+./0rawfq , the path to fq file cannot contain more than 1 "_{$LibName}", since it is searched directly on fullpath.
 
 =cut
 our $opts='i:o:s:l:c:r:bvq';
@@ -20,7 +20,7 @@ our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_r);
 
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
-\t-i FASTAQ file path (./0rawfq) with *.adapter.list
+\t-i FASTAQ file path (./0rawfq) with *.adapter.list and *.fq
 \t-s Sample list (sample.lst) in format: /^Sample\\tLib\$/
 \t-c Chromosome length list (chr.len) in format: /^ChrName\\s+ChrLen\\s?.*\$/
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
@@ -95,53 +95,73 @@ my $opath;
 ### 1.filter fq
 $opath=$opt_o.'/1fqfilted';
 system('mkdir','-p',$opath);
-my @fq = `find $opt_i -name '*.fq'`;
+my @fq = sort `find $opt_i -name '*.fq'`;
 chomp @fq;
-my %fqbylib;
-for my $k (keys %LibSample) {
-	my @t=grep /$k/,@fq;
-	$fqbylib{$k}=\@t if $#t > -1;
-	#$fqbylib{$k}=[grep /$k/,@fq];
-	#delete $fqbylib{$k} if $#$fqbylib{$k}==-1;
+my (%fqfile2rawfp,%fq1,%fq2,%fqse,%fqpe);	# no ext.
+#@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
+for (@fq) {
+	my ($file, $path, $ext) = fileparse($_, qr/\.fq/);
+	$fqfile2rawfp{$file}=$path;	# $path is enough. But, who cares? Me!
+	$file =~ /_([^_]+)(_[12])?$/;
+	my $lib = $1;
+	unless ($2) {
+		push @{$fqse{$1}},[$file];	# well, same API is better ?
+		next;
+	}
+	$fq1{$file}=$1 if $2 eq '_1';
+	$fq2{$file}=$1 if $2 eq '_2';
 }
+for my $file (keys %fq1) {
+	my $file2=$file;
+	$file2=~s/_1$/_2/;
+	my $lib=$fq1{$file};
+	delete $fq1{$file};
+	if (defined $fq2{$file2}) {
+		push @{$fqpe{$lib}},[$file,$file2];
+		delete $fq2{$file2};
+	} else {
+		warn "[!][$file.fq] is not paired with _2 !\n";
+		push @{$fqse{$lib}},[$file];
+	}
+}
+for my $file (keys %fq2) {
+	my $lib=$fq2{$file};
+	delete $fq2{$file};
+	warn "[!][$file.fq] is not paired with _1 !\n";
+	push @{$fqse{$lib}},[$file];
+}
+%fq1=%fq2=();	# useless now
+my %fqbylib=%fqpe;
+push @{$fqbylib{$_}},@{$fqse{$_}} for (keys %fqse);
 if ($opt_v) {
 	for my $k (sort keys %fqbylib) {
-		print "\n[$k]\n[",join("]\n[",@{$fqbylib{$k}}),"]\n"
+		#print "\n[$k]\n[",join("]\n[",@{$fqbylib{$k}}),"]\n"
+		print "\n[$k]\n[";
+		for (@{$fqbylib{$k}}) {
+			print join(']-[',@$_);
+		}
+		print "]\n";
 	}
 }
 #my ($skip,$count,$copy,$lstcount,$adapter,%copy)=(0,0,0,0);
-my ($sample,$cmd,@sh);
-my %fqfiltedbylib;
-for my $k (keys %fqbylib) {
-	$sample=$LibSample{$k}->[0];
-	my $dir = $opath."/$sample/$k";
-	system('mkdir','-p',$dir);
-	open OUT,'>',$dir.'.cmd' || die "$!\n";
-	open LST,'>',$dir.'.lst' || die "$!\n";
-	#open SH,'>',$dir.'_filte.sh' || die "$!\n";
-	#open LOG,'>',$dir.'.log' || die "$!\n";
-	my ($skip,$count,$copy,$lstcount,$adapter,%copy)=(0,0,0,0);
-	for my $fq (@{$fqbylib{$k}}) {
-		++$count;
-		my ($file, $path, $ext) = fileparse($fq, qr/\.fq/);
-		my @adapter = `find $path -name '*.list'`;
-		print LST "${dir}/${file}.fq\n";
-		push @{$fqfiltedbylib{$k}},"${dir}/${file}.fq";
+sub callfqfilter($$$$$$$$$) {
+	my ($k,$file,$dir,$adapter,$path,$skip,$count,$copy,$lstcount,$copy_ref)=@_;
+	my $fq="${path}$file.fq";
 # existance check, old version
-		if (-s "${dir}/${file}.nfo" or -s "${dir}/${file}.fq.bz2") {	# We may package the data and mix *.nfo then?
-			++$skip;
-			system("mv -f ${dir}/${file}_filte.sh ${dir}/${file}_filte.oldsh") if ($#adapter<0 and -e "${dir}/${file}_filte.sh");
-			next;
-		}
+	if (-s "${dir}/${file}.nfo" or -s "${dir}/${file}.fq.bz2") {	# We may package the data and mix *.nfo then?
+		++$skip;
+		system("mv -f ${dir}/${file}_filte.sh ${dir}/${file}_filte.oldsh") if ( (! $adapter) and -e "${dir}/${file}_filte.sh");
+		return [$skip,$count,$copy,$lstcount,$copy_ref];
+	}
 # existance check, old version
-		if ($#adapter<0) {
-			++$copy{$path};
-			++$copy;
-			#system('mkdir','-p',$dir);
-			system('cp','-s',$fq,"${dir}/${file}.fq");
-			#warn $fq,"${dir}/${file}.fq";
-			open STAT,'>',"${dir}/${file}_filte.sh" || die "$!\n";
-			print STAT "#!/bin/sh
+	unless ($adapter) {
+		++${$copy_ref}{$path};
+		++$copy;
+		#system('mkdir','-p',$dir);
+		system('cp','-s',$fq,"${dir}/${file}.fq");
+		#warn $fq,"${dir}/${file}.fq";
+		open STAT,'>',"${dir}/${file}_filte.sh" || die "$!\n";
+		print STAT "#!/bin/sh
 #\$ -N \"s_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=9M
@@ -149,20 +169,52 @@ for my $k (keys %fqbylib) {
 #\$ -S /bin/bash
 perl $SCRIPTS/fqstat.pl $fq 2>${dir}/${file}.nfo
 ";
-			close STAT;
-			next;
-		}
-		chomp @adapter;
-		@adapter=sort @adapter;	# if _1 & _2, _1 should be first after sort.
-		if ($#adapter>=1 and $file =~ /_1$/) {$adapter=$adapter[0];}
-		 elsif ($#adapter>=1 and $file =~ /_2$/) {$adapter=$adapter[-1];}	# more than 2 ? last one !
-		 else {$adapter=$adapter[0];}	# SE
-#print "[$dir] [$file]\t[$adapter]\n";
-		system('mkdir','-p',$dir);
-		$cmd="$adapter $fq >$dir/${file}.fq 2>$dir/${file}.nfo\n";
-		print OUT $cmd;
-		++$lstcount;
+		close STAT;
+		return [$skip,$count,$copy,$lstcount,$copy_ref];
 	}
+	chomp $adapter;
+#print "[$dir] [$file]\t[$adapter]\n";
+	system('mkdir','-p',$dir);
+	my $cmd="$adapter $fq >$dir/${file}.fq 2>$dir/${file}.nfo\n";
+	print OUT $cmd;
+	++$lstcount;
+	return [$skip,$count,$copy,$lstcount,$copy_ref];
+}
+
+my ($sample,$cmd,@sh);
+my (%fqfile2fp);	# new path
+for my $k (keys %fqbylib) {
+	my $withPE=0;
+	$sample=$LibSample{$k}->[0];
+	my $dir = $opath."/$sample/$k";
+	system('mkdir','-p',$dir);
+	open OUT,'>',$dir.'.cmd' || die "$!\n";
+	open LST,'>',$dir.'.lst' || die "$!\n";
+	#open SH,'>',$dir.'_filte.sh' || die "$!\n";
+	#open LOG,'>',$dir.'.log' || die "$!\n";
+	my ($skip,$count,$copy,$lstcount,%copy)=(0,0,0,0);
+	my $copy_ref=\%copy;
+	for (@{$fqbylib{$k}}) {
+		my ($fq1,$fq2)=@$_;
+		++$count;
+		my $path=$fqfile2rawfp{$fq1};
+		my @adapter = `find $path -name '*.list'`;
+		@adapter=sort @adapter;	# if _1 & _2, _1 should be first after sort.
+		$fqfile2fp{$fq1}=$dir;
+		($skip,$count,$copy,$lstcount,$copy_ref)=@{&callfqfilter($k,$fq1,$dir,$adapter[0],$path,$skip,$count,$copy,$lstcount,$copy_ref)};
+		if ($fq2) {	# PE
+			$withPE=1;
+			print LST "PE\t${dir}/${fq1}.fq\t${dir}/${fq2}.fq\n";
+			$fqfile2fp{$fq2}=$dir;
+			my $path=$fqfile2rawfp{$fq2};
+			my @adapter = `find $path -name '*.list'`;
+			@adapter=sort @adapter;
+			($skip,$count,$copy,$lstcount,$copy_ref)=@{&callfqfilter($k,$fq2,$dir,$adapter[-1],$path,$skip,$count,$copy,$lstcount,$copy_ref)};
+		} else {	# SE
+			print LST "SE\t${dir}/${fq1}.fq\n";
+		}
+	}
+	%copy=%$copy_ref;
 	close LST;
 	close OUT;
 	open SH,'>',$dir.'_filte.sh' || die "$!\n";
@@ -218,7 +270,7 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1
 #\$ -hold_jid len_$k,f_$k,s_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-
+perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.maxReadLen $opt_r ${dir}_insize
 ";
 		close SH;
 	}
@@ -226,6 +278,7 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1
 }	# End for my $k (keys %fqbylib)
 ## Qsub
 if ($opt_q) {
+	print STDERR '-' x 75,"\n";
 	@sh = `find $opath -name '*_filte.sh'`;
 	chomp @sh;
 	for (@sh) {
@@ -244,7 +297,7 @@ if ($opt_q) {
 
 
 ### 2.soap
-# %fqfiltedbylib
+# %fqfiltedbylibPE,%fqfiltedbylibSE
 # /share/raid010/resequencing/resequencing/tmp/bin/pipeline/SNPcalling/subBin/soap2.20 -p 4 -a 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq -b 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_2.fq -D Panda.merge.fa.index -o 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.soap -2 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.single -m 100 -x 400  -t -s 40 -l 32 -v 3
 
 

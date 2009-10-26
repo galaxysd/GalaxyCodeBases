@@ -9,7 +9,7 @@ unless (@ARGV){
 
 my $fq = shift;
 
-my ($maxreadlen,$filtedreads,$copyedreads,$inbp,$outbp,$readlen)=(0);
+my ($maxreadlen,$copyedreads,$inbp,$outbp,$readlen)=(0);
 
 my $read_num = 0;
 open FQ, "$fq" || die "$!\n";
@@ -36,7 +36,7 @@ warn "# $read_num parsed in [$fq]
 # MaxReadLen\t$maxreadlen
 # InReads\t$read_num
 # InBPs\t$inbp
-# FiltedReads\t$filtedreads
+# FiltedReads\t0
 # CopyedReads\t$copyedreads
 # OutBP\t$outbp
 # All done !\n";
