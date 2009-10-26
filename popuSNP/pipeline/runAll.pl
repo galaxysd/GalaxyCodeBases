@@ -95,7 +95,7 @@ my $opath;
 ### 1.filter fq
 $opath=$opt_o.'/1fqfilted';
 system('mkdir','-p',$opath);
-my @fq = sort `find $opt_i -name '*.fq'`;
+my @fq = `find $opt_i -name '*.fq'`;	# no need to sort
 chomp @fq;
 my (%fqfile2rawfp,%fq1,%fq2,%fqse,%fqpe);	# no ext.
 #@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
@@ -270,7 +270,7 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1
 #\$ -hold_jid len_$k,f_$k,s_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.maxReadLen $opt_r ${dir}_insize
+perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.maxReadLen $opt_r $dir
 ";
 		close SH;
 	}
@@ -297,7 +297,7 @@ if ($opt_q) {
 
 
 ### 2.soap
-# %fqfiltedbylibPE,%fqfiltedbylibSE
+# %fqpe,%fqse
 # /share/raid010/resequencing/resequencing/tmp/bin/pipeline/SNPcalling/subBin/soap2.20 -p 4 -a 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq -b 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_2.fq -D Panda.merge.fa.index -o 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.soap -2 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.single -m 100 -x 400  -t -s 40 -l 32 -v 3
 
 
