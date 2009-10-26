@@ -101,6 +101,7 @@ my (%fqfile2rawfp,%fq1,%fq2,%fqse,%fqpe);	# no ext.
 #@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
 for (@fq) {
 	my ($file, $path, $ext) = fileparse($_, qr/\.fq/);
+	next if $file =~ /IndexPooling\d+(_[12])?$/;
 	$fqfile2rawfp{$file}=$path;	# $path is enough. But, who cares? Me!
 	$file =~ /_([^_]+)(_[12])?$/;
 	my $lib = $1;
@@ -266,8 +267,8 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1
 		print SH "#!/bin/sh
 #\$ -N \"size_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=1M
-#\$ -hold_jid len_$k,f_$k,s_$k
+#\$ -cwd -r y -l vf=4.1G,s_core=4
+#\$ -hold_jid len_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
 perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.maxReadLen $opt_r $dir
@@ -286,6 +287,12 @@ if ($opt_q) {
 		system("qsub $_");
 	}
 	@sh = `find $opath -name '*_redlen.sh'`;
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+	@sh = `find $opath -name '*_insize.sh'`;
 	chomp @sh;
 	for (@sh) {
 		print STDERR "[$_]\n" if $opt_v;
