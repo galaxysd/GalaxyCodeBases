@@ -243,8 +243,8 @@ eval perl $SCRIPTS/fqfilter.pl \$SEED
 		}
 	}
 	close LOG;
-## maxReadLen
-	if (-s "${dir}.maxReadLen") {
+## ReadLen
+	if (-s "${dir}.ReadLen") {
 		system("mv -f ${dir}_redlen.sh ${dir}_redlen.oldsh") if (-e "${dir}_redlen.sh");
 	} else {
 		open SH,'>',$dir.'_redlen.sh' || die "$!\n";
@@ -255,11 +255,16 @@ eval perl $SCRIPTS/fqfilter.pl \$SEED
 #\$ -hold_jid f_$k,s_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1] if \$b<\$F[-1]' > $dir.maxReadLen
+grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'BEGIN {\$c=99999999} END { print \"\$b\\n\$c\" } \$b=\$F[-1] if \$b<\$F[-1];\$c=\$F[-1] if \$c>\$F[-1];' > $dir.ReadLen
 ";
+# grep '# MaxReadLen' /panfs/GAG/huxuesong/panda/1fqfilted/GP1/PANwskRAADJBAPEI/*.nfo | perl -F'\t' -lane 'BEGIN {$c=999999} END { print "$b\n$c" } $b=$F[-1] if $b<$F[-1];$c=$F[-1] if $c>$F[-1];'
 		close SH;
 	}
 ## InsertSizing
+open O,'>',"${dir}.insize";
+print O "100\t400\n";
+close O;
+### DEBUE CODE ###
 	if (-s "${dir}.insize") {
 		system("mv -f ${dir}_insize.sh ${dir}_insize.oldsh") if (-e "${dir}_insize.sh");
 	} else {
@@ -271,7 +276,7 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'END { print \$b }\$b=\$F[-1
 #\$ -hold_jid len_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.maxReadLen $opt_r $dir
+perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.ReadLen $opt_r $dir
 ";
 		close SH;
 	}
@@ -299,15 +304,96 @@ if ($opt_q) {
 		system("qsub $_");
 	}
 }
-## Stat
-
-
-
 ### 2.soap
 # %fqpe,%fqse
 # /share/raid010/resequencing/resequencing/tmp/bin/pipeline/SNPcalling/subBin/soap2.20 -p 4 -a 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq -b 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_2.fq -D Panda.merge.fa.index -o 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.soap -2 090811_I58_FC42C7AAAXX_L8_PANwkgRBMDXAAPEI_1.fq.single -m 100 -x 400  -t -s 40 -l 32 -v 3
-
-
+my $lastopath=$opath;
+$opath=$opt_o.'/2soap';
+system('mkdir','-p',$opath);
+for my $k (keys %fqse) {
+	$sample=$LibSample{$k}->[0];
+	my $dir = $opath."/$sample/$k";
+	system('mkdir','-p',$dir);
+	open OUT,'>',$dir.'.secmd' || die "$!\n";
+	my $lstcount=0;
+	for (@{$fqse{$k}}) {
+		my $fq=$$_[0];
+		my $path=$lastopath."/$sample/$k";
+		unless (-s "${dir}${fq}.nfo" or -s "${dir}${fq}.se.bz2") {
+			print OUT "${path}.ReadLen ${path}/${fq}.fq $opt_r $dir/$fq\n";
+			++$lstcount;
+		}
+	}
+	close OUT;
+	if ($lstcount > 0) {
+		open SH,'>',$dir.'_soapse.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"se_$k\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=4.1G,s_core=4
+#\$ -hold_jid len_$k
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}.secmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/soapse.pl \$SEED
+";
+		close SH;
+	} else {
+		unlink $dir.'.secmd';
+		unlink $dir.'_soapse.sh';
+	}
+}
+for my $k (keys %fqpe) {
+	$sample=$LibSample{$k}->[0];
+	my $dir = $opath."/$sample/$k";
+	system('mkdir','-p',$dir);
+	open OUT,'>',$dir.'.pecmd' || die "$!\n";
+	my $lstcount=0;
+	for (@{$fqpe{$k}}) {
+		my ($fq1,$fq2)=@$_;
+		my $path=$lastopath."/$sample/$k";
+		unless (-s "${dir}${fq1}.nfo" or -s "${dir}${fq1}.soap.bz2") {
+			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n" ;
+			++$lstcount;
+		}
+	}
+	close OUT;
+	if ($lstcount > 0) {
+		open SH,'>',$dir.'_soappe.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"pe_$k\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=4.1G,s_core=4
+#\$ -hold_jid size_$k
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}.pecmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/soappe.pl \$SEED
+";
+		close SH;
+	} else {
+		unlink $dir.'.pecmd';
+		unlink $dir.'_soappe.sh';
+	}
+}
+## Qsub
+if ($opt_q) {
+	print STDERR '-' x 75,"\n";
+	@sh = `find $opath -name '*_soapse.sh'`;
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+	@sh = `find $opath -name '*_soappe.sh'`;
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+}
 
 
 #END

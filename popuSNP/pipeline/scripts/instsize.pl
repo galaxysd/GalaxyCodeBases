@@ -10,14 +10,18 @@ unless (@ARGV){
 
 my ($fqlst,$readlen,$ref,$out)=@ARGV;
 my $bin='/panfs/GAG/huxuesong/scripts/soap2.20';
-my $arg0='-p 8 -m 10 -x 1000 -t -s 40 -l 32';# -g 5 -r 2';
-my $OKvalue=0.5;	# Peak is OK is use as it(>0.5) is main peak
+my $arg0='-p 8 -x 1000 -t -s 40 -l 32';# -m 10 -g 5 -r 2';
+my $OKvalue=0.45;	# Peak is OK is use as it is main peak(dropped < 0.45)
 my $WARNvalue=0.4;	# soap 10-1000 is OK as single < 0.4
+my $minlen;
 open LEN,'<',$readlen or die "[x]Error opening $readlen: $!\n";
 $readlen = <LEN>;
+$minlen = <LEN>;
 chomp $readlen;
+chomp $minlen;
 close LEN;
 my $mismatch=$readlen>70?3:1;
+$minlen -= $mismatch;
 open LST,'<',$fqlst or die "[x]Error opening $fqlst: $!\n";
 my $count=0;
 system('mkdir','-p',$out);
@@ -30,7 +34,7 @@ while (<LST>) {
 		#my $outsh=$out.'/insoap_'.$count.'.sh';
 		my $outbase=$fq1;
 		$outbase =~ s/(_1)?\.fq$//i;
-		$sh="$bin -a $fq1 -b $fq2 -D $ref -o $outbase.soap -2 /dev/null $arg0 -v $mismatch 2>$outbase.log";
+		$sh="$bin -a $fq1 -b $fq2 -D $ref -o $outbase.soap -2 /dev/null $arg0 -m $minlen -v $mismatch 2>$outbase.log";
 	TEST:
 		if (-s "$outbase.log") {
 			system("mv -f ${outbase}_insoap.sh ${outbase}_insoap.oldsh") if (-e "${outbase}_insoap.sh");
@@ -52,7 +56,7 @@ while (<LST>) {
 			system("mv -f $outbase.log $outbase.log.0");
 			goto TEST;
 		}
-		my $SEratio=2*$Singled/$Pairs;
+		my $SEratio=$Singled/(2*$Pairs);
 		my $WARN=($SEratio<$WARNvalue)?0:1;
 		open SOAP,'<',"$outbase.soap" or die "[x]Error opening $outbase.soap: $!\n";
 my $total_map_reads = 0;
@@ -93,7 +97,8 @@ my ($insert,%insert,%insertN);
 		%insertN=%insert;
 		my ($value,$peak,$sum0,$delta)=@{&cut(\%insert,\%insertN)};
 		my $dropratio=$delta/$sum0;
-		my $OK=($dropratio>$OKvalue)?0:1;
+		my $OK=($dropratio<$OKvalue)?0:1;
+
 
 		my ($k, $v);
 		open O1,'>',"$outbase.o1" or die "[x]Error opening $outbase.o1: $!\n";
