@@ -132,7 +132,8 @@ for my $file (keys %fq2) {
 	push @{$fqse{$lib}},[$file];
 }
 %fq1=%fq2=();	# useless now
-my %fqbylib=%fqpe;
+my %fqbylib;#=%fqpe; If just copy, the value of hash will be the same pointer, thus conflict.
+push @{$fqbylib{$_}},@{$fqpe{$_}} for (keys %fqpe);
 push @{$fqbylib{$_}},@{$fqse{$_}} for (keys %fqse);
 if ($opt_v) {
 	for my $k (sort keys %fqbylib) {
@@ -330,7 +331,7 @@ for my $k (keys %fqse) {
 		print SH "#!/bin/sh
 #\$ -N \"se_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,s_core=4
+#\$ -cwd -r y -l vf=4.1G,s_core=5
 #\$ -hold_jid len_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$lstcount
@@ -354,8 +355,9 @@ for my $k (keys %fqpe) {
 		my ($fq1,$fq2)=@$_;
 		my $path=$lastopath."/$sample/$k";
 		unless (-s "${dir}${fq1}.nfo" or -s "${dir}${fq1}.soap.bz2") {
-			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n" ;
+			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n";
 			++$lstcount;
+#die $fq1 unless $fq2;
 		}
 	}
 	close OUT;
@@ -364,7 +366,7 @@ for my $k (keys %fqpe) {
 		print SH "#!/bin/sh
 #\$ -N \"pe_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,s_core=4
+#\$ -cwd -r y -l vf=4.1G,s_core=5
 #\$ -hold_jid size_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$lstcount

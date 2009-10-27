@@ -17,7 +17,7 @@ close LEN;
 my $mismatch=$readlen>70?3:1;
 
 my $sh="$bin -a $fq -D $ref -o $out.se $arg0 -v $mismatch 2>$out.log";
-my ($Pairs,$Paired,$Singled);
+my ($Reads,$Alignment);
 
 TEST:
 if (-s "$out.nfo") {
@@ -29,16 +29,15 @@ if (-s "$out.nfo") {
 	system($sh)==0 or die "[x]system [$sh] failed: $?";
 	open LOG,'<',"$out.log" or die "[x]Error opening $out.log: $!\n";
 	while (<LOG>) {
-		$Pairs = (split)[-2] if /^Total Pairs:/;
-		$Paired = (split)[1] if /^Paired:/;
-		$Singled = (split)[1] if /^Singled:/;
+		$Reads = (split)[-1] if /^Total Reads/;
+		$Alignment = (split)[1] if /^Alignment:/;
 	}
 	close LOG;
-#	unless ($Pairs) {
-#		system("mv -f $out.log $out.log.0");
-#		goto TEST;
-#	}
+	unless ($Reads) {
+		system("mv -f $out.log $out.log.0");
+		goto TEST;
+	}
 }
 open NFO,'>',"$out.nfo" or die "[x]Error opening $out.nfo: $!\n";
-print NFO "Total Pairs:\t$Pairs\nPaired:\t$Paired\nSingled:\t$Singled\n";
+print NFO "Total Reads:\t$Reads\nAlignment:\t$Alignment\n";
 close NFO;
