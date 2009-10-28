@@ -148,6 +148,15 @@ if ($opt_v) {
 		print "]\n";
 	}
 }
+sub qsub($$) {
+	my ($opath,$file)=@_;
+	my @sh = `find $opath/ -name '$file'`;	# $opath may be symlink
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+}
 #my ($skip,$count,$copy,$lstcount,$adapter,%copy)=(0,0,0,0);
 sub callfqfilter($$$$$$$$$) {
 	my ($k,$file,$dir,$adapter,$path,$skip,$count,$copy,$lstcount,$copy_ref)=@_;
@@ -289,24 +298,9 @@ perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.ReadLen $opt_r $dir
 ## Qsub
 if ($opt_q) {
 	print STDERR '-' x 75,"\n";
-	@sh = `find $opath -name '*_filte.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
-	@sh = `find $opath -name '*_redlen.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
-	@sh = `find $opath -name '*_insize.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
+	&qsub($opath,'*_filte.sh');
+	&qsub($opath,'*_redlen.sh');
+	&qsub($opath,'*_insize.sh');
 }
 ### 2.soap
 # %fqpe,%fqse
@@ -329,7 +323,7 @@ for my $k (keys %fqse) {
 		my $path=$lastopath."/$sample/$k";
 		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq.se\n";
-		unless (-s "${dir}${fq}.nfo" or -s "${dir}${fq}.se.bz2") {
+		unless (-s "${dir}/${fq}.nfo" or -s "${dir}/${fq}.se.bz2") {
 			print OUT "${path}.ReadLen ${path}/${fq}.fq $opt_r $dir/$fq\n";
 			++$lstcount;
 		}
@@ -369,7 +363,7 @@ for my $k (keys %fqpe) {
 		print LST "PE\t",$SoapCount{$sample},"\t$dir/$fq1.soap\n";
 		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq1.single\n";
-		unless (-s "${dir}${fq1}.nfo" or -s "${dir}${fq1}.soap.bz2") {
+		unless (-s "${dir}/${fq1}.nfo" or -s "${dir}/${fq1}.soap.bz2") {
 			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n";
 			++$lstcount;
 #die $fq1 unless $fq2;
@@ -398,18 +392,8 @@ eval perl $SCRIPTS/soappe.pl \$SEED
 ## Qsub
 if ($opt_q) {
 	print STDERR '-' x 75,"\n";
-	@sh = `find $opath -name '*_soapse.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
-	@sh = `find $opath -name '*_soappe.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
+	&qsub($opath,'*_soapse.sh');
+	&qsub($opath,'*_soappe.sh');
 }
 ### 3.rmdupmerge
 $lastopath=$opath;
@@ -489,18 +473,8 @@ eval perl $SCRIPTS/merge.pl \$SEED
 ## Qsub
 if ($opt_q) {
 	print STDERR '-' x 75,"\n";
-	@sh = `find $opath -name '*_rmdup.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
-	@sh = `find $opath -name '*_merge.sh'`;
-	chomp @sh;
-	for (@sh) {
-		print STDERR "[$_]\n" if $opt_v;
-		system("qsub $_");
-	}
+	&qsub($opath,'*_rmdup.sh');
+	&qsub($opath,'*_merge.sh');
 }
 
 
