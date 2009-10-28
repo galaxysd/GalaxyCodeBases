@@ -312,9 +312,9 @@ my $lastopath=$opath;
 $opath=$opt_o.'/2soap';
 system('mkdir','-p',$opath);
 my %SoapCount;
+system("find $opath/ -name '*.soaplst' | xargs rm");
 for my $k (keys %fqse) {
 	$sample=$LibSample{$k}->[0];
-	++$SoapCount{$sample};
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	open LST,'>>',$dir.'.soaplst' || die "$!\n";
@@ -323,6 +323,7 @@ for my $k (keys %fqse) {
 	for (@{$fqse{$k}}) {
 		my $fq=$$_[0];
 		my $path=$lastopath."/$sample/$k";
+		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq.se\n";
 		unless (-s "${dir}${fq}.nfo" or -s "${dir}${fq}.se.bz2") {
 			print OUT "${path}.ReadLen ${path}/${fq}.fq $opt_r $dir/$fq\n";
@@ -352,7 +353,6 @@ eval perl $SCRIPTS/soapse.pl \$SEED
 }
 for my $k (keys %fqpe) {
 	$sample=$LibSample{$k}->[0];
-	++$SoapCount{$sample};
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	open LST,'>>',$dir.'.soaplst' || die "$!\n";
@@ -361,6 +361,7 @@ for my $k (keys %fqpe) {
 	for (@{$fqpe{$k}}) {
 		my ($fq1,$fq2)=@$_;
 		my $path=$lastopath."/$sample/$k";
+		++$SoapCount{$sample};
 		print LST "PE\t",$SoapCount{$sample},"\t$dir/$fq1.soap\n";
 		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq1.single\n";
@@ -406,6 +407,9 @@ if ($opt_q) {
 		system("qsub $_");
 	}
 }
+### 3.rmdupmerge
+
+
 
 
 #END
