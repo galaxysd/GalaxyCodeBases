@@ -15,8 +15,8 @@ If a PE Lib come with only one .adapter.list file, all will use that one. If mor
 ./0rawfq , the path to fq file cannot contain more than 1 "_{$LibName}", since it is searched directly on fullpath.
 
 =cut
-our $opts='i:o:s:l:c:r:bvq';
-our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_r);
+our $opts='i:o:s:l:c:r:f:bvq';
+our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r);
 
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
@@ -24,6 +24,7 @@ our $help=<<EOH;
 \t-s Sample list (sample.lst) in format: /^Sample\\tLib\$/
 \t-c Chromosome length list (chr.len) in format: /^ChrName\\s+ChrLen\\s?.*\$/
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
+\t-f faByChr path (./faByChr) with ChrID.fa\(s\)
 \t-o Project output path (.), will mkdir if not exist
 \t-q run qsub automatically
 \t-v show verbose info to STDOUT
@@ -37,10 +38,12 @@ $opt_s='sample.lst' if ! $opt_s;
 $opt_o='.' if ! $opt_o;
 $opt_c='chr.len' if ! $opt_c;
 $opt_r='./Ref' if ! $opt_r;
+$opt_f='./faByChr' if ! $opt_f;
 
 $opt_i=`readlink -nf $opt_i`;
 $opt_o=`readlink -nf $opt_o`;
 $opt_r=`readlink -nf $opt_r`;
+$opt_f=`readlink -nf $opt_f`;
 
 my @t=`find $opt_r -name '*.index.bwt'`;
 $t[0] =~ /(.+\.index)\.\w+$/;
@@ -312,7 +315,8 @@ my $lastopath=$opath;
 $opath=$opt_o.'/2soap';
 system('mkdir','-p',$opath);
 my %SoapCount;
-system("find $opath/ -name '*.soaplst' | xargs rm");
+system('touch',"$opath/_.soaplst");
+system("find $opath/ -name '*.soaplst' | xargs rm");	# rm dies unless input
 for my $k (keys %fqse) {
 	$sample=$LibSample{$k}->[0];
 	my $dir = $opath."/$sample/$k";
@@ -408,7 +412,96 @@ if ($opt_q) {
 	}
 }
 ### 3.rmdupmerge
+$lastopath=$opath;
+$opath=$opt_o.'/3rmdupmerge';
+system('mkdir','-p',$opath);
+system('touch',"$opath/_.mglst");
+system("find $opath/ -name '*.mglst' | xargs rm");
+for my $k (keys %fqbylib) {
+	$sample=$LibSample{$k}->[0];
+	my $dir = $opath."/$sample/$k";
+	system('mkdir','-p',$dir);
+	system('mkdir','-p',"$opath/$sample/lst");
+	open CMD,'>',$dir.'.rdcmd' || die "$!\n";
+	my $lstcount=0;
+	for my $chr (keys %ChrLen) {
+		open LST,'>>',$opath."/$sample/lst/${sample}_${chr}.mglst" || die "$!\n";
+		print LST "$dir/$k.$chr\n";
+		unless (-s "$dir/${chr}_$k.log") {
+			print CMD "-bi $lastopath/$sample/$k.soaplst -c $chr -o $dir/$k >$dir/${chr}_$k.log 2>$dir/${chr}_$k.err\n";
+			++$lstcount;
+		}
+		close LST;
+	}
+	close CMD;
+	if ($lstcount > 0) {
+		open SH,'>',$dir.'_rmdup.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"rmdup_${sample}_$k\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=280M
+#\$ -hold_jid \"pe_$k,se_$k\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}.rdcmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/rmdupbylib.pl \$SEED
+";
+		close SH;
+	} else {
+		unlink $dir.'.rdcmd';
+		unlink $dir.'_rmdup.sh';
+	}
+}
 
+for my $k (keys %SampleLib) {
+	my $dir = $opath."/$k";
+	my $lib=$SampleLib{$k}->[0];
+	next unless defined $fqbylib{$lib};
+	open CMD,'>',$dir."/$k.mgcmd" || die "$!\n";
+	my $lstcount=0;
+	for my $chr (keys %ChrLen) {
+		unless (-s "$dir/${k}_${chr}.log") {
+			print CMD "$dir/lst/${k}_${chr}.mglst $dir/${k}_${chr}\n";
+			++$lstcount;
+		}
+	}
+	close CMD;
+	if ($lstcount > 0) {
+		open SH,'>',$dir."/${k}_merge.sh" || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"merge_$k\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=280M
+#\$ -hold_jid \"rmdup_${k}_*\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}.rdcmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/merge.pl \$SEED
+";
+		close SH;
+	} else {
+		unlink $dir.'.mgcmd';
+		unlink $dir.'_merge.sh';
+	}
+}
+## Qsub
+if ($opt_q) {
+	print STDERR '-' x 75,"\n";
+	@sh = `find $opath -name '*_rmdup.sh'`;
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+	@sh = `find $opath -name '*_merge.sh'`;
+	chomp @sh;
+	for (@sh) {
+		print STDERR "[$_]\n" if $opt_v;
+		system("qsub $_");
+	}
+}
 
 
 
