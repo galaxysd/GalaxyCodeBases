@@ -9,7 +9,7 @@ unless (@ARGV){
 # $out.se, $out.log
 my ($readlen,$fq,$ref,$out)=@ARGV;
 my $bin='/panfs/GAG/huxuesong/scripts/soap2.20';
-my $arg0='-p 8 -t -s 40 -l 32';
+my $arg0='-p 6 -t -s 40 -l 32';
 open LEN,'<',$readlen or die "[x]Error opening $readlen: $!\n";
 $readlen = <LEN>;
 chomp $readlen;

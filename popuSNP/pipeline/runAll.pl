@@ -311,21 +311,26 @@ if ($opt_q) {
 my $lastopath=$opath;
 $opath=$opt_o.'/2soap';
 system('mkdir','-p',$opath);
+my %SoapCount;
 for my $k (keys %fqse) {
 	$sample=$LibSample{$k}->[0];
+	++$SoapCount{$sample};
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
+	open LST,'>>',$dir.'.soaplst' || die "$!\n";
 	open OUT,'>',$dir.'.secmd' || die "$!\n";
 	my $lstcount=0;
 	for (@{$fqse{$k}}) {
 		my $fq=$$_[0];
 		my $path=$lastopath."/$sample/$k";
+		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq.se\n";
 		unless (-s "${dir}${fq}.nfo" or -s "${dir}${fq}.se.bz2") {
 			print OUT "${path}.ReadLen ${path}/${fq}.fq $opt_r $dir/$fq\n";
 			++$lstcount;
 		}
 	}
 	close OUT;
+	close LST;
 	if ($lstcount > 0) {
 		open SH,'>',$dir.'_soapse.sh' || die "$!\n";
 		print SH "#!/bin/sh
@@ -347,13 +352,18 @@ eval perl $SCRIPTS/soapse.pl \$SEED
 }
 for my $k (keys %fqpe) {
 	$sample=$LibSample{$k}->[0];
+	++$SoapCount{$sample};
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
+	open LST,'>>',$dir.'.soaplst' || die "$!\n";
 	open OUT,'>',$dir.'.pecmd' || die "$!\n";
 	my $lstcount=0;
 	for (@{$fqpe{$k}}) {
 		my ($fq1,$fq2)=@$_;
 		my $path=$lastopath."/$sample/$k";
+		print LST "PE\t",$SoapCount{$sample},"\t$dir/$fq1.soap\n";
+		++$SoapCount{$sample};
+		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq1.single\n";
 		unless (-s "${dir}${fq1}.nfo" or -s "${dir}${fq1}.soap.bz2") {
 			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n";
 			++$lstcount;
