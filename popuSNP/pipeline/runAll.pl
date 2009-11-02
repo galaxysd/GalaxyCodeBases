@@ -7,6 +7,7 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
 my $SCRIPTS='/panfs/GAG/huxuesong/scripts';
+my $POPSPLIT=1000000;
 
 =pod
 Note:
@@ -15,8 +16,8 @@ If a PE Lib come with only one .adapter.list file, all will use that one. If mor
 ./0rawfq , the path to fq file cannot contain more than 1 "_{$LibName}", since it is searched directly on fullpath.
 
 =cut
-our $opts='i:o:s:l:c:r:f:bvq';
-our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r);
+our $opts='i:o:s:l:c:r:f:bvqd';
+our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r, $opt_d);
 
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
@@ -29,6 +30,7 @@ our $help=<<EOH;
 \t-q run qsub automatically
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
+\t-d Debug mode, for test only
 EOH
 
 ShowHelp();
@@ -49,7 +51,8 @@ my @t=`find $opt_r -name '*.index.bwt'`;
 $t[0] =~ /(.+\.index)\.\w+$/;
 $opt_r = $1;
 
-print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$opt_r]\n";
+print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$opt_r][$opt_f]\n";
+print STDERR "DEBUG Mode ON !\n" if $opt_d;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -410,14 +413,15 @@ for my $k (keys %fqbylib) {
 	my $lstcount=0;
 	for my $chr (keys %ChrLen) {
 		open LST,'>>',$opath."/$sample/lst/${sample}_${chr}.mglst" || die "$!\n";
-		print LST "$dir/$k.$chr\n";
-		unless (-s "$dir/${chr}_$k.log") {
+		print LST "$dir/$k.$chr\n" or warn "${sample}_${chr}";
+		unless (-s "$dir/$k.$chr" and -s "$dir/${chr}_$k.log") {
 			print CMD "-bi $lastopath/$sample/$k.soaplst -c $chr -o $dir/$k >$dir/${chr}_$k.log 2>$dir/${chr}_$k.err\n";
 			++$lstcount;
 		}
-		close LST;
+		#close LST;	# Let the open close it.
 	}
 	close CMD;
+	close LST;
 	if ($lstcount > 0) {
 		open SH,'>',$dir.'_rmdup.sh' || die "$!\n";
 		print SH "#!/bin/sh
@@ -445,7 +449,7 @@ for my $k (keys %SampleLib) {
 	open CMD,'>',$dir."/$k.mgcmd" || die "$!\n";
 	my $lstcount=0;
 	for my $chr (keys %ChrLen) {
-		unless (-s "$dir/${k}_${chr}.log") {
+		unless (-s "$dir/${k}_${chr}.sp" and -s "$dir/${k}_${chr}.log") {
 			print CMD "$dir/lst/${k}_${chr}.mglst $dir/${k}_${chr}\n";
 			++$lstcount;
 		}
@@ -456,18 +460,18 @@ for my $k (keys %SampleLib) {
 		print SH "#!/bin/sh
 #\$ -N \"merge_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=280M
+#\$ -cwd -r y -l vf=12M
 #\$ -hold_jid \"rmdup_${k}_*\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$lstcount
-SEEDFILE=${dir}.rdcmd
+SEEDFILE=${dir}/$k.mgcmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval perl $SCRIPTS/merge.pl \$SEED
 ";
 		close SH;
 	} else {
-		unlink $dir.'.mgcmd';
-		unlink $dir.'_merge.sh';
+		unlink $dir."/${k}.mgcmd";
+		unlink $dir."/${k}_merge.sh";
 	}
 }
 ## Qsub
@@ -476,8 +480,135 @@ if ($opt_q) {
 	&qsub($opath,'*_rmdup.sh');
 	&qsub($opath,'*_merge.sh');
 }
+### 4.GLF
+$lastopath=$opath;
+$opath=$opt_o.'/4GLF';
+my $dir = $opath.'/matrix';
+system('mkdir','-p',$dir);
+## Matrix
+if (-s "$dir/all.matrix") {
+	system("mv -f ${dir}/all_matrix.sh ${dir}/all_matrix.oldsh") if (-e "${dir}/all_matrix.sh");
+} else {
+	open SH,'>',$dir."/all_matrix.sh" || die "$!\n";
+	print SH "#!/bin/sh
+#\$ -N \"All_Matrix\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=266M
+#\$ -hold_jid \"merge_*\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+f=`find $lastopath/ -name '*.sp'|xargs ls -lH|awk '{print \$5,\$9}'|sort -nrk1|head -n1|awk '{print \$2}'`
+perl $SCRIPTS/matrix.pl \$f $opt_f $opt_o/1fqfilted $dir/all
+";
+	close SH;
+}
+## SoapSNP
+for my $chr (keys %ChrLen) {
+	my $dir = $opath."/$chr";
+	system('mkdir','-p',$dir);
+unless ($opt_d) {
+	open LST,'>',$dir.'.glflst' || die "$!\n";
+	open CMD,'>',$dir."/$chr.glfcmd" || die "$!\n";
+	my $lstcount=0;
+	for my $k (keys %SampleLib) {
+		print LST "$dir/${k}_$chr.glf\n";
+		unless (-s "$dir/${k}_$chr.tag" or -s "$dir/${k}_$chr.glf") {	# 'tag' not working since soapsnp return non-0 on exit
+			print CMD "$lastopath/$k/${k}_$chr.sp $dir/${k}_$chr\n";
+			++$lstcount;
+		}
+	}
+	close CMD;
+	close LST;
+	if ($lstcount > 0) {
+		open SH,'>',$dir.'_glf.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"GLF_$chr\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=280M,s_core=1
+#\$ -hold_jid \"All_Matrix\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}/$chr.glfcmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/callglf.pl $opath/matrix/all.matrix $opt_f $opt_o/1fqfilted \$SEED
+";
+		close SH;
+	} else {
+		unlink $dir."/$chr.glfcmd";
+		unlink $dir.'_glf.sh';
+	}
+}	# unless ($opt_d)
+}
 
-
+### 5.popSNP
+$lastopath=$opath;
+$opath=$opt_o.'/5popSNP';
+$dir = $opath.'/all';
+system('mkdir','-p',$dir);
+for my $chr (keys %ChrLen) {
+	my $dir = $opath."/$chr";
+	system('mkdir','-p',$dir);
+	my $lst=$lastopath."/$chr.glflst";
+	my $len=$ChrLen{$chr};
+	open LST,'>',$dir.'.psnplst' || die "$!\n";
+	open CMD,'>',$dir."/$chr.popcmd" || die "$!\n";
+	my $lstcount=0;
+	my ($i,$j,$exit)=(1,$POPSPLIT,0);
+	while ($exit != -1) {
+		++$exit;
+		if ($j > $len) {
+			$j=$len;
+			$exit=-1;
+		}
+		print LST "$dir/${chr}_$exit.psnp\n";
+		unless (-s "$dir/${chr}_$exit.tag") {
+			print CMD "$i $j $lst $dir/${chr}_$exit.psnp >$dir/${chr}_$exit.tag 2>$dir/${chr}_$exit.log\n";
+			++$lstcount;
+		}
+		$i += $POPSPLIT;
+		$j += $POPSPLIT;
+	}
+	close CMD;
+	close LST;
+	if ($lstcount > 0) {
+		open SH,'>',$dir.'_popsnp.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"PSNP_$chr\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=70M,s_core=1
+#\$ -hold_jid GLF_$chr
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}/$chr.popcmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval python $SCRIPTS/GLFmulti.py \$SEED
+";
+		close SH;
+		open SH,'>',$dir.'_wcsnp.sh' || die "$!\n";
+		print SH "#!/bin/sh
+#\$ -N \"WSNP_$chr\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=60M
+#\$ -hold_jid PSNP_$chr
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+cat $dir.psnplst|xargs wc -l > $dir.psnpwc
+cat $dir.psnplst|xargs cat >> $dir.psnp
+wc -l $dir.psnp >> $dir.psnpwc
+";
+		close SH;
+	} else {
+		unlink $dir."/$chr.popcmd";
+		unlink $dir.'_popsnp.sh';
+		unlink $dir.'_wcsnp.sh';
+	}
+}
+## Qsub
+if ($opt_q) {
+	print STDERR '-' x 75,"\n";
+	&qsub($opath,'*_popsnp.sh');
+	&qsub($opath,'*_wcsnp.sh');
+}
 
 #END
 my $stop_time = [gettimeofday];
