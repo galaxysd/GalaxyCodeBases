@@ -8,7 +8,8 @@ unless (@ARGV){
 }
 # $out.soap, $out.single, $out.log
 my ($matrix,$ref,$readlen,$sp,$out,$DM)=@ARGV;
-$DM = ($DM~=/^m/i)?'':'-m ';
+$DM = ($DM=~/^m/i)?'-m ':'';
+#warn $DM;
 my $bin='/panfs/GAG/huxuesong/scripts/soapsnp';
 $sp =~ /\/([^_\/]+)_([^_]+)\.sp$/;
 my $sample=$1;
@@ -28,4 +29,4 @@ my $sh="$bin -i $sp -d $ref/$ChrID -o $out.glf -F 1 ${DM}-I $matrix -L $readlen 
 open OUT,'>',"${out}_glf.sh.archive" or warn "[!]Error opening ${out}_glf.sh.archive: $!\n";
 print OUT "#!/bin/sh\n$sh\n";
 close OUT;
-system($sh) and system("echo done ! > $out.tag");
+system($sh) or system("echo done ! > $out.tag");
