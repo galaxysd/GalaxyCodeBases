@@ -45,15 +45,17 @@ $opt_f='./faByChr' if ! $opt_f;
 
 # `readlink -f` will be blank if target not exists.
 system('mkdir','-p',$opt_o);
+my ($lopt_i,$lopt_r,$lopt_f);
 
 $lopt_i=`readlink -nf $opt_i`;
 $opt_o=`readlink -nf $opt_o`;
 $lopt_r=`readlink -nf $opt_r`;
 $lopt_f=`readlink -nf $opt_f`;
 
-die "[x]-i $opt_i not exists !\n" unless $lopt_i;
-die "[x]-r $opt_r not exists !\n" unless $lopt_r;
-die "[x]-f $opt_f not exists !\n" unless $lopt_f;
+warn "[x]-i $opt_i not exists !\n" unless $lopt_i;
+warn "[x]-r $opt_r not exists !\n" unless $lopt_r;
+warn "[x]-f $opt_f not exists !\n" unless $lopt_f;
+die "\n" unless $lopt_i and $lopt_r and $lopt_f;
 
 my @t=`find $lopt_r -name '*.index.bwt'`;
 $t[0] =~ /(.+\.index)\.\w+$/;
