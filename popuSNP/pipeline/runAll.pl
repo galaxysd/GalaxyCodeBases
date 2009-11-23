@@ -16,14 +16,15 @@ If a PE Lib come with only one .adapter.list file, all will use that one. If mor
 ./0rawfq , the path to fq file cannot contain more than 1 "_{$LibName}", since it is searched directly on fullpath.
 
 =cut
-our $opts='i:o:s:l:c:r:f:bvqd';
-our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r, $opt_d);
+our $opts='i:o:s:l:c:r:f:m:bvqd';
+our($opt_i, $opt_s, $opt_o, $opt_m, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r, $opt_d);
 
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
 \t-i FASTAQ file path (./0rawfq) with *.adapter.list and *.fq
 \t-s Sample list (sample.lst) in format: /^Sample\\tLib\$/
 \t-c Chromosome length list (chr.len) in format: /^ChrName\\s+ChrLen\\s?.*\$/
+\t-m monoploid Chromosome names ('') in format: 'ChrID1,ChrID2'
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
 \t-f faByChr path (./faByChr) with ChrID.fa\(s\)
 \t-o Project output path (.), will mkdir if not exist
@@ -50,8 +51,14 @@ $opt_f=`readlink -nf $opt_f`;
 my @t=`find $opt_r -name '*.index.bwt'`;
 $t[0] =~ /(.+\.index)\.\w+$/;
 $opt_r = $1;
+my %Monoploid;
+if ($opt_m) {
+	my @Monoploid=split /,/,$opt_m;
+	++$Monoploid{$_} for @Monoploid;
+}
 
 print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$opt_r][$opt_f]\n";
+print STDERR "Monoploid Chr(s):[",join(',',sort keys %Monoploid),"]\n" if %Monoploid;
 print STDERR "DEBUG Mode ON !\n" if $opt_d;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
@@ -513,7 +520,9 @@ unless ($opt_d) {
 	for my $k (keys %SampleLib) {
 		print LST "$dir/${k}_$chr.glf\n";
 		unless (-s "$dir/${k}_$chr.tag" or -s "$dir/${k}_$chr.glf") {	# 'tag' not working since soapsnp return non-0 on exit
-			print CMD "$lastopath/$k/${k}_$chr.sp $dir/${k}_$chr\n";
+			my $Mono=' d';
+			$Mono=' m' if $Monoploid{$chr};
+			print CMD "$lastopath/$k/${k}_$chr.sp $dir/${k}_${chr}$Mono\n";
 			++$lstcount;
 		}
 	}
@@ -593,9 +602,10 @@ eval python $SCRIPTS/GLFmulti.py \$SEED
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
 cat $dir.psnplst|xargs wc -l > $dir.psnpwc
+rm -f $dir.psnp
 cat $dir.psnplst|xargs cat >> $dir.psnp
 wc -l $dir.psnp >> $dir.psnpwc
-";
+";	# whenever >> , remember to rm first !
 		close SH;
 	} else {
 		unlink $dir."/$chr.popcmd";
