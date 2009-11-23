@@ -13,7 +13,7 @@ my @files=<LST>;
 chomp @files;
 close LST;
 if ($#files == 0) {
-	symlink $files[0],"$outf.sp";
+	link $files[0],"$outf.sp" or symlink $files[0],"$outf.sp" or exit 1;
 } else {}
 open LOG,'>',"$outf.log";
 print LOG "done !\n";

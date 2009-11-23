@@ -21,14 +21,15 @@ chomp $insize;
 my ($min,$max)=split /\t/,$insize;
 close SIZE;
 
+# always put -abDo2 in the first for the poor case without break ...
 my $sh="$bin -a $fq1 -b $fq2 -D $ref -o $out.soap -2 $out.single $arg0 -m $min -x $max -v $mismatch 2>$out.log";
 my ($Pairs,$Paired,$Singled);
 
 TEST:
 if (-s "$out.nfo") {
-	system("mv -f ${out}_soaparchive.sh ${out}_soaparchive.oldsh") if (-e "${out}_soaparchive.sh");
+	system("mv -f ${out}_soappe.sh.archive ${out}_soappe.sh.archive.old") if (-e "${out}_soappe.sh.archive");
 } else {
-	open OUT,'>',"${out}_soaparchive.sh" or warn "[!]Error opening ${out}_soaparchive.sh: $!\n";
+	open OUT,'>',"${out}_soappe.sh.archive" or warn "[!]Error opening ${out}_soappe.sh.archive: $!\n";
 	print OUT "#!/bin/sh\n$sh\n";
 	close OUT;
 	system($sh)==0 or die "[x]system [$sh] failed: $?";
@@ -43,7 +44,7 @@ if (-s "$out.nfo") {
 		system("mv -f $out.log $out.log.0");
 		goto TEST;
 	}
+	open NFO,'>',"$out.nfo" or die "[x]Error opening $out.nfo: $!\n";
+	print NFO "Total Pairs:\t$Pairs\nPaired:\t$Paired\nSingled:\t$Singled\n";
+	close NFO;
 }
-open NFO,'>',"$out.nfo" or die "[x]Error opening $out.nfo: $!\n";
-print NFO "Total Pairs:\t$Pairs\nPaired:\t$Paired\nSingled:\t$Singled\n";
-close NFO;

@@ -21,9 +21,9 @@ my ($Reads,$Alignment);
 
 TEST:
 if (-s "$out.nfo") {
-	system("mv -f ${out}_soaparchive.sh ${out}_soaparchive.oldsh") if (-e "${out}_soaparchive.sh");
+	system("mv -f ${out}_soapse.sh.archive ${out}_soapse.sh.archive.old") if (-e "${out}_soapse.sh.archive");
 } else {
-	open OUT,'>',"${out}_soaparchive.sh" or warn "[!]Error opening ${out}_soaparchive.sh: $!\n";
+	open OUT,'>',"${out}_soapse.sh.archive" or warn "[!]Error opening ${out}_soapse.sh.archive: $!\n";
 	print OUT "#!/bin/sh\n$sh\n";
 	close OUT;
 	system($sh)==0 or die "[x]system [$sh] failed: $?";
@@ -37,7 +37,7 @@ if (-s "$out.nfo") {
 		system("mv -f $out.log $out.log.0");
 		goto TEST;
 	}
+	open NFO,'>',"$out.nfo" or die "[x]Error opening $out.nfo: $!\n";
+	print NFO "Total Reads:\t$Reads\nAlignment:\t$Alignment\n";
+	close NFO;
 }
-open NFO,'>',"$out.nfo" or die "[x]Error opening $out.nfo: $!\n";
-print NFO "Total Reads:\t$Reads\nAlignment:\t$Alignment\n";
-close NFO;
