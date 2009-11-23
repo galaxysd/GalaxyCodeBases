@@ -43,21 +43,28 @@ $opt_c='chr.len' if ! $opt_c;
 $opt_r='./Ref' if ! $opt_r;
 $opt_f='./faByChr' if ! $opt_f;
 
-$opt_i=`readlink -nf $opt_i`;
-$opt_o=`readlink -nf $opt_o`;
-$opt_r=`readlink -nf $opt_r`;
-$opt_f=`readlink -nf $opt_f`;
+# `readlink -f` will be blank if target not exists.
+system('mkdir','-p',$opt_o);
 
-my @t=`find $opt_r -name '*.index.bwt'`;
+$lopt_i=`readlink -nf $opt_i`;
+$opt_o=`readlink -nf $opt_o`;
+$lopt_r=`readlink -nf $opt_r`;
+$lopt_f=`readlink -nf $opt_f`;
+
+die "[x]-i $opt_i not exists !\n" unless $lopt_i;
+die "[x]-r $opt_r not exists !\n" unless $lopt_r;
+die "[x]-f $opt_f not exists !\n" unless $lopt_f;
+
+my @t=`find $lopt_r -name '*.index.bwt'`;
 $t[0] =~ /(.+\.index)\.\w+$/;
-$opt_r = $1;
+$lopt_r = $1;
 my %Monoploid;
 if ($opt_m) {
 	my @Monoploid=split /,/,$opt_m;
 	++$Monoploid{$_} for @Monoploid;
 }
 
-print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$opt_r][$opt_f]\n";
+print STDERR "From [$lopt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$lopt_r][$lopt_f]\n";
 print STDERR "Monoploid Chr(s):[",join(',',sort keys %Monoploid),"]\n" if %Monoploid;
 print STDERR "DEBUG Mode ON !\n" if $opt_d;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -108,7 +115,7 @@ my $opath;
 ### 1.filter fq
 $opath=$opt_o.'/1fqfilted';
 system('mkdir','-p',$opath);
-my @fq = `find $opt_i -name '*.fq'`;	# no need to sort
+my @fq = `find $lopt_i -name '*.fq'`;	# no need to sort
 chomp @fq;
 my (%fqfile2rawfp,%fq1,%fq2,%fqse,%fqpe);	# no ext.
 #@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
@@ -299,7 +306,7 @@ close O;
 #\$ -hold_jid len_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.ReadLen $opt_r $dir
+perl $SCRIPTS/instsize.pl ${dir}.lst ${dir}.ReadLen $lopt_r $dir
 ";
 		close SH;
 	}
@@ -334,7 +341,7 @@ for my $k (keys %fqse) {
 		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq.se\n";
 		unless (-s "${dir}/${fq}.nfo" or -s "${dir}/${fq}.se.bz2") {
-			print OUT "${path}.ReadLen ${path}/${fq}.fq $opt_r $dir/$fq\n";
+			print OUT "${path}.ReadLen ${path}/${fq}.fq $lopt_r $dir/$fq\n";
 			++$lstcount;
 		}
 	}
@@ -374,7 +381,7 @@ for my $k (keys %fqpe) {
 		++$SoapCount{$sample};
 		print LST "SE\t",$SoapCount{$sample},"\t$dir/$fq1.single\n";
 		unless (-s "${dir}/${fq1}.nfo" or -s "${dir}/${fq1}.soap.bz2") {
-			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $opt_r $dir/$fq1\n";
+			print OUT "${path}.insize ${path}.ReadLen ${path}/$fq1.fq ${path}/$fq2.fq $lopt_r $dir/$fq1\n";
 			++$lstcount;
 #die $fq1 unless $fq2;
 		}
@@ -505,7 +512,7 @@ if (-s "$dir/all.matrix") {
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
 f=`find $lastopath/ -name '*.sp'|xargs ls -lH|awk '{print \$5,\$9}'|sort -nrk1|head -n1|awk '{print \$2}'`
-perl $SCRIPTS/matrix.pl \$f $opt_f $opt_o/1fqfilted $dir/all
+perl $SCRIPTS/matrix.pl \$f $lopt_f $opt_o/1fqfilted $dir/all
 ";
 	close SH;
 }
@@ -539,7 +546,7 @@ unless ($opt_d) {
 #\$ -S /bin/bash -t 1-$lstcount
 SEEDFILE=${dir}/$chr.glfcmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval perl $SCRIPTS/callglf.pl $opath/matrix/all.matrix $opt_f $opt_o/1fqfilted \$SEED
+eval perl $SCRIPTS/callglf.pl $opath/matrix/all.matrix $lopt_f $opt_o/1fqfilted \$SEED
 ";
 		close SH;
 	} else {
