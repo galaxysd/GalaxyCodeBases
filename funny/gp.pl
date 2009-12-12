@@ -92,6 +92,7 @@ MAIN: for my $id (keys %Files) {
 		$Days[$i]=[];
 		push @{$Days[$i]},@{&Cal($_,$max0,$min0)} for @{$Days[$i-1]};
 	}
+=pod
 	my ($ups,$upp,$downs,$downp)=(0,0,0,0);
 	for (@{$Days[-1]}) {
 		my ($cur,$p,$ud)=@$_;
@@ -114,27 +115,44 @@ MAIN: for my $id (keys %Files) {
 		$resv = $downs/$end0;
 		$resp = $downp;
 	}
-	$Values{$ID}=$resv;
-	$P{$ID}=$resp;
+=cut
+	my ($i,$resp)=(0);
+	for my $day (@Days) {
+		++$i;
+		my ($ups,$upp,$downs,$downp)=(0,0,0,0);
+		for (@$day) {
+			my ($cur,$p,$ud)=@$_;
+			if ($cur >= $end0) {
+				$ups += $cur*$p;
+				$upp += $p;
+			} else {
+				$downs += $cur*$p;
+				$downp += $p;
+			}
+		}
+		$resp += $upp;
+	}
+	#$Values{$ID}=$resv;
+	$P{$ID}=$resp/$i;
 #print "$resv\t$resp\n";# if $resv > 1;
 }
 
 warn "[!]$skip skipped !\n" if $skip;
 
-my @KEYs=sort {$Values{$b} <=> $Values{$a}} keys %Values;
+my @KEYs=sort {$P{$b} <=> $P{$a}} keys %P;
 
 for my $i (0..9) {
 	my $key=$KEYs[$i];
-	print "$key\t$Names{$key}:\t$Values{$key}\t$P{$key}\n";
+	print "$key\t$Names{$key}:\t$P{$key}\n";
 }
 print "\n";
 for my $i (-5..-1) {
 	my $key=$KEYs[$i];
-	print "$key\t$Names{$key}:\t$Values{$key}\t$P{$key}\n";
+	print "$key\t$Names{$key}:\t$P{$key}\n";
 }
 
 my %t;
-for (values %Values) {
+for (values %P) {
 	++$t{$_};
 }
 for (sort {$b <=> $a} keys %t) {
