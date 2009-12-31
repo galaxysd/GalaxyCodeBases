@@ -66,7 +66,7 @@ our $sthd=$dbhd->prepare( "SELECT DISTINCT primary_inf,name,start,end FROM gff$o
  (chrid = :1 AND start <= :2 AND end >= :3) OR
  (chrid = :1 AND start >= :2 AND end <= :3)" );
 
-my %Pinf;
+my (%Pinf,%Ainf);
 
 my $sql=q/
 CREATE TABLE IF NOT EXISTS reindel{---}
@@ -105,10 +105,8 @@ sub readindel($$) {
 	my ($file,$sth)=@_;
 	my ($rv,$res,$restr);
 	while (<$file>) {
-#chr11   233018  -       -2      TC      5       2.5     Homo    0,2,0,  1,0,0,   
-#chromosome_1    248078  I1      T       31      7       7       7
-#chromosome_1    255174  D2      GT      29      8       7       15
-		my ($chrid,$pos,$delta,$het)=(split /\t/)[0,1,3,7];
+#chromosome_1    241059  I2      AC      *       hete    28      6       10
+		my ($chrid,$pos,$delta,$het)=(split /\t/)[0,1,2,5];
 		$chrid =~ s/^chr
 			(?>
 				((?<=^chr)o)?
@@ -119,7 +117,11 @@ sub readindel($$) {
 				((?<=^chromoso)m)?
 				((?<=^chromosom)e)?
 			)//xi;
-		my ($start,$end)=sort {$a <=> $b} ($pos,$delta+$pos);
+		$delta =~ /^(\D+?)(\d+)$/;
+		my ($type,$count,$endpos) = ($1,$2,$pos);
+		if ($type =~ /I/i) { $endpos=$pos+$count; }	# well, I/D/etc.
+		 elsif ($type =~ /D/i) { $endpos=$pos-$count; }
+		my ($start,$end)=sort {$a <=> $b} ($pos,$endpos);
 #		($start,$end) = sort {$a <=> $b} ($start,$end);
 #warn "$chrid,$svtype,$start,$end\n" if $start > $end;
 #print "$chrid,$svtype,$start,$end\n"; sleep 1;
@@ -146,6 +148,7 @@ sub readindel($$) {
 			$restr="chr:$chrid\t$pos\t$delta\t$het\t$$res[0]\t$$res[1]\t$$res[2]\t$$res[3]\n";
 			print OUTFILE $restr;
 			++$Pinf{$chrid}{$$res[0]};
+			++$Ainf{$$res[0]};
 			$sth->execute($chrid,$pos,$delta,$het,@$res[0,1]);
 		}
 	}
@@ -169,7 +172,7 @@ for (@files) {
 	readindel($infile,$sth);	# close file within.
 }
 $dbh->commit;
-
+=pod
 print OUTFILE "\n__END__\nSummary:\n";
 for my $chr (sort keys %Pinf) {	# {$a <=> $b}
 	print OUTFILE "chr:$chr\t";
@@ -178,7 +181,20 @@ for my $chr (sort keys %Pinf) {	# {$a <=> $b}
 	}
 	print OUTFILE "\n";
 }
-
+=cut
+print OUTFILE "\n__END__\nSummary:\n#Chr\t";
+my $out;
+print OUTFILE "$_\t" for (sort keys %Ainf);
+print OUTFILE "\n";
+for my $chr (sort keys %Pinf) {	# {$a <=> $b}
+	print OUTFILE "$chr\t";
+	for (sort keys %Ainf) {
+		if (defined $Pinf{$chr}{$_}) {$out=$Pinf{$chr}{$_};}
+		 else {$out=0;}
+		print OUTFILE $out,"\t";
+	}
+	print OUTFILE "\n";
+}
 close OUTFILE;
 
 $sql=q/

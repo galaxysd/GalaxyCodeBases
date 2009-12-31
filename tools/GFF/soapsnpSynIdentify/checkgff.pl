@@ -37,12 +37,6 @@ my %attr = (
     AutoCommit => 0
 );
 my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_i,'','',\%attr) or die $DBI::errstr;
-### /dev/shm
-#my $shm_real='/dev/shm/sqlite_mirror.'.$$;
-#unlink $shm_real;	# Well, what if the computer rebooted and you are so lucky ...
-#system 'cp','-pf',$opt_i,$shm_real;
-###
-#my $dbh = DBI->connect('dbi:SQLite:dbname='.$shm_real,'','',\%attr) or die $DBI::errstr;
 
 my $sth = $dbh->prepare( "SELECT name,strand FROM gff$opt_s
  WHERE primary_inf LIKE '%mRNA' ORDER BY chrid,start,strand" );
@@ -55,14 +49,10 @@ my ($rv,$res,%COUNT,$chrid,$frameC);	#$last_b,$last_e,$strand,$frame,$last_f,
 $COUNT{'1gene'}=$COUNT{'2right'}=$COUNT{'3opp'}=$COUNT{'4err'}=0;
 while ($rv=$sth->fetchrow_arrayref) {
 	++$COUNT{'1gene'};
-	#my $name=$$rv[0];
 print @$rv,"\n" if $opt_v;
 	if ($$rv[1] eq '+') {$sthp->execute($$rv[0]);$res=$sthp->fetchall_arrayref;}
 	  elsif ($$rv[1] eq '-') {$sthm->execute($$rv[0]);$res=$sthm->fetchall_arrayref;}
 	  else {warn "Unexpected strand: $$rv[1] !\n"; next;}
-#	$last_e=$last_f=0;
-#	$last_b=2;
-#print $$rv[0],"[@$res]\n"; sleep 1;
 	my $last_res=shift @$res;	# chrid,start,end,strand,frame
 	next unless defined $last_res;
 	my $last_f=0;
@@ -78,19 +68,7 @@ print "@$_\t",1+$$_[2]-$$_[1],"\t$frameC\n" if $opt_v;
 		if ($frameC == $frame) {++$COUNT{'2right'};}
 		  elsif (abs($frameC-$frame)==1) {++$COUNT{'3opp'};}
 		  else {++$COUNT{'4err'};}
-#print "@$_\t$frameC\n" if $frameC == $frame;
 	}
-=pod
-	for (@$res) {
-print "@$_\tmain:",(1+abs($last_b-$last_e))%3,",last:$last_f";
-		$last_f=$frameC=((1+abs($last_b-$last_e))-$last_f) % 3;
-		($chrid,$last_b,$last_e,$strand,$frame)=@$_;
-		#$last_f -= (1+abs($last_b-$last_e))%3;
-
-print ",Cur:$frameC\n";
-		
-	}
-=cut
 }
 for (sort keys %COUNT) {
 #	$COUNT{$_}=0 unless $COUNT{$_};
@@ -104,16 +82,8 @@ if ($COUNT{'4err'} > 0) {print "Wrong GFF frames !\nPlease run fixgff.pl\n"}
 $dbh->rollback;
 $dbh->disconnect;
 
-### /dev/shm
-#my $shm_real='/dev/shm/'.basename($opt_o);
-#unlink $shm_real;
-###
-
-#END
 my $stop_time = [gettimeofday];
 
-$|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 
 print STDERR "\033[32;1m Please use [$opt_s] as Specie name in later steps.\033[0;0m\n";
-__END__
