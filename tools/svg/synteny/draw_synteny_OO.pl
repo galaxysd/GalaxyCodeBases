@@ -276,6 +276,10 @@ for my $key (keys %Chr1) {
 	$Synteny_length_bp{$key} = ($Seq1_len >= $Seq2_lenA) ? $Seq1_len : $Seq2_lenA;
 	my $X_start=0;
 
+	# Ruler1
+	#plot_ruler("svg",$svg,"Y",$backbone2_height + 100 + $y_margin, "X_start",$synteny_Xstart+$X_start,"X_end",$synteny_Xstart+$X_start+$Seq2_len* $figure_resolution,"bp_start",$Seq2_start,"bp_end",$Seq2_end,"scaletype","Kb","scaletypepos","right","scalestart","auto","rulerstyle",2,"bigscalesize",$big_scale);
+	push @{$SVG{$key}{'Ruler1'}},[0,$Seq1_start,$Seq1_len];
+
 	if(defined $contig1_file && exists $contig1{$Seq1_name}) {
 		$toShow{'Bar1'}=1;
 		for (@{$contig1{$Seq1_name}}) {
@@ -325,12 +329,26 @@ for my $key (keys %Chr1) {
 			}
 		}
 
+	my $count2=0;
 	for (@{$Chr1{$key}}) {
+		++$count2;
 		my ($Seq1_name,$Seq1_start,$Seq1_end,$Seq2_name,$Seq2_start,$Seq2_end,$Reverse) = @$_;
 		#my $Seq1_len = $Seq1_end - $Seq1_start +1;
 		my $Seq2_len = $Seq2_end - $Seq2_start +1;
+		push @{$SVG{$key}{'Ruler2'}},[$X_start,$Seq2_start,$Seq2_len];
 		#$SVG{$key}{'Name1'}=[[$Seq1_name,0,$Seq1_len]];
 		push @{$SVG{$key}{'Name2'}},[$Seq2_name,$X_start,$Seq2_len];
+
+# »¹Ã»¿¼ÂÇ¸ºÁ´¡­¡­
+	if(defined $contig2_file && exists $contig2{$Seq2_name}) {
+		$toShow{'Bar2'}=1;
+		for (@{$contig2{$Seq2_name}}) {
+			my ($start,$end)=@$_;
+			my $str="$count2: $Seq2_name";
+			push @{$SVG{$key}{'Bar2'}},[$str,$X_start+$start-$Seq2_start+1,$end-$start+1,'black'];#($str,$margin+$start,$len,$color)
+		}
+	}
+
 		if (defined $TE2_file && exists $TE2{$Seq2_name}) {
 			$toShow{'TE2'}=1;
 			my $Seq2_p = $TE2{$Seq2_name};
@@ -369,9 +387,40 @@ for (@Order) {
 $HeightPoint -= $Y_junt;
 $HeightPoint = ($img_height-2*$y_margin)/$HeightPoint;
 our ($Y_start,$svg);
+#our $MaxLenBP;
+my $Ln10=2.30258509299405;
+my $Lg2=0.301029995663981;
+my $Lg5=0.698970004336019;
+our $OTF;	# One,Two,Five
+our ($cStepN,$cStepKMGT,$cStepKMGTn);	# cent. step
 
 for my $key (keys %SVG) {
-	$WidthPoint = ($img_width-2*$x_margin)/$Synteny_length_bp{$key};
+	my $MaxLenBP = $Synteny_length_bp{$key};
+	my $LG_MaxLenBP = log($MaxLenBP)/$Ln10;
+	$WidthPoint = ($img_width-2*$x_margin)/$MaxLenBP;
+	# for Ruler
+	my $LG_Main=int($LG_MaxLenBP);
+	my $LG_suf=$LG_MaxLenBP-$LG_Main;
+	$cStepN=$LG_Main-1;
+	if ($LG_suf==0) { $OTF=1; }
+	elsif ($LG_suf<=$Lg2) { $OTF=2; }
+	elsif ($LG_suf<=$Lg5) { $OTF=5; }
+	elsif ($LG_suf<=1) { $OTF=10;$cStepN=$LG_Main; }
+	else { $OTF=20;$cStepN=$LG_Main; }	# impossible
+=pod
+	if ($cStepN>=24) {$cStepKMGT='Y';$cStepKMGTn=1000000000000000000000000;}
+	elsif ($cStepN>=21) {$cStepKMGT='Z';$cStepKMGTn=1000000000000000000000;}
+	elsif ($cStepN>=18) {$cStepKMGT='E';$cStepKMGTn=1000000000000000000;}
+	elsif ($cStepN>=15) {$cStepKMGT='P';$cStepKMGTn=1000000000000000;}
+	els
+=cut No Genome can larger than 1P. Human only 3G.
+	if ($cStepN>=12) {$cStepKMGT='T';$cStepKMGTn=1000000000000;}
+	elsif ($cStepN>=9) {$cStepKMGT='G';$cStepKMGTn=1000000000;}
+	elsif ($cStepN>=6) {$cStepKMGT='M';$cStepKMGTn=1000000;}
+	elsif ($cStepN>=3) {$cStepKMGT='K';$cStepKMGTn=1000;}
+	else {$cStepKMGT='';$cStepKMGTn=1;}
+	$cStepN=$OTF*10^($LG_Main-2);
+
 	$svg = SVG->new('width',$img_width,'height',$img_height);
 $svg->rect('x',0,'y',$img_height/2,'height',$y_margin,'width',$img_width,'fill','black');
 $svg->rect('x',$x_margin,'y',$y_margin,'height',$img_height-2*$y_margin,'width',$img_width-2*$x_margin,'stroke','black','fill','rgb(196,196,196)');
@@ -408,6 +457,21 @@ $svg->rect('x',$x_margin, 'y',$Y_start,'width',$img_width-2*$x_margin,'height',$
 
 sub SVG_Ruler($$) {
 $svg->rect('x',$x_margin, 'y',$Y_start,'width',$img_width-2*$x_margin,'height',$Heights{$_[0]}*$HeightPoint,'fill','none','stroke','blue');
+### Use $WidthPoint; $MaxLenBP; $cStepN,$cStepKMGT,$cStepKMGTn
+	my ($margin,$start,$len)=@{$_[1]};
+	my $height=$Heights{$_[0]}*$HeightPoint;
+	my $g = $svg->group();
+	my $y=$Y_start+$height/2;
+	my $x1=$x_margin+($start+$margin)*$WidthPoint;
+	$g->line('x1',$x1,'y1',$y,'x2',$x1+$len*$WidthPoint,'y2',$y,'stroke','black','stroke-width',$height/16);
+	my $PosBP=$start;
+	my $h=$height/8;
+	while ($PosBP<=$len) {
+		my $x=$x_margin+($PosBP+$margin)*$WidthPoint;
+		$g->line('x1',$x,'y1',$y,'x2',$x,'y2',$y+$h,'stroke','red','stroke-width',$height/16);
+
+		$PosBP += $cStepN*100;
+	}
 }
 sub SVG_mRNA($$) {
 $svg->rect('x',$x_margin, 'y',$Y_start,'width',$img_width-2*$x_margin,'height',$Heights{$_[0]}*$HeightPoint,'fill','none','stroke','blue');
