@@ -6,7 +6,7 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.2;
+$main::VERSION=0.2.3;
 
 our $opts='i:o:s:bva';
 our($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_a);
@@ -106,16 +106,18 @@ sub read_gene_gff($$) {
 	my ($tag,$value) = split /=/,$group;
 	$tag             = unescape($tag);
 	my @values       = map {unescape($_)} split /,/,$value;
-	$groups{$tag}=$value[0];	# silly patch for those alter-splices
+	$groups{$tag}=\@values;	# patch for those alter-splices
     }
 	my @name_order=qw/Parent ID/;
 	@name_order=qw/ID Parent/ if $primary =~ /mRNA/;
 	for (@name_order) {
 		if ($groups{$_}) {$name=$groups{$_};last;}
 	}
-	@dat=($seqname,$primary,$start,$end,$strand,$frame,$groups,$name);
-	$$dbh->execute( @dat );
-	print "$seqname,$primary,$start,$end,$strand,$frame,$name\n" if $opt_v;
+	for (@$name) {
+		@dat=($seqname,$primary,$start,$end,$strand,$frame,$groups,$_);
+		$$dbh->execute( @dat );
+		print "$seqname,$primary,$start,$end,$strand,$frame,$_\n" if $opt_v;
+	}
     }
     $$dbh->finish;
     return 1;
