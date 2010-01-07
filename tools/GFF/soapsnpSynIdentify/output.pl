@@ -7,7 +7,7 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.2;
+$main::VERSION=0.2.3;
 
 our $opts='i:o:s:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d);
@@ -42,7 +42,7 @@ $srdhi->execute;
 ###################
 sub write2file($) {
 	my $specname=$_[0];
-	my (%utr5,%utr3,%scds,%nscds,%unknown,%rest,%intron,%id,%primary,%err);
+	my (%utr5,%utr3,%scds,%nscds,%unknown,%rest,%intron,%id,%primary,%err,%gene,%exon);
 	open FH,'>',$opt_o or die "Error: $!\n";
 	print FH "#name\tChrID\tPosition\tPrimaryINF\tRef_base\tSNP_base\tRNA_chg\tAA_chg\tAA_Changed\tStrand\tReg_start\tReg_end\tGroupINF\n";
 	while (my $ary_ref = $srdhi->fetchrow_arrayref) {
@@ -60,11 +60,13 @@ sub write2file($) {
 		if ($primary_inf =~ /(5|f).*UTR$/i) {++$utr5{$chrid};goto PRINT;}
 		if ($primary_inf =~ /(3|t).*UTR$/i) {++$utr3{$chrid};goto PRINT;}
 		if ($primary_inf =~ /intron/i) {++$intron{$chrid};goto PRINT;}
+		if ($primary_inf =~ /exon/i) {++$exon{$chrid};goto PRINT;}
+		if ($primary_inf =~ /gene/i) {++$gene{$chrid};goto PRINT;}
 		++$rest{$chrid};
 PRINT:
 		print FH "$name\t$chrid\t$position\t$primary_inf\t$ref_base\t$snp_base\t$rna_chg\t$aa_chg\t$chged\t$strand\t$start\t$end\t$groups\n";
 	}
-	my $out="\n__END__\n#ChrID\t5'-UTR\t3'-UTR\tSyn_CDS\tNon-syn_CDS\tUnknown_CDS\tIntron\tRest\tError\tSum\n";
+	my $out="\n__END__\n#ChrID\t5'-UTR\t3'-UTR\tSyn_CDS\tNon-syn_CDS\tUnknown_CDS\tIntron\tRest\tError\tGene\tExon\tSum\n";
 	print $out;
 	print FH $out;
 	my $print_primary=0;
@@ -76,8 +78,11 @@ PRINT:
 		$unknown{$_}=0 if ! defined $unknown{$_};
 		$rest{$_}=0 if ! defined $rest{$_};
 		$intron{$_}=0 if ! defined $intron{$_};
+		$err{$_}=0 if ! defined $err{$_};
+		$gene{$_}=0 if ! defined $gene{$_};
+		$exon{$_}=0 if ! defined $exon{$_};
 		$print_primary=1 if $rest{$_}==0;
-		my $out="Chr$_\t$utr5{$_}\t$utr3{$_}\t$scds{$_}\t$nscds{$_}\t$unknown{$_}\t$intron{$_}\t$rest{$_}\t$err{$chrid}\t$id{$_}\n";
+		my $out="Chr$_\t$utr5{$_}\t$utr3{$_}\t$scds{$_}\t$nscds{$_}\t$unknown{$_}\t$intron{$_}\t$rest{$_}\t$err{$_}\t$gene{$_}\t$exon{$_}\t$id{$_}\n";
 		print $out;
 		print FH $out;
 	}
