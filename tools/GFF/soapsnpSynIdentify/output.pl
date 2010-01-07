@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
 use threads;
 use strict;
 use warnings;
@@ -6,8 +7,7 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.1;
-# last modified: 20090801	Print keys(%Primary_Info) if sum(value %rest) > 0;
+$main::VERSION=0.2.2;
 
 our $opts='i:o:s:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d);
@@ -42,7 +42,7 @@ $srdhi->execute;
 ###################
 sub write2file($) {
 	my $specname=$_[0];
-	my (%utr5,%utr3,%scds,%nscds,%unknown,%rest,%intron,%id,%primary);
+	my (%utr5,%utr3,%scds,%nscds,%unknown,%rest,%intron,%id,%primary,%err);
 	open FH,'>',$opt_o or die "Error: $!\n";
 	print FH "#name\tChrID\tPosition\tPrimaryINF\tRef_base\tSNP_base\tRNA_chg\tAA_chg\tAA_Changed\tStrand\tReg_start\tReg_end\tGroupINF\n";
 	while (my $ary_ref = $srdhi->fetchrow_arrayref) {
@@ -50,18 +50,21 @@ sub write2file($) {
 		++$id{$chrid};
 		++$primary{$primary_inf};
 		if ($primary_inf =~ /CDS$/) {
+			unless (defined $aa_chg) {
+				$rna_chg=$aa_chg=$chged='Error';++$err{$chrid};goto PRINT;
+			}
 			if ($chged==1) {$chged='Non_Syn';++$nscds{$chrid};goto PRINT;}
 			if ($chged==0) {$chged='Syn';++$scds{$chrid};goto PRINT;}
 			if ($chged==-1) {$chged='Unknown';++$unknown{$chrid};goto PRINT;}
 		} else {$rna_chg=$aa_chg=$chged='N/A' unless defined $aa_chg;}
-		if ($primary_inf =~ /5.*UTR/) {++$utr5{$chrid};goto PRINT;}
-		if ($primary_inf =~ /3.*UTR/) {++$utr3{$chrid};goto PRINT;}
+		if ($primary_inf =~ /(5|f).*UTR$/i) {++$utr5{$chrid};goto PRINT;}
+		if ($primary_inf =~ /(3|t).*UTR$/i) {++$utr3{$chrid};goto PRINT;}
 		if ($primary_inf =~ /intron/i) {++$intron{$chrid};goto PRINT;}
 		++$rest{$chrid};
 PRINT:
 		print FH "$name\t$chrid\t$position\t$primary_inf\t$ref_base\t$snp_base\t$rna_chg\t$aa_chg\t$chged\t$strand\t$start\t$end\t$groups\n";
 	}
-	my $out="\n__END__\n#ChrID\t5'-UTR\t3'-UTR\tSyn_CDS\tNon-syn_CDS\tUnknown_CDS\tIntron\tRest\tSum\n";
+	my $out="\n__END__\n#ChrID\t5'-UTR\t3'-UTR\tSyn_CDS\tNon-syn_CDS\tUnknown_CDS\tIntron\tRest\tError\tSum\n";
 	print $out;
 	print FH $out;
 	my $print_primary=0;
@@ -74,7 +77,7 @@ PRINT:
 		$rest{$_}=0 if ! defined $rest{$_};
 		$intron{$_}=0 if ! defined $intron{$_};
 		$print_primary=1 if $rest{$_}==0;
-		my $out="Chr$_\t$utr5{$_}\t$utr3{$_}\t$scds{$_}\t$nscds{$_}\t$unknown{$_}\t$intron{$_}\t$rest{$_}\t$id{$_}\n";
+		my $out="Chr$_\t$utr5{$_}\t$utr3{$_}\t$scds{$_}\t$nscds{$_}\t$unknown{$_}\t$intron{$_}\t$rest{$_}\t$err{$chrid}\t$id{$_}\n";
 		print $out;
 		print FH $out;
 	}

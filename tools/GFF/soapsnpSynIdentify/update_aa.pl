@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
 use threads;
 use strict;
 use warnings;
@@ -6,7 +7,7 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.1;
+$main::VERSION=0.2.2;
 
 our $opts='i:o:s:d:bvf';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_f);
@@ -97,7 +98,7 @@ sub q_3CDS($$$) {
 		if ($#$qres == -1) {
 			warn "No info. for $name\t$seqname\t$position !\n";
 			return [[],'NA'];
-		} else {warn "$#$qres more hit(s) for $name\$seqname\t$position !\n";} 
+		} else {warn "$#$qres more hit(s) for $name\$seqname\t$position !\n";}
 	}
 	$mRNAstart=$$qres[0][2];
 	$mRNAend=$$qres[0][3];
@@ -196,11 +197,14 @@ sub q_aa($$$$$$$) {
 		$pos_rel += 3-$CDS_arr->[1]->[2];
 	} elsif ( $position > $centerCDS[0] and $strand eq '-' ) {
 		($sense_seq_ref,$pos_rel)=@{q_subseq($genome_hash,$seqname,$$CDS_arr[1],$strand,$position)};
-		@compCDS=( $CDS_arr->[2]->[0],$CDS_arr->[2]->[0] + 2-$CDS_arr->[1]->[2] );
+		@compCDS=( $CDS_arr->[2]->[0],$CDS_arr->[2]->[0] + 2-$CDS_arr->[1]->[1] );
 		($comp_seq_ref,undef)=@{q_subseq($genome_hash,$seqname,\@compCDS,$strand,$position)};
 		$$comp_seq_ref .= $$sense_seq_ref;
 		$pos_rel += 3-$CDS_arr->[1]->[2];
-	} else { die "ERROR in q_aa() !"; }
+	} else {
+		warn "ERROR in q_aa() !\n$position,[$CDS_arr->[1]->[0],$CDS_arr->[1]->[1]] $strand ";
+		return [];	# well, a bit smoke
+	}
 	my @aa_chg=@{q_aa_chg($comp_seq_ref,$pos_rel,$ref_base,$snp_base,$strand)};
 	return \@aa_chg;
 }
