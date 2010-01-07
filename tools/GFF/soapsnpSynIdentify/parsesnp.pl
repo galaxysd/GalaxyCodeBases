@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
 use threads;
 use strict;
 use warnings;
@@ -6,13 +7,14 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.0;
+$main::VERSION=0.2.1;
 
-our $opts='i:o:s:d:bv';
-our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d);
+our $opts='i:o:s:d:bvp';
+our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_p);
 
 our $help=<<EOH;
 \t-i Input SNP file (Human.Q20)
+\t-p Input SNP file is of a population (*.add_ref)
 \t  [Chromosome name will be striped.]
 \t-s Specie name (human)
 \t  [Specie name MUST be ths SAME throughout !]
@@ -30,6 +32,7 @@ $opt_d='_dbGFF.sqlite' if ! $opt_d;
 $opt_s='human' if ! $opt_s;
 
 print STDERR "From [$opt_i][$opt_d] to [$opt_o], Specie:[$opt_s]\n";
+if ($opt_p) {print STDERR "Population mode ON.\n";}
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -120,7 +123,34 @@ sub do_snp($$$) {
     while (<FILE>) {
 	next if /^\s+$/ or /^;+/;
 	chomp;
-	my ($seqname, $position, $refseq, $snpseq, $snp_q) = split /\t/;
+	my ($seqname, $position, $refseq, $snpseq, $snp_q);
+	@snpseqd=();
+	$snpseqds='';
+	if ($opt_p) {
+		my ($snp_pop,@snpop,%bases);
+		($seqname, $position, $refseq, $snp_pop) = split /\t/;
+		$snp_q=100;	# dummy
+		@snpop=split / /,$snp_pop;
+		for (@snpop) {
+			next if $_ eq '-';
+			$snpseq=$IUB{$_};
+			for (@$snpseq) {
+				next if $_ eq $refseq;
+				++$bases{$_};
+			}
+		}
+		@snpseqd=keys %bases;
+		$snpseqds=join '',@snpseqd;
+	} else {
+		($seqname, $position, $refseq, $snpseq, $snp_q) = split /\t/;
+		$snpseq=$IUB{$snpseq};
+		for (@$snpseq) {
+		   next if $_ eq $refseq;
+		   push @snpseqd,$_;
+		   $snpseqds .= $_;
+		}
+		warn "Not 1 SNP exists as $seqname\t$position\t$refseq\t@${snpseq}\t${snp_q} !\n" if $#snpseqd!=0;
+	}
 	$seqname =~ s/^chr
 			(?>
 				((?<=^chr)o)?
@@ -131,15 +161,6 @@ sub do_snp($$$) {
 				((?<=^chromoso)m)?
 				((?<=^chromosom)e)?
 			)//xi;
-	$snpseq=$IUB{$snpseq};
-	@snpseqd=();
-	$snpseqds='';
-	for (@$snpseq) {
-	   next if $_ eq $refseq;
-	   push @snpseqd,$_;
-	   $snpseqds .= $_;
-	}
-	warn "Not 1 SNP exists as $seqname\t$position\t$refseq\t@${snpseq}\t${snp_q} !\n" if $#snpseqd!=0;
 	$$dbhs->execute( $seqname, $position ) or die $$dbhs->errstr;
 	$qres = $$dbhs->fetchall_arrayref;
 	if ($#$qres == -1) {
