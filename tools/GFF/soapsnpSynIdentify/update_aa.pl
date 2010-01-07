@@ -197,7 +197,7 @@ sub q_aa($$$$$$$) {
 		$pos_rel += 3-$CDS_arr->[1]->[2];
 	} elsif ( $position > $centerCDS[0] and $strand eq '-' ) {
 		($sense_seq_ref,$pos_rel)=@{q_subseq($genome_hash,$seqname,$$CDS_arr[1],$strand,$position)};
-		@compCDS=( $CDS_arr->[2]->[0],$CDS_arr->[2]->[0] + 2-$CDS_arr->[1]->[1] );
+		@compCDS=( $CDS_arr->[2]->[0],$CDS_arr->[2]->[0] + 2-$CDS_arr->[1]->[2] );
 		($comp_seq_ref,undef)=@{q_subseq($genome_hash,$seqname,\@compCDS,$strand,$position)};
 		$$comp_seq_ref .= $$sense_seq_ref;
 		$pos_rel += 3-$CDS_arr->[1]->[2];
