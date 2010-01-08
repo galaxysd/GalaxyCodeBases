@@ -15,8 +15,8 @@ my $dayUD = shift;
 my $Days=5;
 my $UpRatio=.6;
 my $UpRate=.02;
-my $BorderRatioU=4;	# 1/4
-my $BorderRatioD=5;	# 1/5
+my $BorderRatioU=1/4;	# 1/4
+my $BorderRatioD=1/5;	# 1/5
 
 $dayUD=2 unless $dayUD;
 $dayUD=2 unless $dayUD == 1;
@@ -34,10 +34,10 @@ sub Cal($$$) {
 	my ($inref,$max,$min)=@_;
 	my ($cur,$p,$ud)=@$inref;
 	my ($av,$ap,$aud,$bv,$bp,$bud);
-	if ($cur*(1+$BorderRatioU*$UpRate) > $max) {
+	if ($cur*(1+$UpRate) > $max) {
 		$aud=$bud=-1;
 		$ap=$bp=$p*0.5;
-	} elsif ($cur*(1-$BorderRatioD*$UpRate) < $min) {
+	} elsif ($cur*(1-$UpRate) < $min) {
 		$aud=$bud=1;
 		$ap=$bp=$p*0.5;
 	} else {
@@ -88,9 +88,11 @@ MAIN: for my $id (keys %Files) {
 	#my $Result=&Cal($max0,$min0,$end0);
 	my $UDbegin=($end0>=$endpre)?1:-1;
 	my @Days=([[$end0,1,$UDbegin]]);	# ($cur,$p,$ud)
+	my $max=($max0-$end0)*$BorderRatioU+$end0;
+	my $min=($end0-$min0)*$BorderRatioU+$end0;
 	for (my $i=1;$i<$Days;$i++) {	# 0..4
 		$Days[$i]=[];
-		push @{$Days[$i]},@{&Cal($_,$max0,$min0)} for @{$Days[$i-1]};
+		push @{$Days[$i]},@{&Cal($_,$max,$min)} for @{$Days[$i-1]};
 	}
 =pod
 	my ($ups,$upp,$downs,$downp)=(0,0,0,0);
