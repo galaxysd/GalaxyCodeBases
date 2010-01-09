@@ -36,10 +36,12 @@ sub Cal($$$) {
 	my ($av,$ap,$aud,$bv,$bp,$bud);
 	if ($cur*(1+$UpRate) > $max) {
 		$aud=$bud=-1;
-		$ap=$bp=$p*0.5;
+		$ap=$p;
+		$bp=0;
 	} elsif ($cur*(1-$UpRate) < $min) {
 		$aud=$bud=1;
-		$ap=$bp=$p*0.5;
+		$ap=$p;
+		$bp=0;
 	} else {
 		$aud=$ud;
 		$bud=-$ud;
@@ -48,9 +50,11 @@ sub Cal($$$) {
 	}
 
 	$av=$cur*(1+$aud*$UpRate);
-	$bv=$cur*(1+$bud*$UpRate);
+	$bv=$cur*(1+$bud*$UpRate) if $bp != 0;
+	if ($bp == 0) { return [[$av,$ap,$aud]]; }
+	 else {return [[$av,$ap,$aud],[$bv,$bp,$bud]];}
 	#my @t=([$av,$ap,$aud],[$bv,$bp,$bud]);
-	return [[$av,$ap,$aud],[$bv,$bp,$bud]];
+	#return [[$av,$ap,$aud],[$bv,$bp,$bud]];
 }
 
 my $skip=0;
@@ -62,9 +66,8 @@ MAIN: for my $id (keys %Files) {
 	$Names{$ID}=$2;
 #print "$id\t$1\t",$Names{$ID},"\n";
 	<IN>;
-	my ($max0,$min0,$end0,$endpre,$endpt)=(-999999,999999,-1,-1);
+	my ($max0,$min0,$end0,$endpre,$endpt)=(-999999,999999,-1,-1,-1);
 	while (<IN>) {
-		$endpt=$end0;
 #      日期	    开盘	    最高	    最低	    收盘	    成交量	    成交额
 		my ($dateitem,$begin,$max,$min,$end)=split /\t/;
 		$max0=$max if $max0<$max;
@@ -73,12 +76,14 @@ MAIN: for my $id (keys %Files) {
 			$end0=$end;
 			$endpre=($dayUD==2)?$endpt:$begin;
 		}
+		$endpt=$end;
 	}
 	close IN;
 	$Max{$id}=$max0;
 	$Min{$id}=$min0;
 #print "$Max{$id},$Min{$id}\t$end0\n";
-	unless ($end0) {
+	if ($end0==-1 or $endpre==-1 or $end0==$endpre) {
+#	if ($end0==-1 or $end0==$endpre or ! defined $endpre) {
 		#warn "[!]$date not found in $id !\n";
 		++$skip;
 		next MAIN;
@@ -88,9 +93,10 @@ MAIN: for my $id (keys %Files) {
 	#my $Result=&Cal($max0,$min0,$end0);
 	my $UDbegin=($end0>=$endpre)?1:-1;
 	my @Days=([[$end0,1,$UDbegin]]);	# ($cur,$p,$ud)
+	#my @Days=([[$end0,$UpRatio,$UDbegin],[$end0,1-$UpRatio,-$UDbegin]]);
 	my $max=($max0-$end0)*$BorderRatioU+$end0;
 	my $min=($min0-$end0)*$BorderRatioU+$end0;
-	for (my $i=1;$i<$Days;$i++) {	# 0..4
+	for (my $i=1;$i<=$Days;$i++) {	# 0..4
 		$Days[$i]=[];
 		push @{$Days[$i]},@{&Cal($_,$max,$min)} for @{$Days[$i-1]};
 	}
@@ -100,7 +106,8 @@ MAIN: for my $id (keys %Files) {
 		my ($ups,$upp,$downs,$downp)=(0,0,0,0);
 		for (@$day) {
 			my ($cur,$p,$ud)=@$_;
-			if ($cur >= $end0) {
+			#if ($cur >= $end0) {
+			if ($ud == 1) {
 				$ups += $cur*$p;
 				$upp += $p;
 			} else {
