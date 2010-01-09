@@ -89,35 +89,11 @@ MAIN: for my $id (keys %Files) {
 	my $UDbegin=($end0>=$endpre)?1:-1;
 	my @Days=([[$end0,1,$UDbegin]]);	# ($cur,$p,$ud)
 	my $max=($max0-$end0)*$BorderRatioU+$end0;
-	my $min=($end0-$min0)*$BorderRatioU+$end0;
+	my $min=($min0-$end0)*$BorderRatioU+$end0;
 	for (my $i=1;$i<$Days;$i++) {	# 0..4
 		$Days[$i]=[];
 		push @{$Days[$i]},@{&Cal($_,$max,$min)} for @{$Days[$i-1]};
 	}
-=pod
-	my ($ups,$upp,$downs,$downp)=(0,0,0,0);
-	for (@{$Days[-1]}) {
-		my ($cur,$p,$ud)=@$_;
-#warn "[$cur,$p,$ud]\n";
-		if ($cur >= $end0) {
-			$ups += $cur*$p;
-			$upp += $p;
-		} else {
-			$downs += $cur*$p;
-			$downp += $p;
-		}
-	}
-	$ups /= $upp unless $upp==0;
-	$downs /= $downp unless $downp==0;
-	my ($resv,$resp);
-	if ($upp >= $downp) {
-		$resv = $ups/$end0;
-		$resp = $upp;
-	} else {
-		$resv = $downs/$end0;
-		$resp = $downp;
-	}
-=cut
 	my ($i,$resp)=(0);
 	for my $day (@Days) {
 		++$i;
