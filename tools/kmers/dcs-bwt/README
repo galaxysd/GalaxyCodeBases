@@ -1,0 +1,54 @@
+Copyright 2007 Google Inc.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+------------------------------------------------------------------
+
+This package contains an experimental data compression program
+based on the Burrows-Wheeler transform.
+
+Features include:
+ * Modular structure that separates the Burrows-Wheeler transform stage
+   from the compression stage and offers multiple algorithms for each stage.
+   New algorithms can be added with minimal changes to the existing code.
+   The algorithms and their parameters can be given on command line.
+ * An implementation of the Burrows-Wheeler transform that is fast
+   for all inputs. It is based on the algorithm described in
+	Karkkainen, Burkhardt: Fast lightweight suffix array construction
+	and checking. CPM '03.
+
+This code is currently intended for experimenting with Burrows-Wheeler
+compression and is not suitable for archiving.
+
+USAGE
+-----
+
+Compiling:
+> cd src
+> make
+
+Compressing:
+> src/dcsbwt [options] uncompressed-input-file compressed-output-file
+
+Decompressing:
+> src/dcsunbwt [options] compressed-input-file uncompressed-output-file
+
+Testing (currently only some modules):
+> cd test
+> make
+
+Running the programs without arguments gives the list of options.
+Further documentation can be found in the code itself.
+
