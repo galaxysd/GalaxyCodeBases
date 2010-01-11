@@ -34,6 +34,8 @@
 #include "bw_transform.h"
 #include "stream.h"
 #include "inttypes.h"
+#include <string.h>
+#include <stdlib.h>
 
 #include <iostream>
 #include <cstdlib>    // for strtoll

@@ -54,6 +54,7 @@
 #ifndef DCSBWT_DIFFERENCE_COVER_H__
 #define DCSBWT_DIFFERENCE_COVER_H__
 
+#include <assert.h>
 #include <vector>
 
 namespace dcsbwt {

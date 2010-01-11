@@ -85,6 +85,7 @@
 
 #include "inttypes.h"
 
+#include <assert.h>
 #include <vector>
 #include <cstdio>
 
