@@ -1,18 +1,17 @@
-package Galaxy::ShowHelp;
-#package main;
+#package Galaxy::ShowHelp;
+package main;
+
 use strict;
 use Getopt::Std;
-#use Exporter 'import';
-#our @EXPORT = qw(ShowHelp);
-our $VERSION = '0.05';
+##our $VERSION   = v0.0.3;
 
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 
 sub main::ShowHelp() {
 #	my ($opt,$help)=@_;
 	if (@main::ARGV == 0) {
-		&main::VERSION_MESSAGE();
-		&main::HELP_MESSAGE();
+		&VERSION_MESSAGE();
+		&HELP_MESSAGE();
 		die "\n";
 		#return 0;
 	}
@@ -21,19 +20,20 @@ sub main::ShowHelp() {
 
 sub main::HELP_MESSAGE() {
     #my ($scr) = ($0 =~ m,([^/\\]+)$,);
-	$main::help =~ s|\[|[\033[0;0m|g;
-	$main::help =~ s|\]|\033[32;1m]|g;
-	$main::help =~ s|\(|(\033[0;1m|g;
-	$main::help =~ s|\)|\033[32;1m)|g;
-	$main::help =~ s|:(\s*\n?\s*)(\S)|:$1\033[0;1m$2|g;
+#    my $help=$_[0];
+$main::help =~ s|\[|[\033[0;0m|g;
+$main::help =~ s|\]|\033[32;1m]|g;
+$main::help =~ s|\(|(\033[0;1m|g;
+$main::help =~ s|\)|\033[32;1m)|g;
+$main::help =~ s|:(\s*\n?\s*)(\S)|:$1\033[0;1m$2|g;
 
-	$main::help =~ s|\\\[\033\[0;0m|[|g;
-	$main::help =~ s|\\\033\[32;1m\]|]|g;
-	$main::help =~ s|\\\(\033\[0;1m|(|g;
-	$main::help =~ s|\\\033\[32;1m\)|)|g;
-	$main::help =~ s|\\:(\s*\n?\s*)\033\[0;1m|:$1|g;
+$main::help =~ s|\\\[\033\[0;0m|[|g;
+$main::help =~ s|\\\033\[32;1m\]|]|g;
+$main::help =~ s|\\\(\033\[0;1m|(|g;
+$main::help =~ s|\\\033\[32;1m\)|)|g;
+$main::help =~ s|\\:(\s*\n?\s*)\033\[0;1m|:$1|g;
 
-	$main::help =~ s|\n|\033[32;1m\n|g;
+$main::help =~ s|\n|\033[32;1m\n|g;
 	print STDERR <<EOH;
 \nUsage: \033[0;1m$0\033[0;0m [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
 
