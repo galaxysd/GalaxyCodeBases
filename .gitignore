@@ -9,3 +9,4 @@ test.pl
 *~
 soap/adapterfilter/?/*
 .svn/
+blib/
