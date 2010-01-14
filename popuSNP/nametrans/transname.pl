@@ -1,20 +1,21 @@
-#!/home/huxuesong/gentoo/usr/bin/perl -w
+#!/bin/env perl
 #use threads;
 use strict;
 use warnings;
 use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
-$main::VERSION=0.1.0;
+$main::VERSION=0.1.1;
 
-our $opts='i:o:m:bv';
-our($opt_i, $opt_o, $opt_v, $opt_b, $opt_m);
+our $opts='i:o:m:bvp';
+our($opt_i, $opt_o, $opt_v, $opt_b, $opt_m, $opt_p);
 
 #our $desc='SoapSort library PCR PE Duplication Remover & Merger (Atom Edition)';
 our $help=<<EOH;
 \t-i Input file, in format: /^ChrID\\tPos\\t.*\\n\$/
 \t-m merge list, in format: /^ChrID\\tscaffoldID\\tChrStart\\tChrStop\\n\$/
 \t-o Output file
+\t-p only part of the ChrID needs to change
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
@@ -89,8 +90,13 @@ while (<IN>) {
 	$stho->execute($chrid,$pos);
 	$qres = $stho->fetchall_arrayref;
 	if ($#$qres == -1) {
-		warn "No info. for $chrid:$pos, skipped.\n";
-		next;
+		if ($opt_p) {
+			print OUT join("\t",$chrid,$pos,@last);
+			next;
+		} else {
+			warn "No info. for $chrid:$pos, skipped.\n";
+			next;
+		}
 	} elsif ($#$qres != 0) { warn "More than 1 hit, using first.\n" }
 	($scaffold,$start,$end)=@{$$qres[0]};
 	$newpos=1+$pos-$start;
