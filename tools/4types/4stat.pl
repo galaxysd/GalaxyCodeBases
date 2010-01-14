@@ -114,7 +114,7 @@ while (<C>) {
 close C;
 
 open( D,'>',$opt_d) or die "[x]Error creating details file: $!\n";
-print D ";Group Dump file\n[SampleID]\n";
+print D ";Group Dump file\n\n[SampleID]\n";
 open( L,'<',$opt_i) or die "[x]Error: $!\n";
 while (<L>) {
 	use integer;
@@ -123,7 +123,7 @@ while (<L>) {
 	push @Samples,$id;
 	$bit=1;
 	$bit *= 2 for (1..$i);
-	warn "$i  $id\t$file\n";
+	warn "$i\t",chr(65+$i),"\t$id\n   $file\n";
 	print D chr(65+$i)," = $id\n";
 	$Log2{$bit}=$i;
 	$SampBit{$id}=$bit;
@@ -224,21 +224,24 @@ for my $chr (sort keys %Genes) {
 				my $Rid=$R[0];
 				my $Range=$Dat{$Rid}->[0];
 				warn "> $Rid\t@$Range\t$id\t",$$Range[1]-$$Range[0]+1,"\n" if $opt_v;
-				my @otherNames=($id);
-				for my $bitf (keys %Log2) {
+				my @otherNames=(chr(65+$Log2{$bit}).':'.$id);
+				for my $bitf (sort keys %Log2) {
+					next if $bitf == $bit;
 					my $x = $Rid & $bitf;
 					next if $x == 0;
 					my $name;
 					$gth->execute($bitf,$chr,@$Range);
 					my $qres = $gth->fetchall_arrayref;
+					my $theName=chr(65+$Log2{$bitf}).':';
 					if ($#$qres == 0) {
-						$name=$$qres[0][0];
+						$name=$theName.$$qres[0][0];
 					} elsif ($#$qres > 0) {
 						warn "\n$#$qres more hit(s) for $bitf,$chr,@$Range !\n";
-						$name=$$qres[0][0];	# map join if EP
+						$name=$theName.$$qres[0][0];	# map join if EP
 					} else {
 						warn "\n[x]No info. for $R[0] -> $bitf,$chr,@$Range\t$x !\n";
-						$name='.';
+						$name=$theName.'.';
+						next;
 					}
 					push @otherNames,$name;
 				}
@@ -249,21 +252,12 @@ for my $chr (sort keys %Genes) {
 	}
 	warn "Parsed.\n";
 	freechr($handle);
-=pod
-	print D "$chr\t";
-	for (@AllCombines) {
-		unless ($Groups{$_}) {
-			print D "$chr\t";
-		}
-		print D ;
-	}
-=cut
 }
-for (sort { $Bits{$b} <=> $Bits{$a} } keys %Groups) {
+for (sort { $Bits{$a} <=> $Bits{$b} } keys %Groups) {
 	print D "\n[$Tables{$_}]\n";
 	my $hash=$Groups{$_};
 	for my $chr (sort keys %{$hash}) {
-		print D $chr,"\t",join(',',@$_),"\n" for @{$$hash{$chr}};
+		print D $chr,"\t",join(', ',@$_),"\n" for @{$$hash{$chr}};
 	}
 }
 
