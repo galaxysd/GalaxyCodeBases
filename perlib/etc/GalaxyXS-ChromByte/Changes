@@ -1,0 +1,6 @@
+Revision history for Perl extension GalaxyXS::ChromByte.
+
+0.01  Fri Jul 24 18:27:42 2009
+	- original version; created by h2xs 1.23 with options
+		-A -n GalaxyXS::ChromByte
+
