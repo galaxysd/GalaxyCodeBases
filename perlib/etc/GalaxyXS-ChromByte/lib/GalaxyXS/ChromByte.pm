@@ -15,8 +15,8 @@ our @ISA = qw(Exporter);
 # This allows declaration	use GalaxyXS::ChromByte ':all';
 # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
 # will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(initchr freechr setbases getbase setbasesc getbasec) ],
-#			'int' => [ qw(initchr freechr setbases getbase) ],
+our %EXPORT_TAGS = ( 'all' => [ qw(initchr freechr setbases getbase setbasesc getbasec orbase) ],
+#			'int' => [ qw(initchr freechr setbases getbase orbase) ],
 			'char' => [ qw(initchr freechr setbasesc getbasec) ]
 );
 

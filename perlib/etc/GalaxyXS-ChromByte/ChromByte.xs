@@ -28,6 +28,19 @@ setbases( address, begin, end, val )
 		memset( buf + begin , val , end - begin + 1 );
 
 unsigned int
+orbase( address, pos, val )
+	long address
+	int pos
+	unsigned int val
+	CODE:
+		char * buf = ( char * ) address ;
+		RETVAL = *( buf + pos );
+		RETVAL |= val;
+		memset( buf + pos , val , 1 );
+	OUTPUT:
+		RETVAL
+
+unsigned int
 getbase( address, pos )
 	 long address
 	 int pos
