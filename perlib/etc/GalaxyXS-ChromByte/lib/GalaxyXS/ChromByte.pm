@@ -23,10 +23,10 @@ our %EXPORT_TAGS = ( 'all' => [ qw(initchr freechr setbases getbase setbasesc ge
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw(
-	initchr freechr setbases getbase
+	initchr freechr setbases getbase orbase
 );
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 require XSLoader;
 XSLoader::load('GalaxyXS::ChromByte', $VERSION);

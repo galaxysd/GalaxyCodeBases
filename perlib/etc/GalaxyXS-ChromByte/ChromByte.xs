@@ -36,7 +36,7 @@ orbase( address, pos, val )
 		char * buf = ( char * ) address ;
 		RETVAL = *( buf + pos );
 		RETVAL |= val;
-		memset( buf + pos , val , 1 );
+		memset( buf + pos , RETVAL , 1 );
 	OUTPUT:
 		RETVAL
 
