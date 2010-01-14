@@ -27,6 +27,15 @@ setbases( address, begin, end, val )
 		char * buf = ( char * ) address ;
 		memset( buf + begin , val , end - begin + 1 );
 
+void		
+setbase( address, pos, val )
+	long address
+	int pos
+	unsigned int val
+	CODE:
+		char * buf = ( char * ) address ;
+		memset( buf + pos , val , 1 );
+
 unsigned int
 orbase( address, pos, val )
 	long address
@@ -51,7 +60,7 @@ getbase( address, pos )
 		RETVAL
 
 void		
-setbasesc( address, pos, val )
+setbasec( address, pos, val )
 	long address
 	int pos
 	char val
