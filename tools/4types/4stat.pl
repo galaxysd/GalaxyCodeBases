@@ -155,7 +155,7 @@ for my $v (1..$bit) {
 		my $n=$Log2{$b};
 		my $t=$v & $b;
 		next if $t == 0;
-		next if $v >> $n+1 == 0;
+		next if $v >> $n == 0;	# if $v >> $n+1 == 0, then $n self will be ommited.
 		my $w=($v << $i-$n) & $bit;
 		next if $w != 0;
 		push @{$Combines{$b}},$v;
@@ -181,6 +181,7 @@ for my $v (1..$bit) {
 #}
 #print D "\n";
 
+my %Check;
 for my $chr (sort keys %Genes) {
 	use integer;
 	#%Groups=();
@@ -197,6 +198,7 @@ for my $chr (sort keys %Genes) {
 	for my $bit (keys %Log2) {
 		for (@{$$Gffs{$bit}}) {
 			my $id=$$_[0];
+			$Check{$chr}{$bit}{$id}=0 unless $Check{$chr}{$bit}{$id};
 			my (%Contiune,%Flag,%Dat);
 			for my $pos ($$_[1]..$$_[2]+1) {	# the extra 1 makes ++$Flag{$_} work at the end.
 				my $x=getbase($handle,$pos);
@@ -210,6 +212,7 @@ for my $chr (sort keys %Genes) {
 					} else {
 						if ($Contiune{$_} and $Contiune{$_} >= $opt_l) {
 							++$Flag{$_};
+							$Check{$chr}{$bit}{$id}=1;
 							push @{$Dat{$_}},[$pos-$Contiune{$_},$pos-1];
 							#warn "$pos\t$_\t$Contiune{$_}\t$Flag{$_}\t@{${$Dat{$_}}[-1]}\n" if $opt_v;
 							warn "\n[!]More hits for $id @ $chr:$pos as $_ for $Contiune{$_}\n" if $#{$Dat{$_}} > 0;
@@ -235,9 +238,11 @@ for my $chr (sort keys %Genes) {
 					my $theName=chr(65+$Log2{$bitf}).':';
 					if ($#$qres == 0) {
 						$name=$theName.$$qres[0][0];
+						$Check{$chr}{$bitf}{$$qres[0][0]}=1;
 					} elsif ($#$qres > 0) {
 						warn "\n$#$qres more hit(s) for $bitf,$chr,@$Range !\n";
 						$name=$theName.$$qres[0][0];	# map join if EP
+						$Check{$chr}{$bitf}{$$qres[0][0]}=1;
 					} else {
 						warn "\n[x]No info. for $R[0] -> $bitf,$chr,@$Range\t$x !\n";
 						$name=$theName.'.';
@@ -253,6 +258,15 @@ for my $chr (sort keys %Genes) {
 	warn "Parsed.\n";
 	freechr($handle);
 }
+#$Check{$chr}{$bit}{$id}
+for my $chr (keys %Check) {
+	for my $bit (keys %{$Check{$chr}}) {
+		for my $id (keys %{$Check{$chr}{$bit}}) {
+			warn "[!] $chr,",chr(65+$Log2{$bit}),",$id not used !\n" if $Check{$chr}{$bit}{$id}==0;
+		}
+	}
+}
+
 for (sort { $Bits{$a} <=> $Bits{$b} } keys %Groups) {
 	print D "\n[$Tables{$_}]\n";
 	my $hash=$Groups{$_};
