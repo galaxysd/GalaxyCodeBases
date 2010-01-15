@@ -246,7 +246,7 @@ for my $chr (sort keys %Genes) {
 					push @otherNames,$name;
 				}
 				++$Summary{$R[0]};
-				push @{$Groups{$R[0]}{$chr}},\@otherNames;
+				push @{$Groups{$R[0]}{$chr}},[\@$Range,\@otherNames];
 			}
 		}
 	}
@@ -257,7 +257,7 @@ for (sort { $Bits{$a} <=> $Bits{$b} } keys %Groups) {
 	print D "\n[$Tables{$_}]\n";
 	my $hash=$Groups{$_};
 	for my $chr (sort keys %{$hash}) {
-		print D $chr,"\t",join(', ',@$_),"\n" for @{$$hash{$chr}};
+		print D $chr,"\t",join('-',@{$$_[0]}),"\t",join(', ',@{$$_[1]}),"\n" for @{$$hash{$chr}};
 	}
 }
 
