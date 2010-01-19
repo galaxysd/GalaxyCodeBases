@@ -7,7 +7,6 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 use GalaxyXS::ChromByte 1.02;
 use DBI;
-#use Data::Dumper;
 
 $main::VERSION=0.0.2;
 
@@ -98,10 +97,7 @@ CREATE TABLE IF NOT EXISTS gff
    end INTEGER,
    name TEXT );
 /;
-for (split /;/,$sql) {
-	next if /^\s*$/;
-	$dbh->do($_) or die $dbh->errstr;
-}
+$dbh->do($sql) or die $dbh->errstr;
 $dbh->commit;
 my $sth = $dbh->prepare( "INSERT INTO gff ( samplebit,chrid,start,end,name ) VALUES ( ?,?,?,?,? )" );
 my $gth = $dbh->prepare( "SELECT name FROM gff WHERE samplebit=:1 AND chrid=:2 AND start <= :3 AND end >= :4" );
@@ -283,8 +279,6 @@ for my $chr (keys %Check) {
 if ($Count > 0) {
 	warn "[!] Total $Count miss found, thus reRun.\n";
 	@BitsA=sort keys %BitsA;
-#print "[@BitsA]\n";
-#print Dumper(%Genes);
 	goto BEGIN;
 }
 
@@ -307,7 +301,7 @@ my $work_time = [gettimeofday];
 
 $dbh->commit;
 $dbh->disconnect;
-#unlink $opt_t;
+unlink $opt_t;
 my $stop_time = [gettimeofday];
 
 $|=1;
