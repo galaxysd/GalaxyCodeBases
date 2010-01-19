@@ -9,14 +9,14 @@ use GalaxyXS::ChromByte 1.02;
 use DBI;
 #use Data::Dumper;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.0.2;
 
 our $opts='i:o:c:d:l:t:bv';
 our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_d, $opt_l, $opt_t);
 
 our $help=<<EOH;
 \t-i GFF files list (gff.lst) [SampleName\\tPath_to_file\\n](8 lines max !)
-\t-c Chromosome length list (chr.len) [ChrID\\tLen\\n]
+\t-c Chromosome length list (chr.len) [ChrID\\s+Len\\n]
 \t-l Minimal overlap length (10)
 \t-o Output Stat (stat.txt)
 \t-d Details dump to (details.lst)
@@ -125,7 +125,7 @@ while (<L>) {
 	push @Samples,$id;
 	$bit=1;
 	$bit *= 2 for (1..$i);
-	warn "$i\t",chr(65+$i),"\t$id\n   $file\n";
+	warn "$i\t",chr(65+$i),"\t$id\n($file)\n";
 	print D chr(65+$i)," = $id\n";
 	$Log2{$bit}=$i;
 	my $infile;
@@ -137,9 +137,6 @@ while (<L>) {
 		warn "[!]Only first 8 samples used.\n";
 		last;
 	}
-	#++$Keys{$_} for keys %dat;
-	#push @Annots,[$id,\%dat];
-	#print OUT "\t$id\t${id}_nfo";
 }
 close L;
 @BitsA=sort keys %Log2;
@@ -175,18 +172,11 @@ for my $v (1..$bit) {
 	$Tables{$v}=join '',@Tab;
 	#warn "$v\t@tt\t$tt\n";
 }
-#@AllCombines = sort { $Bits{$b} <=> $Bits{$a} } @AllCombines;
-#print D "\n[Data]\nChr";
-#for (@AllCombines) {
-#	print D "\t",$Tables{$_};
-#}
-#print D "\n";
 
 BEGIN:
 #%Check=();
 for my $chr (sort keys %Genes) {
 	use integer;
-	#%Groups=();
 	print STDERR ">$chr   $ChrLen{$chr}\t";
 	my $handle=&initchr($ChrLen{$chr});
 	my $Gffs=$Genes{$chr};
