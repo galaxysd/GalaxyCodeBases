@@ -7,6 +7,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 use GalaxyXS::ChromByte 1.02;
 use DBI;
+#use Data::Dumper;
 
 $main::VERSION=0.0.1;
 
@@ -88,7 +89,7 @@ my %attr = (
 );
 my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_t,'','',\%attr) or die $DBI::errstr;
 
-my ($i,$bit,%ChrLen,%Genes,@Samples,%SampBit,%BitSamp,%Combines,%Log2,%Summary,%Groups,%Bits,%Tables)=(0);
+my ($i,$bit,%ChrLen,%Genes,@Samples,%Combines,%Log2,%Summary,%Groups,%Bits,%Tables,%Check,@BitsA)=(0);
 my $sql=q/
 CREATE TABLE IF NOT EXISTS gff
 (  samplebit INTEGER,
@@ -104,6 +105,7 @@ for (split /;/,$sql) {
 $dbh->commit;
 my $sth = $dbh->prepare( "INSERT INTO gff ( samplebit,chrid,start,end,name ) VALUES ( ?,?,?,?,? )" );
 my $gth = $dbh->prepare( "SELECT name FROM gff WHERE samplebit=:1 AND chrid=:2 AND start <= :3 AND end >= :4" );
+my $rth = $dbh->prepare( "SELECT start,end FROM gff WHERE samplebit=:1 AND chrid=:2 AND name = :3" );
 
 open( C,'<',$opt_c) or die "[x]Error: $!\n";
 while (<C>) {
@@ -126,8 +128,6 @@ while (<L>) {
 	warn "$i\t",chr(65+$i),"\t$id\n   $file\n";
 	print D chr(65+$i)," = $id\n";
 	$Log2{$bit}=$i;
-	$SampBit{$id}=$bit;
-	$BitSamp{$bit}=$id;
 	my $infile;
 	open( $infile,"<",$file) or die "[x]Error: $!\n";
 	read_gene_gff($infile,$bit,\%Genes,$sth);
@@ -142,6 +142,7 @@ while (<L>) {
 	#print OUT "\t$id\t${id}_nfo";
 }
 close L;
+@BitsA=sort keys %Log2;
 
 $dbh->do('CREATE INDEX IF NOT EXISTS scse ON gff(samplebit,chrid,start,end);') or die $dbh->errstr;
 $dbh->commit;
@@ -151,7 +152,7 @@ $bit *= 2;
 --$bit;
 for my $v (1..$bit) {
 	use integer;
-	for my $b (keys %Log2) {
+	for my $b (@BitsA) {
 		my $n=$Log2{$b};
 		my $t=$v & $b;
 		next if $t == 0;
@@ -181,21 +182,22 @@ for my $v (1..$bit) {
 #}
 #print D "\n";
 
-my %Check;
+BEGIN:
+#%Check=();
 for my $chr (sort keys %Genes) {
 	use integer;
 	#%Groups=();
 	print STDERR ">$chr   $ChrLen{$chr}\t";
 	my $handle=&initchr($ChrLen{$chr});
 	my $Gffs=$Genes{$chr};
-	for my $b (keys %Log2) {
+	for my $b (@BitsA) {
 		for (@{$$Gffs{$b}}) {
 			&orbase($handle,$_,$b) for ($$_[1]..$$_[2]);
 			#my $bb=getbase($handle,$$_[2]-1);warn "$bb";
 		}
 	}
 	print STDERR "Filled.\t";
-	for my $bit (keys %Log2) {
+	for my $bit (@BitsA) {
 		for (@{$$Gffs{$bit}}) {
 			my $id=$$_[0];
 			$Check{$chr}{$bit}{$id}=0 unless $Check{$chr}{$bit}{$id};
@@ -228,7 +230,7 @@ for my $chr (sort keys %Genes) {
 				my $Range=$Dat{$Rid}->[0];
 				warn "> $Rid\t@$Range\t$id\t",$$Range[1]-$$Range[0]+1,"\n" if $opt_v;
 				my @otherNames=(chr(65+$Log2{$bit}).':'.$id);
-				for my $bitf (sort keys %Log2) {
+				for my $bitf (@BitsA) {
 					next if $bitf == $bit;
 					my $x = $Rid & $bitf;
 					next if $x == 0;
@@ -258,20 +260,50 @@ for my $chr (sort keys %Genes) {
 	warn "Parsed.\n";
 	freechr($handle);
 }
+
+%Genes=();
+my ($Count,%BitsA)=(0);
 #$Check{$chr}{$bit}{$id}
 for my $chr (keys %Check) {
 	for my $bit (keys %{$Check{$chr}}) {
 		for my $id (keys %{$Check{$chr}{$bit}}) {
-			warn "[!] $chr,",chr(65+$Log2{$bit}),",$id not used !\n" if $Check{$chr}{$bit}{$id}==0;
+			$rth->execute($bit,$chr,$id);
+			my $qres = $rth->fetchall_arrayref;
+			my ($start,$end);
+			if ($#$qres == 0) {
+				($start,$end)=@{$$qres[0]};
+			} elsif ($#$qres > 0) {
+				warn "\n$#$qres more hit(s) for $bit,$chr,$id !\n";
+				($start,$end)=@{$$qres[0]};
+			} else {
+				warn "\n[x]No info. for $bit,$chr,$id !\n";
+				next;
+			}
+			if ($Check{$chr}{$bit}{$id}==0) {
+				++$Count;
+				if ($Count < 10) {
+					warn "[!] $chr,",chr(65+$Log2{$bit}),",$id not used !\n";
+					push @{$Genes{$chr}{$bit}},[$id,$start,$end];
+					++$BitsA{$bit};
+				} elsif ($Count == 10) { warn "[!] More than 9 miss found. No more details printing.\n";}
+			}
 		}
 	}
+}
+if ($Count > 0) {
+	warn "[!] Total $Count miss found, thus reRun.\n";
+	@BitsA=sort keys %BitsA;
+#print "[@BitsA]\n";
+#print Dumper(%Genes);
+	goto BEGIN;
 }
 
 for (sort { $Bits{$a} <=> $Bits{$b} } keys %Groups) {
 	print D "\n[$Tables{$_}]\n";
 	my $hash=$Groups{$_};
 	for my $chr (sort keys %{$hash}) {
-		print D $chr,"\t",join('-',@{$$_[0]}),"\t",join(', ',@{$$_[1]}),"\n" for @{$$hash{$chr}};
+		print D $chr,"\t",join('-',@{$$_[0]}),"\t",join(', ',@{$$_[1]}),"\n" for sort {$$a[0][0]<=>$$b[0][0]} @{$$hash{$chr}};
+		# sort is useful only due to rerun.
 	}
 }
 
