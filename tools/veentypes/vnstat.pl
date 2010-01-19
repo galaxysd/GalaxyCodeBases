@@ -214,7 +214,7 @@ for my $chr (sort keys %Genes) {
 				my @R = sort { $Bits{$b} <=> $Bits{$a} } keys %Flag;
 				my $Rid=$R[0];
 				my $Range=$Dat{$Rid}->[0];
-				warn "> $Rid\t@$Range\t$id\t",$$Range[1]-$$Range[0]+1,"\n" if $opt_v;
+				print "> $Rid\t@$Range\t$id\t",$$Range[1]-$$Range[0]+1,"\n" if $opt_v;
 				my @otherNames=(chr(65+$Log2{$bit}).':'.$id);
 				for my $bitf (@BitsA) {
 					next if $bitf == $bit;
