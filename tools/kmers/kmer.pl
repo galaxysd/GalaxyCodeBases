@@ -8,7 +8,7 @@ use Galaxy::ShowHelp;
 use GalaxyXS::ChromByte 1.02;
 use DBI;
 
-$main::VERSION=0.0.2;
+$main::VERSION=0.0.3;
 
 our $opts='i:o:l:t:c:sbv';
 our ($opt_i, $opt_o, $opt_l, $opt_v, $opt_b, $opt_s, $opt_t, $opt_c);
@@ -98,6 +98,9 @@ my $read_time = [gettimeofday];
 $seq=undef;
 warn "[!]Kmers Inserted !\n";
 
+$dbh->do('CREATE INDEX c ON kmers(seq);') or warn $dbh->errstr,": $_";	# without INDEX, much more memory required for SELECT
+my $i_time = [gettimeofday];
+
 if ($opt_s) { $sql='SELECT seq,COUNT(seq) AS count FROM kmers GROUP BY seq ORDER BY count DESC;'; }
  else { $sql='SELECT seq,COUNT(seq) AS count FROM kmers GROUP BY seq;'; }
 my $gth = $dbh->prepare( $sql );
@@ -122,7 +125,8 @@ my $stop_time = [gettimeofday];
 $|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
 	" second(s).\n   Insert used:\t",tv_interval( $start_time, $read_time ),
-	" second(s).\n   Count used:\t",tv_interval( $read_time, $work_time ),
+	" second(s).\n   Index used:\t",tv_interval( $read_time, $i_time ),
+	" second(s).\n   Count used:\t",tv_interval( $i_time, $work_time ),
 	" second(s).\n   Output used:\t",tv_interval( $work_time, $end_time ),
 	" second(s).\n   Clean used:\t",tv_interval( $end_time, $stop_time )," second(s).\n";
 __END__
