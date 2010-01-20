@@ -10,14 +10,15 @@ use DBI;
 
 $main::VERSION=0.0.2;
 
-our $opts='i:o:l:t:sbv';
-our ($opt_i, $opt_o, $opt_l, $opt_v, $opt_b, $opt_s, $opt_t);
+our $opts='i:o:l:t:c:sbv';
+our ($opt_i, $opt_o, $opt_l, $opt_v, $opt_b, $opt_s, $opt_t, $opt_c);
 
 our $help=<<EOH;
 \t-i Input Genome sequence file (human.fa)
 \t-l kmer length (33)
 \t-o Output Stat (stat.txt)
 \t-s Sort Output by Count DESCending [will be slower]
+\t-c Cache size [GB in Memory] (4)
 \t-t tmpfile for swap, will be removed (./._tmp_)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
@@ -28,11 +29,13 @@ ShowHelp();
 $opt_i='human.fa' if ! defined $opt_i;
 $opt_o='stat.txt' if ! $opt_o;
 $opt_t='./._tmp_' if ! $opt_t;
+$opt_c=4 if ! $opt_c;
+$opt_c=0.00001 if $opt_c<0.00001;
 $opt_l=33 if ! $opt_l;
 $opt_l=int($opt_l);
 $opt_l=1 if $opt_l<1;
 
-print STDERR "From [$opt_i] with [$opt_l][$opt_t] to [$opt_o]\n";
+print STDERR "From [$opt_i] with [$opt_l][$opt_t][$opt_c] to [$opt_o]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 open( T,'>',$opt_t) or die "[x]Error creating swap file: $!\n";
@@ -51,7 +54,7 @@ PRAGMA synchronous = OFF;
 PRAGMA journal_mode = OFF;
 PRAGMA temp_store = MEMORY;
 PRAGMA auto_vacuum = NONE;
-PRAGMA cache_size = 4000000;
+PRAGMA cache_size = /.1000000*$opt_c.q/;
 CREATE TABLE kmers ( seq TEXT );
 /;
 =pod
@@ -84,7 +87,7 @@ while (<IN>) {
 	# Begin Kmers
 	$len=length $seq;
 	uc $seq;
-$len=10000000+$opt_l-1;
+#$len=10000000+$opt_l-1;
 	print STDERR $len,' - ';
 	#next if $len < $opt_l;	# We already while it
 	my $i;
@@ -122,7 +125,7 @@ warn "[!]Output done !\n";
 
 #$dbh->commit;
 $dbh->disconnect;
-#unlink $opt_t;
+unlink $opt_t;
 my $stop_time = [gettimeofday];
 
 $|=1;
@@ -131,3 +134,27 @@ print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
 	" second(s).\n   Count used:\t",tv_interval( $read_time, $work_time ),
 	" second(s).\n   Output used:\t",tv_interval( $work_time, $end_time ),
 	" second(s).\n   Clean used:\t",tv_interval( $end_time, $stop_time )," second(s).\n";
+__END__
+
+10000000*2
+
+without sort:
+Time Elapsed:   544.888772 second(s).
+   INSERT used: 189.922403 second(s).
+   Count used:  199.940926 second(s).
+   Output used: 154.487606 second(s).
+   Clean used:  0.537837 second(s).
+
+with sort:
+Time Elapsed:   653.591479 second(s).
+   INSERT used: 190.030188 second(s).
+   Count used:  325.451145 second(s).
+   Output used: 137.574869 second(s).
+   Clean used:  0.535277 second(s).
+
+without sort, PRAGMA journal_mode = MEMORY;:
+Time Elapsed:   547.098508 second(s).
+   Insert used: 190.366605 second(s).
+   Count used:  200.026188 second(s).
+   Output used: 156.246296 second(s).
+   Clean used:  0.459419 second(s).
