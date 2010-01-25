@@ -65,12 +65,12 @@ for (split /;/,$sql) {
 my $sth = $dbh->prepare( 'INSERT INTO kmers ( seq ) VALUES ( ? );' );
 
 open( IN,'<',$opt_i) or die "[x]Error: $!\n";
-my ($seq,$len);
+my ($total,$seq,$len)=(0);
 while (<IN>) {
 	s/^>//;
 	my $title = $_;
 	my $seqname = $1 if($title =~ /^(\S+)/);
-	print STDERR "loading >$seqname -> \t";
+	print STDERR "loading >$seqname\t";
 	$/=">";
 	$seq=<IN>;
 	chomp $seq;
@@ -80,7 +80,7 @@ while (<IN>) {
 	$len=length $seq;
 	$seq=uc $seq;
 #$len=10000000+$opt_l-1;
-	print STDERR $len,' - ';
+	print STDERR " :$len -> ";
 	#next if $len < $opt_l;	# We already while it
 	my $i;
 	my $t=$len-$opt_l;	# Will perl do this automatically?
@@ -90,13 +90,14 @@ while (<IN>) {
 		$sth->execute($str);# or warn $sth->errstr;
 	}
 	print STDERR $i,"\n";
+	$total += $i;
 	#$dbh->commit;
 	# End Kmers
 }
 close IN;
 my $read_time = [gettimeofday];
 $seq=undef;
-warn "[!]Kmers Inserted !\n";
+warn "[!]$total Kmers Inserted !\n";
 
 $dbh->do('CREATE INDEX c ON kmers(seq);') or warn $dbh->errstr,": $_";	# without INDEX, much more memory required for SELECT
 my $i_time = [gettimeofday];
