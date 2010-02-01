@@ -9,15 +9,16 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
-0.3.4	only -b -o will trim
-0.3.5	$sth4 SELECTs strand to ensure 2 lines out
-0.3.6	filter out by col.10 in PE for soapSNP mis-read with soap2 -g
-0.3.7	add cache option
+0.3.9	Guoxs said, tirm will be only 1 at 5', others are 3'
 0.3.8	change input format
+0.3.7	add cache option
+0.3.6	filter out by col.10 in PE for soapSNP mis-read with soap2 -g
+0.3.5	$sth4 SELECTs strand to ensure 2 lines out
+0.3.4	only -b -o will trim
 =cut
 ######
 
-$main::VERSION=0.3.8;
+$main::VERSION=0.3.9;
 
 our $opts='i:o:c:bvmf';
 our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f);
@@ -164,11 +165,11 @@ for my $file (@{$FILES{PE}}) {
 		if ($strand eq '-') {
 			$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
 			if ($trim =~ /(\d+)S$/) {
-				$realpos += $trimed = $1;	# $1 only reset after next /()/
+				$realpos += $trimed = 1;	# $1;	# $1 only reset after next /()/
 			}
 		} elsif ($strand eq '+') {
 			if ($trim =~ /^(\d+)S/) {
-				$realpos -= $trimed = $1;
+				$realpos -= $trimed = 1;	# $1;	# Gxs said tirm will be only 1 at 5', others are 3'
 			}
 		} else {	# elsif ($strand ne '+')
 			$realpos=0;
