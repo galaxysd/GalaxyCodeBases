@@ -73,7 +73,7 @@ for my $Samp (@Samples) {
 print STDERR " ${Samp}_$chr\t";
 		my $name=$opt_c.'/'.$Samp.'.'.$chr.'.txt';
 		$i=$j=0;
-		open IN,'<',$name or warn "Error: [$name] $!\n";
+		open IN,'<',$name or (warn "Error: [$name] $!\n" and next);
 		while (<IN>) {
 			++$i;
 			my ($chr,$pos,undef,undef,undef,undef,$depth)=split /\t/;
