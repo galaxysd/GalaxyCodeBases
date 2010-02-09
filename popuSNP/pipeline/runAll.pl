@@ -1,11 +1,12 @@
 #!/bin/env perl
 use strict;
 use warnings;
+use lib '/share/raid010/resequencing/soft/lib';
 use Time::HiRes qw ( gettimeofday tv_interval );
 use File::Basename;
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.0.3;
 my $SCRIPTS='/panfs/GAG/huxuesong/scripts';
 my $POPSPLIT=1000000;
 
@@ -22,7 +23,7 @@ our($opt_i, $opt_s, $opt_o, $opt_m, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
 \t-i FASTAQ file path (./0rawfq) with *.adapter.list and *.fq
-\t-s Sample list (sample.lst) in format: /^Sample\\tLib\$/
+\t-s Sample list (sample.lst) in format: /^Sample\\tLib\\tReadLen\\tInsertSize\$/
 \t-c Chromosome length list (chr.len) in format: /^ChrName\\s+ChrLen\\s?.*\$/
 \t-m monoploid Chromosome names ('') in format: 'ChrID1,ChrID2'
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
@@ -73,15 +74,20 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-my (%SampleLib,%LibSample,%SampleMaxReadLen,%LibInsSize,%ChrLen);
+my (%SampleLib,%LibSample,%SampleMaxReadLen,%LibInsSize,%ChrLen,%Info);
 open SAMPLE,'<',$opt_s or die "Error opening $opt_s: $!\n";
 while (<SAMPLE>) {
 	chomp;
 	s/\r//g;
-	my ($sample,$lib)=split /\t/;
+	my ($sample,$lib,$len,$min,$max)=split /\t/;
+	unless (defined $max) {
+		$max=int(0.5+$min*1.08);
+		$min=int(0.5+$min*0.92);
+	}
 	#print "Sample[$sample]\tLib[$lib]\n" if $opt_v;
 	push @{$SampleLib{$sample}},$lib;
 	#$LibSample{$lib}=$sample;
+	$Info{$lib}=[$len,$min,$max];
 	push @{$LibSample{$lib}},$sample;
 	$SampleMaxReadLen{$sample}=0;
 }
@@ -123,7 +129,7 @@ my (%fqfile2rawfp,%fq1,%fq2,%fqse,%fqpe);	# no ext.
 #@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
 for (@fq) {
 	my ($file, $path, $ext) = fileparse($_, qr/\.fq/);
-	next if $file =~ /IndexPooling\d+(_[12])?$/;
+	next if $file =~ /IndexPooling\d+(_[12])?$/i;
 	$fqfile2rawfp{$file}=$path;	# $path is enough. But, who cares? Me!
 	$file =~ /_([^_]+)(_[12])?$/;
 	my $lib = $1;
@@ -219,6 +225,8 @@ my (%fqfile2fp);	# new path
 for my $k (keys %fqbylib) {
 	my $withPE=0;
 	$sample=$LibSample{$k}->[0];
+	next unless $sample;
+	my ($len,$min,$max)=@{$Info{$k}};
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	open OUT,'>',$dir.'.cmd' || die "$!\n";
@@ -294,7 +302,7 @@ grep '# MaxReadLen' $dir/*.nfo | perl -F'\\t' -lane 'BEGIN {\$c=99999999} END { 
 	}
 ## InsertSizing
 open O,'>',"${dir}.insize";
-print O "100\t400\n";
+print O "$min\t$max\n";
 close O;
 ### DEBUE CODE ###
 	if (-s "${dir}.insize") {
@@ -332,6 +340,7 @@ system('touch',"$opath/_.soaplst");
 system("find $opath/ -name '*.soaplst' | xargs rm");	# rm dies unless input
 for my $k (keys %fqse) {
 	$sample=$LibSample{$k}->[0];
+	next unless $sample;
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	open LST,'>>',$dir.'.soaplst' || die "$!\n";
@@ -370,6 +379,7 @@ eval perl $SCRIPTS/soapse.pl \$SEED
 }
 for my $k (keys %fqpe) {
 	$sample=$LibSample{$k}->[0];
+	next unless $sample;
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	open LST,'>>',$dir.'.soaplst' || die "$!\n";
@@ -395,7 +405,7 @@ for my $k (keys %fqpe) {
 #\$ -N \"pe_$k\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=4.1G,s_core=5
-#\$ -hold_jid size_$k
+#\$ -hold_jid len_$k,size_$k
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$lstcount
 SEEDFILE=${dir}.pecmd
@@ -422,6 +432,7 @@ system('touch',"$opath/_.mglst");
 system("find $opath/ -name '*.mglst' | xargs rm");
 for my $k (keys %fqbylib) {
 	$sample=$LibSample{$k}->[0];
+	next unless $sample;
 	my $dir = $opath."/$sample/$k";
 	system('mkdir','-p',$dir);
 	system('mkdir','-p',"$opath/$sample/lst");
@@ -518,6 +529,11 @@ perl $SCRIPTS/matrix.pl \$f $lopt_f $opt_o/1fqfilted $dir/all
 ";
 	close SH;
 }
+## Qsub
+if ($opt_q) {
+	print STDERR '-' x 75,"\n";
+	&qsub($dir,'all_matrix.sh');
+}
 ## SoapSNP
 for my $chr (keys %ChrLen) {
 	my $dir = $opath."/$chr";
@@ -556,6 +572,11 @@ eval perl $SCRIPTS/callglf.pl $opath/matrix/all.matrix $lopt_f $opt_o/1fqfilted 
 		unlink $dir.'_glf.sh';
 	}
 }	# unless ($opt_d)
+}
+## Qsub
+if ($opt_q) {
+	print STDERR '-' x 75,"\n";
+	&qsub($opath,'*_glf.sh');
 }
 
 ### 5.popSNP
