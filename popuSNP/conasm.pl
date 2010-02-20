@@ -112,7 +112,7 @@ for $chr (keys %Genome) {
         $dep=$Depth{$chr}{$i} or $dep="\0";
         $dep = join(' ',map ord,split //,$dep);
         #print DEP '[',$dep,']';
-        if ($t > 80) {
+        if ($t > 79) {
             $t=0;
             print OUT "\n";
             print DEP "$dep\n";
