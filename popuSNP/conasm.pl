@@ -125,3 +125,12 @@ warn "[!]Output done.\n";
 
 __END__
 vf=11.9g for 1.3G Feb 20 07:23 consensus/QRS9.Gm03.txt, 47,781,076
+
+find ./consensus/ -name '*.txt'|perl -lane '$a=(split /\//)[-1];$b=(split /\./,$a)[0];open O,">./sh/$a.sh";print O "#\$ -N \"C_$a\"\n#\$ -cwd -r y -l vf=14g,s_core=1\n#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#\$ -o /dev/null -e /dev/null\n./conasm.pl -i ./Indel/${b}.indel.txt.filter -c $_ -bo ./out/$b 2>./log/$a.log";close O'
+
+$ cat sh/QRS21.Gm13.txt.sh
+#$ -N "C_QRS21.Gm13.txt"
+#$ -cwd -r y -l vf=14g,s_core=1
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#$ -o /dev/null -e /dev/null
+./conasm.pl -i ./Indel/QRS21.indel.txt.filter -c ./consensus/QRS21.Gm13.txt -bo ./out/QRS21 2>./log/QRS21.Gm13.txt.log
