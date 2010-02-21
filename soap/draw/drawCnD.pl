@@ -1,6 +1,7 @@
-#! /usr/bin/perl -w
+#!/bin/env perl
 
 use strict;
+use warnings;
 use Getopt::Long;
 use File::Basename;
 use FindBin qw($Bin $Script);
@@ -11,7 +12,7 @@ my $plot_chr_bin = "perl $Bin/subBin/plotChrDepthDistribution.pl";
 my $call_ngap_bin = "perl $Bin/subBin/callNgap.pl";
 
 my ($pro_dir, $ref_fa, $pro_name, $out_dir, $input_soap_list);
-my ($is_effective, $ngap_file, $gc_file, $chr_pattern, $chrorder_file);
+my ($is_effective, $ngap_file, $gc_file, $chrorder_file);
 my ($step, $mem);
 my ($help);
 GetOptions (
@@ -23,8 +24,7 @@ GetOptions (
 	"effective:i" => \$is_effective,
 	"ngapFile:s" => \$ngap_file,
 	"gcFile:s" => \$gc_file,
-	"chrpattern:s" => \$chr_pattern,
-	"chrSuffix:s" => \$chrorder_file,
+	"chrid:s" => \$chrorder_file,
 	"step:i" => \$step,
 	"mem:s" => \$mem,
 	"help" => \$help
@@ -37,10 +37,9 @@ if (!$pro_dir || !$pro_name || !$ref_fa || $help) {
 	print "\t-proName\tproject name\n";
 	print "\t-ref\treference fa file\n";
 	print "\t-outDir\t[proDir]\n";
-        print "\t-chrSuffix\tthe file contains the chromosome suffix[/share/raid010/resequencing/user/zhanghao/software/postprocess/distribution/subBin/pub_data/human.chrnum]\n";
+        print "\t-chrid\tthe file contains the chromosome id[/share/raid010/resequencing/resequencing/tmp/pub/Genome/Rice/Genome_IRGSP/IRGSP.chrorder]\n";
 	print "Option:\n";
 	print "\t-gcFile\tthe file contains the gc percentage of each chromosome(file format: chr total_genome_size effective_genome_size gc_size gc_percentage)if not provide this file, one gc file will be generated automatically by this program.\n";
-	print "\t-chrpattern\t[chr]\n";
 	print "\t-effective\t0:not; 1:yes[0]\n";
         print "\t-ngapFile\tngap file\n";
 	print "\t-mem\tmemory to run soap.coverage[6g for human]\n";
@@ -49,7 +48,7 @@ if (!$pro_dir || !$pro_name || !$ref_fa || $help) {
 	print "\tperl $0 -proDir /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP -il soap.l -ref /share/raid1/database/BGI/rice/IRGSP_chromosomes_build04.fa -outDir /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP -ngapFile /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP/IRGSP.ngap -mem 4g -effective 1  -step 3 -proName IRGSP\n";
 	print "\tperl $0 -proDir /share/raid11/zhanghao/software/postProcess/test/Rice/9311 -il soap.l -ref /share/raid1/database/BGI/rice/9311_main_chromosomes.fa -outDir /share/raid11/zhanghao/software/postProcess/test/Rice/9311 -ngapFile /share/raid11/zhanghao/software/postProcess/test/Rice/9311/9311.ngap -mem 4g -effective 1 -step 3 -proName 9311\n";
 	print "\tAuther: Hao Zhang\tTime: 23:22 25/05/2009\n";
-	print " modify by lijun3 Time:Tue Dec  1 15:38:15 CST 2009\n";
+	print " modify by HuXuesong @ 2010\n";
 
         exit 0;
 }
@@ -58,7 +57,6 @@ mkdir $out_dir unless (-d $out_dir);
 $input_soap_list ||= '';
 $ngap_file ||= '';	#"$Bin/subBin/pub_data/human.ngap";
 $gc_file ||= '';
-$chr_pattern ||= "chr";
 $chrorder_file ||= "$Bin/subBin/pub_data/human.chrnum";
 $is_effective ||= 0;
 $mem ||= "6g";
@@ -523,12 +521,6 @@ print "\n ---- begin statics gc for soap result! \n";
                 } #end foreach
                 close GCOUT;
 
-
-
-
-	
-
-
 }
 
 sub drawChrDepthDistribution2 {
@@ -613,7 +605,7 @@ sub drawChrDepthDistribution2 {
 	foreach my $chrnum (@chr_order) {
 		#my $chr = "canFam2-chr$chrnum";
 		#my $chr = "chr$chrnum";
-		my $chr = "${chr_pattern}$chrnum";
+		my $chr = $chrnum;
 	#foreach my $chr (sort keys %hModeDepthChr) {
 		delete $hModeDepthChr{$chr}{0};
 		delete $hModeDepthChr{$chr}{65535};
@@ -719,7 +711,7 @@ sub drawChrDepthDistribution {
 	foreach my $chrnum (@chr_order) {
 		#my $chr = "canFam2-chr$chrnum";
 		#my $chr = "chr$chrnum";
-		my $chr = "${chr_pattern}$chrnum";
+		my $chr = $chrnum;
 	#foreach my $chr (sort keys %hModeDepthChr) {
 		delete $hModeDepthChr{$chr}{0};
 		delete $hModeDepthChr{$chr}{65535};
@@ -752,3 +744,6 @@ sub drawDepthDistribution {
 
 	`sh $distribution_dir/run_drawdis.sh`;
 }
+
+__END__
+nohup perl /panfs/GAG/junli/raid010/pipeline/soap/draw/coverageAndDepthDistribution.V5.SGC2.pl -il soap_result.list -proDir /panfs/GAG/junli/resequencing/project/plant/Soybean_qdj -proName Soybean -ref /share/raid010/resequencing/resequencing/tmp/pub/Genome/Soybean/soybean.fa -outDir /panfs/GAG/junli/resequencing/project/plant/Soybean_qdj -effective 1 -step 2 -chrSuffix chrnum -chrpattern Gm -mem 3g &
