@@ -13,7 +13,7 @@ my $call_ngap_bin = "perl $Bin/subBin/callNgap.pl";
 my ($pro_dir, $ref_fa, $pro_name, $out_dir, $input_soap_list);
 my ($is_effective, $ngap_file, $gc_file, $chr_pattern, $chrorder_file);
 my ($step, $mem);
-my ($help,$doCov);
+my ($help);
 GetOptions (
 	"proDir:s" => \$pro_dir,
 	"il:s" => \$input_soap_list,
@@ -27,8 +27,7 @@ GetOptions (
 	"chrSuffix:s" => \$chrorder_file,
 	"step:i" => \$step,
 	"mem:s" => \$mem,
-	"help" => \$help,
-	"onlyCov" => \$doCov
+	"help" => \$help
 );
 if (!$pro_dir || !$pro_name || !$ref_fa || $help) {
         print "\n";
@@ -83,38 +82,24 @@ my $total_list = $input_soap_list;
 my $total_base_count = 0;
 
 
-if($doCov== 1)
-{
-	
+if (1 == $step) {
 	soapCoverage($total_list, \$is_effective, \$out_dir, \$coverage_dir, \$depth_dir);
-
 }
-
-else
-{
-
-
-
-	if (1 == $step) {
-	soapCoverage($total_list, \$is_effective, \$out_dir, \$coverage_dir, \$depth_dir);
-	}
-
-
-
-	elsif (2 == $step) {
+elsif (2 == $step) {
         readDepth(\$total_base_count);
 	calculateMeanDepthAndPoisson(\$total_base_count);
 	calculateGCpercentage(\$ref_fa, \$gc_file);
+	calculateGCpercentageForSoap($total_list);	
 	drawDepthDistribution();
 	drawChrDepthDistribution();
-	}
-	elsif (3 == $step) {
-	calculateGCpercentage(\$ref_fa, \$gc_file);
-	drawDepthDistribution();
-	drawChrDepthDistribution();
-	}
-
 }
+elsif (3 == $step) {
+	calculateGCpercentage(\$ref_fa, \$gc_file);
+	calculateGCpercentageForSoap($total_list);
+	drawDepthDistribution();
+	drawChrDepthDistribution();
+}
+
 sub soapCoverage {
 	my ($total_list, $is_effective, $out_dir, $coverage_dir, $depth_dir) = @_;
 	######generate list######
@@ -168,7 +153,7 @@ sub soapCoverage {
 		$jobIDs{$jobID} = 1;
 	}
 
-#	waitJobsDone(%jobIDs);
+	waitJobsDone(%jobIDs);
 }
 
 sub waitJobsDone {
@@ -198,6 +183,7 @@ sub waitJobsDone {
 	readDepth(\$total_base_count);
 	calculateMeanDepthAndPoisson(\$total_base_count);
 	calculateGCpercentage(\$ref_fa, \$gc_file);
+	calculateGCpercentageForSoap($total_list);
 	drawDepthDistribution();
 	drawChrDepthDistribution();
 }
@@ -212,7 +198,7 @@ sub readDepth {
 	while (my $line = <DEPTH>) {
         	chomp $line;
 	        if ($line =~ /^>/) {
-        	        #last if ($line =~ /scaffold/i);
+        	        last if ($line =~ /scaffold/i);
                 	$line =~ s/^>//;
 	                $current_chr = $line;
 			my $local_time = localtime();
@@ -352,7 +338,7 @@ sub calculateGCpercentage {
 		} #end while
 		close FA;
 
-		open GCOUT, ">$out_dir/$pro_name.gc.info" or die "$!";
+		open GCOUT, ">$out_dir/$pro_name.ref_gc.info" or die "$!";
 		foreach my $chr (@chrNames) {
         		my $chr_len = length $hChrSeq{$chr};
         		my $countN = ($hChrSeq{$chr} =~ s/N/q/ig);
@@ -363,12 +349,85 @@ sub calculateGCpercentage {
 		} #end foreach
 		close GCOUT;
 
-		$$gc_file = "$out_dir/$pro_name.gc.info";
+		$$gc_file = "$out_dir/$pro_name.ref_.gc.info";
 
 	} #end else
 }
+sub calculateGCpercentageForSoap{
+	my ($soaplist)=@_;
+	my @arry_soap=();
+	open FI,"$soaplist" or die "can't open $soaplist, in calculateGCpercentageForSoap()!";
+
+print "\n ---- begin statics gc for soap result! \n";
+
+	while(my $line = <FI>)
+	{
+		chomp $line;
+
+		if($line =~ /\.*.soap/)
+		{
+			print " soap file: $line\n";
+			push @arry_soap, $line;
+		}
+	}
+	
+
+	close FI;
+
+
+        my %hchr = ();       #{chr} => sequence
+	
+	foreach my $file (@arry_soap)
+	{
+		print " stat soapfile $file\n";
+                open FA, $file or die "$!";
+                while (my $line = <FA>) {
+                        chomp $line;
+			my @l = split /\s+/, $line;
+			if(exists($hchr{$l[7]}))
+			{
+				${$hchr{$l[7]}}[0] +=$l[1] =~ s/[GC]/p/ig;
+				${$hchr{$l[7]}}[1] +=$l[5];
+			}
+			else
+			{
+				my $gc_num = $l[1] =~ s/[GC]/p/ig;
+				
+				push @{$hchr{$l[7]}},$gc_num;
+				 push @{$hchr{$l[7]}},$l[5];
+	
+
+			}
+		
+
+
+
+                } #end while
+                close FA;
+
+	}
+                open GCOUT, ">$out_dir/$pro_name.soap_gc.info" or die "$!";
+                foreach my $chr (keys %hchr) {
+                        my $chr_len = ${$hchr{$chr}}[1];
+
+                         my $countGC = ${$hchr{$chr}}[0];
+
+                        my $gc_percentage = $countGC / $chr_len * 100;
+                        print GCOUT "$chr\t$chr_len\t$countGC\t$gc_percentage\n";
+                } #end foreach
+                close GCOUT;
+
+
+
+
+	
+
+
+}
 
 sub drawChrDepthDistribution {
+
+	print "draw chrdepthion !\n";
 
 	my @chr_order = ();	#(1..22, "X", "Y");
 
