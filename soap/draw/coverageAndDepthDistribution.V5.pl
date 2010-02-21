@@ -49,6 +49,8 @@ if (!$pro_dir || !$pro_name || !$ref_fa || $help) {
 	print "\tperl $0 -proDir /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP -il soap.l -ref /share/raid1/database/BGI/rice/IRGSP_chromosomes_build04.fa -outDir /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP -ngapFile /share/raid11/zhanghao/software/postProcess/test/Rice/IRGSP/IRGSP.ngap -mem 4g -effective 1  -step 3 -proName IRGSP\n";
 	print "\tperl $0 -proDir /share/raid11/zhanghao/software/postProcess/test/Rice/9311 -il soap.l -ref /share/raid1/database/BGI/rice/9311_main_chromosomes.fa -outDir /share/raid11/zhanghao/software/postProcess/test/Rice/9311 -ngapFile /share/raid11/zhanghao/software/postProcess/test/Rice/9311/9311.ngap -mem 4g -effective 1 -step 3 -proName 9311\n";
 	print "\tAuther: Hao Zhang\tTime: 23:22 25/05/2009\n";
+	print " modify by lijun3 Time:Tue Dec  1 15:38:15 CST 2009\n";
+
         exit 0;
 }
 $out_dir ||= $pro_dir;
@@ -91,13 +93,28 @@ elsif (2 == $step) {
 	calculateGCpercentage(\$ref_fa, \$gc_file);
 	calculateGCpercentageForSoap($total_list);	
 	drawDepthDistribution();
-	drawChrDepthDistribution();
+
+	my $gc_file2="$out_dir/$pro_name.soap_gc.info";
+
+	drawChrDepthDistribution2($gc_file2);
 }
 elsif (3 == $step) {
-	calculateGCpercentage(\$ref_fa, \$gc_file);
-	calculateGCpercentageForSoap($total_list);
+	#calculateGCpercentage(\$ref_fa, \$gc_file);
+	#calculateGCpercentageForSoap($total_list);
+	my $gc_file2="$out_dir/$pro_name.soap_gc.info";
+	print "$gc_file2\n";
+
 	drawDepthDistribution();
-	drawChrDepthDistribution();
+	drawChrDepthDistribution2($gc_file2);
+}
+
+elsif(4== $step)
+{
+
+	readDepth2(\$total_base_count);
+       	calculateMeanDepthAndPoisson(\$total_base_count);
+	drawDepthDistribution();
+
 }
 
 sub soapCoverage {
@@ -153,23 +170,33 @@ sub soapCoverage {
 		$jobIDs{$jobID} = 1;
 	}
 
-	waitJobsDone(%jobIDs);
+	waitJobsDone2(%jobIDs);
 }
 
-sub waitJobsDone {
+sub waitJobsDone2 {
 	my (%jobIDs) = @_;
-	while (keys %jobIDs > 0) {
-		my $qstat = `qstat`;
-		next if ($qstat =~ /failed receiving gdi request/);
-		chomp $qstat;
-		my @qstat_lines = split /\n/, $qstat;
+	while(keys %jobIDs){
+	foreach my $jobid (keys %jobIDs) {
+		my $qstat = `qstat -j $jobid`;
+
 		my %runningJobs = ();
-		foreach my $line (@qstat_lines){
-			my $job = (split /\s+/,$line)[0];
-			if(exists $jobIDs{$job}){
+		chomp $qstat;
+
+		my @qstat_lines = split /\n/, $qstat;
+		chomp @qstat_lines;
+
+	if(defined($qstat_lines[1]))
+	{
+
+#	print "test : $qstat_lines[1]\n";	
+		my $job = (split /\s+/,$qstat_lines[1])[1];
+
+#		print "job: $job\n";
+
+		if($job eq $jobid){
 				$runningJobs{$job} = 1;
-			}
 		}
+	}	
 		foreach my $jobID(keys %jobIDs){
 			if(! exists $runningJobs{$jobID}){
 				my $local_time = localtime();
@@ -178,15 +205,92 @@ sub waitJobsDone {
 			}
 		}
 		sleep $wait_second;
-	} #end while
+	}
 
+   } #end while
+=b  # old 
 	readDepth(\$total_base_count);
 	calculateMeanDepthAndPoisson(\$total_base_count);
 	calculateGCpercentage(\$ref_fa, \$gc_file);
 	calculateGCpercentageForSoap($total_list);
 	drawDepthDistribution();
 	drawChrDepthDistribution();
+=cut
+
+	readDepth(\$total_base_count);
+        calculateMeanDepthAndPoisson(\$total_base_count);
+        calculateGCpercentage(\$ref_fa, \$gc_file);
+        calculateGCpercentageForSoap($total_list);
+        drawDepthDistribution();
+
+        my $gc_file2="$out_dir/$pro_name.soap_gc.info";
+
+        drawChrDepthDistribution2($gc_file2);
+
 }
+
+
+
+
+
+sub readDepth2 {
+
+
+	my ($total_base_count) = @_;
+	my $current_chr = '';
+	my $effect_base_count = 0;
+
+	open DEPTH, "$depth_dir/total_depthsingle" or die "$!";
+	while (my $line = <DEPTH>) {
+        	chomp $line;
+	        if ($line =~ /^>/) {
+        	        last if ($line =~ /scaffold/i);
+                	$line =~ s/^>//;
+	                $current_chr = $line;
+			my $local_time = localtime();
+        	        print "$local_time\tprocess $current_chr\n";
+        	}
+	        else {
+        	        my @depths = split /\s+/, $line;
+                	foreach my $depth (@depths) {
+                        	$hDepth{$depth} += 1;
+	                        $hChrDepth{$current_chr}{$depth} += 1;
+        	                $hChrGeSize{$current_chr} += 1;
+				if ($depth != 65535) {
+                	        	$hChrMapBase{$current_chr} += $depth;
+					$hChrEffLen{$current_chr} += 1;
+					++$effect_base_count;
+				}
+                        	++$$total_base_count;
+	                }
+        	}
+	} #end while
+	close DEPTH;
+	
+
+#	calculateMeanDepthAndPoisson(\$total_base_count);
+
+=b
+
+	print "total base: $$total_base_count\neffective base: $effect_base_count\n";
+
+	open TCHR, ">$distribution_dir/all.info" or die "$!";
+	print TCHR "chr\tgenome_size\teffective_size\tmappable_base\n";
+	foreach my $chr (keys %hChrDepth) {
+		print TCHR "$chr\t$hChrGeSize{$chr}\t$hChrEffLen{$chr}\t$hChrMapBase{$chr}\n";
+
+		open CHR, ">$distribution_dir/$chr.depth" or die "$!";
+		foreach my $depth (sort {$a<=>$b} keys %{$hChrDepth{$chr}}) {
+                	print CHR "$depth\t$hChrDepth{$chr}{$depth}\n";
+		}
+		close CHR;
+	}
+	close TCHR;
+=cut
+
+}
+
+
 
 sub readDepth {
 
@@ -246,10 +350,10 @@ sub calculateMeanDepthAndPoisson {
 	my $ref_base = 0;
 	while (my $line = <COVERAGE>) {
 		chomp $line;
-		if ($line =~ /^Overall/) {
+		if ($line =~ /^Total/) {
 			#print "$line\n";
 			$ref_base = (split /\:/, $line)[-1];
-			#print "$ref_base\n";
+			print "$ref_base\n";
 			last;
 		}
 	} #end while
@@ -302,6 +406,8 @@ sub calculateMeanDepthAndPoisson {
 	if ($is_effective) {
 		$$count -= $hDepth{65535};
 	}
+
+print "effective: $$count\n";
 	foreach my $depth (sort {$a<=>$b} keys %hDepth) {
         	my $per = $hDepth{$depth} / $$count * 100;
 
@@ -349,7 +455,7 @@ sub calculateGCpercentage {
 		} #end foreach
 		close GCOUT;
 
-		$$gc_file = "$out_dir/$pro_name.ref_.gc.info";
+		$$gc_file = "$out_dir/$pro_name.ref_gc.info";
 
 	} #end else
 }
@@ -424,6 +530,114 @@ print "\n ---- begin statics gc for soap result! \n";
 
 
 }
+
+sub drawChrDepthDistribution2 {
+
+	my ($gc_file2) = @_;
+
+	print "draw chrdepthion !\n";
+	
+	my @chr_order = ();	#(1..22, "X", "Y");
+
+	my %hChrCoverage = ();	#{chr} => coverage
+	## read coverage of each chromosome
+	open COVERAGE, " $coverage_dir/total_coverage.info" or die "$!";
+	while (my $line = <COVERAGE>) {
+        	chomp $line;
+        	last if ($line =~ /Overall/i);
+        	if ($line =~ /Percentage/i) {
+                	my @info = split "\:", $line;
+                	#$info[-1] =~ s/\%//;
+			#$hChrCoverage{$info[0]} = $info[-1];
+			my $covered_length = (split /\//, $info[1])[0];
+			$hChrCoverage{$info[0]} = $covered_length;
+        	}
+	}
+	close COVERAGE;
+
+
+	## count mean depth of each chromosome
+	open ALLINFO, "$distribution_dir/all.info" or die "$!";
+	my %hMeanDepthChr = ();	#{chr} => mean depth
+	my %hMappableChr = ();	#{chr} => mappable bases
+	my %hEffChr = ();	#{chr} => effective length
+	while (my $line = <ALLINFO>) {
+		chomp $line;
+		my @info = split /\s+/, $line;
+		next if ($info[2] !~ /\d{1,}/);
+		$hMeanDepthChr{$info[0]} = $info[3] / $info[2];
+		$hMappableChr{$info[0]} = $info[3];
+		$hEffChr{$info[0]} = $info[2];
+	}
+	close ALLINFO;
+
+
+	## count mode depth of each chromosome
+	my %hModeDepthChr = ();	#{chr}{depth} => num;
+	my @depth_files = `find $distribution_dir -name "*.depth"`;
+	chomp @depth_files;
+	foreach my $depth_file (@depth_files) {
+		my $basename = basename $depth_file;
+		$basename =~ s/\.depth//;
+		#$basename =~ s/chromosome//;
+		open DEPTH, $depth_file or die "$!";
+		while (my $line = <DEPTH>) {
+			chomp $line;
+			my @info = split /\s+/, $line;
+			$hModeDepthChr{$basename}{$info[0]} = $info[1];
+		}
+		close DEPTH;
+	}
+	
+	## read GC percentage file
+	my %hGCperChr = ();	#{chr} => gc percentage
+	open GCLIST, $gc_file2 or die "$!";
+	while (my $line = <GCLIST>) {
+		chomp $line;
+		my @info = split /\s+/, $line;
+		$hGCperChr{$info[0]} = $info[3];
+	}
+	close GCLIST;
+
+	open CHRORDER, $chrorder_file or die "$!";
+	while (my $line = <CHRORDER>) {
+		chomp $line;
+		push @chr_order, $line;
+	}
+	close CHRORDER;
+
+	open CHRDIS, ">$distribution_dir/$pro_name.chrdistribution.data" or die "$!";
+	print CHRDIS "chrnum\tchr\tmean_depth\tmode_depth\tgc_percentage\n";
+	open STATISTICS, ">$distribution_dir/$pro_name.statistics_by_chr" or die "$!";
+	print STATISTICS "chr\teffective_length\tmappable_base\tmean_depth\tmode_depth\tcoverage(%)\n";
+	foreach my $chrnum (@chr_order) {
+		#my $chr = "canFam2-chr$chrnum";
+		#my $chr = "chr$chrnum";
+		my $chr = "${chr_pattern}$chrnum";
+	#foreach my $chr (sort keys %hModeDepthChr) {
+		delete $hModeDepthChr{$chr}{0};
+		delete $hModeDepthChr{$chr}{65535};
+		foreach my $depth (sort {$hModeDepthChr{$chr}{$b}<=>$hModeDepthChr{$chr}{$a}} keys %{$hModeDepthChr{$chr}}) {
+			print CHRDIS "$chrnum\t$chr\t$hMeanDepthChr{$chr}\t$depth\t$hGCperChr{$chr}\n";
+			#print STATISTICS "$chr\t$hEffChr{$chr}\t$hMappableChr{$chr}\t$hMeanDepthChr{$chr}\t$depth\t$hChrCoverage{$chr}\n";
+			my $coverage = $hChrCoverage{$chr} / $hEffChr{$chr} * 100;
+			print STATISTICS "$chr\t$hEffChr{$chr}\t$hMappableChr{$chr}\t$hMeanDepthChr{$chr}\t$depth\t$coverage\n";
+			last;
+		}
+	}
+	close STATISTICS;
+	close CHRDIS;
+
+	my $local_time = localtime();
+	print "$local_time\tdrawing depth distribution by chromosome\n";
+	open SH, ">$distribution_dir/run_drawchrdis.sh" or die "$!";
+	print SH "$plot_chr_bin $distribution_dir/$pro_name.chrdistribution.data > $distribution_dir/a2 && gnuplot $distribution_dir/a2";
+	close SH;
+
+	`sh $distribution_dir/run_drawchrdis.sh`;
+}
+
+
 
 sub drawChrDepthDistribution {
 
