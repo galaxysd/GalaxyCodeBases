@@ -61,8 +61,8 @@ $chrorder_file ||= "$Bin/subBin/pub_data/human.chrnum";
 $is_effective ||= 0;
 $mem ||= "6g";
 $step ||= 1;
-#my $pe_dir = "$pro_dir/PE";
-my $pe_dir = "$pro_dir/soap/PE";
+my $pe_dir = $pro_dir;
+#my $pe_dir = "$pro_dir/soap/PE";
 my $depth_dir = "$out_dir/depth";
 mkdir $depth_dir unless (-d $depth_dir);
 my $coverage_dir = "$out_dir/coverage";
@@ -129,9 +129,8 @@ sub soapCoverage {
 		#`ls $pe_dir/*.soap >$soap_list`;
 		#`ls $pe_dir/*.single >$single_list`;
 		#`cat $soap_list $single_list >$total_list`;
-
-		system "ls $pe_dir/*.soap >$soap_list";
-		system "ls $pe_dir/*.single >$single_list";
+		system "find $pe_dir/ -name '*.soap' >$soap_list";
+		system "find $pe_dir/ -name '*.single' >$single_list";
 		system "cat $soap_list $single_list >$total_list";
 	}
 
