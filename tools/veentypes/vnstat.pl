@@ -1,5 +1,5 @@
 #!/bin/env perl
-use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
+use lib '/share/raid010/resequencing/soft/lib';
 use lib 'E:\BGI\toGit\perlib\etc';
 use strict;
 use warnings;
