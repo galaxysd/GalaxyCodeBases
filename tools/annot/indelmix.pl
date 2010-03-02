@@ -5,7 +5,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.2;
+$main::VERSION=0.0.3;
 
 our $opts='i:o:s:bvl:f:c:';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_f, $opt_l, $opt_c);
@@ -115,7 +115,11 @@ for my $chr (sort keys %Indels) {
 		for my $Samp (@Samples) {
 			my $item=$Indels{$chr}{$pos};
 			if (defined $$item{$Samp}) {
+			    if (@{$$item{$Samp}}==3) {	# if Indel, use depth of indel_file
+				$item=join '|',@{$$item{$Samp}}
+			    } else {
 				$item=join '|',(@{$$item{$Samp}},$Depth{$chr}{$pos}{$Samp});
+			    }
 			} else {$item='.|.|'.$Depth{$chr}{$pos}{$Samp};}
 			print OUT $item,'^';
 		}
