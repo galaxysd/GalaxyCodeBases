@@ -4,7 +4,7 @@ use warnings;
 #use DBI;
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.2;
+$main::VERSION=0.1.3;
 
 our $opts='i:o:c:m:bvne';
 our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_n, $opt_e, $opt_m);
@@ -130,16 +130,16 @@ while (<INDEL>) {
 close INDEL;
 warn "[!]INDEL done.\n";
 
-my ($i,$dep,$scaf);
+my ($i,$dep,$scaf,$name);
 for $chr (keys %Genome) {
     $Genome{$chr}->[0]='';  # no longer undef
     $t=0;
     $i=-1;
     unless (exists $Merged{$chr}) { # exists should faster than defined ?
-	$t=$opt_o.'.'.$chr;
-	open OUT,'>',$t.'.fa' or die "Error opening ${t}.fa: $!\n";
+	$name=$opt_o.'.'.$chr;
+	open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
 	print OUT ">$chr\n";
-	open DEP,'>',$t.'.dep' or die "Error opening ${t}.dep: $!\n";
+	open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
 	print DEP ">$chr\n";
 	#$t=0;
 	#$i=-1;
@@ -168,19 +168,14 @@ for $chr (keys %Genome) {
 	    ++$i;
 	    if (exists $$scaf{$i}) {	# Start point
 		($scafname,$end)=@{$$scaf{$i}};
-		$t=$opt_o.'.'.$chr.'/'.$scafname;
-		open OUT,'>',$t.'.fa' or die "Error opening ${t}.fa: $!\n";
+		$name=$opt_o.'.'.$chr.'/'.$scafname;
+		open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
 		print OUT ">$scafname\n";
-		open DEP,'>',$t.'.dep' or die "Error opening ${t}.dep: $!\n";
+		open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
 		print DEP ">$scafname\n";
 		$toPrint=1;	# when set to 0, no output for manmade junctions.
-	    } elsif ($i == $end) {	# End point
-		print OUT "\n";
-		print DEP "\n";
-		close OUT;
-		close DEP;
-		$toPrint=0;
-	    } else {	# Mid-way (2 kinds)
+	    }
+	    if ($i != $end) {
 		next if ($_ eq '' or $toPrint==0);
 		++$t;
 		print OUT $_;
@@ -192,6 +187,20 @@ for $chr (keys %Genome) {
 		    print OUT "\n";
 		    print DEP "$dep\n";
 		} else {print DEP $dep,' ';}
+	    } else {	# End point
+		if ($_ ne '') {
+		    print OUT $_,"\n";
+		    $dep=$Depth{$chr}{$i} or $dep="\0";
+		    $dep = join(' ',map ord,split //,$dep);
+		    print DEP "$dep\n";
+		} else {
+		    print OUT "\n";
+		    print DEP "\n";
+		}
+		close OUT;
+		close DEP;
+		$t=$toPrint=0;
+		next;
 	    }
 	}
     }
