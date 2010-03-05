@@ -1,7 +1,5 @@
 #!/usr/bin/perl-w
 use strict;
-#edit by Xun Xu;
-#modify by Dong Li;
 #输入snp文件_wild（已经trim好）
 #输入snp文件_cultivar（已经trim好）
 #输入非unique文件
@@ -64,11 +62,11 @@ my @st=split/\s+/,$dbn;
 my $tmp=<SC>;
 my @t=split/\s+/,$tmp;
 my $nc=$t[7]+$t[8];
-$nc = 38;
+#$nc = 38;
 $tmp=<SW>;
 @t=split/\s+/,$tmp;
 my $nw=$t[7]+$t[8];
-$nw = 16;
+#$nw = 16;
 close SC;
 close SW;
 open SNP,"$opts{snpdb}";
