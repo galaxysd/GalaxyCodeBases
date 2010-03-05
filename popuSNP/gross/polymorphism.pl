@@ -248,3 +248,6 @@ sub fst{
 	my $fst=1-($hw)/($hb);
 	return $fst;
 }
+
+__END__
+cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./outpoly/$a.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/$a.err" >> ./outpoly/$a.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -n 5000 -bin 0.1 -o ./outpoly/$a.polymorphism >> ./outpoly/$a.sh; done
