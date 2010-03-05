@@ -1,41 +1,33 @@
-#!/usr/bin/perl-w
+#!/bin/env perl
 use strict;
-#ÊäÈësnpÎÄ¼ş_wild£¨ÒÑ¾­trimºÃ£©
-#ÊäÈësnpÎÄ¼ş_cultivar£¨ÒÑ¾­trimºÃ£©
-#ÊäÈë·ÇuniqueÎÄ¼ş
+#è¾“å…¥snpæ–‡ä»¶_wildï¼ˆå·²ç»trimå¥½ï¼‰
+#è¾“å…¥snpæ–‡ä»¶_cultivarï¼ˆå·²ç»trimå¥½ï¼‰
+#è¾“å…¥éuniqueæ–‡ä»¶
 use Getopt::Long;
 #use Data::Dumper;
 
 ###############
 my %opts;
 
-GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","ratio=s","cutoff=s","h");
+GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","h");
 
 #&help()if(defined $opts{h});
-if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defined($opts{ratio}) ||!defined($opts{snpdb})||!defined($opts{bin})||defined($opts{h}) ){
+if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defined($opts{snpdb})||!defined($opts{bin})||defined($opts{h}) ){
 	my $ver="1.0";
 	print <<"	Usage End.";
 	Description:
-
-		calculate pi¡¢theta¡¢D¡¢diff ¡¢Fst in different groups
+		calculate piã€thetaã€Dã€diff ã€Fst in different groups
 		Version: $ver 0.1
 
 	Usage:
-
 		-snp_w/snp_c   snp file        Must be given, multi snp result
-
 		-snpdb	selected snps		groups snps (including copy number infor)
-
 		-o   output       Must be given output file names
-
-		-n   window size       
-
+		-n   window size
 		-bin   sliding bin       for example: 10%(0.1) for moving
-		
-		-ratio ratio files
-		
 		-h    Help document
-		out put format :
+
+	out put format :
 		location pi-1 theta-1 jajima's_D-1 pi-2 theta-2 jajima's_D-2 difference Fst length;
 
 	Usage End.
@@ -43,16 +35,16 @@ if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defi
 	exit;
 }
 
-open FILT,$opts{ratio};
-if (!defined $opts{cutoff}){$opts{cutoff}=2;}
-my %pval;
-while(<FILT>){
-	chomp;
-	my @inf=split(/\t/);
-	if ($inf[12]<=$opts{cutoff}){
-		$pval{$inf[1]}=$inf[12];
-	}
-}
+#open FILT,$opts{ratio};
+#if (!defined $opts{cutoff}){$opts{cutoff}=2;}
+#my %pval;
+#while(<FILT>){
+#	chomp;
+#	my @inf=split(/\t/);
+#	if ($inf[12]<=$opts{cutoff}){
+#		$pval{$inf[1]}=$inf[12];
+#	}
+#}
 #print "a\n";
 open SC,"$opts{snp_c}";
 open SW,"$opts{snp_w}";open DB,"$opts{snp_w}";
@@ -81,41 +73,41 @@ my $locname=0;
 #print "$locname\n";
 for (my $i=0; ;$i+=$window*$bin) {
 	my $length=0;my $pi_c=0;my $theta_c=0;my $pi_w=0;my $theta_w=0;my $dif=0;
-	#length ĞèÒªÈ¥µôÈÎºÎÃ»ÓĞmappingµ½£¨depth¡¶20»ò¡·250£©¡¢copy number´óÓÚ1.5µÄ³¤¶È¡£
-	#pi Öµ¼ÆËã·ûºÏsnpÒªÇóµÄÎ»µã£¬¼´ÔÚÈºÌåÀï·ûºÏdepth 20-250 quality¡·=1.5  copy numberĞ¡ÓÚµÈÓÚ1.5 thetaÒ²Èç´Ë
-	#ÏÈ¶ÁÈë×ÜÌåsnpÎÄ¼ş£¬¶ÔÃ¿Ò»¸ö¼î»ùÅĞ¶ÏÊÇ·ñĞèÒª¼ÆËã³¤¶È¡¢ÊÇ·ñĞèÒª¼ÆËãsnp£¬²»¹ÜÊÇ·ñĞèÒª¼ÆËã£¬¶¼¶ÁÈëÁ½¸ösnpÎÄ¼ş£¬
-	#Èç¹û²»·ûºÏ£¬Ôò²»¼ÆËã£¬Èç¹û·ûºÏ£¬Ôò½øĞĞ¼ÆËã
-	#ÓÉÓÚĞèÒª×ösliding£¬ËùÒÔĞèÒª¼Ç×¡Ç°ÃæµÄ½á¹û£¬Èç¹ûÒ»¿ªÊ¼µÈÓÚwhileÀïÃæµÄ¼ÆÊı£¬Ôò½«¸ÃÊı×ÖÇ°Ãæ45000µÄ½á¹û¶¼¼ÓÆğÀ´
-	#Õâ¸öÊı×éÖ»ÓĞ45000+5000¸ö£¬Èç¹ûÍùÀïÃæĞÂ¼Ó£¬ÔÚwhileÀïÃæ£¬´Ó5000¿ªÊ¼Ìæ»»£¬Ò»Ö±Ìæ»»µ½while½áÊø£¬Ã¿´ÎwhileÒ»¿ªÊ¼¼ÆÊı¶¼ÊÇ0£»
+	#length éœ€è¦å»æ‰ä»»ä½•æ²¡æœ‰mappingåˆ°ï¼ˆdepthã€Š20æˆ–ã€‹250ï¼‰ã€copy numberå¤§äº1.5çš„é•¿åº¦ã€‚
+	#pi å€¼è®¡ç®—ç¬¦åˆsnpè¦æ±‚çš„ä½ç‚¹ï¼Œå³åœ¨ç¾¤ä½“é‡Œç¬¦åˆdepth 20-250 qualityã€‹=1.5  copy numberå°äºç­‰äº1.5 thetaä¹Ÿå¦‚æ­¤
+	#å…ˆè¯»å…¥æ€»ä½“snpæ–‡ä»¶ï¼Œå¯¹æ¯ä¸€ä¸ªç¢±åŸºåˆ¤æ–­æ˜¯å¦éœ€è¦è®¡ç®—é•¿åº¦ã€æ˜¯å¦éœ€è¦è®¡ç®—snpï¼Œä¸ç®¡æ˜¯å¦éœ€è¦è®¡ç®—ï¼Œéƒ½è¯»å…¥ä¸¤ä¸ªsnpæ–‡ä»¶ï¼Œ
+	#å¦‚æœä¸ç¬¦åˆï¼Œåˆ™ä¸è®¡ç®—ï¼Œå¦‚æœç¬¦åˆï¼Œåˆ™è¿›è¡Œè®¡ç®—
+	#ç”±äºéœ€è¦åšslidingï¼Œæ‰€ä»¥éœ€è¦è®°ä½å‰é¢çš„ç»“æœï¼Œå¦‚æœä¸€å¼€å§‹ç­‰äºwhileé‡Œé¢çš„è®¡æ•°ï¼Œåˆ™å°†è¯¥æ•°å­—å‰é¢45000çš„ç»“æœéƒ½åŠ èµ·æ¥
+	#è¿™ä¸ªæ•°ç»„åªæœ‰45000+5000ä¸ªï¼Œå¦‚æœå¾€é‡Œé¢æ–°åŠ ï¼Œåœ¨whileé‡Œé¢ï¼Œä»5000å¼€å§‹æ›¿æ¢ï¼Œä¸€ç›´æ›¿æ¢åˆ°whileç»“æŸï¼Œæ¯æ¬¡whileä¸€å¼€å§‹è®¡æ•°éƒ½æ˜¯0ï¼›
 
 	my $s=0;
 	#my $lengthe=0;my $pi_ce=0;my $theta_ce=0;my $pi_we=0;my $theta_we=0;my $dife=0;
 	for (my $k=$window*$bin-1;$k<$window ;$k++) {
 		if (!exists $slid[$k]{leth}) {next;	}
-		
-		
+
+
 #				$pi_we+=$slid[$k]{piw};
 #				$pi_ce+=$slid[$k]{pic};
 #				$dife+=$slid[$k]{dif};
 #				$theta_we+=($slid[$k]{tw}>0);
 #				$theta_ce+=($slid[$k]{tc}>0);
-#Ñ­»·Ìæ»»£¬ÏòÇ°ÒÆ
+#å¾ªç¯æ›¿æ¢ï¼Œå‘å‰ç§»
 
-				$slid[$s]{piw}=$slid[$k]{piw};         
-				$slid[$s]{pic}=$slid[$k]{pic};         
-				$slid[$s]{dif}=$slid[$k]{dif};        
+				$slid[$s]{piw}=$slid[$k]{piw};
+				$slid[$s]{pic}=$slid[$k]{pic};
+				$slid[$s]{dif}=$slid[$k]{dif};
 				$slid[$s]{tw}=$slid[$k]{tw};
-				$slid[$s]{tc}=$slid[$k]{tc}; 
+				$slid[$s]{tc}=$slid[$k]{tc};
 
 
 
 
 
 
-		
+
 		#$lengthe+=$slid[$k]{leth};
 		$slid[$s]{leth}=$slid[$k]{leth};$s++;		}
-	
+
 	my $m=0;
 	while (my $block=<SNP>) {
 		chomp $block;
@@ -123,40 +115,41 @@ for (my $i=0; ;$i+=$window*$bin) {
 		$slid[$s]{piw}=0;
 		$slid[$s]{pic}=0;
 		$slid[$s]{dif}=0;
-		$slid[$s]{tw}=0; 
+		$slid[$s]{tw}=0;
 		$slid[$s]{tc}=0;
 		$slid[$s]{leth}=0;
-		
+
 
 
 		#print "@inf\n";exit;
-		if ($inf[3]<20||$inf[3]>250||$inf[10]>1.5) {$slid[$s]{leth}=0;<SC>;<SW>;}#²»·ûºÏ
+		if ($inf[3]<20||$inf[3]>250||$inf[10]>1.5) {$slid[$s]{leth}=0;<SC>;<SW>;}#ä¸ç¬¦åˆ
 		if ($inf[3]>=20&&$inf[3]<=250&&$inf[10]<=1.5) {
-			
+
 				my $wilds=<SW>;
 				my $culs=<SC>;
 				chomp $wilds;chomp $culs;
 				my @line_w=split/\s+/,$wilds;my @line_c=split/\s+/,$culs;
 				if ($line_w[3]>0&&$line_c[3]>0) {$length++;$slid[$s]{leth}=1;
-#				$slid[$s]{piw}="";   
-#				$slid[$s]{pic}="";   
-#				$slid[$s]{dif}="";   
-#				$slid[$s]{tw}="";    
-#				$slid[$s]{tc}="";    
-#				                     
-				}#¿ÉÒÔÍ³¼ÆµÄÎ»µã
+#				$slid[$s]{piw}="";
+#				$slid[$s]{pic}="";
+#				$slid[$s]{dif}="";
+#				$slid[$s]{tw}="";
+#				$slid[$s]{tc}="";
+#
+				}#å¯ä»¥ç»Ÿè®¡çš„ä½ç‚¹
 
 
 				$locname=$line_w[1];
-			if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)&&(exists $pval{$inf[1]})) {				
+			#if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)&&(exists $pval{$inf[1]})) {
+			if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)) {
 				if ($line_w[1]!=$inf[1]||$line_c[1]!=$inf[1]) {print OUT "$inf[1]\t$line_w[1]\t$line_c[1]\terror\n";exit;				}
 
-				
+
 				my $piw=$line_w[8]*$line_w[7]*2/(($line_w[8]+$line_w[7])*($line_w[8]+$line_w[7]-1));
 				$pi_w+=$piw;
 				my %fw;my %fc;
 				$fw{$line_w[6]}=$line_w[8]/($line_w[8]+$line_w[7]); $fw{$line_w[5]}=1-$fw{$line_w[6]};
-				
+
 				my $pic=$line_c[8]*$line_c[7]*2/(($line_c[8]+$line_c[7])*($line_c[8]+$line_c[7]-1));
 					$pi_c+=$pic;
 				$fc{$line_c[6]}=$line_c[8]/($line_c[8]+$line_c[7]); $fc{$line_c[5]}=1-$fc{$line_c[6]};
@@ -172,8 +165,8 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 
 
-			}#ÓĞĞ§snpÎ»µã
-			
+			}#æœ‰æ•ˆsnpä½ç‚¹
+
 
 
 		}
@@ -184,22 +177,22 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 	}
 	#print "$m\n";
-	if ($m!=1) {exit;	}#ÅĞ¶ÏÊÇ·ñÓĞÎÄ¼ş¶ÁÈë£¬Èç¹ûÃ»ÓĞ¶ÁÈë£¬Ìø³ö
+	if ($m!=1) {exit;	}#åˆ¤æ–­æ˜¯å¦æœ‰æ–‡ä»¶è¯»å…¥ï¼Œå¦‚æœæ²¡æœ‰è¯»å…¥ï¼Œè·³å‡º
 	my $lengthe=0;my $pi_ce=0;my $theta_ce=0;my $pi_we=0;my $theta_we=0;my $dife=0;
-	
+
 #	$length+=$lengthe;$pi_c+=$pi_ce;$theta_c+=$theta_ce;$pi_w+=$pi_we;$theta_w+=$theta_we;$dif+=$dife;
 	for (my $in=0;$in<$window ;$in++) {
-				$pi_we+=$slid[$in]{piw};      
-				$pi_ce+=$slid[$in]{pic};      
-				$dife+=$slid[$in]{dif};       
+				$pi_we+=$slid[$in]{piw};
+				$pi_ce+=$slid[$in]{pic};
+				$dife+=$slid[$in]{dif};
 				$theta_we+=($slid[$in]{tw}>0);
 				$theta_ce+=($slid[$in]{tc}>0);
 				$lengthe+=$slid[$in]{leth};
 
 
 	}
-	if ($lengthe<=($window*0.3)||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#Èç¹ûÄÜ¹»mappingµÄÇøÓòĞ¡ÓÚwindowµÄ4/10Ôò²»Êä³ö½á¹û
-	
+	if ($lengthe<=($window*0.3)||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#å¦‚æœèƒ½å¤Ÿmappingçš„åŒºåŸŸå°äºwindowçš„4/10åˆ™ä¸è¾“å‡ºç»“æœ
+
 	my $diff = $dife / $lengthe;
 	my $Dc=tajima($nc,$pi_ce,$theta_ce);
 	my $Dw=tajima($nw,$pi_we,$theta_we);
@@ -209,43 +202,42 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 }
 
-print "Hello, World...\n";
-
+warn "[!]Done.\n";
 
 
 sub tajima{
-my $num=$_[0];
-my $pi=$_[1];
-my $t=$_[2];
+	my $num=$_[0];
+	my $pi=$_[1];
+	my $t=$_[2];
 
-my $a1c;
-for (my $i=1;$i<=$num-1;$i++) {
-	$a1c+=1/$i;
+	my $a1c;
+	for (my $i=1;$i<=$num-1;$i++) {
+		$a1c+=1/$i;
+	}
+
+	my $a2c;
+
+	for (my $i=1;$i<=$num-1;$i++) {
+		$a2c+=1/($i*$i);
+	}
+
+	my $b1c=($num+1)/(3*($num-1));
+
+	my $b2c=2*($num*$num+$num+3)/(9*$num*($num-1));
+
+	my $c1c=$b1c-(1/$a1c);
+
+	my $c2c=$b2c-(($num+2)/($a1c*$num))+$a2c/($a1c*$a1c);
+
+	my $e1c=$c1c/$a1c;
+	my $e2c=$c2c/($a1c*$a1c+$a2c);
+	my $Dc = 0;
+	if ($e1c*$t+$e2c*$t*($t-1) != 0){
+		$Dc=($pi-($t/$a1c))/sqrt($e1c*$t+$e2c*$t*($t-1));
+	}
+	return $Dc;
 }
 
-my $a2c;
-
-for (my $i=1;$i<=$num-1;$i++) {
-	$a2c+=1/($i*$i);
-}
-
-my $b1c=($num+1)/(3*($num-1));
-
-my $b2c=2*($num*$num+$num+3)/(9*$num*($num-1));
-
-my $c1c=$b1c-(1/$a1c);
-
-my $c2c=$b2c-(($num+2)/($a1c*$num))+$a2c/($a1c*$a1c);
-
-my $e1c=$c1c/$a1c;
-my $e2c=$c2c/($a1c*$a1c+$a2c);
-my $Dc = 0;
-if ($e1c*$t+$e2c*$t*($t-1) != 0){
-$Dc=($pi-($t/$a1c))/sqrt($e1c*$t+$e2c*$t*($t-1));
-}
-return $Dc;
-
-}
 sub fst{
 	#should input the parwise comparision of each group and parwise comparsion between two groups
 	#should input the number of each group
