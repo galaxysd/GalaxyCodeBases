@@ -1,4 +1,5 @@
-a=read.delim('./outpoly/mix.allpoly',header=F);
+a=read.delim('dat.tsv',header=F);
+#a=read.delim('./outpoly/mix.allpoly',header=F);
 p=0.05;
 
 theX=qnorm(p*2);
@@ -25,6 +26,7 @@ def.par <- par(no.readonly = TRUE)
 layout(matrix(c(2,0,1,3),2,2,byrow=TRUE),c(3,1),c(1,3),TRUE);
 par(mar=c(5,5,0,0));
 plot(PiR,TDD,xlim=c(0,5),ylim=c(-3,4),pch="+",xlab=expression(theta[pi][","][cultivate]/theta[pi][","][wild]),cex.lab=1.5,cex.axis=1.5,ylab=expression(Tajima ~~ italic(D)[cultivate]));
+#plot(PiR,TDD,ylim=c(-3,4),log='x',pch="+",xlab=expression(theta[pi][","][cultivate]/theta[pi][","][wild]),cex.lab=1.5,cex.axis=1.5,ylab=expression(Tajima ~~ italic(D)[cultivate]));
 
 #plot(function(x)dnorm(x), -6, 6)
 
@@ -34,6 +36,7 @@ lines(x1,y1,col="RED");
 x1=c(-0.3,5.3);
 y1=c(lowt,lowt);
 lines(x1,y1,col="RED");
+
 par(mar=c(0,5,5,1));
 barplot(PiRH$counts/sum(PiRH$counts),axes=FALSE, ylim=c(0,top1), space=0, col="BLUE", ylab="Proportion",cex.lab=1.5);
 ypos = seq(0,0.1,by=0.05)
@@ -43,6 +46,7 @@ threshold_x2=4.31;
 x2=c(threshold_x2,threshold_x2);
 y2=c(0,top1);
 lines(x2,y2,col="RED");
+
 par(mar=c(5,0,1,3));
 barplot(TDDH$counts/sum(TDDH$counts),axes=FALSE,xlim=c(0,top2),space=0,horiz=TRUE,col="GREEN",xlab="Proportion",cex.lab=1.5);
 ypos = seq(0,0.03,by=0.015)
