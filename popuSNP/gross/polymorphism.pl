@@ -122,8 +122,9 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 
 		#print "@inf\n";exit;
-		if ($inf[3]<20||$inf[3]>250||$inf[10]>1.5) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
-		if ($inf[3]>=20&&$inf[3]<=250&&$inf[10]<=1.5) {
+	# 20,250,1.5 need to be set !
+		if ($inf[3]<20||$inf[3]>95||$inf[10]>1.16) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
+		if ($inf[3]>=20&&$inf[3]<=95&&$inf[10]<=1.16) {
 
 				my $wilds=<SW>;
 				my $culs=<SC>;
