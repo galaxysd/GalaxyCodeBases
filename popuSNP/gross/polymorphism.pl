@@ -9,10 +9,10 @@ use Getopt::Long;
 ###############
 my %opts;
 
-GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","h");
+GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","ratio=s","cutoff=s","h");
 
 #&help()if(defined $opts{h});
-if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defined($opts{snpdb})||!defined($opts{bin})||defined($opts{h}) ){
+if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n})||!defined($opts{ratio}) ||!defined($opts{snpdb})||!defined($opts{bin})||defined($opts{h}) ){
 	my $ver="1.0";
 	print <<"	Usage End.";
 	Description:
@@ -22,6 +22,8 @@ if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defi
 	Usage:
 		-snp_w/snp_c   snp file        Must be given, multi snp result
 		-snpdb	selected snps		groups snps (including copy number infor)
+		-ratio	ratio files (groups snps file)
+		-cutoff	cutoff for ratio (2)
 		-o   output       Must be given output file names
 		-n   window size
 		-bin   sliding bin       for example: 10%(0.1) for moving
@@ -35,16 +37,17 @@ if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n}) ||!defi
 	exit;
 }
 
-#open FILT,$opts{ratio};
-#if (!defined $opts{cutoff}){$opts{cutoff}=2;}
-#my %pval;
-#while(<FILT>){
-#	chomp;
-#	my @inf=split(/\t/);
+open FILT,$opts{ratio};
+if (!defined $opts{cutoff}){$opts{cutoff}=2;}
+my %pval;
+while(<FILT>){
+	chomp;
+	my @inf=split(/\t/);
 #	if ($inf[12]<=$opts{cutoff}){
 #		$pval{$inf[1]}=$inf[12];
 #	}
-#}
+	++$pval{$inf[1]};
+}
 #print "a\n";
 open SC,"$opts{snp_c}";
 open SW,"$opts{snp_w}";open DB,"$opts{snp_w}";
@@ -100,11 +103,6 @@ for (my $i=0; ;$i+=$window*$bin) {
 				$slid[$s]{tc}=$slid[$k]{tc};
 
 
-
-
-
-
-
 		#$lengthe+=$slid[$k]{leth};
 		$slid[$s]{leth}=$slid[$k]{leth};$s++;		}
 
@@ -139,12 +137,10 @@ for (my $i=0; ;$i+=$window*$bin) {
 #
 				}#可以统计的位点
 
-
 				$locname=$line_w[1];
-			#if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)&&(exists $pval{$inf[1]})) {
-			if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)) {
-				if ($line_w[1]!=$inf[1]||$line_c[1]!=$inf[1]) {print OUT "$inf[1]\t$line_w[1]\t$line_c[1]\terror\n";exit;				}
-
+			if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)&&(exists $pval{$inf[1]})) {
+			#if ($inf[9]>=15&&($line_w[3]>0&&$line_c[3]>0)) {
+				if ($line_w[1]!=$inf[1]||$line_c[1]!=$inf[1]) {print OUT "$inf[1]\t$line_w[1]\t$line_c[1]\terror\n";exit;}
 
 				my $piw=$line_w[8]*$line_w[7]*2/(($line_w[8]+$line_w[7])*($line_w[8]+$line_w[7]-1));
 				$pi_w+=$piw;
