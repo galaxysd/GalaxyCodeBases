@@ -43,10 +43,10 @@ my %pval;
 while(<FILT>){
 	chomp;
 	my @inf=split(/\t/);
-#	if ($inf[12]<=$opts{cutoff}){
-#		$pval{$inf[1]}=$inf[12];
-#	}
-	++$pval{$inf[1]};
+	if ($inf[-1]<=$opts{cutoff}){
+		$pval{$inf[1]}=$inf[-1];
+	}
+	#++$pval{$inf[1]};
 }
 #print "a\n";
 open SC,"$opts{snp_c}";
@@ -121,8 +121,8 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 		#print "@inf\n";exit;
 	# 20,250,1.5 need to be set !
-		if ($inf[3]<20||$inf[3]>95||$inf[10]>1.16) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
-		if ($inf[3]>=20&&$inf[3]<=95&&$inf[10]<=1.16) {
+		if ($inf[3]<20||$inf[3]>95||$inf[10]>1.5) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
+		if ($inf[3]>=20&&$inf[3]<=95&&$inf[10]<=1.5) {
 
 				my $wilds=<SW>;
 				my $culs=<SC>;
@@ -247,4 +247,4 @@ sub fst{
 }
 
 __END__
-cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./outpoly/$a.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/$a.err" >> ./outpoly/$a.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -n 5000 -bin 0.1 -o ./outpoly/$a.polymorphism >> ./outpoly/$a.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./outpoly/$a.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/$a.err" >> ./outpoly/$a.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./aSNP/$a.add_cn.filter -n 5000 -bin 0.1 -o ./outpoly/$a.polymorphism >> ./outpoly/$a.sh; done
