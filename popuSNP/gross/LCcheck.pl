@@ -49,10 +49,16 @@ foreach my $lib (keys %strain){
 	#print STDERR $pe."\n";
 my @PE=split /\n/,$pe;
 warn "[$_]\n" for @PE;
-	for $pe (@PE) {
-		open (A,$pe) || die $!;
-		while(<A>){
+	#for $pe (@PE) {
+	@ARGV=@PE;	# in check_allSNP.pl, each csv is treat as a per for het base stat. Thus files muct be merged.
+	$pe='';	# Well, this is just a temp patch for this huge slow programme.
+		#open (A,$pe) || die $!;
+		while(<>){
 			chomp;
+			if ($ARGV ne $pe) {	# for debug only. It is already a silly slow programme.
+				warn "[!]$ARGV\n";
+				$ARGV = $pe;
+			}
 			my @words = split(/\t/);
 			my ($uniq,$chrF,$start) = ($words[3],$words[7],$words[8]);
 			next if $chr ne $chrF;
@@ -68,11 +74,14 @@ warn "[$_]\n" for @PE;
 				}
 			}
 		}
-		close A;
+		#close A;
+# p $hash{Gm11_932}
+#~,T\TaT^Tb~,T_T^T^Ta~,TGTOTR~,~,T\~,Ta~,Tb~,~,~,T[Ta~,~,~,T]~,T[T`TbTa~,TT~,T`T`Tb~,~,~,Ta~,A\~,~,T_TaTa~,~,~,TaTb~,T_TbTM~,T]~,~,T^Ta~,TaT^~,~,T]TW~,~,T^~,~,~,AaT\~,TaTa~,Ta~,~,~,TbTX~,TZTaT]~,~,~,~,Ta~,T`TaT[~,~,TR~,Ta~,~,~,~,~,T_~,~,~,~,T`TaTa~,Ta~,T`Tb~,~,Ta~,T]~,~,~,~,~,TaTa~,T_T^TZ~,~,~,~,Tb~,~,~,TaT`TaT`~,~,~,~,~,T`Ta~,TbT]~,~,~,
+# "base" "Q" "~," for each input file
 		foreach (keys %pos){
 			$hash{$_} .= "~,";
 		}
-	}
+	#}
 }
 #print Dumper %hash;
 #die;
@@ -93,6 +102,9 @@ foreach my $key (sort {my ($a,$b),(split(/_/,$a))[1]<=>(split(/_/,$b))[1]} keys 
 		}
 		$allele{$key} .= $seq.$quality.",";
 	}
+# foreach (bQbQbQ~,) -> bbb~QQQ,
+# still *~*, for each rmdup soap file
+
 #	my $temp;
 #	if (exists $allele{'A'}){
 #		$temp = $allele{'A'} . "." . "\t";
@@ -122,3 +134,6 @@ foreach my $key (sort {my ($a,$b),(split(/_/,$a))[1]<=>(split(/_/,$b))[1]} keys 
 #	$hash{$key}{$key2} = $temp;
 	print $pos{$key},"\t",$allele{$key},"\n";
 }
+
+__END__
+cat chrorder | perl -lane 'open O,">./shell/${_}_LC.sh";$a="./population/".$_.".LC" ;print O "\#\$ -N LC_$_ -cwd -r y -l vf=1g,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e $a.err";print O "./LCcheck.pl ./Soybean_qdj/SoapSort/ ./population/${_}.add_cn $_ Soybean_qdj/sample.list.sort > $a";close O;'
