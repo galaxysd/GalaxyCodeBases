@@ -10,18 +10,6 @@ chr11	1	A	3	3.166667	A	C	80	0	0	8.00
 ==> 40snp/population/chr11.checkEachSite <==
 chr11	726	C	47	0.500000	T	C	62	18	91	1.00	.	TVKYVYVVNTTTT.	RRTNNQROOSTTTTSOHTTNNRSUURLTTTTNPQ.	.
 
-==> 40snp/population/chr11.dbsnp <==
-chr11	744	1	0	0	0.5	0	0.5	0	sws00643756
-
-==> 40snp/population/chr11.FinalSNPs <==
-chr11	744	A A - T W A T A - T T A T - A - - - A A A A T - A - - - T T A A - T A - - A A A W
-
-==> 40snp/population/chr11.individual <==
-chr11	744	W 	T	W	29 	A	W	2 	A	T	0 	A	W	3 	A	W	5 	A	W	5 	A	T	0 	A	T	0 	T	W	5 	A	W	8 	W	A	11 	A	T	0 	T	W	5 	T	W	2 	A	W	8 	A	T	0 	A	W	5 	W	T	15 	T	W	8 	A	T	0 	T	W	8 	A	T	0 	A	W	2 	A	W	5 	T	W	11 	A	W	5 	A	W	2 	A	T	0 	A	W	2 	T	W	3 	A	W	2 	A	T	0 	A	T	0 	T	W	14 	A	W	11 	A	T	0 	A	W	2 	A	W	5 	A	T	0 	A	T	0 	65
-
-==> 40snp/population/chr11.individual.add_ref <==
-chr11	744	A	W 	A	W	5 	A	T	0 	T	W	14 	W	T	15 	A	W	8 	T	W	2 	A	W	3 	A	T	0 	T	W	8 	T	W	11 	A	W	2 	T	W	3 	A	T	0 	A	W	5 	A	T	0 	A	T	0 	A	T	0 	A	W	8 	A	W	11 	A	W	5 	A	W	2 	T	W	5 	A	T	0 	A	W	5 	A	T	0 	A	T	0 	A	T	0 	T	W	8 	T	W	29 	A	W	2 	A	W	2 	A	T	0 	T	W	5 	A	W	2 	A	T	0 	A	T	0 	A	W	5 	A	W	2 	A	W	5 	W	A	11 	65
-
 ==> 40snp/population/chr11.LCcheck <==
 chr11	726	C	47	0.500000	T	C	62	18	91	1.00	C~T,~,TTTT~TTTN,TT~TT,CCCCC~YVYVV,T~O,~,~,T~T,TTTT~TTNN,T~N,TT~UU,T~S,CCC~TVK,~,~,~,CC~NT,T~P,~,CC~TT,~,T~T,T~Q,~,~,~,TTT~TSO,TTTT~RRTN,T~S,T~H,~,T~R,~,~,~,T~Q,TT~RL,T~R,T~O,~,
 
@@ -33,3 +21,15 @@ chr11	726	C	47	0.500000	T	C	62	18	91	1.00	34T:13C 0:0	0
 
 ==> 40snp/population/chr11.rst <==
 chr11	726	0.00164072	13	263
+
+==> 40snp/population/chr11.individual <==
+chr11	744	W 	T	W	29 	A	W	2 	A	T	0 	A	W	3 	A	W	5 	A	W	5 	A	T	0 	A	T	0 	T	W	5 	A	W	8 	W	A	11 	A	T	0 	T	W	5 	T	W	2 	A	W	8 	A	T	0 	A	W	5 	W	T	15 	T	W	8 	A	T	0 	T	W	8 	A	T	0 	A	W	2 	A	W	5 	T	W	11 	A	W	5 	A	W	2 	A	T	0 	A	W	2 	T	W	3 	A	W	2 	A	T	0 	A	T	0 	T	W	14 	A	W	11 	A	T	0 	A	W	2 	A	W	5 	A	T	0 	A	T	0 	65
+
+==> 40snp/population/chr11.individual.add_ref <==
+chr11	744	A	W 	A	W	5 	A	T	0 	T	W	14 	W	T	15 	A	W	8 	T	W	2 	A	W	3 	A	T	0 	T	W	8 	T	W	11 	A	W	2 	T	W	3 	A	T	0 	A	W	5 	A	T	0 	A	T	0 	A	T	0 	A	W	8 	A	W	11 	A	W	5 	A	W	2 	T	W	5 	A	T	0 	A	W	5 	A	T	0 	A	T	0 	A	T	0 	T	W	8 	T	W	29 	A	W	2 	A	W	2 	A	T	0 	T	W	5 	A	W	2 	A	T	0 	A	T	0 	A	W	5 	A	W	2 	A	W	5 	W	A	11 	65
+
+==> 40snp/population/chr11.dbsnp <==
+chr11	744	1	0	0	0.5	0	0.5	0	sws00643756
+
+==> 40snp/population/chr11.FinalSNPs <==
+chr11	744	A A - T W A T A - T T A T - A - - - A A A A T - A - - - T T A A - T A - - A A A W
