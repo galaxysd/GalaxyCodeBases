@@ -64,7 +64,7 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 					$output .= $hash{$_}.$_.":";
 #					print $hash{$_},$_,":";
 				}
-				chop $output;	# remove the extra ':'
+				#chop $output;	# remove the extra ':'
 #				print $output;
 			}
 #			print " ";
@@ -76,7 +76,7 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 		push @just,[$stat{$_},$_];	# Count, base
 	}
 	@just = sort{my ($a,$b),$b->[0]<=>$a->[0] || $a->[1] cmp $b->[1]} @just;	# Sort DESC
-	print $just[0][0],$just[0][1],":",$just[1][0],$just[1][1];	# all
+	print $just[0][0],$just[0][1],":",$just[1][0],$just[1][1];	# all, no if on scalar keys %hash thus will 'Use of uninitialized value in print at ./check_allSNP.pl line 77' 77 is here in origin version
 
 	print " ";
 	if (scalar keys %het > 1){
@@ -91,3 +91,6 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 	}
 	print "\n";
 }
+
+__END__
+cat chrorder | perl -lane 'open O,">./shell/${_}_RA.sh";$a="./population/".$_.".ratioCheck" ;print O "\#\$ -N RA_$_ -hold_jid LC_$_ -cwd -r y -l vf=1g,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e $a.err";print O "./check_allSNP.pl ./population/${_}.add_cn ./population/${_}.LC > $a";close O;'
