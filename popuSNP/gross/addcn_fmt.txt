@@ -1,0 +1,26 @@
+## format_of_copyNumRST5p_v2.pl.output
+#chr	loc	refBase	depth	cpnum	base1	base2	numOfBase1	numOfBase2	quality	copynum	5bp_edge	no_edge	Uniq_reads	ration_check	RST_check
+
+==> 40snp/population/chr11.add_cn_cp1.5_q15.filterByChr <==
+chr11	726	C	47	0.500000	T	C	62	18	91	1.00
+
+==> allFinalSNP/Population/Gm16.add_cn <==
+Gm16	40	T	276	9.090580	T	C	46	4	3	710.57	60	216	14	2.00	0.0714286
+
+==> allFinalSNP/Population/Gm16.add <==
+Gm16	40	T	276	9.090580	T	C	46	4	3	710.57	60	216	14	2.00
+
+==> aSNP/Gm16.add <==
+Gm16	40	T	276	9.090580	T	C	46	4	3	710.57	60	216	14	2.00
+
+==> aSNP/Gm16.add_cn <==
+Gm16	40	T	276	9.090580	T	C	46	4	3	710.57	60	216	14	2.00	0.0714286
+
+==> aSNP/Gm16.add_cn.filter <==
+Gm16	1008	T	66	0.500000	C	T	33	17	163	1.11	13	53	59	0.38	0.496869
+
+==> Add/Gm16.add_cn <==
+Gm16	40	T	276	9.090580	T	C	46	4	3	710.57
+
+==> aSNP/Gm16.add_cn.dbsnp <==
+Gm16	1008	1	0	0	0	0.5	0.5	0	00000001
