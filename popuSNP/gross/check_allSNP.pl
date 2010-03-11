@@ -47,7 +47,7 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 			my %hash;
 			for (my $j = 0;$j<@allele;$j++){
 				next if (! exists $snp{$allele[$j]});
-				next if ($q[$j]<5);
+				next if ($q[$j]<5);	# SNPed reads with Q>=5
 				$hash{$allele[$j]} ++;
 				$stat{$allele[$j]} ++;
 			}
@@ -60,11 +60,11 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 			if ($l > 1){
 				my $output = "";
 				foreach (sort keys %hash){
-					$het{$_} += $hash{$_} if ($l > 1);
+					$het{$_} += $hash{$_} if ($l > 1);	# += should be the same as =
 					$output .= $hash{$_}.$_.":";
 #					print $hash{$_},$_,":";
 				}
-				chop $output;
+				chop $output;	# remove the extra ':'
 #				print $output;
 			}
 #			print " ";
@@ -73,15 +73,15 @@ foreach my $key (sort {my ($a,$b),(split(/\t/,$a))[1]<=>(split(/\t/,$b))[1]}keys
 	my @just;my @stat_reverse;
 	foreach (sort keys %stat){
 ##		print $stat{$_},$_,":";
-		push @just,[$stat{$_},$_];
+		push @just,[$stat{$_},$_];	# Count, base
 	}
-	@just = sort{my ($a,$b),$b->[0]<=>$a->[0] || $a->[1] cmp $b->[1]} @just;
-	print $just[0][0],$just[0][1],":",$just[1][0],$just[1][1];
+	@just = sort{my ($a,$b),$b->[0]<=>$a->[0] || $a->[1] cmp $b->[1]} @just;	# Sort DESC
+	print $just[0][0],$just[0][1],":",$just[1][0],$just[1][1];	# all
 
 	print " ";
 	if (scalar keys %het > 1){
 		print $het{$just[0][1]},$just[0][1],":",$just[1][0],$just[1][1];
-		my $rate = $het{$just[0][1]}/$just[1][0];
+		my $rate = $het{$just[0][1]}/$just[1][0];	# major_het / rare, should be 1 ?
 		print "\t$rate";
 #		my $hom = $just[1][0] - $het{$just[1][1]};
 #		my $rate2 = $hom / $het{$just[1][1]};
