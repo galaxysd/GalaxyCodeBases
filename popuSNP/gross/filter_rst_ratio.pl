@@ -31,3 +31,6 @@ while(<A>){
 	}
 }
 close A;
+
+__END__
+cat chrorder | perl -lane 'open O,">./shell/${_}_FR.sh";$a="./population/".$_.".population.snp" ;print O "\#\$ -N FR_$_ -hold_jid RA_$_,LC_$_ -cwd -r y -l vf=1g,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e $a.err";print O "./filter_rst_ratio.pl ./population/ $_ > $a";close O;'
