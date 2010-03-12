@@ -9,6 +9,9 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
+0.3.10->9	Li Jun 3 found few days before that the types of mismatch contains only count in the seed.
+	However, GuoXs confirmed from LiYR that soapSNP will count mismatch from sequence itself. Thus no correction needed.
+	And, soapSNP is able to read soap2 out directly, so in future versions, transformat to soap1 will be skipped.
 0.3.9	Guoxs said, tirm will be only 1 at 5', others are 3'
 0.3.8	change input format
 0.3.7	add cache option
