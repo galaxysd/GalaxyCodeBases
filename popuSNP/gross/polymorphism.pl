@@ -247,4 +247,8 @@ sub fst{
 }
 
 __END__
-cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./outpoly/$a.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/$a.err" >> ./outpoly/$a.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./aSNP/$a.add_cn.filter -n 5000 -bin 0.1 -o ./outpoly/$a.polymorphism >> ./outpoly/$a.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_PO.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_PO.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp -n 5000 -bin 0.1 -cutoff 3 -o ./outpoly/$a.polymorphism >> ./shell/${a}_PO.sh; done
+
+cat chrorder | while read a;do echo "#$ -N \"${a}_polyf\"" >./shell/${a}_POf.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_POf.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp.f -n 5000 -bin 0.1 -cutoff 3 -o ./outpoly/$a.polymorphism >> ./shell/${a}_POf.sh; done
+
+rm -f ./outpoly/mix.mpoly && find ./outpoly/*.polymorphism | xargs cat >> ./outpoly/mix.mpoly
