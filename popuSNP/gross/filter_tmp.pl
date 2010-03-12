@@ -4,7 +4,7 @@ print STDERR $0,"\n";
 
 my %mark;
 
-die "perl $0 <population.snp> <chr_pos file(s)>\n" if @ARGV < 3;
+die "perl $0 <population.snp> <chr_pos file(s)>\n" if @ARGV < 2;
 print STDERR $0,"\n";
 
 my $infile = shift;
