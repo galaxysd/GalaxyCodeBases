@@ -30,4 +30,4 @@ while(<A>){
 close A;
 
 __END__
-cat chrorder | perl -lane 'open O,">./shell/${_}_RA.sh";$a="./population/".$_.".ratioCheck" ;print O "\#\$ -N RA_$_ -hold_jid LC_$_ -cwd -r y -l vf=1g,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e $a.err";print O "./check_allSNP.pl ./population/${_}.add_cn ./population/${_}.LC > $a";close O;'
+cat chrorder | perl -lane 'open O,">./shell/${_}_Fi.sh";$a="./population/".$_.".population.snp.f" ;print O "\#\$ -N Fi_$_ -cwd -r y -l vf=1g,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e $a.err";print O "./filter_tmp.pl ./population/${_}.population.snp ./cultivate_SNP/${_}.add_cn.filter > $a";close O;'
