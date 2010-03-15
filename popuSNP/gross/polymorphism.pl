@@ -201,10 +201,10 @@ for (my $i=0; ;$i+=$window*$bin) {
 	my $Dw=tajima($nw,$pi_we,$theta_we);
 	my $fst=fst($pi_ce,$nc,$pi_we,$nw,$dife);
 	my $piavc=$pi_ce/$lengthe;my $piavw=$pi_we/$lengthe;
-	print  OUT "$i\t$piavc\t$theta_ce\t$Dc\t$piavw\t$theta_we\t$Dw\t$fst\t$diff\t$lengthe";
+	print OUT "$i\t$piavc\t$theta_ce\t$Dc\t$piavw\t$theta_we\t$Dw\t$fst\t$diff\t$lengthe";
 	if (defined $opts{chr}) {
-		print "\t",$opts{chr},"\n";
-	} else {print "\n"}
+		print OUT "\t",$opts{chr},"\n";
+	} else {print OUT "\n"}
 
 }
 
