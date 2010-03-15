@@ -9,7 +9,7 @@ use Getopt::Long;
 ###############
 my %opts;
 
-GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","ratio=s","cutoff=s","h");
+GetOptions(\%opts,"snp_w=s","snp_c=s","snpdb=s","o=s","n=s","bin=s","ratio=s","cutoff=s","f=s","cn=s","chr=s","h");
 
 #&help()if(defined $opts{h});
 if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n})||!defined($opts{ratio}) ||!defined($opts{snpdb})||!defined($opts{bin})||defined($opts{h}) ){
@@ -27,6 +27,9 @@ if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n})||!defin
 		-o   output       Must be given output file names
 		-n   window size
 		-bin   sliding bin       for example: 10%(0.1) for moving
+		-f	filter for smaller regin, 10%(0.1)
+		-cn	min copynum for groups snps, (1.5)
+		-chr	ChrID to print at the end of line, ('')
 		-h    Help document
 
 	out put format :
@@ -39,6 +42,8 @@ if(!defined($opts{snp_w}) || !defined($opts{snp_c}) ||!defined($opts{n})||!defin
 
 open FILT,$opts{ratio};
 if (!defined $opts{cutoff}){$opts{cutoff}=2;}
+$opts{f}=0.1 unless defined $opts{f};
+$opts{cn}=1.5 unless defined $opts{cn};
 my %pval;
 while(<FILT>){
 	chomp;
@@ -121,8 +126,8 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 		#print "@inf\n";exit;
 	# 20,250,1.5 need to be set !
-		if ($inf[3]<20||$inf[3]>95||$inf[10]>1.5) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
-		if ($inf[3]>=20&&$inf[3]<=95&&$inf[10]<=1.5) {
+		if ($inf[3]<20||$inf[3]>95||$inf[10]>$opts{cn}) {$slid[$s]{leth}=0;<SC>;<SW>;}#不符合
+		if ($inf[3]>=20&&$inf[3]<=95&&$inf[10]<=$opts{cn}) {
 
 				my $wilds=<SW>;
 				my $culs=<SC>;
@@ -188,7 +193,7 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 
 	}
-	if ($lengthe<=($window*0.1)||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#如果能够mapping的区域小于window的4/10则不输出结果
+	if ($lengthe<=($window*$opts{f})||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#如果能够mapping的区域小于window的4/10则不输出结果
 	# 0.1 (<0.3) still makes sense, right ?
 
 	my $diff = $dife / $lengthe;
@@ -196,7 +201,10 @@ for (my $i=0; ;$i+=$window*$bin) {
 	my $Dw=tajima($nw,$pi_we,$theta_we);
 	my $fst=fst($pi_ce,$nc,$pi_we,$nw,$dife);
 	my $piavc=$pi_ce/$lengthe;my $piavw=$pi_we/$lengthe;
-	print  OUT "$i\t$piavc\t$theta_ce\t$Dc\t$piavw\t$theta_we\t$Dw\t$fst\t$diff\t$lengthe\n";
+	print  OUT "$i\t$piavc\t$theta_ce\t$Dc\t$piavw\t$theta_we\t$Dw\t$fst\t$diff\t$lengthe";
+	if (defined $opts{chr}) {
+		print "\t",$opts{chr},"\n";
+	} else {print "\n"}
 
 }
 
@@ -248,12 +256,13 @@ sub fst{
 }
 
 __END__
-cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_PO.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_PO.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp -n 5000 -bin 0.1 -cutoff 3 -o ./outpoly/$a.polymorphism >> ./shell/${a}_PO.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_PO.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_PO.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp -n 5000 -bin 0.1 -cutoff 3 -chr $a -cn 1.16 -f 0.1 -o ./outpoly/$a.polymorphism >> ./shell/${a}_PO.sh; done
 
-cat chrorder | while read a;do echo "#$ -N \"${a}_polyf\"" >./shell/${a}_POf.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_POf.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp.f -n 5000 -bin 0.1 -cutoff 3 -o ./outpoly/$a.polymorphism >> ./shell/${a}_POf.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_polyf\"" >./shell/${a}_POf.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_POf.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp.f -n 5000 -bin 0.1 -cutoff 3 -chr $a -cn 1.16 -f 0.1 -o ./outpoly/$a.polymorphism >> ./shell/${a}_POf.sh; done
 
 rm -f ./outpoly/mix.mpoly && find ./outpoly/*.polymorphism | xargs cat >> ./outpoly/mix.mpoly
 
 perl -lane 'print unless /^NA/' outpoly/*.polymorphism |les
+perl -lane '@a=split /\t/;print unless (/^NA/ or $#a < 5)' outpoly/*.polymorphism |les
 
 perl -lane 'print unless /^NA/' outpoly/*.polymorphism > ./outpoly/mix.mpoly
