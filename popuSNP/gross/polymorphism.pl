@@ -188,7 +188,8 @@ for (my $i=0; ;$i+=$window*$bin) {
 
 
 	}
-	if ($lengthe<=($window*0.3)||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#如果能够mapping的区域小于window的4/10则不输出结果
+	if ($lengthe<=($window*0.1)||$pi_ce==0) {print OUT "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\n";next;	}#如果能够mapping的区域小于window的4/10则不输出结果
+	# 0.1 (<0.3) still makes sense, right ?
 
 	my $diff = $dife / $lengthe;
 	my $Dc=tajima($nc,$pi_ce,$theta_ce);
@@ -252,3 +253,7 @@ cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_PO.sh;ec
 cat chrorder | while read a;do echo "#$ -N \"${a}_polyf\"" >./shell/${a}_POf.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_POf.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp.f -n 5000 -bin 0.1 -cutoff 3 -o ./outpoly/$a.polymorphism >> ./shell/${a}_POf.sh; done
 
 rm -f ./outpoly/mix.mpoly && find ./outpoly/*.polymorphism | xargs cat >> ./outpoly/mix.mpoly
+
+perl -lane 'print unless /^NA/' outpoly/*.polymorphism |les
+
+perl -lane 'print unless /^NA/' outpoly/*.polymorphism > ./outpoly/mix.mpoly
