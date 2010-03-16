@@ -453,7 +453,7 @@ close OUT;
 if ($opt_d) {
 	$sth6->execute if $opt_d;
 	open OUT,'>',$outfile.'.dup';
-	while ( $pres=$sth5->fetchrow_arrayref ) {
+	while ( $pres=$sth6->fetchrow_arrayref ) {
 		($Psoapid,$Pfileid,$Poffset,$isTrim,$Ppos)=@$pres;
 		if ($opt_m) {
 			$red=$PSE{$Pfileid}{$Poffset};
