@@ -9,6 +9,7 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
+0.3.11	Fix at 20100316
 0.3.10->9	Li Jun 3 found few days before that the types of mismatch contains only count in the seed.
 	However, GuoXs confirmed from LiYR that soapSNP will count mismatch from sequence itself. Thus no correction needed.
 	And, soapSNP is able to read soap2 out directly, so in future versions, transformat to soap1 will be skipped.
@@ -21,10 +22,10 @@ Changelog:
 =cut
 ######
 
-$main::VERSION=0.3.9;
+$main::VERSION=0.3.11;
 
-our $opts='i:o:c:bvmf';
-our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f);
+our $opts='i:o:c:dbvmf';
+our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f, $opt_d);
 
 our $desc='SoapSort library PCR PE Duplication Remover & Merger (Atom Edition)';
 our $help=<<EOH;
@@ -34,6 +35,7 @@ our $help=<<EOH;
 \t   Output file(with path) will be [{-o}.{-c}]
 \t-m cache soap file so that no more file reading at output
 \t-f Filter out reads with gaps on [soap2 -g]
+\t-d Dump removed duplicates to [{-o}.{-c}.dup]
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
@@ -49,6 +51,7 @@ my $outfile=${opt_o}.'.'.$opt_c;
 print STDERR "From [$opt_i] to [$outfile]\n";
 print STDERR "-f on\t" if $opt_f;
 print STDERR "-m on\t" if $opt_m;
+print STDERR "-d on\t" if $opt_d;
 print STDERR "\n";
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
@@ -123,6 +126,7 @@ my $sth4 = $dbh->prepare( 'SELECT DISTINCT len,hit,sumQasc,strand FROM soap WHER
 my $sth5 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,\'PE\',isTrim,pos FROM soap WHERE chosen=1 UNION
 SELECT DISTINCT soapid,fileid,offset,\'SE\',0,pos FROM se
  ORDER BY pos ASC;' );	# order to make a sorted out
+my $sth6 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,isTrim,pos FROM soap WHERE chosen IS NULL ORDER BY pos ASC;' );
 #EXPLAIN QUERY PLAN:
 #0|0|TABLE soap
 #0|0|TABLE se
@@ -163,16 +167,37 @@ for my $file (@{$FILES{PE}}) {
 			next;
 		}
 		++$count;	++$itemsInP;	$bpsIP += $len;
+=pod
+
+About trim:
+For soap1, tirm will be only 1 at 5', others are 3' .
+
+For soap2, follow the '17S56M2S' of "6119	GAGAGCTTCCGTTGTTCAATTTTGAGCGTCTCGATATCTTATTCGCCTGAATCGGA	BBBBBBBBBB\ZL[YPP_VPXLV]G__Y`_XHYUXR^`]`Y_`aba_]^a[aa`_a	1	a	56	-	Gm12	26181277	0	17S56M2S	37A18".
+	'17S' means trimed base on the left of printed reads
+	'56M' means 56 matched bases that printed out
+	'2S' means trimed base on the right of printed reads
+About the "left", for '+', it is the same as the reference of the 5' side, while for '-', it means the reverse-complement of the 3' end, which is 5' on the reference.
+
+Soap2 will always report positions that on the reference strand, that will be the 5' of '+' reads and 3' of '-' reads.
+Of course the trimed base(s) on the left side will not take into account of the position.
+
+So, to recover both of the 5' position:
+	'+' need to do `$realpos -= $left_trimed`
+	'-' need to do `$realpos += $match + $right_trimed`
+(You should always check the 1 border problem, right?)
+
+=cut
 		$trimed=$sumQasc=0;	# must reset to 0 cyclely !
 		$realpos=$pos;
-		if ($strand eq '-') {
+		if ($strand eq '-') {	# Negative
 			$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
-			if ($trim =~ /(\d+)S$/) {
-				$realpos += $trimed = 1;	# $1;	# $1 only reset after next /()/
+			if ($trim =~ /(\d)M(\d+)S$/) {
+				$realpos += $trimed = $1+$2;	# $1;	# $1 only reset after next /()/
+				# $trimed = $2; But no need to fix.
 			}
-		} elsif ($strand eq '+') {
+		} elsif ($strand eq '+') {	# Positive
 			if ($trim =~ /^(\d+)S/) {
-				$realpos -= $trimed = 1;	# $1;	# Gxs said tirm will be only 1 at 5', others are 3'
+				$realpos -= $trimed = $1;	# $1;	# Gxs said tirm will be only 1 at 5', others are 3'
 			}
 		} else {	# elsif ($strand ne '+')
 			$realpos=0;
@@ -242,7 +267,7 @@ while ($rres = $sth0->fetchrow_arrayref) {
 	($soapid,$fileid)=@$rres;	# soapid,fileid
 	$mergeid=$fileid.'_'.$soapid;
 	++$mergeids{$mergeid};	# init mark
-	next if $mergeids{$mergeid} > 1;	# check mark
+	next if $mergeids{$mergeid} > 1;	# check mark, so that every $mergeid,whether or not in a duplicate, will only be checked once.
 	$sth1->execute($soapid,$fileid);	# realpos,strand	'+'<'-'
 	$qres = $sth1->fetchall_arrayref;
 	if ($#$qres == 1) {	# Normal PE
@@ -425,6 +450,26 @@ while ( $pres=$sth5->fetchrow_arrayref ) {
 	print OUT $Pfileid,'_',$red,"\n";	# rename soapid with prefix
 }
 close OUT;
+if ($opt_d) {
+	$sth6->execute if $opt_d;
+	open OUT,'>',$outfile.'.dup';
+	while ( $pres=$sth5->fetchrow_arrayref ) {
+		($Psoapid,$Pfileid,$Poffset,$isTrim,$Ppos)=@$pres;
+		if ($opt_m) {
+			$red=$PSE{$Pfileid}{$Poffset};
+		} else {
+			seek $FH{$Pfileid},$Poffset,0;
+			$red=readline $FH{$Pfileid};
+		}
+		@aline=split(/\t/,$red);
+		($redid,$len)=@aline[0,5];
+		push @aline,$isTrim;
+		$red=join "\t",@aline[0..9,-1];
+		print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
+		print OUT $Pfileid,'_',$red,"\n";	# rename soapid with prefix
+	}
+	close OUT;
+}
 print STDERR 'O';
 ##FINISH Output.
 $the_time = [gettimeofday];
