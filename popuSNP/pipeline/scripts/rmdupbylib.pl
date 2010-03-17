@@ -9,7 +9,10 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
+0.3.14	UNION -> UNION ALL
+	UNION removes duplicates, whereas UNION ALL does not. You should avoid of unnecessary UNIONs they are huge performance leak. As a rule of thumb use UNION ALL if you are not sure which to use.
 0.3.12	Return to 0.3.8 for the trim part, which is the CORRECT one.
+	Also change the output format to soap2.
 0.3.11	Fix at 20100316
 0.3.10->9	Li Jun 3 found few days before that the types of mismatch contains only count in the seed.
 	However, GuoXs confirmed from LiYR that soapSNP will count mismatch from sequence itself. Thus no correction needed.
@@ -23,7 +26,7 @@ Changelog:
 =cut
 ######
 
-$main::VERSION=0.3.12;
+$main::VERSION=0.3.14;
 
 our $opts='i:o:c:dbvmf';
 our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f, $opt_d);
@@ -60,7 +63,7 @@ my $start_time = [gettimeofday];
 #BEGIN
 unless (-s $opt_i) {die "[x]Soaplist [$opt_i] is nothing !\n";}
 my (%FILES,%FID);
-open LST,'<',$opt_i or die "Error opening $opt_i: $!\n";
+open LST,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (<LST>) {
 	chomp;
 	my ($pe,$fid,$file)=split /\t/;
@@ -70,7 +73,7 @@ while (<LST>) {
 close LST;
 #if ($opt_v) {}
 #system('mkdir','-p',$opt_o);
-open OUT,'>',$outfile or die "Cannot create $outfile: $!\n";	# better to check before
+open OUT,'>',$outfile or die "[x]Cannot create $outfile: $!\n";	# better to check before
 
 ### Begin SQL
 my %attr = (
@@ -82,6 +85,7 @@ my $dbh = DBI->connect('dbi:SQLite:dbname=:memory:','','',\%attr) or die $DBI::e
 my $sql=q/
 CREATE TABLE IF NOT EXISTS se
 (  soapid TEXT,
+   len INTEGER,
    pos INTEGER,
    fileid INTEGER,
    offset INTEGER  );
@@ -95,7 +99,6 @@ CREATE TABLE IF NOT EXISTS soap
    realpos INTEGER,
    fileid INTEGER,
    offset INTEGER,
-   isTrim INTEGER,
    chosen INTEGER  );
 /;
 # The rowid value can be accessed using one of the special names "ROWID", "OID", or "_ROWID_".
@@ -117,17 +120,16 @@ CREATE INDEX IF NOT EXISTS sf ON soap(soapid,fileid);
 	$dbh->commit;
 }
 
-my $sthpe = $dbh->prepare( 'INSERT INTO soap ( soapid,pos,fileid,offset,len,hit,sumQasc,strand,realpos,isTrim ) VALUES ( ?,?,?,?,?,?,?,?,?,? )' );
-my $sthse = $dbh->prepare( 'INSERT INTO se ( soapid,pos,fileid,offset ) VALUES ( ?,?,?,? )' );
+my $sthpe = $dbh->prepare( 'INSERT INTO soap ( soapid,pos,fileid,offset,len,hit,sumQasc,strand,realpos ) VALUES ( ?,?,?,?,?,?,?,?,? )' );
+my $sthse = $dbh->prepare( 'INSERT INTO se ( soapid,len,pos,fileid,offset ) VALUES ( ?,?,?,?,? )' );
 my $sth0 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid FROM soap;' );
 my $sth1 = $dbh->prepare( 'SELECT DISTINCT realpos,strand FROM soap WHERE soapid=? AND fileid=? ORDER BY strand ASC;' );	# '+', which comes first, < '-'
 my $sth2 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid FROM soap WHERE realpos=? AND strand=?;' );
 my $sth3 = $dbh->prepare( 'UPDATE soap SET chosen=1 WHERE soapid=? AND fileid=?;' );
 my $sth4 = $dbh->prepare( 'SELECT DISTINCT len,hit,sumQasc,strand FROM soap WHERE soapid=? AND fileid=? ORDER BY strand ASC;' );	# strand must be here as the other maybe same.
-my $sth5 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,\'PE\',isTrim,pos FROM soap WHERE chosen=1 UNION
-SELECT DISTINCT soapid,fileid,offset,\'SE\',0,pos FROM se
- ORDER BY pos ASC;' );	# order to make a sorted out
-my $sth6 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,isTrim,pos FROM soap WHERE chosen IS NULL ORDER BY pos ASC;' );
+my $sth5 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,\'PE\',pos,len FROM soap WHERE chosen=1 UNION ALL
+ SELECT DISTINCT soapid,fileid,offset,\'SE\',pos,len FROM se ORDER BY pos,offset ASC;' );	# order to make a sorted out
+my $sth6 = $dbh->prepare( 'SELECT DISTINCT soapid,fileid,offset,pos FROM soap WHERE chosen IS NULL ORDER BY pos ASC;' );
 #EXPLAIN QUERY PLAN:
 #0|0|TABLE soap
 #0|0|TABLE se
@@ -149,7 +151,7 @@ for my $file (@{$FILES{PE}}) {
 	$fileid=$FID{$file};
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m PE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
-	open $FH{$fileid},'<',$file or die "Error opening PE [$file]: $!\n";
+	open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n";
 	$Offset=tell $FH{$fileid};
 	#print STDERR 'p',$fileid;
 	my ($sumQasc,$soapid,$Qstr,$hit,$len,$strand,$chr,$pos,$realpos,@Q,$trim,$trimed,$types);
@@ -215,7 +217,7 @@ So, to recover both of the 5' position:
 		if ($opt_m) {
 			$PSE{$fileid}{$Offset}=$_;
 		}
-		$sthpe->execute($soapid,$pos,$fileid,$Offset,$len,$hit,$sumQasc,$strand,$realpos,$isTrim);
+		$sthpe->execute($soapid,$pos,$fileid,$Offset,$len,$hit,$sumQasc,$strand,$realpos);
 		$Offset=tell $FH{$fileid};
 	}
 	print STDERR $count,"\n";
@@ -226,7 +228,7 @@ for my $file (@{$FILES{SE}}) {
 	$fileid=$FID{$file};
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m SE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
-	open $FH{$fileid},'<',$file or die "Error opening SE [$file]: $!\n";
+	open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n";
 	$Offset=tell $FH{$fileid};
 	#print STDERR 's',$fileid;
 	my ($soapid,$len,$chr,$pos);
@@ -243,7 +245,7 @@ for my $file (@{$FILES{SE}}) {
 		if ($opt_m) {
 			$PSE{$fileid}{$Offset}=$_;
 		}
-		$sthse->execute($soapid,$pos,$fileid,$Offset);
+		$sthse->execute($soapid,$len,$pos,$fileid,$Offset);
 		$Offset=tell $FH{$fileid};
 	}
 	print STDERR $count,"\n";
@@ -427,50 +429,79 @@ print STDERR "o\b";
 my ($red,$redid,@aline);
 #open OUT,'>',$outfile;	# opened
 $sth5->execute;	# PE & SE	soapid,fileid,offset,'PE'/'SE',isTrim,pos
-my ($pres,$len);
-my ($Psoapid,$Pfileid,$Poffset,$PE,$Ppos);
+#my ($pres,$len);
+my ($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen,$pres);
+
+unless ($opt_m) {
+	while ( $pres=$sth5->fetchrow_arrayref ) {
+		($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen)=@$pres;
+		seek $FH{$Pfileid},$Poffset,0;
+		$red=readline $FH{$Pfileid};
+		if ($PE eq 'PE') {
+			$bpsOP += $Plen;	++$itemsOutP;
+		} else {	# $PE eq 'SE'
+			$bpsOS += $Plen;	++$itemsOutS;
+		}
+		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
+	}
+} else {
+	while ( $pres=$sth5->fetchrow_arrayref ) {
+		($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen)=@$pres;
+		$red=$PSE{$Pfileid}{$Poffset};
+		if ($PE eq 'PE') {
+			$bpsOP += $Plen;	++$itemsOutP;
+		} else {	# $PE eq 'SE'
+			$bpsOS += $Plen;	++$itemsOutS;
+		}
+		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
+	}
+}
+=pod
 while ( $pres=$sth5->fetchrow_arrayref ) {
-	($Psoapid,$Pfileid,$Poffset,$PE,$isTrim,$Ppos)=@$pres;
+	($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen)=@$pres;
 	if ($opt_m) {
 		$red=$PSE{$Pfileid}{$Poffset};
 	} else {
 		seek $FH{$Pfileid},$Poffset,0;
 		$red=readline $FH{$Pfileid};
 	}
-	@aline=split(/\t/,$red);
-	($redid,$len)=@aline[0,5];
-	push @aline,$isTrim;
-	$red=join "\t",@aline[0..9,-1];
+	#@aline=split(/\t/,$red);
+	#($redid,$len)=@aline[0,5];
+	#push @aline,$isTrim;
+	#$red=join "\t",@aline[0..9,-1];
 	if ($PE eq 'PE') {
-		$bpsOP += $len;	++$itemsOutP;
+		$bpsOP += $Plen;	++$itemsOutP;
 	} else {	# $PE eq 'SE'
-		$bpsOS += $len;	++$itemsOutS;
+		$bpsOS += $Plen;	++$itemsOutS;
 	}
-	print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
+	#print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
 	print OUT $Pfileid,'_',$red,"\n";	# rename soapid with prefix
 }
+=cut
 close OUT;
+print STDERR 'O';
 if ($opt_d) {
-	$sth6->execute if $opt_d;
-	open OUT,'>',$outfile.'.dup';
+	print STDERR "_\b";
+	open OUT,'>',$outfile.'.dup' or die "[!]Cannot create ${outfile}.dup: $!\n";
+	$sth6->execute;
 	while ( $pres=$sth6->fetchrow_arrayref ) {
-		($Psoapid,$Pfileid,$Poffset,$isTrim,$Ppos)=@$pres;
+		($Psoapid,$Pfileid,$Poffset,$Ppos)=@$pres;
 		if ($opt_m) {
 			$red=$PSE{$Pfileid}{$Poffset};
 		} else {
 			seek $FH{$Pfileid},$Poffset,0;
 			$red=readline $FH{$Pfileid};
 		}
-		@aline=split(/\t/,$red);
-		($redid,$len)=@aline[0,5];
-		push @aline,$isTrim;
-		$red=join "\t",@aline[0..9,-1];
-		print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
-		print OUT $Pfileid,'_',$red,"\n";	# rename soapid with prefix
+		#@aline=split(/\t/,$red);
+		#$redid=@aline[0];
+		#push @aline,$isTrim;
+		#$red=join "\t",@aline[0..9,-1];
+		#print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
+		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
 	}
 	close OUT;
+	print STDERR '_D';
 }
-print STDERR 'O';
 ##FINISH Output.
 $the_time = [gettimeofday];
 printf STDERR "\n-Finish Merge\033[32;1m @ %13.6f\033[0;0m sec.\n",tv_interval($start_time, $the_time);
@@ -488,13 +519,10 @@ $bpsO=$bpsOP+$bpsOS;
 my $report = "\033\\[32;1m\nIn Chr:[$opt_c]\t[PE,SE]\n
 [${itemsInP},$itemsInS] ($itemsIn) lines from SOAP file(s). Trimed [${PEtrimed},${SEtrimed}].
 [$o_f] PE reads filtered, causing [$o_fs] reads turn to SE and ignored.
-
 PE pairs: [$itemsOutP0] chosen, [$allDroped] dropped, Max dropped per dupilcate is [$maxDroped].
-
 [$itemsOutP,$itemsOutS] ($itemsOut) lines merged.
-
 [$bpsIP,$bpsIS] ($bpsI) bps read in, [$bpsOP,$bpsOS] ($bpsO) bps write out.\033\\[0;0m
-\n
+
 !!!\t$opt_c\t$bpsO\t$bpsI\t$itemsIn\t$itemsOut\t$itemsInP\t$itemsInS\t$itemsOutP\t$bpsIP\t$bpsIS\t$bpsOP\t$maxDroped\t$allDroped\t!!!\n\n";
 $report =~ s/\[/[\033[0;0m/g;
 $report =~ s/\]/\033[32;1m]/g;
@@ -510,4 +538,5 @@ my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 print "done !\n"
+
 __END__
