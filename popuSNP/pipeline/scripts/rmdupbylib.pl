@@ -183,7 +183,7 @@ Of course the trimed base(s) on the left side will not take into account of the 
 
 So, to recover both of the 5' position:
 	'+' need to do `$realpos -= $left_trimed`
-	'-' need to do `$realpos += $match + $right_trimed`
+	'-' need to do `$realpos += $match + $right_trimed - 1`
 (You should always check the 1 border problem, right?)
 
 =cut
@@ -192,8 +192,8 @@ So, to recover both of the 5' position:
 		if ($strand eq '-') {	# Negative
 			$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
 			if ($trim =~ /(\d)M(\d+)S$/) {
-				$realpos += $trimed = $1+$2;	# $1;	# $1 only reset after next /()/
-				# $trimed = $2; But no need to fix.
+				$realpos += $1+$2-1;	# $1;	# $1 only reset after next /()/
+				$trimed = $2;	# But no need to fix.
 			}
 		} elsif ($strand eq '+') {	# Positive
 			if ($trim =~ /^(\d+)S/) {
