@@ -9,6 +9,7 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
+0.3.12	Return to 0.3.8 for the trim part, which is the CORRECT one.
 0.3.11	Fix at 20100316
 0.3.10->9	Li Jun 3 found few days before that the types of mismatch contains only count in the seed.
 	However, GuoXs confirmed from LiYR that soapSNP will count mismatch from sequence itself. Thus no correction needed.
@@ -22,7 +23,7 @@ Changelog:
 =cut
 ######
 
-$main::VERSION=0.3.11;
+$main::VERSION=0.3.12;
 
 our $opts='i:o:c:dbvmf';
 our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f, $opt_d);
@@ -191,13 +192,12 @@ So, to recover both of the 5' position:
 		$realpos=$pos;
 		if ($strand eq '-') {	# Negative
 			$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
-			if ($trim =~ /(\d)M(\d+)S$/) {
-				$realpos += $1+$2-1;	# $1;	# $1 only reset after next /()/
-				$trimed = $2;	# But no need to fix.
+			if ($trim =~ /(\d+)S$/) {
+				$realpos += $trimed = $1;	# $1 only reset after next /()/
 			}
 		} elsif ($strand eq '+') {	# Positive
 			if ($trim =~ /^(\d+)S/) {
-				$realpos -= $trimed = $1;	# $1;	# Gxs said tirm will be only 1 at 5', others are 3'
+				$realpos -= $trimed = $1;	# Gxs said tirm will be only 1 at 5', others are 3', which is in soap1 not soap2
 			}
 		} else {	# elsif ($strand ne '+')
 			$realpos=0;
