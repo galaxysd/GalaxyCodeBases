@@ -250,7 +250,12 @@ for my $k (keys %fqbylib) {
 			my $path=$fqfile2rawfp{$fq2};
 			my @adapter = `find $path -name '*.list'`;
 			@adapter=sort @adapter;
-			($skip,$count,$copy,$lstcount,$copy_ref)=@{&callfqfilter($k,$fq2,$dir,$adapter[-1],$path,$skip,$count,$copy,$lstcount,$copy_ref)};
+			if ($adapter[0]) {
+				($skip,$count,$copy,$lstcount,$copy_ref)=@{&callfqfilter($k,$fq2,$dir,$adapter[-1],$path,$skip,$count,$copy,$lstcount,$copy_ref)};
+			}	else {
+				($skip,$count,$copy,$lstcount,$copy_ref)=@{&callfqfilter($k,$fq2,$dir,$adapter[0],$path,$skip,$count,$copy,$lstcount,$copy_ref)};
+				# in case no list file, @adapter will be empty, '-1' will die "Modification of non-creatable array value attempted, subscript -1"
+			}
 		} else {	# SE
 			print LST "SE\t${dir}/${fq1}.fq\n";
 		}
