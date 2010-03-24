@@ -465,8 +465,8 @@ for my $k (keys %fqbylib) {
 #\$ -S /bin/bash -t 1-$lstcount
 SEEDFILE=${dir}.rdcmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval perl $SCRIPTS/rmdupbylib.pl \$SEED
-";
+eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
+";	# add -d for debug
 		close SH;
 	} else {
 		unlink $dir.'.rdcmd';
