@@ -1,5 +1,5 @@
-#a=read.delim('dat.tsv',header=F);
-a=read.delim('./outpoly/mix.mpoly',header=F);
+a=read.delim('dat.tsv',header=F);
+#a=read.delim('./outpoly/mix.mpoly',header=F);
 #a=read.delim('E:\\BGI\\toGit\\popuSNP\\gross\\chr3.polymorphism',header=F);
 #a=read.delim('E:\\BGI\\toGit\\popuSNP\\gross\\dat10k.tsv',header=F);
 a=na.omit(a);
@@ -29,17 +29,14 @@ lowt=mt+theX*sdt;
 
 cat(lowp,lowt);
 
-PiRH=hist(PiR,br='scott',plot=FALSE);
-TDDH=hist(TDD,br='scott',plot=FALSE);
-top1=ceiling(max(PiRH$counts)/sum(PiRH$counts)/0.02)*2;
-top2=ceiling(max(TDDH$counts)/sum(TDDH$counts)/0.02)*2;
+PiRD=density(PiR);
+TDDD=density(TDD);
 
 png('out.png', 1000, 1000, pointsize=12,res=96);
 #def.par <- par(no.readonly = TRUE) # save default, for resetting...
 layout(matrix(c(2,0,1,3),2,2,byrow=TRUE),c(3,1),c(1,3),TRUE);
 par(mar=c(5,5,0,0));
 plot(PiR,TDD,xlim=ppp,ylim=ddd,pch="+",xlab=expression(theta[pi][","][cultivate]/theta[pi][","][wild]),cex.lab=1.5,cex.axis=1.5,ylab=expression(Tajima ~~ italic(D)[cultivate]));
-#plot(PiR,TDD,ylim=c(-3,4),log='x',pch="+",xlab=expression(theta[pi][","][cultivate]/theta[pi][","][wild]),cex.lab=1.5,cex.axis=1.5,ylab=expression(Tajima ~~ italic(D)[cultivate]));
 
 #plot(function(x)dnorm(x), -6, 6)
 
@@ -55,22 +52,23 @@ y1=c(dd[1],dd[1]);
 lines(x1,y1,col="RED");
 
 par(mar=c(0,5,5,0));
-Pb=PiRH$breaks[2]-PiRH$breaks[1];
-barplot(100*PiRH$counts/sum(PiRH$counts),width=Pb,xlim=ppp,ylim=c(0,top1), space=0, col="BLUE", ylab="Proportion (%)",cex.lab=1.1,cex.axis=1);
+plot(PiRD$x,PiRD$y,type='l',xlim=ppp,col="grey30",cex.lab=1.1,cex.axis=1.05,ylab='Density',xaxt='n');
+polygon(PiRD$x,PiRD$y,col='blue');
 #threshold_x2=4.31;
 x2=c(lowp,lowp);
 x2=c(pp[1],pp[1]);
 
-y2=c(0,top1);
+y2=c(-1,2);
 lines(x2,y2,col="RED");
 
 par(mar=c(5,0,0,3));
 Tb=TDDH$breaks[2]-TDDH$breaks[1];
-barplot(100*TDDH$counts/sum(TDDH$counts),width=Tb,ylim=ddd-ddd[1],xlim=c(0,top2),space=0,horiz=TRUE,col="GREEN",xlab="Proportion (%)",cex.lab=1.1,cex.axis=1);
+plot(TDDD$y,TDDD$x,type='l',ylim=ddd,col="grey30",cex.lab=1.1,cex.axis=1.05,xlab='Density',yaxt='n');
+polygon(TDDD$y,TDDD$x,col='green');
 #threshold_y3=34.09;
-x3=c(0,top2);
-y3=c(lowt,lowt)-ddd[1];
-y3=c(dd[1],dd[1])-ddd[1];
+x3=c(-1,2);
+y3=c(lowt,lowt);
+y3=c(dd[1],dd[1]);
 
 lines(x3,y3,col="RED");
 
