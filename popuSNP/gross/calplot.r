@@ -50,7 +50,7 @@ y1=c(dd[1],dd[1]);
 
 lines(x1,y1,col="RED");
 
-par(mar=c(0,5,5,0));
+par(mar=c(0,5,3,0));
 plot(PiRD$x,PiRD$y,type='l',xlim=ppp,col="grey30",cex.lab=1.1,cex.axis=1.05,ylab='Density',xaxt='n');
 polygon(PiRD$x,PiRD$y,col='blue');
 #threshold_x2=4.31;
@@ -60,7 +60,7 @@ x2=c(pp[1],pp[1]);
 y2=c(-1,2);
 lines(x2,y2,col="RED");
 
-par(mar=c(5,0,0,3));
+par(mar=c(5,0,0,2));
 #Tb=TDDH$breaks[2]-TDDH$breaks[1];
 plot(TDDD$y,TDDD$x,type='l',ylim=ddd,col="grey30",cex.lab=1.1,cex.axis=1.05,xlab='Density',yaxt='n');
 polygon(TDDD$y,TDDD$x,col='green');
@@ -71,10 +71,21 @@ y3=c(dd[1],dd[1]);
 
 lines(x3,y3,col="RED");
 
-par(mar=c(0,0,5,3));
+par(mar=c(0,0,2,2));
 # Pr=, Td=
+plot(0:2,0:2, type = "n", main='Values',axes=F);
+v=c(0.0025,0.005,0.01,0.02,0.05);
+t1=quantile(PiRi,v);
+t2=quantile(TDDi,v);
+#text(0.1,2,expression(theta[pi][","][cultivate]/theta[pi][","][wild]));
+#text(1.1,2,expression(Tajima ~~ italic(D)[cultivate]));
+for(i in 1:5)
+ text(0,0.1+(5-i)*.4,sprintf("%1.2f %%:%f Pi\n          %f Td",v[i]*100,t1[i],t2[i]),adj=c(0,1),pos=4);
 
 dev.off();
 #par(def.par)
 
 #perl -lane '@a=split /\t/;next if $a[4]==0;$p=$a[1]/$a[4];$d=$a[3];print if $p<=0.02321981 and $d<=-1.995619;' mix_5k_cn116_f01.mpoly > mix_5k_cn116_f01.filtered
+
+#perl -lane '@a=split /\t/;next if $a[4]==0;$p=$a[1]/$a[4];$d=$a[3];print join("\t",$a[-1],$a[0],$a[-2]+$a[0]-1) if $p<=0.02321981 and $d<=-1.995619;' mix_5k_cn116_f01.mpoly > mix_5k_cn116_f01.filtered
+
