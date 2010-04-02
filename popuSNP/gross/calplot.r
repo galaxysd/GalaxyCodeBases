@@ -15,6 +15,7 @@ dd=quantile(TDDi,c(0.01,1));
 ppp=quantile(PiRi,c(0,.9999));
 #ddd=quantile(TDDi,c(.005,.995));
 ppp=c(0,ceiling(ppp[2]));
+if (ppp[2]>10) ppp[2] = 10;
 #ddd=c(floor(ddd[1]),ceiling(ddd[2]));
 ddd=c(floor(min(TDDi)),ceiling(max(TDDi)));
 
@@ -52,7 +53,7 @@ lines(x1,y1,col="RED");
 
 par(mar=c(0,5,3,0));
 plot(PiRD$x,PiRD$y,type='l',xlim=ppp,col="grey30",cex.lab=1.1,cex.axis=1.05,ylab='Density',xaxt='n');
-polygon(PiRD$x,PiRD$y,col='blue');
+polygon(c(0,PiRD$x),c(0,PiRD$y),col='blue');
 #threshold_x2=4.31;
 #x2=c(lowp,lowp);
 x2=c(pp[1],pp[1]);
