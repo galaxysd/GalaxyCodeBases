@@ -2,7 +2,7 @@ a=read.delim('dat.tsv',header=F);
 #a=read.delim('./outpoly/mix.mpoly',header=F);
 #a=read.delim('E:\\BGI\\toGit\\popuSNP\\gross\\chr3.polymorphism',header=F);
 #a=read.delim('E:\\BGI\\toGit\\popuSNP\\gross\\dat10k.tsv',header=F);
-a=na.omit(a);
+##a=na.omit(a);
 #p=0.01;
 #theX=qnorm(p*2);
 
@@ -29,7 +29,7 @@ ddd=c(floor(min(TDDi)),ceiling(max(TDDi)));
 
 #cat(lowp,lowt);
 
-PiRD=density(PiR);
+PiRD=density(PiR[PiR<=ppp[2]*2]);
 TDDD=density(TDD);
 
 png('out.png', 1000, 1000, pointsize=12,res=96);
@@ -53,7 +53,7 @@ lines(x1,y1,col="RED");
 
 par(mar=c(0,5,3,0));
 plot(PiRD$x,PiRD$y,type='l',xlim=ppp,col="grey30",cex.lab=1.1,cex.axis=1.05,ylab='Density',xaxt='n');
-polygon(c(0,PiRD$x),c(0,PiRD$y),col='blue');
+polygon(c(min(PiRD$x),PiRD$x),c(0,PiRD$y),col='blue');
 #threshold_x2=4.31;
 #x2=c(lowp,lowp);
 x2=c(pp[1],pp[1]);
