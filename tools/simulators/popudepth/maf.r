@@ -1,5 +1,5 @@
 # generate genotype for each individual
-genotype=function(nsample,MAF) { # nsampleÎª¶àÉÙ¸ö¸öÌå£¬MAFÎªÒ»Î¬Êı×é£¬´æ´¢ËùÓĞSNPÎ»µãµÄMAFÖµ
+genotype=function(nsample,MAF) { # nsampleä¸ºå¤šå°‘ä¸ªä¸ªä½“ï¼ŒMAFä¸ºä¸€ç»´æ•°ç»„ï¼Œå­˜å‚¨æ‰€æœ‰SNPä½ç‚¹çš„MAFå€¼
 	nsite=length(MAF)
 	a=array(runif(nsite*nsample*2,0,1),dim=c(nsite,2*nsample))
 	b=a
