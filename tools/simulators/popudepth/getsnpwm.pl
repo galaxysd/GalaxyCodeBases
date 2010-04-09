@@ -60,7 +60,7 @@ warn '[!]Total: ',@files+1," files.\n";
 my $snpcount;
 open O,'>',$opt_o or die "Error opening $opt_o: $!\n";
 for my $file (@files) {
-	open I,'<',$opt_i or die "Error opening $opt_i: $!\n";
+	open I,'<',$file or die "Error opening $file: $!\n";
 	while (<I>) {
 		chomp;
 		my ($chr,$pos,$bases) = split /\t/;
