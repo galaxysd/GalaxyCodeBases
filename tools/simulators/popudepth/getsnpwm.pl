@@ -67,7 +67,7 @@ for my $file (@files) {
 		++$snpcount;
 		print O "$chr\t$pos";
 		my @base = split / /,$bases;
-		my ($i;%counter);
+		my ($i,%counter);
 		for (@base) {
 			my $arr=$IUB{$_} or next;
 			for (@$arr) {
@@ -76,7 +76,7 @@ for my $file (@files) {
 			}
 		}
 		for (sort {$counter{$b} <=> $counter{$a}} keys %counter) {
-			print O "\t",$counter{$_}/$i;
+			print O "\t$_:",$counter{$_}/$i;
 		}
 		print O "\n";
 	}
