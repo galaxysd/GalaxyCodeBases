@@ -4,7 +4,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.1;
+$main::VERSION=0.1.2;
 
 our $opts='i:o:bv';
 our($opt_i, $opt_o, $opt_v,$opt_b);
@@ -55,7 +55,7 @@ while (<L>) {
 	 else {warn "[!]$_ not available.\n";}
 }
 close L;
-warn '[!]Total: ',@files+1," files.\n";
+warn '[!]Total: ',scalar @files," files.\n";
 
 my $snpcount;
 open O,'>',$opt_o or die "Error opening $opt_o: $!\n";
@@ -65,23 +65,41 @@ for my $file (@files) {
 		chomp;
 		my ($chr,$pos,$bases) = split /\t/;
 		++$snpcount;
-		print O "$chr\t$pos";
 		my @base = split / /,$bases;
-		my ($i,%counter);
+		print O "$chr\t$pos\t$base[0]\t";
+		#if ($opt_v) {
+		#	$bases =~ s/ //g;
+		#	print ">$chr\t$pos\t$base[0]\t$bases\n";
+		#}
+		print ">$chr\t$pos\t" if $opt_v;
+		my ($d,$i,%counter,%stat);
+		$stat{1}=$stat{2}=$stat{3}=$stat{4}=0;
 		for (@base) {
-			my $arr=$IUB{$_} or next;
+			my $arr=$IUB{$_} or next;	# So, $i != @base;
+			$d = @$arr;
+			print "$_$d" if $opt_v;
+			++$stat{$d};
+			$d = 1/$d;
 			for (@$arr) {
-				++$counter{$_};
-				++$i;
+				$counter{$_} += $d;
+				#$i += $d;
 			}
+			++$i;
 		}
+		print O "$i,$stat{1},$stat{2},$stat{3},$stat{4}\t";
+		@base=();
 		for (sort {$counter{$b} <=> $counter{$a}} keys %counter) {
-			print O "\t$_:",$counter{$_}/$i;
+			push @base,sprintf('%s:%f',"$_",$counter{$_}/$i);
 		}
-		print O "\n";
+		print O join(',',@base),"\n";
+		print "\n$i,$stat{1},$stat{2},$stat{3},$stat{4}\t",join(',',@base),"\n\n" if $opt_v;
 	}
 	close I;
 }
 close O;
 
 warn "[!]Total: $snpcount SNPs.\n[!]Done !\n";
+
+my $stop_time = [gettimeofday];
+#$|=1;
+print STDERR "\n Time Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s)\n";
