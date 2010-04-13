@@ -23,8 +23,8 @@ use Getopt::Long;
 
 =head1 Contact and Version
 
-	Contact:	lujianliang@genomics.org.cn yuezhen@genomics.org.cn
-	Version:	1.0		Data:	2012-1-9
+	Contact:	huxuesong@genomics.cn lujianliang@genomics.org.cn yuezhen@genomics.org.cn
+	Version:	1.1		Data:	2012-4-13
 
 =head1 Option
 
@@ -34,10 +34,10 @@ use Getopt::Long;
 	-insertsize_mean	<int>		set the average value of insert size,default:500
 	-insertsize_sd		<int>		set the standard deviation of insert sizes, default:25
 	-error_rate		<float>		set the average error rate over all cycles,default:0.01
-	-fq		<string>		output to fastaq file with tailing error rate raise,std:40:1.5,76:4.5,default:NULL for FASTA
 	-heterSNP_rate		<float>		set the heterozygous SNP rate of the diploid genome,default:0
 	-heterIndel_rate	<float>		set the heterozygous indel rate of the diploid genome,default:0
 	-output			<string>	output file prefix
+	-fq					output to fastaq file
 	-b					No pause for batch runs
 	-help					output help infomation
 
@@ -65,7 +65,7 @@ GetOptions(
 	"insertsize_mean:i"=>\$insertsize_mean,
 	"insertsize_sd:i"=>\$insertsize_sd,
 	"error_rate:f"=>\$error_rate,
-	"fq:s"=>\$fq,
+	"fq"=>\$fq,
 	"heterSNP_rate:f"=>\$heterSNP_rate,
 	"heterIndel_rate:f"=>\$heterIndel_rate,
 	"output:s"=>\$o,
@@ -80,15 +80,14 @@ $coverage=40 if (!defined $coverage);
 $insertsize_mean=500 if (!defined $insertsize_mean);
 $insertsize_sd=25 if (!defined $insertsize_sd);
 $error_rate=0.01 if (!defined $error_rate);
-if (defined $fq && $fq eq 'std') {
-	$fq='40:1.5,76:4.5';
-	$fqmode='FastaQ mode of ['.$fq.']';
+if (defined $fq) {
+	$fqmode='FastaQ';
 	$ext='fq';
-} else {$fqmode='FASTA mode';$ext='fa';}
+} else {$fqmode='FASTA';$ext='fa';}
 $heterSNP_rate=0 if (!defined $heterSNP_rate);
 $heterIndel_rate=0 if (!defined $heterIndel_rate);
 #############################Main Program##################################################
-warn "[!]$fqmode.
+warn "[!]$fqmode mode.
 From [$inputref] to [$o]_${read_len}_${insertsize_mean}_{1,2}.$ext
 Read Len:[$read_len] Error Rate:[$error_rate] Coverage:[$coverage] Insertsize:[${insertsize_mean}±$insertsize_sd]
 HeterSNP Rate:$heterSNP_rate HeterIndel Rate:$heterIndel_rate\n";
@@ -96,6 +95,7 @@ if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my ($O1,$O2);
 open REF,'<',$inputref or die "[x]Can't open file $inputref\n";
+system("mkdir -p $o && rmdir $o");
 open $O1,">$o\_$read_len\_$insertsize_mean\_1.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_1.$ext\n";
 open $O2,">$o\_$read_len\_$insertsize_mean\_2.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_2.$ext\n";
 my (%insertsize,%read_info,$Qc);
@@ -120,17 +120,8 @@ while (<REF>) {
 	&insertsize_distribution($insertsize_mean,$insertsize_sd,$read_num_pair,\%insertsize);
 	print STDERR "\n";
 	if ($error_rate>0){
-		if ($error_rate>0.001){
-			&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info);
-#################
-			$Qc='';
-			print STDERR "[!]%: ";
-			for (sort keys %read_info) {
-				printf STDERR "%5f",100*$read_info{$_};
-				$Qc .= chr(64+$read_info{$_});
-			}
-			print STDERR "\n[!]Q: [$Qc]\n";
-#################
+		if ($error_rate>0.0001){
+			&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info,\$Qc);
 		}else{
 			print "The error rate is smaller than basic error rate 0.001\n";
 		}
@@ -149,9 +140,8 @@ while (<REF>) {
 		$read_num_pair=int ($length*$coverage/(2*2*$read_len));
 		&insertsize_distribution($insertsize_mean,$insertsize_sd,$read_num_pair,\%insertsize);
 		if ($error_rate>0){
-			if ($error_rate>0.001) {
-				&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info);
-#################
+			if ($error_rate>0.0001) {
+				&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info,\$Qc);
 			} else { print "The error rate is smaller than basic error rate 0.001\n"; }
 		}
 		&getreads($refseqsnp,\%insertsize,\%read_info);
@@ -190,19 +180,27 @@ sub insertsize_distribution{
 #######Simulate illumina error distribution on different cycles,
 #######with the model function f(x)=0.00001*x**3
 sub error_distribution{
-	(my $seq_len,my $rd_len,my $er_rate,my $rd_num,my $rd_info)=@_;
-	my (%hash,$total);
-	my $basic_err=0.001;
+	my ($seq_len, $rd_len, $er_rate, $rd_num, $rd_info, $Qcr)=@_;
+	my (%hash,$total,$t,$q);
+	my $basic_err=0.0001;
 	my $total_err=($er_rate-$basic_err)*$rd_len;
 	for (my $i=1;$i<=$rd_len;$i++) {
 		$hash{$i}=0.00001*$i**3;
 		$total+=$hash{$i};
 	}
+	$$Qcr='';
+	print STDERR "[!]% & Q: ";
 	for (my $circle=1;$circle<=$rd_len;$circle++) {
-		$hash{$circle}=$basic_err+$hash{$circle}/$total*$total_err;
+		$t = $basic_err+$hash{$circle}/$total*$total_err;
+		$hash{$circle}=$t;
+		$q=int(-10*log($t)/log(10));
+		$t *= 100;
+		printf STDERR "%u:%.1f,%u ",$circle,$t,$q;
+		$$Qcr .= chr(64+$q);
 		$hash{$circle}=$hash{$circle}*$rd_num*2;
 		$hash{$circle}=int $hash{$circle};
 	}
+	print STDERR "\n[!]Qstr:[$Qc]\n";
 
 	for(my $circle=1;$circle<=$rd_len;$circle++) {
 		while ($hash{$circle}>0) {
@@ -412,10 +410,10 @@ sub getreads{
                                 #print $O2 ">reads_$read_count\_$read_len\_2\n$a\n";
 			}
 			if ($fq) {
-				$id="FC00XX:${read_count}:$read_len";
+				$id="FC00XX:${read_count}:${pos}:${i}:$read_len";
 				&write2files(\$id,\@strs,\$Qc);
 			} else {
-				$id="reads_$read_count\_$read_len";
+				$id="reads_${read_count}_${pos}_${i}_$read_len";
 				&write2files(\$id,\@strs,undef);
 			}
 			$ISize->{$i}--;
