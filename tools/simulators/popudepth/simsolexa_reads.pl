@@ -34,9 +34,11 @@ use Getopt::Long;
 	-insertsize_mean	<int>		set the average value of insert size,default:500
 	-insertsize_sd		<int>		set the standard deviation of insert sizes, default:25
 	-error_rate		<float>		set the average error rate over all cycles,default:0.01
+	-fq		<string>		output to fastaq file with tailing error rate raise,std:40:1.5,76:4.5,default:NULL for FASTA
 	-heterSNP_rate		<float>		set the heterozygous SNP rate of the diploid genome,default:0
 	-heterIndel_rate	<float>		set the heterozygous indel rate of the diploid genome,default:0
 	-output			<string>	output file prefix
+	-b					No pause for batch runs
 	-help					output help infomation
 
 =head1 Example
@@ -54,7 +56,7 @@ use Getopt::Long;
 =cut
 ################################################################################################
 my ($inputref,$read_len,$coverage,$insertsize_mean,$insertsize_sd,$error_rate,$heterSNP_rate);
-my ($heterIndel_rate,$ref_ploid,$n_ploid,$o,$help);
+my ($heterIndel_rate,$ref_ploid,$n_ploid,$o,$help,$fq,$fqmode,$opt_b,$ext);
 
 GetOptions(
 	"input:s"=>\$inputref,
@@ -63,9 +65,11 @@ GetOptions(
 	"insertsize_mean:i"=>\$insertsize_mean,
 	"insertsize_sd:i"=>\$insertsize_sd,
 	"error_rate:f"=>\$error_rate,
+	"fq:s"=>\$fq,
 	"heterSNP_rate:f"=>\$heterSNP_rate,
 	"heterIndel_rate:f"=>\$heterIndel_rate,
 	"output:s"=>\$o,
+	"b"=>\$opt_b,
 	"help"=>\$help
 );
 die `pod2text $0` if ($help);
@@ -76,14 +80,25 @@ $coverage=40 if (!defined $coverage);
 $insertsize_mean=500 if (!defined $insertsize_mean);
 $insertsize_sd=25 if (!defined $insertsize_sd);
 $error_rate=0.01 if (!defined $error_rate);
+if (defined $fq && $fq eq 'std') {
+	$fq='40:1.5,76:4.5';
+	$fqmode='FastaQ mode of ['.$fq.']';
+	$ext='fq';
+} else {$fqmode='FASTA mode';$ext='fa';}
 $heterSNP_rate=0 if (!defined $heterSNP_rate);
 $heterIndel_rate=0 if (!defined $heterIndel_rate);
 #############################Main Program##################################################
+warn "[!]$fqmode.
+From [$inputref] to [$o]_${read_len}_${insertsize_mean}_{1,2}.$ext
+Read Len:[$read_len] Error Rate:[$error_rate] Coverage:[$coverage] Insertsize:[${insertsize_mean}±$insertsize_sd]
+HeterSNP Rate:$heterSNP_rate HeterIndel Rate:$heterIndel_rate\n";
+if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
+
 my ($O1,$O2);
-open REF,"$inputref" || die "can't open file $inputref\n";
-open $O1,">$o\_$read_len\_$insertsize_mean\_1.fa" || die "can't open file $o\_$read_len\_$insertsize_mean\_1.fa\n";
-open $O2,">$o\_$read_len\_$insertsize_mean\_2.fa" || die "can't open file $o\_$read_len\_$insertsize_mean\_2.fa\n";
-my (%insertsize,%read_info);
+open REF,'<',$inputref or die "[x]Can't open file $inputref\n";
+open $O1,">$o\_$read_len\_$insertsize_mean\_1.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_1.$ext\n";
+open $O2,">$o\_$read_len\_$insertsize_mean\_2.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_2.$ext\n";
+my (%insertsize,%read_info,$Qc);
 $/=">";
 
 while (<REF>) {
@@ -95,6 +110,7 @@ while (<REF>) {
 	$refseq=~s/\n//g;
 	$refseq=~s/[BDEFHIJKLMNOPQRSUVWXYZ]+//g;
 	my $length=length $refseq;
+	print STDERR ">$id:$length ...";
 	my $read_num_pair;
 	if ($heterSNP_rate>0 || $heterIndel_rate>0) {
 		$read_num_pair=int ($length*$coverage/(2*2*$read_len));
@@ -102,9 +118,19 @@ while (<REF>) {
 		$read_num_pair=int ($length*$coverage/(2*$read_len));
 	}
 	&insertsize_distribution($insertsize_mean,$insertsize_sd,$read_num_pair,\%insertsize);
+	print STDERR "\n";
 	if ($error_rate>0){
 		if ($error_rate>0.001){
 			&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info);
+#################
+			$Qc='';
+			print STDERR "[!]%: ";
+			for (sort keys %read_info) {
+				printf STDERR "%5f",100*$read_info{$_};
+				$Qc .= chr(64+$read_info{$_});
+			}
+			print STDERR "\n[!]Q: [$Qc]\n";
+#################
 		}else{
 			print "The error rate is smaller than basic error rate 0.001\n";
 		}
@@ -123,12 +149,11 @@ while (<REF>) {
 		$read_num_pair=int ($length*$coverage/(2*2*$read_len));
 		&insertsize_distribution($insertsize_mean,$insertsize_sd,$read_num_pair,\%insertsize);
 		if ($error_rate>0){
-                	if ($error_rate>0.001){
-                        	&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info);
-                	}else{
-                        	print "The error rate is smaller than basic error rate 0.001\n";
-                	}
-        	}
+			if ($error_rate>0.001) {
+				&error_distribution($length,$read_len,$error_rate,$read_num_pair,\%read_info);
+#################
+			} else { print "The error rate is smaller than basic error rate 0.001\n"; }
+		}
 		&getreads($refseqsnp,\%insertsize,\%read_info);
 		foreach my $del (sort {$a<=>$b} keys %insertsize) {
 			delete $insertsize{$del};
@@ -142,6 +167,7 @@ $/="\n";
 close REF;
 close $O1;
 close $O2;
+warn "[!] Done !";
 #############################Subroutines###################################################
 ########simulate the insertsize distribution with the model of normal distribution function
 ########The insertsize range is limited in (μ-5σ，μ+5σ), which covers almost all the data.
@@ -328,49 +354,72 @@ sub heter_SNP_Indel{
 #	print "Finish Get snp and indel sequence\n";
 	return $sequence;
 }
+#########Print to File
+sub write2files($$$) {
+	my ($idref,$stref,$Qcr)=@_;	# reads_$read_count\_$read_len\_1\n$a
+	if ($Qcr) {
+		#my ($ra,$rb)=@$Qarref;
+		#push @Qa,chr(64+$_) for (@$ra);
+		print $O1 "\@$${idref}/1\n$$stref[0]\n+\n",join('',$$Qcr),"\n";
+		print $O2 "\@$${idref}/2\n$$stref[1]\n+\n",join('',$$Qcr),"\n";
+	} else {
+		print $O1 ">$${idref}_1\n$$stref[0]\n";
+		print $O2 ">$${idref}_2\n$$stref[1]\n";
+	}
+}
 #########Produce solexa reads
 sub getreads{
 	my ($refseq,$ISize,$Rd_Info)=@_;
 	my $length=length $refseq;
 	my $read_count=0;
 	for (my $i=$insertsize_mean-5*$insertsize_sd;$i<=$insertsize_mean+5*$insertsize_sd;$i++) {
-                while ($ISize->{$i}>0) {
-                        my $pos=rand $length;
-                        $pos=int $pos;
-                        my $substr=substr $refseq,$pos,$i;
-						redo if (length $substr<$i);
-                        my $a=substr $substr,0,$read_len;
-                        my $b=substr $substr,-$read_len,$read_len;
-			if ($insertsize_mean <=1000){
-                        	$b=reverse $b;
-                        	$b=~tr/ATGCatgc/TACGtacg/;
-			}elsif($insertsize_mean >1000){
+		while ($ISize->{$i}>0) {
+			my $pos=rand $length;
+			$pos=int $pos;
+			my $substr=substr $refseq,$pos,$i;
+			redo if (length $substr<$i);
+			my $a=substr $substr,0,$read_len;
+			my $b=substr $substr,-$read_len,$read_len;
+			if ($insertsize_mean <=1000) {
+				$b=reverse $b;
+				$b=~tr/ATGCatgc/TACGtacg/;
+			} elsif ($insertsize_mean >1000) {
 				$a=reverse $a;
 				$a=~tr/ATGCatgc/TACGtacg/;
-			}else{
+			} else {
 				print "Insertsize can't be smaller than 0\n";
 			}
-                        $read_count++;
-                        if (exists $Rd_Info->{$read_count}) {
-				 foreach my $j (@{$Rd_Info->{$read_count}}) {
-				 	my $k=int ((rand 10)%2);
-				 	if ($k) {
-				 		$a=&match($a,$j,$read_len);
-					 }else{
-				 		$b=&match($b,$j,$read_len);
-					 }
-				 }
-                        }
-                        my $d=int ((rand 10)%2);
-                        if ($d) {
-                                print $O1 ">reads_$read_count\_$read_len\_1\n$a\n";
-                                print $O2 ">reads_$read_count\_$read_len\_2\n$b\n";
-                        }else{
-                                print $O1 ">reads_$read_count\_$read_len\_1\n$b\n";
-                                print $O2 ">reads_$read_count\_$read_len\_2\n$a\n";
-                        }
-                        $ISize->{$i}--;
-                }
-        }
+			$read_count++;
+			if (exists $Rd_Info->{$read_count}) {
+				foreach my $j (@{$Rd_Info->{$read_count}}) {
+					my $k=int ((rand 10)%2);
+					if ($k) {
+						$a=&match($a,$j,$read_len);
+					} else {
+						$b=&match($b,$j,$read_len);
+					}
+				}
+			}
+			my $d=int ((rand 10)%2);
+			my ($id,@strs);
+			if ($d) {
+				@strs=($a,$b);
+				#print $O1 ">reads_$read_count\_$read_len\_1\n$a\n";
+				#print $O2 ">reads_$read_count\_$read_len\_2\n$b\n";
+			} else {
+				@strs=($b,$a);
+                                #print $O1 ">reads_$read_count\_$read_len\_1\n$b\n";
+                                #print $O2 ">reads_$read_count\_$read_len\_2\n$a\n";
+			}
+			if ($fq) {
+				$id="FC00XX:${read_count}:$read_len";
+				&write2files(\$id,\@strs,\$Qc);
+			} else {
+				$id="reads_$read_count\_$read_len";
+				&write2files(\$id,\@strs,undef);
+			}
+			$ISize->{$i}--;
+		}
+	}
 }
 
