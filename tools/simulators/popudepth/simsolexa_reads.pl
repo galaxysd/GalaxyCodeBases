@@ -157,7 +157,7 @@ $/="\n";
 close REF;
 close $O1;
 close $O2;
-warn "[!] Done !";
+warn "[!] Done !\n";
 #############################Subroutines###################################################
 ########simulate the insertsize distribution with the model of normal distribution function
 ########The insertsize range is limited in (μ-5σ，μ+5σ), which covers almost all the data.
@@ -421,3 +421,5 @@ sub getreads{
 	}
 }
 
+__END__
+find ./out/ -name '*.fa' | while read a; do b=`basename $a`; echo "#$ -N \"sim_${b}\"" >./shell/sim_${b}.sh;echo "#$ -cwd -r y -l vf=1G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/fg/${a}_sim.log -e ./out/fq/${a}_sim.err -hold_jid \"*_si\" " >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim1 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim2 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim3 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim4 >> ./shell/sim_${b}.sh; done

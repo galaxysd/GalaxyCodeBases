@@ -5,17 +5,19 @@ use Math::Random qw(random_uniform);
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.2;
+$main::VERSION=0.1.5;
 
-our $opts='i:o:n:c:r:bv';
-our($opt_i, $opt_o, $opt_n, $opt_c, $opt_r, $opt_v,$opt_b);
+our $opts='i:o:n:c:r:bva';
+our($opt_i, $opt_o, $opt_n, $opt_c, $opt_r, $opt_v, $opt_b, $opt_a);
 
 our $help=<<EOH;
 \t-i SNP PWM file (./snp.pwm)
 \t-n Number of Diploid Individue (100)
 \t-c Chromosome ID (undef for ALL)
 \t-r Reference FASTA file
-\t-o Output prefix with existed path (./out/Din_)
+\t-o Output prefix with existed path (./out/Din)
+\t-a Append ChrID to output path
+\t  Out will be ./out/ChrID/Din.popsnp & ./out/ChrID/Din/ind_{NUM}_[AB].fa
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
@@ -24,11 +26,16 @@ EOH
 ShowHelp();
 
 $opt_i='./snp.pwm' if ! defined $opt_i;
-$opt_o='./out/Din_' if ! $opt_o;
+$opt_o='./out/Din' if ! $opt_o;
 $opt_n='100' if ! $opt_n;
+$opt_c='ALL' if ! $opt_c;
+my $out=$opt_o;
+$out =~ s#(.*)/([^/]+)#$1/$opt_c/$2# if $opt_a;
 
-print STDERR "From [$opt_i].[$opt_c] with [$opt_r] to [$opt_o]{NUM}_[AB].fa of [$opt_n]\n";
+print STDERR "From [$opt_i].[$opt_c] with [$opt_r] to [$out]/ind_{NUM}_[AB].fa of [$opt_n]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
+
+system("mkdir -p $out");
 
 #@a=random_uniform($n)
 #http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html
@@ -73,11 +80,11 @@ while (<P>) {
 close P;
 warn "[!]PWM loaded.\n";
 
-open SNP,'>',$opt_o.'SNP.popsnp' or die "Error opening ${opt_o}SNP.popsnp: $!\n";
+open SNP,'>',$out.'.popsnp' or die "Error opening ${out}.popsnp: $!\n";
 my @FH;
 for (my $i = $opt_n; $i > 0; $i--) {
 	my ($fha,$fhb);
-	my ($nameA,$nameB)=($opt_o.$i.'_A.fa',$opt_o.$i.'_B.fa');
+	my ($nameA,$nameB)=($out.'/ind_'.$opt_c.'_'.$i.'_A.fa',$out.'/ind_'.$opt_c.'_'.$i.'_B.fa');
 	open $fha,'>',$nameA or die "Error opening $nameA: $!\n";
 	open $fhb,'>',$nameB or die "Error opening $nameB: $!\n";
 #print $fha ">Din_${i}_A\n"; print $fhb ">Din_${i}_B\n";
@@ -110,7 +117,7 @@ sub PrintArray ($$$) {
 	if ($useAB) {
 		for (@$FHr) {
 			my ($fha,$fhb)=@$_;
-			print $fha $$strr,"_A\n"; print $fhb $$strr,"_B\n";
+			print $fha $$strr,"_A"; print $fhb $$strr,"_B";	# no \n here, turn to the `&PrintArray() unless $pos%80` below.
 		}
 	} elsif (ref($strr) eq 'SCALAR') {
 		for (@$FHr) {
@@ -130,10 +137,12 @@ my (@theBases,$pwm,@SNP,@iuba);
 for my $chr (keys %Genome) {
 	my $GenomeR=$Genome{$chr};
 	my $length=length $$GenomeR;
-	warn "[!]-$chr: $length\n";
+	print STDERR "[!]>$chr: $length .\b";
 	my $t=">Din_${chr}";
 	&PrintArray(\@FH,\$t,1);
+	warn "\n";
 	for (my $pos = 0; $pos < $length; $pos++) {
+		&PrintArray(\@FH,\$/) unless $pos%80;	# first is 0, which % 90.
 		my $refbase=substr $$GenomeR,$pos,1;
 		if ($PWM{$chr}{$pos}) {
 			print SNP "$chr\t$pos\t$refbase ";
@@ -182,4 +191,4 @@ for (@FH) {
 }
 
 __END__
-cat chrorder | while read a;do echo "#$ -N \"${a}_si\"" >./shell/${a}_si100.sh;echo "#$ -cwd -r y -l vf=2G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/${a}_si100.log -e ./out/${a}_si100.err" >> ./shell/${a}_si100.sh; echo ./simindu.pl -n 100 -b -c $a -r ./Reference/$a -o ./out/Din_${a}_ >> ./shell/${a}_si100.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_si\"" >./shell/${a}_si100.sh;echo "#$ -cwd -r y -l vf=2G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/${a}_si100.log -e ./out/${a}_si100.err" >> ./shell/${a}_si100.sh; echo ./simindu.pl -n 100 -ba -c $a -r ./Reference/$a -o ./out/D${a} >> ./shell/${a}_si100.sh; done
