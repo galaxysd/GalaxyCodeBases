@@ -6,7 +6,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use File::Basename;
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.3;
+$main::VERSION=0.0.4;
 my $SCRIPTS='/panfs/GAG/huxuesong/scripts';
 my $POPSPLIT=1000000;
 
@@ -16,9 +16,18 @@ If a PE Lib come with only one .adapter.list file, all will use that one. If mor
 
 ./0rawfq , the path to fq file cannot contain more than 1 "_{$LibName}", since it is searched directly on fullpath.
 
+$ perl -MTree::Suffix -e 'my $tree = Tree::Suffix->new(qw(stringxxxssx stringyx1xxssx axxxssxstring));my @lcs = $tree->lcs;print "[$_]\n" for @lcs;'
+[string]
+
+$ perl -MTree::Suffix -e 'my $tree = Tree::Suffix->new(qw(zzzzzzxxaaaaaastringaxxssx tyaaaaaastringzzzzzzyaxxssx zzzzzz1aaaaaaaaxxssxstring));my @lcs = $tree->lcs;print "[$_]\n" for @lcs;'
+[zzzzzz]
+[aaaaaa]
+[axxssx]
+[string]
+
 =cut
-our $opts='i:o:s:l:c:r:f:m:bvqd';
-our($opt_i, $opt_s, $opt_o, $opt_m, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r, $opt_d);
+our $opts='i:o:s:l:c:r:f:m:x:bvqd';
+our($opt_i, $opt_s, $opt_o, $opt_m, $opt_v, $opt_b, $opt_c, $opt_q, $opt_f, $opt_r, $opt_d, $opt_x);
 
 our $desc='1.filter fq, 2.soap, 3.rmdup';
 our $help=<<EOH;
@@ -30,9 +39,10 @@ our $help=<<EOH;
 \t-f faByChr path (./faByChr) with ChrID.fa\(s\)
 \t-o Project output path (.), will mkdir if not exist
 \t-q run qsub automatically
+\t-x lib regex for Simulation Mode, undef for Normal Mode (undef)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
-\t-d Debug mode, for test only
+\t-d Debug Mode, for test only
 EOH
 
 ShowHelp();
@@ -69,7 +79,8 @@ if ($opt_m) {
 
 print STDERR "From [$lopt_i] to [$opt_o] refer to [$opt_s][$opt_c]\nRef:[$lopt_r][$lopt_f]\n";
 print STDERR "Monoploid Chr(s):[",join(',',sort keys %Monoploid),"]\n" if %Monoploid;
-print STDERR "DEBUG Mode ON !\n" if $opt_d;
+print STDERR "DEBUG Mode on !\n" if $opt_d;
+print STDERR "Simulation Mode on with [$opt_x]!\n" if $opt_x;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -131,14 +142,21 @@ for (@fq) {
 	my ($file, $path, $ext) = fileparse($_, qr/\.fq/);
 	next if $file =~ /IndexPooling\d+(_[12])?$/i;
 	$fqfile2rawfp{$file}=$path;	# $path is enough. But, who cares? Me!
-	$file =~ /_([^_]+)(_[12])?$/;
-	my $lib = $1;
-	unless ($2) {
-		push @{$fqse{$1}},[$file];	# well, same API is better ?
+	my ($lib,$ab);
+	unless ($opt_x) {
+		$file =~ /_([^_]+)(_[12])?$/;	# $1, $2 is local, thus un-useable outside this `unless`.
+		$lib = $1; $ab=$2;
+	} else {
+		$file =~ /($opt_x).*?(_[12])?$/;
+		$lib = $1; $ab=$2;
+	}
+	unless ($ab) {
+		push @{$fqse{$lib}},[$file];	# well, same API is better ?
+#print "-[$lib] $file\t[$ab]\n" if $opt_v;
 		next;
 	}
-	$fq1{$file}=$1 if $2 eq '_1';
-	$fq2{$file}=$1 if $2 eq '_2';
+	$fq1{$file}=$lib if $ab eq '_1';
+	$fq2{$file}=$lib if $ab eq '_2';
 }
 for my $file (keys %fq1) {
 	my $file2=$file;
