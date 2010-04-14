@@ -96,8 +96,8 @@ if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 my ($O1,$O2);
 open REF,'<',$inputref or die "[x]Can't open file $inputref\n";
 system("mkdir -p $o && rmdir $o");
-open $O1,">$o\_$read_len\_$insertsize_mean\_1.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_1.$ext\n";
-open $O2,">$o\_$read_len\_$insertsize_mean\_2.$ext" || die "[x]Can't open file $o\_$read_len\_$insertsize_mean\_2.$ext\n";
+open $O1,">${o}-l${read_len}-i${insertsize_mean}_1.$ext" || die "[x]Can't open file ${o}-l${read_len}-i${insertsize_mean}_1.$ext\n";
+open $O2,">${o}-l${read_len}-i${insertsize_mean}_2.$ext" || die "[x]Can't open file ${o}-l${read_len}-i${insertsize_mean}_1.$ext\n";
 my (%insertsize,%read_info,$Qc);
 $/=">";
 
@@ -422,4 +422,4 @@ sub getreads{
 }
 
 __END__
-find ./out/ -name '*.fa' | while read a; do b=`basename $a`; echo "#$ -N \"sim_${b}\"" >./shell/sim_${b}.sh;echo "#$ -cwd -r y -l vf=1G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/fg/${a}_sim.log -e ./out/fq/${a}_sim.err -hold_jid \"*_si\" " >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim1 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim2 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim3 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim4 >> ./shell/sim_${b}.sh; done
+find ./out/ -name '*.fa' | while read a; do b=`basename $a`; echo "#$ -N \"sim_${b}\"" >./shell/sim_${b}.sh;echo "#$ -cwd -r y -l vf=1G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/fq/sim_${b}.log -e ./out/fq/sim_${b}.err -hold_jid \"*_si\" " >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim1 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim2 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim3 >> ./shell/sim_${b}.sh; echo ./simsolexa_reads.pl -fq -b -input $a -read_len 76 -coverage 5 -output ./out/fq/${b}.sim4 >> ./shell/sim_${b}.sh; done
