@@ -64,7 +64,7 @@ while ($rv=$sth->fetchrow_arrayref) {
 	my $last_res=shift @$res;	# chrid,start,end,strand,frame
 	next unless defined $last_res;
 	my $last_f=0;
-	$sthf->execute(0,$$rv[0],$$last_res[0],$$last_res[1],$$last_res[2]) if $$last_res[4] != 0;
+	$sthf->execute(0,$$rv[0],$$last_res[0],$$last_res[1],$$last_res[2]) if $$last_res[4] ne '0';	# some gff come with '.'
 	# first is always 0. There DO be such wrong file.
 	for (@$res) {
 		$last_f=$frameC=(3-((1+abs($$last_res[1]-$$last_res[2])-$last_f)%3))%3;

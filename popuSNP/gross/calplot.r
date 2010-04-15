@@ -90,3 +90,8 @@ dev.off();
 
 #perl -lane '@a=split /\t/;next if $a[4]==0;$p=$a[1]/$a[4];$d=$a[3];print join("\t",$a[-1],$a[0],$a[-2]+$a[0]-1) if $p<=0.02321981 and $d<=-1.995619;' mix_5k_cn116_f01.mpoly > mix_5k_cn116_f01.filtered
 
+#perl -lane '@a=split /\t/;next if $a[4]==0;$p=$a[1]/$a[4];$d=$a[3];print if $p<=0.03226 and $d<=-1.919533;' dat.tsv > dat.tsv.f
+#perl -lane '@a=split /\t/;next if $a[4]==0;$p=$a[1]/$a[4];$d=$a[3];print join("\t",$a[-1],$a[0],$a[-2]+$a[0]-1);' dat.tsv.f > dat.tsv.l && ./mixzone.pl dat.tsv.l > dat.tsv.m
+
+#plot(PiRD$x,PiRD$y,type='l',xlim=c(0,1),col="grey30",cex.lab=1.1,cex.axis=1.05,ylab='Density');
+#polygon(c(min(PiRD$x),PiRD$x),c(0,PiRD$y),col='blue');

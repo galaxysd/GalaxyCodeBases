@@ -7,7 +7,7 @@ use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.2;
+$main::VERSION=0.2.3;
 
 our $opts='i:o:s:d:bvf';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_f);
@@ -87,7 +87,33 @@ UPDATE res/.$specname.q/ SET rna_chg=?,aa_chg=?,chged=? WHERE name=? AND chrid=?
 	$srdho = $rdbh->prepare($sql) or warn $rdbh->errstr;
 }
 ###################
-my %gen_code = ( "TTT" => "Phe", "TTC" => "Phe", "TTA" => "Leu", "TTG" => "Leu", "CTT" => "Leu", "CTC" => "Leu", "CTA" => "Leu", "CTG" => "Leu", "ATT" => "Ile", "ATC" => "Ile", "ATA" => "Ile", "ATG" => "Met", "GTT" => "Val", "GTC" => "Val", "GTA" => "Val", "GTG" => "Val", "TCT" => "Ser", "TCC" => "Ser", "TCA" => "Ser", "TCG" => "Ser", "CCT" => "Pro", "CCC" => "Pro", "CCA" => "Pro", "CCG" => "Pro", "ACT" => "Thr", "ACC" => "Thr", "ACA" => "Thr", "ACG" => "Thr", "GCT" => "Ala", "GCC" => "Ala", "GCA" => "Ala", "GCG" => "Ala",  "TAT" => "Tyr", "TAC" => "Tyr", "TAA" => "STOP", "TAG" => "STOP", "CAT" => "His", "CAC" => "His", "CAA" => "Gln", "CAG" => "Gln", "AAT" => "Asn", "AAC" => "Asn", "AAA" => "Lys", "AAG" => "Lys", "GAT" => "Asp", "GAC" => "Asp", "GAA" => "Glu", "GAG" => "Glu",  "TGT" => "Cys", "TGC" => "Cys", "TGA" => "STOP", "TGG" => "Trp", "CGT" => "Arg", "CGC" => "Arg", "CGA" => "Arg", "CGG" => "Arg", "AGT" => "Ser", "AGC" => "Ser", "AGA" => "Arg", "AGG" => "Arg", "GGT" => "Gly", "GGC" => "Gly", "GGA" => "Gly", "GGG" => "Gly" );
+#my %gen_code = ( "TTT" => "Phe", "TTC" => "Phe", "TTA" => "Leu", "TTG" => "Leu", "CTT" => "Leu", "CTC" => "Leu", "CTA" => "Leu", "CTG" => "Leu", "ATT" => "Ile", "ATC" => "Ile", "ATA" => "Ile", "ATG" => "Met", "GTT" => "Val", "GTC" => "Val", "GTA" => "Val", "GTG" => "Val", "TCT" => "Ser", "TCC" => "Ser", "TCA" => "Ser", "TCG" => "Ser", "CCT" => "Pro", "CCC" => "Pro", "CCA" => "Pro", "CCG" => "Pro", "ACT" => "Thr", "ACC" => "Thr", "ACA" => "Thr", "ACG" => "Thr", "GCT" => "Ala", "GCC" => "Ala", "GCA" => "Ala", "GCG" => "Ala",  "TAT" => "Tyr", "TAC" => "Tyr", "TAA" => "STOP", "TAG" => "STOP", "CAT" => "His", "CAC" => "His", "CAA" => "Gln", "CAG" => "Gln", "AAT" => "Asn", "AAC" => "Asn", "AAA" => "Lys", "AAG" => "Lys", "GAT" => "Asp", "GAC" => "Asp", "GAA" => "Glu", "GAG" => "Glu",  "TGT" => "Cys", "TGC" => "Cys", "TGA" => "STOP", "TGG" => "Trp", "CGT" => "Arg", "CGC" => "Arg", "CGA" => "Arg", "CGG" => "Arg", "AGT" => "Ser", "AGC" => "Ser", "AGA" => "Arg", "AGG" => "Arg", "GGT" => "Gly", "GGC" => "Gly", "GGA" => "Gly", "GGG" => "Gly" );
+
+my $code=<<Ecode;
+    AAs  = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+  Starts = ---M---------------M------------MMMM---------------M------------
+  Base1  = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+  Base2  = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+  Base3  = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+Ecode
+
+my (%gen_code,%t,@t,%start_codes);
+@t=split /\n/,$code;
+map {s/\s//g;@_=split /=/;$t{$_[0]}=[split //,$_[1]]} @t;
+for (@{$t{AAs}}) {
+#	my $aa=$_;
+#	my @bases;
+#	map {my $t=shift @{$t{$_}};push @bases,$t} qw/Base1 Base2 Base3/;
+#	my $base=join('',@bases);
+	my $base=(shift @{$t{Base1}}).(shift @{$t{Base2}}).(shift @{$t{Base3}});
+#print "$base";
+	my $start=shift @{$t{Starts}};
+	++$start_codes{$base} if $start eq 'M';
+	$gen_code{$base}=$_;
+#print " -> [$_]\n";
+}
+
+
 ###################
 sub q_3CDS($$$) {
 	my ($seqname,$position,$name)=@_;
@@ -149,8 +175,8 @@ sub q_subseq($$$$$) {
 	return [\$sense_strain,$pos_rel];
 }
 ###################
-sub q_aa_chg($$$$$) {
-	my ($sense_seq_ref,$pos_rel,$ref_base,$snp_base,$strand)=@_;	# $pos_rel starting 0
+sub q_aa_chg($$$$$$) {
+	my ($sense_seq_ref,$pos_rel,$ref_base,$snp_base,$strand,$IsStart)=@_;	# $pos_rel starting 0
 	if ($strand eq '-') {
 		$ref_base =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
 		$snp_base =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
@@ -168,6 +194,10 @@ sub q_aa_chg($$$$$) {
 		warn "ERROR: [$ref_seq] or [$snp_seq] not translatable !\n";
 		return ["$ref_seq->$snp_seq",'Unknown',-1];
 	}
+	if ($IsStart == 1) {# and $start_codes{$ref_seq} and $start_codes{$snp_seq}) {
+		$aa_ref='fM' if $start_codes{$snp_seq};	# fMet is from fMet-tRNA_f, which means "N-formyl methionyl-tRNA"
+		$aa_snp='fM' if $start_codes{$aa_snp};
+	}
 	if ($aa_ref eq $aa_snp) {
 		return ["$ref_seq->$snp_seq","$aa_ref->$aa_snp",0];
 	} else {return ["$ref_seq->$snp_seq","$aa_ref->$aa_snp",1];}
@@ -176,12 +206,17 @@ sub q_aa_chg($$$$$) {
 sub q_aa($$$$$$$) {
 	my ($genome_hash,$seqname,$CDS_arr,$strand,$position,$ref_base,$snp_base)=@_;
 	my (@centerCDS,$aa_chg,$sense_seq_ref,$pos_rel,$comp_seq_ref,@compCDS);
+	my $IsStart=0;
 	if ($strand eq '+') {	# @$CDS_arr : start, end, frame (starting 1)
 		@centerCDS=( $CDS_arr->[1]->[0]+$CDS_arr->[1]->[2],$CDS_arr->[1]->[1] );
 		@compCDS = ( $CDS_arr->[2]->[0],$CDS_arr->[2]->[0]+1 ) if defined($CDS_arr->[2]) and $CDS_arr->[2]->[0]+1 <= $CDS_arr->[2]->[1];
+		#$IsStart=2 unless defined $CDS_arr->[0];
+		$IsStart=1 if (! defined $CDS_arr->[0]) and ($position - $CDS_arr->[1]->[0] <3);
 	} elsif ($strand eq '-') {
 		@centerCDS=( $CDS_arr->[1]->[0],$CDS_arr->[1]->[1]-$CDS_arr->[1]->[2] );
 		@compCDS = ( $CDS_arr->[0]->[1]-1,$CDS_arr->[0]->[1] ) if defined($CDS_arr->[0]) and $CDS_arr->[0]->[1]-1 >= $CDS_arr->[0]->[0];
+		#$IsStart=2 unless defined $CDS_arr->[2];
+		$IsStart=1 if (! defined $CDS_arr->[2]) and ($CDS_arr->[1]->[1] - $position < 3);
 	} else { return []; }	# $strand eq 'NA'
 	if ($position >= $centerCDS[0] and $position <= $centerCDS[1]) {
 		($sense_seq_ref,$pos_rel)=@{q_subseq($genome_hash,$seqname,\@centerCDS,$strand,$position)};
@@ -205,7 +240,7 @@ sub q_aa($$$$$$$) {
 		warn "ERROR in q_aa() !\n$position,[$CDS_arr->[1]->[0],$CDS_arr->[1]->[1]] $strand ";
 		return [];	# well, a bit smoke
 	}
-	my @aa_chg=@{q_aa_chg($comp_seq_ref,$pos_rel,$ref_base,$snp_base,$strand)};
+	my @aa_chg=@{q_aa_chg($comp_seq_ref,$pos_rel,$ref_base,$snp_base,$strand,$IsStart)};
 	return \@aa_chg;
 }
 ###################

@@ -12,7 +12,13 @@ my $fq = shift;
 my ($maxreadlen,$copyedreads,$inbp,$outbp,$readlen)=(0);
 
 my $read_num = 0;
-open FQ, "$fq" || die "$!\n";
+
+if ($fq =~ /\.gz$/) {
+	open( FQ,'-|',"gzip -dc $fq") or die "[x]Error on $fq: $!\n";
+} elsif ($fq =~ /\.bz2$/) {
+ 	open( FQ,'-|',"bzip2 -dc $fq") or die "[x]Error on $fq: $!\n";
+} else {open( FQ,'<',$fq) or die "[x]Error on $fq: $!\n";}
+
 while (my $line1=<FQ>) {
 	#chomp $line1;
 	my $line2 = <FQ>;

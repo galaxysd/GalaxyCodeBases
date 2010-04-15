@@ -142,7 +142,7 @@ for my $chr (keys %Genome) {
 	&PrintArray(\@FH,\$t,1);
 	warn "\n";
 	for (my $pos = 0; $pos < $length; $pos++) {
-		&PrintArray(\@FH,\$/) unless $pos%80;	# first is 0, which % 90.
+		&PrintArray(\@FH,\$/) unless $pos%80;	# first is 0, which % 80.
 		my $refbase=substr $$GenomeR,$pos,1;
 		if ($PWM{$chr}{$pos}) {
 			print SNP "$chr\t$pos\t$refbase ";
