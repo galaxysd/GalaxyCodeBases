@@ -13,7 +13,7 @@ our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_f);
 our $help=<<EOH;
 \t-i PSNP list (./psnp.lst) for chrid.individual.finalSNPs
 \t-f fabyChr path (./faByChr/) for [chr].fa
-\t-s GLF list (./glf.list), will use \$1 of /([^/]+)/[^/]+$/ for sample names
+\t-s GLF list (./glf.list), will use \$1 of (([^/]+)/[^/]+$) for sample names
 \t-o Output Prefix (./indGenomes/ig_)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
@@ -40,7 +40,7 @@ my @Samples;
 open L,'<',$opt_s or die "Error opening $opt_s: $!\n";
 print STDERR "[!]Sample Order: ";
 while (<L>) {
-	/([^/]+)/[^/]+$/;
+	/([^/]+)\/[^/]+$/;
 	push @Samples,$1;
 	print STDERR $1,"\t";
 }
