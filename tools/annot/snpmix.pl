@@ -82,6 +82,10 @@ while (my $file=<P>) {
 	warn "[!]Different ChrID, [>$1] in [$file] !\n" if $1 ne $chr;
 	$i=1;
 	while ($ref=getc(FA)) {
+		unless (/[ACGTRYMKSWHBVDNX]/i) {
+			last if $_ eq '>';
+			next;
+		}
 		unless ($i%80) {
 			print $_ "\n" for @FH;
 		}
@@ -97,6 +101,7 @@ while (my $file=<P>) {
 				++$t;
 			}
 		}
+		++$i;
 	}
 }
 
