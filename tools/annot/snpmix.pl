@@ -7,7 +7,7 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
 
-our $opts='i:o:s:bv:f:';
+our $opts='i:o:s:f:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_f);
 
 our $help=<<EOH;
@@ -42,7 +42,7 @@ print STDERR "[!]Sample Order: ";
 while (<L>) {
 	m#([^/]+)/[^/]+$#;
 	push @Samples,$1;
-	print STDERR (scalar @Samples)+1,':[',$1,"] ";
+	print STDERR (scalar @Samples),':[',$1,"] ";
 }
 print STDERR "\n";
 
@@ -63,7 +63,7 @@ while (my $file=<P>) {
 		}
 		$SNP{$pos}=[$ref,\@indSNP];
 	}
-	print STDERR 'o';
+	print STDERR "o\b";
 
 	my @FH;
 	for (@Samples) {
@@ -82,8 +82,8 @@ while (my $file=<P>) {
 	warn "[!]Different ChrID, [>$1] in [$file] !\n" if $1 ne $chr;
 	$i=1;
 	while ($ref=getc(FA)) {
-		unless (/[ACGTRYMKSWHBVDNX]/i) {
-			last if $_ eq '>';
+		unless ($ref =~ /[ACGTRYMKSWHBVDNX]/i) {
+			last if $ref eq '>';
 			next;
 		}
 		unless ($i%80) {
@@ -92,7 +92,7 @@ while (my $file=<P>) {
 		unless ($SNP{$i}) {
 			print $_ $ref for @FH;
 		} else {
-			my ($refbase,$indSNPr)=$SNP{$i}->();
+			my ($refbase,$indSNPr)=@{$SNP{$i}};
 			warn "[!]RefBase differ, SNP:[$refbase] ne FASTA:[$ref].\n" if $refbase ne uc($ref);
 			my $t=0;
 			for (@$indSNPr) {
@@ -103,6 +103,7 @@ while (my $file=<P>) {
 		}
 		++$i;
 	}
+	print STDERR 'O';
 }
 
 my $stop_time = [gettimeofday];
