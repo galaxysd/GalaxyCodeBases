@@ -90,7 +90,7 @@ while (my $file=<P>) {
 		} else {
 			my ($refbase,$indSNPr)=$SNP{$i}->();
 			warn "[!]RefBase differ, SNP:[$refbase] ne FASTA:[$ref].\n" if $refbase ne uc($ref);
-			for my $t (0..$#indSNPr) {
+			for my $t (0..$#$indSNPr) {
 				print $FH[$t] $$indSNPr[$t];
 			}
 		}
