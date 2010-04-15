@@ -67,7 +67,7 @@ while (my $file=<P>) {
 
 	my @FH;
 	for (@Samples) {
-		$file=$opt_o.$_.'.fa';
+		$file=$opt_o.$_.'.'.$chr.'.fa';
 		my $fh;
 		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
 		print $fh ">${_}---$chr\n";
