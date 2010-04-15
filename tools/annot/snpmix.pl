@@ -5,7 +5,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.0.2;
 
 our $opts='i:o:s:f:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_f);
@@ -63,7 +63,7 @@ while (my $file=<P>) {
 		}
 		$SNP{$pos}=[$ref,\@indSNP];
 	}
-	print STDERR "o\b";
+	print STDERR "+\b";
 
 	my @FH;
 	for (@Samples) {
@@ -103,7 +103,7 @@ while (my $file=<P>) {
 		}
 		++$i;
 	}
-	print STDERR 'O';
+	print STDERR '-';
 }
 
 my $stop_time = [gettimeofday];
