@@ -51,7 +51,7 @@ open P,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (my $file=<P>) {
 	chomp $file;
 	open SNP,'<',$file or (warn "\n[!]Error opening $file: $!\n" and next);
-	print STDERR '.\b';
+	print STDERR ".\b";
 	my (%SNP,$chr,$pos,$ref,$tail,$i);
 	while (<SNP>) {
 		($chr,$pos,$ref,$tail)=split /\t/;
@@ -90,8 +90,11 @@ while (my $file=<P>) {
 		} else {
 			my ($refbase,$indSNPr)=$SNP{$i}->();
 			warn "[!]RefBase differ, SNP:[$refbase] ne FASTA:[$ref].\n" if $refbase ne uc($ref);
-			for my $t (0..$#$indSNPr) {
-				print $FH[$t] $$indSNPr[$t];
+			my $t=0;
+			for (@$indSNPr) {
+				$tail=$FH[$t];
+				print $tail $_;
+				++$t;
 			}
 		}
 	}
