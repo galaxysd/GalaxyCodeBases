@@ -40,18 +40,18 @@ my @Samples;
 open L,'<',$opt_s or die "Error opening $opt_s: $!\n";
 print STDERR "[!]Sample Order: ";
 while (<L>) {
-	/([^/]+)\/[^/]+$/;
+	m#([^/]+)/[^/]+$#;
 	push @Samples,$1;
 	print STDERR $1,"\t";
 }
 print STDERR "\n";
 
 open P,'<',$opt_i or die "Error opening $opt_i: $!\n";
-while my $file (<P>) {
+while (my $file=<P>) {
 	chomp $file;
 	my %SNP;
 	open SNP,'<',$file or (warn "Error opening $file: $!\n" and next);
-	while (SNP) {
+	while (<SNP>) {
 		my ($chr,$pos,$ref,$tail)=split /\t/;
 		my @indSNP;
 		for (split / /,$tail) {
