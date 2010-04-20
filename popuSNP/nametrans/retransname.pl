@@ -1,4 +1,4 @@
-#!/home/huxuesong/gentoo/usr/bin/perl -w
+#!/bin/env perl
 #use threads;
 use strict;
 use warnings;
