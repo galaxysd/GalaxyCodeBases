@@ -10,7 +10,7 @@ $main::VERSION=0.1.0;
 our $opts='i:o:m:bv';
 our($opt_i, $opt_o, $opt_v, $opt_b, $opt_m);
 
-#our $desc='SoapSort library PCR PE Duplication Remover & Merger (Atom Edition)';
+our $desc='ReTransname from raw scaffoldID to merged ChrID';
 our $help=<<EOH;
 \t-i Input file, in format: /^ChrID\\tPos\\t.*\\n\$/
 \t-m merge list, in format: /^ChrID\\tscaffoldID\\tChrStart\\tChrStop\\n\$/
