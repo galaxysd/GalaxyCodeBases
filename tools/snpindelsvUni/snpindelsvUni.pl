@@ -40,7 +40,7 @@ while (<IN>) {
 	my ($chrid,$len)=split /\t/;
 	next unless /$opt_r/;
 	$GenomeLen += $len;
-	print "$chrid,$len\t$GenomeLen" if $opt_v;
+	print "$chrid,$len\t$GenomeLen\n" if $opt_v;
 }
 close IN;
 
