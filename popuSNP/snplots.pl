@@ -1,0 +1,55 @@
+#!/bin/env perl
+use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
+use strict;
+use warnings;
+use DBI;
+use Time::HiRes qw ( gettimeofday tv_interval );
+use Galaxy::ShowHelp;
+
+$main::VERSION=0.0.2;
+
+our $opts='i:o:s:l:bv';
+our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_l);
+
+our $help=<<EOH;
+\t-i PSNP list (./psnp.lst) for chrid.individual.finalSNPs
+\t-l merge.list for scaffold positions (./watermelon.merge.list)
+\t-s GLF list (./glf.list), will use \$1 of (([^/]+)/[^/]+$) for sample names
+\t-o Output Prefix (./plots/p_)
+\t-v show verbose info to STDOUT
+\t-b No pause for batch runs
+EOH
+
+ShowHelp();
+
+$opt_o='./plots/p_' unless defined $opt_o;
+$opt_i='./psnp.lst' unless $opt_i;
+$opt_s='./glf.list' unless $opt_s;
+$opt_l='./watermelon.merge.list' unless $opt_l;
+
+$opt_i =~ s/\/$//;
+print STDERR "From [$opt_i] to [$opt_o], with [$opt_s][$opt_l]\n";
+if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
+
+my $start_time = [gettimeofday];
+
+system('mkdir','-p',$opt_o);
+system('rmdir',$opt_o) if $opt_o =~ m#/[\s.]*[^/\s.]+[^/]*$#;
+
+my @Samples;
+open L,'<',$opt_s or die "[x]Error opening $opt_s: $!\n";
+print STDERR "[!]Sample Order: ";
+while (<L>) {
+	m#([^/]+)/[^/]+$#;
+	push @Samples,$1;
+	print STDERR (scalar @Samples),':[',$1,"] ";
+}
+close L;
+print STDERR "\n";
+
+
+
+my $stop_time = [gettimeofday];
+
+print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
+
