@@ -72,7 +72,12 @@ my $sthi = $dbh->prepare( 'INSERT INTO merge ( chrid,scaffold,start,end ) VALUES
 my $stho = $dbh->prepare( 'SELECT DISTINCT scaffold,start,end FROM merge WHERE chrid=? AND ? BETWEEN start AND end' );
 $|=1;
 
-open SAMPLE,'-|',"gzip -dc $opt_m" or die "Error opening $opt_m: $!\n";
+if ($opt_m =~ /\.gz$/) {
+	open( SAMPLE,'-|',"gzip -dc $opt_m") or die "[x]Error on $opt_m: $!\n";
+} elsif ($opt_m =~ /\.bz2$/) {
+ 	open( SAMPLE,'-|',"bzip2 -dc $opt_m") or die "[x]Error on $opt_m: $!\n";
+} else {open( SAMPLE,'<',$opt_m) or die "[x]Error on $opt_m: $!\n";}
+#open SAMPLE,'-|',"gzip -dc $opt_m" or die "Error opening $opt_m: $!\n";
 while (<SAMPLE>) {
 	chomp;
 	my ($chrid,$scaffold,$start,$end)=split /\t/;
@@ -110,3 +115,4 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
 
+perl -lane '$a=$_; $a =~ /([^\/\.]+)\.individual\.finalSNPs$/; $b=$1; open O,">./sh/$b.sh"; print O "#\$ -cwd -r y -l vf=1g,s_core=1\n#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#\$ -o /dev/null -e /dev/null\n./transname.pl -i $a -m watermelon.merge.list.gz -o $b.finalSNPs -b 2>$b.finalSNPs.log\n";' psnp.lst
