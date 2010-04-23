@@ -104,6 +104,7 @@ print STDERR "$i loaded.\n";
 my (@SNPsC,@SNPsP);
 print STDERR "[!]Parsing SNP ";
 open P,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
+while (my $file=<P>) {
 	chomp $file;
 	open SNP,'<',$file or (warn "\n[!]Error opening $file: $!\n" and next);
 	print STDERR ".\b";
