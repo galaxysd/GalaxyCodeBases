@@ -101,7 +101,7 @@ close L;
 &doindex;
 print STDERR "$i loaded.\n";
 
-my (@SNPsC,@SNPsP);
+my (@SNPsC,@SNPsP,%SNPsSL);
 print STDERR "[!]Parsing SNP ";
 open P,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (my $file=<P>) {
@@ -118,6 +118,7 @@ while (my $file=<P>) {
 			next;
 		} elsif ($#$qres != 0) { warn "More than 1 hit, using first.\n" }
 		($scaffold,$len)=@{$$qres[0]};
+		$SNPsSL{$scaffold}=$len;
 		$len=1/$len;
 		$i=0;
 		for (split / /,$tail) {
@@ -128,24 +129,24 @@ while (my $file=<P>) {
 			++$i;
 		}
 	}
-	print STDERR "+\b";
+	print STDERR '-';
+}
 
 	my @FH;
 	$i=0;
-	for (@Samples) {
-		$file=$opt_o.$_.'.'.$chrid.'.stat';
+	for my $sampleid (@Samples) {
+		$file=$opt_o.$sampleid.'.stat';
 		my $fh;
 		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
-		print $fh ">${_}---$chrid\n";
+		print $fh "SampleID\tChrID\tLen\tSNPc\tSNPr\n";
 		push @FH,$fh;
 	#warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
 		for my $scaffold (sort {$SNPsP[$i]{$b} <=> $SNPsP[$i]{$a}} keys %{$SNPsP[$i]}) {
-			print $fh "$scaffold\t$SNPsC[$i]{$scaffold}\t$SNPsP[$i]{$scaffold}\n";
+			print $fh "$sampleid\t$scaffold\t$SNPsSL{$scaffold}\t$SNPsC[$i]{$scaffold}\t$SNPsP[$i]{$scaffold}\n";
 		}
 		++$i;
 	}
-	print STDERR '-';
-}
+
 
 my $stop_time = [gettimeofday];
 
