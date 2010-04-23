@@ -60,7 +60,8 @@ CREATE TABLE IF NOT EXISTS merge
 (  chrid TEXT,
    scaffold TEXT,
    start INTEGER,
-   end INTEGER  );
+   end INTEGER,
+   len INTEGER  );
 /;
 # The rowid value can be accessed using one of the special names "ROWID", "OID", or "_ROWID_".
 for (split /;/,$sql) {
@@ -81,28 +82,69 @@ CREATE INDEX IF NOT EXISTS c ON merge(chrid);
 	$dbh->commit;
 }
 
-my $sthi = $dbh->prepare( 'INSERT INTO merge ( chrid,scaffold,start,end ) VALUES ( ?,?,?,? )' );
-my $stho = $dbh->prepare( 'SELECT DISTINCT scaffold,start,end FROM merge WHERE chrid=? AND ? BETWEEN start AND end' );
+my $sthi = $dbh->prepare( 'INSERT INTO merge ( chrid,scaffold,start,end,len ) VALUES ( ?,?,?,?,? )' );
+my $stho = $dbh->prepare( 'SELECT DISTINCT scaffold,len FROM merge WHERE chrid=? AND ? BETWEEN start AND end' );
 #$|=1;
 
 my @Scaffolds;
 open L,'<',$opt_l or die "[x]Error opening $opt_l: $!\n";
 print STDERR "[!]Scaffolds: ";
-my $i=0;
+my ($i,$len)=(0);
 while (<L>) {
 	chomp;
 	my ($chrid,$scaffold,$start,$end)=split /\t/;
-	$sthi->execute($chrid,$scaffold,$start,$end);
+	$len=$end-$start+1;
+	$sthi->execute($chrid,$scaffold,$start,$end,$len);
 	++$i;
 }
 close L;
 &doindex;
 print STDERR "$i loaded.\n";
 
+my (@SNPsC,@SNPsP);
 print STDERR "[!]Parsing SNP ";
 open P,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
+	chomp $file;
+	open SNP,'<',$file or (warn "\n[!]Error opening $file: $!\n" and next);
+	print STDERR ".\b";
+	my (%SNP,$chrid,$pos,$ref,$tail,$i,$qres,$scaffold,$len);
+	while (<SNP>) {
+		($chrid,$pos,$ref,$tail)=split /\t/;
+		$stho->execute($chrid,$pos);
+		$qres = $stho->fetchall_arrayref;
+		if ($#$qres == -1) {
+			warn "No info. for $chrid:$pos, skipped.\n";
+			next;
+		} elsif ($#$qres != 0) { warn "More than 1 hit, using first.\n" }
+		($scaffold,$len)=@{$$qres[0]};
+		$len=1/$len;
+		$i=0;
+		for (split / /,$tail) {
+			next unless /[ACGTRYMKSWHBVDNX-]/;
+			#s/-/n/;
+			++$SNPsC[$i]->{$scaffold};
+			$SNPsP[$i]->{$scaffold} += $len;
+			++$i;
+		}
+	}
+	print STDERR "+\b";
 
-
+	my @FH;
+	my $i=0;
+	for (@Samples) {
+		$file=$opt_o.$_.'.'.$chr.'.stat';
+		my $fh;
+		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
+		print $fh ">${_}---$chr\n";
+		push @FH,$fh;
+	#warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
+		for my $scaffold (sort {$SNPsP[$i]{$b} <=> $SNPsP[$i]{$a}} keys %{$SNPsP[$i]}) {
+			print $fh "$scaffold\t$SNPsC[$i]{$scaffold}\t$SNPsP[$i]{$scaffold}\n";
+		}
+		++$i;
+	}
+	print STDERR '-';
+}
 
 my $stop_time = [gettimeofday];
 
