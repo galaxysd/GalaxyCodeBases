@@ -15,14 +15,14 @@ our $help=<<EOH;
 \t-i PSNP list (./psnp.lst) for chrid.individual.finalSNPs
 \t-l merge.list for scaffold positions (./watermelon.merge.list)
 \t-s GLF list (./glf.list), will use \$1 of (([^/]+)/[^/]+$) for sample names
-\t-o Output Prefix (./indGenomes/ig_)
+\t-o Output Prefix (./plots/p_)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
 
 ShowHelp();
 
-$opt_o='./indGenomes/ig_' if ! defined $opt_o;
+$opt_o='./plots/p_' if ! defined $opt_o;
 $opt_i='./psnp.lst' if ! $opt_i;
 $opt_s='./glf.list' if ! $opt_s;
 $opt_l='./watermelon.merge.list' if ! $opt_l;
