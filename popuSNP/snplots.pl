@@ -8,7 +8,7 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.2;
 
-our $opts='i:o:s:f:bv';
+our $opts='i:o:s:l:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_l);
 
 our $help=<<EOH;
@@ -22,13 +22,13 @@ EOH
 
 ShowHelp();
 
-$opt_o='./plots/p_' if ! defined $opt_o;
-$opt_i='./psnp.lst' if ! $opt_i;
-$opt_s='./glf.list' if ! $opt_s;
-$opt_l='./watermelon.merge.list' if ! $opt_l;
+$opt_o='./plots/p_' unless defined $opt_o;
+$opt_i='./psnp.lst' unless $opt_i;
+$opt_s='./glf.list' unless $opt_s;
+$opt_l='./watermelon.merge.list' unless $opt_l;
 
 $opt_i =~ s/\/$//;
-print STDERR "From [$opt_i] to [$opt_o], with [$opt_s][$opt_l]/\n";
+print STDERR "From [$opt_i] to [$opt_o], with [$opt_s][$opt_l]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -124,29 +124,37 @@ while (my $file=<P>) {
 		for (split / /,$tail) {
 			next unless /[ACGTRYMKSWHBVDNX-]/;
 			#s/-/n/;
-			++$SNPsC[$i]->{$scaffold};
-			$SNPsP[$i]->{$scaffold} += $len;
+			if (/[ACGTRYMKSWHBVDNX]/) {
+				++$SNPsC[$i]->{$scaffold};
+				$SNPsP[$i]->{$scaffold} += $len;
+			} elsif ($_ eq '-') {
+				$SNPsC[$i]->{$scaffold}+=0;
+				$SNPsP[$i]->{$scaffold}+=0;
+			} else {next;}
 			++$i;
 		}
 	}
 	print STDERR '-';
 }
 
-	my @FH;
-	$i=0;
-	for my $sampleid (@Samples) {
-		$file=$opt_o.$sampleid.'.stat';
-		my $fh;
-		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
-		print $fh "SampleID\tChrID\tLen\tSNPc\tSNPr\n";
-		push @FH,$fh;
-	#warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
-		for my $scaffold (sort {$SNPsP[$i]{$b} <=> $SNPsP[$i]{$a}} keys %{$SNPsP[$i]}) {
-			print $fh "$sampleid\t$scaffold\t$SNPsSL{$scaffold}\t$SNPsC[$i]{$scaffold}\t$SNPsP[$i]{$scaffold}\n";
-		}
-		++$i;
+print STDERR "[!]Output  ";
+my @FH;
+$i=0;
+for my $sampleid (@Samples) {
+	my $file=$opt_o.$sampleid.'.stat';
+	my $fh;
+	open $fh,'>',$file or die "[x]Error opening $file: $!\n";
+	print STDERR ".\b";
+	print $fh "SampleID\tChrID\tLen\tSNPc\tSNPr\n";
+	push @FH,$fh;
+#warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
+	for my $scaffold (sort {$SNPsP[$i]{$b} <=> $SNPsP[$i]{$a}} keys %{$SNPsP[$i]}) {
+		print $fh "$sampleid\t$scaffold\t$SNPsSL{$scaffold}\t$SNPsC[$i]{$scaffold}\t$SNPsP[$i]{$scaffold}\n";
 	}
-
+	++$i;
+	print STDERR "-";
+}
+warn "\n";
 
 my $stop_time = [gettimeofday];
 
