@@ -131,12 +131,12 @@ while (my $file=<P>) {
 	print STDERR "+\b";
 
 	my @FH;
-	my $i=0;
+	$i=0;
 	for (@Samples) {
-		$file=$opt_o.$_.'.'.$chr.'.stat';
+		$file=$opt_o.$_.'.'.$chrid.'.stat';
 		my $fh;
 		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
-		print $fh ">${_}---$chr\n";
+		print $fh ">${_}---$chrid\n";
 		push @FH,$fh;
 	#warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
 		for my $scaffold (sort {$SNPsP[$i]{$b} <=> $SNPsP[$i]{$a}} keys %{$SNPsP[$i]}) {
