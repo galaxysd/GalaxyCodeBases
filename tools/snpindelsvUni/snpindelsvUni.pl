@@ -9,22 +9,37 @@ use Galaxy::ShowHelp;
 $main::VERSION=0.0.1;
 
 ###
-my $SNP_HET_Ratio=1.6;		# �Ӻ�SNPϵ��
-my $Indel_HET_Ratio=0.9;	# �Ӻ�Indelϵ��
+my $U_m=1;	# CDS区影响权重pre bp
+my $U_s=1.1;	# 平均移码影响值（pre CDS）
+#my $U_b=0.12;	# 标准化调控区比例（含启动子、增强子加权值）
+my $U_n=0.9;	# 调控区影响权重pre bp
+
+my $SNP_HET_Ratio=1.6;		# 杂合SNP系数
+my $Indel_HET_Ratio=0.9;	# 杂合Indel系数
+my $SV_Mixture_Ratio=0.75;	# 杂合Indel系数
+my %SV_Weights=(			# 复合sv拆分系数
+	Transposion => 0.5,
+);							# 转座的权重算1/2
+my $SV_Confidence=0.25;		# SV可靠度 / sv不确定度:v
+
+my $SNP_r=1000;
+my $Indel_r=1000;
+my $SV_r=10;
 ###
 
-our $opts='i:r:g:p:n:s:o:vb';
-our($opt_i, $opt_r, $opt_g, $opt_p, $opt_n, $opt_s, $opt_v, $opt_b, $opt_o);
+our $opts='i:r:g:p:n:s:o:c:vb';
+our($opt_i, $opt_r, $opt_g, $opt_p, $opt_n, $opt_s, $opt_v, $opt_b, $opt_o, $opt_c);
 
 our $desc='';
 our $help=<<EOH;
 \t-i Genome Info [ChrID\\tLen]
 \t-r RegEx for ChrID (chromosome_\\d+)
 \t-g GFF file for CDS length
+\t-c CFG file for SNP, Indel & SV
 \t-p SNP file
 \t-n Indel file
 \t-s SV file
-\t-o Output file
+\t-o Output file ({CFG}.out)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
@@ -32,7 +47,22 @@ EOH
 ShowHelp();
 
 $opt_r = 'chromosome_\d+' unless $opt_r;
+$opt_o = $opt_c.'.out' unless $opt_o;
 
+if ($opt_c) {
+	if (-s $opt_c) {
+		warn "[!]Reading from [$opt_c].\n";
+		open C,'<',$opt_c or warn "[x]Error: $!\n";
+		while (<C>) {
+			chomp;
+			my ($k,$v)=split /\t/;
+			$opt_p=$v if uc($k) eq 'SNP';
+			$opt_n=$v if uc($k) eq 'INDEL';
+			$opt_s=$v if uc($k) eq 'SV';
+		}
+		close C;
+	}
+}
 print STDERR "From [$opt_i][$opt_g][$opt_p][$opt_n][$opt_s] to [$opt_o] with to [$opt_r]\n";
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
@@ -52,17 +82,25 @@ close IN;
 print "[!]GenomeLen: $GenomeLen\n";
 
 open( IN,'<',$opt_g) or die "[x]Error: $!\n";
-my ($CDSLen,$GeneLen);
+my ($CDSLen,$GeneLen,$CDSCount,$GeneCount);
 while (<IN>) {
 	chomp;
 	my ($seqname, $source, $primary, $start, $end, $score, $strand, $frame, $groups) = split /\t/;
 	next unless $seqname =~ /$opt_r/;
 	$primary = uc $primary;
-	$CDSLen += $end-$start+1 if $primary eq 'CDS';
-	$GeneLen += $end-$start+1 if $primary eq 'GENE';
+	if ($primary eq 'CDS') {
+		$CDSLen += $end-$start+1;
+		++$CDSCount;
+	} elsif ($primary eq 'GENE') {
+		$GeneLen += $end-$start+1;
+		++$GeneCount;
+	}
 }
 close IN;
-print "[!]GeneLen: $GeneLen, CDSLen: $CDSLen\n";
+my $U_a=$CDSLen/$GeneLen;	# CDS比例;
+my $U_b=(750*$GeneCount+4*$CDSCount)/$GeneLen;	# 标准化调控区比例（含启动子、增强子加权值）
+print "[!]GeneLen: $GeneLen, GeneCount: $GeneCount, CDSLen: $CDSLen, CDSCount: $CDSCount
+[!]a=$U_a, b=$U_b\n";
 
 =pod
 chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
@@ -86,7 +124,7 @@ chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
 18.	The distance between this locus and another closest SNP
 =cut
 open( IN,'<',$opt_p) or die "[x]Error: $!\n";
-my ($CountSNP,$i);
+my ($CountSNP,$i,$U_SNP);
 while (<IN>) {
 	chomp;
 	my ($chr, $pos, $ref, $snp, $Q, $best, undef, undef, undef, $second, undef, undef, undef,
@@ -100,7 +138,8 @@ while (<IN>) {
 	$CountSNP += $i/$CN;
 }
 close IN;
-print "[!]SNP Value: $CountSNP\n";
+$U_SNP=$SNP_r*$CountSNP*($U_a*$U_m+$U_b*$U_n)/$GeneLen;
+print "[!]SNP Value: $CountSNP -> $U_SNP\n";
 
 =pod
 chromosome_1	2936	I2	TC	*	homo	27	15	17
@@ -115,7 +154,7 @@ chromosome_1	2936	I2	TC	*	homo	27	15	17
 9.	The number of all crossed read pair
 =cut
 open( IN,'<',$opt_n) or die "[x]Error: $!\n";
-my ($CountIndel,$len);
+my ($CountIndel,$len,$U_Indel);
 while (<IN>) {
 	chomp;
 	my ($chr, $pos, $IDv, $bases, $strand, $HomHet, $Q) = split /\t/;
@@ -125,7 +164,8 @@ while (<IN>) {
 	$CountIndel += $len;
 }
 close IN;
-print "[!]Indel Value: $CountIndel\n";
+$U_Indel=$Indel_r*$CountIndel*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n)/(3*$GeneLen);
+print "[!]Indel Value: $CountIndel -> $U_Indel\n";
 
 =pod
 chromosome_10	Deletion	7455	8413	7461	8386	925	0-0-0	FR	4
@@ -141,17 +181,33 @@ chromosome_10	Deletion	7455	8413	7461	8386	925	0-0-0	FR	4
 10.	number of paired-end read which support this structure variation
 =cut
 open( IN,'<',$opt_s) or die "[x]Error: $!\n";
-my ($CountSV,$len);
+my (%CountSV,@types,$CountSVA,$U_SV);
 while (<IN>) {
 	chomp;
 	my ($chr, $type, $left, $right, $start, $end, $len) = split /\t/;
 	next unless $chr =~ /$opt_r/;
-	$len *= $Indel_HET_Ratio if $HomHet eq 'hete';
-	$CountIndel += $len;
+	unless ($type =~ /\+/) {
+		$CountSV{$type} += $len;
+	} else {
+		@types = split /\+/,$type;
+		$CountSV{$_} += $len*$SV_Mixture_Ratio for @types;
+	}
 }
 close IN;
-print "[!]Indel Value: $CountIndel\n";
+print "[!]SV Details: ";
+for my $type (sort keys %CountSV) {
+	print "$type: $CountSV{$type}   ";
+	$CountSV{$type} *=$SV_Weights{$type} if exists $SV_Weights{$type};
+	$CountSVA += $CountSV{$type} * $SV_Confidence;
+}
+$U_SV=$SV_r*$CountSVA*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n)/(3*$GeneLen);
+print "\n[!]SV Value: $CountSVA -> $U_SV\n";
 
+my $U_mark=$U_SNP+$U_Indel+$U_SV;
+print '[!]Summary: ',$U_mark," = $U_SNP+$U_Indel+$U_SV\n";
+open O,'>',$opt_o or die "[x]Error: $!\n";
+print O "SNP:\t$U_SNP\nIndel:\t$U_Indel\nSV:\t$U_SV\nSummary:\t$U_mark\n";
+close O;
 
 #END
 my $stop_time = [gettimeofday];
