@@ -13,18 +13,19 @@ my $U_m=1;	# CDS区影响权重pre bp
 my $U_s=1.1;	# 平均移码影响值（pre CDS）
 #my $U_b=0.12;	# 标准化调控区比例（含启动子、增强子加权值）
 my $U_n=0.9;	# 调控区影响权重pre bp
+my $U_o=0.001;	# Other region effect pre bp
 
-my $SNP_HET_Ratio=1.6;		# 杂合SNP系数
-my $Indel_HET_Ratio=0.9;	# 杂合Indel系数
-my $SV_Mixture_Ratio=0.75;	# 杂合Indel系数
+my $SNP_HET_Ratio=0.5;		# 杂合SNP系数
+my $Indel_HET_Ratio=0.6;	# 杂合Indel系数
+my $SV_Mixture_Ratio=0.65;	# 杂合Indel系数
 my %SV_Weights=(			# 复合sv拆分系数
-	Transposion => 0.5,
+	Transposon => 0.5,
 );							# 转座的权重算1/2
-my $SV_Confidence=0.25;		# SV可靠度 / sv不确定度:v
+my $SV_Confidence=0.5;		# SV可靠度 / sv不确定度:v
 
 my $SNP_r=1000;
 my $Indel_r=1000;
-my $SV_r=10;
+my $SV_r=5;
 ###
 
 our $opts='i:r:g:p:n:s:o:c:vb';
@@ -98,7 +99,7 @@ while (<IN>) {
 }
 close IN;
 my $U_a=$CDSLen/$GeneLen;	# CDS比例;
-my $U_b=(750*$GeneCount+4*$CDSCount)/$GeneLen;	# 标准化调控区比例（含启动子、增强子加权值）
+my $U_b=(750*$GeneCount+8*$CDSCount)/$GeneLen;	# 标准化调控区比例（含启动子、增强子加权值）
 print "[!]GeneLen: $GeneLen, GeneCount: $GeneCount, CDSLen: $CDSLen, CDSCount: $CDSCount
 [!]a=$U_a, b=$U_b\n";
 
@@ -138,7 +139,7 @@ while (<IN>) {
 	$CountSNP += $i/$CN;
 }
 close IN;
-$U_SNP=$SNP_r*$CountSNP*($U_a*$U_m+$U_b*$U_n)/$GeneLen;
+$U_SNP=$SNP_r*$CountSNP*($U_a*$U_m+$U_b*$U_n+(1-$U_a-$U_b)*$U_o)/$GeneLen;
 print "[!]SNP Value: $CountSNP -> $U_SNP\n";
 
 =pod
@@ -164,7 +165,7 @@ while (<IN>) {
 	$CountIndel += $len;
 }
 close IN;
-$U_Indel=$Indel_r*$CountIndel*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n)/(3*$GeneLen);
+$U_Indel=$Indel_r*$CountIndel*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n+3*(1-$U_a-$U_b)*$U_o)/(3*$GeneLen);
 print "[!]Indel Value: $CountIndel -> $U_Indel\n";
 
 =pod
@@ -200,7 +201,7 @@ for my $type (sort keys %CountSV) {
 	$CountSV{$type} *=$SV_Weights{$type} if exists $SV_Weights{$type};
 	$CountSVA += $CountSV{$type} * $SV_Confidence;
 }
-$U_SV=$SV_r*$CountSVA*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n)/(3*$GeneLen);
+$U_SV=$SV_r*$CountSVA*(2*$U_s + $U_a*$U_m + 3*$U_b*$U_n+3*(1-$U_a-$U_b)*$U_o)/(3*$GeneLen);
 print "\n[!]SV Value: $CountSVA -> $U_SV\n";
 
 my $U_mark=$U_SNP+$U_Indel+$U_SV;
@@ -217,3 +218,5 @@ print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second
 #find ${opt_o}/ -name '*.sh' | while read ll; do qsub -l vf=2G -cwd \$ll; done\n\033[0;0m\n";
 __END__
 ./snpindelsvUni.pl -i sbi1.genome -g Sbi1.4.gff3 -p Ji_snp.txt -n Ji.indel -s Ji_sv.txt -v
+
+awk '{print $2}' *sv.txt|sort|uniq
