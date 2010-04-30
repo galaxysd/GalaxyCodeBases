@@ -8,12 +8,11 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.3;
 
-our $opts='i:o:s:bv';
-our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d);
+our $opts='i:o:bv';
+our ($opt_i, $opt_o, $opt_v, $opt_b, $opt_d);
 
 our $help=<<EOH;
-\t-i Indel path (./Indel/) for [sample].indel.txt.filter
-\t-s Samples list (./samples.list) [sample\\s+]
+\t-i Indel list (./indel.lst) for [sample\\t/path/to/indel.filtered]
 \t-o Output txt file (./indels.pop)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
@@ -22,28 +21,27 @@ EOH
 ShowHelp();
 
 $opt_o='./indels.pop' if ! defined $opt_o;
-$opt_i='./Indel/' if ! $opt_i;
-$opt_s='./samples.list' if ! $opt_s;
+$opt_i='./indel.lst' if ! $opt_i;
 
 $opt_i =~ s/\/$//;
-print STDERR "From [$opt_i]/ to [$opt_o], with [$opt_s]\n";
+print STDERR "From [$opt_i]/ to [$opt_o]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 
-my (@Samples,%Indels);
+my (%Samples,%Indels);
 
-open( SAMP,'<',$opt_s) or die "Error: $!\n";
+open( SAMP,'<',$opt_i) or die "Error: $!\n";
 while (<SAMP>) {
 	chomp;
-	my ($sample)=split /\s+/;
-	push @Samples,$sample;
+	my ($sample,$file)=split /\s+/;
+	$Samples{$sample}=$file;
+	print "[!]$sample -> $file\n" if $opt_v;
 }
 close SAMP;
-if ($opt_v) {print "Samples List:\n";print "[$_]\t" for @Samples;print "\n";}
 
-for my $Samp (@Samples) {
-	my $name=$opt_i.'/'.$Samp.'.indel.txt.filter';
+for my $Samp (keys %Samples) {
+	my $name=$Samples{$Samp};
 	open IN,'<',$name or die "Error: [$name] $!\n";
 	warn "Indel:[$Samp]\t...\n";
 	while (<IN>) {
@@ -59,21 +57,22 @@ for my $Samp (@Samples) {
 	}
 	close IN;
 }
-warn "Indels all loaded.\n\nLoading Depth:\n";
+warn "Indels all loaded.\n\nOutputting ...\n";
 
 open( OUT,'>',$opt_o) or die "Error: $!\n";
+print OUT "ChrID\tPos\t",join('^',sort keys %Samples),"\n";
 for my $chr (sort keys %Indels) {
 	for my $pos (sort {$a <=> $b} keys %{$Indels{$chr}}) {
 		print OUT "$chr\t$pos\t";
-		for my $Samp (@Samples) {
+		for my $Samp (sort keys %Samples) {
 			my $item=$Indels{$chr}{$pos};
 			if (defined $$item{$Samp}) {
 			    if (@{$$item{$Samp}}==3) {	# if Indel, use depth of indel_file
 				$item=join '|',@{$$item{$Samp}}
 			    } else {
-				$item=join '|',(@{$$item{$Samp}},'NA');
+				$item=join '|',(@{$$item{$Samp}},'.');
 			    }
-			} else {$item='.|.|NA'}
+			} else {$item='.|.|.'}
 			print OUT $item,'^';
 		}
 		print OUT "\n";
