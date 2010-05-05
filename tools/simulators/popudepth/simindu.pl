@@ -145,7 +145,7 @@ for my $chr (keys %Genome) {
 		&PrintArray(\@FH,\$/) unless $pos%80;	# first is 0, which % 80.
 		my $refbase=substr $$GenomeR,$pos,1;
 		if ($PWM{$chr}{$pos}) {
-			print SNP "$chr\t$pos\t$refbase ";
+			print SNP "$chr\t$pos\t$refbase\t";	# refbase should be tabbed
 			#$refbase='-'; &PrintArray(\@FH,\$refbase);
 			$pwm=$PWM{$chr}{$pos};	# []->[base,SigmaP]
 			my (%pwmBases,@pwmSvalues,$pwmSvalue);
