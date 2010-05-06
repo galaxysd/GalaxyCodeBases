@@ -145,7 +145,8 @@ for my $chr (keys %Genome) {
 		&PrintArray(\@FH,\$/) unless $pos%80;	# first is 0, which % 80.
 		my $refbase=substr $$GenomeR,$pos,1;
 		if ($PWM{$chr}{$pos}) {
-			print SNP "$chr\t$pos\t$refbase\t";	# refbase should be tabbed
+			my $i=$pos+1;	# I was planing to use $pos=0 and $PWM{$chr}{$pos-1} and then ($pos-1)+1. It seems that I had written those 3 lines in different time thus I forgot the last trick.
+			#print SNP "$chr\t$i\t$refbase\t";	# refbase should be tabbed
 			#$refbase='-'; &PrintArray(\@FH,\$refbase);
 			$pwm=$PWM{$chr}{$pos};	# []->[base,SigmaP]
 			my (%pwmBases,@pwmSvalues,$pwmSvalue);
@@ -164,7 +165,7 @@ for my $chr (keys %Genome) {
 #warn $pwmSvalue;
 				push @theBases,$pwmBases{$pwmSvalue};
 			}
-
+			my $flag=0;
 			my @t=@theBases;
 			@SNP=();
 			while (@t) {
@@ -172,9 +173,14 @@ for my $chr (keys %Genome) {
 				push @iuba,shift @t;
 				push @iuba,shift @t;
 				my $iub=join '',(sort @iuba);
+				$flag = 1 if $iub ne $refbase;
 				push @SNP,$REV_IUB{$iub};
 			}
-			print SNP join(" ",@SNP),"\n";
+			if ($flag == 1) {	# maybe useful ?
+				print SNP "$chr\t$i\t$refbase\t",join(" ",@SNP),"\n";
+			} else {
+				warn "[!]Empty PSNP appears:$chr\t$i\t$refbase\n";
+			}
 #warn "$chr\t$pos\t$refbase ",join(" ",@SNP);
 
 			&PrintArray(\@FH,\@theBases);
