@@ -5,7 +5,7 @@ use Math::Random qw(random_uniform);
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.5;
+$main::VERSION=0.1.6;
 
 our $opts='i:o:n:c:r:bva';
 our($opt_i, $opt_o, $opt_n, $opt_c, $opt_r, $opt_v, $opt_b, $opt_a);
@@ -165,7 +165,7 @@ for my $chr (keys %Genome) {
 #warn $pwmSvalue;
 				push @theBases,$pwmBases{$pwmSvalue};
 			}
-			my $flag=0;
+			my ($flag,$iubase)=(0);
 			my @t=@theBases;
 			@SNP=();
 			while (@t) {
@@ -173,13 +173,14 @@ for my $chr (keys %Genome) {
 				push @iuba,shift @t;
 				push @iuba,shift @t;
 				my $iub=join '',(sort @iuba);
-				$flag = 1 if $iub ne $refbase;
-				push @SNP,$REV_IUB{$iub};
+				$iubase=$REV_IUB{$iub};
+				$flag = 1 if $iubase ne $refbase;
+				push @SNP,$iubase;
 			}
 			if ($flag == 1) {	# maybe useful ?
 				print SNP "$chr\t$i\t$refbase\t",join(" ",@SNP),"\n";
 			} else {
-				warn "[!]Empty PSNP appears:$chr\t$i\t$refbase\n";
+				warn "[!]Empty PSNP appears:$chr   $i\t$refbase\n" if $opt_v;
 			}
 #warn "$chr\t$pos\t$refbase ",join(" ",@SNP);
 
