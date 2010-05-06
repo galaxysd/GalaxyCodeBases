@@ -13,7 +13,7 @@ our($opt_i, $opt_o, $opt_n, $opt_c, $opt_r, $opt_v, $opt_b, $opt_a);
 our $help=<<EOH;
 \t-i SNP PWM file (./snp.pwm)
 \t-n Number of Diploid Individue (100)
-\t-c Chromosome ID (undef for ALL)
+\t-c Chromosome ID (undef for ALL) [not working for ALL]
 \t-r Reference FASTA file
 \t-o Output prefix with existed path (./out/Din)
 \t-a Append ChrID to output path
@@ -58,6 +58,7 @@ my %REV_IUB = (AA	=> 'A',
 # chromosome01	203	T	59,54,5,0,0	T:0.635593,C:0.364407
 my $start_time = [gettimeofday];
 
+my ($CountSNP,$CountEmpty)=(0,0);
 my %PWM;	# -> {chr}{pos} -> [] -> [base,SigmaP]
 open P,'<',$opt_i or die "Error opening $opt_i: $!\n";
 while (<P>) {
@@ -75,20 +76,21 @@ while (<P>) {
 		$i+=$$_[1];
 		$$_[1]=$i;
 	}
+	++$CountSNP;
 	#warn "[!]The sum is [$i].\n" if $i != 1;
 }
 close P;
-warn "[!]PWM loaded.\n";
+warn "[!]PWM:$CountSNP loaded.\n";
 
 open SNP,'>',$out.'.popsnp' or die "Error opening ${out}.popsnp: $!\n";
-my @FH;
+my (@FH,$nameA,$nameB);
 for (my $i = $opt_n; $i > 0; $i--) {
 	my ($fha,$fhb);
-	my ($nameA,$nameB)=($out.'/ind_'.$opt_c.'_'.$i.'_A.fa',$out.'/ind_'.$opt_c.'_'.$i.'_B.fa');
+	($nameA,$nameB)=($out.'/ind_'.$opt_c.'_'.$i.'_A.fa',$out.'/ind_'.$opt_c.'_'.$i.'_B.fa');
 	open $fha,'>',$nameA or die "Error opening $nameA: $!\n";
 	open $fhb,'>',$nameB or die "Error opening $nameB: $!\n";
 #print $fha ">Din_${i}_A\n"; print $fhb ">Din_${i}_B\n";
-	push @FH,[$fha,$fhb];
+	unshift @FH,[$fha,$fhb];	# We shift below twice, thus unshift in this reversed cycle
 }
 warn "[!]Output files created.\n";
 
@@ -125,8 +127,10 @@ sub PrintArray ($$$) {
 			print $fha $$strr; print $fhb $$strr;
 		}
 	} elsif (ref($strr) eq 'ARRAY') {
+#my $t=0;
 		for (@$FHr) {
 			my ($fha,$fhb)=@$_;
+#++$t;print $fha ".$t";print $fhb ".$t";
 			print $fha shift(@$strr);
 			print $fhb shift(@$strr);
 		}
@@ -181,6 +185,7 @@ for my $chr (keys %Genome) {
 				print SNP "$chr\t$i\t$refbase\t",join(" ",@SNP),"\n";
 			} else {
 				warn "[!]Empty PSNP appears:$chr   $i\t$refbase\n" if $opt_v;
+				++$CountEmpty;
 			}
 #warn "$chr\t$pos\t$refbase ",join(" ",@SNP);
 
@@ -197,5 +202,12 @@ for (@FH) {
 	close $fha; close $fhb;
 }
 
+my $stop_time = [gettimeofday];
+
+warn '[!]PSNP: ',$CountSNP - $CountEmpty," = $CountSNP - $CountEmpty\n";
+print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
 cat chrorder | while read a;do echo "#$ -N \"${a}_si\"" >./shell/${a}_si100.sh;echo "#$ -cwd -r y -l vf=2G,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o ./out/${a}_si100.log -e ./out/${a}_si100.err" >> ./shell/${a}_si100.sh; echo ./simindu.pl -n 100 -ba -c $a -r ./Reference/$a -o ./out/D${a} >> ./shell/${a}_si100.sh; done
+
+# What that fixed:
+find . -name '*.popsnp' | while read a;do perl -lane '@a=split /\t/;++$a[1];$a[2]=~s/ /\t/;@b=split /\t/,$a[2];$b[1]=reverse $b[1];print join("\t",$a[0],$a[1],$b[0],$b[1])' $a > $a.n;done
