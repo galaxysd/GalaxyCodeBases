@@ -26,13 +26,16 @@ ShowHelp();
 
 $opt_o='./indel_f/f_' if ! defined $opt_o;
 $opt_i='./psnp.lst' if ! $opt_i;
+$opt_l='./indel.lst' if ! $opt_l;
 $opt_s='./glf.lst' if ! $opt_s;
 $opt_m=3 if ! $opt_m;
 $opt_x=20 if ! $opt_x;
 $opt_q=20 if ! $opt_q;
 
+my $dis = 4;
+
 $opt_i =~ s/\/$//;
-print STDERR "From [$opt_i] to [$opt_o], with [$opt_s]($opt_m,$opt_x)[$opt_q]/\n";
+print STDERR "From [$opt_i][$opt_l] to [$opt_o], with [$opt_s]($opt_m,$opt_x)[$opt_q]/\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -64,15 +67,76 @@ while (my $file=<P>) {
 		my @indSNP=split / /,$tail;	# /[ACGTRYMKSWHBVDNX-]/
 		for my $s (@Samples) {
 			$tail=shift @indSNP;	# ReCycle ...
-			if ($tail eq '-') {$tail=undef;}
-			 else {++$C_iSNP;}
-			$SNP{$chr}{$pos}{$s}=$tail;
+			if ($tail ne '-') {
+				$SNP{$chr}{$_}{$s}='.' for ($pos-$dis .. $pos+$dis);
+				++$C_iSNP;
+			} else {
+				next;
+			}
 		}
 	}
+	close SNP;
 	print STDERR '-';
 }
+close P;
 warn "\n[!]PSNP: $C_PSNP <= $C_iSNP iSNP in ",scalar @Samples," samples\n";
+
+my $OutNameP;;
+print STDERR "[!]Filtering indel ";
+open P,'<',$opt_l or die "[x]Error opening $opt_l: $!\n";
+while (<P>) {
+	chomp;
+	my ($s,$file)=split /\t/;
+	open FH,'<',$file or (warn "\n[!]Error opening $file: $!\n" and next);
+	$OutNameP=$opt_o.$s.'.indel-result.';
+	open OUT,'>',$OutNameP.'filter' or warn "\n[!]Error creating ${OutNameP}filter: $!\n";
+	open OUTC,'>',$OutNameP.'summary' or warn "\n[!]Error creating ${OutNameP}summary: $!\n";
+	print STDERR ".\b";
+	my $snp_indel = 0;
+	my $homo = 0;
+	my $hete = 0;
+	my $insertion = 0;
+	my $deletion = 0;
+	my $total = 0;
+	my $sum = 0;
+
+	while (<FH>) {
+		my @indel=split /\t/;
+		next if ($indel[6] < $opt_q);
+		next if (($indel[7] < $opt_m) || ($indel[7] > $opt_x));
+		if (exists $SNP{$indel[0]}{$indel[1]}{$s}){
+			$snp_indel ++;
+			next;
+		}
+		$total ++;
+		if ($indel[5] eq "homo"){
+			$homo ++;
+		}else{
+			$hete ++;
+		}
+		if ($indel[2] =~ /^I/){
+			$insertion ++;
+		}else{
+			$deletion ++;
+		}
+		print OUT $_;
+	}
+	print OUTC "total\thomo\thomo%\thete\thete%\tinsertion\tins%\tdeletion\tdel%\tINDEL_SNP\tINDEL_SNP%\n\n";
+	printf OUTC ("%d\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\n", $total, $homo, $homo/$total*100, $hete, $hete/$total*100, $insertion, $insertion/$total*100, $deletion, $deletion/$total*100, $snp_indel, $snp_indel/$sum*100);
+	close OUTC;
+	close OUT;
+	close FH;
+	print STDERR '-';
+}
+warn "\n";
+
+
+
+
+
 
 my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
+__END__
+68629431 iSNP => 8.6GB
