@@ -68,7 +68,8 @@ while (my $file=<P>) {
 		for my $s (@Samples) {
 			$tail=shift @indSNP;	# ReCycle ...
 			if ($tail ne '-') {
-				$SNP{$chr}{$_}{$s}='.' for ($pos-$dis .. $pos+$dis);
+				#$SNP{$chr}{$_}{$s}='.' for ($pos-$dis .. $pos+$dis);
+				$SNP{$chr}{$pos}{$s}='.';	# the above requires about 9 times memory ...
 				++$C_iSNP;
 			} else {
 				next;
@@ -82,7 +83,7 @@ close P;
 warn "\n[!]PSNP: $C_PSNP <= $C_iSNP iSNP in ",scalar @Samples," samples\n";
 
 my $OutNameP;;
-print STDERR "[!]Filtering indel ";
+print STDERR "[!]Filtering indel:\n";
 open P,'<',$opt_l or die "[x]Error opening $opt_l: $!\n";
 while (<P>) {
 	chomp;
@@ -91,7 +92,7 @@ while (<P>) {
 	$OutNameP=$opt_o.$s.'.indel-result.';
 	open OUT,'>',$OutNameP.'filter' or warn "\n[!]Error creating ${OutNameP}filter: $!\n";
 	open OUTC,'>',$OutNameP.'summary' or warn "\n[!]Error creating ${OutNameP}summary: $!\n";
-	print STDERR ".\b";
+	#print STDERR ".\b";
 	my $snp_indel = 0;
 	my $homo = 0;
 	my $hete = 0;
@@ -100,13 +101,16 @@ while (<P>) {
 	my $total = 0;
 	my $sum = 0;
 
-	while (<FH>) {
+	INDEL: while (<FH>) {
+		++$sum;
 		my @indel=split /\t/;
 		next if ($indel[6] < $opt_q);
 		next if (($indel[7] < $opt_m) || ($indel[7] > $opt_x));
-		if (exists $SNP{$indel[0]}{$indel[1]}{$s}){
-			$snp_indel ++;
-			next;
+		for ($indel[1]-$dis .. $indel[1]+$dis) {
+			if (exists $SNP{$indel[0]}{$_}{$s}){
+				$snp_indel ++;
+				next INDEL;
+			}
 		}
 		$total ++;
 		if ($indel[5] eq "homo"){
@@ -121,14 +125,26 @@ while (<P>) {
 		}
 		print OUT $_;
 	}
-	print OUTC "total\thomo\thomo%\thete\thete%\tinsertion\tins%\tdeletion\tdel%\tINDEL_SNP\tINDEL_SNP%\n\n";
+	warn "-> $s: $sum -> $total\n";
+	next if ($sum == 0 or $total==0);
+	print OUTC "total\thomo\thomo%\thete\thete%\tinsertion\tins%\tdeletion\tdel%\tINDEL_SNP\tINDEL_SNP%\n";
 	printf OUTC ("%d\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\t%d\t%.2f\n", $total, $homo, $homo/$total*100, $hete, $hete/$total*100, $insertion, $insertion/$total*100, $deletion, $deletion/$total*100, $snp_indel, $snp_indel/$sum*100);
+	print OUTC "
+Raw Indel:\t$sum
+SNP nearby:\t$snp_indel\t",100*$snp_indel/$sum," %
+
+Filtered Indel:\t$total\t",100*$total/$sum," %
+Home Indel:\t$homo\t",100*$homo/$total," %
+Hete Indel:\t$hete\t",100*$hete/$total," %
+Insertion:\t$insertion\t",100*$insertion/$total," %
+Deletion:\t$deletion\t",100*$deletion/$total," %
+";
 	close OUTC;
 	close OUT;
 	close FH;
-	print STDERR '-';
+	#print STDERR '-';
 }
-warn "\n";
+warn "\n[!]Done !\n";
 
 
 
@@ -140,3 +156,7 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
 68629431 iSNP => 8.6GB
+
+find ./Indel/ -name indel-result.list|grep -P '\d'|perl -lane '$_ =~ /\/(\w+)\/indel-result\.list$/;print "$1\t$_"' > indel.lst.n
+
+find ./indel_f/ -name *indel-result.filter|grep -P '\d'|perl -lane '$_ =~ /\/f_([^.]+)\.[^\/]+$/;print "$1\t$_"' > indel.lst.n
