@@ -71,7 +71,7 @@ while (my $file=<P>) {
 	}
 	print STDERR '-';
 }
-warn "[!]PSNP: $C_PSNP, iSNP: $C_iSNP\n";
+warn "[!]PSNP: $C_PSNP <= $C_iSNP iSNP in ",scalar @Samples," samples\n";
 
 my $stop_time = [gettimeofday];
 
