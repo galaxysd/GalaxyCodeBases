@@ -126,6 +126,7 @@ for my $chr (@ChrID) {
 		print O "$chr\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
 		$st += $opt_l;
 	}
+	print STDERR '-';
 }
 close O;
 warn "\n";
