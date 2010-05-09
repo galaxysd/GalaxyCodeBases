@@ -90,7 +90,7 @@ while (my $file=<P>) {
 		@SNPCounts=sort {$a <=> $b} values %SNPcount;
 		next if $#SNPCounts < 1;	# at least 2-1=1
 		next if $SNPCounts[0] == $SNPCounts[-1];	# min != max (needed ?)
-		$SNP{$pos}=[$SNPCounts[0],$SNPCounts[-1]];	# [min,max]
+		$SNP{$chr}{$pos}=[$SNPCounts[0],$SNPCounts[-1]];	# [min,max]
 	}
 	print STDERR "-";
 	close SNP;
@@ -101,7 +101,7 @@ warn "\n";
 my $file=$opt_o.'.dat';
 open O,'>',$file or die "[x]Error opening $file: $!\n";
 
-my (%Hpc,%Hpa);
+my ($POSa,%Hpc,%Hpa)=(1);
 print STDERR "[!]Caltulating Hp ";
 for my $chr (@ChrID) {
 	print STDERR ".\b";
@@ -112,9 +112,9 @@ for my $chr (@ChrID) {
 		$ed = $Cmax if $ed > $Cmax;
 		($Smin,$Smax,$Hp,$sum,$snpcount)=(0,0,0,0,0);
 		for $pos ($st .. $ed) {
-			next unless exists $SNP{$pos};
-			$Smin += $SNP{$pos}->[0];
-			$Smax += $SNP{$pos}->[1];
+			next unless exists $SNP{$chr}{$pos};
+			$Smin += $SNP{$chr}{$pos}->[0];
+			$Smax += $SNP{$chr}{$pos}->[1];
 			++$snpcount;
 		}
 		$sum=$Smin+$Smax;
@@ -123,8 +123,9 @@ for my $chr (@ChrID) {
 		} else {$Hp='Inf';}
 		++$Hpc{$chr}{$Hp};
 		++$Hpa{$Hp};
-		print O "$chr\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
+		print O "$POSa\t$chr\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
 		$st += $opt_l;
+		$POSa += $opt_l;
 	}
 	print STDERR '-';
 }
@@ -136,9 +137,9 @@ $file=$opt_o.'.stat';
 open S,'>',$file or die "[x]Error opening $file: $!\n";
 
 sub sortInf($$) {
-	if ($a eq 'Inf') { return 1; }
-	 elsif ($b eq 'Inf') { return -1; }
-	 else { return $a <=> $b; }
+	if ($_[0] eq 'Inf') { return 1; }
+	 elsif ($_[1] eq 'Inf') { return -1; }
+	 else { return $_[0] <=> $_[1]; }
 }
 
 print S "ALL\t$_\t$Hpa{$_}\n" for sort(sortInf keys %Hpa);
@@ -148,3 +149,13 @@ for my $chr (@ChrID) {
 }
 close S;
 warn "\n[!] Done !\n";
+
+my $stop_time = [gettimeofday];
+print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
+
+__END__
+c='seg02'
+
+png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
+plot(a$V3[a$V2==c],a$V5[a$V2==c],type='p',xlab=c,ylab='Hp')
+dev.off()
