@@ -154,8 +154,15 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 
 __END__
-c='seg02'
+out <- function (c) {
+	png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
+	plot(a$V3[a$V2==c],a$V5[a$V2==c],type='p',xlab=c,ylab='Hp')
+	dev.off()
 
-png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
-plot(a$V3[a$V2==c],a$V5[a$V2==c],type='p',xlab=c,ylab='Hp')
+}
+
+out('seg09')
+
+# pdf("E:\\BGI\\toGit\\popuSNP\\new\\wm_a_w40k_s20k.pdf",12,9,fonts='Arial',title="Watermelon Hp density Plot")
+plot(density(a$V5),main='Watermelon Hp density Plot',sub='Window:40k bp, Slip:20k bp')
 dev.off()
