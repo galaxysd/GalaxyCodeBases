@@ -12,10 +12,10 @@ our $opts='i:c:w:l:ovb';
 our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_w);
 
 our $help=<<EOH;
-\t-i PSNP list (./psnp.lst) for chrid.individual.finalSNPs
+\t-i Population SNP list (./psnp.lst) for *.individual.finalSNPs
 \t-c Chr Info file (./chr.nfo) in format [ChrID\\tLen]
 \t-w window size (40000) bp
-\t-l slip distance (20000) bp
+\t-l step length (20000) bp
 \t-o Output Prefix (./Hp_result)
 \t   Output Files are {./Hp_result}.dat \& {./Hp_result}.stat
 \t-v show verbose info to STDOUT
@@ -89,7 +89,7 @@ while (my $file=<P>) {
 		}
 		@SNPCounts=sort {$a <=> $b} values %SNPcount;
 		next if $#SNPCounts < 1;	# at least 2-1=1
-		next if $SNPCounts[0] == $SNPCounts[-1];	# min != max (needed ?)
+		#next if $SNPCounts[0] == $SNPCounts[-1];	# min != max (needed ?)
 		$SNP{$chr}{$pos}=[$SNPCounts[0],$SNPCounts[-1]];	# [min,max]
 	}
 	print STDERR "-";
@@ -101,7 +101,7 @@ warn "\n";
 my $file=$opt_o.'.dat';
 open O,'>',$file or die "[x]Error opening $file: $!\n";
 
-my ($POSa,%Hpc,%Hpa)=(1);
+my ($POSa,%Hpc,%Hpa,$Hpr)=(1);
 print STDERR "[!]Caltulating Hp ";
 for my $chr (@ChrID) {
 	print STDERR ".\b";
@@ -120,10 +120,11 @@ for my $chr (@ChrID) {
 		$sum=$Smin+$Smax;
 		if ($sum>0) {
 			$Hp=2*$Smin*$Smax/($sum*$sum);
-		} else {$Hp='Inf';}
-		++$Hpc{$chr}{$Hp};
-		++$Hpa{$Hp};
-		print O "$POSa\t$chr\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
+			$Hpr=int($Hp*1000)/1000;
+		} else {$Hp=$Hpr='Inf';}
+		++$Hpc{$chr}{$Hpr};
+		++$Hpa{$Hpr};
+		print O "$chr\t$POSa\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
 		$st += $opt_l;
 		$POSa += $opt_l;
 	}
@@ -156,7 +157,7 @@ print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second
 __END__
 out <- function (c) {
 	png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
-	plot(a$V3[a$V2==c],a$V5[a$V2==c],type='p',xlab=c,ylab='Hp')
+	plot(a$V3[a$V1==c],a$V5[a$V1==c],type='p',xlab=c,ylab='Hp')
 	dev.off()
 
 }
