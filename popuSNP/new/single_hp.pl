@@ -6,7 +6,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.2;
+$main::VERSION=0.0.3;
 
 our $opts='i:c:w:l:ovb';
 our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_w);
@@ -34,11 +34,11 @@ print STDERR "From [$opt_i] to [$opt_o].{dat,stat}, with [$opt_c][$opt_l][$opt_w
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 #http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html#BEGIN1
-our %IUB = ( A => [qw(A)],
-	     C => [qw(C)],
-	     G => [qw(G)],
-	     T => [qw(T)],
-	     U => [qw(U)],
+our %IUB = ( A => [qw(A A)],
+	     C => [qw(C C)],
+	     G => [qw(G G)],
+	     T => [qw(T T)],
+	     U => [qw(U U)],
 	     M => [qw(A C)],
 	     R => [qw(A G)],
 	     W => [qw(A T)],
