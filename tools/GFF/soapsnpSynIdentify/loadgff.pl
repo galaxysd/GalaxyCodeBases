@@ -37,7 +37,7 @@ my $start_time = [gettimeofday];
 
 my $shm_real='/dev/shm/sqlite_mirror.'.$$;
 unlink $shm_real;	# Well, what if the computer rebooted and you are so lucky ...
-system 'cp','-pf',$opt_i,$shm_real if $opt_a;
+system 'cp','-pf',$opt_o,$shm_real if $opt_a;
 
 my %attr = (
     RaiseError => 0,
