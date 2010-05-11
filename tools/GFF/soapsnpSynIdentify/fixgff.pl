@@ -1,5 +1,6 @@
-#!/usr/bin/perl -w
-use threads;
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
 use DBI;
@@ -36,12 +37,9 @@ my %attr = (
     PrintError => 1,
     AutoCommit => 0
 );
-### /dev/shm
-my $shm_real='/dev/shm/sqlite_mirror.'.$$;
-unlink $shm_real;	# Well, what if the computer rebooted and you are so lucky ...
-system 'cp','-pf',$opt_i,$shm_real;
-###
-my $dbh = DBI->connect('dbi:SQLite:dbname='.$shm_real,'','',\%attr) or die $DBI::errstr;
+
+system 'cp','-f',$opt_i,$opt_o and die "[x]Cannot initialize output file $opt_o !\n";;
+my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_o,'','',\%attr) or die $DBI::errstr;
 
 my $sth = $dbh->prepare( "SELECT name,strand FROM gff$opt_s
  WHERE primary_inf LIKE '%mRNA' ORDER BY chrid,start,strand" );
@@ -89,27 +87,14 @@ print "\nFile fixed !\n";
 $dbh->commit;
 $dbh->disconnect;
 
-### /dev/shm
-my $read_time = [gettimeofday];
-my $thr1 = async { system 'cp','-pf',$shm_real,$opt_o; };
-my $thr2 = async {
-	system 'bzip2','-9k',$shm_real;
-	system 'mv','-f',$shm_real.'.bz2',$opt_o.'.bz2';
-};
-$thr1->join();
-my $copy_time = [gettimeofday];
-$thr2->join();
-unlink $shm_real;
-unlink $shm_real.'.bz2';
-###
+system 'bzip2','-9k',$opt_o;
 
 #END
 my $stop_time = [gettimeofday];
 
 $|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
-	" second(s).\n   Parseing file used\t",tv_interval( $start_time, $read_time ),
-	" second(s).\n   Moving SQLite file used\t",tv_interval( $read_time, $copy_time )," second(s).\n";
+	" second(s).\n";
 
 print STDERR "\033[32;1m Please use [$opt_s] as Specie name in later steps.\033[0;0m\n";
 __END__

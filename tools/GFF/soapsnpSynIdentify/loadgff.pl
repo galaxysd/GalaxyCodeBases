@@ -1,14 +1,13 @@
 #!/bin/env perl
 use lib '/share/raid010/resequencing/soft/lib';
 use lib 'E:/BGI/toGit/perlib/etc';
-use threads;
 use strict;
 use warnings;
 use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.3;
+$main::VERSION=0.2.4;
 
 our $opts='i:o:s:bva';
 our($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_a);
@@ -37,16 +36,14 @@ if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 
-my $shm_real='/dev/shm/sqlite_mirror.'.$$;
-unlink $shm_real;	# Well, what if the computer rebooted and you are so lucky ...
-system 'cp','-pf',$opt_o,$shm_real if $opt_a;
+unlink $opt_o unless $opt_a;
 
 my %attr = (
     RaiseError => 0,
     PrintError => 1,
     AutoCommit => 0
 );
-my $dbh = DBI->connect('dbi:SQLite:dbname='.$shm_real,'','',\%attr) or die $DBI::errstr;
+my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_o,'','',\%attr) or die $DBI::errstr;
 
 my $sql=q/
 CREATE TABLE IF NOT EXISTS gff{---}
@@ -143,22 +140,13 @@ $dbh->commit;
 $dbh->disconnect;
 
 my $read_time = [gettimeofday];
-my $thr1 = async { system 'cp','-pf',$shm_real,$opt_o; };
-my $thr2 = async {
-	system 'bzip2','-9k',$shm_real;
-	system 'mv','-f',$shm_real.'.bz2',$opt_o.'.bz2';
-};
-$thr1->join();
-my $copy_time = [gettimeofday];
-$thr2->join();
-unlink $shm_real;
-unlink $shm_real.'.bz2';
+system 'bzip2','-9k',$opt_o;
 
 my $stop_time = [gettimeofday];
 
 $|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
 	" second(s).\n   Parseing GFF file used\t",tv_interval( $start_time, $read_time ),
-	" second(s).\n   Moving  SQLite file used\t",tv_interval( $read_time, $copy_time )," second(s).\n";
+	" second(s).\n";
 
 print STDERR "\033[32;1m Please use [$opt_s] as Specie name in later steps.\033[0;0m\n";

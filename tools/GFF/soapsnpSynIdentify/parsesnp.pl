@@ -1,13 +1,13 @@
-#!/usr/bin/perl -w
-use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
-use threads;
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
 use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.1;
+$main::VERSION=0.2.2;
 
 our $opts='i:o:s:d:bvp';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_p);
@@ -43,15 +43,12 @@ my %attr = (
     AutoCommit => 0
 );
 
-### /dev/shm
-my $shm_real='/dev/shm/sqlite_mirror.'.$$;
-my $shm_real_in='/dev/shm/sqlite_in.'.$$;
-unlink ($shm_real,$shm_real_in);	# Well, what if the computer rebooted and you are so lucky ...
-system 'cp','-pf',$opt_d,$shm_real_in;
-###
+system 'touch',$opt_o;
+system 'mv',$opt_o.'.bz2',$opt_o.'.bz2.0';
+unlink $opt_o or die "[x]Cannot initialize output file $opt_o !\n";
 
-my $dbh = DBI->connect('dbi:SQLite:dbname='.$shm_real_in,'','',\%attr) or die $DBI::errstr;
-our $rdbh = DBI->connect('dbi:SQLite:dbname='.$shm_real,'','',\%attr) or die $DBI::errstr;
+my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_d,'','',\%attr) or die $DBI::errstr;
+our $rdbh = DBI->connect('dbi:SQLite:dbname='.$opt_o,'','',\%attr) or die $DBI::errstr;
 
 my $sql=q/
 CREATE TABLE IF NOT EXISTS res{---}
@@ -222,23 +219,13 @@ $rdbh->commit;
 $rdbh->disconnect;
 
 my $read_time = [gettimeofday];
-my $thr1 = async { system 'cp','-pf',$shm_real,$opt_o; };
-my $thr2 = async {
-	system 'bzip2','-9k',$shm_real;
-	system 'mv','-f',$shm_real.'.bz2',$opt_o.'.bz2';
-};
-$thr1->join();
-my $copy_time = [gettimeofday];
-$thr2->join();
-unlink $shm_real.'.bz2';
-unlink ($shm_real,$shm_real_in);
-###
+system 'bzip2','-9k',$opt_o;
 
 my $stop_time = [gettimeofday];
 
 $|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
 	" second(s).\n   Parseing file used\t",tv_interval( $start_time, $read_time ),
-	" second(s).\n   Moving SQLite file used\t",tv_interval( $read_time, $copy_time )," second(s).\n";
+	" second(s).\n";
 
 print STDERR "\033[32;1m Please use [$opt_s] as Specie name in later steps.\033[0;0m\n";

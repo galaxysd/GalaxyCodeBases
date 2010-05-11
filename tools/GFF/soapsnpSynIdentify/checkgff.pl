@@ -1,5 +1,6 @@
-#!/usr/bin/perl -w
-use threads;
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
 use DBI;
@@ -76,7 +77,7 @@ for (sort keys %COUNT) {
 }
 
 if ($COUNT{'4err'} > 0) {print "Wrong GFF frames !\nPlease run fixgff.pl\n"}
-  elsif ($COUNT{'2right'} > 0 and  $COUNT{'3opp'} == 0) {print "Stranded GFF frames ! No fix needed.\n"}
+  elsif ($COUNT{'2right'} > 0 and  $COUNT{'3opp'} == 0) {print "Standard GFF frames ! No fix needed.\n"}
   elsif ($COUNT{'2right'} == 0 and  $COUNT{'3opp'} > 0) {print "BGI GFF frames !\nPlease run fixgff.pl or you have to use -f in update_aa.pl\n"}
   else {print "Mixed GFF frames.\nPlease run fixgff.pl\n"}
 $dbh->rollback;

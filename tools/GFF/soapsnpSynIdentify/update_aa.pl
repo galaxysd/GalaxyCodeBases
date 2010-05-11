@@ -1,20 +1,22 @@
-#!/usr/bin/perl -w
-use lib '/share/raid010/resequencing/resequencing/tmp/bin/annotation/glfsqlite';
-use threads;
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
 use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.2.3;
+$main::VERSION=0.2.4;
 
-our $opts='i:o:s:d:bvf';
-our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_f);
+our $opts='i:o:s:d:c:bvf';
+our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_d, $opt_f, $opt_c);
 
 our $help=<<EOH;
 \t-i Input Genome sequence file (human.fa)
 \t  [Chromosome name will be striped.]
+\t-c Genetic code type (std), or other value for a file with only 5 lines
+\t  for Genetic Codes file format, see (http://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG1)
 \t-s Specie of the GFF3 (human)
 \t  [Specie name MUST be ths SAME throughout !]
 \t-d Genome SQLite data file (_dbGFF.sqlite)
@@ -30,25 +32,22 @@ $opt_i='human.fa' if ! defined $opt_i;
 $opt_o='_result.sqlite' if ! $opt_o;
 $opt_d='_dbGFF.sqlite' if ! $opt_d;
 $opt_s='human' if ! $opt_s;
+$opt_c='std' if ! $opt_c;
 
 print STDERR "Going to alter GFF frame for BGI version GFF.\n" if $opt_f;
-print STDERR "From [$opt_i][$opt_d] to update [$opt_o], Specie:[$opt_s]\n";
+print STDERR "Using The Standard Code (transl_table=1) of NCBI\n" if $opt_c eq 'std';
+print STDERR "From [$opt_i][$opt_d] with [$opt_c] to update [$opt_o], Specie:[$opt_s]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
-
-my $shm_real='/dev/shm/sqlite_mirror.'.$$;
-system 'cp','-pf',$opt_o,$shm_real;
-my $shm_real_in='/dev/shm/sqlite_in.'.$$;
-system 'cp','-pf',$opt_d,$shm_real_in;
 
 my %attr = (
     RaiseError => 0,
     PrintError => 1,
     AutoCommit => 0
 );
-my $dbh = DBI->connect('dbi:SQLite:dbname='.$shm_real_in,'','',\%attr) or die $DBI::errstr;
-our $rdbh = DBI->connect('dbi:SQLite:dbname='.$shm_real,'','',\%attr) or die $DBI::errstr;
+my $dbh = DBI->connect('dbi:SQLite:dbname='.$opt_d,'','',\%attr) or die $DBI::errstr;
+our $rdbh = DBI->connect('dbi:SQLite:dbname='.$opt_o,'','',\%attr) or die $DBI::errstr;
 my $sql=q/
 CREATE INDEX IF NOT EXISTS ncs{---} ON res{---}(name,chrid,position);
 CREATE INDEX IF NOT EXISTS pi{---} ON res{---}(primary_inf);
@@ -88,7 +87,22 @@ UPDATE res/.$specname.q/ SET rna_chg=?,aa_chg=?,chged=? WHERE name=? AND chrid=?
 }
 ###################
 #my %gen_code = ( "TTT" => "Phe", "TTC" => "Phe", "TTA" => "Leu", "TTG" => "Leu", "CTT" => "Leu", "CTC" => "Leu", "CTA" => "Leu", "CTG" => "Leu", "ATT" => "Ile", "ATC" => "Ile", "ATA" => "Ile", "ATG" => "Met", "GTT" => "Val", "GTC" => "Val", "GTA" => "Val", "GTG" => "Val", "TCT" => "Ser", "TCC" => "Ser", "TCA" => "Ser", "TCG" => "Ser", "CCT" => "Pro", "CCC" => "Pro", "CCA" => "Pro", "CCG" => "Pro", "ACT" => "Thr", "ACC" => "Thr", "ACA" => "Thr", "ACG" => "Thr", "GCT" => "Ala", "GCC" => "Ala", "GCA" => "Ala", "GCG" => "Ala",  "TAT" => "Tyr", "TAC" => "Tyr", "TAA" => "STOP", "TAG" => "STOP", "CAT" => "His", "CAC" => "His", "CAA" => "Gln", "CAG" => "Gln", "AAT" => "Asn", "AAC" => "Asn", "AAA" => "Lys", "AAG" => "Lys", "GAT" => "Asp", "GAC" => "Asp", "GAA" => "Glu", "GAG" => "Glu",  "TGT" => "Cys", "TGC" => "Cys", "TGA" => "STOP", "TGG" => "Trp", "CGT" => "Arg", "CGC" => "Arg", "CGA" => "Arg", "CGG" => "Arg", "AGT" => "Ser", "AGC" => "Ser", "AGA" => "Arg", "AGG" => "Arg", "GGT" => "Gly", "GGC" => "Gly", "GGA" => "Gly", "GGG" => "Gly" );
-
+my (%gen_code,%t,@t,%start_codes,$code);
+if ($opt_c eq 'std') {
+	$code=<<Ecode;
+    AAs  = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
+  Starts = ---M---------------M---------------M----------------------------
+  Base1  = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG
+  Base2  = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
+  Base3  = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
+Ecode
+} else {
+	open GC,'<',$opt_c or die "[x]Error: $!\n";
+	local $/='';
+	$code=<GC>;
+	close GC;
+}
+=pod
 my $code=<<Ecode;
     AAs  = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
   Starts = ---M---------------M------------MMMM---------------M------------
@@ -96,8 +110,7 @@ my $code=<<Ecode;
   Base2  = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG
   Base3  = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG
 Ecode
-
-my (%gen_code,%t,@t,%start_codes);
+=cut
 @t=split /\n/,$code;
 map {s/\s//g;@_=split /=/;$t{$_[0]}=[split //,$_[1]]} @t;
 for (@{$t{AAs}}) {
@@ -290,23 +303,14 @@ $dbh->rollback or warn $dbh->errstr;
 $dbh->disconnect;
 
 my $read_time = [gettimeofday];
-my $thr1 = async { system 'cp','-pf',$shm_real,$opt_o; };
-my $thr2 = async {
-	system 'bzip2','-9k',$shm_real;
-	system 'mv','-f',$shm_real.'.bz2',$opt_o.'.bz2';
-};
-$thr1->join();
-my $copy_time = [gettimeofday];
-$thr2->join();
-unlink ($shm_real,$shm_real_in);
-unlink $shm_real.'.bz2';
+system 'bzip2','-9k',$opt_o;
 
 my $stop_time = [gettimeofday];
 
 $|=1;
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time ),
 	" second(s).\n   Parseing file used\t",tv_interval( $start_time, $read_time ),
-	" second(s).\n   Moving SQLite file used\t",tv_interval( $read_time, $copy_time )," second(s).\n";
+	" second(s).\n";
 
 print STDERR "\033[32;1m Please use [$opt_s] as Specie name in later steps.\033[0;0m\n";
 __END__
