@@ -102,6 +102,7 @@ Ecode
 	$code=<GC>;
 	close GC;
 }
+warn "[!]Genetic Code:\n$code\n";
 =pod
 my $code=<<Ecode;
     AAs  = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG
@@ -303,6 +304,7 @@ $dbh->rollback or warn $dbh->errstr;
 $dbh->disconnect;
 
 my $read_time = [gettimeofday];
+system 'mv',$opt_o.'.bz2',$opt_o.'.bz2.0';
 system 'bzip2','-9k',$opt_o;
 
 my $stop_time = [gettimeofday];

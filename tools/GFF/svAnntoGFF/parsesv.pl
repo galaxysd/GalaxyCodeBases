@@ -1,5 +1,6 @@
-#!/usr/bin/perl -w
-#use threads 1.73;
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
 use DBI;
@@ -106,7 +107,7 @@ sub readSV($$) {
 	my ($file,$sth)=@_;
 	my ($rv,$res,$restr);
 	while (<$file>) {
-#chr4    Deletion        3280478 3280864 3280488 3280854 366     0-0-0   FR      
+#chr4    Deletion        3280478 3280864 3280488 3280854 366     0-0-0   FR
 		my ($chrid,$svtype,$start,$end)=(split /\t/)[0,1,4,5];
 		$chrid =~ s/^chr
 			(?>
