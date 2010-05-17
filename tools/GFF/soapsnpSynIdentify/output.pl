@@ -69,7 +69,7 @@ PRINT:
 	my $out="\n__END__\n#ChrID\t5'-UTR\t3'-UTR\tSyn_CDS\tNon-syn_CDS\tUnknown_CDS\tIntron\tRest\tError\tGene\tExon\tSum\n";
 	print $out;
 	print FH $out;
-	my $print_primary=0;
+	#my $print_primary=0;
 	for (sort keys %id) {
 		$utr5{$_}=0 if ! defined $utr5{$_};
 		$utr3{$_}=0 if ! defined $utr3{$_};
@@ -81,12 +81,12 @@ PRINT:
 		$err{$_}=0 if ! defined $err{$_};
 		$gene{$_}=0 if ! defined $gene{$_};
 		$exon{$_}=0 if ! defined $exon{$_};
-		$print_primary=1 if $rest{$_}==0;
+		#$print_primary=1 if $rest{$_}==0;
 		my $out="Chr$_\t$utr5{$_}\t$utr3{$_}\t$scds{$_}\t$nscds{$_}\t$unknown{$_}\t$intron{$_}\t$rest{$_}\t$err{$_}\t$gene{$_}\t$exon{$_}\t$id{$_}\n";
 		print $out;
 		print FH $out;
 	}
-	if ($print_primary) {
+	#if ($print_primary) {	# Well, always prints
 		my $out="\nPrimary_Info Count:\n";
 		print $out;
 		print FH $out;
@@ -95,7 +95,7 @@ PRINT:
 			print $out;
 			print FH $out;
 		}
-	}
+	#}
 	close FH;
 }
 
