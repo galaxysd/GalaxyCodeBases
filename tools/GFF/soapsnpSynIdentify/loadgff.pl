@@ -84,7 +84,7 @@ sub read_gene_gff($$) {
     my $dbh=$_[1];
     my @dat;
     while (<$infile>) {
-	next if /^\s+$/ or /^;+/;
+	next if /^\s+$/ or /^[;#]+/;
 	chomp;
 	s/\r//g;	# There DO be some file with \r. DAMN the MS and APPLE !
 	my ($seqname, $source, $primary, $start, $end,
