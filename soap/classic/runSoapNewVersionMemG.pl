@@ -1,9 +1,10 @@
-#!/usr/bin/perl -w
-
+#!/bin/env perl
 use strict;
+use warnings;
+use lib '/share/raid010/resequencing/soft/lib';
 use Data::Dumper;
-#use TableExtract;
-require "/panfs/GAG/junli/raid010/pipeline/flow_script/TableExtract.pm";
+use TableExtract;
+#require "/panfs/GAG/junli/raid010/pipeline/flow_script/TableExtract.pm";
 use Getopt::Long;
 use FindBin qw($Bin $Script);
 
@@ -12,6 +13,7 @@ GetOptions(\%opts,"fqDir:s","outDir:s","backDir:s","gsoap:i","sort:i","statistic
 
 #by fangxd  Fri May 23 16:46:23 HKT 2008
 #modify by lijun3 Tue Dec  1 15:38:15 CST 2009
+#modify by HXs @ Tue May 18 17:57:18 CST 2010
 
 unless(defined $opts{fqDir} && $opts{outDir} && $opts{ref1} && $opts{chrOrder}){
 		print "\n$0 : auto run soap after solexa sequencing finished and provide basic statistics on mapping result,if want to bzip the reads and alignment result,please provide the directory to deposited them\n";
@@ -40,19 +42,13 @@ my $projectDir = $opts{fqDir};
 my $outputDir = $opts{outDir};
 my $compressOutDir = $opts{backDir};
 my $chrOrder = $opts{chrOrder};
-my $refSeqFileFlat = $opts{ref1} if (defined $opts{ref1}); 
-my $refSeqFileBinary = $opts{ref2} if (defined $opts{ref2}); 
+my $refSeqFileFlat = $opts{ref1} if (defined $opts{ref1});
+my $refSeqFileBinary = $opts{ref2} if (defined $opts{ref2});
 my $queue=" ";
 my $addque="";
- if(defined $opts{queue})
-{
-
-
+if(defined $opts{queue}) {
 	$addque = $opts{queue};
-
 	$queue=" -q all.q -q $addque";
-
-	
 }
 
 
@@ -137,16 +133,17 @@ sub generateSoapShell{
 										my $seedLength = 32;
 										my $maxMismatch = $readLength>70?3:1;
 										my $minLength = 40;
-										$soapComm = "$soapBinNew -a $fqFullPath -b $fqFullPath2 -D $refSeqFileBinary -o $soapOutFile  -2 $currentOutDir/$fqBasename.single -m $info[6] -x $info[7] $largeLib -t -s $minLength -l $seedLength -v $maxMismatch"; 
-					#this modify is just for no trim					
+										$soapComm = "$soapBinNew -a $fqFullPath -b $fqFullPath2 -D $refSeqFileBinary -o $soapOutFile  -2 $currentOutDir/$fqBasename.single -m $info[6] -x $info[7] $largeLib -t -s $minLength -l $seedLength -v $maxMismatch";
+					#this modify is just for no trim
 										#$soapComm = "$soapBinNew -a $fqFullPath -b $fqFullPath2 -D $refSeqFileBinary -o $soapOutFile  -2 $currentOutDir/$fqBasename.single -m $info[6] -x $info[7] $largeLib -l $seedLength -v $maxMismatch";
 										if(defined($opts{gsoap})){
+											$opts{gsoap}=5 if $opts{gsoap}==0;
 												mkdir $unmapReadsOutDir unless(-d $unmapReadsOutDir);
 												$unmapReadsOutDir = "$unmapReadsOutDir/PE";
 												mkdir $unmapReadsOutDir unless(-d $unmapReadsOutDir);
 												my $unmapFile = "$unmapReadsOutDir/$fqBasename.unmap";
 												#$soapComm .= " -u $unmapFile";
-												$soapComm .= " -g 5 -u $unmapFile";
+												$soapComm .= " -g $opts{gsoap} -u $unmapFile";
 										}
 								}
 								push @fileToCompress,$fqFullPath,$fqFullPath2,$soapOutFile,"$currentOutDir/$fqBasename.single";
@@ -165,16 +162,17 @@ sub generateSoapShell{
 										my $seedLength = 32;
 										my $maxMismatch = $readLength>70?3:1;
 										my $minLength = 40;
-										$soapComm = "$soapBinNew -a $fqFullPath -D $refSeqFileBinary -o $soapOutFile -t -s $minLength -l $seedLength -v $maxMismatch"; 
+										$soapComm = "$soapBinNew -a $fqFullPath -D $refSeqFileBinary -o $soapOutFile -t -s $minLength -l $seedLength -v $maxMismatch";
 				#this modify if just for been
 										#$soapComm = "$soapBinNew -a $fqFullPath -D $refSeqFileBinary -o $soapOutFile -l $seedLength -v $maxMismatch";
 										if(defined($opts{gsoap})){
+											$opts{gsoap}=5 if $opts{gsoap}==0;
 												mkdir $unmapReadsOutDir unless(-d $unmapReadsOutDir);
 												$unmapReadsOutDir = "$unmapReadsOutDir/SE";
 												mkdir $unmapReadsOutDir unless(-d $unmapReadsOutDir);
 												my $unmapFile = "$unmapReadsOutDir/$fqBasename.unmap";
 												#$soapComm .= " -u $unmapFile";
-												$soapComm .= " -g 5 -u $unmapFile";
+												$soapComm .= " -g $opts{gsoap} -u $unmapFile";
 										}
 								}
 								push @fileToCompress,$fqFullPath,$soapOutFile;
@@ -242,9 +240,9 @@ sub waitJobsDoneSortSoap2{
 
 				if(defined($qstat_lines[1]))
 				{
-		      #  print "test : $qstat_lines[1]\n";       
+		      #  print "test : $qstat_lines[1]\n";
 	        	        my $job = (split /\s+/,$qstat_lines[1])[1];
-                
+
         	      #  print "job: $job\n";
                         	}
 
@@ -255,21 +253,21 @@ sub waitJobsDoneSortSoap2{
         	                sortSoap($jobsID{$jobid}) if(defined $opts{sort});
                 	       mapStatics($jobsID{$jobid}) if (defined $opts{statistic});
 	                       delete $jobsID{$jobid};
-		
+
 
 
 				}
-			
-	
 
-			
+
+
+
 
 			}
-	
+
 				sleep $seconds;
 		}
 
-	
+
 }
 
 
@@ -339,7 +337,7 @@ sub mapStatics{
 		if(-f $statisticsFile){
 				open IN,"$statisticsFile" or die "Error in reading [ $statisticsFile ] $!\n";
 				while(my $line = <IN>){
-						if ($line !~ /^\d+/){ 
+						if ($line !~ /^\d+/){
 								next;
 						}
 						chomp $line;
@@ -370,7 +368,7 @@ sub mapStatics{
 		my $baseCount = $readCount * $readLength{a};
 		if($isPE){
 				$baseCount = $readCount * ($readLength{a}+$readLength{b});
-				$readCount *= 2; 
+				$readCount *= 2;
 		}
 
 		my $mapReadsCount = 0;
@@ -407,13 +405,13 @@ sub mapStatics{
 						$mapBasesCount += $lines[5];
 						if($isPESoap){
 								$peMapBasesCount += $lines[5];
-								$peMapReadsCount++; 
+								$peMapReadsCount++;
 								if($.<=2000000){
 										push @checkDuplicate,"$info[0],$info[7],$info[8]";
 								}
 						}
 						if($lines[3] == 1){
-								$uniqMapReadsCount++; 
+								$uniqMapReadsCount++;
 								$uniqMapBasesCount+=$lines[5];
 						}
 						if($lines[5] != $readLength{$lines[4]}){
@@ -551,7 +549,7 @@ sub findNewFastq{
 				my $fqBasename = (split '/',$fqFile)[-1];
 				$newFq{$fqBasename} = $fqFile;
 				my $libName = findLibName($fqBasename);
-				$newFqListFileLibCount{$libName}++; 
+				$newFqListFileLibCount{$libName}++;
 		}
 
 		if(-f $fqPathListFile){
@@ -574,7 +572,7 @@ sub findNewFastq{
 				foreach my $fq(sort keys %newFq){
 
 						my $fqBasename = (split '/',$fq)[-1];
-						next if ($fqBasename =~ /\_2.fq/);	
+						next if ($fqBasename =~ /\_2.fq/);
 						if( ! exists $oldFq{$fqBasename}){
 
 								if(! exists $fqInformation{$fqBasename}){
@@ -585,7 +583,7 @@ sub findNewFastq{
 										warn "\t!!!!!Lacking information of [ $fqBasename ] !!!!!!\n";
 										next;
 								}else{
-										$fqInformation{$fqBasename} = $fqInformation{$fqBasename} . "\t". "$newFq{$fq}"; 
+										$fqInformation{$fqBasename} = $fqInformation{$fqBasename} . "\t". "$newFq{$fq}";
 										my @elementCount = split /\s+/,$fqInformation{$fqBasename};
 										if(@elementCount < 8){
 												warn "\t!!!!!Lacking information of $fqBasename,please check it !!!!!\n";
@@ -647,7 +645,7 @@ sub getFqInformation{
 						}
 						if(exists $libInfo{$library}){
 	#modify 091019							open T,"$fqFile" or die "$!\n";
-	
+
 								open T,"$fqFile" or print "$!\n";
 								my $tmp = <T>;
 								$tmp = <T>;
@@ -655,7 +653,7 @@ sub getFqInformation{
 								chomp $tmp;
 								my $readLen = length $tmp;
 								$fqInformation{$fqBasename} = join "\t",$library,$isPE,$readLen,$readLen,$libInfo{$library};
-								print "$fqBasename\t$fqInformation{$fqBasename}\n"; 
+								print "$fqBasename\t$fqInformation{$fqBasename}\n";
 						}elsif(-f $reportFile){
 								print "ReportFile $reportFile\n";
 								open REPORT,"$reportFile" or die "Error in reading [ $reportFile ] $!\n";
@@ -691,7 +689,7 @@ sub getFqInformation{
 												my $sd = (split /\s+/,$line)[-1];
 												my ($blow,$above) = ($sd =~ /\-(\d+)\/\+(\d+)/);
 
-												
+
 												my $lowThresh = $insertSize - $blow * 3;
 				if($lowThresh<0){ $lowThresh= 3*$blow - $insertSize;}
 												my $highThresh = $insertSize + $above * 3;
@@ -769,7 +767,7 @@ sub readConfig{
 				my($fqBasename,$library,$isPE,$read1Length,$read2Length,$insertSize,$min,$max) = split /\s+/,$line;
 				my $lowThresh;
 				my $highThresh;
-				
+
 
 				if(defined($min) and defined($max))
 				{
@@ -783,7 +781,7 @@ sub readConfig{
 				$highThresh= $insertSize + $insertSize * 0.11;
 
 				}
-				
+
 				$fqInformation{$fqBasename} = join "\t",$library,$isPE,$read1Length,$read2Length,$insertSize,$lowThresh,$highThresh;
 		}
 		close IN;
