@@ -20,17 +20,18 @@ my $fq = shift;
 my %adapter;
 open LIST, "$adapter" || die "$!\n";
 while (<LIST>) {
+	next if /^#/;
 	chomp;
-	if (/^FC/) {
-		my @line = split /\s+/;
-		if (defined $adapter{$line[0]}) {
-			unless ($adapter{$line[0]}>$line[2]) {
-				$adapter{$line[0]} = $line[2];
-			}
-		} else {
+#	if (/^FC/) {
+	my @line = split /\s+/;
+	if (defined $adapter{$line[0]}) {
+		unless ($adapter{$line[0]}>$line[2]) {
 			$adapter{$line[0]} = $line[2];
 		}
+	} else {
+		$adapter{$line[0]} = $line[2];
 	}
+#	}
 }
 close LIST;
 
@@ -78,12 +79,13 @@ while (my $line1=<FQ>) {
 }
 close FQ;
 
-warn "# $read_num parsed in [$fq]
-# Using [$adapter]
-# MaxReadLen\t$maxreadlen
-# InReads\t$read_num
-# InBPs\t$inbp
-# FiltedReads\t$filtedreads
-# CopyedReads\t$copyedreads
-# OutBP\t$outbp
-# All done !\n";
+warn "$read_num parsed in [$fq]
+Using [$adapter]
+MaxReadLen\t$maxreadlen
+InReads\t$read_num
+InBPs\t$inbp
+FiltedReads\t$filtedreads
+CopyedReads\t$copyedreads
+OutReads\t",$filtedreads+$copyedreads,"
+OutBP\t$outbp
+All done !\n";

@@ -37,12 +37,13 @@ while (my $line1=<FQ>) {
 }
 close FQ;
 
-warn "# $read_num parsed in [$fq]
-# Using [NULL], No Adapter List used.
-# MaxReadLen\t$maxreadlen
-# InReads\t$read_num
-# InBPs\t$inbp
-# FiltedReads\t0
-# CopyedReads\t$copyedreads
-# OutBP\t$outbp
-# All done !\n";
+warn "$read_num parsed in [$fq]
+Using [NULL], No Adapter List used.
+MaxReadLen\t$maxreadlen
+InReads\t$read_num
+InBPs\t$inbp
+FiltedReads\t0
+CopyedReads\t$copyedreads
+OutReads\t$copyedreads
+OutBP\t$outbp
+All done !\n";
