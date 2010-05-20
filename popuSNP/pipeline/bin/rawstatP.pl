@@ -176,6 +176,9 @@ for my $file (keys %fq2) {
 my %fqbylib;#=%fqpe; If just copy, the value of hash will be the same pointer, thus conflict when pushing se in, which is, se would be pushed in to %fqpe
 push @{$fqbylib{$_}},@{$fqpe{$_}} for (keys %fqpe);
 push @{$fqbylib{$_}},@{$fqse{$_}} for (keys %fqse);
+for (keys %fqbylib) {
+	$LibSample{$_}='_unknown_' unless defined $LibSample{$_};
+}
 if ($opt_v) {
 	for my $k (sort keys %fqbylib) {
 		#print "\n[$k]\n[",join("]\n[",@{$fqbylib{$k}}),"]\n"
@@ -187,7 +190,7 @@ if ($opt_v) {
 	}
 	print '-' x 80,"\n";
 }
-### Got: %fqname2adapter, %fqpe, %fqse, %fqbylib, %SampleLib, %LibSample, %LibInsSize
+### Got: %fqname2adapter, %fqpe, %fqse, %fqbylib, %SampleLib, %LibSample, %LibInsSize, %fqfile2rawfpe
 
 ### 1.filter fq
 my ($opath,@cmdlines);
@@ -229,17 +232,21 @@ eval \$SEED
 ";
 close SH;
 
+#($path,$ext)=@{$fqfile2rawfpe{$name}};
 ### fqpe.lst
 open SH,'>',$opt_o.'/fqpe.lst' or die "[x]Error $!\n";
-for my $lib (keys %fqpe) {
-	print SH join("\t",$LibSample{$lib},$lib,@{$LibInsSize{$lib}},@{$fqpe{$lib}}),"\n";
+for my $lib (sort keys %fqpe) {
+	print SH join("\t",$LibSample{$lib},$lib,@{$LibInsSize{$lib}},
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[0].'.fq',
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[1].'.fq'),"\n" for @{$fqpe{$lib}};
 }
 close SH;
 
 ### fqse.lst
 open SH,'>',$opt_o.'/fqse.lst' or die "[x]Error $!\n";
-for my $lib (keys %fqse) {
-	print SH join("\t",$LibSample{$lib},$lib,@{$fqse{$lib}}),"\n";
+for my $lib (sort keys %fqse) {
+	print SH join("\t",$LibSample{$lib},$lib,
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[0].'.fq'),"\n" for @{$fqse{$lib}};
 }
 close SH;
 
