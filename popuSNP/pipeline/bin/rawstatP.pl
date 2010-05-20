@@ -27,8 +27,8 @@ $ perl -MTree::Suffix -e 'my $tree = Tree::Suffix->new(qw(zzzzzzxxaaaaaastringax
 [string]
 
 =cut
-our $opts='i:o:s:bvqd';
-our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d);
+our $opts='i:o:s:x:v:bqd';
+our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d, $opt_x);
 
 our $desc='1.filter fq, 2.stats';
 our $help=<<EOH;
@@ -36,7 +36,8 @@ our $help=<<EOH;
 \t-s Sample list (sample.lst) in format: /^Sample\\tLib\\tInsertSize\$/
 \t-o Project output path (./1fqfilted), will mkdir if not exist
 \t-q run qsub automatically
-\t-v show verbose info to STDOUT
+\t-x lib regex for Simulation Mode, undef for Normal Mode (undef)
+\t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
 EOH
@@ -46,6 +47,7 @@ ShowHelp();
 $opt_i='./0rawfq' if ! $opt_i;
 $opt_s='sample.lst' if ! $opt_s;
 $opt_o='./1fqfilted' if ! $opt_o;
+$opt_v=int $opt_v;
 
 # `readlink -f` will be blank if target not exists.
 system('mkdir','-p',$opt_o);
@@ -54,6 +56,7 @@ die "[x]-i $opt_i not exists !\n" unless -d $opt_i;
 
 print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
+print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
@@ -68,7 +71,6 @@ while (<SAMPLE>) {
 		$max=int(0.5+$min*1.08);
 		$min=int($min*0.92);
 	} else { ($min,$max)=sort {$a <=> $b} ($min,$max); }
-	#print "Sample[$sample]\tLib[$lib]\n" if $opt_v;
 	push @{$SampleLib{$sample}},$lib;
 	$LibInsSize{$lib}=[$min,$max];
 	push @{$LibSample{$lib}},$sample;
@@ -81,7 +83,7 @@ for (keys %LibSample) {
 if ($opt_v) {
 	print '-' x 80,"\n";
 	for my $k (sort keys %SampleLib) {
-		print "Sample:[$k]\t",scalar @{$SampleLib{$k}},"\tLib:[",join('],[',@{$SampleLib{$k}}),"]\n"
+		print scalar @{$SampleLib{$k}},"\tSample:[$k] => Lib:[",join('],[',@{$SampleLib{$k}}),"]\n"
 	}
 	print '-' x 80,"\n";
 	for my $k (sort keys %LibInsSize) {
@@ -89,6 +91,103 @@ if ($opt_v) {
 	}
 	print '-' x 80,"\n";
 }
+
+my @files= qx/find $opt_i -iregex '.+\\.\\(fq\\(\\.gz\\)?\\|list\\)'/;	# find ./sprice/0raw/ -iregex '.+\.\(fq\(\.gz\)?\|list\)'
+chomp @files;
+#my @fq1 = `find $opt_i -name '*.fq'`;	# no need to sort
+#my @fq2 = `find $opt_i -name '*.fq.gz'`;	# no need to sort
+my @fqs=grep /\.fq/,@files;
+my @Adapters=grep /\.list$/,@files;
+
+my (%fqfile2rawfpe,%fq1,%fq2,%fqse,%fqpe);	# no ext.
+#@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
+#my %AdapterPath2Lists = map {(fileparse($_))[1,0]} @Adapters;
+#print "[$_]\n" for map {(fileparse($_))[0,1]} @Adapters;
+#print "[$_] => [$AdapterPath2Lists{$_}]\n" for keys %AdapterPath2Lists;
+
+my (%AdapterPath2Lists,%fqname2adapter);
+for (sort @Adapters) {	# sort so that _1 comes first
+	my ($file, $path) = fileparse($_);
+	push @{$AdapterPath2Lists{$path}},$file;
+}
+if ($opt_v) {
+	print '[',join('],[',@{$AdapterPath2Lists{$_}}),'] <= [',$_,"]\n" for sort keys %AdapterPath2Lists;
+	print '-' x 80,"\n";
+}
+
+for (@fqs) {
+#print "$_\t";
+	my ($file, $path, $ext) = fileparse($_, qr/\.fq(\.gz)?/);
+	next if $file =~ /IndexPooling\d+(_[12])?$/i;
+#print "$file, $path, $ext\n";
+	$fqfile2rawfpe{$file}=[$path,$ext];
+	my ($lib,$ab);
+	unless ($opt_x) {
+		$file =~ /_([^_]+)(_[12])?$/;	# $1, $2 is local, thus un-useable outside this `unless`.
+		$lib = $1; $ab=$2;
+	} else {
+		$file =~ /($opt_x).*?(_[12])?$/;
+		$lib = $1; $ab=$2;
+	}
+	unless ($ab) {
+		push @{$fqse{$lib}},[$file];	# well, same API is better ?
+#print "-[$lib] $file\t[$ab]\n" if $opt_v;
+		next;
+	}
+	if ($ab eq '_1') {
+		$fq1{$file}=$lib;
+		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[0];
+	}
+	if ($ab eq '_2') {
+		$fq2{$file}=$lib;
+		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[1];
+	}
+}
+%AdapterPath2Lists=();	# useless now
+if ($opt_v > 1) {
+	print "[$_] => [$fqname2adapter{$_}][${$fqfile2rawfpe{$_}}[0]]\n" for sort keys %fqname2adapter;
+	print '-' x 80,"\n";
+}
+for my $file (keys %fq1) {
+	my $file2=$file;
+	$file2=~s/_1$/_2/;
+	my $lib=$fq1{$file};
+	delete $fq1{$file};
+	if (defined $fq2{$file2}) {
+		push @{$fqpe{$lib}},[$file,$file2];
+		delete $fq2{$file2};
+	} else {
+		warn "[!][$file${$fqfile2rawfpe{$file}}[1]] is not paired with _2 !\n";
+		push @{$fqse{$lib}},[$file];
+	}
+}
+for my $file (keys %fq2) {
+	my $lib=$fq2{$file};
+	delete $fq2{$file};
+	warn "[!][$file${$fqfile2rawfpe{$file}}[1]] is not paired with _1 !\n";
+	push @{$fqse{$lib}},[$file];
+}
+%fq1=%fq2=();	# useless now
+my %fqbylib;#=%fqpe; If just copy, the value of hash will be the same pointer, thus conflict when pushing se in, which is, se would be pushed in to %fqpe
+push @{$fqbylib{$_}},@{$fqpe{$_}} for (keys %fqpe);
+push @{$fqbylib{$_}},@{$fqse{$_}} for (keys %fqse);
+if ($opt_v) {
+	for my $k (sort keys %fqbylib) {
+		#print "\n[$k]\n[",join("]\n[",@{$fqbylib{$k}}),"]\n"
+		print "[$k] => [";
+		for (@{$fqbylib{$k}}) {
+			print join(']-[',@$_);
+		}
+		print "]\n";
+	}
+	print '-' x 80,"\n";
+}
+### Got: %fqname2adapter, %fqpe, %fqse, %fqbylib, %SampleLib, %LibSample, %LibInsSize
+
+### 1.filter fq
+
+
+
 
 #END
 my $stop_time = [gettimeofday];
