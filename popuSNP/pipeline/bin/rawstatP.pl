@@ -198,12 +198,12 @@ for my $lib (keys %fqbylib) {
 		for my $name (@$k) {
 			my ($path,$ext)=@{$fqfile2rawfpe{$name}};
 			if ($fqname2adapter{$name}) {
-				push @cmdlines,"perl $SCRIPTS/fqfilter.pl $path/$fqname2adapter{$name} $path/$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
+				push @cmdlines,"perl $SCRIPTS/fqfilter.pl $path$fqname2adapter{$name} $path$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
 			} else {
 				if ($ext eq '.fq') {
 					system('ln','-s',`readlink -nf $path/$name$ext`,"$opath/$name.fq");
 				}# else {push @cmdlines,"gzip -dc $path/$name$ext > $opath/$name.fq";}
-				push @cmdlines,"perl $SCRIPTS/fqstat.pl $path/$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
+				push @cmdlines,"perl $SCRIPTS/fqstat.pl $path$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
 			}
 		}
 	}
