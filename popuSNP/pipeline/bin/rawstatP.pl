@@ -104,13 +104,14 @@ chomp @files;
 my @fqs=grep /\.fq/,@files;
 my @Adapters=grep /\.list$/,@files;
 
-my (%fqfile2rawfpe,%fq1,%fq2,%fqse,%fqpe);	# no ext.
+my (%fqfile2rawfpe,%fq1,%fq2,%fqse,%fqpe,%fqFL);	# no ext.
 #@fqfiles = map {[fileparse($_, qr/\.fq/)]} @fq;
 #my %AdapterPath2Lists = map {(fileparse($_))[1,0]} @Adapters;
 #print "[$_]\n" for map {(fileparse($_))[0,1]} @Adapters;
 #print "[$_] => [$AdapterPath2Lists{$_}]\n" for keys %AdapterPath2Lists;
 
 my (%AdapterPath2Lists,%fqname2adapter);
+# 目前每个文件夹下只有1 lane，故只有一套.adapter.list。否则直接用Lane号生成文件名。
 for (sort @Adapters) {	# sort so that _1 comes first
 	my ($file, $path) = fileparse($_);
 	push @{$AdapterPath2Lists{$path}},$file;
@@ -128,11 +129,14 @@ for (@fqs) {
 	$fqfile2rawfpe{$file}=[$path,$ext];
 	my ($lib,$ab);
 	unless ($opt_x) {
-		$file =~ /_([^_]+)(_[12])?$/;	# $1, $2 is local, thus un-useable outside this `unless`.
-		$lib = $1; $ab=$2;
+		# 100506_I328_FC704U5AAXX_L5_ORYqzpRAHDIAAPEI-1_2
+		$file =~ /_([^_]+)_([^_]+)_([^_]+)(_[12])?$/;	# $1, $2 is local, thus un-useable outside this `unless`.
+		$fqFL{$file}=$1.'_'.$2;
+		$lib = $3; $ab=$4;
 	} else {
 		$file =~ /($opt_x).*?(_[12])?$/;
 		$lib = $1; $ab=$2;
+		$fqFL{$file}='FC000U0AAXX_L0';
 	}
 	unless ($ab) {
 		push @{$fqse{$lib}},[$file];	# well, same API is better ?
@@ -236,18 +240,29 @@ close SH;
 ### fqpe.lst
 open SH,'>',$opt_o.'/fqpe.lst' or die "[x]Error $!\n";
 for my $lib (sort keys %fqpe) {
-	print SH join("\t",$LibSample{$lib},$lib,@{$LibInsSize{$lib}},
-		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[0].'.fq',
-		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[1].'.fq'),"\n" for @{$fqpe{$lib}};
+	print SH join("\t",$LibSample{$lib},$lib,$fqFL{$$_[0]},@{$LibInsSize{$lib}},$$_[0],$$_[1],'.fq',
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'),"\n" for @{$fqpe{$lib}};
 }
 close SH;
 
 ### fqse.lst
 open SH,'>',$opt_o.'/fqse.lst' or die "[x]Error $!\n";
 for my $lib (sort keys %fqse) {
-	print SH join("\t",$LibSample{$lib},$lib,
-		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'.$$_[0].'.fq'),"\n" for @{$fqse{$lib}};
+	print SH join("\t",$LibSample{$lib},$lib,$fqFL{$$_[0]},$$_[0],'.fq',
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}),"\n" for @{$fqse{$lib}};
 }
+close SH;
+
+open SH,'>',$opt_o.'/stat.sh' or die "[x]Error $!\n";
+print SH "#!/bin/sh
+#\$ -N \"statfq\"
+#\$ -hold_jid \"filter\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=276M
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+perl $SCRIPTS/fqsummer.pl $opt_o/fqpe.lst $opt_o/fqse.lst $opt_o/stat.txt
+";
 close SH;
 
 #END
