@@ -58,6 +58,37 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
+my (%SampleLib,%LibSample,%LibInsSize);
+open SAMPLE,'<',$opt_s or die "Error opening $opt_s: $!\n";
+while (<SAMPLE>) {
+	chomp;
+	s/\r//g;
+	my ($sample,$lib,$min,$max)=split /\t/;
+	unless (defined $max) {
+		$max=int(0.5+$min*1.08);
+		$min=int($min*0.92);
+	} else { ($min,$max)=sort {$a <=> $b} ($min,$max); }
+	#print "Sample[$sample]\tLib[$lib]\n" if $opt_v;
+	push @{$SampleLib{$sample}},$lib;
+	$LibInsSize{$lib}=[$min,$max];
+	push @{$LibSample{$lib}},$sample;
+}
+close SAMPLE;
+for (keys %LibSample) {
+	my $t = scalar @{$LibSample{$_}};
+	die "[!]Sample with Lib conflict($t) for Lib:[$_]. Check [$opt_s] !\n" if $t != 1;	# Check if a lib -> more samples
+}
+if ($opt_v) {
+	print '-' x 80,"\n";
+	for my $k (sort keys %SampleLib) {
+		print "Sample:[$k]\t",scalar @{$SampleLib{$k}},"\tLib:[",join('],[',@{$SampleLib{$k}}),"]\n"
+	}
+	print '-' x 80,"\n";
+	for my $k (sort keys %LibInsSize) {
+		print "Lib:[$k]\tInsize:[",join(',',@{$LibInsSize{$k}}),"]\n";
+	}
+	print '-' x 80,"\n";
+}
 
 #END
 my $stop_time = [gettimeofday];
