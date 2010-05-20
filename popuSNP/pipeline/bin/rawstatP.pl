@@ -228,6 +228,21 @@ SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval \$SEED
 ";
 close SH;
+
+### fqpe.lst
+open SH,'>',$opt_o.'/fqpe.lst' or die "[x]Error $!\n";
+for my $lib (keys %fqpe) {
+	print SH join("\t",$LibSample{$lib},$lib,@{$LibInsSize{$lib}},@{$fqpe{$lib}}),"\n";
+}
+close SH;
+
+### fqse.lst
+open SH,'>',$opt_o.'/fqse.lst' or die "[x]Error $!\n";
+for my $lib (keys %fqse) {
+	print SH join("\t",$LibSample{$lib},$lib,@{$fqse{$lib}}),"\n";
+}
+close SH;
+
 #END
 my $stop_time = [gettimeofday];
 
