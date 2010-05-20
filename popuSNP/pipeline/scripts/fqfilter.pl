@@ -18,20 +18,16 @@ my $adapter = shift;
 my $fq = shift;
 
 my %adapter;
-open LIST, "$adapter" || die "$!\n";
+open LIST,'<',$adapter || die "$!\n";
 while (<LIST>) {
 	next if /^#/;
 	chomp;
-#	if (/^FC/) {
 	my @line = split /\s+/;
 	if (defined $adapter{$line[0]}) {
-		unless ($adapter{$line[0]}>$line[2]) {
-			$adapter{$line[0]} = $line[2];
-		}
+		$adapter{$line[0]} = $line[2] if $adapter{$line[0]} < $line[2];
 	} else {
 		$adapter{$line[0]} = $line[2];
 	}
-#	}
 }
 close LIST;
 
