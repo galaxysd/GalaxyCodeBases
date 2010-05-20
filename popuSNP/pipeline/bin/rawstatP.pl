@@ -6,10 +6,10 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use File::Basename;
 use Galaxy::ShowHelp;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 
 $main::VERSION=0.0.1;
-my $SCRIPTS="$Bin/../scripts";
+my $SCRIPTS="$RealBin/../scripts";
 
 =pod
 Note:
