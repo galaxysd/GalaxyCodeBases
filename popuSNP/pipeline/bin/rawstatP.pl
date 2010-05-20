@@ -9,7 +9,7 @@ use Galaxy::ShowHelp;
 use FindBin qw($Bin);
 
 $main::VERSION=0.0.1;
-my $SCRIPTS='$Bin/../scripts';
+my $SCRIPTS="$Bin/../scripts";
 
 =pod
 Note:
@@ -47,8 +47,12 @@ ShowHelp();
 $opt_i='./0rawfq' if ! $opt_i;
 $opt_s='sample.lst' if ! $opt_s;
 $opt_o='./1fqfilted' if ! $opt_o;
+no warnings;
 $opt_v=int $opt_v;
+use warnings;
 
+$opt_i=~s#/+$##;
+$opt_o=~s#/+$##;
 # `readlink -f` will be blank if target not exists.
 system('mkdir','-p',$opt_o);
 
@@ -79,6 +83,7 @@ close SAMPLE;
 for (keys %LibSample) {
 	my $t = scalar @{$LibSample{$_}};
 	die "[!]Sample with Lib conflict($t) for Lib:[$_]. Check [$opt_s] !\n" if $t != 1;	# Check if a lib -> more samples
+	$LibSample{$_}=${$LibSample{$_}}[0];
 }
 if ($opt_v) {
 	print '-' x 80,"\n";
@@ -136,15 +141,15 @@ for (@fqs) {
 	}
 	if ($ab eq '_1') {
 		$fq1{$file}=$lib;
-		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[0];
+		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[0] if defined $AdapterPath2Lists{$path};
 	}
 	if ($ab eq '_2') {
 		$fq2{$file}=$lib;
-		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[1];
+		$fqname2adapter{$file}=${$AdapterPath2Lists{$path}}[-1] if defined $AdapterPath2Lists{$path};
 	}
 }
 %AdapterPath2Lists=();	# useless now
-if ($opt_v > 1) {
+if ($opt_v > 2) {
 	print "[$_] => [$fqname2adapter{$_}][${$fqfile2rawfpe{$_}}[0]]\n" for sort keys %fqname2adapter;
 	print '-' x 80,"\n";
 }
@@ -185,8 +190,28 @@ if ($opt_v) {
 ### Got: %fqname2adapter, %fqpe, %fqse, %fqbylib, %SampleLib, %LibSample, %LibInsSize
 
 ### 1.filter fq
-
-
+my ($opath,@cmdlines);
+for my $lib (keys %fqbylib) {
+	$opath=$opt_o.'/'.$lib.'='.$LibSample{$lib};
+	system('mkdir','-p',$opath);
+	for my $k (@{$fqbylib{$lib}}) {
+		for my $name (@$k) {
+			my ($path,$ext)=@{$fqfile2rawfpe{$name}};
+			if ($fqname2adapter{$name}) {
+				push @cmdlines,"perl $SCRIPTS/fqfilter.pl $path/$fqname2adapter{$name} $path/$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
+			} else {
+				if ($ext eq '.fq') {
+					system('ln','-s',`readlink -nf $path/$name$ext`,"$opath/$name.fq");
+				}# else {push @cmdlines,"gzip -dc $path/$name$ext > $opath/$name.fq";}
+				push @cmdlines,"perl $SCRIPTS/fqstat.pl $path/$name$ext > $opath/$name.fq 2>$opath/$name.nfo";
+			}
+		}
+	}
+}
+if ($opt_v > 3) {
+	print "[$_]\n" for @cmdlines;
+	print '-' x 80,"\n";
+}
 
 
 #END
