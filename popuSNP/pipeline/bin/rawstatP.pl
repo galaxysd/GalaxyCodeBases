@@ -213,7 +213,21 @@ if ($opt_v > 3) {
 	print '-' x 80,"\n";
 }
 
-
+open SH,'>',$opt_o.'/cmd.lst' or die "[x]Error $!\n";
+print SH "$_\n" for @cmdlines;
+close SH;
+open SH,'>',$opt_o.'/job.sh' or die "[x]Error $!\n";
+print SH "#!/bin/sh
+#\$ -N \"filter\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=276M
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-",scalar @cmdlines,"
+SEEDFILE=${opt_o}/cmd.lst
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval \$SEED
+";
+close SH;
 #END
 my $stop_time = [gettimeofday];
 
