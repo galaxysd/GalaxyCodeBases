@@ -32,8 +32,9 @@ while (my $line1=<FQ>) {
 	#chomp $line4;
 	#my ($read_name) = $line1=~ /^\@(FC.*)/;
 	++$read_num;
-		++$copyedreads;
-		$outbp += $readlen;
+	++$copyedreads;
+	$outbp += $readlen;
+	print "$line1$line2\n$line3$line4";
 }
 close FQ;
 
