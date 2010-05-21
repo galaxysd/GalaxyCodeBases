@@ -259,7 +259,7 @@ print SH "#!/bin/sh
 #\$ -N \"Pstatfq\"
 #\$ -hold_jid \"Pfilter\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=276M
+#\$ -cwd -r y -l vf=30M
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
 perl $SCRIPTS/fqsummer.pl $opt_o/fqs.lst $opt_o/fqs.nfo $opt_o/fqs.stat
