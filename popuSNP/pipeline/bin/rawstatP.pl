@@ -225,7 +225,7 @@ print SH "$_\n" for @cmdlines;
 close SH;
 open SH,'>',$opt_o.'/job.sh' or die "[x]Error $!\n";
 print SH "#!/bin/sh
-#\$ -N \"filter\"
+#\$ -N \"Pfilter\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=276M
 #\$ -o /dev/null -e /dev/null
@@ -236,32 +236,33 @@ eval \$SEED
 ";
 close SH;
 
+### fqs.lst
 #($path,$ext)=@{$fqfile2rawfpe{$name}};
 ### fqpe.lst
-open SH,'>',$opt_o.'/fqpe.lst' or die "[x]Error $!\n";
+open SH,'>',$opt_o.'/fqs.lst' or die "[x]Error $!\n";
 for my $lib (sort keys %fqpe) {
-	print SH join("\t",$LibSample{$lib},$lib,$fqFL{$$_[0]},@{$LibInsSize{$lib}},$$_[0],$$_[1],'.fq',
-		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/'),"\n" for @{$fqpe{$lib}};
+	print SH join("\t",'PE',$LibSample{$lib},$lib,$fqFL{$$_[0]},join(',',@{$LibInsSize{$lib}}),'.fq',
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/',$$_[0],$$_[1]),"\n" for @{$fqpe{$lib}};
 }
-close SH;
+#close SH;
 
 ### fqse.lst
-open SH,'>',$opt_o.'/fqse.lst' or die "[x]Error $!\n";
+#open SH,'>',$opt_o.'/fqse.lst' or die "[x]Error $!\n";
 for my $lib (sort keys %fqse) {
-	print SH join("\t",$LibSample{$lib},$lib,$fqFL{$$_[0]},$$_[0],'.fq',
-		$opt_o.'/'.$lib.'='.$LibSample{$lib}),"\n" for @{$fqse{$lib}};
+	print SH join("\t",'SE',$LibSample{$lib},$lib,$fqFL{$$_[0]},'0,0','.fq',
+		$opt_o.'/'.$lib.'='.$LibSample{$lib}.'/',$$_[0]),"\n" for @{$fqse{$lib}};
 }
 close SH;
 
 open SH,'>',$opt_o.'/stat.sh' or die "[x]Error $!\n";
 print SH "#!/bin/sh
-#\$ -N \"statfq\"
-#\$ -hold_jid \"filter\"
+#\$ -N \"Pstatfq\"
+#\$ -hold_jid \"Pfilter\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=276M
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-perl $SCRIPTS/fqsummer.pl $opt_o/fqpe.lst $opt_o/fqse.lst $opt_o/stat.txt
+perl $SCRIPTS/fqsummer.pl $opt_o/fqs.lst $opt_o/fqs.nfo $opt_o/fqs.stat
 ";
 close SH;
 
