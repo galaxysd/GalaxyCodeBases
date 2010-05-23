@@ -435,8 +435,15 @@ my ($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen,$pres);
 unless ($opt_m) {
 	while ( $pres=$sth5->fetchrow_arrayref ) {
 		($Psoapid,$Pfileid,$Poffset,$PE,$Ppos,$Plen)=@$pres;
-		seek $FH{$Pfileid},$Poffset,0;
-		$red=readline $FH{$Pfileid};
+		SEEKa: eval {
+			seek $FH{$Pfileid},$Poffset,0;
+			$red=readline $FH{$Pfileid};
+		};
+		if ($@) {
+			# now $@ contains the exception object of type MyFileException
+			print '[!]1 ',$@->getErrorMessage();	# where getErrorMessage() is a method in MyFileException class
+			goto SEEKa;
+		}
 		if ($PE eq 'PE') {
 			$bpsOP += $Plen;	++$itemsOutP;
 		} else {	# $PE eq 'SE'
@@ -489,8 +496,15 @@ if ($opt_d) {
 		if ($opt_m) {
 			$red=$PSE{$Pfileid}{$Poffset};
 		} else {
-			seek $FH{$Pfileid},$Poffset,0;
-			$red=readline $FH{$Pfileid};
+			SEEKb: eval {
+				seek $FH{$Pfileid},$Poffset,0;
+				$red=readline $FH{$Pfileid};
+			};
+			if ($@) {
+				# now $@ contains the exception object of type MyFileException
+				print '[!]2 ',$@->getErrorMessage();	# where getErrorMessage() is a method in MyFileException class
+				goto SEEKb;
+			}
 		}
 		#@aline=split(/\t/,$red);
 		#$redid=@aline[0];
