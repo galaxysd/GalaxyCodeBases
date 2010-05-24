@@ -108,7 +108,7 @@ system('mkdir','-p',$opath);
 #system('mkdir','-p',"$opt_o/megred/lst/");
 
 open LST,'>',"$opt_o/megred.lst";
-for my $sample (keys %Lanes) {
+for my $sample (sort keys %Lanes) {
 	my $i=1;
 	#$MergedbySample{$sample}="$opt_o/megred/$sample/";
 	system('mkdir','-p',"$opt_o/megred/$sample/");	# ${sample}_ChrID.sp
@@ -129,7 +129,7 @@ for my $sample (keys %Lanes) {
 			}
 		}
 		close L;
-		push @{$LMScmdlines{$sample}},"-bi $listname -c $_ -o $mergeprefix >$mergeprefix.log 2>$mergeprefix.err" for @ChrIDs;
+		push @{$LMScmdlines{$sample}},"-bi $listname -c $_ -o $mergeprefix >$mergeprefix.$_.log 2>$mergeprefix.$_.err" for @ChrIDs;
 	}
 	for my $chrid (@ChrIDs) {
 		open L,'>',"${opath}/${sample}_$chrid.lmslst";
@@ -149,7 +149,7 @@ for my $sample (keys %cmdlines) {
 	close SH;
 	open SH,'>',"$opath${sample}_soap.sh";
 	print SH "#!/bin/sh
-#\$ -N \"soap_$sample\"
+#\$ -N \"sp_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=4.1G,s_core=5
 #\$ -o /dev/null -e /dev/null
@@ -165,12 +165,12 @@ eval perl $SCRIPTS/dosoap.pl \$SEED
 	close SH;
 	open SH,'>',"$opath${sample}_lms.sh";
 	print SH "#!/bin/sh
-#\$ -N \"rmdupbylib_$sample\"
+#\$ -N \"rd_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=500M
-#\$ -hold_jid \"soap_$sample\"
+#\$ -cwd -r y -l vf=390M
+#\$ -hold_jid \"sp_$sample\"
 #\$ -o /dev/null -e /dev/null
-#\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
+#\$ -S /bin/bash -t 1-",scalar @{$LMScmdlines{$sample}},"
 SEEDFILE=$opath${sample}_lms.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
@@ -182,12 +182,12 @@ eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
 	close SH;
 	open SH,'>',"$opath${sample}_merge.sh";
 	print SH "#!/bin/sh
-#\$ -N \"merge_$sample\"
+#\$ -N \"mg_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=12M
-#\$ -hold_jid \"merge_$sample\"
+#\$ -hold_jid \"rd_$sample\"
 #\$ -o /dev/null -e /dev/null
-#\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
+#\$ -S /bin/bash -t 1-",scalar @{$cmdlinesMerged{$sample}},"
 SEEDFILE=$opath${sample}_merge.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval perl $SCRIPTS/merge.pl \$SEED
