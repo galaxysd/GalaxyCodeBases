@@ -73,7 +73,7 @@ while (<LST>) {
 	#$FQnfo{$sample}{$lib}{$FL}=[$ext,$path,@fqs];
 	$opath="$opt_o/$sample/$lib/";
 	system('mkdir','-p',$opath);
-	push @{$cmdlines{$lib}},"$PESE $ins $opt_g '$opath' '$ref' '$ext,$path' '".join(',',@fqs)."'";
+	push @{$cmdlines{$sample}},"$PESE $ins $opt_g '$opath' '$ref' '$ext,$path' '".join(',',@fqs)."'";
 }
 if ($opt_v > 3) {
 	print '-' x 80,"\n";
@@ -87,10 +87,10 @@ if ($opt_v > 3) {
 $opath="$opt_o/sh/";
 system('mkdir','-p',$opath);
 for my $lib (keys %cmdlines) {
-	open SH,'>',"$opath${lib}_soap.cmd";
-	print SH join("\n",@{$cmdlines{$lib}}),"\n";
+	open SH,'>',"$opath${sample}_soap.cmd";
+	print SH join("\n",@{$cmdlines{$sample}}),"\n";
 	close SH;
-	open SH,'>',"$opath${lib}_soap.sh";
+	open SH,'>',"$opath${sample}_soap.sh";
 	print SH "#!/bin/sh
 #\$ -N \"soap_$lib\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
