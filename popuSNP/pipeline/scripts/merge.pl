@@ -15,7 +15,8 @@ close LST;
 my $n=$#files;
 print '[!]',$n+1," file(s) to be megred.\n";
 if ($n == 0) {
-	link $files[0],"$outf.sp" or symlink $files[0],"$outf.sp" or exit 1;
+	system('mv',$files[0],"$outf.sp") or exit 1;
+	link "$outf.sp",$files[0] or symlink "$outf.sp",$files[0];
 } else {
 	open O,'>',"$outf.sp" or die "[x]Error opening $outf.sp: $!\n";
 	my @FHL;

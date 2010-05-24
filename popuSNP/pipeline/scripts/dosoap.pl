@@ -22,7 +22,7 @@ my $fqcmd;
 unless ($max==0) {	# PE
 	$fqcmd="-a $path$fqnames[0]$ext -b $path$fqnames[-1]$ext -o $opath$fqnames[0].soap -2 $opath$fqnames[0].single";
 } else {	# SE
-	$fqcmd="-a $path$fqnames[0]$ext  -o $opath$fqnames[0].soap";
+	$fqcmd="-a $path$fqnames[0]$ext  -o $opath$fqnames[0].se";
 }
 
 # always put -abDo2 in the first for the poor case without break ...
