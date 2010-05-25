@@ -107,7 +107,7 @@ if ($opt_v > 3) {
 }
 
 ### 2soap ###
-my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged);
+my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr);
 $opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
 #system('mkdir','-p',"$opt_o/2soap/megred/lst/");
@@ -140,7 +140,9 @@ for my $sample (sort keys %Lanes) {
 		open L,'>',"${opath}/${sample}_$chrid.lmslst";
 		print L "${_}.$chrid\n" for @{$MergeOut{$sample}};	# ${_}_$chrid.lms
 		close L;
-		print LST "$sample\t$chrid\t$SampleRL{$sample}\t$opt_o/2soap/megred/$sample/${sample}_$chrid.sp\n";
+		my $spname="$opt_o/2soap/megred/$sample/${sample}_$chrid.sp";
+		print LST "$sample\t$chrid\t$SampleRL{$sample}\t$spname\n";
+		push @{$mergedbychr{$chrid}},$spname;	# $spname
 		push @{$cmdlinesMerged{$sample}},"${opath}${sample}_$chrid.lmslst $opt_o/2soap/megred/$sample/${sample}_$chrid"
 	}
 }
@@ -222,7 +224,7 @@ perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
 ";
 	close SH;
 }
-
+## SoapSNP
 
 
 
