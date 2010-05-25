@@ -11,8 +11,8 @@ use FindBin qw($RealBin);
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 
-our $opts='i:o:n:g:v:r:c:bqd';
-our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d);
+our $opts='i:o:n:g:v:r:c:f:bqd';
+our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_f, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d);
 
 our $desc='1.filter fq, 2.stats';
 our $help=<<EOH;
@@ -20,7 +20,8 @@ our $help=<<EOH;
 \t-n fqs.nfo name (fqs.nfo)
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
 \t-c Chromosome NFO file (chr.nfo) in format: /^ChrID\\s+ChrLen\\s?.*\$/
-\t-o Output path (./2soap), will mkdir if not exist
+\t-f faByChr path (./faByChr) with ChrID.fa\(s\)
+\t-o Output path (.) for [./2soap, ./3GLF, ./4pSNP], will mkdir if not exist
 \t-g the same as soap2 -g (undef=0), max is 10 for soap2.20
 \t-q run qsub automatically
 \t-v Verbose level (undef=0)
@@ -34,7 +35,8 @@ $opt_i='./1fqfilted' if ! $opt_i;
 $opt_n='fqs.nfo' if ! $opt_n;
 $opt_r='./Ref' if ! $opt_r;
 $opt_c='chr.nfo' if ! $opt_c;
-$opt_o='./2soap' if ! $opt_o;
+$opt_f='./faByChr' if ! $opt_f;
+$opt_o='.' if ! $opt_o;
 
 $opt_r=~s#/+$##;
 no warnings;
@@ -48,6 +50,7 @@ die "[x]*.index.bwt NOT found in [$opt_r] !\n" unless $ref;
 use warnings;
 
 $opt_i=~s#/+$##;
+$opt_f=~s#/+$##;
 $opt_o=~s#/+$##;
 # `readlink -f` will be blank if target not exists.
 system('mkdir','-p',$opt_o);
@@ -55,7 +58,7 @@ system('mkdir','-p',$opt_o);
 my $nfoname=$opt_i.'/'.$opt_n;
 die "[x]-i $nfoname not exists !\n" unless -f $nfoname;
 
-print STDERR "From [$opt_i]/[$opt_n] to [$opt_o] refer to [$opt_r] as [$ref], then [$opt_c]\n";
+print STDERR "From [$opt_i]/[$opt_n] to [$opt_o] refer to [$opt_r] as [$ref], then [$opt_c][$opt_f]\n";
 print STDERR "Soap2 -g [$opt_g]\n" if $opt_g;
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
@@ -76,7 +79,7 @@ if ($opt_v) {
 	print '[!]ChrID(s): [',join(',',@ChrIDs),"]\n";
 }
 
-my (%DATrbrf,%Librmx,%FQnfo,$readlen,$min,$max);
+my (%DATrbrf,%SampleRL,$readlen,$min,$max);
 my ($opath,%cmdlines,%Lanes);
 open LST,'<',$nfoname or die "[x]Error opening $nfoname: $!\n";
 while (<LST>) {
@@ -84,9 +87,10 @@ while (<LST>) {
 	my ($PESE,$sample,$lib,$FL,$ins,$ext,$path,@fqs)=split /\t/;
 	($readlen,$min,$max)=split ',',$ins;
 	next if $readlen == -1;
+	$SampleRL{$sample} = $readlen if (! $SampleRL{$sample}) or $SampleRL{$sample} < $readlen;
 	#$Librmx{$sample}{$lib}{$FL}=[$readlen,$min,$max];	# readlen,minIS,maxIS
 	#$FQnfo{$sample}{$lib}{$FL}=[$ext,$path,@fqs];
-	$opath="$opt_o/$sample/$lib/";
+	$opath="$opt_o/2soap/$sample/$lib/";
 	system('mkdir','-p',$opath);
 	push @{$Lanes{$sample}{$lib}},[$PESE,$opath.$fqs[0]];	# without ext
 	push @{$cmdlines{$sample}},"$PESE $ins $opt_g '$opath' '$ref' '$ext,$path' '".join(',',@fqs)."'";
@@ -102,20 +106,21 @@ if ($opt_v > 3) {
 	print '-' x 80,"\n";
 }
 
+### 2soap ###
 my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged);
-$opath="$opt_o/list/";
+$opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
-#system('mkdir','-p',"$opt_o/megred/lst/");
+#system('mkdir','-p',"$opt_o/2soap/megred/lst/");
 
-open LST,'>',"$opt_o/megred.lst";
+open LST,'>',"$opt_o/2soap/megred.lst";
 for my $sample (sort keys %Lanes) {
 	my $i=1;
-	#$MergedbySample{$sample}="$opt_o/megred/$sample/";
-	system('mkdir','-p',"$opt_o/megred/$sample/");	# ${sample}_ChrID.sp
-	system('mkdir','-p',"$opt_o/$sample/megre/");
+	#$MergedbySample{$sample}="$opt_o/2soap/megred/$sample/";
+	system('mkdir','-p',"$opt_o/2soap/megred/$sample/");	# ${sample}_ChrID.sp
+	system('mkdir','-p',"$opt_o/2soap/$sample/megre/");
 	for my $lib (keys %{$Lanes{$sample}}) {
 		my $listname="$opath${lib}.lst";
-		my $mergeprefix="$opt_o/$sample/megre/$lib";	# $lib.ChrID. Planning to be $lib_ChrID.lms	lib-merged soap
+		my $mergeprefix="$opt_o/2soap/$sample/megre/$lib";	# $lib.ChrID. Planning to be $lib_ChrID.lms	lib-merged soap
 		#push @{$MergeList{$sample}},$listname;
 		push @{$MergeOut{$sample}},$mergeprefix;
 		open L,'>',$listname;
@@ -135,13 +140,13 @@ for my $sample (sort keys %Lanes) {
 		open L,'>',"${opath}/${sample}_$chrid.lmslst";
 		print L "${_}.$chrid\n" for @{$MergeOut{$sample}};	# ${_}_$chrid.lms
 		close L;
-		print LST "$sample\t$chrid\t$opt_o/megred/$sample/${sample}_$chrid.sp\n";
-		push @{$cmdlinesMerged{$sample}},"${opath}/${sample}_$chrid.lmslst $opt_o/megred/$sample/${sample}_$chrid"
+		print LST "$sample\t$chrid\t$SampleRL{$sample}\t$opt_o/2soap/megred/$sample/${sample}_$chrid.sp\n";
+		push @{$cmdlinesMerged{$sample}},"${opath}${sample}_$chrid.lmslst $opt_o/2soap/megred/$sample/${sample}_$chrid"
 	}
 }
 close LST;
 
-$opath="$opt_o/sh/";
+$opath="$opt_o/2soap/sh/";
 system('mkdir','-p',$opath);
 for my $sample (keys %cmdlines) {
 	open SH,'>',"$opath${sample}_soap.cmd";
@@ -195,6 +200,38 @@ eval perl $SCRIPTS/merge.pl \$SEED
 	close SH;
 
 }
+
+### 3GLF ###
+$opath="$opt_o/3GLF/";
+system('mkdir','-p',$opath.'sh');
+system('mkdir','-p',$opath.'matrix');
+## Matrix
+if (-s "${opath}matrix/all.matrix") {
+	system("mv -f ${opath}sh/all_matrix.sh ${opath}sh/all_matrix.oldsh") if (-e "${opath}sh/all_matrix.sh");
+} else {
+	open SH,'>',$opath."sh/all_matrix.sh" || die "$!\n";
+	print SH "#!/bin/sh
+#\$ -N \"All_Matrix\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=266M
+#\$ -hold_jid \"mg_*\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+#f=`find $opt_o/2soap/megred/ -name '*.sp'|xargs ls -lH|awk '{print \$5,\$9}'|sort -nrk1|head -n1|awk '{print \$2}'`
+perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
+";
+	close SH;
+}
+
+
+
+
+
+
+### 4pSNP ###
+$opath="$opt_o/4pSNP/";
+system('mkdir','-p',$opath.'sh');
+
 
 #END
 my $stop_time = [gettimeofday];
