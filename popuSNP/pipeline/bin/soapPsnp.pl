@@ -235,7 +235,7 @@ for my $chrid (@ChrIDs) {
 	print L "$opt_o/2soap/megred/$_/${_}_$chrid.sp $opath$chrid/${_}_$chrid d\n" for keys %Lanes;	# $sample
 	close L;
 	open SH,'>',$opath."sh/${chrid}_glf.sh";
-	print "#!/bin/sh
+	print SH "#!/bin/sh
 #\$ -N \"glf_$chrid\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=280M,s_core=1
