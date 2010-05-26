@@ -79,7 +79,7 @@ if ($opt_v) {
 	print '[!]ChrID(s): [',join(',',@ChrIDs),"]\n";
 }
 
-my (%DATrbrf,%SampleRL,$readlen,$min,$max);
+my ($maxRL,%DATrbrf,%SampleRL,$readlen,$min,$max)=(0);
 my ($opath,%cmdlines,%Lanes);
 open LST,'<',$nfoname or die "[x]Error opening $nfoname: $!\n";
 while (<LST>) {
@@ -88,6 +88,7 @@ while (<LST>) {
 	($readlen,$min,$max)=split ',',$ins;
 	next if $readlen == -1;
 	$SampleRL{$sample} = $readlen if (! $SampleRL{$sample}) or $SampleRL{$sample} < $readlen;
+	$maxRL = $readlen if$maxRL < $readlen;
 	#$Librmx{$sample}{$lib}{$FL}=[$readlen,$min,$max];	# readlen,minIS,maxIS
 	#$FQnfo{$sample}{$lib}{$FL}=[$ext,$path,@fqs];
 	$opath="$opt_o/2soap/$sample/$lib/";
@@ -225,7 +226,28 @@ perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
 	close SH;
 }
 ## SoapSNP
-
+for my $chrid (@ChrIDs) {
+	system('mkdir','-p',$opath.$chrid);
+	open L,'>',$opath.$chrid.".glflst";
+	print L "$opath$chrid/${_}_$chrid.glf\n" for sort keys %Lanes;	# $sample
+	close L;
+	open L,'>',$opath.$chrid."/$chrid.cmd";
+	print L "$opt_o/2soap/megred/$_/${_}_$chrid.sp $opath$chrid/${_}_$chrid d\n" for keys %Lanes;	# $sample
+	close L;
+	open SH,'>',$opath."sh/${chrid}_glf.sh";
+	print "#!/bin/sh
+#\$ -N \"glf_$chrid\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=280M,s_core=1
+#\$ -hold_jid \"All_Matrix\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-",scalar keys %Lanes,"
+SEEDFILE=${opath}${chrid}/$chrid.cmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/callglf.pl ${opath}matrix/all.matrix $opt_f $maxRL \$SEED
+";
+	close SH;
+}
 
 
 
