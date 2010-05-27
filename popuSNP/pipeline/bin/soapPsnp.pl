@@ -10,6 +10,7 @@ use FindBin qw($RealBin);
 
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
+my $POPSPLIT=1000000;
 
 our $opts='i:o:n:g:v:r:c:f:bqd';
 our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_f, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d);
@@ -66,13 +67,14 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-my @ChrIDs;
+my (@ChrIDs,%ChrLen);
 open CHRLEN,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 while (<CHRLEN>) {
 	chomp;
 	s/\r//g;
-	my ($chr)=split /\s+/;
+	my ($chr,$len)=split /\s+/;
 	push @ChrIDs,$chr;
+	$ChrLen{$chr}=$len;
 }
 close CHRLEN;
 if ($opt_v) {
@@ -228,7 +230,7 @@ perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
 ## SoapSNP
 for my $chrid (@ChrIDs) {
 	system('mkdir','-p',$opath.$chrid);
-	open L,'>',$opath.$chrid.".glflst";
+	open L,'>',$opath.$chrid.'.glflst';
 	print L "$opath$chrid/${_}_$chrid.glf\n" for sort keys %Lanes;	# $sample
 	close L;
 	open L,'>',$opath.$chrid."/$chrid.cmd";
@@ -250,12 +252,62 @@ eval perl $SCRIPTS/callglf.pl ${opath}matrix/all.matrix $opt_f $maxRL \$SEED
 }
 
 
-
-
 ### 4pSNP ###
 $opath="$opt_o/4pSNP/";
 system('mkdir','-p',$opath.'sh');
+for my $chrid (@ChrIDs) {
+	my $dir = $opath.$chrid;
+	system('mkdir','-p',$opath.$chrid);
+	my $lst=$opt_o.'/3GLF/'.$chrid.'.glflst';
+	my $len=$ChrLen{$chrid};
 
+	open LST,'>',$dir.'.psnplst' || die "$!\n";
+	open CMD,'>',$dir."/$chrid.popcmd" || die "$!\n";
+	my $lstcount=0;
+	my ($i,$j,$exit)=(1,$POPSPLIT,0);
+	while ($exit != -1) {
+		++$exit;
+		if ($j > $len) {
+			$j=$len;
+			$exit=-1;
+		}
+		print LST "$dir/${chrid}_$exit.psnp\n";
+		print CMD "$i $j $lst $dir/${chrid}_$exit.psnp >$dir/${chrid}_$exit.tag 2>$dir/${chrid}_$exit.log\n";
+		++$lstcount;
+		$i += $POPSPLIT;
+		$j += $POPSPLIT;
+	}
+	close CMD;
+	close LST;
+
+	open SH,'>',$opath.'sh/'.$chrid.'_popsnp.sh' || die "$!\n";
+	print SH "#!/bin/sh
+#\$ -N \"pSNP_$chrid\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=70M,s_core=1
+#\$ -hold_jid glf_$chrid
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$lstcount
+SEEDFILE=${dir}/$chrid.popcmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval python $SCRIPTS/GLFmulti.py \$SEED
+";
+	close SH;
+	open SH,'>',$opath.'sh/'.$chrid.'_wcsnp.sh' || die "$!\n";
+	print SH "#!/bin/sh
+#\$ -N \"WSNP_$chrid\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=60M
+#\$ -hold_jid pSNP_$chrid
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+cat $dir.psnplst|xargs wc -l > $dir.psnpwc
+rm -f $dir.psnp
+cat $dir.psnplst|xargs cat >> $dir.psnp
+wc -l $dir.psnp >> $dir.psnpwc
+";	# whenever >> , remember to rm first !
+	close SH;
+}
 
 #END
 my $stop_time = [gettimeofday];
