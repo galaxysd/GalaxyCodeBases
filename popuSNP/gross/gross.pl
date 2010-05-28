@@ -87,8 +87,8 @@ CYCLE: while (1) {	# last on file end
 #chromosome01	173	C	95	0.594737	C	T	98	4	18	1.17	27	68	84	0.00	0.364752
 #seg01	62	G	26	0.500000	A	G	5	7	44	1.46	13	13	18	0.75	0.448375
 		next if $pos-$i < $opt_n-$opt_l;
-		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		last if $pos-$i > $opt_n;
+		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		$LastPosSNP=tell SNP;
 #warn "SNP $pos\t$LastPosSNP\n";
 	}
@@ -96,8 +96,8 @@ CYCLE: while (1) {	# last on file end
 	while (<SW>) {
 		my ($chr,$pos,undef,$depth,undef,$base1,$base2,$nbase1,$nbase2,$Q)=split /\t/;
 		next if $pos-$i < $opt_n-$opt_l;
-		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		last if $pos-$i > $opt_n;
+		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		$LastPosSW=tell SW;
 #warn "SW $pos\t$LastPosSW\n";
 	}
@@ -106,8 +106,8 @@ CYCLE: while (1) {	# last on file end
 	while (<SC>) {
 		my ($chr,$pos,undef,$depth,undef,$base1,$base2,$nbase1,$nbase2,$Q)=split /\t/;
 		next if $pos-$i < $opt_n-$opt_l;
-		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		last if $pos-$i > $opt_n;
+		push @{$DAT{$chr}{$pos-$i}},[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
 		$LastPosSC=tell SC;
 #warn "SC $pos\t$LastPosSC\n";
 	}
