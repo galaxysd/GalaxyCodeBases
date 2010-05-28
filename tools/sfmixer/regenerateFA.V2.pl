@@ -22,6 +22,7 @@ unless (defined $opts{faFile} && $opts{outDir} && $opts{project}) {
 	print "\toutput: /share/raid11/zhanghao/software/preProcess/Cucumber.merge.fa\n\t\t/share/raid11/zhanghao/software/preProcess/Cucumber.merge.list\n";
 	print "\tperl $0 -faFile /share/tmp/pub/Genome/SorghumBicolor/sbi1.fasta -outDir /share/raid11/zhanghao/software/preProcess/ -project SorghumBicolor -oriChrName chromosome -chrname chromosome_M\n";
 	print "\tAuther: Hao Zhang\tTime: 22:32 21/04/2009\n";
+	print "  fixed bye lijun3 Mon Jan  4 17:50:33 CST 2010\n";
 	exit 0;
 }
 
@@ -64,9 +65,17 @@ while (my $line = <FA>) {
 			$scaffold_name =~ s/^>//;
 			if ($this_chr_index > ($chr_len - $offset)) { #finish merging one chromosome, and will start merge a new one.
 				$hChrInfo{$chr_num}{$current_scaf} .= "\t$this_chr_index";
-
 				++$chr_num;
+
+				if($chr_num < 10)
+				{
+					$current_chr = "${chr_tem}0$chr_num";
+				}
+				else
+				{
 				$current_chr = "$chr_tem$chr_num";
+				}
+
 				$current_scaf = $scaffold_name;
 				$this_chr_index = 1;
 				$hChrInfo{$chr_num}{$current_scaf} = $this_chr_index;
@@ -75,7 +84,7 @@ while (my $line = <FA>) {
 			}
 			else { #still the previous one
 				if ((1 == $this_chr_index) and (1 == $chr_num)) { #the first scaffold
-					$current_chr = "$chr_tem$chr_num";
+					$current_chr = "${chr_tem}0$chr_num";
 					$current_scaf = $scaffold_name;
 					$hChrInfo{$chr_num}{$current_scaf} = $this_chr_index;
 					push @{$hScaName{$chr_num}}, $current_scaf;
