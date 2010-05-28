@@ -10,7 +10,7 @@ unless (@ARGV){
 my ($matrix,$ref,$readlen,$sp,$out,$DM)=@ARGV;
 $DM = ($DM=~/^m/i)?'-m ':'';
 #warn $DM;
-my $bin='/panfs/GAG/huxuesong/scripts/soapsnp';
+my $bin='/nas/RD_09C/resequencing/soft/bin/SoapSNP';
 $sp =~ /\/([^_\/]+)_([^_]+)\.sp$/;
 my $sample=$1;
 my $ChrID=$2.'.fa';

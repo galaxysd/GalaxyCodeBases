@@ -8,7 +8,7 @@ unless (@ARGV){
 }
 # $out.soap, $out.single, $out.log
 my ($lst,$ref,$out)=@ARGV;
-my $bin='/panfs/GAG/huxuesong/scripts/soapsnp';
+my $bin='/nas/RD_09C/resequencing/soft/bin/SoapSNP';
 
 my ($maxRL,$maxSize,$maxFile,$maxChr)=(0,0);
 open L,'<',$lst;
