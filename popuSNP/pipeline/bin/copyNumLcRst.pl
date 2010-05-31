@@ -2,6 +2,7 @@
 use strict;
 use Data::Dumper;
 use Getopt::Long;
+use FindBin qw($Bin);
 
 #Edit by heweiming
 #Bulit 2009-08-01
@@ -22,14 +23,16 @@ use Getopt::Long;
 
 
 die  "Version 1.0 2009-7-6;\nUsage:
-perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 soap.list output\n" unless (@ARGV == 12);
-my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$help);
+perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 14);
+my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
 GetOptions(
 	"numberOfFile:i"=>\$numberOfFile,
 	"chromosome:s"=>\$chromosome,
 	"length_chr_file:s"=>\$length_chr_file,
 	"reference:s"=>\$reference,
 	"input:s"=>\$input,
+	"merge:s"=>\$mergelist,
+	"out:s"=>\$outfile,
 	"help"=>\$help,
 );
 $numberOfFile ||= 1;
@@ -43,7 +46,7 @@ while(<RAW>)
 	chomp;
         my @line=split(/\s+/,$_);
 	my $inf=join("\t", @line[0..$#line]);
-        if($line[3]>= 1  && $line[9]>= 1 )
+        if($line[3]>= 1  && $line[9]>= 1 ) 		# depth > 0   and quality > 0
 	{  $exis_snp{$line[0]."_".$line[1]}=$inf;}  
 }
 close RAW;
@@ -56,14 +59,14 @@ while (<L>){
 	next if (/total/);
 	my @words = split;
 	$hash{$words[0]} = $words[1];
-	$noGapLength{$words[0]} = $words[1] - $words[2];
+#	$noGapLength{$words[0]} = $words[1] - $words[2];
 }
 close L;
 
 $_="";
 
 
-open	 A,"$ARGV[0]"  || die "$!" ;
+open	 A,"$mergelist"  || die "$!" ;
 my @cpnumber;
 my @hit;
 my %ina;
@@ -227,7 +230,7 @@ $_="";
 
 #my $coverage = $sum / $totalnoGapLength;
 
-my  $outDir=$ARGV[1];
+my  $outDir=$outfile;
 
 #   open(Report,">$outDir\.report")||die"$!";
 
@@ -423,8 +426,8 @@ my $file1="$outDir\.add";
 my $file2="$outDir\.rs";
 my $file4="$outDir\.add_cn";
 my $file3="$outDir\.rst";
-system ("/panfs/GAG/junli/raid010/pipeline/populationsnp/bin/RankSumTest  -i   $file2  -o   $file3 ");
-system ("perl /panfs/GAG/junli/raid010/pipeline/populationsnp/bin/addRst.pl  $file3   $file1  $file4 ");
+system ("$Bin/RankSumTest  -i   $file2  -o   $file3 ");
+system ("perl $Bin/addRst.pl  $file3   $file1  $file4 ");
 unlink    $file2 ;          #   system("rm  $file2");
 unlink    $file1 ;          #   system("rm $file1");
 unlink    $file3 ;          #   system("rm $file3");
