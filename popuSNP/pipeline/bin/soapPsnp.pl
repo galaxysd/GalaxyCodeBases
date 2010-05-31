@@ -177,7 +177,7 @@ eval perl $SCRIPTS/dosoap.pl \$SEED
 	print SH "#!/bin/sh
 #\$ -N \"rd_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=390M
+#\$ -cwd -r y -l vf=3.6G
 #\$ -hold_jid \"sp_$sample\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar @{$LMScmdlines{$sample}},"
