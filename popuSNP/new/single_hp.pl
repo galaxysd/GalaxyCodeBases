@@ -98,10 +98,10 @@ while (my $file=<P>) {
 close P;
 warn "\n";
 
-my $file=$opt_o.'.dat';
+my $file=$opt_o.'.dat.tmp';
 open O,'>',$file or die "[x]Error opening $file: $!\n";
 
-my ($POSa,%Hpc,%Hpa,$Hpr)=(1);
+my ($POSa,$N,%Hpc,%Hpa,$Hpr,$sX,$sXX)=(1,0);
 print STDERR "[!]Caltulating Hp ";
 for my $chr (@ChrID) {
 	print STDERR ".\b";
@@ -124,6 +124,9 @@ for my $chr (@ChrID) {
 		} else {$Hp=$Hpr='Inf';}
 		++$Hpc{$chr}{$Hpr};
 		++$Hpa{$Hpr};
+		++$N;
+		$sX += $Hp;
+		$sXX += $Hp*$Hp;
 		print O "$chr\t$POSa\t$st\t$ed\t$Hp\t$Smin,$Smax,$sum\t$snpcount\n";
 		$st += $opt_l;
 		$POSa += $opt_l;
@@ -131,12 +134,29 @@ for my $chr (@ChrID) {
 	print STDERR '-';
 }
 close O;
-warn "\n";
+print STDERR "|\b";
+
+my $Avg=$sX/$N;
+my $Std=sqrt($sXX/$N-$Avg*$Avg);
+
+$file=$opt_o.'.dat.tmp';
+open I,'<',$file or die "[x]Error opening $file: $!\n";
+$file=$opt_o.'.dat';
+open O,'>',$file or die "[x]Error opening $file: $!\n";
+while (<I>) {
+	my ($chr, $POSa, $st, $ed, $Hp, $Smms, $snpcount)=split /\t/;
+	my $ZHp=($Hp-$Avg)/$Std;
+	print O join("\t",$chr, $POSa, $st, $ed, $ZHp, $Hp, $Smms, $snpcount);
+}
+close O;
+warn ";\n";
+close I;
+unlink $opt_o.'.dat.tmp';
 
 print STDERR "[!]Stating Hp ";
 $file=$opt_o.'.stat';
 open S,'>',$file or die "[x]Error opening $file: $!\n";
-
+print S "# Avg:\t$Avg\n# Std:\t$Std\n# N: $N, sX: $sX, sXX: $sXX\n";
 sub sortInf($$) {
 	if ($_[0] eq 'Inf') { return 1; }
 	 elsif ($_[1] eq 'Inf') { return -1; }
