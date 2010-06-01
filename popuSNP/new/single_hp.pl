@@ -8,7 +8,7 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.3;
 
-our $opts='i:c:w:l:ovb';
+our $opts='i:c:w:l:o:vb';
 our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_w);
 
 our $help=<<EOH;
@@ -179,7 +179,6 @@ out <- function (c) {
 	png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
 	plot(a$V3[a$V1==c],a$V5[a$V1==c],type='p',xlab=c,ylab='Hp')
 	dev.off()
-
 }
 
 out('seg09')
@@ -187,3 +186,5 @@ out('seg09')
 # pdf("E:\\BGI\\toGit\\popuSNP\\new\\wm_a_w40k_s20k.pdf",12,9,fonts='Arial',title="Watermelon Hp density Plot")
 plot(density(a$V5),main='Watermelon Hp density Plot',sub='Window:40k bp, Slip:20k bp')
 dev.off()
+
+plot(a$V2[a$V5<=0],a$V5[a$V5<=0],type='p',xlab=c,ylab='Hp',cex=.4)
