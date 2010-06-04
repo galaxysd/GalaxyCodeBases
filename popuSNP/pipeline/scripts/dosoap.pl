@@ -10,6 +10,30 @@ unless (@ARGV){
 	exit;
 }
 
+sub combineC($) {
+	my $href=$_[0];
+	if ($href and %$href) {
+		my (@str,$m);
+		$m = (sort {$a<=>$b} keys %$href)[-1];
+		for (1..$m) {
+			#$$href{$_} += 0;
+			push @str,join(':',$_,$$href{$_}||0);
+		}
+		return \join(',',@str);
+	} else {return \'.';}
+}
+
+sub combineJ($) {
+	my $href=$_[0];
+	if ($href and %$href) {
+		my @str;
+		for (sort {$a<=>$b} keys %$href) {
+			push @str,join(':',$_,$$href{$_});
+		}
+		return \join(',',@str);
+	} else {return \'.';}
+}
+
 my ($PESE,$ins,$G,$opath,$Ref,$fqextpath,$fqname) = @ARGV;
 #print '[',join('] [',@ARGV),"]\n";
 #print '[',join('] [',$PESE,$ins,$G,$Ref,$fqextpath,@fqnames),"]\n";
@@ -33,9 +57,9 @@ print "[$sh]\n";
 my ($Pairs,$Paired,$Singled,$Reads,$Alignment);
 TEST:
 if (-s "$opath$fqnames[0].nfo") {
-	system("mv -f $opath$fqnames[0]_soap.sharchive $opath$fqnames[0]_soap.sharchive.old") if (-e "$opath$fqnames[0]_soappe.sh.archive");
+	system("mv -f $opath$fqnames[0].archive $opath$fqnames[0].archive.old"); #if (-e "$opath$fqnames[0].archive");
 } else {
-	open OUT,'>',"$opath$fqnames[0]_soap.sharchive" or warn "[!]Error opening $opath$fqnames[0]_soap.sharchive: $!\n";
+	open OUT,'>',"$opath$fqnames[0].archive" or warn "[!]Error opening $opath$fqnames[0].archive: $!\n";
 	print OUT "#!/bin/sh\n$sh\n";
 	close OUT;
 	system($sh)==0 or die "[x]system [$sh] failed: $?";
@@ -55,11 +79,11 @@ if (-s "$opath$fqnames[0].nfo") {
 	open NFO,'>',"$opath$fqnames[0].nfo" or die "[x]Error opening $opath$fqnames[0].nfo: $!\n";
 	if ($max==0) {
 		print NFO "#fmtS\tTotal_Reads\tAlignment\n";
-		print NFO "Summary\t",join(",",$Reads,$Alignment),"\n";
+		print NFO "Summary\t",join("\t",$Reads,$Alignment),"\n";
 		@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
 	} else {
 		print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\n";
-		print NFO "Summary\t",join(",",$Pairs,$Paired,$Singled),"\n";
+		print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled),"\n";
 		@ARGV=("$opath$fqnames[0].soap");
 	}
 	my ($BadLines,$BPOut,$ReadsOut,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
@@ -103,6 +127,11 @@ if (-s "$opath$fqnames[0].nfo") {
 			next;
 		}
 	}
-	print NFO "\n#fmtC\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\n";
+	print NFO "\n#fmtC\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
+	print NFO join("\t",'_ALL_',$ReadsOut,$BPOut,$TrimedReads,$TrimedBP,
+		${&combineC(\%misMatch)},${&combineJ(\%Hit9r)},${&combineJ(\%Hit9bp)},${&combineJ(\%Indel)},$BadLines),"\n\n";
+	print NFO "#fmtP\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
+	print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrTrimedReads{$_},$chrTrimedBP{$_},
+		${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
 	close NFO;
 }
