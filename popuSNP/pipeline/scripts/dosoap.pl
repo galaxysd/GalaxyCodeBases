@@ -72,17 +72,13 @@ if (-s "$opath$fqnames[0].nfo") {
 			($hit,$len,$chr,$types,$trim) = @lines[3,5,7,9,-2];
 			$BPOut += $len;	$chrBPOut{$chr} += $len;
 			++$ReadsOut;	++$chrReadsOut{$chr};
-			if ($hit < 10) {
-				++$Hit9r{$hit};
-				++$chrHit9r{$chr}{$hit};
-				$Hit9bp{$hit} += $len;
-				$chrHit9bp{$chr}{$hit} += $len;
-			} else {	# >= 10
-				++$Hit9r{10};
-				++$chrHit9r{$chr}{10};
-				$Hit9bp{10} += $len;
-				$chrHit9bp{$chr}{10} += $len;
-			}
+
+			$hit=10 if $hit>10;	# max to count 9, then >=10
+			++$Hit9r{$hit};
+			++$chrHit9r{$chr}{$hit};
+			$Hit9bp{$hit} += $len;
+			$chrHit9bp{$chr}{$hit} += $len;
+
 			if ($types < 100) {
 				++$misMatch{$types};
 				++$chrmisMatch{$chr}{$types};
