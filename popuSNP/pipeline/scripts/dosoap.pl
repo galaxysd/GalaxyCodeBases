@@ -17,6 +17,7 @@ my ($readlen,$min,$max)=split ',',$ins;
 my ($ext,$path)=split ',',$fqextpath;
 my @fqnames=split ',',$fqname;
 my $mismatch=$readlen>70?3:1;
+$mismatch = 5 if $readlen >= 90;
 $arg0 .= ' -R' if $min > 1500;
 my $fqcmd;
 unless ($max==0) {	# PE
@@ -53,9 +54,59 @@ if (-s "$opath$fqnames[0].nfo") {
 	}
 	open NFO,'>',"$opath$fqnames[0].nfo" or die "[x]Error opening $opath$fqnames[0].nfo: $!\n";
 	if ($max==0) {
-		print NFO "Total Reads:\t$Reads\nAlignment:\t$Alignment\n";
+		print NFO "#fmtS\tTotal_Reads\tAlignment\n";
+		print NFO "Summary\t",join(",",$Reads,$Alignment),"\n";
+		@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
 	} else {
-		print NFO "Total Pairs:\t$Pairs\nPaired:\t$Paired\nSingled:\t$Singled\n";
+		print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\n";
+		print NFO "Summary\t",join(",",$Pairs,$Paired,$Singled),"\n";
+		@ARGV=("$opath$fqnames[0].soap");
 	}
+	my ($BadLines,$BPOut,$ReadsOut,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
+	my (%chrBPOut,%chrReadsOut,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
+	# for 46999 ChrIDs, one hash took 12m RES for {}=$ and 125m VIRT for {}{10}=$, thus fine to work with scaffolds. ( 1 gb VIRT max ? )
+	my (@lines,$hit,$len,$chr,$types,$trim);
+	while (<>) {
+		@lines = split /\t/;
+		if (@lines > 10) {	# soap2 output always more than 10 columes.
+			($hit,$len,$chr,$types,$trim) = @lines[3,5,7,9,-2];
+			$BPOut += $len;	$chrBPOut{$chr} += $len;
+			++$ReadsOut;	++$chrReadsOut{$chr};
+			if ($hit < 10) {
+				++$Hit9r{$hit};
+				++$chrHit9r{$chr}{$hit};
+				$Hit9bp{$hit} += $len;
+				$chrHit9bp{$chr}{$hit} += $len;
+			} else {	# >= 10
+				++$Hit9r{10};
+				++$chrHit9r{$chr}{10};
+				$Hit9bp{10} += $len;
+				$chrHit9bp{$chr}{10} += $len;
+			}
+			if ($types < 100) {
+				++$misMatch{$types};
+				++$chrmisMatch{$chr}{$types};
+			} elsif ($types < 200) {	# '3S33M9D39M', '32M1D14M29S' exists
+				++$Indel{$types-100};
+				++$chrIndel{$chr}{$types-100};
+			} else {
+				++$Indel{200-$types};
+				++$chrIndel{$chr}{200-$types};
+			}
+			@lines = $trim =~ /(\d+)S/;
+			if (@lines) {
+				++$TrimedReads;
+				++$chrTrimedReads{$chr};
+				for ( @lines ) {
+					$TrimedBP += $_;
+					$chrTrimedBP{$chr} += $_;
+				}
+			}
+		} else {	# rare event ...
+			++$BadLines;
+			next;
+		}
+	}
+	print NFO "\n#fmtC\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\n";
 	close NFO;
 }
