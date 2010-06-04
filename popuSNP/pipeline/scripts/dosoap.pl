@@ -6,7 +6,7 @@ my $bin='/nas/RD_09C/resequencing/soft/bin/soap/soap2.20';
 my $arg0='-p 6 -t -s 40 -l 32';
 
 unless (@ARGV){
-	print "perl $0 PESE insize gap outpath ref fqextpath fqname\n";
+	print "perl $0 PESE insize gap outpath/ ref fqext,path/ fqname[,fqname2]\n";
 	exit;
 }
 
