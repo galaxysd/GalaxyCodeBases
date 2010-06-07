@@ -27,8 +27,8 @@ $ perl -MTree::Suffix -e 'my $tree = Tree::Suffix->new(qw(zzzzzzxxaaaaaastringax
 [string]
 
 =cut
-our $opts='i:o:s:x:v:bqd';
-our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d, $opt_x);
+our $opts='i:o:s:x:v:n:f:bqd';
+our($opt_i, $opt_s, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d, $opt_x, $opt_n, $opt_f);
 
 our $desc='1.filter fq, 2.stats';
 our $help=<<EOH;
@@ -37,6 +37,9 @@ our $help=<<EOH;
 \t-o Project output path (./1fqfilted), will mkdir if not exist
 \t-q run qsub automatically
 \t-x lib regex for Simulation Mode, undef for Normal Mode (undef)
+\t-f list file to skip bad FC\[_Lane\]\(s\) (undef), each patten per line.
+\t    eg. FC61K88AAXX\\nFC61KEPAAXX_L7
+\t-n InsertSize Range Shift (0,0), [on min,on max]
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -47,8 +50,13 @@ ShowHelp();
 $opt_i='./0rawfq' if ! $opt_i;
 $opt_s='sample.lst' if ! $opt_s;
 $opt_o='./1fqfilted' if ! $opt_o;
+$opt_n='0,0' if ! $opt_n;
+my ($sfmin,$sfmax);
 no warnings;
 $opt_v=int $opt_v;
+($sfmin,$sfmax)=split /,/,$opt_n;
+$sfmin=0 unless $sfmin;
+$sfmax=0 unless $sfmax;
 use warnings;
 
 $opt_i=~s#/+$##;
@@ -57,8 +65,20 @@ $opt_o=~s#/+$##;
 system('mkdir','-p',$opt_o);
 
 die "[x]-i $opt_i not exists !\n" unless -d $opt_i;
+my (@BadFCL,%tmph);
+if ($opt_f) {
+	die "[x]-f $opt_f not usable !\n" unless -s $opt_f;
+	open F,'<',$opt_f or die "Error opening $opt_f: $!\n";
+	while (<F>) {
+		chomp;
+		++$tmph{$_};
+	}
+	close F;
+	@BadFCL=sort keys %tmph;
+}
 
-print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s]\n";
+print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_s] with ($sfmin,$sfmax)\n";
+print STDERR 'Bad FC_Lane(s): [',join(',',@BadFCL),"]\n" if $opt_f;
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -72,8 +92,8 @@ while (<SAMPLE>) {
 	s/\r//g;
 	my ($sample,$lib,$min,$max)=split /\t/;
 	unless (defined $max) {
-		$max=int(0.5+$min*1.08);
-		$min=int($min*0.92);
+		$max=int(0.5+$min*1.08 + $sfmax);
+		$min=int($min*0.92 + $sfmin);
 	} else { ($min,$max)=sort {$a <=> $b} ($min,$max); }
 	push @{$SampleLib{$sample}},$lib;
 	$LibInsSize{$lib}=[$min,$max];
