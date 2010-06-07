@@ -95,7 +95,7 @@ while (<LST>) {
 	#$FQnfo{$sample}{$lib}{$FL}=[$ext,$path,@fqs];
 	$opath="$opt_o/2soap/$sample/$lib/";
 	system('mkdir','-p',$opath);
-	push @{$Lanes{$sample}{$lib}},[$PESE,$opath.$fqs[0]];	# without ext
+	push @{$Lanes{$sample}{$lib}},[$PESE,$opath.$fqs[0],$FL,$readlen];	# without ext
 	push @{$cmdlines{$sample}},"$PESE $ins $opt_g '$opath' '$ref' '$ext,$path' '".join(',',@fqs)."'";
 }
 close LST;
@@ -115,6 +115,7 @@ $opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
 #system('mkdir','-p',"$opt_o/2soap/megred/lst/");
 
+open SOAPL,'>',"$opt_o/2soap/soaps.lst";
 open LST,'>',"$opt_o/2soap/megred.lst";
 for my $sample (sort keys %Lanes) {
 	my $i=1;
@@ -128,13 +129,14 @@ for my $sample (sort keys %Lanes) {
 		push @{$MergeOut{$sample}},$mergeprefix;
 		open L,'>',$listname;
 		for (@{$Lanes{$sample}{$lib}}) {
-			my ($PESE,$soapfp)=@$_;
+			my ($PESE,$soapfp,$FL,$readlen)=@$_;
 			if ($PESE eq 'PE') {
 				print L "PE\t$i\t$soapfp.soap\n"; ++$i;
 				print L "SE\t$i\t$soapfp.single\n"; ++$i;
 			} else {
 				print L "SE\t$i\t$soapfp.se\n"; ++$i;
 			}
+			print SOAPL join("\t",$PESE,$sample,$lib,$FL,$readlen,$soapfp.'.nfo'),"\n";
 		}
 		close L;
 		push @{$LMScmdlines{$sample}},"-bi $listname -c $_ -o $mergeprefix >$mergeprefix.$_.log 2>$mergeprefix.$_.err" for @ChrIDs;
@@ -150,6 +152,7 @@ for my $sample (sort keys %Lanes) {
 	}
 }
 close LST;
+close SOAPL;
 
 $opath="$opt_o/2soap/sh/";
 system('mkdir','-p',$opath);
