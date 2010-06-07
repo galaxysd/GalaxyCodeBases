@@ -1,7 +1,7 @@
 #!/bin/env perl
 use strict;
 use warnings;
-use Data::Dump qw(dump ddx);
+#use Data::Dump qw(dump ddx);
 
 unless (@ARGV){
 	print "perl $0 <soaps.lst> <soaps.stat>\n";	# soaps.nfo can store the file size of soap. Too late, useless.
@@ -79,7 +79,7 @@ for my $sample (sort keys %nfo) {
 			my ($nfofpath,$PESE,$ReadLen)=@{$nfo{$sample}{$lib}{$FL}};
 			#print "[$_]\n";
 			open NFO,'<',"$nfofpath" or (warn "[!]Error opening $nfofpath: $!\n" and next);
-warn "$nfofpath\n";
+warn "[!]$nfofpath\n";
 			while (<NFO>) {
 				next if /^(#|$)/;
 				chomp;
@@ -130,3 +130,4 @@ for my $Chr (sort keys %Chr) {
 	}
 }
 close O;
+warn "[!] Done !\n";
