@@ -131,3 +131,26 @@ for my $Chr (sort keys %Chr) {
 }
 close O;
 warn "[!] Done !\n";
+
+__END__
+对./to9311/2soap/soaps.stat：
+上半部分：
+#Summary        SubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads@Hit|ASC,BP@Hit|ASC,IndelReads|ASC,BadLines
+按个体统计：grep ^ALL to9311/2soap/soaps.stat | awk '{print $2"\t"$3}' |sort|uniq
+按文库统计：grep ^ALL to9311/2soap/soaps.stat | awk '{print $4"\t"$5}' |sort|uniq
+按lane统计：grep ^ALL to9311/2soap/soaps.stat | awk '{print $6"\t"$7}'
+
+下半部分：
+#ByChr  SubItemOrder: ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads@Hit|ASC,BP@Hit|ASC,IndelReads|ASC
+按个体统计：grep ^Chr01 to9311/2soap/soaps.stat | awk '{print $2"\t"$3}' |sort|uniq
+按文库统计：grep ^Chr01 to9311/2soap/soaps.stat | awk '{print $4"\t"$5}' |sort|uniq
+按lane统计：grep ^Chr01 to9311/2soap/soaps.stat | awk '{print $6"\t"$7}'
+
+以Chr01为例，其他染色体替换。或用“Chr”提取全部。
+
+misMatchReads|ASC示例：
+“300347|184857|0|222”，mismatch=1的有300347，mismatch=2的有184857，没有mismatch=3的，mismatch=4的有222。
+IndelReads|ASC 同上。
+
+BP@Hit|ASC与Reads@Hit|ASC类似，但只分为1..9和>=10共计10种类别。
+根据抽取一个soap结果统计结果，不同hit数的分布是类似双曲线趋势下降的。

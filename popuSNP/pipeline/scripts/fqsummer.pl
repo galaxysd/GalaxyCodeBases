@@ -84,3 +84,10 @@ for my $sample (sort keys %FQnfo) {
 	}
 }
 close O;
+
+__END__
+对./1fqfilted/fqs.stat：
+# SubItemOrder: rawReads,rawBP,filteredReads,filteredBP,FileCount
+按个体统计：grep -v '#' ./1fqfilted/fqs.stat | awk '{print $1"\t"$2}' |sort|uniq
+按文库统计：grep -v '#' ./1fqfilted/fqs.stat | awk '{print $3"\t"$4}' |sort|uniq
+按lane统计：grep -v '#' ./1fqfilted/fqs.stat | awk '{print $5"\t"$6}'
