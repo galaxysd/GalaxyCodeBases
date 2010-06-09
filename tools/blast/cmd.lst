@@ -1,0 +1,29 @@
+perl -lane '
+BEGIN {	my ($last,%c)=($F[0]);}
+if ($F[0] eq $last) {
+	if (keys %c < 3) {
+		(undef,$gi)=split "\\|",$F[1];
+		unless ($c{$F[1]}) {
+			chomp($a = `./getinfo.sh $gi`) or chomp($a = 
+`./getinfo0.sh $gi`);
+			splice @F,2,0,$a;
+			print join "\t",@F;
+		}
+		++$c{$F[1]};
+	}
+} else {
+	$last=$F[0];
+	%c=();
+	if (keys %c < 3) {
+		(undef,$gi)=split "\\|",$F[1];
+		chomp($a = `./getinfo.sh $gi`) or chomp($a = 
+`./getinfo0.sh $gi`);
+		splice @F,2,0,$a;
+		print join "\t",@F;
+		++$c{$F[1]};
+	}
+}
+' files/FC61L0PAAXX_L5_TUBhhsRBZDIAAPE_1.blast |les
+
+perl -lane 'BEGIN {my %c} @a=split /\t/;$b=$a[2];@a=split /\|/,$b;$b=join "|",@a[0..2];++$c{$b};print STDERR join "\t",$F[0],$c{$b},$b; END {print STDERR "-" x 80; print "$c{$_}\t$_" for (sort keys %c);}' FC61L0PAAXX_L5_TUBhhsRBZDIAAPE.out |sort -n| tee FC61L0PAAXX_L5_TUBhhsRBZDIAAPE.stat
+
