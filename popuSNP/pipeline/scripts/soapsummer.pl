@@ -4,12 +4,12 @@ use warnings;
 #use Data::Dump qw(dump ddx);
 
 unless (@ARGV){
-	print "perl $0 <soaps.lst> <soaps.stat>\n";	# soaps.nfo can store the file size of soap. Too late, useless.
+	print "perl $0 <soaps.lst> <outprefix(.stat & .ins)>\n";	# soaps.nfo can store the file size of soap. Too late, useless.
 	exit;
 }
 
 my ($fqlst,$statout) = @ARGV;
-my (%DATrbrf,%nfo);
+my (%DATrbrf,%nfo,%insD);
 
 open LST,'<',$fqlst or die "[x]Error opening $fqlst: $!\n";
 while (<LST>) {
@@ -21,6 +21,7 @@ while (<LST>) {
 	# "Total_Reads(=Total_Pairs*2), Paired, Singled/Alignment"
 	$DATrbrf{Lib}{$sample}{$lib}={ALL => [0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Lib}{$sample}{$lib};	# may be faster ?
 	$DATrbrf{Sample}{$sample}={ALL => [0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Sample}{$sample};
+	$insD{$sample}{$lib}{$FL}=['',''];
 }
 
 sub combineC($) {
@@ -77,6 +78,7 @@ for my $sample (sort keys %nfo) {
 	for my $lib (keys %{$nfo{$sample}}) {
 		for my $FL (keys %{$nfo{$sample}{$lib}}) {
 			my ($nfofpath,$PESE,$ReadLen)=@{$nfo{$sample}{$lib}{$FL}};
+			%NFO=();
 			#print "[$_]\n";
 			open NFO,'<',"$nfofpath" or (warn "[!]Error opening $nfofpath: $!\n" and next);
 warn "[!]$nfofpath\n";
@@ -91,13 +93,16 @@ warn "[!]$nfofpath\n";
 			&sumup($PESE,$DATrbrf{Sample}{$sample},\%NFO);
 			&sumup($PESE,$DATrbrf{Lib}{$sample}{$lib},\%NFO);
 			&sumup($PESE,$DATrbrf{Lane}{$sample}{$lib}{$FL},\%NFO);
+			$insD{$sample}{$lib}{$FL}=[@{$NFO{Summary}}[3,4]] if $PESE eq 'PE';
 		}
 	}
 }
 #ddx \%DATrbrf;
 my %Chr;
-open O,'>',$statout or die "[x]Error opening $statout: $!\n";
+open O,'>',$statout.'.stat' or die "[x]Error opening $statout.stat: $!\n";
 print O "#Summary\tSubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC,BadLines\n";
+open INS,'>',$statout.'.ins' or die "[x]Error opening $statout.ins: $!\n";
+print INS "#Sample\tLib\tLane\tInsAvg,Lsd,Rsd,STD\tInsMin,InsMax\n";
 my ($Rsample,$Rlib,$RFL);
 for my $sample (sort keys %nfo) {
 	$Rsample=&combineLineA($DATrbrf{Sample}{$sample});#join ',',@{$DATrbrf{Sample}{$sample}{Summary}},@{$DATrbrf{Sample}{$sample}{ALL}}[0..3],${&combineC($DATrbrf{Sample}{$sample}{ALL}[4])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[5])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[6])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[7])},$DATrbrf{Sample}{$sample}{ALL}[8];
@@ -110,10 +115,11 @@ for my $sample (sort keys %nfo) {
 		for my $FL (sort keys %{$nfo{$sample}{$lib}}) {
 			$RFL=&combineLineA($DATrbrf{Lane}{$sample}{$lib}{$FL});
 			print O join("\t",'ALL',$sample,$Rsample,$lib,$Rlib,$FL,$RFL),"\n";
+			print INS join("\t",$sample,$lib,$FL,@{$insD{$sample}{$lib}{$FL}}),"\n";
 		}
 	}
 }
-
+close INS;
 print O "\n#ByChr\tSubItemOrder: ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC\n";
 for my $Chr (sort keys %Chr) {
 	for my $sample (sort keys %nfo) {

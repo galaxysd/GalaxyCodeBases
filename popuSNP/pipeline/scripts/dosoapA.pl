@@ -4,6 +4,7 @@ use warnings;
 
 my $bin='/nas/RD_09C/resequencing/soft/bin/soap/soap2.20';
 my $arg0='-p 6 -t -s 40 -l 32';
+my $soap2patch=5;
 
 unless (@ARGV>6){
 	print "perl $0 PESE ReadLen,insSize gap outpath/ ref.index fqext,path/ fqname[,fqname2] [u]\n";
@@ -34,21 +35,21 @@ sub combineJ($) {
 	} else {return \'.';}
 }
 
-sub getRealpos($$$) {
-	my ($len,$strand,$pos,$trim)=@_;
-	my $realpos=$pos;
-		if ($strand eq '-') {	# Negative
-			$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
-			if ($trim =~ /(\d+)S$/) {
-				$realpos += $1;	# $1 only reset after next /()/
-			}
-		} elsif ($strand eq '+') {	# Positive
-			if ($trim =~ /^(\d+)S/) {
-				$realpos -= $1;
-			}
-		} else {	# elsif ($strand ne '+')
-			$realpos=0;
+sub getRealpos($$$$) {
+	my ($len,$strand,$realpos,$trim)=@_;
+	if ($strand eq '-') {	# Negative
+		$realpos += $len;	# should be $len-1. So, starting 0. (+ & -, never meets.)
+		if ($trim =~ /(\d+)S$/) {
+			$realpos += $1;	# $1 only reset after next /()/
 		}
+	} elsif ($strand eq '+') {	# Positive
+		if ($trim =~ /^(\d+)S/) {
+			$realpos -= $1;
+		}
+	} else {
+		$realpos=-1;
+	}
+	return $realpos;
 }
 =pod
 case 'R': opt->FR = 0;
@@ -84,26 +85,26 @@ my ($ext,$path)=split ',',$fqextpath;
 my @fqnames=split ',',$fqname;
 my $mismatch=$readlen>70?3:1;
 $mismatch = 5 if $readlen >= 90;
-my ($min,$max)=(100,1200)
+my ($min,$max)=(140,1200);
 if ($ins > 1500) {
 	$arg0 .= ' -R';
 	($min,$max)=(1000,$ins*2-1000);
 }
-my ($fqcmd,$tmpcmd);
-unless ($PESE eq 'PE') {	# PE
+my ($n,$fqcmd,$tmpcmd,$avg,$std,$Lsd,$Rsd,$max_y,$max_x)=(0);
+if ($PESE eq 'PE') {	# PE
 	$fqcmd="-a $path$fqnames[0]$ext -b $path$fqnames[-1]$ext -o $opath$fqnames[0].soap -2 $opath$fqnames[0].single";
 	$tmpcmd="-a $path$fqnames[0]$ext -b $path$fqnames[-1]$ext -o $opath$fqnames[0].tp -2 $opath$fqnames[0].ts";
 	system("$bin $tmpcmd -D $Ref $arg0 -m $min -x $max -v $mismatch -g $G 2>$opath$fqnames[0].tlog")==0 or die "[x]system soap failed: $?";
 ###
-	open TP,'<',$opath$fqnames[0].tp;
-	my ($pairs,$lastpos,$line1,$line2)=(0);
+	open TP,'<',"$opath$fqnames[0].tp";
+	my ($pairs,$lastpos,$line1,$line2,$pp,$pn,$calins,%insD)=(0);
 	while ($line1=<TP>) {
 		last if eof TP;
 		$lastpos=tell TP;
 		my ($id1, $n1, $len1, $f1, $chr1, $x1, $m1) = (split "\t", $line1)[0,3,5,6,7,8,-2];
 		$line2=<TP>;
 		my ($id2, $n2, $len2, $f2, $chr2, $x2, $m2) = (split "\t", $line2)[0,3,5,6,7,8,-2];
-			($soapid,$hit,$len,$strand,$chr,$pos,$trim) = (split(/\t/))[0,3,5,6,7,8,-2];
+			#($soapid,$hit,$len,$strand,$chr,$pos,$trim) = (split(/\t/))[0,3,5,6,7,8,-2];
 		$id1 =~ s/\/[12]$//;
 		$id2 =~ s/\/[12]$//;
 		if ($id1 ne $id2){	# single
@@ -111,10 +112,62 @@ unless ($PESE eq 'PE') {	# PE
 			next;
 		}
 		next if $n1+$n2>2 or $chr1 ne $chr2;
+		if ($f1 eq '+') {
+			($pp,$pn)=($x1,$x2);
+		} else {
+			($pp,$pn)=($x2,$x1);
+		}
+		if ($ins > 1500) {	# FR => +.pos < -.pos; RF => -.pos < +.pos
+			next if $pp < $pn;
+		} else { next if $pp > $pn; }
 		++$pairs;
-		;
+		$line1=&getRealpos($len1, $f1, $x1, $m1);	# $len,$strand,$realpos,$trim
+		$line2=&getRealpos($len2, $f2, $x2, $m2);	# Well, $line{1,2} is recycled.
+		$calins=abs($line1-$line2);	# -.starting=0
+		++$insD{$calins};
 	}
 	close TP;
+	my ($sum,$sum2,$v)=(0,0);
+	open O,'>',"$opath$fqnames[0].insD";
+	for my $k (sort {$a <=> $b} keys %insD) {
+		$v=$insD{$k};
+		print O "$k\t$v\n";
+		$sum += $k * $v;
+		$n += $v;
+		$sum2 += $k*$k * $v;
+	}
+	$avg = $sum/$n;
+	$std = sqrt($sum2/$n-$avg*$avg);
+	print O "# $avg ± $std\n";
+	($max_y,$max_x)=(-1,0);
+	for my $k ($avg-$std .. $avg+$std) {	# 68.27%
+		next unless $v=$insD{$k};
+		if ($max_y < $v) {
+			$max_x = $k;
+			$max_y = $v;
+		}
+	}
+	my $cutoff = $max_y / 1000;
+	$cutoff = 3 if $cutoff<3;
+	my ($diff, $Lc, $Rc);
+	for my $k (keys %insD) {
+		$v=$insD{$k};
+		next if $v < $cutoff;
+		$diff = $k - $max_x;
+		if ($diff < 0) {
+			$Lsd += $v * $diff * $diff;
+			$Lc += $v;
+		}
+		elsif ($diff > 0) {
+			$Rsd += $v * $diff * $diff;
+			$Rc += $v;
+		}
+	}
+	$Lsd = sqrt($Lsd/$Lc);
+	$Rsd = sqrt($Rsd/$Rc);
+	print O "# +$Lsd -$Rsd\n";
+	close O;
+	($min,$max)=(int($avg-$Lsd*2.576-$soap2patch),int($avg+$Rsd*2.576+$soap2patch+.5));	# 99%
 ###
 	$arg0 .= " -m $min -x $max";
 } else {	# SE
@@ -172,8 +225,9 @@ if ($max==0) {
 	print NFO "Summary\t",join("\t",$Reads,$Alignment),"\n";
 	@ARGV=("$opath$fqnames[0].se");
 } else {
-	print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\n";
-	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled),"\n";
+	my $p=sprintf "%.2f",100*$max_y/$n;
+	print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\tInsAvg,Lsd,Rsd,Mode(p%),STD\tInsMin,InsMax\n";
+	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled,"$avg,$Lsd,$Rsd,$max_x($p %),$std","$min,$max"),"\n";
 	@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
 }
 my ($BadLines,$BPOut,$ReadsOut,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
