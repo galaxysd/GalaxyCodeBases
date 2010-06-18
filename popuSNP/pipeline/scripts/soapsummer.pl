@@ -102,7 +102,7 @@ my %Chr;
 open O,'>',$statout.'.stat' or die "[x]Error opening $statout.stat: $!\n";
 print O "#Summary\tSubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC,BadLines\n";
 open INS,'>',$statout.'.ins' or die "[x]Error opening $statout.ins: $!\n";
-print INS "#Sample\tLib\tLane\tInsAvg,Lsd,Rsd,STD\tInsMin,InsMax\n";
+print INS "#Sample\tLib\tLane\tMode(p%),Lsd,Rsd,InsAvg,STD\tInsMin,InsMax\n";
 my ($Rsample,$Rlib,$RFL);
 for my $sample (sort keys %nfo) {
 	$Rsample=&combineLineA($DATrbrf{Sample}{$sample});#join ',',@{$DATrbrf{Sample}{$sample}{Summary}},@{$DATrbrf{Sample}{$sample}{ALL}}[0..3],${&combineC($DATrbrf{Sample}{$sample}{ALL}[4])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[5])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[6])},${&combineC($DATrbrf{Sample}{$sample}{ALL}[7])},$DATrbrf{Sample}{$sample}{ALL}[8];

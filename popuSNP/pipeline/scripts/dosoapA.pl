@@ -226,8 +226,11 @@ if ($max==0) {
 	@ARGV=("$opath$fqnames[0].se");
 } else {
 	my $p=sprintf "%.2f",100*$max_y/$n;
-	print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\tInsAvg,Lsd,Rsd,Mode(p%),STD\tInsMin,InsMax\n";
-	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled,"$avg,$Lsd,$Rsd,$max_x($p %),$std","$min,$max"),"\n";
+	$avg=int($avg*10+.5)/10;
+	$Lsd=int($Lsd*100+.5)/100;
+	$Rsd=int($Rsd*100+.5)/100;
+	print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\tMode(p%),Lsd,Rsd,InsAvg,STD\tInsMin,InsMax\n";
+	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled,"$max_x($p %),$Lsd,$Rsd,$avg,$std","$min,$max"),"\n";
 	@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
 }
 my ($BadLines,$BPOut,$ReadsOut,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
@@ -275,7 +278,7 @@ print NFO "\n#fmtC\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads
 print NFO join("\t",'ALL',$ReadsOut,$BPOut,$TrimedReads,$TrimedBP,
 	${&combineC(\%misMatch)},${&combineJ(\%Hit9r)},${&combineJ(\%Hit9bp)},${&combineJ(\%Indel)},$BadLines),"\n\n";
 print NFO "#fmtP\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
-print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrTrimedReads{$_},$chrTrimedBP{$_},
+print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,
 	${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
 close NFO;
 
