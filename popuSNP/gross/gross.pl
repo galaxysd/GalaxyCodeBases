@@ -18,8 +18,8 @@ our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_f, $opt_w, $opt_n);
 
 our $help=<<EOH;
 \t-i Population SNP file (./pop.add_cn.filter)
-\t-w Wild/Original Group PSNP file (./wild.add_cn.filter)
-\t-c Cultural/Evolutionized Group PSNP file (./cul.add_cn.filter)
+\t-w Wild/Original Group PSNP file (./wild.add_cn)
+\t-c Cultural/Evolutionized Group PSNP file (./cul.add_cn)
 \t   For multiple ChrID in single file, sort by position ASC
 \t-n window size (20000) bp
 \t-l step length (2000) bp
@@ -33,8 +33,8 @@ ShowHelp();
 
 $opt_o='./result.polymorphism' if ! defined $opt_o;
 $opt_i='./pop.add_cn.filter' if ! $opt_i;
-$opt_c='./cul.add_cn.filter' if ! $opt_c;
-$opt_w='./wild.add_cn.filter' if ! $opt_w;
+$opt_c='./cul.add_cn' if ! $opt_c;
+$opt_w='./wild.add_cn' if ! $opt_w;
 $opt_n=20000 if ! $opt_n;
 $opt_l=2000 if ! $opt_l;
 $opt_f=0.3 if ! $opt_f;
@@ -63,6 +63,45 @@ sub CalGROSS($$) {
 	my ($len,$datp)=@_;
 }
 
+my (%SNP,%LastPos);
+while (<SNP>) {
+	my ($chr,$pos,undef,$depth,$cnr,$base1,$base2,$nbase1,$nbase2,$Q,$cn)=split /\t/;
+## format_of_copyNumRST5p_v2.pl.output
+#chr	loc	refBase	depth	cpnum	base1	base2	numOfBase1	numOfBase2	quality	copynum	5bp_edge	no_edge	Uniq_reads	ration_check	RST_check
+#chromosome01	173	C	95	0.594737	C	T	98	4	18	1.17	27	68	84	0.00	0.364752
+#seg01	62	G	26	0.500000	A	G	5	7	44	1.46	13	13	18	0.75	0.448375
+	$SNP{$chr}{$pos}{P}=[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
+	$LastPos{$chr} = $pos unless (exists $LastPos{$chr} && $LastPos{$chr} > $pos);
+}
+while (<SC>) {
+	my ($chr,$pos,undef,$depth,$cnr,$base1,$base2,$nbase1,$nbase2,$Q)=split /\t/;
+	if ($cnr > 0) {
+		$SNP{$chr}{$pos}{C}=[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
+		#$LastPos{$chr} = $pos unless (exists $LastPos{$chr} && $LastPos{$chr} > $pos);
+	}
+}
+while (<SW>) {
+	my ($chr,$pos,undef,$depth,$cnr,$base1,$base2,$nbase1,$nbase2,$Q)=split /\t/;
+	if ($cnr > 0) {
+		$SNP{$chr}{$pos}{W}=[$depth,$base1,$base2,$nbase1,$nbase2,$Q];
+		#$LastPos{$chr} = $pos unless (exists $LastPos{$chr} && $LastPos{$chr} > $pos);
+	}
+}
+
+my %CountP;
+for my $chr (keys %SNP) {
+	for (my $i=1;$i<=$LastPos{$chr}-$opt_l+1;$i++) {
+		$CountP{$chr}=0;
+		for (my $pos=$i;$pos<$i+$opt_n;$pos++) {
+			++$CountP{$chr} if exists $SNP{$chr}{$pos}{P};# && exists $SNP{$chr}{$pos}{C} && exists $SNP{$chr}{$pos}{W};
+		}
+		print $CountP{$chr},"\n";
+	}
+}
+
+
+
+__END__
 open OUT,'>',$opt_o or die "[x]Error opening $opt_o: $!\n";
 my ($i,$LastPosSNP,$LastPosSC,$LastPosSW)=($opt_l-$opt_n,0,0,0);
 my ($wstart,$wend,%DAT,%CountP,$res);
