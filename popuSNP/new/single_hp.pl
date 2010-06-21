@@ -56,10 +56,10 @@ our %IUB = ( A => [qw(A A)],
 my $start_time = [gettimeofday];
 
 system('mkdir','-p',$opt_o);
-system('rmdir',$opt_o) if $opt_o =~ m#/[\s.]*[^/\s.]+[^/]*$#;
+system('rmdir',$opt_o);	# if $opt_o =~ m#/[\s.]*[^/\s.]+[^/]*$#;
 
 my (%ChrLen,@ChrID);
-print STDERR "[!]Loading Chr NFO:\t";
+print STDERR "[!]Load ChrNFO:\t";
 open C,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 while (<C>) {
 	chomp;
@@ -73,7 +73,7 @@ warn "\n";
 my $win=$opt_w-1;
 
 my %SNP;
-print STDERR "[!]Parsing PSNP ";
+print STDERR "[!]Parsing PSNP: .";
 open P,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (my $file=<P>) {
 	chomp $file;
@@ -96,7 +96,7 @@ while (my $file=<P>) {
 	close SNP;
 }
 close P;
-warn "\n";
+warn ".\n";
 
 my $file=$opt_o.'.dat.tmp';
 open O,'>',$file or die "[x]Error opening $file: $!\n";
@@ -175,6 +175,8 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 
 __END__
+a=read.delim('v4Hp_40k_20k.dat',F,comment.char='#')
+
 out <- function (c) {
 	png(paste("E:\\BGI\\toGit\\popuSNP\\new\\",c,'.png',sep=''),2048,768)
 	plot(a$V3[a$V1==c],a$V5[a$V1==c],type='p',xlab=c,ylab='Hp')
