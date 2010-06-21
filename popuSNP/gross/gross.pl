@@ -22,7 +22,7 @@ our $help=<<EOH;
 \t-c Cultural/Evolutionized Group PSNP file (./cul.snp)
 \t-n window size (20000) bp
 \t-l step length (2000) bp
-\t-f filter out smaller regins, 30% (0.3) of window size
+\t-f filter out smaller regions, 30% (0.3) of window size
 \t-o Output File (./result.polymorphism)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
