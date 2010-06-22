@@ -110,16 +110,20 @@ if ($opt_v > 3) {
 }
 
 ### 2soap ###
-my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr);
+my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr,%cmdlinesDepth);
 $opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
 #system('mkdir','-p',"$opt_o/2soap/megred/lst/");
 
 open SOAPL,'>',"$opt_o/2soap/soaps.lst";
 open LST,'>',"$opt_o/2soap/megred.lst";
+system('mkdir','-p',"$opt_o/2soap/depth/");
+open DEPLSTA,'>',"${opath}/_ALL_.deplst";
 for my $sample (sort keys %Lanes) {
 	my $i=1;
 	#$MergedbySample{$sample}="$opt_o/2soap/megred/$sample/";
+	my $depthprefix="$opt_o/2soap/depth/$sample";
+	open DEPLST,'>',"${opath}/${sample}.deplst";
 	system('mkdir','-p',"$opt_o/2soap/megred/$sample/");	# ${sample}_ChrID.sp
 	system('mkdir','-p',"$opt_o/2soap/$sample/megre/");
 	for my $lib (keys %{$Lanes{$sample}}) {
@@ -147,12 +151,18 @@ for my $sample (sort keys %Lanes) {
 		close L;
 		my $spname="$opt_o/2soap/megred/$sample/${sample}_$chrid.sp";
 		print LST "$sample\t$chrid\t$SampleRL{$sample}\t$spname\n";
+		print DEPLST $spname,"\n";
+		print DEPLSTA $spname,"\n";
 		push @{$mergedbychr{$chrid}},$spname;	# $spname
 		push @{$cmdlinesMerged{$sample}},"${opath}${sample}_$chrid.lmslst $opt_o/2soap/megred/$sample/${sample}_$chrid"
 	}
+	$cmdlinesDepth{$sample}="${opath}/${sample}.deplst $opt_o/2soap/depth/$sample";
+	close DEPLST;
 }
 close LST;
 close SOAPL;
+$cmdlinesDepth{_ALL_}="${opath}/_ALL_.deplst $opt_o/2soap/depth/_ALL_";
+close DEPLSTA;
 
 $opath="$opt_o/2soap/sh/";
 system('mkdir','-p',$opath);

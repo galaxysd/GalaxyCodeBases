@@ -30,7 +30,7 @@ $opt_c='./chr.nfo' if ! $opt_c;
 $opt_w=40000 if ! $opt_w;
 $opt_l=20000 if ! $opt_l;
 
-print STDERR "From [$opt_i] to [$opt_o].{dat,stat}, with [$opt_c][$opt_l][$opt_w]/\n";
+print STDERR "From [$opt_i] to [$opt_o].{dat,stat}, with [$opt_c][$opt_l][$opt_w]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 #http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html#BEGIN1
