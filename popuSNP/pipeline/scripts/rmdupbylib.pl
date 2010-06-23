@@ -449,7 +449,7 @@ unless ($opt_m) {
 		} else {	# $PE eq 'SE'
 			$bpsOS += $Plen;	++$itemsOutS;
 		}
-		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
+		print OUT $Pfileid,'-',$red;#,"\n";	# rename soapid with prefix
 	}
 } else {
 	while ( $pres=$sth5->fetchrow_arrayref ) {
@@ -460,7 +460,7 @@ unless ($opt_m) {
 		} else {	# $PE eq 'SE'
 			$bpsOS += $Plen;	++$itemsOutS;
 		}
-		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
+		print OUT $Pfileid,'-',$red;#,"\n";	# rename soapid with prefix
 	}
 }
 =pod
@@ -511,7 +511,7 @@ if ($opt_d) {
 		#push @aline,$isTrim;
 		#$red=join "\t",@aline[0..9,-1];
 		#print "[!]$Pfileid $PE [$Psoapid] <> [$redid], soap file changed.\n" if $Psoapid ne $redid;
-		print OUT $Pfileid,'_',$red;#,"\n";	# rename soapid with prefix
+		print OUT $Pfileid,'-',$red;#,"\n";	# rename soapid with prefix
 	}
 	close OUT;
 	print STDERR '_D';
