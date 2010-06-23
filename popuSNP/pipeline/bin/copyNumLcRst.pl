@@ -13,7 +13,7 @@ use FindBin qw($Bin);
 #4.there is at least one read that not 5bp_edge coveraged this site.
 #5.at least one reads uniq corveraged this site
 #6.ration_check<=2
-#7.RST_check>=0.005 
+#7.RST_check>=0.005
 
 ##note:the rule is only for rice,if you do other case,you must change the filtering rule .
 
@@ -24,14 +24,16 @@ use FindBin qw($Bin);
 
 die  "Version 1.0 2009-7-6;\nUsage:
 perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 14);
+# copyNumLcRst.pl -i ./Watermelon_17/SNP/PE/seg01/seg01 -r ./watermelon_v2_888/faByChr/seg01.fa -l ./Watermelon_17/FinalSNP2/watermelon.merge.len -c seg01 -n 16 -m ./Watermelon_17/SortbyChr/PE/List/seg01.list -o ./Watermelon_17/FinalSNP2/FinalSNP/Population/seg01
+
 my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
 GetOptions(
-	"numberOfFile:i"=>\$numberOfFile,
-	"chromosome:s"=>\$chromosome,
-	"length_chr_file:s"=>\$length_chr_file,
+	"numberOfFile:i"=>\$numberOfFile,	# Sample count
+	"chromosome:s"=>\$chromosome,	# ChrID
+	"length_chr_file:s"=>\$length_chr_file,	# ChrLen
 	"reference:s"=>\$reference,
-	"input:s"=>\$input,
-	"merge:s"=>\$mergelist,
+	"input:s"=>\$input,	# pCNS
+	"merge:s"=>\$mergelist,	# merged soap list, by Chr
 	"out:s"=>\$outfile,
 	"help"=>\$help,
 );
@@ -46,8 +48,8 @@ while(<RAW>)
 	chomp;
         my @line=split(/\s+/,$_);
 	my $inf=join("\t", @line[0..$#line]);
-        if($line[3]>= 1  && $line[9]>= 1 ) 		# depth > 0   and quality > 0
-	{  $exis_snp{$line[0]."_".$line[1]}=$inf;}  
+        if($line[3]>0)#  && $line[9]>= 1 ) 		# depth > 0   and quality > 0
+	{  $exis_snp{$line[0]."_".$line[1]}=$inf;}
 }
 close RAW;
 
@@ -85,7 +87,7 @@ while(my $line=<A>)
 	chomp $line;
 
 	open IN,$line or die $!;
-	
+
 	while (<IN>){
 		chomp;
 		my ($word1,$word2,$hit,$read_len,$chr,$pos)=(split /\s+/)[1,2,3,5,7,8];
@@ -114,8 +116,8 @@ while(my $line=<A>)
 			{
 				$hit[$j] += $hit;
 				$cpnumber[$j] ++;
-				
-				if($j-$start<=5  ||  $end-$j<=5) 
+
+				if($j-$start<=5  ||  $end-$j<=5)
 				{
 				$ina{$loc_chr_a}++;
 				}
@@ -123,7 +125,7 @@ while(my $line=<A>)
 				{
 				$outa{$loc_chr_a}++;
 				}
-			
+
 			 	next if ($hit != 1) ;
 				$uniqHash{$loc_chr_a}++;
 			       my $offset = $j - $start;
@@ -137,7 +139,7 @@ while(my $line=<A>)
 	close IN;
 	 foreach (keys %exis_snp){
                 $hashLC{$_} .= "~,";
-	}	
+	}
 
 
 
@@ -204,7 +206,7 @@ $_="";
 
  # my $sum = 0;
  # my $totalnoGapLength = 0;
- 
+
 foreach my $h(1..$length){
 if(	!exists $cpnumber[$h] )
 {
@@ -225,7 +227,7 @@ if(	!exists $cpnumber[$h] )
 @hit=();
 undef @hit;
 $_="";
-# delete @hit; 
+# delete @hit;
 
 
 #my $coverage = $sum / $totalnoGapLength;
@@ -242,15 +244,15 @@ my  $outDir=$outfile;
 #----- got each copynumber  and filter
 #my @cp =  @t[1..$length];
 
-# @t=(); 
+# @t=();
   %noGapLength=();  %hash=(); $length=();
    undef  %noGapLength ; undef  %hash ; undef $length ;
 
- #delete $sum; 
-     open(Addcn,">$outDir\.add")||die"$!";  # print add_cn out 
-     open(RST,">$outDir\.rs")||die"$!"; # print filter SNP
+ #delete $sum;
+     open(Addcn,">$outDir\t.add")||die"$!";  # print add_cn out
+     open(RST,">$outDir\t.rs")||die"$!"; # print filter SNP
  #    open(OUTdb,">$outDir\.dbsnp")||die"$!"; # print filter SNP
-              
+
 
 my %allele = ();
 my %count = ();
@@ -264,15 +266,15 @@ foreach my $k (sort {my ($a,$b),(split(/\_/,$a))[1]<=>(split(/\_/,$b))[1]}keys %
 	my $copynum = $cpnumber[$line[1]];
 	my $LC_input=$hashLC{$k};
 	my $lineprint=();
-	 $hashLC{$k}=(); 
- $cpnumber[$line[1]]=(); 
-# delete   $cp[$line[1]-1];  	
+	 $hashLC{$k}=();
+ $cpnumber[$line[1]]=();
+# delete   $cp[$line[1]-1];
 
 #	chomp $inf;           ADDcn  OUT
 if(!exists  $ina{$k} ) {$ina{$k}=0;}
 if(!exists $outa{$k} ) { $outa{$k}=0;}
 if(!exists  $uniqHash{$k}) { $uniqHash{$k}=0; }
-#  print Addcn  $inf,"\t",$copynum,"\t",$ina{$k},"\t",$outa{$k},"\t", $uniqHash{$k}; 
+#  print Addcn  $inf,"\t",$copynum,"\t",$ina{$k},"\t",$outa{$k},"\t", $uniqHash{$k};
  $lineprint= $inf."\t".$copynum."\t".$ina{$k}."\t".$outa{$k}."\t". $uniqHash{$k};
 delete  $ina{$k} ; delete  $outa{$k} ;  $exis_snp{$k}=0; delete  $uniqHash{$k};
 delete $hashLC{$k};
@@ -322,7 +324,7 @@ delete $hashLC{$k};
                                 $stat{$allele_LC[$j]} ++;
                         }
                         my $l = scalar keys %hashtemp;
-			
+
 			  if ($l == 1){
                                 foreach (keys %hashtemp){
 #                                       print $hash{$_},$_;
@@ -422,15 +424,15 @@ close RST;
 #delete  %outa;
 #delete %hashRST;
 
-my $file1="$outDir\.add";
-my $file2="$outDir\.rs";
-my $file4="$outDir\.add_cn";
-my $file3="$outDir\.rst";
+my $file1="$outDir\t.add";
+my $file2="$outDir\t.rs";
+my $file4="$outDir\t.add_cn";
+my $file3="$outDir\t.rst";
 system ("$Bin/RankSumTest  -i   $file2  -o   $file3 ");
 system ("perl $Bin/addRst.pl  $file3   $file1  $file4 ");
-unlink    $file2 ;          #   system("rm  $file2");
-unlink    $file1 ;          #   system("rm $file1");
-unlink    $file3 ;          #   system("rm $file3");
+#unlink    $file2 ;          #   system("rm  $file2");
+#unlink    $file1 ;          #   system("rm $file1");
+#unlink    $file3 ;          #   system("rm $file3");
 
 ###############  filter the addcn ,you must modif it since the level of filter ###########
 #system("perl  /panfs/GAG/junli/raid010/pipeline/populationsnp/bin/filter_addcn.pl  $file4 "  );

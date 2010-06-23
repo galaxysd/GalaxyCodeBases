@@ -15,7 +15,7 @@ our $help=<<EOH;
 \t-i PSNP list (./npsnp.lst) for chrid.individual.finalSNPs
 \t-l scaffold.list (./scaffold.N90.id)
 \t-m merge.list for scaffold positions (./watermelon.merge.list)
-\t-s GLF list (./glf.list), will use \$1 of (([^/]+)/[^/]+$) for sample names
+\t-s GLF list (./glf.list), will use \$1 of (([^/]+)/[^/]+\$) for sample names
 \t-o Output Prefix (./plots/p_)
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
