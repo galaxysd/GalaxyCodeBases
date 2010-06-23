@@ -52,7 +52,7 @@ while (my $line1=<FQ>) {
 	chomp $line3;
 	my $line4 = <FQ>;
 	chomp $line4;
-	my ($read_name) = $line1=~ /^\@(FC.*)/;
+	my ($read_name) = $line1=~ /^\@(.*)$/;
 	++$read_num;
 	if (defined $adapter{$read_name}) {
 		++$filtedreads;
