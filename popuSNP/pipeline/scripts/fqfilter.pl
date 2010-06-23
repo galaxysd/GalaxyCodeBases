@@ -9,6 +9,8 @@ use warnings;
 # 20091019 print stat info to STDERR
 
 # for 1M reads, 280M vf required.
+# See also: /nas/RD_09C/resequencing/soft/pipeline/index_pipe/bin/filter_fq_peZ.pl
+
 unless (@ARGV){
 	print "perl $0 <adapter list file> <fq file>\n";
 	exit;
@@ -52,11 +54,11 @@ while (my $line1=<FQ>) {
 	chomp $line3;
 	my $line4 = <FQ>;
 	chomp $line4;
-	my ($read_name) = $line1=~ /^\@(.*)$/;
+	my ($read_name) = $line1=~ /^\@(.*)$/;	# /^\@(\S+)/
 	++$read_num;
 	if (defined $adapter{$read_name}) {
 		++$filtedreads;
-#		$line1 =~ s/FC\w{9}:\d+:\d+:\d+:\d+/_${read_num}_/;
+#		$line1 =~ s/\@\S+\#/\@\_${read_num}_\#/;
 		my $line2_new = substr($line2, 0, $adapter{$read_name});
 		my $line4_new = substr($line4, 0, $adapter{$read_name});
 		my $ii=30-length($line2_new);
