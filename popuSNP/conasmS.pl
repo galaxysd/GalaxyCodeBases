@@ -9,7 +9,7 @@ $main::VERSION=0.1.4;
 our $opts='i:o:c:m:p:bvne';
 our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_n, $opt_e, $opt_m, $opt_p);
 
-our $desc='Genome creater for population analyse';
+our $desc='Genome creater for Single analyse';
 our $help=<<EOH;
 \t-c Consensus file with refbase
 \t-p final SNP file (undef for directly from CNS)
@@ -89,14 +89,14 @@ open CNS,'<',$opt_c or die "Error opening $opt_c: $!\n";
 my ($chr,$pos,$best,$depth,$ref,$indel,$bases,$homhet,$strand,$t);
 while (<CNS>) {
     chomp;
-    ($chr,$pos,undef,$best,undef,undef,$depth,$ref) = split /\t/;
+    ($chr,$pos,$ref,$best,undef,undef,undef,undef,undef,undef,undef,undef,undef,$depth) = split /\t/;
     unless ($ref) {   # if file not completed.
 	print STDERR '.';
 	next;
     }
     if ($depth==0) {
 	unless ($opt_n) {$best=lc $ref;}
-	 else {$best='n';}
+	 else {$best=$ref='n';}
     } else {$Depth{$chr}->{$pos}=chr $depth;} # string is smaller than double
 # WARING: Something might be wrong if $depth > 255 !
 # However, people should not have such much money.
@@ -238,5 +238,11 @@ $ cat sh/QRS21.Gm13.txt.sh
 #$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #$ -o /dev/null -e /dev/null
 ./conasm.pl -i ./Indel/QRS21.indel.txt.filter -c ./consensus/QRS21.Gm13.txt -bo ./out/QRS21 2>./log/QRS21.Gm13.txt.log
+
+./conasmS.pl -c P142cns/P142.chromosome01.cns -p P142snp/P142.chromosome01.snp -i P142indel.list.filter -ne -o oP142j/m
+
+cat chrorderNip | perl -lane '$p="142";$a=$_;open O,">./sh/do$p$a.sh";print O "#\$ -N \"C_$a\"\n#\$ -cwd -r y -l vf=12g,p=1\n#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#\$ -o /dev/null -e /dev/null\n./conasmS.pl -c P${p}cns/P${p}.$a.cns -p P${p}snp/P${p}.$a.snp -i P${p}indel.list.filter -nbe -o oP${p}j/m 2>./log/${p}_$a.log";close O'
+
+cat chrorder9311 | perl -lane '$p="143";$a=$_;open O,">./sh/do$p$a.sh";print O "#\$ -N \"C_$a\"\n#\$ -cwd -r y -l vf=12g,p=1\n#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#\$ -o /dev/null -e /dev/null\n./conasmS.pl -c P${p}cns/P${p}.$a.cns -p P${p}snp/P${p}.$a.snp -i P${p}indel.list.filter -nbe -o oP${p}i/m 2>./log/${p}_$a.log";close O'
 
 ./conasm.pl -m soybean.merge.list -i ./Indel/QRS29.indel.txt.filter -c ./consensus/QRS29.SGm1.txt -bno ./out/QRS29 2>./log/QRS29.SGm1.txt.log

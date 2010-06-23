@@ -45,8 +45,8 @@ $opt_v=int $opt_v;
 $opt_g=int $opt_g;
 
 my @t=`find $opt_r/ -name '*.index.???' 2>/dev/null`;
-$t[0] =~ /(.+\.index)\.\w+$/;
-my $ref = $1;
+$t[0] =~ /((.+)\.index)\.\w+$/;
+my ($ref,$refa) = ($1,$2);
 die "[x]*.index.bwt NOT found in [$opt_r] !\n" unless $ref;
 use warnings;
 
@@ -218,6 +218,23 @@ eval perl $SCRIPTS/merge.pl \$SEED
 	close SH;
 
 }
+open SH,'>',"${opath}cov_mgdepth.cmd";
+@t=values %cmdlinesDepth;
+print SH join("\n",@t),"\n";
+close SH;
+open SH,'>',"${opath}cov_mgdepth.sh";
+print SH "#!/bin/sh
+#\$ -N \"dep_All\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=12M
+#\$ -hold_jid \"mg_*\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-",scalar @t,"
+SEEDFILE=${opath}cov_mgdepth.cmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/depth.pl $refa \$SEED
+";
+close SH;
 
 ### 3GLF ###
 $opath="$opt_o/3GLF/";

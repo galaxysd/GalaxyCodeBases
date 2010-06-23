@@ -293,3 +293,8 @@ print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second
 #print "\nPlease use the following command to batch qsub:\033[32;1m
 #find ${opt_o}/ -name '*.sh' | while read ll; do qsub -l vf=2G -cwd \$ll; done\n\033[0;0m\n";
 __END__
+find /share/fqdata* -name '*ORYqzp*' > qzp100623n.lst &
+rm -fR 0raw0623n && mkdir 0raw0623n
+grep -v 'DNAPEP' qzp100623n.lst|perl -lane 'BEGIN {my %s;} @a=split /\//;$t=join("/",@a[0..5]);++$s{$t}; END {print for keys %s}'|while read a;do cp -avs $a/* 0raw0623n/ ;done
+#grep 'DNAPEP' qzp100623n.lst|perl -lane 'BEGIN {my %s;} @a=split /\//;pop @a;$t=join("/",@a);++$s{$t}; END {print for keys %s}'|while read a;do cp -avs $a 0raw0623/ ;done
+grep 'DNAPEP' qzp100623n.lst|perl -lane 'BEGIN {my %s;} @a=split /\//;$t=join("/",@a[0..5]);++$s{$t}; END {print for keys %s}'|while read a;do cp -avs $a/* 0raw0623n/ ;done
