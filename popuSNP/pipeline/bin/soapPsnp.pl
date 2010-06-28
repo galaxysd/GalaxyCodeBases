@@ -12,8 +12,8 @@ $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 my $POPSPLIT=1000000;
 
-our $opts='i:o:n:g:v:r:c:f:bqd';
-our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_f, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d);
+our $opts='i:o:n:g:v:r:c:f:h:bqd';
+our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_f, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d, $opt_h);
 
 our $desc='1.filter fq, 2.stats';
 our $help=<<EOH;
@@ -21,6 +21,7 @@ our $help=<<EOH;
 \t-n fqs.nfo name (fqs.nfo)
 \t-r Reference Genome for Soap2 (./Ref) with *.index.bwt
 \t-c Chromosome NFO file (chr.nfo) in format: /^ChrID\\s+ChrLen\\s?.*\$/
+\t-h ChrOrder (chrorder) in format: /^ChrID\$/
 \t-f faByChr path (./faByChr) with ChrID.fa\(s\)
 \t-o Output path (.) for [./2soap, ./3GLF, ./4pSNP], will mkdir if not exist
 \t-g the same as soap2 -g (undef=0), max is 10 for soap2.20
@@ -38,6 +39,7 @@ $opt_r='./Ref' if ! $opt_r;
 $opt_c='chr.nfo' if ! $opt_c;
 $opt_f='./faByChr' if ! $opt_f;
 $opt_o='.' if ! $opt_o;
+$opt_h='chrorder'  if ! $opt_h;
 
 $opt_r=~s#/+$##;
 no warnings;
@@ -59,7 +61,7 @@ system('mkdir','-p',$opt_o);
 my $nfoname=$opt_i.'/'.$opt_n;
 die "[x]-i $nfoname not exists !\n" unless -f $nfoname;
 
-print STDERR "From [$opt_i]/[$opt_n] to [$opt_o] refer to [$opt_r] as [$ref], then [$opt_c][$opt_f]\n";
+print STDERR "From [$opt_i]/[$opt_n] to [$opt_o] refer to [$opt_r] as [$ref], then [$opt_c][$opt_f][$opt_h]\n";
 print STDERR "Soap2 -g [$opt_g]\n" if $opt_g;
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
@@ -110,7 +112,7 @@ if ($opt_v > 3) {
 }
 
 ### 2soap ###
-my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr,%cmdlinesDepth);
+my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr,%cmdlinesDepth,%LMScmdlinesJL);
 $opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
 #system('mkdir','-p',"$opt_o/2soap/megred/lst/");
@@ -128,22 +130,28 @@ for my $sample (sort keys %Lanes) {
 	system('mkdir','-p',"$opt_o/2soap/$sample/megre/");
 	for my $lib (keys %{$Lanes{$sample}}) {
 		my $listname="$opath${lib}.lst";
+		my $listnameJL="$opath${lib}.lstJL";
 		my $mergeprefix="$opt_o/2soap/$sample/megre/$lib";	# $lib.ChrID. Planning to be $lib_ChrID.lms	lib-merged soap
 		#push @{$MergeList{$sample}},$listname;
 		push @{$MergeOut{$sample}},$mergeprefix;
 		open L,'>',$listname;
+		open LJL,'>',$listnameJL;
 		for (@{$Lanes{$sample}{$lib}}) {
 			my ($PESE,$soapfp,$FL,$readlen)=@$_;
 			if ($PESE eq 'PE') {
+				print LJL "$soapfp.soap\t$i\n$soapfp.single\t$i\n";
 				print L "PE\t$i\t$soapfp.soap\n"; ++$i;
 				print L "SE\t$i\t$soapfp.single\n"; ++$i;
 			} else {
+				print LJL "$soapfp.se\t$i\n";
 				print L "SE\t$i\t$soapfp.se\n"; ++$i;
 			}
 			print SOAPL join("\t",$PESE,$sample,$lib,$FL,$readlen,$soapfp.'.nfo'),"\n";
 		}
 		close L;
+		close LJL;
 		push @{$LMScmdlines{$sample}},"-bi $listname -c $_ -o $mergeprefix >$mergeprefix.$_.log 2>$mergeprefix.$_.err" for @ChrIDs;
+		$LMScmdlinesJL{$sample}="$listnameJL $mergeprefix dp";
 	}
 	for my $chrid (@ChrIDs) {
 		open L,'>',"${opath}/${sample}_$chrid.lmslst";
@@ -197,6 +205,16 @@ eval perl $SCRIPTS/dosoap.pl \$SEED
 SEEDFILE=$opath${sample}_lms.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
+";
+	close SH;
+
+	open SH,'>',"$opath${sample}_lmsJL.sh";
+	print SH "#!/bin/sh
+#\$ -N \"rd_$sample\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=1.5G
+#\$ -hold_jid \"sp_$sample\"
+perl $SCRIPTS/callrmDup.pl $opt_h $LMScmdlinesJL{$sample}
 ";
 	close SH;
 
