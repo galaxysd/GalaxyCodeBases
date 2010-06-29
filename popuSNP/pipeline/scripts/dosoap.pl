@@ -245,6 +245,7 @@ while (<>) {
 		++$ReadsOut;	++$chrReadsOut{$chr};
 		$missed=$mistr=~tr/ATCGatcg//;
 		++$misMatch{$missed};
+		++$chrmisMatch{$chr}{$missed};
 		$MisSum += $missed;
 		$chrMisSum{$chr} += $missed;
 
@@ -253,17 +254,26 @@ while (<>) {
 		++$chrHit9r{$chr}{$hit};
 		$Hit9bp{$hit} += $len;
 		$chrHit9bp{$chr}{$hit} += $len;
-
+=pod
 		if ($types < 100) {
 			#++$misMatch{$types};
-			++$chrmisMatch{$chr}{$types};
-		} elsif ($types < 200) {	# '3S33M9D39M', '32M1D14M29S' exists
+			#++$chrmisMatch{$chr}{$types};
+		} elsif ($types < 200) {	# '3S33M9D39M', '32M1D14M29S' exists ?
 			++$Indel{$types-100};
 			++$chrIndel{$chr}{$types-100};
 		} else {
 			++$Indel{200-$types};
 			++$chrIndel{$chr}{200-$types};
 		}
+=cut
+		if ($types > 200) {
+			++$Indel{200-$types};
+			++$chrIndel{$chr}{200-$types};
+		} elsif ($types > 100) {
+			++$Indel{$types-100};
+			++$chrIndel{$chr}{$types-100};
+		}
+
 		@lines = $trim =~ /(\d+)S/;
 		if (@lines) {
 			++$TrimedReads;
