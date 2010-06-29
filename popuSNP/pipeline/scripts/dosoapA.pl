@@ -233,16 +233,20 @@ if ($max==0) {
 	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled,"$max_x($p %),$Lsd,$Rsd,$avg,$std","$min,$max"),"\n";
 	@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
 }
-my ($BadLines,$BPOut,$ReadsOut,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
-my (%chrBPOut,%chrReadsOut,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
+my ($BadLines,$BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0,0);
+my (%chrBPOut,%chrReadsOut,%chrMisSum,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
 # for 46999 ChrIDs, one hash took 12m RES for {}=$ and 125m VIRT for {}{10}=$, thus fine to work with scaffolds. ( 1 gb VIRT max ? )
-my (@lines,$hit,$len,$chr,$types,$trim);
+my (@lines,$hit,$len,$chr,$types,$trim,$mistr,$missed);
 while (<>) {
 	@lines = split /\t/;
 	if (@lines > 10) {	# soap2 output always more than 10 columes.
-		($hit,$len,$chr,$types,$trim) = @lines[3,5,7,9,-2];
+		($hit,$len,$chr,$types,$trim,$mistr) = @lines[3,5,7,9,-2,-1];
 		$BPOut += $len;	$chrBPOut{$chr} += $len;
 		++$ReadsOut;	++$chrReadsOut{$chr};
+		$missed=$mistr=~tr/ATCGatcg//;
+		++$misMatch{$missed};
+		$MisSum += $missed;
+		$chrMisSum{$chr} += $missed;
 
 		$hit=10 if $hit>10;	# max to count 9, then >=10
 		++$Hit9r{$hit};
@@ -251,7 +255,7 @@ while (<>) {
 		$chrHit9bp{$chr}{$hit} += $len;
 
 		if ($types < 100) {
-			++$misMatch{$types};
+			#++$misMatch{$types};
 			++$chrmisMatch{$chr}{$types};
 		} elsif ($types < 200) {	# '3S33M9D39M', '32M1D14M29S' exists
 			++$Indel{$types-100};
@@ -274,11 +278,11 @@ while (<>) {
 		next;
 	}
 }
-print NFO "\n#fmtC\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
-print NFO join("\t",'ALL',$ReadsOut,$BPOut,$TrimedReads,$TrimedBP,
+print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
+print NFO join("\t",'ALL',$ReadsOut,$BPOut,$MisSum,$TrimedReads,$TrimedBP,
 	${&combineC(\%misMatch)},${&combineJ(\%Hit9r)},${&combineJ(\%Hit9bp)},${&combineJ(\%Indel)},$BadLines),"\n\n";
-print NFO "#fmtP\tReadsOut\tBPOut\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
-print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,
+print NFO "#fmtP\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
+print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,
 	${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
 close NFO;
 

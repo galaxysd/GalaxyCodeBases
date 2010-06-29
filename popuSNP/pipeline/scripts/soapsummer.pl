@@ -16,11 +16,11 @@ while (<LST>) {
 	chomp;
 	my ($PESE,$sample,$lib,$FL,$ReadLen,$nfofpath)=split /\t/;
 	$nfo{$sample}{$lib}{$FL}=[$nfofpath,$PESE,$ReadLen];
-	$DATrbrf{Lane}{$sample}{$lib}{$FL}={ALL => [0,0,0,0,{},{},{},{},0], Summary => [0,0,0], };
-	# "ReadsOut, BPOut, TrimedReads, TrimedBP, misMatchReads, Reads@Hit, BP@Hit, IndelReads, BadLines"
+	$DATrbrf{Lane}{$sample}{$lib}{$FL}={ALL => [0,0,0,0,0,{},{},{},{},0], Summary => [0,0,0], };
+	# "ReadsOut, BPOut, MisSum, TrimedReads, TrimedBP, misMatchReads, Reads@Hit, BP@Hit, IndelReads, BadLines"
 	# "Total_Reads(=Total_Pairs*2), Paired, Singled/Alignment"
-	$DATrbrf{Lib}{$sample}{$lib}={ALL => [0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Lib}{$sample}{$lib};	# may be faster ?
-	$DATrbrf{Sample}{$sample}={ALL => [0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Sample}{$sample};
+	$DATrbrf{Lib}{$sample}{$lib}={ALL => [0,0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Lib}{$sample}{$lib};	# may be faster ?
+	$DATrbrf{Sample}{$sample}={ALL => [0,0,0,0,0,{},{},{},{},0], Summary => [0,0,0], } unless exists $DATrbrf{Sample}{$sample};
 	$insD{$sample}{$lib}{$FL}=['',''];
 }
 
@@ -37,11 +37,11 @@ sub combineC($) {
 }
 sub combineLineA($) {
 	my $ref=$_[0];
-	return join ',',@{$$ref{Summary}},@{$$ref{ALL}}[0..3],${&combineC($$ref{ALL}[4])},${&combineC($$ref{ALL}[5])},${&combineC($$ref{ALL}[6])},${&combineC($$ref{ALL}[7])},$$ref{ALL}[8];
+	return join ',',@{$$ref{Summary}},@{$$ref{ALL}}[0..4],${&combineC($$ref{ALL}[5])},${&combineC($$ref{ALL}[6])},${&combineC($$ref{ALL}[7])},${&combineC($$ref{ALL}[8])},$$ref{ALL}[9];
 }
 sub combineLine($) {
 	my $ref=$_[0];
-	return join ',',@$ref[0..3],${&combineC($$ref[4])},${&combineC($$ref[5])},${&combineC($$ref[6])},${&combineC($$ref[7])};
+	return join ',',@$ref[0..4],${&combineC($$ref[5])},${&combineC($$ref[6])},${&combineC($$ref[7])},${&combineC($$ref[8])};
 }
 sub sumcsv ($$) {
 	my ($href,$stref)=@_;
@@ -61,14 +61,14 @@ sub sumup ($$$) {
 		$$a[0] += $$b[0];
 		$$a[2] += $$b[1];
 	}
-	$$m[-1] += $$n[-1];
+	$$m[-1] += $$n[-1];	# BadLines
 	for my $chr (keys %$item) {
 		next if $chr eq 'Summary';
 		#$$sum{$_}=[0,0,0,0,{},{},{},{}] unless $$sum{$_};
 		($m,$n)=($$sum{$chr},$$item{$chr});
-		$$sum{$chr}=$m=[0,0,0,0,{},{},{},{}] unless $m;
-		$$m[$_] += $$n[$_] for (0..3);
-		&sumcsv($$m[$_],\$$n[$_]) for (4..7);
+		$$sum{$chr}=$m=[0,0,0,0,0,{},{},{},{}] unless $m;
+		$$m[$_] += $$n[$_] for (0..4);
+		&sumcsv($$m[$_],\$$n[$_]) for (5..8);
 #warn "$chr\n";
 	}
 }
@@ -100,7 +100,7 @@ warn "[!]$nfofpath\n";
 #ddx \%DATrbrf;
 my %Chr;
 open O,'>',$statout.'.stat' or die "[x]Error opening $statout.stat: $!\n";
-print O "#Summary\tSubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC,BadLines\n";
+print O "#Summary\tSubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,MisSum,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC,BadLines\n";
 open INS,'>',$statout.'.ins' or die "[x]Error opening $statout.ins: $!\n";
 print INS "#Sample\tLib\tLane\tMode(p%),Lsd,Rsd,InsAvg,STD\tInsMin,InsMax\n";
 my ($Rsample,$Rlib,$RFL);
