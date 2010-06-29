@@ -1,14 +1,3 @@
-// ============================================================================
-// 
-// This is a free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation.
-//
-
-// ============================================================================
-
-
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -21,34 +10,16 @@
 
 #include <unistd.h>
 #include <cstring>
-#include "gzstream.h"
-
-
-//#define DEBUG1
-#define DEBUG5
-
-#define DEBUG6
-
-#define DEBUG8
-
-//#define DEBUG11
 #define DEF_ONE  10000000
 using namespace std;
 
-// --- 
-// Author : lijun 
-// v0.12.3 fixed by trim position
-// v0.13  fixed postion of reads map negative strand of refences,and just rm duplication in *.soap files
-// v0.13.1 can out put duplication reads and change the command analys method.
-
-//----
 #define USAGE \
 	"--------------------------------------------------------------------------------------------------------\n"\
 	" Program: rmdSM   remove duplication form soap result,then sort and merge by chr \n"\
-	" Vision:  v0.13.1 low memory use, and correct the mismatch numbers of soap2 \n"\
+	" Vision:  v1.0.0 low memory use, and correct the mismatch numbers of soap2 \n"\
 	" Contact:         lijun3@genomics.org.cn\n\n"\
 	" Usage:[option]\n\n"\
-	"       -in_list  <str>   input list of soap result files, support read gzip file \"*.soap,*.single,*.gz\"\n"\
+	"       -in_list  <str>   input list of soap result files, support read gzip file \"*.soap,*.single\"\n"\
 	"                         only reads pairs in *.soap files used to remove duplication\n"\
 	"                         list file Format: soap_result_file_name [lane_id] \n"\
 	"                         if only give the soap_result_file_name, do not change the soap reasult,\n"\
@@ -72,7 +43,6 @@ typedef struct PosInfo
 	_uint64 rTwo_pos;
 	int total_len;
 	int used;
-	
 	string chrname;
 	_uint64 readsIndex;
 
@@ -80,7 +50,6 @@ typedef struct PosInfo
 
 typedef struct Reads
 {
-
 	_uint64 pos;
 	int len;
 	string new_id;
@@ -142,13 +111,9 @@ typedef struct LIST
 {
         string file;
 	int nu;
-//	int a_len;		       
-//	int b_len;
 
 }list;
 typedef vector<list> Vlist;
-
-
 
 typedef vector<posInfo> Vposinfo;
 
@@ -179,8 +144,6 @@ bool outdp = false;
 bool readList(Vlist &vs,string listFile)
 {
 
-//if(listFile.find(".list") != string::npos)
-{
 	ifstream ifs(listFile.c_str(),ifstream::in);
 
         if(!ifs.good())
@@ -200,18 +163,16 @@ bool readList(Vlist &vs,string listFile)
 			istringstream isone (line,istringstream::in);
 
 			string file;
-			int nu=-1; //a_len=-1,b_len=-1;
+			int nu=-1; 
 			list ls;
 
-			isone >> file >> nu; // >> a_len >> b_len;
+			isone >> file >> nu; 
 			ls.file = file;
 			ls.nu = nu;
-			//ls.a_len = a_len;
-			//ls.b_len = b_len;
 
 			vs.push_back(ls);
 
-			cerr << ls.file << " " << ls.nu << endl; //" " << ls.a_len << " " << ls.b_len << endl;
+			cerr << ls.file << " " << ls.nu << endl; 
 		}
 	
 	}
@@ -219,29 +180,51 @@ bool readList(Vlist &vs,string listFile)
 	ifs.close();
 
 	return true;	
-}
 
-/*
-else
-	return false;
-*/
+
 }
 
 
 
+bool readChr(Vstring &vs,string listFile)
+{
+
+	ifstream ifs(listFile.c_str(),ifstream::in);
+
+        if(!ifs.good())
+        {
+                cerr << "list of chr is wrong,please check : " << listFile<< endl;
+                return false;
+
+        }
+
+	while(!ifs.eof())
+        {
+		string line;
+		ifs >> line;
+
+		if(line.length() > 0)
+		{
+			vs.push_back(line);
+			
+			cerr << "chr : " << line << endl;
+					
+		}
+	
+	}
+
+	ifs.close();
+
+	return true;	
 
 
-
-
+}
 
 _uint64  readpeNew(readsCount &sum,string file , MVposinfo & mvpi,string chr,VChrReads &vChrReads,_uint64 &Index,bool filter,string nu,bool isrmd)
 {
-
-
 	
-//	ifstream ifs(file.c_str(),ifstream::in);
-	igzstream ifs(file.c_str());
-cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
+	ifstream ifs(file.c_str(),ifstream::in);
+	cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 	if(!ifs.good())
 	{
 		cerr << "open soap file: " << file  << " error!" << endl;
@@ -261,21 +244,17 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 
 		getline(ifs,readsOne);
 
-		
-
 		 string id,ser,quality,ab,fr,chrname,end;
                  _uint64 pos,s_pos;
                  int hit_type,length;
                  int nhits;
 
                 istringstream isone (readsOne,istringstream::in);
-
  
                	isone >>id >> ser >> quality >> nhits >> ab >> length >> fr >> chrname >> pos >> hit_type >> end;
 		int trim= 0;
 		string s_end = end;
 
- //cout <<  chrname << endl;
 		if(chrname == chr)
 
 		{
@@ -329,9 +308,6 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
                                                         int d = atoi(dis.c_str());
                                                         s_pos = pos -d;
 
- //                           cout << s_end << " " << fr << " " <<  dis << " " << d << " " << pos << " " << s_pos <<  endl;
-
-
                                                  }
 
 
@@ -347,7 +323,6 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 
                                                         int d = atoi(dis.c_str());
                                                         s_pos = pos + length + d -1;
-//cout << s_end << " " << fr << " " <<  dis << " " << d << " " << pos << " " << s_pos <<  endl;
 
                                                 }
 						else {	// trim 3'
@@ -355,17 +330,12 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 							s_pos = pos + length - 1;
 		
 						}
-						
 
                         }
-
-                             
 
 			if(filter)
 			{
 		
-
-				
 				end = int2str(trim);
 		
 				string new_id = nu;
@@ -388,15 +358,11 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 				setion += int2str(mismatch);
 				setion += "\t";
 				setion += end;
-//cout << "size: " << line.info.size();
 
 				line.info = setion;
-//cout << " " <<  line.info.size();
-//				cout << ":" << setion << endl;
 
 				line.info.reserve(setion.size());
 
-//			cout  << " " << line.info.capacity()  << endl;
 			}
 			else
                         {
@@ -409,20 +375,16 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
 				line.info = setion2;	
 				line.info.reserve(setion.size());
 
-
                         }    
 			
 
 			vChrReads.push_back(line);
 
-
-
-	 		if((isrmd && beforReads.chrname == chrname && OneId == TwoId ))//peTwo.id == id))// && (peTwo.hit_type < 100 && hit_type < 100))
+	 		if((isrmd && beforReads.chrname == chrname && OneId == TwoId ))
 			{
 				posInfo pinfo;
 				pinfo.chrname=chrname;
 				pinfo.chrname.reserve(chrname.size());
-
 				
 				if(s_pos < beforReads.pos)
 				{
@@ -439,16 +401,10 @@ cerr << "read: "<<file << " IS rm duplication : " << isrmd << endl;
                  		        pinfo.rTwo_pos = s_pos;
 
 					pinfo.total_len = length + beforReads.length;
-		
 
 				}
-
 					pinfo.used = 1;
 					pinfo.readsIndex = Index;
-
-#ifdef DEBUG11
-cerr << " - " << OneId << " " << pinfo.chrname  << " " << pinfo.rOne_pos << " " << pinfo.rTwo_pos << " " << pinfo.total_len << "index" << pinfo.readsIndex << " " << vChrReads.at(pinfo.readsIndex-1).pos << "-" << vChrReads.at(pinfo.readsIndex).pos<< endl;
-#endif
 
 				MVposinfo::iterator it = mvpi.find(pinfo.chrname);
 
@@ -493,19 +449,12 @@ cerr << " - " << OneId << " " << pinfo.chrname  << " " << pinfo.rOne_pos << " " 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///	out put result
 
-
-
-
-
-bool  outPutMerge(string file,VChrReads &vchr)// MVposinfo & vpi)
+bool  outPutMerge(string file,VChrReads &vchr)
 {
 
 	string outfile = file;
 	string outdbfile = file;
 	outdbfile += ".dp";
-
-	//outfile += ".deDup.soap";
-
 
 	_uint64 num_reads = 0;
 	_uint64 num_bases = 0;
@@ -543,7 +492,6 @@ cerr << "Size " << vchr.size() << endl;
 		if(! vchr.at(i).stat)
 		{
 			out_fs <<vchr.at(i).new_id << "\t" << vchr.at(i).info << endl;
-//	cout << vchr.at(i).new_id << "\t" << vchr.at(i).info << endl;
 
 			num_reads++;
 			num_bases += vchr.at(i).len;
@@ -596,18 +544,10 @@ _uint64 reset(MVposinfo& vpi,VChrReads &vChrReads)
 		for(unsigned long long  i = 1; i<it->second.size(); ++i)
 		{
 		
-#ifdef DEBUG11
 
-cerr << i << " = " << it->second.at(i).rOne_pos << "\t" << it->second.at(i).rTwo_pos << "\t" << it->second.at(i).total_len << "\t" << it->second.at(i).used << endl;
-			
-#endif
 			if(it->second.at(i).rOne_pos == it->second.at(i-1).rOne_pos && it->second.at(i).rTwo_pos == it->second.at(i-1).rTwo_pos)
 			{
 			
-#ifdef DEBUG1
-
-	cerr << ": index " << index  << endl; ;
-#endif				
 			
 				if(it->second.at(i).total_len <= it->second.at(index).total_len)
                          	{
@@ -633,23 +573,13 @@ cerr << i << " = " << it->second.at(i).rOne_pos << "\t" << it->second.at(i).rTwo
 
 			}
 		
-#ifdef DEBUG1
-
-
-cerr << i << " = " << it->second.at(i).rOne_pos << "\t" << it->second.at(i).rTwo_pos << "\t" << it->second.at(i).total_len << "\t" << it->second.at(i).used << endl;
-
-#endif
-
 		}
 
 	}
 
-	
-
 	return totalline;
 
 }
-
 
 
 void doMerge(Vlist& soapList,string chr,string outdir,bool control)
@@ -670,15 +600,6 @@ void doMerge(Vlist& soapList,string chr,string outdir,bool control)
 	outFile += chr;
 
         _uint64 Index =0;	
-/*	
-       if(control)
-         {
-		if(countChrSize(mChrSize, soapList))
-              preAlloc(vpi,mChrSize);
-
-         }
-*/
-
 	_uint64 t_reads= 0;
 	_uint64 t_bases = 0;
 
@@ -688,12 +609,6 @@ cerr << "do chromosome " << chr << endl;
 
 	for(int i=0; i < soapList.size();i++)
    	{
-	
-/*		map<string,int> readLen;
-		string a="a",b="b";
-		readLen[a] = soapList.at(i).a_len;
-		readLen[b] = soapList.at(i).b_len;
-*/
 
 
 		bool filt =true;
@@ -718,7 +633,7 @@ cerr << "do chromosome " << chr << endl;
 		else
 		{
 	
-			cerr << "IS filter: " <<  "yes " << endl; //"read1 max length: " << readLen[a] << " read2 max length: " << readLen[b];
+			cerr << "IS filter: " <<  "yes " << endl; 
 		}
 
 		readpeNew(sum,soapList.at(i).file,vpi,chr,vReads,Index,filt,nu,isrmd);
@@ -726,11 +641,9 @@ cerr << "do chromosome " << chr << endl;
 		if(sum.reads == 0) {
 			cerr << " may donot have chromosome " << chr << " in file: " << soapList.at(i).file << endl;
 
-
 		}
 		t_reads += sum.reads;
 		t_bases += sum.bases;
-
 
 	}
 
@@ -738,21 +651,10 @@ cerr << "do chromosome " << chr << endl;
 
 cout << chr << "\t" << t_reads << "\t" << t_bases << "\t";
 
-//	if( lastreads  < DEF_ONE)
 	{
-	
-		outPutMerge(outFile,vReads);//,mChrMismatch);
+		outPutMerge(outFile,vReads);
 	}	
-/*
-	else
-	{
-		int seed = lastreads / DEF_ONE;	
-		seed += 1;
-		outSplit(vpi,seed,outFile);//,mChrMismatch);	
-		
-	}
-
-*/	
+	
 
 }
 
@@ -764,13 +666,10 @@ cout << chr << "\t" << t_reads << "\t" << t_bases << "\t";
 
 int main(int argc ,char** argv)
 {
-	
-
 
 	Vstring chrList;
 	Vlist soapList;
 	string fn;
-//	bool outdp = false;
 
 	string soapListFile,chrListFile,cn;
 	string cmd;
@@ -784,7 +683,6 @@ int main(int argc ,char** argv)
 	
 	while(argc) {
 		
-
 		if( !strcmp(argv[0], "-in_list") && argc >=2) {
 			soapListFile= argv[1];
 			argc -=2; argv +=2;
