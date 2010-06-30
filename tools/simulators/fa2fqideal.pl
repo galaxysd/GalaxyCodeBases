@@ -39,6 +39,8 @@ $opt_o='./out' if ! $opt_o;
 my $outfile="${opt_o}-${opt_n}-${opt_l}-${opt_s}";
 my $lenB=$opt_n-$opt_l;
 
+my $maxN=int(.3*$opt_l);
+
 print STDERR "From [$opt_i] to [${opt_o}]-${opt_n}-${opt_l}-${opt_s}_{1,2}.fa, [$opt_n][$opt_l][$opt_s]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
@@ -49,7 +51,7 @@ my $start_time = [gettimeofday];
 open G,'<',$opt_i or die "Error opening $opt_i: $!\n";
 open OA,'>',$outfile.'_1.fa' or die "Error opening ${outfile}_1.fa: $!\n";
 open OB,'>',$outfile.'_2.fa' or die "Error opening ${outfile}_2.fa: $!\n";
-my ($str,$a,$b);
+my ($str,$a,$b,$t);
 while (<G>) {
 	s/^>//;
 	my $title = $_;
@@ -66,7 +68,11 @@ while (<G>) {
 	for (my $i=0;$i<$Len-$opt_n;$i+=$opt_s) {
 		$str=substr $seq,$i,$opt_n;
 		$a=substr $str,0,$opt_l;
+		$t=$a=~tr/Nn/nN/;
+		next if $t > $maxN;
 		$b=substr $str,$lenB;
+		$t=$b=~tr/Nn/nN/;
+		next if $t > $maxN;
 		print OA ">${seqname}_${i}_1 ",$i+1,"\n$a\n";
 		print OB ">${seqname}_${i}_2 ",$i+$lenB+1,"\n$b\n";
 	}
