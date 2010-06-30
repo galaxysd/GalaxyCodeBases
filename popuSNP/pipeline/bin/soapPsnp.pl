@@ -214,6 +214,7 @@ eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=1.5G
 #\$ -hold_jid \"sp_$sample\"
+#\$ -o /dev/null -e /dev/null
 perl $SCRIPTS/callrmDup.pl $opt_h $LMScmdlinesJL{$sample}
 ";
 	close SH;
