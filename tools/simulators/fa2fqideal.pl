@@ -67,8 +67,8 @@ while (<G>) {
 		$str=substr $seq,$i,$opt_n;
 		$a=substr $str,0,$opt_l;
 		$b=substr $str,$lenB;
-		print OA ">${seqname}_${i}_1\n$a\n";
-		print OB ">${seqname}_${i}_2\n$b\n";
+		print OA ">${seqname}_${i}_1 ",$i+1,"\n$a\n";
+		print OB ">${seqname}_${i}_2 ",$i+$lenB+1,"\n$b\n";
 	}
 	warn "-\n";
 }
