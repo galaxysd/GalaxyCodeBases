@@ -6,7 +6,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.1.0;
 
 our $opts='i:o:l:s:n:v:bd';
 our($opt_i, $opt_o, $opt_v, $opt_b, $opt_d, $opt_l, $opt_s, $opt_n);
@@ -47,6 +47,13 @@ print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
+sub revcom($) {
+	my $str = $_[0];
+	$str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+	my $rev = reverse $str;
+	#$rev =~ tr/[](){}<>/][)(}{></;
+	return $rev;
+}
 my $start_time = [gettimeofday];
 #BEGIN
 open G,'<',$opt_i or die "Error opening $opt_i: $!\n";
@@ -74,9 +81,10 @@ while (<G>) {
 		$b=substr $str,$lenB;
 		$t=$b=~tr/Nn/nN/;
 		next if $t > $maxN;
+		$b=revcom($b);
 		$t=$i/$opt_s;
-		print OA ">${seqname}_",$t,'_1 ',$i+1,"\n$a\n";
-		print OB ">${seqname}_",$t,'_2 ',$i+$lenB+1,"\n$b\n";
+		print OA ">${seqname}_",$t,'/1 ',$i+1,"\n$a\n";
+		print OB ">${seqname}_",$t,'/2 ',$i+$lenB+1,"\n$b\n";
 	}
 	warn "-\n";
 }
