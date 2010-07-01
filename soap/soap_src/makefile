@@ -1,5 +1,6 @@
 CC=	g++
 
+BIN = $(DESTDIR)/usr/bin
 FLAGS= -static -DMAXGAP=3 -DMAXHITS=10000 -DTHREAD -O3 #-g -fno-inline #-DTHREAD -O3 -g
 REF_CHR=  -DDB_CHR
 REF_CONTIG=	-DDB_CONTIG
@@ -44,4 +45,6 @@ soap_dealign: soap_dealign.o dealign.o param.chr.o
 clean:
 	rm -f *.o soap soap.contig soap.short soap.huge soap_dealign
 install:
-	cp soap soap.contig soap.short soap.huge soap_dealign ../../ #../bin
+	install -d $(BIN)
+	install ./soap ./soap.contig ./soap.short ./soap.huge ./soap_dealign $(BIN)
+#	cp soap soap.contig soap.short soap.huge soap_dealign ../../ #../bin

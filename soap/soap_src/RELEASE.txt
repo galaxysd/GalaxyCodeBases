@@ -1,6 +1,12 @@
+release: 1.10
+2008-04-21
+1.Fixed a bug in dealign.cpp.
+2.Updated the install function in makefile. 
+
 release: 1.09
 2008-04-09
-1. Fixed a bug which will miss some two-mismatch hits.
+1.Fixed a bug which will miss some 2 snp reads.
+2.Fixed a bug which will miss some paired hits.
 
 release: 1.08
 2008-03-24
