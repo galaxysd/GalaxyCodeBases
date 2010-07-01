@@ -1,4 +1,8 @@
-release: 1.10
+release: 1.08
+2008-03-24
+1. Fixed a bug in "dealign.cpp".
+
+release: 1.07
 2008-03-18
 1. Added an option '-y' of pair-end alignment.
 

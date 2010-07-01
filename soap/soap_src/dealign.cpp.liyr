@@ -23,20 +23,41 @@ void Dealign::IniCount(char *ref, vector<vector<bit16_t> > &c)
 	string s;
 	char ch[1000];
 	int i;
+#ifdef AUTOONLY
+int not_need;
+not_need = 0;
+#endif
 	while(!fin.eof()) {
 		fin>>s;
 		fin.getline(ch, 1000);
 		if(fin.eof()) {
+#ifdef AUTOONLY
+	if (!not_need && !a.empty())
+#else
 			if(!a.empty())
+#endif
 				c.push_back(a);
 			break;
 		}
 		if(s[0] == '>') {
 			s.erase(0,1);
+#ifdef AUTOONLY //Added by Liyr, for some validation reason
+	if (!not_need && !a.empty())
+		c.push_back(a);
+	a.clear();
+	if ( (s.find('X', 0)  != string::npos) ||(s.find('Y', 0)  != string::npos) || (s.find('M', 0)  != string::npos) ) {
+		not_need = 1;
+	}
+	else {
+		not_need = 0;
+		_reftitle.push_back(s);
+	}
+#else
 			_reftitle.push_back(s);
 			if(!a.empty())
 				c.push_back(a);
 			a.clear();
+#endif
 		}
 		else {
 			for(i=0; i!=s.size(); i++) {
@@ -138,6 +159,10 @@ void Dealign::CountHeadFreq(char *align_file, int flag)
 		fin.getline(a.note,NOTE_LEN);
 		if(flag &&(a.nhits>1))
 			continue;
+#ifdef AUTOONLY
+	if ( (c_str.find('X', 0)  != string::npos) ||(c_str.find('Y', 0)  != string::npos) ||(c_str.find('M', 0)  != string::npos) )
+		continue;
+#endif 
 		a.chr=_titleorder[c_str];
 		if('+'==a.chain)
 			_head[a.chr][a.loc]==max_depth? 0:_head[a.chr][a.loc]++;
@@ -170,6 +195,10 @@ void Dealign::CountDepth(char *align_file, int flag)
 		fin.getline(a.note,NOTE_LEN);
 		if(flag &&(a.nhits>1))
 			continue;
+#ifdef AUTOONLY
+	if ( (c_str.find('X', 0)  != string::npos) ||(c_str.find('Y', 0)  != string::npos) ||(c_str.find('M', 0)  != string::npos) ) 
+                continue;
+#endif
 		a.chr=_titleorder[c_str];
 		for(i=0; i!=a.len; i++)
 				_depth[a.chr][a.loc+i]==max_depth? 0:_depth[a.chr][a.loc+i]++;
@@ -294,8 +323,14 @@ void Dealign::OutGCdot(char *out_file, vector<vector<bit16_t> > &c, int win, int
 					sum+=(*p)[i+j];
 				}
 			}
-			if(num>=win*0.5)
+			if(num>=win*0.5) {
 				fout<<i<<"  "<<(int)_gc[k][m]<<"  "<<int(zoom*(sum-num)/num+0.5)<<"\n";
+#ifdef LIYR
+				if ( ( int(zoom*(sum-num)/num+0.5) >= int(3.25*zoom+0.5) ) && ( int(zoom*(sum-num)/num+0.5) <= int(3.50*zoom+0.5)) ) {
+					cerr<<i<<" "<<(int)_gc[k][m]<<" "<<int(win)<<" "<<int(num)<<" "<<int(zoom*(sum-num)/num+0.5)<<"\n";
+				}
+#endif
+			}
 			else
 				fout<<i<<"  "<<(int)_gc[k][m]<<"  "<<-1<<"\n";
 		}
@@ -319,6 +354,10 @@ void Dealign::LoadChrOrder(char *chrorder_file)
 		fin.getline(ch, 1000);
 		if(fin.eof())
 			break;
+#ifdef AUTOONLY
+	if ( (c_str.find('X', 0)  != string::npos) ||(c_str.find('Y', 0)  != string::npos) ||(c_str.find('M', 0)  != string::npos) )
+                continue;
+#endif
 		_reftitle.push_back(c_str);
 		_titleorder[c_str]=i++;
 	}
@@ -339,6 +378,10 @@ void Dealign::LoadAlign(char *align_file)
 		if(fin.eof())
 			break;
 		fin>>a.seq>>a.qual>>a.nhits>>a.flag>>a.len>>a.chain>>c_str>>a.loc;
+#ifdef AUTOONLY
+	if ( (c_str.find('X', 0)  != string::npos) ||(c_str.find('Y', 0)  != string::npos) ||(c_str.find('M', 0)  != string::npos) )
+                continue;
+#endif
 		a.chr=_titleorder[c_str];
 		fin.getline(a.note,NOTE_LEN);
 		_align.push_back(a);
@@ -449,7 +492,7 @@ void Dealign::QC(char *align_file, int read_len, int flag, char zero_qual)
   		}			
 			if(len!=read_len)
 				continue;
-			if('+'==chain) {
+			if(chain='+') {
 				for(i=0; i!=seq.size(); i++) {
 					_ntfreq[i][n_char[seq[i]]]++;
 					qvalue=(qual[i]>=zero_qual? (qual[i]-zero_qual)/10:0);
@@ -495,7 +538,7 @@ void Dealign::QC(char *align_file, int read_len, int flag, char zero_qual)
   			fin.getline(ch, 1000);
   			continue;
   		}				
-			if('+'==chain) {
+			if(chain='+') {
 				for(i=0; i!=seq.size(); i++) {
 					_ntfreq[i][n_char[seq[i]]]++;
 					qvalue=(qual[i]>=zero_qual? (qual[i]-zero_qual)/10:0);
@@ -543,7 +586,7 @@ void Dealign::QC(char *align_file, int read_len, int flag, char zero_qual)
   			continue;
   		}			
 			t=(seq.size()==read_len? 0:1);
-			if('+'==chain) {
+			if(chain='+') {
 				for(i=0; i!=seq.size(); i++) {
 					_ntfreq[i+t][n_char[seq[i]]]++;
 					qvalue=(qual[i]>=zero_qual? (qual[i]-zero_qual)/10:0);
