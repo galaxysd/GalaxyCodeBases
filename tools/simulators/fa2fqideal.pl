@@ -14,9 +14,9 @@ our($opt_i, $opt_o, $opt_v, $opt_b, $opt_d, $opt_l, $opt_s, $opt_n);
 our $desc='';
 our $help=<<EOH;
 \t-i Genome FASTA file (./genome.fa)
-\t-l Reads Length (90)
+\t-l Reads Length (76)
 \t-n iNsert size (500)
-\t-s Slip distance (1)
+\t-s Slip distance (8)
 \t-o Output FQ prefix (./out)-N-RL-Sd_{1,2}.fa
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
@@ -33,15 +33,16 @@ $opt_l=int $opt_l;
 $opt_s=int $opt_s;
 use warnings;
 $opt_n=500 if ! $opt_n;
-$opt_l=90 if ! $opt_l;
-$opt_s=1 if ! $opt_s;
+$opt_l=76 if ! $opt_l;
+$opt_s=8 if ! $opt_s;
 $opt_o='./out' if ! $opt_o;
 my $outfile="${opt_o}-${opt_n}-${opt_l}-${opt_s}";
 my $lenB=$opt_n-$opt_l;
+my $dep=int(20*$opt_l/$opt_s)/10;
 
 my $maxN=int(.3*$opt_l);
 
-print STDERR "From [$opt_i] to [${opt_o}]-${opt_n}-${opt_l}-${opt_s}_{1,2}.fa, [$opt_n][$opt_l][$opt_s]\n";
+print STDERR "From [$opt_i] to [${opt_o}]-${opt_n}-${opt_l}-${opt_s}_{1,2}.fa, [$opt_n][$opt_l][$opt_s]\nPE depth will be [$dep].\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -73,8 +74,9 @@ while (<G>) {
 		$b=substr $str,$lenB;
 		$t=$b=~tr/Nn/nN/;
 		next if $t > $maxN;
-		print OA ">${seqname}_${i}_1 ",$i+1,"\n$a\n";
-		print OB ">${seqname}_${i}_2 ",$i+$lenB+1,"\n$b\n";
+		$t=$i/$opt_s;
+		print OA ">${seqname}_",$t,'_1 ',$i+1,"\n$a\n";
+		print OB ">${seqname}_",$t,'_2 ',$i+$lenB+1,"\n$b\n";
 	}
 	warn "-\n";
 }
