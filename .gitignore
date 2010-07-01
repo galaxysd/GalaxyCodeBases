@@ -3,8 +3,6 @@
 !foo.html
 # Ignore objects and archives.
 *.[oa]
-test.pl
-?.pl
 *.[0-9]
 *~
 soap/adapterfilter/?/*
