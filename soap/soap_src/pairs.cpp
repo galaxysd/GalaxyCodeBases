@@ -108,7 +108,7 @@ int PairAlign::GetExact2SnpPairs(RefSeq &ref)
 		pp.chain=1;
 		pp.na=0;
 		for(i=0; i<_sa._cur_n_chit[0]; i++) {
-			nsnp=_sb.SnpAlign_range(0, _sa.chits[0][i].chr, _sa.chits[0][i].loc-param.max_insert+_sa._pread->seq.size(), _sa.chits[0][i].loc-param.min_insert+_sa._pread->seq.size(), ref);
+			nsnp=_sb.SnpAlign_range(0, _sa.chits[0][i].chr, (_sa.chits[0][i].loc<param.max_insert?0:(_sa.chits[0][i].loc-param.max_insert+_sa._pread->seq.size())), _sa.chits[0][i].loc-param.min_insert+_sa._pread->seq.size(), ref);
 			if(-1 !=nsnp) {
 				pp.a=_sa.chits[0][i];
 				for(j=0; j<_sb._cur_n_boundhit[nsnp]; j++) {
@@ -144,7 +144,7 @@ int PairAlign::GetExact2SnpPairs(RefSeq &ref)
 		pp.chain=0;
 		pp.nb=0;
 		for(i=0; i<_sb._cur_n_chit[0]; i++) {
-			nsnp=_sa.SnpAlign_range(0, _sb.chits[0][i].chr, _sb.chits[0][i].loc-param.max_insert+_sb._pread->seq.size(), _sb.chits[0][i].loc-param.min_insert+_sb._pread->seq.size(), ref);
+			nsnp=_sa.SnpAlign_range(0, _sb.chits[0][i].chr, (_sb.chits[0][i].loc<param.max_insert?0:(_sb.chits[0][i].loc-param.max_insert+_sb._pread->seq.size())), _sb.chits[0][i].loc-param.min_insert+_sb._pread->seq.size(), ref);
 			if(-1 !=nsnp) {
 				pp.b=_sb.chits[0][i];
 				for(j=0; j<_sa._cur_n_boundhit[nsnp]; j++) {
