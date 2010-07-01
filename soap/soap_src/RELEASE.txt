@@ -1,3 +1,7 @@
+release: 1.11
+2008-7-17
+1.Fixed c stdlib error when compiler is gcc-4.3+.
+
 release: 1.10
 2008-04-21
 1.Fixed a bug in dealign.cpp.

@@ -1,10 +1,11 @@
 #ifndef _DBSEQ_H_
 #define _DBSEQ_H_
 
-#include<vector>
-#include<string>
 #include<iostream>
 #include<fstream>
+#include<vector>
+#include<string>
+
 #include "param.h"
 
 using namespace std;

@@ -1,11 +1,15 @@
 #ifndef _DEALIGN_H_
 #define _DEALIGN_H_
 
+#include<cstdlib>
+#include<cstdio>
+#include<cstring>
 #include<iostream>
 #include<fstream>
 #include<vector>
-#include<stdio.h>
+#include<algorithm>
 #include<map>
+#include<iomanip>
 
 using namespace std;
 

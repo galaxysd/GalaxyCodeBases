@@ -1,13 +1,16 @@
 #ifndef _ALIGN_H_
 #define _ALIGN_H_
 
+#include<cstdlib>
+#include<cstdio>
+#include<cmath>
 #include<vector>
 #include<string>
-#include<cstdio>
+#include<algorithm>
 
+#include "dbseq.h"
 #include "param.h"
 #include "reads.h"
-#include "dbseq.h"
 
 using namespace std;
 

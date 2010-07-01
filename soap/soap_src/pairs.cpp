@@ -1,4 +1,3 @@
-#include<cmath>
 #include "pairs.h"
 
 using namespace std;

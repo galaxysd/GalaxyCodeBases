@@ -1,4 +1,3 @@
-#include<iostream>
 #include "dbseq.h"
 
 using namespace std;

@@ -1,6 +1,8 @@
 #ifndef _PAIRS_H_
 #define _PAIRS_H_
 
+#include<cmath>
+
 #include "dbseq.h"
 #include "reads.h"
 #include "align.h"

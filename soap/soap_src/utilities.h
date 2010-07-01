@@ -1,7 +1,7 @@
 #ifndef _UTILITIES_H_
 #define _UTILITIES_H_
 
-#include<time.h>
+#include<ctime>
 
 using namespace std;
 

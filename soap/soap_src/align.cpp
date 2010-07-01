@@ -1,5 +1,3 @@
-#include<algorithm>
-#include<cmath>
 #include "align.h"
 
 using namespace std;

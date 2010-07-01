@@ -1,6 +1,3 @@
-#include<string.h>
-#include<stdio.h>
-#include<iomanip>
 #include "dealign.h"
 
 using namespace std;

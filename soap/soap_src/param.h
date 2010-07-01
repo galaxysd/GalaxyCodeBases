@@ -1,7 +1,10 @@
 #ifndef _PARAM_H_
 #define _PARAM_H_
 
+#include<cstdlib>
+#include<iostream>
 #include<string>
+
 using namespace std;
 
 typedef unsigned char bit8_t;

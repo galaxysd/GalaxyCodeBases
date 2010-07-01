@@ -3,8 +3,9 @@
 
 #include<iostream>
 #include<fstream>
-#include<string>
 #include<vector>
+#include<string>
+
 #include "param.h"
 
 using namespace std;
