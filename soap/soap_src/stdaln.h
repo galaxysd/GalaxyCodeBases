@@ -125,7 +125,7 @@ extern "C" {
  * global variables *
  ********************/
 
-extern AlnParam aln_param_bwa;   /* = { 37,  9,  0, aln_sm_maq, 5, 50 }; */
+extern AlnParam aln_param_bwa ; /*= { 37,  9,  0, aln_sm_maq, 5, 50 };//*/
 extern AlnParam aln_param_blast; /* = {  5,  2,  0, aln_sm_blast, 5, 50 }; */
 extern AlnParam aln_param_nt2nt; /* = { 10,  2,  2, aln_sm_nt, 16, 75 }; */
 extern AlnParam aln_param_aa2aa; /* = { 20, 19, 19, aln_sm_read, 16, 75 }; */

@@ -7,17 +7,18 @@ CC            = gcc
 DEBUG_FLAGS   = -g3 -Wall -O2
 PROFILE_FLAGS = -fprofile-arcs -ftest-coverage -pg 
 RELEASE_FLAGS = -msse3 -O3 -static -funroll-loops -maccumulate-outgoing-args -fomit-frame-pointer 
+STATIC_FLAGS  = -static
 DFLAGS        = -DMAKE_TIME=\""`date`"\"
 LIBS          = -lm
 #TARBALL_EXCLUDE = "*.(o,gz,zip)"
 #ZIP_EXCLUDE     = *.o *.gz *.zip
 
 ifeq (YES, $(DEBUG))
-        CFLAGS   = $(DEBUG_FLAGS)
+        CFLAGS   = $(DEBUG_FLAGS) $(STATIC_FLAGS)
         DFLAGS  += -DDEBUG
 #        PTHREADS = NO
 else
-        CFLAGS   = $(RELEASE_FLAGS)
+        CFLAGS   = $(RELEASE_FLAGS) $(STATIC_FLAGS)
 endif
 
 ifeq (YES, $(PTHREADS))

@@ -21,9 +21,8 @@
 inline int CheckIns(HITITEM *p, HITITEM *q, PEAUX *o) {
 	int strain1 = (p->info >> 24)&1;
 	int strain2 = (q->info >> 24)&1;
-//	fprintf(stderr, "strain: %d, q->pos %u, strain2 %d p->pos: %u, min: %d, max: %d\n", strain1, q->pos, strain2, p->pos, o->min_ins, o->max_ins);
-	if(p->chr!=q->chr || strain1 == strain2) return FALSE;
-	else if(o->FR){
+	if(p->chr != q->chr || strain1 == strain2) return FALSE;
+	else if(o->FR) {
 		if(!strain1 && q->pos-p->pos+o->len >= o->min_ins && q->pos-p->pos+o->len <= o->max_ins) return TRUE;
 		else if(strain1 && p->pos-q->pos+o->len >= o->min_ins && p->pos-q->pos+o->len <= o->max_ins) return TRUE;
 		else{ 
@@ -93,53 +92,65 @@ int GenPair(HITTABLE **hitse, PEAUX *po,  HITTABLE **hitpe) {
 
 #if 1	
 unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po, const int rescue, HITTABLE **hitse, HITTABLE **hitpe, int *nc, int *n_rescue){
-	HITTABLE *hitsf = *(hitse+(rescue^1));
-	HITTABLE *hitsr =*(hitse+rescue);
-	int nfound = hitsf->n;
-	HITITEM *hitf = hitsf->itemList;
-	HITITEM *hitr = hitsr->itemList;
+
+	HITITEM *hitf = hitse[rescue^1]->itemList;
+	int nfound = hitse[rescue^1]->n;
+
 	const unsigned int *pacRef = bo->pacRef;
 	const unsigned int dnaLen = bo->dnaLen;
 	char *seq;
 	ChrBlock *blockList = bo->blockList;
+
 	int minIns, maxIns, len, keyLength, n;
 	unsigned int occPos, beg;
+
 	keyLength = alnSeq->len;
 	minIns = po->min_ins; maxIns = po->max_ins;
-	len = maxIns-minIns+2*keyLength;
+	len = maxIns-minIns+3*keyLength;
 	occPos = beg = 0;
 	AlnParam ap = aln_param_bwa;
+
 	path_t *path, *p;
-	cigar_t *cigar=NULL;
-	path = (path_t *)calloc((len+keyLength), sizeof(path_t));
 	int i, path_len, n_cigar;
 	path_len = n_cigar = 0;
+
+	cigar_t * cigar = NULL;
+	path = (path_t *)calloc((len+keyLength), sizeof(path_t));
+
+
 	unsigned char *refSeq = (unsigned char *)calloc(len, sizeof(unsigned char));
+
 	int SWCutoffX, SWCutoffY;
-	SWCutoffX = SWCutoffY = bo->min_len<keyLength?bo->min_len:keyLength;
+	SWCutoffX = SWCutoffY = bo->min_len < keyLength ? bo->min_len : (keyLength < 17 ? keyLength : 17);
+
 	HITITEM *peItem1, *peItem2;
 	peItem1 = hitpe[rescue^1]->itemList;
 	peItem2 = hitpe[rescue]->itemList;
+
 	int mm = 10;
+
 	int n_mm, n_gapo, n_gape, gap_beg, ed_dist;
 	n_mm = n_gapo = n_gape = gap_beg = 0;
 	ed_dist = keyLength;
 
 	unsigned short tmp_cigar[16];
 
+//	fprintf(stderr, "%d\n", nfound);
 	for (i = 0; i < nfound; ++i) {
+
 		occPos = (hitf+i)->occ_pos;
+
 		if((((hitf+i)->info>>24)&0x7) > mm) continue;
 		mm = (hitf+i)->info>>24&0x7;
 		n = (hitf+i)->blockid;
 		if(po->FR ^ (hitf+i)->strain) {
-			beg = occPos+minIns-5-keyLength;
-			if(beg+len >= (blockList+n)->blockEnd) continue;
-			seq = (hitf+i)->strain?alnSeq->seq:alnSeq->rc;
+			beg = occPos + minIns - keyLength;
+			if(beg + len >= (blockList + n)->blockEnd) continue;
+			seq = (hitf+i)->strain ? alnSeq->seq : alnSeq->rc;
 		} else {
-			beg = occPos-maxIns-keyLength-5;
-			if(beg < (blockList+n)->blockStart) continue;
-			seq = (hitf+i)->strain?alnSeq->seq:alnSeq->rc;
+			beg = occPos - maxIns - keyLength;
+			if(beg < (blockList + n)->blockStart) continue;
+			seq = (hitf + i)->strain ? alnSeq->seq : alnSeq->rc;
 		}
 
 		{
@@ -149,8 +160,10 @@ unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po
 				*p++ = (((*(pacRef+(j>>4)))>>(((~j)&0xf)<<1))&0x3);
 		}
 
+//		fprintf(stderr, "%d	n_cigar %d\n", i, n_cigar);
 		if (n_cigar) {free(cigar); n_cigar = 0;}
-		path_len = 0;
+//		fprintf(stderr, "%d	n_cigar %d\n", i, n_cigar);
+
 		aln_local_core(refSeq, len, (unsigned char *)seq, keyLength, &ap, path, &path_len, 1);
 		cigar = aln_path2cigar(path, path_len, &n_cigar);
 		int k, x, y;
@@ -201,11 +214,12 @@ unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po
 					indel = 4; gap_beg = y; y += c&0x3fff; ++n_gapo; n_gape += (c&0x3fff) - 1;
 				}
 			}
-			if(n_mm >= bo->max_mm || n_gapo > 1 || n_gape > bo->gap_len) continue;
+			if(n_mm >= bo->max_mm || n_gapo > 1 || n_gape + n_gapo > bo->gap_len) continue;
+			if (!n_gapo) indel=0;
 		}
 
 		*n_rescue += 1;
-		
+
 		if (n_gape + n_gapo + n_mm < ed_dist)
 		{// update pe hit
 			hitpe[rescue^1]->n = hitpe[rescue]->n = 1;
@@ -213,10 +227,11 @@ unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po
 			peItem2->chr = peItem1->chr;
 			peItem2->pos = beg-occPos+(hitf+i)->pos;
 			peItem2->occ_pos = beg;
-			peItem2->strain = 1^peItem1->strain;
+			peItem2->strain = 1 ^ peItem1->strain;
 			peItem2->n_mm = n_mm;
 			peItem2->n_gapo = n_gapo;
 			peItem2->n_gape = n_gape;
+			peItem2->info = 0;
 			peItem2->info |= ((indel<<25) | ((gap_beg&0xff)<<12) | ((n_gape+1)&0xff));
 			peItem2->gap_beg = gap_beg;
 			peItem2->n_cigar = n_cigar;
@@ -227,8 +242,8 @@ unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po
 	}
 
 	if (*n_rescue) {
-		if (!n_cigar) cigar = (unsigned short *) calloc (peItem2->n_cigar, sizeof(unsigned short));
-		for(i=0; i < peItem2->n_cigar; ++i)cigar[i] = tmp_cigar[i];
+		if (n_cigar < peItem2->n_cigar) cigar = (unsigned short *) calloc (peItem2->n_cigar, sizeof(unsigned short));
+		for(i = 0; i < peItem2->n_cigar; ++i) cigar[i] = tmp_cigar[i];
 		*nc = peItem2->n_cigar;
 	}
 
@@ -237,6 +252,7 @@ unsigned short *SWRescue(const ALNSEQ *alnSeq, const BWTOPT *bo, const PEAUX *po
 	return cigar;
 
 }
+
 #endif
 
 void PEAlnCore(int tid, MULTISEQ *mseqs, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lookup, LOOKUPTABLE *rev_lookup, HSP *hsp,const SOAPOPT *opt) {
@@ -269,9 +285,10 @@ void PEAlnCore(int tid, MULTISEQ *mseqs, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lo
 	se=pe=non=0;
 	double swBeg, swTime;
 	swBeg = swTime = 0;
-	int swRun=0;
+//	int swRun=0;
 	int nRescue = 0;
 	for(i=0; i < multiTotal; i += 2){
+//		fprintf(stderr, "%d\n", i);
 #ifdef  PTHREADS
 		if (opt->nthreads > 1) {
 			pthread_mutex_lock(&lock);
@@ -289,6 +306,7 @@ void PEAlnCore(int tid, MULTISEQ *mseqs, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lo
 			pthread_mutex_unlock(&lock);
 		}
 #endif
+
 		alnSeq[0] = mseqs->seqList+i;
 		alnSeq[1] = mseqs->seqList+i+1;
 		hitse[0]->n = hitse[1]->n = hitpe[0]->n = hitpe[1]->n = 0;
@@ -385,7 +403,7 @@ ALIGN:
 				}
 			}
 			
-			unsigned short *cigar = NULL;
+			unsigned short * cigar = NULL;
 //			if (hitse[1]->n && !hitse[0]->n && boA.gap_len){                       /* gap goto sw */
 			if (hitse[1]->n && !hitse[0]->n && (boA.min_len < alnSeq[0]->len || boA.gap_len)){
 //				swBeg = setStartTime();
@@ -397,6 +415,7 @@ ALIGN:
 			} else if (!hitse[1]->n && hitse[0]->n && (boB.min_len < alnSeq[1]->len || boA.gap_len)) {
 //				swBeg = setStartTime();
 				cigar = SWRescue(alnSeq[1], &boB, &pe_aux, 1, hitse, hitpe, &nc, &nRescue);
+				
 //				swTime += getElapsedTime(swBeg);
 //				swRun++;
 				goto OUTPUT;
@@ -444,9 +463,11 @@ OUTPUT:
 					alnSeq[1]->report = 0;
 				}
 			}
-			if(nc){free(cigar); nc = 0;}
+			if(nc) {
+				free(cigar);
+				nc = 0;
+			}
 		} else {
-//			fprintf(stderr, "%d\t%d\n", alnSeq[0]->ns, alnSeq[1]->ns);
 			non+=2;
 			alnSeq[0]->flag |= 0x12;
 			alnSeq[1]->flag |= 0x12;
@@ -454,8 +475,6 @@ OUTPUT:
 			alnSeq[1]->report = 0;
 		}
 	}
-//	fprintf(stderr, "stat: %d\t%d\t%d\t%.2f\n", pe, se, non, (float)(pe+se)/131072.0);
-//	fprintf(stderr, "Total:%.10f sec, Run: %d times, each: %.10f sec\n", swTime, swRun, (double)swTime/swRun);
 	free(hitse[0]->itemList);
 	free(hitse[1]->itemList);
 	free(hitpe[0]->itemList);

@@ -28,7 +28,7 @@
 
 #ifdef PTHREADS
 #include <pthread.h>
-#define NSEQ_PER_THREAD 0x1000
+#define NSEQ_PER_THREAD 0xF00
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 #define SEQ_ALLOC() {\
 	if (opt->nthreads > 1) {		\
@@ -128,7 +128,7 @@ typedef struct _PEAUX_TYPE_{
 }PEAUX;
 
 inline int CheckIns(HITITEM *, HITITEM *, PEAUX *);
-void MatchProcess (FILEDS *, BWT *, BWT *, LOOKUPTABLE *, LOOKUPTABLE *, HSP *, const SOAPOPT *);
+void MatchProcess (FILEDS *, BWT *, BWT *, LOOKUPTABLE *, LOOKUPTABLE *, HSP *, SOAPOPT * const );
 inline void PickupHit(ALNSEQ *, const int ,int *, HITTABLE *,const unsigned int *, const unsigned int, unsigned short * );
 void SEAlnCore(int , MULTISEQ *, BWT *, BWT *, LOOKUPTABLE *, LOOKUPTABLE *, HSP *, const SOAPOPT *);
 void PEAlnCore(int , MULTISEQ *, BWT *, BWT *, LOOKUPTABLE *, LOOKUPTABLE *, HSP *, const SOAPOPT *);

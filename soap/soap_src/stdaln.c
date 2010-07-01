@@ -208,6 +208,7 @@ int aln_sm_maq[] = {
 	-19, -19, 11, -19, -13,
 	-19, -19, -19, 11, -13,
 	-13, -13, -13, -13, -13
+	//*/
 };
 
 int aln_sm_blast[] = {
@@ -223,7 +224,7 @@ int aln_sm_blast[] = {
 /********************/
 
 AlnParam aln_param_blast   = {  5,  2,  5, aln_sm_blast, 5, 50 };
-AlnParam aln_param_bwa     = { 26,  9,  5, aln_sm_maq, 5, 50 };
+AlnParam aln_param_bwa     = { 30,  5,  0, aln_sm_maq, 5, 50 };
 AlnParam aln_param_nt2nt   = {  8,  2,  2, aln_sm_nt, 16, 75 };
 AlnParam aln_param_rd2rd   = {  1, 19, 19, aln_sm_read, 16, 75 };
 AlnParam aln_param_aa2aa   = { 10,  2,  2, aln_sm_blosum62, 22, 50 };
@@ -852,3 +853,4 @@ cigar_t *aln_path2cigar(const path_t *path, int path_len, int *n_cigar)
 
 	return cigar;
 }
+

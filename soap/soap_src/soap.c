@@ -1,5 +1,4 @@
-/*
- * =============================================================================
+/* * =============================================================================
  *
  *       Filename:  soap.c
  *
@@ -38,7 +37,9 @@
 //#define VID "2.15"		// with gap and extend cigar
 //#define VID "2.16"		// -r 2 segment fault
 //#define VID "2.17"		// mm in rc
-#define VID "2.18"		// 07/05/2009
+//#define VID "2.18"		// 07/05/2009
+//#define VID "2.19"			// 13/07/2009
+#define VID "2.20"			// 23/07/2009 gap missed in forward strand
 #endif
 
 #define MAX_FILENAME_LEN 1024
@@ -170,7 +171,7 @@ SOAPOPT *OptIni(){
 	o->FR       = TRUE;
 	o->allErr   = FALSE;
 	o->min_len  = 255;
-	o->uniq     = 1;
+	o->uniq     = 0;
 	return o;
 }
 
@@ -213,6 +214,7 @@ void ParseOpt(int argc, char *argv[]){
 			case 'M':
 				{
 					opt->mode = atoi(optarg);
+					
 					if(opt->mode == 4) opt->cutoff = 1;
 					else if(opt->mode == 5) opt->cutoff = MAX_ALN;
 					break;
@@ -249,9 +251,6 @@ void ParseOpt(int argc, char *argv[]){
 				break;
 			case 'U':
 				opt->uniq = atoi(optarg);
-				break;
-			case 'A':
-				opt->allErr = TRUE;
 				break;
 			case 's':
 				opt->min_len = atoi(optarg);

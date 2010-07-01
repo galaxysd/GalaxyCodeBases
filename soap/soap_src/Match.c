@@ -55,15 +55,15 @@
 						kputc("ACGTN"[c], str);			\
 						u = 0;					\
 					} else ++u;					\
-				}			\
-				x += l; y += l;					\
-			} else if (cigar[k]>>14 == FROM_I || cigar[k]>>14 == 3) {	\
-				y += l;					\
-			} else if (cigar[k]>>14 == FROM_D) {			\
-				ksprintf(str, "%d", u);				\
-				kputc('D', str);				\
-				for (z = 0; z < l && x+z < dnaLength; ++z)		\
-					kputc("ACGTN"[(((*(pacRef+((x+z)>>4)))>>(((~(x+z))&0xf)<<1))) & 0x3], str);  \
+				}																					\
+				x += l; y += l;																		\
+			} else if (cigar[k]>>14 == FROM_I || cigar[k]>>14 == 3) {								\
+				y += l;																				\
+			} else if (cigar[k]>>14 == FROM_D) {													\
+				ksprintf(str, "%d", u);																\
+				kputc('D', str);																	\
+				for (z = 0; z < l && x+z < dnaLength; ++z)											\
+					kputc("ACGTN"[(((*(pacRef+((x+z)>>4)))>>(((~(x+z))&0xf)<<1))) & 0x3], str);		\
 				u = 0;			\
 				x += l;			\
 			}			\
@@ -117,7 +117,7 @@ inline void PickupHit(ALNSEQ *alnSeq, const int rr,int *site, HITTABLE *hits, co
 				hits->itemList[i].n_cigar = 0;
 				alnSeq->itemList->cigar = (unsigned short *)malloc(sizeof(unsigned short)*(1+n_cigar));
 				memcpy(alnSeq->itemList->cigar, cigar, n_cigar*sizeof(unsigned short));
-				unsigned int x = alnSeq->itemList->occ_pos;			
+				unsigned int x = alnSeq->itemList->occ_pos;
 				unsigned int y, z;
 				y = z = 0;
 				int k, l, u;	
@@ -127,7 +127,7 @@ inline void PickupHit(ALNSEQ *alnSeq, const int rr,int *site, HITTABLE *hits, co
 					l = cigar[k]&0x3fff;
 					if (cigar[k]>>14 == FROM_M) {
 						for (z = 0; z < l && x+z < dnaLength; ++z) {
-							c = (((*(pacRef+((x+z)>>4)))>>(((~(x+z))&0xf)<<1))) & 0x3;	
+							c = (((*(pacRef+((x+z)>>4)))>>(((~(x+z))&0xf)<<1))) & 0x3;
 							if (c > 3 || seq[y+z] > 3 || c != seq[y+z]) {
 								if(u||!(y+z))ksprintf(str, "%d", u);
 								kputc("ACGTN"[c], str);
@@ -181,6 +181,7 @@ void SEAlnCore(int tid, MULTISEQ *mseqs, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lo
 	//*/
 	int mode, seedLen, ns, rr, cutoff;
 	mode = opt->mode; rr = opt->rr;ns = opt->ns; seedLen = opt->aln_len; cutoff = opt->cutoff;
+
 	if (opt->uniq)  mode = 4;
 	BWTOPT bo;
 	//*
@@ -188,7 +189,7 @@ void SEAlnCore(int tid, MULTISEQ *mseqs, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lo
 	bo.cutoff = MAX_ALN;
 	bo.max_mm = opt->max_mm; bo.gap_len = opt->gap_len; bo.gap_fb = opt->gap_fb;
 	bo.pacRef = hsp->packedDNA; bo.dnaLen = hsp->dnaLength;
-	int count = 0;
+//	int count = 0;
 	//*/
 #ifdef DEBUG
 	//	fprintf(stderr, "%d\n", mseqs->n);
@@ -227,7 +228,6 @@ ALIGN:
 			bo.x = bo.alnLen>39?bo.alnLen/3:13;
 			bo.y = bo.alnLen-13-bo.x;
 			if (bo.y <= 0) {fprintf(stderr, "length y < 0, countinue as 13\n");}
-
 			switch (mode) {
 				case 5:
 				case 4:
@@ -292,7 +292,7 @@ static void *Workers(void *threadAux){
 #endif
 
 
-void MatchProcess (FILEDS *fds, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lookup, LOOKUPTABLE *rev_lookup, HSP *hsp, const SOAPOPT *opt) {
+void MatchProcess (FILEDS *fds, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lookup, LOOKUPTABLE *rev_lookup, HSP *hsp, SOAPOPT * const opt) {
 
 	InFileList *ifp;
 	OutFileList *ofp;
@@ -351,18 +351,18 @@ void MatchProcess (FILEDS *fds, BWT *bwt, BWT *rev_bwt, LOOKUPTABLE *lookup, LOO
 			opt->pe?PEAlnCore(0, &mseqs, bwt, rev_bwt, lookup, rev_lookup, hsp, opt)
 				:SEAlnCore(0, &mseqs, bwt, rev_bwt, lookup, rev_lookup, hsp, opt);
 		else {
-pthread_t *tid;
-pthread_attr_t attr;
-THREADAUX *threadAux;
-int j;
-pthread_attr_init(&attr);
-pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-threadAux = (THREADAUX *)calloc(opt->nthreads, sizeof(THREADAUX));
-tid = (pthread_t*)calloc(opt->nthreads, sizeof(pthread_t));
-for (j = 0; j < opt->nthreads; ++j) {
-threadAux[j].tid = j;
-threadAux[j].bwt = bwt; threadAux[j].rev_bwt = rev_bwt;
-		threadAux[j].lookup = lookup; threadAux[j].rev_lookup = rev_lookup;
+			pthread_t *tid;
+			pthread_attr_t attr;
+			THREADAUX *threadAux;
+			int j;
+			pthread_attr_init(&attr);
+			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+			threadAux = (THREADAUX *)calloc(opt->nthreads, sizeof(THREADAUX));
+			tid = (pthread_t*)calloc(opt->nthreads, sizeof(pthread_t));
+			for (j = 0; j < opt->nthreads; ++j) {
+				threadAux[j].tid = j;
+				threadAux[j].bwt = bwt; threadAux[j].rev_bwt = rev_bwt;
+				threadAux[j].lookup = lookup; threadAux[j].rev_lookup = rev_lookup;
 				threadAux[j].hsp = hsp;
 				threadAux[j].mseqs = &mseqs; 
 				threadAux[j].o = opt;

@@ -39,8 +39,7 @@
 #include "Timing.h"
 
 void asciiTime(const char *c){
-	time_t now;
-	now=time(NULL);
+	time_t now = time(NULL);
 	fprintf(stderr, "\n%s\n%s", c, asctime(localtime(&now)));
 }
 

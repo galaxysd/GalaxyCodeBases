@@ -47,7 +47,7 @@ static inline  char * reverse(const  char *seq, int len){
 	dest->tid = -1;			\
 	dest->id  = id;			\
 	dest->len = ori.l;		\
-        dest->nhits = dest->report = 0;		\
+	dest->nhits = dest->report = 0;		\
 	dest->ns = ori.ns;		\
 	dest->seq = (char *)malloc(sizeof(char)*ori.l);		\
 	memcpy(dest->seq, ori.seq, ori.l);		\
@@ -109,14 +109,14 @@ int GenMultiReads(const HSP *hsp, MULTISEQ *mseqs, const int len, const int pe, 
 	return num;
 }
 
-int GetMultiSeq (InFileList *ifp, MULTISEQ *mseqs, const int pe, int(*get_read)(FILE *, seq_t * , const int)){
+int GetMultiSeq (InFileList *ifp, MULTISEQ *mseqs, const int pe, int(*get_read)(FILE * , seq_t * , const int)){
 #ifdef DEBUG
 //	fprintf(stderr, "Get Multi Seqs\n");
 #endif
 	ALNSEQ *alnSeq;
 	alnSeq= mseqs->seqList;
 	int num, len, id;
-	FILE *ifpA, *ifpB;
+	FILE * ifpA, * ifpB;
 	num = 0;
 	ifpA = ifp->ifpA; ifpB = ifp->ifpB;
 	id  = ifp->id;
@@ -172,7 +172,7 @@ int GetMultiSeq (InFileList *ifp, MULTISEQ *mseqs, const int pe, int(*get_read)(
 	int n_cigar = hit->n_cigar;			\
 	int beg=0, end=len;			\
 	if(hit->cigar[0]>>14 == 3) beg = hit->cigar[0]&0x3ff;		\
-	if(hit->cigar[n_cigar-1]>>14 == 3) end = len - hit->cigar[n_cigar-1]&0x3ff;		\
+	if(hit->cigar[n_cigar-1]>>14 == 3) end = len - (hit->cigar[n_cigar-1]&0x3ff);		\
 	if(strain){		\
 		for(k=beg; k<end; ++k){		\
 			kputc("ACGTN"[(int)*(rc+k)], str);		\
@@ -268,7 +268,7 @@ void DumpAln(MULTISEQ *mseqs, OUTAUX *o, OutFileList *ofp,unsigned int *nAln, un
 					info_seedMM = hit->info & 0xffffff;
 					n_mm = hit->n_mm;
 //					int file =(alnSeq->flag)&1?(i&1):0;
-					SOAPOUT((alnSeq->flag)&1?(i&1):0);
+					SOAPOUT((alnSeq->flag&1)?(i&1):0);
 					fprintf(ofpAln, "%s", str->s);
 					++hit;
 				}
@@ -281,7 +281,7 @@ void DumpAln(MULTISEQ *mseqs, OUTAUX *o, OutFileList *ofp,unsigned int *nAln, un
 					n_seedMM = hit->info >> 25 & 0x7;
 					info_seedMM = hit->info & 0xffffff;
 					n_mm = hit->n_mm;
-					SOAPOUT(alnSeq->flag&1?(i&1):0);
+					SOAPOUT((alnSeq->flag&1)?(i&1):0);
 					fprintf(ofpSe, "%s", str->s);
 					++hit;
 				}
