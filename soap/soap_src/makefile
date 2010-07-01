@@ -1,50 +1,64 @@
-CC=	g++
+SHELL         = /bin/sh
+PROG          = soap
+DEBUG         = NO
+PROFILE       = NO
+PTHREADS      = YES
+CC            = gcc
+DEBUG_FLAGS   = -g3 -Wall -O2
+PROFILE_FLAGS = -fprofile-arcs -ftest-coverage -pg 
+RELEASE_FLAGS = -msse3 -O3 -static -funroll-loops -maccumulate-outgoing-args -fomit-frame-pointer 
+DFLAGS        = -DMAKE_TIME=\""`date`"\"
+LIBS          = -lm
+#TARBALL_EXCLUDE = "*.(o,gz,zip)"
+#ZIP_EXCLUDE     = *.o *.gz *.zip
 
-BIN = $(DESTDIR)/usr/bin
-FLAGS= -static -DMAXGAP=3 -DMAXHITS=10000 -DTHREAD -O3 #-g -fno-inline #-DTHREAD -O3 -g
-REF_CHR=  -DDB_CHR
-REF_CONTIG=	-DDB_CONTIG
-REF_SHORT=	-DDB_SHORT
-REF_HUGE=	-DDB_HUGE
-OLIGOLEN= -DREAD_60 #-DREAD_36 -DREAD_48
+ifeq (YES, $(DEBUG))
+        CFLAGS   = $(DEBUG_FLAGS)
+        DFLAGS  += -DDEBUG
+#        PTHREADS = NO
+else
+        CFLAGS   = $(RELEASE_FLAGS)
+endif
 
-LIBS=  
-THREAD=	-lpthread
+ifeq (YES, $(PTHREADS))
+        LIBS   +=  -lpthread
+        DFLAGS +=  -DPTHREADS
+endif
 
-SOURCE = align dbseq main pairs param reads utilities
-OBJS1= $(patsubst %,%.chr.o,$(SOURCE))
-OBJS2= $(patsubst %,%.contig.o,$(SOURCE))
-OBJS3= $(patsubst %,%.short.o,$(SOURCE))
-OBJS4= $(patsubst %,%.huge.o,$(SOURCE))
+ifeq (YES, $(PROFILE))
+       DFLAGS += $(PROFILE_FLAGS)
+endif
 
-all: soap soap.contig soap.short soap.huge soap_dealign
+OBJ = SeqIO.o MiscUtilities.o MemManager.o TextConverter.o r250.o DNACount.o HSP.o Timing.o BWT.o extratools.o soapio.o BWTAln.o Match.o PairMatch.o stdaln.o kstring.o
+.SUFFIX:
+.SUFFIX: .c .o
 
-%.chr.o:%.cpp
-	$(CC) $(FLAGS) $(LIBS) $(REF_CHR) $(OLIGOLEN) -c $< -o $@
-soap: $(OBJS1)
-	$(CC) $(FLAGS) $(LIBS) $(REF_CHR) $(OLIGOLEN) $^ -o $@ $(THREAD)
+.c.o:
+	$(CC) -c $(CFLAGS) $(DFLAGS) $< -o $@
 
-%.contig.o:%.cpp
-	$(CC) $(FLAGS) $(LIBS) $(REF_CONTIG) $(OLIGOLEN) -c $< -o $@
-soap.contig: $(OBJS2)
-	$(CC) $(FLAGS) $(LIBS) $(REF_CONTIG) $(OLIGOLEN) $^ -o $@ $(THREAD)
+all: $(PROG)
 
-%.short.o:%.cpp
-	$(CC) $(FLAGS) $(LIBS) $(REF_SHORT) $(OLIGOLEN) -c $< -o $@
-soap.short: $(OBJS3)
-	$(CC) $(FLAGS) $(LIBS) $(REF_SHORT) $(OLIGOLEN) $^ -o $@ $(THREAD)
-	
-%.huge.o:%.cpp
-	$(CC) $(FLAGS) $(LIBS) $(REF_HUGE) $(OLIGOLEN) -c $< -o $@
-soap.huge: $(OBJS4)
-	$(CC) $(FLAGS) $(LIBS) $(REF_HUGE) $(OLIGOLEN) $^ -o $@ $(THREAD)
+$(PROG): $(OBJ) soap.o
+	$(CC) $(CFLAGS) $(DFLAGS) $(OBJ) soap.o -o $@ $(LIBS)
 
-soap_dealign: soap_dealign.o dealign.o param.chr.o
-	$(CC) $(FLAGS) $(LIBS) $^ -o $@
-				
+SeqIO.o:SeqIO.h
+r250.o: r250.h
+DNACount.o:DNACount.h
+HSP.o:HSP.h
+MiscUtilities.o:MiscUtilities.h
+MemManager.o:MemManager.h
+TextConverter.o:TextConverter.h
+extratools.o:extratools.h BWT.h MiscUtilities.h MemManager.h TextConverter.h Timing.h HSP.h kstring.h
+soapio.o:soapio.h SeqIO.h
+BWT.o:BWT.h 
+BWTAln.o:BWTAln.h BWT.h
+Match.o:Match.h BWTAln.h soapio.h
+PairMatch.o:Match.h BWTAln.h stdaln.h
+MiscUtilities.o:MiscUtilities.h
+MemManager.o:MemManager.h
+TextConverter.o:TextConverter.h
+stdaln.o:stdaln.h
+kstring.o:kstring.h
+
 clean:
-	rm -f *.o soap soap.contig soap.short soap.huge soap_dealign
-install:
-	install -d $(BIN)
-	install ./soap ./soap.contig ./soap.short ./soap.huge ./soap_dealign $(BIN)
-#	cp soap soap.contig soap.short soap.huge soap_dealign ../../ #../bin
+	rm -f *.o $(PROG)
