@@ -29,6 +29,7 @@ public:
 	int RunAlign(RefSeq &ref);
 	void Do_Batch(RefSeq &ref);
 	void StringAlign(RefSeq &ref, string &os);
+	void StringAlign_ClosestUnpair(RefSeq &ref, string &os);
 	
 public:	
 	SingleAlign _sa;

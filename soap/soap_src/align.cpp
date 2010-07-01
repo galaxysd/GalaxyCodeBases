@@ -25,7 +25,7 @@ SingleAlign::SingleAlign()
 	/*n=0: ab; 1: cd; 2: bc; 3: ac; 4: bd; 5: ad*/
 	/*
 	      ==============
-	    0 |---
+	    0 |---                  
 	    1    |---
 	    2       |---
 	    3          |---
@@ -328,10 +328,10 @@ void SingleAlign::SnpAlign_0(RefSeq &ref)
 			_hit.chr=_refid[j];
 			_hit.loc=(_refloc[j]<<2)-profile[0][i].a+i;
 //			cout<<"hit:  "<<_refloc[j]<<"   "<<j<<endl;
-			//special for mRNA tag alignment
-			if((param.tag_type!=-1) && (UnequalTag_0(_hit.chr, _hit.loc, ref)))
-				continue;
 			if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
+				continue;
+			//special for mRNA tag alignment
+			if((param.tag_type!=-1) && ((_hit.loc<4) || UnequalTag_0(_hit.chr, _hit.loc, ref)))
 				continue;
 			d=_hit.loc%12;
 			w=CountMismatch(bseq[d], reg[d], ref.bfa[_hit.chr].s+_hit.loc/12);
@@ -363,10 +363,10 @@ void SingleAlign::SnpAlign_0(RefSeq &ref)
 		for(j=0; j!=m; j++) {
 			_hit.chr=_refid[j];
 			_hit.loc=(_refloc[j]<<2)-profile[0][i].a+i;
-			//special for mRNA tag alignment
-			if((param.tag_type!=-1) && (UnequalTag_1(_hit.chr, _hit.loc, ref)))
-				continue;	
 			if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
+				continue;	
+			//special for mRNA tag alignment
+			if((param.tag_type!=-1) && UnequalTag_1(_hit.chr, _hit.loc, ref))
 				continue;	
 			d=_hit.loc%12;		
 			w=CountMismatch(cbseq[d], creg[d], ref.bfa[_hit.chr].s+_hit.loc/12);
@@ -414,11 +414,11 @@ void SingleAlign::SnpAlign_1(RefSeq &ref)
 		for(j=0; j!=m; j++) {
 			_hit.chr=_refid[j];
 			_hit.loc=(_refloc[j]<<2)-profile[1][i].a+i;
-			//special for mRNA tag alignment
-			if((param.tag_type!=-1) && (UnequalTag_0(_hit.chr, _hit.loc, ref)))
-				continue;			
 			if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
 				continue;
+			//special for mRNA tag alignment
+			if((param.tag_type!=-1) && ((_hit.loc<4) || UnequalTag_0(_hit.chr, _hit.loc, ref)))
+				continue;			
 			d=_hit.loc%12;
 			w=CountMismatch(bseq[d], reg[d], ref.bfa[_hit.chr].s+_hit.loc/12);	
 //			cout<<"hit:  "<<_hit.loc<<"  "<<w<<endl;
@@ -452,11 +452,11 @@ void SingleAlign::SnpAlign_1(RefSeq &ref)
 		for(j=0; j!=m; j++) {
 			_hit.chr=_refid[j];
 			_hit.loc=(_refloc[j]<<2)-profile[1][i].a+i;
-			//special for mRNA tag alignment
-			if((param.tag_type!=-1) && (UnequalTag_1(_hit.chr, _hit.loc, ref)))
-				continue;		
 			if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
 				continue;
+			//special for mRNA tag alignment
+			if((param.tag_type!=-1) && UnequalTag_1(_hit.chr, _hit.loc, ref))
+				continue;		
 			d=_hit.loc%12;			
 			w=CountMismatch(cbseq[d], creg[d], ref.bfa[_hit.chr].s+_hit.loc/12);
 //			cout<<"hit:  "<<_hit.loc<<"  "<<w<<endl;			
@@ -474,6 +474,15 @@ void SingleAlign::SnpAlign_1(RefSeq &ref)
 	}
 }
 
+char * StrSeed(bit32_t seed, bit32_t size)
+{
+	char *s = new char[size+1];
+	for(int i=size-1; i>=0; i--) {
+		s[size-1-i]=param.useful_nt[(seed>>(i*2))&0x3];
+	}
+	return s;
+};
+
 /*n=0: ab; 1: cd; 2: bc; 3: ac; 4: bd; 5: ad*/
 //for seed bc ac bd ad
 void SingleAlign::SnpAlign_2(RefSeq &ref)
@@ -489,6 +498,7 @@ void SingleAlign::SnpAlign_2(RefSeq &ref)
 		}		
 		for(i=0; i!=4; i++) {
 			_seed=seeds[k][i];
+//			cout<<"seed: "<<param.seed_size<<"  "<<k<<"  "<<i<<"  "<<seeds[k][i]<<"  "<<StrSeed(seeds[k][i], param.seed_size)<<endl;
 			if(k<=2) {
 				if((m=ref.index[_seed].n1) ==0) continue;  //no match
 				_refid=ref.index[_seed].id1;
@@ -508,22 +518,22 @@ void SingleAlign::SnpAlign_2(RefSeq &ref)
 			h=profile[k][i].b1;		 //# of bytes at left of seed on bseq
 			for(j=0; j!=m; j++) {
 				_hit.chr=_refid[j];
-				_hit.loc=(_refloc[j]<<2)-profile[k][i].a+i;	
-				//special for mRNA tag alignment
-				if((param.tag_type!=-1) && (UnequalTag_0(_hit.chr, _hit.loc, ref)))
-					continue;					
+				_hit.loc=(_refloc[j]<<2)-profile[k][i].a+i;		
 				if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
 					continue;		
+				//special for mRNA tag alignment
+				if((param.tag_type!=-1) && ((_hit.loc<4) || UnequalTag_0(_hit.chr, _hit.loc, ref)))
+					continue;				
 				d=_hit.loc%12;						
 				w=CountMismatch(bseq[d], reg[d], ref.bfa[_hit.chr].s+_hit.loc/12);
-//				cout<<"hit:  "<<_hit.loc<<"  "<<w<<endl;				
+//				cout<<"hit:  "<<_hit.loc<<"  "<<w<<endl;
 
 				if(w>param.max_snp_num)
 					continue;				
 				if(_cur_n_hit[w]>=param.max_num_hits)
 					continue;
 				if(_tmp_n_hit[w] &&HitExist(_hit, hits[w], hits[w]+_tmp_n_hit[w]))
-					continue;	
+					continue;					
 				_hit.z=d;
 				hits[w][_cur_n_hit[w]++]=_hit;
 			}
@@ -559,11 +569,11 @@ void SingleAlign::SnpAlign_2(RefSeq &ref)
 			for(j=0; j!=m; j++) {
 				_hit.chr=_refid[j];
 				_hit.loc=(_refloc[j]<<2)-profile[k][i].a+i;
-				//special for mRNA tag alignment
-				if((param.tag_type!=-1) && (UnequalTag_1(_hit.chr, _hit.loc, ref)))
-					continue;		
 				if(_hit.loc>ref.title[_hit.chr].size-_pread->seq.size()) //overflow the end of refseq
 					continue;
+				//special for mRNA tag alignment
+				if((param.tag_type!=-1) && UnequalTag_1(_hit.chr, _hit.loc, ref))
+					continue;		
 				d=_hit.loc%12;
 				w=CountMismatch(cbseq[d], creg[d], ref.bfa[_hit.chr].s+_hit.loc/12);
 //				cout<<"hit:  "<<_hit.loc<<"  "<<w<<endl;
@@ -1693,22 +1703,32 @@ int SingleAlign::RunAlign(RefSeq &ref)
 	//ab, snp/exact alignment
 	GenerateSeeds_1(0);
 	SnpAlign_0(ref);
-	if(_cur_n_hit[0]||_cur_n_chit[0]||(param.max_snp_num==0)) 
-		return 1; //end if find exact matched hits
-	GenerateSeeds_1(1);
-	SnpAlign_1(ref);
-	if(_cur_n_hit[1]||_cur_n_chit[1]||_cur_n_hit[0]||_cur_n_chit[0]||(param.max_snp_num==1))
-		return 1; //end if find 1 mismatch hits
-	//complete snp alignment
-	GenerateSeeds_1(2);
-	GenerateSeeds_2(3);
-	GenerateSeeds_2(5);
-	GenerateSeeds_3(4);
-	SnpAlign_2(ref);
-	for(int i=0; i<=param.max_snp_num; i++) {
-		if(_cur_n_hit[i]||_cur_n_chit[i]) 
-			return 1;
+	if(_cur_n_hit[0]||_cur_n_chit[0]) 
+		return 1; //end if find exactly matched hits
+	
+	if(param.max_snp_num>0) {
+		GenerateSeeds_1(1);
+		SnpAlign_1(ref);
+		if(_cur_n_hit[1]||_cur_n_chit[1]||_cur_n_hit[0]||_cur_n_chit[0])
+			return 1; //end if find 1 mismatch hits
 	}
+	
+	if(param.max_snp_num>1) {
+		//complete snp alignment
+		GenerateSeeds_1(2);
+		GenerateSeeds_2(3);
+		GenerateSeeds_2(5);
+		GenerateSeeds_3(4);
+		SnpAlign_2(ref);
+		for(int i=0; i<=param.max_snp_num; i++) {
+			if(_cur_n_hit[i]||_cur_n_chit[i]) 
+				return 1;
+		}
+	}
+/*	for(int k=0; k<6; k++)
+		for(int i=0; i<4; i++)
+			cout<<"seed: "<<param.seed_size<<"  "<<k<<"  "<<i<<"  "<<seeds[k][i]<<"  "<<StrSeed(seeds[k][i], param.seed_size)<<endl;
+*/
 	//gapped alignment
 	if(param.max_gap_size)
 		if(GapAlign(ref))

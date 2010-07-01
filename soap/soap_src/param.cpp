@@ -40,6 +40,7 @@ Param::Param()
 	
 	min_insert= 400;
 	max_insert= 600;
+	optimize_output_SV=1;
 	
 	seed_size= 10;
 	half_seed_size= seed_size>>1;	
@@ -49,7 +50,7 @@ Param::Param()
 	
 	max_snp_num = 2;
 	max_gap_size = 0;
-	gap_edge = 3;
+	gap_edge = 5;
 	max_num_hits = MAXHITS;
 	
 	//for mRNA tag alignment

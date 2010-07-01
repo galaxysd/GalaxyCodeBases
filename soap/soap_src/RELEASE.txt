@@ -1,3 +1,12 @@
+release: 1.10
+2008-03-18
+1. Added an option '-y' of pair-end alignment.
+
+release: 1.06
+2008-03-13
+1. Fixed a bug which will rarely overflow on alignment of mRNA tags;
+
+
 release: 1.05
 2008-02-27
 1. Fixed a bug which will report some false deletions;

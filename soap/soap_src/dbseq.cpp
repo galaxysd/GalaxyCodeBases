@@ -131,12 +131,14 @@ void RefSeq::Run_ConvertBinseq(ifstream &fin)
 	cout<<"sum: "<<sum<<endl;*/
 }
 
+//continues seed
 inline bit32_t RefSeq::s_MakeSeed_1(bit24_t *_m, int _a)
 {
 	bit32_t _seed;
 	_seed= _a>=24?(_m->a>>(_a-24))&param.seed_bits:((_m->a<<(24-_a))|((_m+1)->a>>_a))&param.seed_bits;
 	return _seed;
 }
+//spaced seed with one interval
 inline bit32_t RefSeq::s_MakeSeed_2(bit24_t *_m, int _a, int _b, int _c, int _d)
 {
 	bit32_t _seed;

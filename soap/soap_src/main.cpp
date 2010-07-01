@@ -115,6 +115,8 @@ void *t_PairAlign(void *)
 
 void Do_PairAlign()
 {
+	if(param.max_snp_num>0)
+		param.max_snp_num=2;
 	read_a.CheckFile(fin_a);
 	read_b.CheckFile(fin_b);
 	
@@ -131,27 +133,27 @@ void Do_PairAlign()
 void *t_SeedFreq_ab(void *)
 {
 	ref.t_CalKmerFreq_ab();
-}
+};
 void *t_SeedFreq_ac(void *)
 {
 	ref.t_CalKmerFreq_ac();
-}
+};
 void *t_SeedFreq_ad(void *)
 {
 	ref.t_CalKmerFreq_ad();
-}
+};
 void *t_Index_ab(void *)
 {
 	ref.t_CreateIndex_ab();
-}
+};
 void *t_Index_ac(void *)
 {
 	ref.t_CreateIndex_ac();
-}
+};
 void *t_Index_ad(void *)
 {
 	ref.t_CreateIndex_ad();
-}
+};
 void Do_Formatdb()
 {
 	ref.InitialIndex();
@@ -174,7 +176,7 @@ void Do_Formatdb()
 	//
 	ref._blocks.clear();
 	cout<<"Create seed table. "<<Cal_AllTime()<<" secs passed"<<endl;	
-}
+};
 #else
 void Do_SingleAlign()
 {
@@ -190,10 +192,12 @@ void Do_SingleAlign()
 		cout<<read_a._index<<" reads finished. "<<Cal_AllTime()<<" secs passed"<<endl;
 	}
 	n_aligned=a.n_aligned;	
-}
+};
 
 void Do_PairAlign()
 {
+	if(param.max_snp_num>0)
+		param.max_snp_num=2;	
 	read_a.CheckFile(fin_a);
 	read_b.CheckFile(fin_b);
 	PairAlign a;
@@ -205,21 +209,21 @@ void Do_PairAlign()
 		if(!n1||(n1!=n2))
 			break;
 		a.ImportBatchReads(n1, read_a.mreads, read_b.mreads);
-		a.Do_Batch(ref);
+		a.Do_Batch(ref);		
 		fout<<a._str_align;
 		fout_unpair<<a._str_align_unpair;
 		cout<<read_a._index<<" reads finished. "<<Cal_AllTime()<<" secs passed"<<endl;
-	}
+	}	
 	n_aligned_pairs=a.n_aligned_pairs;
 	n_aligned_a=a.n_aligned_a;
-	n_aligned_b=a.n_aligned_b;	
-}
+	n_aligned_b=a.n_aligned_b;
+};
 
 void Do_Formatdb()
 {
 	ref.CreateIndex();
 	cout<<"Create seed table. "<<Cal_AllTime()<<" secs passed"<<endl;
-}
+};
 #endif
 
 //usage
@@ -230,7 +234,7 @@ cout<<"Usage:	soap [options]\n"
 		<<"       -d  <str>   reference sequences file, *.fa format\n"
 		<<"       -o  <str>   output alignment file\n"
 		<<"       -s  <int>   seed size, default="<<param.seed_size<<". [read>18,s=8; read>22,s=10, read>26, s=12]\n"
-		<<"       -v  <int>   maximum number of mismatches allowed on a read, <="<<MAXSNPS<<". default="<<param.max_snp_num<<"bp\n"
+		<<"       -v  <int>   maximum number of mismatches allowed on a read, <="<<MAXSNPS<<". default="<<param.max_snp_num<<"bp. For pair-ended alignment, this version will allow either 0 or 2 mismatches.\n"
 		<<"       -g  <int>   maximum gap size allowed on a read, default="<<param.max_gap_size<<"bp\n"
 		<<"       -w  <int>   maximum number of equal best hits to count, smaller will be faster, <="<<MAXHITS<<"\n"
 		<<"       -e  <int>   will not allow gap exist inside n-bp edge of a read, default="<<param.gap_edge<<"bp\n"
@@ -258,6 +262,7 @@ cout<<"Usage:	soap [options]\n"
 		<<"       -m  <int>   minimal insert size allowed, default="<<param.min_insert<<"\n"
 		<<"       -x  <int>   maximal insert size allowed, default="<<param.max_insert<<"\n"
 		<<"       -2  <str>   output file of unpaired alignment hits\n"
+		<<"       -y          do not optimize for SV analysis, default will output hit a and hit b with smallest distance in unpaired alignment\n"
 		<<"\n  Options for mRNA tag alignment:\n"
 		<<"       -T  <int>   type of tag, 0:DpnII, GATC+16; 1:NlaIII, CATG+17. default="<<param.tag_type<<"[not mRNA tag]\n"
 		<<"\n  Options for miRNA alignment:\n"
@@ -303,6 +308,7 @@ int mGetOptions(int rgc, char *rgv[])
 			case 's': param.SetSeedSize(atoi(rgv[++i])); break;
 			case 'o': out_align_file = rgv[++i]; break;
 			case '2': out_align_file_unpair = rgv[++i]; break;
+			case 'y': param.optimize_output_SV=0; break;
 			case 'm': param.min_insert = atoi(rgv[++i]); break;
 			case 'x': param.max_insert = atoi(rgv[++i]); break;
 			case 'v': param.max_snp_num = atoi(rgv[++i]); if(param.max_snp_num>MAXSNPS) usage(); break;
@@ -327,7 +333,8 @@ int mGetOptions(int rgc, char *rgv[])
 		}
 	}
 	return i;
-}
+};
+
 void RunProcess(void)
 {
 	//pair-end alignment
@@ -402,7 +409,8 @@ void RunProcess(void)
 	cout<<"Done.\n";
 	cout<<"Finished at "<<Curr_Time();
 	cout<<"Total time consumed:  "<<Cal_AllTime()<<" secs\n";
-}
+};
+
 int main(int argc, char *argv[])
 {
 	//print usage

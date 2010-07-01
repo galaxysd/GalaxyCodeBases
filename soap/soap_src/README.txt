@@ -108,6 +108,7 @@ Usage:	soap [options]
        -m  <int>   minimal insert size allowed, default=400
        -x  <int>   maximal insert size allowed, default=600
        -2  <str>   output file of unpaired alignment hits
+       -y          do not optimize for SV analysis, default will output hit a and hit b with smallest distance in unpaired alignment
 
   Options for mRNA tag alignment:
        -T  <int>   type of tag, 0:DpnII, GATC+16; 1:NlaIII, CATG+17. default=-1[not mRNA tag]

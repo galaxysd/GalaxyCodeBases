@@ -55,6 +55,7 @@ public:
 	//pair-end mapping
 	int min_insert;
 	int max_insert;
+	int optimize_output_SV;  //if a pair cannot align with proper orientation and distance, very likely a strctural variation happen here. we prefer to report hit of read 'a' and 'b' with smallest distance, so that to help detect structural variations
 	//seed
 	int half_seed_size;
 	int seed_size;

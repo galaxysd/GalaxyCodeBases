@@ -22,7 +22,7 @@ void ReadClass::CheckFile(ifstream &fin)
 	if('>' == s1[0])
 		_file_format=1;
 	else if('@' == s1[0]) {
-		fin>>s3;
+		fin>>s3;		
 		fin.getline(ch, 1000);
 		fin>>s4;
 		fin.getline(ch, 1000);
