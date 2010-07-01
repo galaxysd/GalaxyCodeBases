@@ -40,7 +40,6 @@ void ReadClass::CheckFile(ifstream &fin)
 		cerr<<"fatal error: please set smaller seed size, <="<<2*((s2.size()-4+1)/4)<<endl;
 		exit(1);
 	}
-	param.read_size = s2.size();
 	fin.seekg(0);
 }
 

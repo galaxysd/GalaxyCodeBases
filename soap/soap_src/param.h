@@ -13,19 +13,19 @@ struct bit24_t
 	unsigned a:24;
 };
 
-#ifdef DB_CHR  // seqs <256, length <4Gb*4
+#ifdef DB_CHR  // seqs <256, length <4Gb
 	typedef bit8_t ref_id_t;
 	typedef bit32_t ref_loc_t;
 #endif
-#ifdef DB_CONTIG // seqs <65K, length <4Gb*4
+#ifdef DB_CONTIG // seqs <65K, length <4Gb
 	typedef bit16_t ref_id_t;
 	typedef bit32_t ref_loc_t;
 #endif
-#ifdef DB_SHORT // seqs <4G, length <256*4
+#ifdef DB_SHORT // seqs <4G, length <65K
 	typedef bit32_t ref_id_t;
-	typedef bit8_t ref_loc_t;
+	typedef bit16_t ref_loc_t;
 #endif
-#ifdef DB_HUGE
+#ifdef DB_HUGE // seqs<4G, length <4G
 	typedef bit32_t ref_id_t;
 	typedef bit32_t ref_loc_t;
 #endif
@@ -40,7 +40,7 @@ public:
 public:
 	int num_procs;  //number of parallel processors
 	
-	int chains;
+	int chains;   //0: both; 1: direct only; 2: complementary only
 	//dbseq
 	int max_dbseq_size;
 	int append_dbseq_size;
@@ -65,6 +65,7 @@ public:
 	int max_snp_num;   //maximum number of snps on one read allowed
 	int max_gap_size;  //maximum gap size in a read
 	int gap_edge;   //will not allow gap exist at the boundaries of a read
+	int max_num_hits;   //maximum number of equal best hits, smaller will be faster
 	//report hits
 	int report_repeat_hits;   //how report repeat hits? 0: no, 1: pick one randomly, 2: report all
 	bool output_id;   //1: output read id, 1: out read index

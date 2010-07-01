@@ -8,29 +8,33 @@ Param::Param()
 	num_procs=1;
 	
 	chains=0;
-	
-#ifdef DB_CHR  // seqs <256, length <4Gb*4
+
+/*	
+#ifdef DB_CHR  // seqs <256, length <4Gb
 	max_dbseq_size=0x1000000; //16Mb
 	append_dbseq_size=0x1000000;  //16Mb
 #endif
-#ifdef DB_CONTIG // seqs <65K, length <4Gb*4
+#ifdef DB_CONTIG // seqs <65K, length <4Gb
 	max_dbseq_size=0x100000; //1Mb
 	append_dbseq_size=0x100000;  //1Mb
 #endif
-#ifdef DB_SHORT // seqs <4G, length <256*4
-	max_dbseq_size=0x400; //1Kb
-	append_dbseq_size=0x400;  //16Mb
+#ifdef DB_SHORT // seqs <4G, length <65K
+	max_dbseq_size=0x10000; //65Kb
+	append_dbseq_size=0x10000;  //65Kb
 #endif
-#ifdef DB_HUGE
+#ifdef DB_HUGE // seqs <4G, length <4G
 	max_dbseq_size=0x1000000; //16Mb
 	append_dbseq_size=0x1000000;  //16Mb
 #endif
+*/
+	max_dbseq_size=0x1000000; //16Mb
+	append_dbseq_size=0x1000000;  //16Mb
 	
-	read_size=30;
+//	read_size=30;
 	max_ns = 5;
 	trim_lowQ=0;
 	
-	zero_qual= '!';
+	zero_qual= '@';
 	qual_threshold= 20;
 	default_qual=40;
 	
@@ -46,6 +50,7 @@ Param::Param()
 	max_snp_num = 2;
 	max_gap_size = 0;
 	gap_edge = 3;
+	max_num_hits = MAXHITS;
 	
 	//for mRNA tag alignment
 	SetMrnaTag(-1);
@@ -59,8 +64,8 @@ Param::Param()
 	report_repeat_hits = 1;
 	output_id=1;
 
-	useful_nt="ACGT";
-	nx_nt="NX";
+	useful_nt="ACGTacgt";
+	nx_nt="NXnx";
 	
 	BuildMismatchTable();
 };

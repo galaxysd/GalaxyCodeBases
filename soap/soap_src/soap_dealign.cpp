@@ -11,19 +11,19 @@ using namespace std;
 
 void usage(void)
 {
-	cout<<"Usage: pes_dealign	[options]\n"
-		<<"	sortalign  <in.chrorder> <in.align> <out.align>\n\n"
-		<<"	headhist   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
-		<<"		Output format: depth, frequency, % of all chr locations\n\n"
-		<<"	depthhist  <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
-		<<"		Output format: depth, frequency, % of all chr locations\n\n"
-		<<"	headdis    <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n\n"
-		<<"	depthdis   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n\n"
-		<<"	gc2depth   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
-		<<"		Output format: location, GC, mean depth\n\n"
-		<<"	QC         <read_len> <flag> <char_zero_quality> <outfile> <in.align 1> <in.align 2> ...\n"
-		<<"		Note: flag=0, look only full-length reads; flag=1, look all reads; flag=2, look all reads(first bp trimmed align)\n"
-		<<"		      gapped hits and repeat hits will be excluded from the calculation for this momment\n";
+	cout<<"Usage: soap_dealign	[options]\n"
+		<<"      sortalign  <in.chrorder> <in.align> <out.align>\n\n"
+		<<"      headhist   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
+		<<"                 Output format: depth, frequency, % of all chr locations\n\n"
+		<<"      depthhist  <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
+		<<"                 Output format: depth, frequency, % of all chr locations\n\n"
+		<<"      headdis    <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n\n"
+		<<"      depthdis   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n\n"
+		<<"      gc2depth   <win> <slip> <zoom> <0:all,1:rm repeat hits> <ref.fa> <outfile> <in.align 1> <in.align 2> ...\n"
+		<<"                 Output format: location, GC, mean depth\n\n"
+		<<"      QC         <read_len> <flag> <char_zero_quality> <outfile> <in.align 1> <in.align 2> ...\n"
+		<<"                 Note: flag=0, look only full-length reads; flag=1, look all reads; flag=2, look all reads(first bp trimmed align)\n"
+		<<"                       gapped hits and repeat hits will be excluded from the calculation for this momment\n";
 		exit(1);
 };
 

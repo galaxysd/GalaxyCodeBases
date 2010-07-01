@@ -259,7 +259,7 @@ void Dealign::OutDistri(char *out_file, vector<vector<bit16_t> > &c, int win, in
 	}
 	else {
 		for(p=c.begin(), k=0; p!=c.end(); p++,k++) {
-			fout<<">"<<_reftitle[k]<<"\t"<<p->size()<<endl;
+			fout<<">"<<_reftitle[k]<<"  "<<p->size()<<endl;
 			for(i=0; i!=p->size(); i++) {
 				if((*p)[i]>0)
 					fout<<(*p)[i]-1<<" ";

@@ -34,8 +34,9 @@ public:
 	SingleAlign _sa;
 	SingleAlign _sb;
 	bit32_t num_reads;
-	bit32_t n_filtered_pairs, n_filtered_a, n_filtered_b;	
+	bit32_t n_aligned_pairs, n_aligned_a, n_aligned_b;	
 	string _str_align;
+	string _str_align_unpair;
 protected:
 	bit32_t _cur_n_hits[2*MAXSNPS+1];
 	bit32_t _cur_n_gaphits[MAXGAP+1];

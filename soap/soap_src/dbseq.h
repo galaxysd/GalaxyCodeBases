@@ -36,7 +36,7 @@ class RefSeq
 {
 public:
 	RefSeq();
-	int LoadNextSeq(ifstream &fin);
+	ref_loc_t LoadNextSeq(ifstream &fin);
 	void BinSeq(OneBfa &a);
 	void UnmaskRegion();
 	void Run_ConvertBinseq(ifstream &fin);
@@ -61,7 +61,7 @@ public:
 	
 public:
 	int total_num;
-	bit32_t sum_length;
+	bit64_t sum_length;
 	vector<OneBfa> bfa;
 	bit32_t total_kmers;
 	KmerLoc *index;

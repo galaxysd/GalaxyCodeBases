@@ -11,7 +11,7 @@ RefSeq::RefSeq()
 {
 	total_kmers=0;
 }
-int RefSeq::LoadNextSeq(ifstream &fin)
+ref_loc_t RefSeq::LoadNextSeq(ifstream &fin)
 {
 	char ch[1000];
 	char c;
@@ -23,6 +23,7 @@ int RefSeq::LoadNextSeq(ifstream &fin)
 	_length=0;
 	//get name
 	fin>>_name;
+//	cout<<"name: "<<_name<<endl;
 	fin.getline(ch, 1000);
 	//get seq
 	while(!fin.eof()) {
@@ -43,6 +44,7 @@ int RefSeq::LoadNextSeq(ifstream &fin)
 		z+=s.size();
 		_length+=s.size();
 	}
+//	cout<<"got: "<<_length<<endl;
 	return _length;
 }
 
@@ -52,7 +54,9 @@ void RefSeq::BinSeq(OneBfa &a)
 	int t=a.n*12-_length;
 	if(t) {
 		string ts(t, 'N');
-		copy(ts.begin(), ts.end(), _seq.end());
+		if(_seq.size()<_length+t)
+			_seq.resize(_length+t);
+		copy(ts.begin(), ts.end(), _seq.begin()+_length);
 	}
 	a.s = new bit24_t[a.n];
 	bit32_t i=0;
@@ -71,22 +75,22 @@ void RefSeq::UnmaskRegion()
 {
 	Block b;
 	b.id=_count;
-	ref_loc_t p=0;
-	while(p<_length) {
-		b.end=b.begin=_seq.find_first_of(param.useful_nt, p);
-		p=_seq.find_first_of(param.nx_nt, b.begin);
-		if(p<_length) {
-			while((p<_length) && (p-b.end>param.read_size)) {  //allow single 'N' in a read-size region
-				b.end=p;
-				p++;
-				p=_seq.find_first_of(param.nx_nt, p);
-			}
-		}
+	b.begin=b.end=0;
+//	bit32_t total_size=0;
+	while(b.end<_length) {
+		b.begin=_seq.find_first_of(param.useful_nt, b.end);
+		if(b.begin > _length)
+			break;
+		b.end=_seq.find_first_of(param.nx_nt, b.begin);
+		b.end = (b.end<=_length? b.end : _length);
+		if(b.end-b.begin <30)
+			continue;
+		if((!_blocks.empty()) && (b.id==_blocks[_blocks.size()-1].id) 
+			&& (b.begin - _blocks[_blocks.size()-1].end <5))
+			_blocks[_blocks.size()-1].end=b.end;
 		else {
-			b.end=_length;
-		}
-		if(b.end-b.begin >param.min_read_size)
 			_blocks.push_back(b);
+		}
 	}
 }
 
@@ -108,9 +112,23 @@ void RefSeq::Run_ConvertBinseq(ifstream &fin)
 		_count++;
 		total_num++;
 		sum_length+=_length;
+//		cout<<r.size<<endl;
 	}
-	cout<<"total seq length: "<<sum_length<<endl;
+//	cout<<"total seq length: "<<sum_length<<endl;
 	_seq.clear(); //free ram
+	//
+/*	bit32_t a[25];
+	bit32_t sum=0;
+	for(int i=0; i<25; i++)
+		a[i]=0;
+	for(vector<Block>::iterator p=_blocks.begin(); p!=_blocks.end(); p++) {
+		a[p->id]+=p->end-p->begin;
+	}
+	for(int i=0; i<25; i++) {
+		cout<<i<<"  "<<a[i]<<endl;
+		sum+=a[i];
+	}
+	cout<<"sum: "<<sum<<endl;*/
 }
 
 inline bit32_t RefSeq::s_MakeSeed_1(bit24_t *_m, int _a)
@@ -162,7 +180,7 @@ void RefSeq::t_CalKmerFreq_ab()
 			index[s_MakeSeed_1(_m, _b)].n1++;
 			index[s_MakeSeed_1(_m, _c)].n1++;
 		}
-	}	
+	}
 }
 void RefSeq::t_CalKmerFreq_ac()
 {

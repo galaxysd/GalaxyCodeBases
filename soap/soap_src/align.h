@@ -76,6 +76,8 @@ public:
 	inline bool UnequalTag_0(ref_id_t id, ref_loc_t loc, RefSeq &ref);
 	inline bool UnequalTag_1(ref_id_t id, ref_loc_t loc, RefSeq &ref);
 	void SnpAlign_0(RefSeq &ref);
+	void SortExactHits(void);
+	void SortExactcHits(void);
 	void SnpAlign_1(RefSeq &ref);
 	inline bool equal_loc(Hit a);
 	void SnpAlign_2(RefSeq &ref);
@@ -102,11 +104,13 @@ public:
 	int _format;
 	//reads
 	vector<ReadInf>::iterator _pread;
+	string _ori_read_seq;
+	string _ori_read_qual;
 	string _revseq;
 	string _revqual;
 	bit32_t num_reads;
 	vector<ReadInf> mreads;
-	bit32_t n_filtered;
+	bit32_t n_aligned;
 	//binary seq
 	bit24_t bseq[12][FIXELEMENT];
 	bit24_t reg[12][FIXELEMENT];
@@ -176,6 +180,8 @@ protected:
 	ref_loc_t _lb, _rb;
 	
 	int _tmp_n_hit[MAXSNPS+1];
+	int _tmp_n_gaphit;
+	int _tmp_n_cgaphit;
 	
 	char _ch[1000];
 	vector<bit8_t> _sites;
