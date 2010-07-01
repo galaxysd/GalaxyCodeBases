@@ -182,7 +182,7 @@ for my $sample (keys %cmdlines) {
 	print SH "#!/bin/sh
 #\$ -N \"sp_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,s_core=5
+#\$ -cwd -r y -l vf=4.1G,p=5
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
 SEEDFILE=$opath${sample}_soap.cmd
@@ -289,7 +289,7 @@ for my $chrid (@ChrIDs) {
 	print SH "#!/bin/sh
 #\$ -N \"glf_$chrid\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=280M,s_core=1
+#\$ -cwd -r y -l vf=280M,p=1
 #\$ -hold_jid \"All_Matrix\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar keys %Lanes,"
@@ -333,7 +333,7 @@ for my $chrid (@ChrIDs) {
 	print SH "#!/bin/sh
 #\$ -N \"pSNP_$chrid\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=70M,s_core=1
+#\$ -cwd -r y -l vf=120M,p=1
 #\$ -hold_jid glf_$chrid
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$lstcount
