@@ -1,0 +1,26 @@
+
+release: 1.0
+2007-11-10
+Formal stable version.
+
+release: 0.9.3
+2007-10-23
+1. Added -READ_60, since we are getting longer reads with high quality. So the maximum read length allowed is 60bp;
+2. Implemented the function of iteratively trim low-quality ends during alignment;
+3. Finally make the gapped alignment works. Small gaps (1~3bp) inside read is mappable;
+4. Further revised the pairwise alignment modular. And we have tested it extensively in simulated data, but we will expect to have more revision after trying more on real data;
+5. Some special function for miRNA and mRNA tag alignment was designed and implemented in this version;
+6. Updated a little of the output format, provide more information in a user friendly way.
+
+release: 0.9.2
+2007-09-22
+1. Added -READ_48, so now the maximum read length allowed is 48bp.
+
+release: 0.9.1
+2007-08-23
+1. Fixed a bug at hit comparison when sorting;
+2. Added pes_dealign to summarize result;
+
+release: 0.9
+2007-07-01
+1. After broadly internal test on real data, this is the first stable version for outside download.
