@@ -195,8 +195,6 @@ warn "[!]All done !\n";
 __END__
 cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_PO.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_PO.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp -n 5000 -bin 0.1 -cutoff 3 -chr $a -cn 1.16 -f 0.1 -o ./outpoly/$a.polymorphism >> ./shell/${a}_PO.sh; done
 
-cat chrorder | while read a;do echo "#$ -N \"${a}_polyf\"" >./shell/${a}_POf.sh;echo "#$ -cwd -r y -l vf=1M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e ./outpoly/_$a.err" >> ./shell/${a}_POf.sh;echo ./polymorphism.pl -snp_w ./wild/$a.add_cn -snp_c ./cultivate/$a.add_cn -snpdb ./Add/$a.add_cn -ratio ./population/$a.population.snp.f -n 5000 -bin 0.1 -cutoff 3 -chr $a -cn 1.16 -f 0.1 -o ./outpoly/$a.polymorphism >> ./shell/${a}_POf.sh; done
-
 rm -f ./outpoly/mix.mpoly && find ./outpoly/*.polymorphism | xargs cat >> ./outpoly/mix.mpoly
 
 perl -lane 'print unless /^NA/' outpoly/*.polymorphism |les
@@ -205,6 +203,4 @@ perl -lane '@a=split /\t/;print unless (/^NA/ or $#a < 5)' outpoly/*.polymorphis
 perl -lane 'print unless /^NA/' outpoly/*.polymorphism > ./outpoly/mix.mpoly
 
 
-
-cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_wPO.sh;echo "#$ -cwd -r y -l vf=10M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e /dev/null" >> ./shell/${a}_wPO.sh;echo ./polymorphism.pl -snp_w ./wildadd/$a.add_cn -snp_c ./culadd/$a.add_cn -snpdb ./alladd/$a.add_cn -ratio ./finalsnp/$a.population.snp -n 20000 -bin 0.01 -cutoff 3 -chr $a -cn 1.5 -f 0.1 -o ./outpoly_20k_10_15/$a.polymorphism >> ./shell/${a}_wPO.sh; done
-cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_qPO.sh;echo "#$ -cwd -r y -l vf=10M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e /dev/null" >> ./shell/${a}_qPO.sh;echo ./polymorphism.pl -snp_w ./wildadd/$a.add_cn -snp_c ./culadd/$a.add_cn -snpdb ./alladd/$a.add_cn -ratio ./finalsnp/$a.population.snp -n 20000 -bin 0.01 -cutoff 3 -chr $a -cn 1.5 -f 0.2 -o ./outpoly_20k_20_15/$a.polymorphism >> ./shell/${a}_qPO.sh; done
+cat chrorder | while read a;do echo "#$ -N \"${a}_poly\"" >./shell/${a}_qPO.sh;echo "#$ -cwd -r y -l vf=10M,p=1 -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH -o /dev/null -e /dev/null" >> ./shell/${a}_qPO.sh;echo ./gross.pl -i chr.nfo -w ./wild/${a}_final.snp -c ./cul/${a}_final.snp -o $a.poly -b >> ./shell/${a}_qPO.sh; done
