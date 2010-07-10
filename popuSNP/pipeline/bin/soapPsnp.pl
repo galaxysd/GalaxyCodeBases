@@ -277,7 +277,9 @@ perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
 	close SH;
 }
 ## SoapSNP
+open LA,'>',$opath.'GLF.lst';
 for my $chrid (@ChrIDs) {
+	print LA join("\t",$_,$chrid,"$opath$chrid/${_}_$chrid.glf"),"\n" for sort keys %Lanes;	# $sample
 	system('mkdir','-p',$opath.$chrid);
 	open L,'>',$opath.$chrid.'.glflst';
 	print L "$opath$chrid/${_}_$chrid.glf\n" for sort keys %Lanes;	# $sample
@@ -299,6 +301,7 @@ eval perl $SCRIPTS/callglf.pl ${opath}matrix/all.matrix $opt_f $maxRL \$SEED
 ";
 	close SH;
 }
+close LA;
 
 
 ### 4pSNP ###
