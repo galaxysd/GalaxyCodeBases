@@ -303,64 +303,6 @@ eval perl $SCRIPTS/callglf.pl ${opath}matrix/all.matrix $opt_f $maxRL \$SEED
 }
 close LA;
 
-
-### 4pSNP ###
-$opath="$opt_o/4pSNP/";
-system('mkdir','-p',$opath.'sh');
-for my $chrid (@ChrIDs) {
-	my $dir = $opath.$chrid;
-	system('mkdir','-p',$opath.$chrid);
-	my $lst=$opt_o.'/3GLF/'.$chrid.'.glflst';
-	my $len=$ChrLen{$chrid};
-
-	open LST,'>',$dir.'.psnplst' || die "$!\n";
-	open CMD,'>',$dir."/$chrid.popcmd" || die "$!\n";
-	my $lstcount=0;
-	my ($i,$j,$exit)=(1,$POPSPLIT,0);
-	while ($exit != -1) {
-		++$exit;
-		if ($j > $len) {
-			$j=$len;
-			$exit=-1;
-		}
-		print LST "$dir/${chrid}_$exit.psnp\n";
-		print CMD "$i $j $lst $dir/${chrid}_$exit.psnp >$dir/${chrid}_$exit.tag 2>$dir/${chrid}_$exit.log\n";
-		++$lstcount;
-		$i += $POPSPLIT;
-		$j += $POPSPLIT;
-	}
-	close CMD;
-	close LST;
-
-	open SH,'>',$opath.'sh/'.$chrid.'_popsnp.sh' || die "$!\n";
-	print SH "#!/bin/sh
-#\$ -N \"pSNP_$chrid\"
-#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=120M,p=1
-#\$ -hold_jid glf_$chrid
-#\$ -o /dev/null -e /dev/null
-#\$ -S /bin/bash -t 1-$lstcount
-SEEDFILE=${dir}/$chrid.popcmd
-SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval python $SCRIPTS/GLFmulti.py \$SEED
-";
-	close SH;
-	open SH,'>',$opath.'sh/'.$chrid.'_wcsnp.sh' || die "$!\n";
-	print SH "#!/bin/sh
-#\$ -N \"WSNP_$chrid\"
-#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=60M
-#\$ -hold_jid pSNP_$chrid
-#\$ -o /dev/null -e /dev/null
-#\$ -S /bin/bash
-cat $dir.psnplst|xargs wc -l > $dir.psnpwc
-rm -f $dir.psnp
-cat $dir.psnplst|xargs cat >> $dir.psnp
-wc -l $dir.psnp >> $dir.psnpwc
-";	# whenever >> , remember to rm first !
-	close SH;
-}
-
 #END
 my $stop_time = [gettimeofday];
 
