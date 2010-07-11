@@ -134,13 +134,13 @@ while (my $file=<P>) {
 	print STDERR "+\b";
 
 	my (@FH,@IndelH);
-	for (@Samples) {
-		$file=$opt_o.$_.'.'.$chr.'.fa';
+	for my $sample (@Samples) {	# !!! Cannot use $_ , as $_ will be the last read from $IndelH[0] from GetNextInDel() after the 1st psnp is finished.
+		$file=$opt_o.$sample.'.'.$chr.'.fa';
 		my ($fh,$fhIDl);
 		open $fh,'>',$file or die "[x]Error opening $file: $!\n";
-		print $fh ">${_}---$chr\n";
+		print $fh ">${sample}---$chr\n";
 		push @FH,$fh;
-		open $fhIDl,'<',$SampleToIndelf{$_} or die "[x]Error opening $SampleToIndelf{$_}: $!\n";
+		open $fhIDl,'<',$SampleToIndelf{$sample} or die "[x]Error opening $SampleToIndelf{$sample}: $!\n";
 		push @IndelH,[$fhIDl];
 		&GetNextInDel($IndelH[-1],$chr) >=0 || die;
 	}
@@ -165,7 +165,7 @@ while (my $file=<P>) {
 			for my $fh (@FH) {
 				my $str;
 				#my ($FH,$curChr,$curSt,$curEd,$curInDe,$curIDseq)=@$Aref;
-				if ($i < $IndelH[$t]->[2]) {
+				if ($i < $IndelH[$t]->[2] or $IndelH[$t]->[2] == -1) {	# add -1 so that no more calling after the last indel item
 					$str = $ref;
 				} elsif ($i <= $IndelH[$t]->[3]) {
 					if ($IndelH[$t]->[4]<0) { $str = ''; }
@@ -189,6 +189,9 @@ while (my $file=<P>) {
 		++$i;
 	}
 	print STDERR '-';
+	close $$_[0] for @IndelH;
+	close $_ for @FH;
+	@IndelH=@FH=();
 }
 
 my $stop_time = [gettimeofday];
