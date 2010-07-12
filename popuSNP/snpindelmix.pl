@@ -89,6 +89,7 @@ sub GetNextInDel($$) {
 		if (defined $curChr) { return $filePos; }
 		 else { return -1; }
 	}
+	@$Aref=($FH,$curChr,$curSt,$curEd,$curInDe,$curIDseq);	# also set $curSt=-1
 	return -2;	# Empty file
 }
 
@@ -142,7 +143,7 @@ while (my $file=<P>) {
 		push @FH,$fh;
 		open $fhIDl,'<',$SampleToIndelf{$sample} or die "[x]Error opening $SampleToIndelf{$sample}: $!\n";
 		push @IndelH,[$fhIDl];
-		&GetNextInDel($IndelH[-1],$chr) >=0 || die;
+		&GetNextInDel($IndelH[-1],$chr) >=0 || warn "[!]No InDel for ${chr} @ ${sample}\n";
 	}
 	warn '[!]PSNP:[',1+$#{${$SNP{$pos}}[1]},'] != File:[',(scalar @FH),"].\n" if $#FH != $#{${$SNP{$pos}}[1]};
 
