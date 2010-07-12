@@ -107,7 +107,7 @@ while (<L>) {
 close L;
 print STDERR scalar keys %SubSample,"]\n";
 for my $v (values %SubSample) {
-	$v = [sort keys %$v];
+	$v = [sort keys %$v];	# This is where we sort glf lists.
 }
 print STDERR " $_ -> [",scalar @{$SubSample{$_}},'] ',join(',',@{$SubSample{$_}}),"\n" for sort keys %SubSample;
 
