@@ -23,7 +23,7 @@ use FindBin qw($Bin);
 
 
 die  "Version 1.0 2009-7-6;\nUsage:
-perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 14);
+perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 12);
 # copyNumLcRst.pl -i ./Watermelon_17/SNP/PE/seg01/seg01 -r ./watermelon_v2_888/faByChr/seg01.fa -l ./Watermelon_17/FinalSNP2/watermelon.merge.len -c seg01 -n 16 -m ./Watermelon_17/SortbyChr/PE/List/seg01.list -o ./Watermelon_17/FinalSNP2/FinalSNP/Population/seg01
 
 my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
@@ -85,7 +85,7 @@ my $length = $hash{$chromosome};
 while(my $line=<A>)
 {
 	chomp $line;
-	my ($Sample,$Chr,$Len,$file)=split /\t/;
+	my ($Sample,$Chr,$Len,$file)=split /\t/,$line;
 	next if $Chr ne $chromosome;
 
 	open IN,'<',$file or die $!;
@@ -93,7 +93,7 @@ while(my $line=<A>)
 	while (<IN>){
 		chomp;
 		my ($word1,$word2,$hit,$read_len,$chr,$pos)=(split /\s+/)[1,2,3,5,7,8];
-		next unless $chr eq  $chromosome;
+		next unless $chr eq $chromosome;
 		my $start = $pos;
 		my $end = $pos + $read_len - 1;
 	#	if($start>$print_end+1)

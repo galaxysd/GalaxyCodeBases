@@ -12,14 +12,15 @@ $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 my $POPSPLIT=1000000;
 
-our $opts='i:s:l:c:f:qvbd';
-our($opt_i, $opt_s, $opt_l, $opt_c, $opt_f, $opt_v, $opt_b, $opt_q, $opt_d);
+our $opts='i:s:l:c:f:m:qvbd';
+our($opt_i, $opt_s, $opt_l, $opt_m, $opt_c, $opt_f, $opt_v, $opt_b, $opt_q, $opt_d);
 
 our $desc='1.filter fq, 2.stats';
 our $help=<<EOH;
 \t-i Project path
 \t-s sub-group list(./subgroup.lst) in format: /^subGroupID\\tRegEx\$/
-\t-l relative path of GLF.lst to project path (3GLF)
+\t-l relative path of megred.lst to project path (2soap)
+\t-m relative path of GLF.lst to project path (3GLF)
 \t-c Chromosome NFO file (chr.nfo) in format: /^ChrID\\s+ChrLen\\s?.*\$/
 \t-f faByChr path (./faByChr) with ChrID.fa\(s\)
 \t-q run qsub automatically
@@ -32,7 +33,8 @@ ShowHelp();
 
 die "[x]Must specify Project path !\n" if ! $opt_i;
 $opt_s='./subgroup.lst' if ! $opt_s;
-$opt_l='3GLF' if ! $opt_l;
+$opt_l='2soap' if ! $opt_l;
+$opt_m='3GLF' if ! $opt_m;
 $opt_c='chr.nfo' if ! $opt_c;
 $opt_f='./faByChr' if ! $opt_f;
 
@@ -46,8 +48,9 @@ $opt_f=~s#/+$##;
 # `readlink -f` will be blank if target not exists.
 #system('mkdir','-p',$opt_o);
 
-my $nfoname=$opt_i.'/'.$opt_l.'/GLF.lst';
-die "[x]-i $nfoname not exists !\n" unless -f $nfoname;
+my $spLname=$opt_i.'/'.$opt_l.'/megred.lst';
+my $glfLname=$opt_i.'/'.$opt_m.'/GLF.lst';
+die "[x]-i $glfLname not exists !\n" unless -f $glfLname;
 
 print STDERR "From [$opt_i]/[$opt_l]/GLF.lst with [$opt_s][$opt_f][$opt_c]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
@@ -70,8 +73,18 @@ if ($opt_v) {
 	print '[!]ChrID(s): [',join(',',@ChrIDs),"]\n";
 }
 
+my %spData;
+open L,'<',$spLname or die "[x]Error opening $spLname: $!\n";
+while (<L>) {
+	chomp;
+	my ($Sample,$Chr,$Len,$file)=split /\t/;
+	$Sample =~ s/\s/_/g;
+	$spData{$Sample}{$Chr}=[$Len,$file];
+}
+close L;
+
 my ($GLFCount,%SampleChrGlf,%ChrCount,%SampleCount,@Samples)=(0);
-open L,'<',$nfoname or die "[x]Error opening $nfoname: $!\n";
+open L,'<',$glfLname or die "[x]Error opening $glfLname: $!\n";
 print STDERR "[!]Glf (Sample x Chr = GLF): ";
 while (<L>) {
 	chomp;
@@ -113,10 +126,12 @@ print STDERR " $_ -> [",scalar @{$SubSample{$_}},'] ',join(',',@{$SubSample{$_}}
 
 ### Let's Begin ###
 my $outpath=$opt_i.'/4pSNP/';
-system('mkdir','-p',$outpath);
+#system('mkdir','-p',$outpath);
 for my $Sub (keys %SubSample) {
 	my $prefix=join('',$outpath,$Sub,'/');
+	system('mkdir','-p',$prefix);
 	open GLFA,'>',$prefix.'GLF.lst' || die "$!\n";
+	open SP,'>',$prefix.'megred.lst' || die "$!\n";
 	system('mkdir','-p',$prefix.'lst');
 	system('mkdir','-p',$prefix.'sh');
 	for my $Chr (@ChrIDs) {
@@ -127,6 +142,7 @@ for my $Sub (keys %SubSample) {
 
 		for my $Sample (@{$SubSample{$Sub}}) {
 			print GLFA join("\t",$Sample,$Chr,$SampleChrGlf{$Sample}{$Chr}),"\n";
+			print SP join("\t",$Sample,$Chr,@{$spData{$Sample}{$Chr}}),"\n";
 			print GLFL $SampleChrGlf{$Sample}{$Chr},"\n";
 		}
 		close GLFL;
@@ -178,8 +194,38 @@ wc -l $dir.psnp >> $dir.psnpwc
 ";	# whenever >> , remember to rm first !
 		close SH;
 	}
+	close SP;
 	close GLFA;
 }
+
+### CN_LC_RST ###
+$outpath=$opt_i.'/5FinalSNP/';
+system('mkdir','-p',$outpath.'sh');
+for my $Sub (keys %SubSample) {
+	my $prefix=join('',$outpath,$Sub,'/1Population/');
+	system('mkdir','-p',$prefix);
+	open CMD,'>',"${prefix}CnRstLc.cmd";
+	my $t=0;
+	for my $Chr (@ChrIDs) {
+		print CMD "-i ${opt_i}/4pSNP/${Sub}/$Chr.psnp -r $opt_f/$Chr.fa -l $opt_c -c $Chr -m ${opt_i}/4pSNP/${Sub}/megred.lst -o ${prefix}$Chr\n";
+		++$t;
+	}
+	close CMD;
+	open SH,'>',"${outpath}sh/step1_${Sub}.sh";
+	print SH "#!/bin/sh
+#\$ -N \"Ps1_${Sub}_$$\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=6G
+#\$ -hold_jid \"WSNP_*_${Sub}_$$\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$t
+SEEDFILE=${prefix}CnRstLc.cmd
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/copyNumLcRst.pl \$SEED
+";
+	close SH;
+}
+
 
 #END
 my $stop_time = [gettimeofday];
