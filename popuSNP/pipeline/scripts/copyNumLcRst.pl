@@ -33,7 +33,7 @@ GetOptions(
 	"length_chr_file:s"=>\$length_chr_file,	# ChrLen or Chr.nfo
 	"reference:s"=>\$reference,
 	"input:s"=>\$input,	# pCNS
-	"merge:s"=>\$mergelist,	# merged soap list, by Chr
+	"merge:s"=>\$mergelist,	# merged soap list, by Chr. Changed to accept univsrtal megred.lst
 	"out:s"=>\$outfile,
 	"help"=>\$help,
 );
@@ -68,7 +68,7 @@ close L;
 $_="";
 
 
-open A,"$mergelist" || die "$!" ;
+open A,'<',$mergelist || die "$!" ;
 my @cpnumber;
 my @hit;
 my %ina;
@@ -85,8 +85,10 @@ my $length = $hash{$chromosome};
 while(my $line=<A>)
 {
 	chomp $line;
+	my ($Sample,$Chr,$Len,$file)=split /\t/;
+	next if $Chr ne $chromosome;
 
-	open IN,$line or die $!;
+	open IN,'<',$file or die $!;
 
 	while (<IN>){
 		chomp;
@@ -111,7 +113,7 @@ while(my $line=<A>)
 
 		foreach my $j ($start..$end){
 			my $loc_chr_a=$chr."_".$j;
-	#		 $locadethp[$j]++;
+	#		$locadethp[$j]++;
 			if(exists $exis_snp{$loc_chr_a})
 			{
 				$hit[$j] += $hit;
@@ -128,17 +130,17 @@ while(my $line=<A>)
 
 			 	next if ($hit != 1) ;
 				$uniqHash{$loc_chr_a}++;
-			       my $offset = $j - $start;
-                               my $allele = substr($word1,$offset,1);
-                               my $q = substr($word2,$offset,1);
-                               $hashRST{$loc_chr_a}.= $allele.$q;
-			       $hashLC{$loc_chr_a}.= $allele.$q;
+				my $offset = $j - $start;
+				my $allele = substr($word1,$offset,1);
+				my $q = substr($word2,$offset,1);
+				$hashRST{$loc_chr_a}.= $allele.$q;
+				$hashLC{$loc_chr_a}.= $allele.$q;
 			}
 		}
 	}
 	close IN;
-	 foreach (keys %exis_snp){
-                $hashLC{$_} .= "~,";
+	foreach (keys %exis_snp){
+		$hashLC{$_} .= "~,";
 	}
 
 
