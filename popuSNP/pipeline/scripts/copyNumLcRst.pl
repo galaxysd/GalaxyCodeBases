@@ -24,16 +24,14 @@ use FindBin qw($Bin);
 
 die  "Version 1.0 2009-7-6;\nUsage:
 perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 14);
-# copyNumLcRst.pl -i ./Watermelon_17/SNP/PE/seg01/seg01 -r ./watermelon_v2_888/faByChr/seg01.fa -l ./Watermelon_17/FinalSNP2/watermelon.merge.len -c seg01 -n 16 -m ./Watermelon_17/SortbyChr/PE/List/seg01.list -o ./Watermelon_17/FinalSNP2/FinalSNP/Population/seg01
-
 my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
 GetOptions(
-	"numberOfFile:i"=>\$numberOfFile,	# Sample count
-	"chromosome:s"=>\$chromosome,	# ChrID
-	"length_chr_file:s"=>\$length_chr_file,	# ChrLen
+	"numberOfFile:i"=>\$numberOfFile,
+	"chromosome:s"=>\$chromosome,
+	"length_chr_file:s"=>\$length_chr_file,
 	"reference:s"=>\$reference,
-	"input:s"=>\$input,	# pCNS
-	"merge:s"=>\$mergelist,	# merged soap list, by Chr
+	"input:s"=>\$input,
+	"merge:s"=>\$mergelist,
 	"out:s"=>\$outfile,
 	"help"=>\$help,
 );
@@ -48,7 +46,7 @@ while(<RAW>)
 	chomp;
         my @line=split(/\s+/,$_);
 	my $inf=join("\t", @line[0..$#line]);
-        if($line[3]>0)#  && $line[9]>= 1 ) 		# depth > 0   and quality > 0
+        if($line[3]>= 1  && $line[9]>= 1 ) 		# depth > 0   and quality > 0
 	{  $exis_snp{$line[0]."_".$line[1]}=$inf;}
 }
 close RAW;
@@ -249,8 +247,8 @@ my  $outDir=$outfile;
    undef  %noGapLength ; undef  %hash ; undef $length ;
 
  #delete $sum;
-     open(Addcn,">$outDir\t.add")||die"$!";  # print add_cn out
-     open(RST,">$outDir\t.rs")||die"$!"; # print filter SNP
+     open(Addcn,">${outDir}.add")||die"$!";  # print add_cn out
+     open(RST,">${outDir}.rs")||die"$!"; # print filter SNP
  #    open(OUTdb,">$outDir\.dbsnp")||die"$!"; # print filter SNP
 
 
@@ -424,10 +422,10 @@ close RST;
 #delete  %outa;
 #delete %hashRST;
 
-my $file1="$outDir\t.add";
-my $file2="$outDir\t.rs";
-my $file4="$outDir\t.add_cn";
-my $file3="$outDir\t.rst";
+my $file1="${outDir}.add";
+my $file2="${outDir}.rs";
+my $file4="${outDir}.add_cn";
+my $file3="${outDir}.rst";
 system ("$Bin/RankSumTest  -i   $file2  -o   $file3 ");
 system ("perl $Bin/addRst.pl  $file3   $file1  $file4 ");
 #unlink    $file2 ;          #   system("rm  $file2");
