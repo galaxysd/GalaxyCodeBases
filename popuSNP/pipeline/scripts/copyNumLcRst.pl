@@ -24,18 +24,20 @@ use FindBin qw($Bin);
 
 die  "Version 1.0 2009-7-6;\nUsage:
 perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 14);
+# copyNumLcRst.pl -i ./Watermelon_17/SNP/PE/seg01/seg01 -r ./watermelon_v2_888/faByChr/seg01.fa -l ./Watermelon_17/FinalSNP2/watermelon.merge.len -c seg01 -n 16 -m ./Watermelon_17/SortbyChr/PE/List/seg01.list -o ./Watermelon_17/FinalSNP2/FinalSNP/Population/seg01
+
 my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
 GetOptions(
-	"numberOfFile:i"=>\$numberOfFile,
-	"chromosome:s"=>\$chromosome,
-	"length_chr_file:s"=>\$length_chr_file,
+#	"numberOfFile:i"=>\$numberOfFile,	# Sample count
+	"chromosome:s"=>\$chromosome,	# ChrID
+	"length_chr_file:s"=>\$length_chr_file,	# ChrLen or Chr.nfo
 	"reference:s"=>\$reference,
-	"input:s"=>\$input,
-	"merge:s"=>\$mergelist,
+	"input:s"=>\$input,	# pCNS
+	"merge:s"=>\$mergelist,	# merged soap list, by Chr
 	"out:s"=>\$outfile,
 	"help"=>\$help,
 );
-$numberOfFile ||= 1;
+#$numberOfFile ||= 1;
 $chromosome ||= "Gm01";
 
 open(RAW,"$input") || die"$!";  # open my raw soapsnp data
@@ -66,7 +68,7 @@ close L;
 $_="";
 
 
-open	 A,"$mergelist"  || die "$!" ;
+open A,"$mergelist" || die "$!" ;
 my @cpnumber;
 my @hit;
 my %ina;
