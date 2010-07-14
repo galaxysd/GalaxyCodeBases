@@ -31,11 +31,12 @@ my (%Dat,%Count,$v);
 while(my $file=<L>) {
 	chomp $file;
 	print STDERR "> $file\t";
-	open I,'<',$file or die "[x]Error on $file: $!\n";
+	open I,'<',$file or warn "Skipped: $!\n" and next;	# filename has just been warned.
 	while(<I>) {
 		chomp;
 		my @line=split /\t/;
 		for my $k (keys %Col) {
+			next unless defined $line[$k];
 			if ($Col{$k}->[1] == 0) { $v=$line[$k]; }	# faster
 			 else { $v=&getVal($Col{$k}->[1],$line[$k]); }	# Well, C will inline while Perl won't.
 			++$Dat{$k}->{$v};
@@ -46,7 +47,11 @@ while(my $file=<L>) {
 	warn "done.\n";
 }
 close L;
-for my $k (keys %Dat) {
+for my $k (keys %Col) {	# changed from %Dat to %Col so that user can be warned.
+	unless (defined $Dat{$k}) {
+		warn "[!]Col.[$k]:$Col{$k}->[0] not found, skipped !\n";
+		next;
+	}
 	open O,'>',join('',$out,$k,$Col{$k}->[0],'.dat') or die "[x]Error: $!\n";	# add $k so that always unique
 	print O join("\t",$Col{$k}->[0],'Count','% of '.$Count{$k},'accumulation(%)'),"\n";
 	my $suming=0;

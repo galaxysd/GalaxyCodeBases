@@ -52,7 +52,7 @@ my $spLname=$opt_i.'/'.$opt_l.'/megred.lst';
 my $glfLname=$opt_i.'/'.$opt_m.'/GLF.lst';
 die "[x]-i $glfLname not exists !\n" unless -f $glfLname;
 
-print STDERR "From [$opt_i]/[$opt_l]/GLF.lst with [$opt_s][$opt_f][$opt_c]\n";
+print STDERR "From [$opt_i]/[$opt_l]/megred.lst,[$opt_m]/GLF.lst with [$opt_s][$opt_f][$opt_c] for 4 & 5\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -205,11 +205,14 @@ for my $Sub (keys %SubSample) {
 	my $prefix=join('',$outpath,$Sub,'/1Population/');
 	system('mkdir','-p',$prefix);
 	open CMD,'>',"${prefix}CnRstLc.cmd";
+	open LST,'>',"${prefix}add_cn.lst";
 	my $t=0;
 	for my $Chr (@ChrIDs) {
 		print CMD "-i ${opt_i}/4pSNP/${Sub}/$Chr.psnp -r $opt_f/$Chr.fa -l $opt_c -c $Chr -m ${opt_i}/4pSNP/${Sub}/megred.lst -o ${prefix}$Chr\n";
+		print LST "${prefix}${Chr}.add_cn\n";
 		++$t;
 	}
+	close LST;
 	close CMD;
 	open SH,'>',"${outpath}sh/step1_${Sub}.sh";
 	print SH "#!/bin/sh
@@ -222,6 +225,17 @@ for my $Sub (keys %SubSample) {
 SEEDFILE=${prefix}CnRstLc.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
 eval perl $SCRIPTS/copyNumLcRst.pl \$SEED
+";
+	close SH;
+	open SH,'>',"${outpath}sh/step2_${Sub}_stat1.sh";
+	print SH "#!/bin/sh
+#\$ -N \"Ps2_${Sub}_stat_$$\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=100M
+#\$ -hold_jid \"Ps1_${Sub}_$$\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash
+perl $SCRIPTS/count.pl ${prefix}add_cn.lst 0addcn ${prefix}stat 2>${prefix}stat.log
 ";
 	close SH;
 }
