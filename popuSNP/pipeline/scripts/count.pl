@@ -47,7 +47,7 @@ while(my $file=<L>) {
 }
 close L;
 for my $k (keys %Dat) {
-	open O,'>',join('',$out,$Col{$k}->[0],'.dat') or die "[x]Error: $!\n";
+	open O,'>',join('',$out,$k,$Col{$k}->[0],'.dat') or die "[x]Error: $!\n";	# add $k so that always unique
 	print O join("\t",$Col{$k}->[0],'Count','% of '.$Count{$k},'accumulation(%)'),"\n";
 	my $suming=0;
 	for my $x (sort {$a <=> $b} keys %{$Dat{$k}}) {
