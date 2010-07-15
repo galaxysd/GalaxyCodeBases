@@ -206,6 +206,19 @@ for my $Sub (keys %SubSample) {
 	system('mkdir','-p',$prefix);
 	open CMD,'>',"${prefix}CnRstLc.cmd";
 	open LST,'>',"${prefix}add_cn.lst";
+	open CFG,'>',"${prefix}filterCRL.cfg";
+	print CFG "# This is the CRL filtering configure for SubGroup:[$Sub]
+# Please specify the following parameters for keeping data:
+# depth\t[min,max]
+# quality\t[min,+∞)
+# rst\t[min,+∞)
+# copynumber\t(-∞,max]
+depth\t60\t200
+quality\t20
+rst\t0.01
+copynumber\t1.5
+";
+	close CFG;
 	my $t=0;
 	for my $Chr (@ChrIDs) {
 		print CMD "-i ${opt_i}/4pSNP/${Sub}/$Chr.psnp -r $opt_f/$Chr.fa -l $opt_c -c $Chr -m ${opt_i}/4pSNP/${Sub}/megred.lst -o ${prefix}$Chr\n";
@@ -235,7 +248,22 @@ eval perl $SCRIPTS/copyNumLcRst.pl \$SEED
 #\$ -hold_jid \"Ps1_${Sub}_$$\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-perl $SCRIPTS/count.pl ${prefix}add_cn.lst 0addcn ${prefix}stat 2>${prefix}stat.log
+perl $SCRIPTS/count.pl ${prefix}add_cn.lst 0addcn ${prefix}stat 2>${prefix}1stat.log
+";
+	close SH;
+
+	open SH,'>',"${outpath}sh/step3_${Sub}_last.sh";
+	print SH "#!/bin/sh
+#\$ -N \"Ps3_${Sub}_last_$$\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=100M
+#\$ -hold_jid \"Ps2_${Sub}_stat_$$\"
+#\$ -o /dev/null -e /dev/null
+#\$ -S /bin/bash -t 1-$t
+SEEDFILE=${prefix}add_cn.lst
+SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+eval perl $SCRIPTS/filter_addcn.pl ${prefix}filterCRL.cfg \$SEED 2>${prefix}2filterCRL_\${SGE_TASK_ID}.log
+
 ";
 	close SH;
 }
