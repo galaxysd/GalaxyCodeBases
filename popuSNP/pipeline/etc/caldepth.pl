@@ -1,7 +1,7 @@
 #!/bin/env perl
 use strict;
 use warnings;
-use Data::Dump qw(dump ddx);
+#use Data::Dump qw(dump ddx);
 
 unless (@ARGV){
 	print "perl $0 <chr.nfo> <soaps.stat> <out file>\n";	# soaps.nfo can store the file size of soap. Too late, useless.
