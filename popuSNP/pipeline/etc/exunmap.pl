@@ -4,7 +4,7 @@ use warnings;
 #use Data::Dump qw(dump ddx);
 
 unless (@ARGV){
-	print "perl $0 <fq path/> <fq1,fq2> <soap path/> <soap,single,se>\n";	# soaps.nfo can store the file size of soap. Too late, useless.
+	print "perl $0 <fq path/> <fq1,fq2> <soap path/> <soap,single,se>\n";	
 	exit;
 }
 
@@ -80,4 +80,5 @@ while ($$fqsFHPosDat[1] != -1) {
 }
 close O;
 __END__
+vf=61168=62k
 ./exunmap.pl ./1fqfilted/WATxozRADDIAAPE=GS-2/100124_I644_FC615G8AAXX_L4_WATxozRADDIAAPE_ 1.fq,2.fq ./v4/2soap/GS-2/WATxozRADDIAAPE/100124_I644_FC615G8AAXX_L4_WATxozRADDIAAPE_ 1.soap,1.single
