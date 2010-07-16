@@ -168,12 +168,14 @@ if ($PESE eq 'PE') {	# PE
 	print O "# +$Lsd -$Rsd\n";
 	close O;
 	($min,$max)=(int($avg-$Lsd*2.576-$soap2patch),int($avg+$Rsd*2.576+$soap2patch+.5));	# 99%
+	#system("bzip2 -9 $opath$fqnames[0].tp $opath$fqnames[0].ts");
+	unlink qq($opath$fqnames[0].tp $opath$fqnames[0].ts);
 ###
 	$arg0 .= " -m $min -x $max";
 } else {	# SE
 	$fqcmd="-a $path$fqnames[0]$ext  -o $opath$fqnames[0].se";
 }
-$fqcmd .= " -u $opath$fqnames[0].unmap" if $G or $u && $u eq 'u';
+$fqcmd .= " -u $opath$fqnames[0].unmap";# if $G or $u && $u eq 'u';
 # always put -abDo2 in the first for the poor case without break ...
 my $sh="$bin $fqcmd -D $Ref $arg0 -v $mismatch -g $G 2>$opath$fqnames[0].log";
 print "[$sh]\n";
@@ -297,3 +299,4 @@ print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrT
 close NFO;
 
 END:
+system("bzip2 -9 $opath$fqnames[0].unmap");
