@@ -46,12 +46,12 @@ def read_base(infile):
 
 Files = []
 if len(sys.argv)!=5:
-    print >>sys.stderr, "python", sys.argv[0],"ChrID SNPinfo FILELIST OUTPUT"
+    print >>sys.stderr, "python", sys.argv[0],"GLFList ChrID SNPinfo Output"
     sys.exit(1)
 else:
-    ChrID = sys.argv[1]
-    SNPinfo = open(sys.argv[2],"r")
-    GLFlist = open(sys.argv[3],"r")
+    ChrID = sys.argv[2]
+    SNPinfo = open(sys.argv[3],"r")
+    GLFlist = open(sys.argv[1],"r")
     Files = []
     output = open(sys.argv[4],"w")
     print >>output, "#Samples\t",
