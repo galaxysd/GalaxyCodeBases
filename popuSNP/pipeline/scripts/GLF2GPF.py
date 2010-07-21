@@ -45,18 +45,27 @@ def read_base(infile):
     return (decode[ref],copyNum, depth, LLR)
 
 Files = []
-if len(sys.argv)!=4:
-    print >>sys.stderr, "python", sys.argv[0],"SNPinfo FILELIST OUTPUT"
+if len(sys.argv)!=5:
+    print >>sys.stderr, "python", sys.argv[0],"ChrID SNPinfo FILELIST OUTPUT"
     sys.exit(1)
 else:
-    SNPinfo = open(sys.argv[1],"r")
-    GLFlist = open(sys.argv[2],"r")
+    ChrID = sys.argv[1]
+    SNPinfo = open(sys.argv[2],"r")
+    GLFlist = open(sys.argv[3],"r")
     Files = []
+    output = open(sys.argv[4],"w")
+    print >>output, "#Samples\t",
     for line in GLFlist:
-        Files.append(open(line.rstrip(),"rb"))
-        assert(Files[-1])
+        Cols = line.rstrip().split('\t')
+        if Cols[1] == ChrID:
+            Files.append(open(Cols[2],"rb"))
+            assert(Files[-1])
+            print >>sys.stderr, "> %s" %(Cols[2])
+            print >>output, "%s," %(Cols[0]),
     N_indi = len(Files)
-    output = open(sys.argv[3],"w")
+    print >>output
+    #1st line: #Samples\tGC119, GC120, GC121, GC122, GC123, GC124, GC125, GC126, GC127, GC128,
+    #output = open(sys.argv[4],"w")
 
 decode = ('N','A','C','N','G','N','N','N','T','N','N','N','N','N','N','N')
 abbv = ('A','M','W','R','M','C','Y','S','W','Y','T','K','R','S','K','G','N')
