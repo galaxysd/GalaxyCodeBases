@@ -46,7 +46,7 @@ no warnings;
 $opt_v=int $opt_v;
 $opt_g=int $opt_g;
 
-my @t=`find $opt_r/ -name '*.index.???' 2>/dev/null`;
+my @t=`find $opt_r/*.index.??? 2>/dev/null`;	# There might be sub folders.
 $t[0] =~ /((.+)\.index)\.\w+$/;
 my ($ref,$refa) = ($1,$2);
 die "[x]*.index.bwt NOT found in [$opt_r] !\n" unless $ref;
@@ -182,7 +182,7 @@ for my $sample (keys %cmdlines) {
 	print SH "#!/bin/sh
 #\$ -N \"sp_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,p=5
+#\$ -cwd -r y -l vf=4.1G,p=3
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
 SEEDFILE=$opath${sample}_soap.cmd
@@ -251,7 +251,7 @@ print SH "#!/bin/sh
 #\$ -S /bin/bash -t 1-",scalar @t,"
 SEEDFILE=${opath}cov_mgdepth.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval perl $SCRIPTS/depth.pl $refa \$SEED
+eval perl $SCRIPTS/calldepth.pl $refa \$SEED
 ";
 close SH;
 

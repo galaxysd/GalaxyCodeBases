@@ -115,12 +115,12 @@ while (<L>) {
 	my ($subID,$RegEx)=split /\t/;
 	my @Smp=grep /$RegEx/,@Samples;
 	++$SubSample{$subID}{$_} for @Smp;
-	++$SampleSub{$_}{$subID} for @Smp;
+	++$SampleSub{$_}{$subID} for @Smp;	# was planing to check whether a Sample is used more than once, Cancled.
 }
 close L;
 print STDERR scalar keys %SubSample,"]\n";
 for my $v (values %SubSample) {
-	$v = [sort keys %$v];	# This is where we sort glf lists.
+	$v = [sort keys %$v];	# This is where we sort glf lists. And %->% becomes %->@ here.
 }
 print STDERR " $_ -> [",scalar @{$SubSample{$_}},'] ',join(',',@{$SubSample{$_}}),"\n" for sort keys %SubSample;
 
@@ -203,28 +203,45 @@ $outpath=$opt_i.'/5FinalSNP/';
 system('mkdir','-p',$outpath.'sh');
 for my $Sub (keys %SubSample) {
 	my $prefix=join('',$outpath,$Sub,'/1Population/');
+	my $prefix2=join('',$outpath,$Sub,'/2Genotype/');
+	my $prefix3=join('',$outpath,$Sub,'/3final/');
 	system('mkdir','-p',$prefix);
+	system('mkdir','-p',$prefix2);
+	system('mkdir','-p',$prefix3);
 	open CMD,'>',"${prefix}CnRstLc.cmd";
 	open LST,'>',"${prefix}add_cn.lst";
-	open CFG,'>',"${prefix}filterCRL.cfg";
+	open CMDG,'>',"${prefix}GLF2GPF.cmd";
+	open CMDF,'>',"${prefix}FILTER.cmd";
+	open CMDH,'>',"${prefix}HW.cmd";
+	open CMDA,'>',"${prefix}ADDCN.cmd";
+	open CFG,'>',"${prefix}filterCRL.cfg.example";
 	print CFG "# This is the CRL filtering configure for SubGroup:[$Sub]
 # Please specify the following parameters for keeping data:
 # depth\t[min,max]
 # quality\t[min,+∞)
 # rst\t[min,+∞)
 # copynumber\t(-∞,max]
+# REMEMBER TO ReName [filterCRL.cfg.example] to [filterCRL.cfg] BEFORE Running [${outpath}sh/step3_${Sub}_last.sh] !!!
 depth\t60\t200
 quality\t20
 rst\t0.01
 copynumber\t1.5
 ";
 	close CFG;
-	my $t=0;
+	my $t=0;	# also scalar @ChrIDs
 	for my $Chr (@ChrIDs) {
 		print CMD "-i ${opt_i}/4pSNP/${Sub}/$Chr.psnp -r $opt_f/$Chr.fa -l $opt_c -c $Chr -m ${opt_i}/4pSNP/${Sub}/megred.lst -o ${prefix}$Chr\n";
 		print LST "${prefix}${Chr}.add_cn\n";
+		print CMDG "$Chr ${prefix}${Chr}.add_cn.dbsnp ${prefix}${Chr}.indsnp\n";
+		print CMDF "${prefix}${Chr}.indsnp ${prefix2}${Chr}\n";
+		print CMDH "-snp ${prefix}${Chr}.add_cn.filter -rm ${prefix2}${Chr}.rm -o ${prefix3}${Chr}_final.snp\n";
+		print CMDA "${prefix2}${Chr}.add.filter $opt_f/$Chr.fa ${prefix3}${Chr}.add_ref\n";
 		++$t;
 	}
+	close CMDA;
+	close CMDH;
+	close CMDF;
+	close CMDG;
 	close LST;
 	close CMD;
 	open SH,'>',"${outpath}sh/step1_${Sub}.sh";
@@ -256,14 +273,25 @@ perl $SCRIPTS/count.pl ${prefix}add_cn.lst 0addcn ${prefix}stat 2>${prefix}1stat
 	print SH "#!/bin/sh
 #\$ -N \"Ps3_${Sub}_last_$$\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=100M
+#\$ -cwd -r y -l vf=150M
 #\$ -hold_jid \"Ps2_${Sub}_stat_$$\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-$t
 SEEDFILE=${prefix}add_cn.lst
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
+CMDFILE=${prefix}GLF2GPF.cmd
+CMD=\$(sed -n -e \"\$SGE_TASK_ID p\" \$CMDFILE)
+FILTERFILE=${prefix}FILTER.cmd
+FILTER=\$(sed -n -e \"\$SGE_TASK_ID p\" \$FILTERFILE)
+ADDCNFILE=${prefix}ADDCN.cmd
+ADDCN=\$(sed -n -e \"\$SGE_TASK_ID p\" \$ADDCNFILE)
+HWFILE=${prefix}HW.cmd
+HW=\$(sed -n -e \"\$SGE_TASK_ID p\" \$HWFILE)
 eval perl $SCRIPTS/filter_addcn.pl ${prefix}filterCRL.cfg \$SEED 2>${prefix}2filterCRL_\${SGE_TASK_ID}.log
-
+eval python $SCRIPTS/GLF2GPF.py $opt_i/4pSNP/$Sub/GLF.lst \$CMD 2>${prefix}3Glf2Gpf_\${SGE_TASK_ID}.log
+eval perl $SCRIPTS/gtypeHady_x2.pl ",scalar @{$SubSample{$Sub}}," \$FILTER
+eval perl $SCRIPTS/H-W_filter.pl \$HW
+eval perl $SCRIPTS/gtypeSnp_add_ref.pl \$ADDCN
 ";
 	close SH;
 }
