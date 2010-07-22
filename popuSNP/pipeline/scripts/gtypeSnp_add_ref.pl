@@ -23,6 +23,18 @@ while(<IB>)
 }
 $/="\n";
 
+my $header=<IA>;
+if ($header =~ /^#ChrID/) {
+	my $Samples=(split /\t/,$header)[2];
+	$header="#ChrID\tPos\tRef\t$Samples";	# Well, no chomp no "\n".
+} else {
+	seek IA,0,0;
+	$header=undef;
+}
+if (defined $header) {
+	print OA $header;
+}
+
 while(<IA>)
 {
 	chomp ;

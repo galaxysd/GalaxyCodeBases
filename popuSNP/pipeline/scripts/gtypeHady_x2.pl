@@ -25,6 +25,18 @@ if(exists $ARGV[4])
     elsif( $ARGV[4] >=0.90 &&  $ARGV[4] <0.95 ) {$cuoff= 4.60517 ;}
 }
 
+my $header=<B>;
+if ($header =~ /^#/) {
+	my @Samples=split /,\s*/,(split /\t/,$header)[1];
+	$header="#ChrID\tPos\t".join(' ',@Samples);
+} else {
+	seek B,0,0;
+	$header=undef;
+}
+if (defined $header) {
+	print C $header,"\tValues\n";
+	print D $header,"\n";
+}
 while(<B>)
 {
 	chomp;
@@ -65,7 +77,7 @@ while(<B>)
 #	print $AA,"\t",$Aa,"\t",$aa,"\n";
 #	print $BB,"\t",$Bb,"\t",$bb,"\n";
 #	print  $x2;exit;
-	my $line=join("\t", @inf[0..$#inf]);
+	my $line=join("\t", @inf);
 	 print C  $line ,"\t",$x2,"\t",$p2,"\t",$Bb,"\t",$Aa,"\n";
 ##filter
 	if ($Isselfedseed==1)
