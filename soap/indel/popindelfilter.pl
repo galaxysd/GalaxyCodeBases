@@ -11,9 +11,9 @@ our $opts='i:o:s:m:x:q:l:bv';
 our ($opt_i, $opt_o, $opt_s, $opt_v, $opt_b, $opt_m, $opt_x, $opt_q, $opt_l);
 
 our $help=<<EOH;
-\t-i PSNP list (./psnp.lst) for chrid.individual.finalSNPs
+\t-i PSNP list (./psnp.lst) for chrid.add_ref
 \t-l Indel list (./indel.lst) in [SampleID\\tpath/to/indel-result.list]
-\t-s GLF list (./glf.lst), will use \$1 of (([^/]+)/[^/]+$) for sample names
+\t-s GLF list (undef), will use \$1 of (([^/]+)/[^/]+$) for sample names
 \t-o Output Prefix (./indel_f/f_)
 \t-m minimal depth of the indel (3)
 \t-x maximal depth of the indel (20)
@@ -27,7 +27,8 @@ ShowHelp();
 $opt_o='./indel_f/f_' if ! defined $opt_o;
 $opt_i='./psnp.lst' if ! $opt_i;
 $opt_l='./indel.lst' if ! $opt_l;
-$opt_s='./glf.lst' if ! $opt_s;
+#$opt_s='./glf.lst' if ! $opt_s;
+$opt_s='_UseAdd_ref_' if ! $opt_s;
 $opt_m=3 if ! $opt_m;
 $opt_x=20 if ! $opt_x;
 $opt_q=20 if ! $opt_q;
@@ -44,13 +45,27 @@ system('mkdir','-p',$opt_o);
 system('rmdir',$opt_o) if $opt_o =~ m#/[\s.]*[^/\s.]+[^/]*$#;
 
 my @Samples;
-open L,'<',$opt_s or die "[x]Error opening $opt_s: $!\n";
-print STDERR "[!]Sample Order: ";
-while (<L>) {
-	m#([^/]+)/[^/]+$#;
-	push @Samples,$1;
-	print STDERR (scalar @Samples),':[',$1,"] ";
+if ($opt_s eq '_UseAdd_ref_') {
+	my $line;
+	open L,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
+	chomp($line=<L>);
+	close L;
+	open L,'<',$line or die "[x]Error opening $line: $!\n";
+	chomp($line=<L>);
+	$line=(split /\t/,$line)[3];
+	@Samples=split / /,$line;
+	print STDERR '[!]Sample Order: ',(scalar @Samples),':[',join('] [',@Samples),']';
+
+} else {
+	open L,'<',$opt_s or die "[x]Error opening $opt_s: $!\n";
+	print STDERR '[!]Sample Order: ';
+	while (<L>) {
+		m#([^/]+)/[^/]+$#;
+		push @Samples,$1;
+		print STDERR (scalar @Samples),':[',$1,"] ";
+	}
 }
+close L;
 print STDERR "\n";
 
 my ($C_PSNP,$C_iSNP,%SNP)=(0,0);
