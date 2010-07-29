@@ -203,7 +203,7 @@ for my $Pos (keys %DatRef) {
 %DatRef=();
 
 if ($opt_g) {
-	open D,'>',$opt_g  or die "[x]Error opening $opt_g: $!\n";
+	open D,'>',$opt_g or die "[x]Error opening $opt_g: $!\n";
 	print D join("\t",'Pos','Ref','M','Z','Both'),"\n";
 	for my $Pos (sort {$a<=>$b} keys %DatRef) {
 		print D join("\t",$Pos,$REV_IUB{$DatRef{$Pos}},$DatM{$Pos}?($REV_IUB{$DatM{$Pos}}):'-',$DatZ{$Pos}?($REV_IUB{$DatZ{$Pos}}):'-',$REV_IUB{$DatBoth{$Pos}}),"\n";
@@ -212,6 +212,10 @@ if ($opt_g) {
 	close D;
 }
 warn "[!]pSNP loaded.\n";
+
+open IN,'<',$fileRIL or die "[x]Error opening $fileRIL: $!\n";
+
+close IN;
 sleep 100;
 
 #END
