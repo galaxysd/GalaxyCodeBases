@@ -1,0 +1,145 @@
+#!/bin/env perl
+use lib '/share/raid010/resequencing/soft/lib';
+use lib 'E:/BGI/toGit/perlib/etc';
+use strict;
+use warnings;
+use Time::HiRes qw ( gettimeofday tv_interval );
+use File::Basename;
+use Galaxy::ShowHelp;
+use FindBin qw($RealBin);
+
+$main::VERSION=0.0.1;
+my $SCRIPTS="$RealBin/../scripts";
+
+our $opts='i:o:m:z:c:v:bd';
+our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_b, $opt_d);
+
+our $desc='1.filter fq, 2.stats';
+our $help=<<EOH;
+\t-i RIL pSNP list (ril.lst) in format: /^ChrID\\tpath toadd_ref\$/
+\t-m Parent M list (m.lst) in format: /^ChrID\\tpath to SNP\$/
+\t-z Parent Z list (undef), undef for using the Reference sequence
+\t-c ChrID to parse
+\t-o Raw Genotype Output file (ril.rgt)
+
+\t-v Verbose level (undef=0)
+\t-b No pause for batch runs
+\t-d Debug Mode, for test only
+EOH
+
+ShowHelp();
+
+$opt_i='ril.lst' if ! $opt_i;
+$opt_m='m.lst' if ! $opt_m;
+$opt_o='ril.rgt' if ! $opt_o;
+die "[x]Must specify -c ChrID !\n" unless defined $opt_c;
+
+no warnings;
+$opt_v=int $opt_v;
+use warnings;
+die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
+die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
+my $fileZ;
+$fileZ=$opt_z?$opt_z:'_Ref_';
+
+print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ] to [$opt_o]\n";
+print STDERR "DEBUG Mode on !\n" if $opt_d;
+print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
+unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
+
+my $start_time = [gettimeofday];
+#BEGIN
+#http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html#BEGIN1
+our %IUB = ( A => [qw(A)],
+	     C => [qw(C)],
+	     G => [qw(G)],
+	     T => [qw(T)],
+	     U => [qw(U)],
+	     M => [qw(A C)],
+	     R => [qw(A G)],
+	     W => [qw(A T)],
+	     S => [qw(C G)],
+	     Y => [qw(C T)],
+	     K => [qw(G T)],
+	     V => [qw(A C G)],
+	     H => [qw(A C T)],
+	     D => [qw(A G T)],
+	     B => [qw(C G T)],
+	     X => [qw(G A T C)],
+	     N => [qw(G A T C)]
+	     );
+# A1 T2 C4 G8
+our %bIUB = ( A => 1,
+	     C => 4,
+	     G => 8,
+	     T => 2,
+	     M => 5,#[qw(A C)],
+	     R => 9,#[qw(A G)],
+	     W => 3,#[qw(A T)],
+	     S => 12,#[qw(C G)],
+	     Y => 6,#[qw(C T)],
+	     K => 10,#[qw(G T)],
+	     V => 13,#[qw(A C G)],
+	     H => 7,#[qw(A C T)],
+	     D => 11,#[qw(A G T)],
+	     B => 14,#[qw(C G T)],
+	     X => 15,#[qw(G A T C)],
+	     N => 15,#[qw(G A T C)]
+	     );
+# & AND, | OR, ^ XOR
+=pod
+chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
+1)	Chromosome name
+2)	Position of locus
+3)	Nucleotide at corresponding locus of reference sequence
+4)	Genotype of sequencing sample
+5)	Quality value
+=cut
+my $fileM;
+open M,'<',$opt_m  or die "[x]Error opening $opt_m: $!\n";
+while (<M>) {
+	chomp;
+	my ($ChrID,$file)=split /\t/;
+	next if $ChrID ne $opt_c;
+	$fileM=$file and last;
+}
+if (defined $opt_z) {
+	open M,'<',$opt_z  or die "[x]Error opening $opt_z: $!\n";
+	while (<M>) {
+		chomp;
+		my ($ChrID,$file)=split /\t/;
+		next if $ChrID ne $opt_c;
+		$fileZ=$file and last;
+	}
+}
+warn "[!]Using [$fileM][$fileZ].\n";
+
+
+my (%DatM,%DatZ,%DatRef);
+open M,'<',$fileM  or die "[x]Error opening $fileM: $!\n";
+while (<M>) {
+	#chomp;
+	my ($ChrID,$Pos,$Ref,$Type,$Q)=split /\t/;
+	$DatM{$Pos}=$bIUB{$Type};
+	$DatRef{$Pos}=$bIUB{$Ref};
+}
+close M;
+if (defined $opt_z) {
+	open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
+	while (<Z>) {
+		#chomp;
+		my ($ChrID,$Pos,$Ref,$Type,$Q)=split /\t/;
+		$DatZ{$Pos}=$bIUB{$Type};
+		$DatRef{$Pos}=$bIUB{$Ref};
+	}
+	close Z;
+} else { %DatZ = %DatRef; }
+
+warn '.';
+sleep 100;
+
+#END
+my $stop_time = [gettimeofday];
+
+print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
+__END__
