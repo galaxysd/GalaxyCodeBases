@@ -39,7 +39,7 @@ $opt_v=int $opt_v;
 use warnings;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
-my $fileZ;
+my ($fileM,$fileZ,$fileRIL);
 $fileZ=$opt_z?$opt_z:'_Ref_';
 
 print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ] to [$opt_o]\n";
@@ -49,6 +49,25 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
+# A1 T2 C4 G8
+our %bIUB = ( A => 1,
+	     C => 4,
+	     G => 8,
+	     T => 2,
+	     M => 5,#[qw(A C)],
+	     R => 9,#[qw(A G)],
+	     W => 3,#[qw(A T)],
+	     S => 12,#[qw(C G)],
+	     Y => 6,#[qw(C T)],
+	     K => 10,#[qw(G T)],
+	     V => 13,#[qw(A C G)],
+	     H => 7,#[qw(A C T)],
+	     D => 11,#[qw(A G T)],
+	     B => 14,#[qw(C G T)],
+	     X => 15,#[qw(G A T C)],
+	     N => 15,#[qw(G A T C)]
+	     );
+=pod
 #http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html#BEGIN1
 our %IUB = ( A => [qw(A)],
 	     C => [qw(C)],
@@ -68,24 +87,18 @@ our %IUB = ( A => [qw(A)],
 	     X => [qw(G A T C)],
 	     N => [qw(G A T C)]
 	     );
-# A1 T2 C4 G8
-our %bIUB = ( A => 1,
+my %x = ( A => 1,
 	     C => 4,
 	     G => 8,
-	     T => 2,
-	     M => 5,#[qw(A C)],
-	     R => 9,#[qw(A G)],
-	     W => 3,#[qw(A T)],
-	     S => 12,#[qw(C G)],
-	     Y => 6,#[qw(C T)],
-	     K => 10,#[qw(G T)],
-	     V => 13,#[qw(A C G)],
-	     H => 7,#[qw(A C T)],
-	     D => 11,#[qw(A G T)],
-	     B => 14,#[qw(C G T)],
-	     X => 15,#[qw(G A T C)],
-	     N => 15,#[qw(G A T C)]
-	     );
+	     T => 2,);
+for my $k (sort keys %IUB) {
+	next if $k eq 'U';
+	my $r=0;
+	$r += $x{$_} for (@{$IUB{$k}});
+	print join("\t",$k,$r,$bIUB{$k}),"\n";
+	warn "!" if $r != $bIUB{$k};
+}
+=cut
 # & AND, | OR, ^ XOR
 =pod
 chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
@@ -95,7 +108,6 @@ chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
 4)	Genotype of sequencing sample
 5)	Quality value
 =cut
-my $fileM;
 open M,'<',$opt_m  or die "[x]Error opening $opt_m: $!\n";
 while (<M>) {
 	chomp;
@@ -103,6 +115,15 @@ while (<M>) {
 	next if $ChrID ne $opt_c;
 	$fileM=$file and last;
 }
+close M;
+open RIL,'<',$opt_i  or die "[x]Error opening $opt_i: $!\n";
+while (<RIL>) {
+	chomp;
+	my ($ChrID,$file)=split /\t/;
+	next if $ChrID ne $opt_c;
+	$fileRIL=$file and last;
+}
+close RIL;
 if (defined $opt_z) {
 	open M,'<',$opt_z  or die "[x]Error opening $opt_z: $!\n";
 	while (<M>) {
@@ -111,8 +132,10 @@ if (defined $opt_z) {
 		next if $ChrID ne $opt_c;
 		$fileZ=$file and last;
 	}
+	close M;
 }
-warn "[!]Using [$fileM][$fileZ].\n";
+
+warn "[!]Using [$fileRIL]->[$fileM][$fileZ].\n";
 
 
 my (%DatM,%DatZ,%DatRef);
@@ -134,6 +157,7 @@ if (defined $opt_z) {
 	}
 	close Z;
 } else { %DatZ = %DatRef; }
+
 
 warn '.';
 sleep 100;
