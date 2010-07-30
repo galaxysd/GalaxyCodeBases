@@ -201,6 +201,7 @@ for my $Pos (keys %DatRef) {
 (%DatM,%DatZ,%DatRef)=();
 =cut
 %DatRef=();
+$DatBoth{$_} = ~$DatBoth{$_} for keys %DatBoth;
 
 if ($opt_g) {
 	open D,'>',$opt_g or die "[x]Error opening $opt_g: $!\n";
@@ -213,10 +214,89 @@ if ($opt_g) {
 }
 warn "[!]pSNP loaded.\n";
 
-open IN,'<',$fileRIL or die "[x]Error opening $fileRIL: $!\n";
+sub GetGT($$) {
+	my ($Pos,$binBase)=@_;
+	my $Result=0;
+	$Result |=1 if $DatM{$Pos} && ($binBase & $DatM{$Pos});	# M
+	$Result |=2 if $DatZ{$Pos} && ($binBase & $DatZ{$Pos});	# Z
+	$Result |=4 if $binBase & $DatBoth{$Pos};	# Extra GenoType
+	return $Result;
+}
 
+my ($C_PSNP,$C_iSNP,$C_Pos,%GT)=(0,0,0);
+open IN,'<',$fileRIL or die "[x]Error opening $fileRIL: $!\n";
+my $line;
+chomp($line=<IN>);
+$line=(split /\t/,$line)[3];
+my @Samples=split / /,$line;
+warn '[!]Sample Order: ',(scalar @Samples),':[',join('] [',@Samples),']',"\n";
+my ($chr,$pos,$ref,$tail,$t);
+while (<IN>) {
+	chomp;
+	($chr,$pos,$ref,$tail)=split /\t/;
+	next if $chr ne $opt_c;
+	++$C_PSNP;
+	next unless $DatBoth{$pos};
+	++$C_Pos;
+	$t=0;
+	my @indSNP=split / /,$tail;	# /[ACGTRYMKSWHBVDNX-]/
+#die join "\t",$chr,$pos,$ref,$tail,scalar @indSNP if @indSNP < 135;
+	for my $s (@Samples) {
+		unless ($tail=shift @indSNP) {
+			warn "[!].add_ref Error at [$chr,$pos: $ref] !\n" unless $t;
+			$t=1;
+			next;
+		}
+		if ($tail ne '-') {
+			$GT{$pos}{$s}=&GetGT($pos,$bIUB{$tail});	# if $DatBoth{$pos};
+			++$C_iSNP;
+		} else {
+			next;
+		}
+	}
+}
 close IN;
-sleep 100;
+warn "[!]GenoTyping done as ${C_PSNP}->$C_Pos,$C_iSNP,",$C_iSNP/$C_Pos,"\n";
+
+unless ($opt_d) {
+	my $Deleted=0;
+	for my $Pos (keys %GT) {
+		my $flag=0;
+		for my $s (keys %{$GT{$Pos}}) {
+			++$flag if $GT{$Pos}{$s} & 4;
+			#++$flag unless $GT{$Pos}{$s};
+		}
+		if ($flag) {
+			delete $GT{$Pos};
+			++$Deleted;
+		}
+	}
+	warn "[!]GenoType filtered out $Deleted\n";
+}
+
+my ($PosC,$TypeC,%C_GT)=(0,0);
+open O,'>',$opt_o or die "[x]Error opening $opt_o: $!\n";
+my @PosList=sort {$a<=>$b} keys %GT;
+$PosC = scalar @PosList;
+print O 'PosList',"\t",join(',',@PosList),"\n";
+for my $s (@Samples) {
+	print O $s;
+	for my $pos (@PosList) {
+		if (exists $GT{$pos}{$s}) {
+			print O "\t",$GT{$pos}{$s};
+			++$TypeC;
+			++$C_GT{$GT{$pos}{$s}};
+		} else {
+			print O "\t",'-';
+			++$C_GT{'-'};
+		}
+		#print O "\t",exists($GT{$pos}{$s})?$GT{$pos}{$s}:'-';	# exists is faster than defined ?
+	}
+	print O "\n";
+}
+close O;
+warn "[!]GenoType written $PosC,$TypeC,",$TypeC/$PosC,"\n\n[!]GenoType Counts:\n";
+warn "\t$_: $C_GT{$_}\n" for sort keys %C_GT;
 
 #END
 my $stop_time = [gettimeofday];
