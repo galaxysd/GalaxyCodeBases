@@ -201,18 +201,27 @@ for my $Pos (keys %DatRef) {
 (%DatM,%DatZ,%DatRef)=();
 =cut
 %DatRef=();
-$DatBoth{$_} = ~$DatBoth{$_} for keys %DatBoth;
+my $C_SameGT=0;
+for my $Pos (keys %DatBoth) {
+	if ($DatM{$Pos} && $DatZ{$Pos} && $DatM{$Pos} == $DatZ{$Pos}) {
+		delete $DatM{$Pos};
+		delete $DatZ{$Pos};
+		delete $DatBoth{$Pos};
+		++$C_SameGT;
+	} else { $DatBoth{$Pos} = ~$DatBoth{$Pos}; }
+}
+#$DatBoth{$_} = ~$DatBoth{$_} for keys %DatBoth;
+warn "[!]pSNP loaded. [$C_SameGT] positions are identical.\n";
 
 if ($opt_g) {
 	open D,'>',$opt_g or die "[x]Error opening $opt_g: $!\n";
 	print D join("\t",'Pos','Ref','M','Z','Both'),"\n";
 	for my $Pos (sort {$a<=>$b} keys %DatRef) {
-		print D join("\t",$Pos,$REV_IUB{$DatRef{$Pos}},$DatM{$Pos}?($REV_IUB{$DatM{$Pos}}):'-',$DatZ{$Pos}?($REV_IUB{$DatZ{$Pos}}):'-',$REV_IUB{$DatBoth{$Pos}}),"\n";
+		print D join("\t",$Pos,$REV_IUB{$DatRef{$Pos}},$DatM{$Pos}?($REV_IUB{$DatM{$Pos}}):'-',$DatZ{$Pos}?($REV_IUB{$DatZ{$Pos}}):'-',$REV_IUB{~$DatBoth{$Pos}}),"\n";
 		#print D join("\t",$Pos,$DatRef{$Pos},$REV_IUB{$DatM{$Pos}},$DatZ{$Pos},$DatBoth{$Pos}),"\n";
 	}
 	close D;
 }
-warn "[!]pSNP loaded.\n";
 
 sub GetGT($$) {
 	my ($Pos,$binBase)=@_;
@@ -243,7 +252,7 @@ while (<IN>) {
 #die join "\t",$chr,$pos,$ref,$tail,scalar @indSNP if @indSNP < 135;
 	for my $s (@Samples) {
 		unless ($tail=shift @indSNP) {
-			warn "[!].add_ref Error at [$chr,$pos: $ref] !\n" unless $t;
+			warn "[!].add_ref Error at ($chr,$pos: $ref) !\n" unless $t;
 			$t=1;
 			next;
 		}
@@ -263,11 +272,7 @@ unless ($opt_d) {
 	for my $Pos (keys %GT) {
 		my $flag=0;
 		for my $s (keys %{$GT{$Pos}}) {
-			++$flag if $GT{$Pos}{$s} & 4;
-			#++$flag unless $GT{$Pos}{$s};
-		}
-		if ($flag) {
-			delete $GT{$Pos};
+			delete $GT{$Pos}{$s} if $GT{$Pos}{$s} & 4;
 			++$Deleted;
 		}
 	}
