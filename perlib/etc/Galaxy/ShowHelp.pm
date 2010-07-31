@@ -1,5 +1,5 @@
-package Galaxy::ShowHelp;
-#package main;
+#package Galaxy::ShowHelp;
+package main;
 use strict;
 use Getopt::Std;
 #use Exporter 'import';

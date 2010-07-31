@@ -14,7 +14,7 @@ my $SCRIPTS="$RealBin/../scripts";
 our $opts='i:o:m:z:c:v:g:bd';
 our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_b, $opt_d);
 
-our $desc='1.filter fq, 2.stats';
+#our $desc='';
 our $help=<<EOH;
 \t-i RIL pSNP list (ril.lst) in format: /^ChrID\\tpath toadd_ref\$/
 \t-m Parent M list (m.lst) in format: /^ChrID\\tpath to SNP\$/
