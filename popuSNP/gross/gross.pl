@@ -89,8 +89,10 @@ sub Calpre($$) {
 
 sub CheckPos($$) {
 	my ($chr,$pos)=@_;
-	;
-	return 1;	# True
+	if ( &getbasec($ChrHandle{$chr},$pos) ) {
+		return 1;	# True
+	} else { return 0; }
+	#return 1;	# True
 }
 my %SNP;
 ## format_of_copyNumRST5p_v2.pl.output
@@ -106,6 +108,7 @@ while (<SC>) {
 }
 while (<SW>) {
 	my ($chr,$pos,$ref,$depth,$cnr,$base1,$base2,$nbase1,$nbase2,$Q)=split /\t/;
+	next unless &CheckPos($chr,$pos);
 	${$SNP{$chr}{$pos}}[0]=$ref;
 	${$SNP{$chr}{$pos}}[1]=&Calpre($base1,$base2,$nbase1,$nbase2);
 }
