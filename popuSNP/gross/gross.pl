@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
+use GalaxyXS::ChromByte ':char';
 #输入snp文件_wild（已经trim好）
 #输入snp文件_cultivar（已经trim好）
 #输入非unique文件
@@ -13,13 +14,14 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
 
-our $opts='i:c:w:n:l:o:f:vb';
-our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_f, $opt_w, $opt_n);
+our $opts='i:c:w:n:l:o:f:k:vb';
+our ($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_l, $opt_f, $opt_k, $opt_w, $opt_n);
 
 our $help=<<EOH;
 \t-i Chr.nfo (Chr.nfo)
 \t-w Wild/Original Group PSNP file (./wild.snp)
 \t-c Cultural/Evolutionized Group PSNP file (./cul.snp)
+\t-k BLOCK file for good positions (./block.lst), in [^ChrID\\tStart\\tEnd\$]
 \t-n window size (20000) bp
 \t-l step length (2000) bp
 \t-f filter out smaller regions, 30% (0.3) of window size
@@ -39,11 +41,11 @@ $opt_l=2000 if ! $opt_l;
 $opt_f=0.3 if ! $opt_f;
 my $minCountP=int(.5+$opt_n*$opt_f);
 
-print STDERR "From [$opt_i] to [$opt_o] for [$opt_w]->[$opt_c], with [$opt_n][$opt_l][$opt_f -> $minCountP]\n";
+print STDERR "From [$opt_i] to [$opt_o] for [$opt_w]->[$opt_c], with [$opt_k][$opt_n][$opt_l][$opt_f -> $minCountP]\n";
 if (! $opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 ###############
 #起点	Pi(A)	Theta_Pi(A)	Tajima's D(A)	Pi(B)	Theta_Pi(B)	Tajima's D(B)	difference	Fst	length	chr_id
-my (@ChrIDs,%ChrLen);
+my (@ChrIDs,%ChrLen,%ChrHandle);
 open CHRLEN,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (<CHRLEN>) {
 	chomp;
@@ -51,8 +53,17 @@ while (<CHRLEN>) {
 	my ($chr,$len)=split /\s+/;
 	push @ChrIDs,$chr;
 	$ChrLen{$chr}=$len;
+	$ChrHandle{$chr}=&initchr($len);
 }
 close CHRLEN;
+
+open BLOCK,'<',$opt_k or die "[x]Error opening $opt_k: $!\n";
+while (<BLOCK>) {
+	chomp;
+	my ($chr,$s,$t)=split /\t/;
+	next unless $ChrHandle{$chr};
+	&setbasec($ChrHandle{$chr},$_,1) for ($s..$t);
+}
 
 open SC,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 open SW,'<',$opt_w or die "[x]Error opening $opt_w: $!\n";
