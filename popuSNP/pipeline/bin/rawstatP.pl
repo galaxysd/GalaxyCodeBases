@@ -117,7 +117,7 @@ if ($opt_v) {
 	print '-' x 80,"\n";
 }
 
-my @files= qx/find $opt_i -iregex '.+\\.\\(fq\\(\\.gz\\)?\\|list\\)'/;	# find ./sprice/0raw/ -iregex '.+\.\(fq\(\.gz\)?\|list\)'
+my @files= qx/find $opt_i -follow -iregex '.+\\.\\(fq\\(\\.gz\\)?\\|list\\)'/;	# find ./sprice/0raw/ -iregex '.+\.\(fq\(\.gz\)?\|list\)'
 chomp @files;
 #my @fq1 = `find $opt_i -name '*.fq'`;	# no need to sort
 #my @fq2 = `find $opt_i -name '*.fq.gz'`;	# no need to sort
