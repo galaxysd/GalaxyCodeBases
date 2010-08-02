@@ -36,6 +36,7 @@ $opt_o='./result.polymorphism' if ! defined $opt_o;
 $opt_i='Chr.nfo' if ! $opt_i;
 $opt_c='./cul.snp' if ! $opt_c;
 $opt_w='./wild.snp' if ! $opt_w;
+$opt_k='./block.lst' if ! $opt_k;
 $opt_n=20000 if ! $opt_n;
 $opt_l=2000 if ! $opt_l;
 $opt_f=0.3 if ! $opt_f;
