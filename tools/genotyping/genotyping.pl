@@ -283,6 +283,25 @@ my ($PosC,$TypeC,%C_GT)=(0,0);
 open O,'>',$opt_o or die "[x]Error opening $opt_o: $!\n";
 my @PosList=sort {$a<=>$b} keys %GT;
 $PosC = scalar @PosList;
+
+my %FormatGT=(1=>0, 2=>1, 3=>0.5);	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
+print O join("\t",@Samples),"\n";
+for my $pos (@PosList) {
+	print O $pos;
+	for my $s (@Samples) {
+		if (exists $GT{$pos}{$s}) {
+			$line=$FormatGT{$GT{$pos}{$s}};
+			print O "\t",$line;
+			++$TypeC;
+			++$C_GT{$line};
+		} else {
+			print O "\t",'NA';
+			++$C_GT{'NA'};
+		}
+	}
+	print O "\n";
+}
+=pod
 print O 'PosList',"\t",join(',',@PosList),"\n";
 for my $s (@Samples) {
 	print O $s;
@@ -299,6 +318,7 @@ for my $s (@Samples) {
 	}
 	print O "\n";
 }
+=cut
 close O;
 warn "[!]GenoType written $PosC,$TypeC,",$TypeC/$PosC,"\n\n[!]GenoType Counts:\n";
 warn "\t$_: $C_GT{$_}\n" for sort keys %C_GT;
