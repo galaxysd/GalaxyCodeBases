@@ -131,6 +131,17 @@ my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
+find ./oryza_sativa__indica_cultivar_group/fasta.oryza_sativa__indica_cultivar_group.*.gz|perl -lane '(undef,$p,$f)=split /\//;@t=split /\./,$f;print "-i ./$p/$f -q ./$p/qual.$t[1].$t[2].gz -o ./fq/fa9311_$t[2] 2>./fq/fa9311_$t[2].log"' > cmd.lst
+
+#!/bin/sh
+#$ -N "EmuFQ"
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#$ -cwd -r y -l vf=116M
+#$ -o /dev/null -e /dev/null
+#$ -S /bin/bash -t 1-13
+SEEDFILE=./cmd.lst
+SEED=$(sed -n -e "$SGE_TASK_ID p" $SEEDFILE)
+eval perl ./fa2fq.pl -b $SEED
 
 use Bio::SeqIO;
 use Bio::Seq::Quality;
