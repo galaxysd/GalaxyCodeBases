@@ -174,7 +174,52 @@ sub HMMvitFUNrils($$$) {
 	return \@genocr;
 }
 
+sub filter($$) {
+	my @Dat=@{$_[0]};
+	my @Pos=@{$_[1]};
+	warn 'x' if $#Dat != $#Pos;
+	my (@D,@P);
+	my $len=$#Dat>$#Pos ? $#Pos : $#Dat;
+	for my $i (0..$len) {
+		next if $Dat[$i] !~ /[123]/;
+		push @D,$Dat[$i];
+		push @P,$Pos[$i];
+	}
+	return [\@D,\@P];
+}
 ## main()
+open G,'<',$opt_i  or die "[x]Error opening $opt_i: $!\n";
+open O,'>',$opt_o  or die "[x]Error opening $opt_o: $!\n";
+chomp(my $line=<G>);
+print O $line,"\n";
+$line=(split "\t",$line)[1];
+my @Poses=split ',',$line;
+print '[!]Input [',scalar @Poses,"] Positions.\n";
+while (<G>) {
+	chomp;
+	my ($Sample,@Dat)=split "\t";
+	print O $Sample,"\t.",join("\t.",@Dat),"\n" if $opt_d;
+	print O $Sample;
+	print STDERR "[!]$Sample\t";
+	my ($D,$P)=@{&filter(\@Dat,\@Poses)};
+	$line = &HMMvitFUNrils($D,$P,[$vp, $vp, $p]);
+	my %SampleH;
+	@SampleH{@$P} = @$line;
+	my ($diff,$i)=(0,0);
+	for (@Poses) {
+		if (exists $SampleH{$_}) {
+			print O "\t",$SampleH{$_};
+			++$diff if $SampleH{$_} ne $Dat[$i];
+		} else { print O "\t-"; }
+		++$i;
+	}
+	print O "\n";
+	print STDERR 'Out: ',scalar @$D,', ',int(.5+10000*(scalar @$D)/(scalar @Poses))/100," % of In\tDiff: $diff, ",int(.5+10000*$diff/(scalar @$D))/100,"% of Out\n";
+}
+close I;
+close O;
+
+=pod
 my @O = (1,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1,2,2,2,2,
      2,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,1,1,2,2,1,2,1,2,1,2,1,2,1,2,1,1,1,1,1,1,1,2,1,1,1,1,
      1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1,1,1,1,1);
@@ -190,6 +235,8 @@ my $got=join('',@$out);
 print "Passed !\n" if $shouldbe eq $got;
 print 'I [',join('',@O),"]\n";
 print 'O [',$got,"]\n";
+=cut
+
 #END
 my $stop_time = [gettimeofday];
 
