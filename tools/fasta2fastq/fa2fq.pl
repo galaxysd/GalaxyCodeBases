@@ -113,6 +113,10 @@ while (1) {
 			$bs=&revcom(substr $seq , $s+$opt_s-$opt_r , $opt_r);
 			$aq=substr $qual,$s,$opt_r;
 			$bq=reverse(substr $qual , $s+$opt_s-$opt_r , $opt_r);
+			if (length $bs < 33) {
+				$bs .= 'N' x 32;
+				$bq .= '~' x 32;
+			}
 			print FQ1 "\@${id}_${len}_${s}/1\n$as\n+\n$aq\n";
 			print FQ2 "\@${id}_${len}_${s}/2\n$bs\n+\n$bq\n";
 			$s += $opt_l;
