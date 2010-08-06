@@ -11,7 +11,7 @@ use Bio::Seq::Quality;
 $main::VERSION=0.0.1;
 
 
-our $opts='i:q:o:s:l:d:b';
+our $opts='i:q:o:s:l:r:b';
 our($opt_i, $opt_q, $opt_s, $opt_l, $opt_r, $opt_o, $opt_b);
 
 #our $desc='1.filter fq, 2.stats';
@@ -20,8 +20,8 @@ our $help=<<EOH;
 \t-q Quality file
 \t-o Output Prefix for (./out)_{1,2}.fq
 \t-s Insert_Size (500)
-\t-r Reads_Len (200)
-\t-l slip_dis (150)
+\t-r Reads_Len (75)
+\t-l slip_dis (50)
 \t-b No pause for batch runs
 EOH
 
@@ -30,8 +30,8 @@ ShowHelp();
 die "[x]Must specify FASTA file !\n" if ! $opt_i;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 $opt_s = 500 unless $opt_s;
-$opt_r = 200 unless $opt_r;
-$opt_l = 150 unless $opt_l;
+$opt_r = 75 unless $opt_r;
+$opt_l = 50 unless $opt_l;
 $opt_o = './out' unless $opt_o;
 
 my $min_r=33;
@@ -146,6 +146,22 @@ find ./oryza_sativa__indica_cultivar_group/fasta.oryza_sativa__indica_cultivar_g
 SEEDFILE=./cmd.lst
 SEED=$(sed -n -e "$SGE_TASK_ID p" $SEEDFILE)
 eval perl ./fa2fq.pl -b $SEED
+
+./soappe.pl 495,505 200 ./fq/fa9311_001_1.fq ./fq/fa9311_001_2.fq ./9311/9311_main_chr.fa.index ./soap/t1
+
+find ./fq/*_1.fq|perl -lane '(undef,$p,$f)=split /\//;@t=split /_1\./,$f;print "./$p/$f ./$p/$t[0]_2.fq ./9311/9311_main_chr.fa.index ./soap/$t[0]"' > cmds.lst
+
+#!/bin/sh
+#$ -N "EmuSoap"
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#$ -cwd -r y -l vf=1.8g
+#$ -o /dev/null -e /dev/null
+#$ -hold_jid EmuFQ
+#$ -S /bin/bash -t 1-13
+SEEDFILE=./cmds.lst
+SEED=$(sed -n -e "$SGE_TASK_ID p" $SEEDFILE)
+eval perl ./soappe.pl 495,505 200 $SEED
+
 
 use Bio::SeqIO;
 use Bio::Seq::Quality;
