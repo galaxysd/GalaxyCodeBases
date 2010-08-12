@@ -70,6 +70,7 @@ while ($rv=$sth->fetchrow_arrayref) {
 		$last_res=$_;
 		$sthf->execute($frameC,$$rv[0],$$_[0],$$_[1],$$_[2]);
 		next if $frameC == 0;
+		unless ($frame =~ /\d+/) { ++$COUNT{'5undef'};next; }   # fix for Frame eq '.'
 		if ($frameC == $frame) {++$COUNT{'2right'};}
 		  elsif (abs($frameC-$frame)==1) {++$COUNT{'3opp'};}
 		  else {++$COUNT{'4err'};}

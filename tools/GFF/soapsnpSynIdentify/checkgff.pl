@@ -58,13 +58,14 @@ print @$rv,"\n" if $opt_v;
 	next unless defined $last_res;
 	my $last_f=0;
 print "[!]@$rv:\t@$last_res\t",1+$$last_res[2]-$$last_res[1],"\n" if $$last_res[4] ne '0';
-	++$COUNT{'4err'} if $$last_res[4] != 0;
+	++$COUNT{'4err'} if $$last_res[4] ne '0';
 print "@$last_res\t",1+$$last_res[2]-$$last_res[1],"\n" if $opt_v;
 	for (@$res) {
 		$last_f=$frameC=(3-((1+abs($$last_res[1]-$$last_res[2])-$last_f)%3))%3;
 print "@$_\t",1+$$_[2]-$$_[1],"\t$frameC\n" if $opt_v;
 		my $frame=$$_[4];
 		$last_res=$_;
+		unless ($frame =~ /\d+/) { ++$COUNT{'5undef'};next; }   # fix for Frame eq '.'
 		next if $frameC == 0 and $frame==0;
 		if ($frameC == $frame) {++$COUNT{'2right'};}
 		  elsif (abs($frameC-$frame)==1) {++$COUNT{'3opp'};}
