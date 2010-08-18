@@ -64,7 +64,7 @@ function (baseData = NULL)
     allele.matrix <- t(apply(baseData, 1, function(x) {
         x <- unique(x[!is.na(x)])
 
-        for(i in 1:length(IUPAC)) {
+        for(i in 1:length(.IUPAC)) {
             if ( length(grep(.IUPAC[i],x)) ) {
                   x=x[-(grep(.IUPAC[i],x))]
                   x=c(x,.Decode[[i]])
@@ -494,10 +494,8 @@ function (baseData, markers = NULL, alleleA = NULL, numGroup = 1,
     for (perm in 1:numPerm) {
         if (numGroup >= 2) {
             if (groupSort) 
-                groupRIL <- split(order(colSums(!is.na(baseData)), 
-                  decreasing = TRUE), cut(1:ncol(baseData), numGroup))
-            else groupRIL <- split(sample(ncol(baseData)), cut(1:ncol(baseData), 
-                numGroup))
+                groupRIL <- split(order(colSums(!is.na(baseData)), decreasing = TRUE), cut(1:ncol(baseData), numGroup))
+            else groupRIL <- split(sample(ncol(baseData)), cut(1:ncol(baseData), numGroup))
             names(groupRIL) <- 1:numGroup
         }
         else {
@@ -505,8 +503,7 @@ function (baseData, markers = NULL, alleleA = NULL, numGroup = 1,
         }
         groupRIL <- groupRIL[sapply(groupRIL, length) > 0]
         for (ids.cols in groupRIL) {
-            ids.RILrows <- which(rowSums(!is.na(cbind(baseData[, 
-                ids.cols]))) > 0)
+            ids.RILrows <- which(rowSums(!is.na(cbind(baseData[, ids.cols]))) > 0)
             rowN <- length(ids.RILrows)
             ids.times <- rep(0, rowN)
             ids.ok <- rep(0, rowN)
@@ -515,24 +512,18 @@ function (baseData, markers = NULL, alleleA = NULL, numGroup = 1,
             n <- length(ids.candidate)
             while (n > 1) {
                 if (length(ids.candidate) > numBaseStep) {
-                  filter.dis <- ids.candidate < (median(ids.candidate) - 
-                    numBaseCandidateStep)
+                  filter.dis <- ids.candidate < (median(ids.candidate) - numBaseCandidateStep)
                   ids.dis <- ids.candidate[filter.dis]
                   if (length(ids.dis) < numBaseStep) 
-                    ids.candidate <- c(ids.dis, sample(ids.candidate[!filter.dis], 
-                      numBaseStep - length(ids.dis)))
+                    ids.candidate <- c(ids.dis, sample(ids.candidate[!filter.dis], numBaseStep - length(ids.dis)))
                   else ids.candidate <- ids.dis
                 }
-                ids.times[ids.candidate] <- ids.times[ids.candidate] + 
-                  1
+                ids.times[ids.candidate] <- ids.times[ids.candidate] + 1
                 ids <- ids.RILrows[ids.candidate]
-                ids.point <- ifelse(useMedianToFindKnown == TRUE, 
-                  median(ids), ids[1])
+                ids.point <- ifelse(useMedianToFindKnown == TRUE, median(ids), ids[1])
                 is.known <- !is.na(alleleA.base[ids])
                 if (sum(is.known) < numKnownStep) {
-                  ids.known <- na.omit(alleleA.ids[order(abs(alleleA.ids - 
-                    ids.point))[sample(numKnownCandidateStep, 
-                    numKnownStep)]])
+                  ids.known <- na.omit(alleleA.ids[order(abs(alleleA.ids - ids.point))[sample(numKnownCandidateStep, numKnownStep)]])
                   if (length(ids.known) > (numKnownStep - sum(is.known))) 
                     ids.know <- ids.known[1:(numKnownStep - sum(is.known))]
                   ids <- unique(c(ids, ids.known))
@@ -650,7 +641,7 @@ function (baseData, markers = NULL, alleleA = NULL, numGroup = ncol(baseData),
                     ids.know <- ids.known[1:(numKnownStep - sum(is.known))]
                   ids <- unique(c(ids, ids.known))
                 }
-                ids <- sort(ids)
+                ids <- sort(as.numeric(ids))
                 is.known <- !is.na(alleleA.base[ids])
                 iResult <- localMPR(baseData[ids, ], allele.matrix = ALLELE.mat[ids, 
                   ], maxIterate = maxIterate, maxNStep = maxNStep, 
