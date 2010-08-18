@@ -20,7 +20,7 @@ our $help=<<EOH;
 \t-m Parent M list (m.lst) in format: /^ChrID\\tpath to SNP\$/
 \t-z Parent Z list (undef), undef for using the Reference sequence
 \t-c ChrID to parse
-\t-o Raw Genotype Output file (ril.rgt)
+\t-o Raw Genotype Output prefix (ril).ChrID.rgt
 \t-g Dump Ref. Genotype to (undef)
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
@@ -31,7 +31,7 @@ ShowHelp();
 
 $opt_i='ril.lst' if ! $opt_i;
 $opt_m='m.lst' if ! $opt_m;
-$opt_o='ril.rgt' if ! $opt_o;
+$opt_o='ril' if ! $opt_o;
 die "[x]Must specify -c ChrID !\n" unless defined $opt_c;
 
 no warnings;
@@ -42,7 +42,7 @@ die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
 my ($fileM,$fileZ,$fileRIL);
 $fileZ=$opt_z?$opt_z:'_Ref_';
 
-print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ] to [$opt_o]\n";
+print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ] to [$opt_o].$opt_c.rgt\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Ref GenoType Dump to [$opt_g]\n" if $opt_g;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
@@ -138,7 +138,7 @@ while (<RIL>) {
 	chomp;
 	my ($ChrID,$file)=split /\t/;
 	next if $ChrID ne $opt_c;
-	$fileRIL=$file and last;
+	$fileRIL=$fileZ=$file and last;
 }
 close RIL;
 if (defined $opt_z) {
@@ -280,12 +280,15 @@ unless ($opt_d) {
 }
 
 my ($PosC,$TypeC,%C_GT)=(0,0);
-open O,'>',$opt_o or die "[x]Error opening $opt_o: $!\n";
+open O,'>',$opt_o.".$opt_c.rgt" or die "[x]Error opening $opt_o: $!\n";
 my @PosList=sort {$a<=>$b} keys %GT;
 $PosC = scalar @PosList;
 
 my %FormatGT=(1=>0, 2=>1, 3=>0.5);	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
-print O join("\t",@Samples),"\n";
+$fileM=`readlink -nf $fileM`;
+$fileZ=`readlink -nf $fileZ`;
+$fileRIL=`readlink -nf $fileRIL`;
+print O "#M=0, $fileM\n#Z=1, $fileZ\n#Chimeric_SNP=$C_SameGT\n#RIL $fileRIL\n",join("\t",@Samples),"\n";
 for my $pos (@PosList) {
 	print O $pos;
 	for my $s (@Samples) {
@@ -319,12 +322,16 @@ for my $s (@Samples) {
 	print O "\n";
 }
 =cut
-close O;
 warn "[!]GenoType written $PosC,$TypeC,",$TypeC/$PosC,"\n\n[!]GenoType Counts:\n";
-warn "\t$_: $C_GT{$_}\n" for sort keys %C_GT;
+for (sort keys %C_GT) {
+	warn "\t$_: $C_GT{$_}\n";
+	print O "# $_: $C_GT{$_}\n";
+}
+close O;
 
 #END
 my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
+cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz z.lst -c

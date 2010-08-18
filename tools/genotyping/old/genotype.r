@@ -1,4 +1,14 @@
-geno.data=read.table('ril.rgt',T,row.names=1)
+#!/ifs1/GAG/population/huxuesong/chroot/bin/r
+
+self='./genotype.r';
+
+if (is.null(argv) | length(argv)<2) {
+  cat("Error: No options. Run",self,"<input> <output_prefix>.{bin,png,block}\n")
+  q(status=1)
+}
+
+
+geno.data=read.table(argv[1],T,row.names=1)
 
 `.MPR_hetero_` <-0.5
 `.MPR_p0_` <-0
@@ -256,16 +266,19 @@ function (genoData, base.position = 1:nrow(genoData), corrected = FALSE,
 
 theBin=genoToBin(geno.data,as.numeric(rownames(geno.data)),corrected=F,heterozygote=T,minBinsize=250000)
 
-geno.bin=theBin$bin
+#geno.bin=theBin$bin
 
-geno.colors <- geno.bin;geno.colors[is.na(geno.colors)] <- rgb(0,0,0)
-geno.colors[geno.colors==0]=rgb(0,0.7,0)
-geno.colors[geno.colors==1]=rgb(0,0,0.7)
-geno.colors[geno.colors==0.5]=rgb(0.6,0,0)
-rils=matrix(theBin$border,nrow=nrow(geno.bin),ncol=ncol(geno.bin))	# 1:nrow(geno.bin) or theBin$border
-poses=matrix(rep(1:ncol(geno.bin),each=nrow(geno.bin)),nrow=nrow(geno.bin),ncol=ncol(geno.bin))
-plot(poses, rils, col=geno.colors,pch=20, ylab='',xlab="RIL index",mar=c(1.1,2.1,2.1,1.1))
+#geno.colors <- geno.bin;geno.colors[is.na(geno.colors)] <- rgb(0,0,0)
+#geno.colors[geno.colors==0]=rgb(0,0.7,0)
+#geno.colors[geno.colors==1]=rgb(0,0,0.7)
+#geno.colors[geno.colors==0.5]=rgb(0.6,0,0)
+#rils=matrix(theBin$border,nrow=nrow(geno.bin),ncol=ncol(geno.bin))	# 1:nrow(geno.bin) or theBin$border
+#poses=matrix(rep(1:ncol(geno.bin),each=nrow(geno.bin)),nrow=nrow(geno.bin),ncol=ncol(geno.bin))
+#png(paste(argv[2],'.png',sep=''), 1600, 1200, pointsize=24,res=96,bg='white')
+#plot(poses, rils, col=geno.colors,pch=20, ylab='',xlab="RIL index",mar=c(1.1,2.1,2.1,1.1))
+#dev.off()
 
-write.table(theBin$bin,'ril.bin',col.names=T,quote=F,sep='\t')
-write.table(theBin$block$'1'$block,'ril.block',col.names=F,quote=F,sep='\t')
+write.table(theBin$bin,paste(argv[2],'.bin',sep=''),col.names=T,quote=F,sep='\t')
+write.table(theBin$border,paste(argv[2],'.border',sep=''),col.names=F,row.names=F,quote=F,sep='\t')
+write.table(theBin$block$'1'$block,paste(argv[2],'.block',sep=''),col.names=F,quote=F,sep='\t')
 
