@@ -301,8 +301,7 @@ function (genoData, base.position = 1:nrow(genoData), corrected = FALSE,
     correct.FUN = correctFUNHMM, size = 250000, num = 5, fillSmallNA = TRUE, 
     minBinsize = 0, seqERR = 0.01, heterozygote = FALSE, ...) 
 {
-    SNPbyChr <- split(1:nrow(genoData), substr(rownames(genoData), 
-        1, 2))
+    SNPbyChr <- split(1:nrow(genoData), 1)
     i.chr <- 0
     res <- lapply(SNPbyChr, function(ids) {
         i.line <- 0
