@@ -27,12 +27,16 @@ warnings()
 snpSet <- sort(as.numeric(rownames(na.omit(allele.MPR))))
 allele.MPR <- allele.MPR[match(snpSet,rownames(allele.MPR)),]
 
+write.table(allele.MPR,paste(argv[2],'.r0pGT',sep=''),col.names=T,quote=F,sep='\t')
+
 system.time(all.res <- globalMPRRefine(myBaseData,alleleA=na.omit(
              allele.MPR[,1]),groupSort=TRUE,numPerm=20,numTry=3,
              numBaseStep=50,numBaseCandidateStep=100,numKnownStep=30,
              numKnownCandidateStep=50,useMedianToFindKnown=TRUE,maxIterate=150,
              maxNStep=3,scoreMin=0.8,saveMidData=TRUE,verbose=TRUE))
 warnings()
+
+write.table(allele.MPR,paste(argv[2],'.r1pGT',sep=''),col.names=T,quote=F,sep='\t')
 
 perm <- 10
 res <- all.res$midData[[perm]]
