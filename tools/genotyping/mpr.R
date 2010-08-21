@@ -78,7 +78,7 @@ function (baseData = NULL)
         c(NA, NA)
     }))
     colnames(allele.matrix) <- c('P1', 'P2')
-    allele.matrix
+    na.exclude(allele.matrix)
 }
 
 # base2Geno.R
