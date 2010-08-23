@@ -12,31 +12,34 @@ sink(paste(argv[2],'.log',sep=''))
 
 source('./mpr.R');
 
-InDat=read.table(argv[1],T,na.strings='-',comment.char = '',as.is=T)
-#InDat=read.table('psnp/Chr01.add_ref',T,na.strings='-',comment.char = '',as.is=T)
+InDat=read.table(argv[1],T,na.strings='-',comment.char = '',as.is=TRUE)
+#InDat=read.table('psnp/Chr01.add_ref',T,na.strings='-',comment.char = '',as.is=TRUE)
 Ref=data.frame(InDat$Ref,row.names=InDat$Pos,check.names=F)
 SNP=as.matrix(data.frame(InDat[-(1:3)],row.names=InDat$Pos))
 #InDat='';
 
 #myBaseData <- SNP[sample(120,50),]
 myBaseData <- SNP
+snpT=base2Allele(myBaseData)
+Tmp=sort(as.numeric(rownames(snpT)))
+myBaseData <- myBaseData[as.character(Tmp),]
 
-allele.MPR <- localMPR(baseData=myBaseData,maxIterate=50,maxNStep=5,showDetail=TRUE,verbose=T)
+allele.MPR <- localMPR(baseData=myBaseData,maxIterate=50,maxNStep=5,showDetail=TRUE,verbose=TRUE)
 warnings()
 
-snpSet <- sort(as.numeric(rownames(na.omit(allele.MPR))))
-allele.MPR <- allele.MPR[match(snpSet,rownames(allele.MPR)),]
+#snpSet <- sort(as.numeric(rownames(na.omit(allele.MPR))))
+#allele.MPR <- allele.MPR[match(snpSet,rownames(allele.MPR)),]
 
-write.table(allele.MPR,paste(argv[2],'.r0pGT',sep=''),col.names=T,quote=F,sep='\t')
+write.table(allele.MPR,paste(argv[2],'.r0pGT',sep=''),col.names=TRUE,quote=F,sep='\t')
 
-system.time(all.res <- globalMPRRefine(myBaseData,alleleA=na.omit(
-             allele.MPR[,1]),groupSort=TRUE,numPerm=20,numTry=3,
+system.time(all.res <- globalMPRRefine(myBaseData,alleleA=allele.MPR[,1],groupSort=TRUE,
+             numPerm=20,numTry=3,
              numBaseStep=50,numBaseCandidateStep=100,numKnownStep=30,
              numKnownCandidateStep=50,useMedianToFindKnown=TRUE,maxIterate=150,
              maxNStep=3,scoreMin=0.8,saveMidData=TRUE,verbose=TRUE))
 warnings()
 
-write.table(allele.MPR,paste(argv[2],'.r1pGT',sep=''),col.names=T,quote=F,sep='\t')
+write.table(allele.MPR,paste(argv[2],'.r1pGT',sep=''),col.names=TRUE,quote=F,sep='\t')
 
 perm <- 10
 res <- all.res$midData[[perm]]
@@ -54,20 +57,20 @@ table(Ref[idsA,1]==alleleA)
 #table(Ref[idsB,1]==alleleB)
 
 snpSet <- sort(as.numeric(rownames(na.omit(allele.MPR))))
-alleleMPR=allele.MPR[match(snpSet,rownames(allele.MPR)),]
+#alleleMPR=allele.MPR[match(snpSet,rownames(allele.MPR)),]
 
 #argv=c('iChr01','oChr01')
 
-write.table(alleleMPR,paste(argv[2],'.pGT',sep=''),col.names=T,quote=F,sep='\t')
+write.table(allele.MPR,paste(argv[2],'.pGT',sep=''),col.names=TRUE,quote=F,sep='\t')
 
 ids <- match(snpSet,rownames(myBaseData))
 table(is.na(geno.data <- base2Geno(myBaseData[ids,],allele.MPR[ids,])))
-write.table(geno.data,paste(argv[2],'.rgt',sep=''),col.names=T,quote=F,sep='\t')
+write.table(geno.data,paste(argv[2],'.rgt',sep=''),col.names=TRUE,quote=F,sep='\t')
 
-theBin=genoToBin(geno.data,as.numeric(rownames(geno.data)),corrected=F,heterozygote=T,minBinsize=250000,geno.probability=c(0.49951171875, 0.49951171875,0.0009765625))
+theBin=genoToBin(geno.data,as.numeric(rownames(geno.data)),corrected=F,heterozygote=TRUE,minBinsize=250000,geno.probability=c(0.49951171875, 0.49951171875,0.0009765625))
 warnings()
 
-write.table(theBin$bin,paste(argv[2],'.bin',sep=''),col.names=T,quote=F,sep='\t')
+write.table(theBin$bin,paste(argv[2],'.bin',sep=''),col.names=TRUE,quote=F,sep='\t')
 write.table(theBin$border,paste(argv[2],'.border',sep=''),col.names=F,row.names=F,quote=F,sep='\t')
 write.table(theBin$block$'1'$block,paste(argv[2],'.block',sep=''),col.names=F,quote=F,sep='\t')
 

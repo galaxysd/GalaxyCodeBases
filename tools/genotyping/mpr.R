@@ -321,8 +321,7 @@ function (genoData, base.position = 1:nrow(genoData), corrected = FALSE,
                 'end'] - blocks.mat[nrow(blocks.mat), 'start'] + 
                 1
             if (heterozygote == FALSE) 
-                blocks.mat[blocks.mat[, 'type'] == .MPR_hetero_, 
-                  'type'] <- NA
+                blocks.mat[blocks.mat[, 'type'] == .MPR_hetero_, 'type'] <- NA
             blocks.mat <- mergeBlocks(blocks.mat)
             t(blocks.mat)
         })
