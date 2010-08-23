@@ -2,6 +2,7 @@
 
 self='./runMPR.r';
 argv = commandArgs(T);
+#argv=c('Chr09.psnp','./t1/ttp.Chr09')
 
 if (is.null(argv) | length(argv)<2) {
   cat("Error: No options. Run",self,"<input> <output_prefix>.{pGT,rgt,bin,png,block}\n")
