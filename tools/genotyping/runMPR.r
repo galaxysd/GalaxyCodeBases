@@ -83,13 +83,17 @@ write.table(theBin$block$'1'$block,paste(argv[2],'.block',sep=''),col.names=F,qu
 
 geno.bin=theBin$bin
 
-geno.colors <- geno.bin;geno.colors[is.na(geno.colors)] <- rgb(0,0,0)
+geno.colors <- geno.bin;geno.colors[is.na(geno.colors)] <- rgb(0.8,0,0)
 geno.colors[geno.colors==0]=rgb(0,0.7,0)
 geno.colors[geno.colors==1]=rgb(0,0,0.7)
-geno.colors[geno.colors==0.5]=rgb(0.6,0,0)
+geno.colors[geno.colors==0.5]=rgb(0.6,0.6,0)
 rils=matrix(theBin$border,nrow=nrow(geno.bin),ncol=ncol(geno.bin))	# 1:nrow(geno.bin) or theBin$border
 poses=matrix(rep(1:ncol(geno.bin),each=nrow(geno.bin)),nrow=nrow(geno.bin),ncol=ncol(geno.bin))
-png(paste(argv[2],'.png',sep=''), 1200, 4800, bg='white')
+
+theX=min(1600,180+ncol(geno.bin)*16)
+theY=min(2400,180+nrow(geno.bin)*32)
+
+png(paste(argv[2],'.png',sep=''), theX, theY, bg='white')
 plot(poses, rils, col=geno.colors,pch=20, ylab='',xlab="RIL index",mar=c(1.1,2.1,2.1,1.1))
 
 for(j in 1:ncol(geno.colors)) {
