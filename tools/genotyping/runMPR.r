@@ -5,7 +5,7 @@ argv = commandArgs(T);
 #argv=c('Chr09.psnp','./t1/ttp.Chr09')
 
 if (is.null(argv) | length(argv)<2) {
-  cat("Error: No options. Run",self,"<input> <output_prefix>.{pGT,rgt,bin,png,block}\n")
+  cat("Error: No options. Run",self,"<input> <output_prefix>.{pGT,rgt,bin,png,block} [number_of_sample_to_use]\n")
   q(status=1)
 }
 
@@ -20,7 +20,18 @@ SNP=as.matrix(data.frame(InDat[-(1:3)],row.names=InDat$Pos))
 #InDat='';
 
 #myBaseData <- SNP[sample(120,50),]
-myBaseData <- SNP
+#myBaseData <- SNP[,1:5]
+#myBaseData <- SNP
+
+SampleCount=length(colnames(SNP))
+if (length(argv)>2) {
+	ChoosedCount = min(SampleCount,as.numeric(argv[3]));
+	ChoosedCount = max(ChoosedCount,3);
+	#myBaseData <- SNP[,1:ChoosedCount];
+	myBaseData <- SNP[,sample.int(SampleCount,ChoosedCount)];
+} else { myBaseData <- SNP; }
+cat(length(colnames(myBaseData)),"\t[",colnames(myBaseData),"]\n")
+
 snpT=base2Allele(myBaseData)
 Tmp=sort(as.numeric(rownames(snpT)))
 myBaseData <- myBaseData[as.character(Tmp),]
