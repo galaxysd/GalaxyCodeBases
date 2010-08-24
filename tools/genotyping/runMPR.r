@@ -19,14 +19,9 @@ Ref=data.frame(InDat$Ref,row.names=InDat$Pos,check.names=F)
 SNP=as.matrix(data.frame(InDat[-(1:3)],row.names=InDat$Pos))
 #InDat='';
 
-#myBaseData <- SNP[sample(120,50),]
-#myBaseData <- SNP[,1:5]
-#myBaseData <- SNP
-
 SampleCount=length(colnames(SNP))
 if (length(argv)>2) {
-	ChoosedCount = min(SampleCount,as.numeric(argv[3]));
-	ChoosedCount = max(ChoosedCount,3);
+	ChoosedCount = min( SampleCount,max(as.numeric(argv[3]),3) );
 	#myBaseData <- SNP[,1:ChoosedCount];
 	myBaseData <- SNP[,sample.int(SampleCount,ChoosedCount)];
 } else { myBaseData <- SNP; }
