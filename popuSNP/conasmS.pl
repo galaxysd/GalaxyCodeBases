@@ -6,8 +6,8 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.1.4;
 
-our $opts='i:o:c:m:p:bvne';
-our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_n, $opt_e, $opt_m, $opt_p);
+our $opts='i:o:c:m:p:sbvne';
+our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_n, $opt_e, $opt_m, $opt_p, $opt_s);
 
 our $desc='Genome creater for Single analyse';
 our $help=<<EOH;
@@ -17,12 +17,32 @@ our $help=<<EOH;
 \t-m merge.list for dividing mixed Chrs if any
 \t-o Output file prefix for the sample, directories must exist
 \t-n mask noncoverage bases to "n", otherwise little cased
+\t-s change hete SNP to homo by subtracting Ref base
 \t-e skip hete indels, otherwise both homo and hete(little cased) used
 \t-v show verbose info to STDOUT
 \t-b No pause for batch runs
 EOH
 
 ShowHelp();
+
+our %IUB = ( A => [qw(A)],
+	     C => [qw(C)],
+	     G => [qw(G)],
+	     T => [qw(T)],
+	     U => [qw(U)],
+	     M => [qw(A C)],
+	     R => [qw(A G)],
+	     W => [qw(A T)],
+	     S => [qw(C G)],
+	     Y => [qw(C T)],
+	     K => [qw(G T)],
+	     V => [qw(A C G)],
+	     H => [qw(A C T)],
+	     D => [qw(A G T)],
+	     B => [qw(C G T)],
+	     X => [qw(G A T C)],
+	     N => [qw(G A T C)]
+	     );
 
 warn "[x]Must specify -c xx.consensus.txt !\n" unless $opt_c;
 warn "[x]Must specify -i xx.indel.txt.filter !\n" unless $opt_i;
@@ -77,23 +97,61 @@ if ($opt_p) {
     open M,'<',$opt_p or die "Error opening $opt_p: $!\n";
     while (<M>) {
 	#chomp;
-	my ($chrid,$pos,undef,$cons)=split /\t/;
+	my ($chrid,$pos,$ref,$cons)=split /\t/;
 	#$sthi->execute($chrid,$scaffold,$start,$end);
+=pod
+	print "SNP:$chrid,$pos,$ref,$cons -> " if $opt_v;
+	if ($opt_s) {
+		my @bases=@{$IUB{$cons}};
+		for (@bases) {
+			if ($_ ne $ref) {
+				$cons=$_;
+				last;
+			}
+		}
+	}
+	print "$cons\n" if $opt_v;
+=cut
 	$SNP{$chrid}{$pos}=$cons;
     }
     close M;
     warn "\n[!]SNP file done.\n";
 }
 
+sub prograss_bar($$) {
+	my ($i,$total) = ($_[0],$_[1]);
+	local $| = 1;
+	my $pos=int(($i/$total)*50);
+	print "\r [" , '=' x $pos, ($pos<50)?'>':'=', ' ' x (49 - $pos), '] ';
+	printf("%2.1f %% ",$i/$total*100);
+	local $| = 0;
+}
+
+
 open CNS,'<',$opt_c or die "Error opening $opt_c: $!\n";
-my ($chr,$pos,$best,$depth,$ref,$indel,$bases,$homhet,$strand,$t);
+my $FL = -s $opt_c;
+my $count=0;
+print "[!]CNS:\n";
+my ($chr,$pos,$best,$depth,$ref,$indel,$bases,$homhet,$strand,$t,@bases);
 while (<CNS>) {
     chomp;
     ($chr,$pos,$ref,$best,undef,undef,undef,undef,undef,undef,undef,undef,undef,$depth) = split /\t/;
     unless ($ref) {   # if file not completed.
-	print STDERR '.';
-	next;
+		print STDERR '.';
+		next;
     }
+	++$count;
+	&prograss_bar((tell CNS),$FL) if $count%1000 == 0;
+	if ($opt_s and $best !~ /[ATCG]/) {
+		@bases=@{$IUB{$best}};
+		for (@bases) {
+			if ($_ ne $ref) {
+				$best=$_;
+				@bases=();
+				last;
+			}
+		}
+	}
     if ($depth==0) {
 	unless ($opt_n) {$best=lc $ref;}
 	 else {$best=$ref='n';}
@@ -108,6 +166,7 @@ while (<CNS>) {
     } else { $Genome{$chr}->[$pos]=$best; }
     #$Depth{$chr}->[$pos]=$depth;
 }
+print "\n";
 close CNS;
 warn "[!]CNS done.\n";
 
@@ -152,78 +211,80 @@ warn "[!]INDEL done.\n";
 
 my ($i,$dep,$scaf,$name);
 for $chr (keys %Genome) {
-    $Genome{$chr}->[0]='';  # no longer undef
-    $t=0;
-    $i=-1;
-    unless (exists $Merged{$chr}) { # exists should faster than defined ?
-	$name=$opt_o.'.'.$chr;
-	open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
-	print OUT ">$chr\n";
-	open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
-	print DEP ">$chr\n";
-	#$t=0;
-	#$i=-1;
-	for (@{$Genome{$chr}}) {
-	    ++$i;
-	    next if $_ eq '';
-	    ++$t;
-	    print OUT $_;
-	    $dep=$Depth{$chr}{$i} or $dep="\0";
-	    $dep = join(' ',map ord,split //,$dep);
-	    #print DEP '[',$dep,']';
-	    if ($t > 79) {
-		$t=0;
-		print OUT "\n";
-		print DEP "$dep\n";
-	    } else {print DEP $dep,' ';}
-	}
-	close OUT;
-	close DEP;
-    } else {
-	$t=$opt_o.'.'.$chr;
-	system('mkdir','-p',$t);
-	my ($end,$scafname,$toPrint)=(-1,'',0);	# -1 to fix 'print() on unopened filehandle OUT at ./conasm.pl line 178 & 179 of elsif ($i == $end).'
-	$scaf=$Merged{$chr};
-	for (@{$Genome{$chr}}) {
-	    ++$i;
-	    if (exists $$scaf{$i}) {	# Start point
-		($scafname,$end)=@{$$scaf{$i}};
-		$name=$opt_o.'.'.$chr.'/'.$scafname;
+	$Genome{$chr}->[0]='';  # no longer undef
+	$t=0;
+	$i=-1;
+	unless (exists $Merged{$chr}) { # exists should faster than defined ?
+		$name=$opt_o.'.'.$chr;
 		open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
-		print OUT ">$scafname\n";
+		print OUT ">$chr\n";
 		open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
-		print DEP ">$scafname\n";
-		$toPrint=1;	# when set to 0, no output for manmade junctions.
-	    }
-	    if ($i != $end) {
-		next if ($_ eq '' or $toPrint==0);
-		++$t;
-		print OUT $_;
-		$dep=$Depth{$chr}{$i} or $dep="\0";
-		$dep = join(' ',map ord,split //,$dep);
-		#print DEP '[',$dep,']';
-		if ($t > 79) {
-		    $t=0;
-		    print OUT "\n";
-		    print DEP "$dep\n";
-		} else {print DEP $dep,' ';}
-	    } else {	# End point
-		if ($_ ne '') {
-		    print OUT $_,"\n";
-		    $dep=$Depth{$chr}{$i} or $dep="\0";
-		    $dep = join(' ',map ord,split //,$dep);
-		    print DEP "$dep\n";
-		} else {
-		    print OUT "\n";
-		    print DEP "\n";
+		print DEP ">$chr\n";
+		#$t=0;
+		#$i=-1;
+		for (@{$Genome{$chr}}) {
+			++$i;
+			next if $_ eq '';
+			++$t;
+			print OUT $_;
+			$dep=$Depth{$chr}{$i} or $dep="\0";
+			$dep = join(' ',map ord,split //,$dep);
+			#print DEP '[',$dep,']';
+			if ($t > 79) {
+				$t=0;
+				print OUT "\n";
+				print DEP "$dep\n";
+			} else {print DEP $dep,' ';}
 		}
+		print OUT "\n";
+		print DEP "\n";
 		close OUT;
 		close DEP;
-		$t=$toPrint=0;
-		next;
-	    }
+	} else {
+		$t=$opt_o.'.'.$chr;
+		system('mkdir','-p',$t);
+		my ($end,$scafname,$toPrint)=(-1,'',0);	# -1 to fix 'print() on unopened filehandle OUT at ./conasm.pl line 178 & 179 of elsif ($i == $end).'
+		$scaf=$Merged{$chr};
+		for (@{$Genome{$chr}}) {
+			++$i;
+			if (exists $$scaf{$i}) {	# Start point
+				($scafname,$end)=@{$$scaf{$i}};
+				$name=$opt_o.'.'.$chr.'/'.$scafname;
+				open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
+				print OUT ">$scafname\n";
+				open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
+				print DEP ">$scafname\n";
+				$toPrint=1;	# when set to 0, no output for manmade junctions.
+			}
+			if ($i != $end) {
+				next if ($_ eq '' or $toPrint==0);
+				++$t;
+				print OUT $_;
+				$dep=$Depth{$chr}{$i} or $dep="\0";
+				$dep = join(' ',map ord,split //,$dep);
+				#print DEP '[',$dep,']';
+				if ($t > 79) {
+					$t=0;
+					print OUT "\n";
+					print DEP "$dep\n";
+				} else {print DEP $dep,' ';}
+			} else {	# End point
+				if ($_ ne '') {
+					print OUT $_,"\n";
+					$dep=$Depth{$chr}{$i} or $dep="\0";
+					$dep = join(' ',map ord,split //,$dep);
+					print DEP "$dep\n";
+				} else {
+					print OUT "\n";
+					print DEP "\n";
+				}
+				close OUT;
+				close DEP;
+				$t=$toPrint=0;
+				next;
+			}
+		}
 	}
-    }
 }
 warn "[!]Output done.\n";
 

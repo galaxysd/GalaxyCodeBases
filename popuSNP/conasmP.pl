@@ -132,78 +132,80 @@ warn "[!]INDEL done.\n";
 
 my ($i,$dep,$scaf,$name);
 for $chr (keys %Genome) {
-    $Genome{$chr}->[0]='';  # no longer undef
-    $t=0;
-    $i=-1;
-    unless (exists $Merged{$chr}) { # exists should faster than defined ?
-	$name=$opt_o.'.'.$chr;
-	open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
-	print OUT ">$chr\n";
-	open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
-	print DEP ">$chr\n";
-	#$t=0;
-	#$i=-1;
-	for (@{$Genome{$chr}}) {
-	    ++$i;
-	    next if $_ eq '';
-	    ++$t;
-	    print OUT $_;
-	    $dep=$Depth{$chr}{$i} or $dep="\0";
-	    $dep = join(' ',map ord,split //,$dep);
-	    #print DEP '[',$dep,']';
-	    if ($t > 79) {
-		$t=0;
-		print OUT "\n";
-		print DEP "$dep\n";
-	    } else {print DEP $dep,' ';}
-	}
-	close OUT;
-	close DEP;
-    } else {
-	$t=$opt_o.'.'.$chr;
-	system('mkdir','-p',$t);
-	my ($end,$scafname,$toPrint)=(-1,'',0);	# -1 to fix 'print() on unopened filehandle OUT at ./conasm.pl line 178 & 179 of elsif ($i == $end).'
-	$scaf=$Merged{$chr};
-	for (@{$Genome{$chr}}) {
-	    ++$i;
-	    if (exists $$scaf{$i}) {	# Start point
-		($scafname,$end)=@{$$scaf{$i}};
-		$name=$opt_o.'.'.$chr.'/'.$scafname;
+	$Genome{$chr}->[0]='';  # no longer undef
+	$t=0;
+	$i=-1;
+	unless (exists $Merged{$chr}) { # exists should faster than defined ?
+		$name=$opt_o.'.'.$chr;
 		open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
-		print OUT ">$scafname\n";
+		print OUT ">$chr\n";
 		open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
-		print DEP ">$scafname\n";
-		$toPrint=1;	# when set to 0, no output for manmade junctions.
-	    }
-	    if ($i != $end) {
-		next if ($_ eq '' or $toPrint==0);
-		++$t;
-		print OUT $_;
-		$dep=$Depth{$chr}{$i} or $dep="\0";
-		$dep = join(' ',map ord,split //,$dep);
-		#print DEP '[',$dep,']';
-		if ($t > 79) {
-		    $t=0;
-		    print OUT "\n";
-		    print DEP "$dep\n";
-		} else {print DEP $dep,' ';}
-	    } else {	# End point
-		if ($_ ne '') {
-		    print OUT $_,"\n";
-		    $dep=$Depth{$chr}{$i} or $dep="\0";
-		    $dep = join(' ',map ord,split //,$dep);
-		    print DEP "$dep\n";
-		} else {
-		    print OUT "\n";
-		    print DEP "\n";
+		print DEP ">$chr\n";
+		#$t=0;
+		#$i=-1;
+		for (@{$Genome{$chr}}) {
+			++$i;
+			next if $_ eq '';
+			++$t;
+			print OUT $_;
+			$dep=$Depth{$chr}{$i} or $dep="\0";
+			$dep = join(' ',map ord,split //,$dep);
+			#print DEP '[',$dep,']';
+			if ($t > 79) {
+				$t=0;
+				print OUT "\n";
+				print DEP "$dep\n";
+			} else {print DEP $dep,' ';}
 		}
+		print OUT "\n";
+		print DEP "\n";
 		close OUT;
 		close DEP;
-		$t=$toPrint=0;
-		next;
-	    }
+    } else {
+		$t=$opt_o.'.'.$chr;
+		system('mkdir','-p',$t);
+		my ($end,$scafname,$toPrint)=(-1,'',0);	# -1 to fix 'print() on unopened filehandle OUT at ./conasm.pl line 178 & 179 of elsif ($i == $end).'
+		$scaf=$Merged{$chr};
+		for (@{$Genome{$chr}}) {
+			++$i;
+			if (exists $$scaf{$i}) {	# Start point
+				($scafname,$end)=@{$$scaf{$i}};
+				$name=$opt_o.'.'.$chr.'/'.$scafname;
+				open OUT,'>',$name.'.fa' or die "Error opening ${name}.fa: $!\n";
+				print OUT ">$scafname\n";
+				open DEP,'>',$name.'.dep' or die "Error opening ${name}.dep: $!\n";
+				print DEP ">$scafname\n";
+				$toPrint=1;	# when set to 0, no output for manmade junctions.
+			}
+			if ($i != $end) {
+				next if ($_ eq '' or $toPrint==0);
+				++$t;
+				print OUT $_;
+				$dep=$Depth{$chr}{$i} or $dep="\0";
+				$dep = join(' ',map ord,split //,$dep);
+				#print DEP '[',$dep,']';
+				if ($t > 79) {
+					$t=0;
+					print OUT "\n";
+					print DEP "$dep\n";
+				} else {print DEP $dep,' ';}
+			} else {	# End point
+			if ($_ ne '') {
+				print OUT $_,"\n";
+				$dep=$Depth{$chr}{$i} or $dep="\0";
+				$dep = join(' ',map ord,split //,$dep);
+				print DEP "$dep\n";
+			} else {
+				print OUT "\n";
+				print DEP "\n";
+			}
+			close OUT;
+			close DEP;
+			$t=$toPrint=0;
+			next;
+			}
+		}
 	}
-    }
 }
 warn "[!]Output done.\n";
 
