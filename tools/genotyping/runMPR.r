@@ -83,14 +83,17 @@ write.table(theBin$block$'1'$block,paste(argv[2],'.block',sep=''),col.names=F,qu
 
 geno.bin=theBin$bin
 
+# A:(0,179,0) B:(0,51,179) AB:(230,230,0) NA:(205,0,0)
+# A:(0,0.7,0) B:(0,0.2,0.7) AB:(0.9,0.9,0) NA:(0.8,0,0)
+
 geno.colors <- geno.bin;geno.colors[is.na(geno.colors)] <- rgb(0.8,0,0)
 geno.colors[geno.colors==0]=rgb(0,0.7,0)
-geno.colors[geno.colors==1]=rgb(0,0,0.7)
-geno.colors[geno.colors==0.5]=rgb(0.6,0.6,0)
+geno.colors[geno.colors==1]=rgb(0,0.2,0.7)
+geno.colors[geno.colors==0.5]=rgb(0.9,0.9,0)
 rils=matrix(theBin$border,nrow=nrow(geno.bin),ncol=ncol(geno.bin))	# 1:nrow(geno.bin) or theBin$border
 poses=matrix(rep(1:ncol(geno.bin),each=nrow(geno.bin)),nrow=nrow(geno.bin),ncol=ncol(geno.bin))
 
-theX=min(1600,180+ncol(geno.bin)*16)
+theX=min(1200,180+ncol(geno.bin)*16)
 theY=min(2400,180+nrow(geno.bin)*32)
 
 png(paste(argv[2],'.png',sep=''), theX, theY, bg='white')
@@ -103,8 +106,8 @@ for(j in 1:ncol(geno.colors)) {
 	}
 }
 
-for(i in 1:nrow(rils)) {
-	segments(1,rils[i,1],ncol(rils),rils[i,ncol(rils)],lwd=1,col=rgb(0,0,0.2,0.4))
-}
+#for(i in 1:nrow(rils)) {
+#	segments(1,rils[i,1],ncol(rils),rils[i,ncol(rils)],lwd=1,col=rgb(0,0,0.2,0.4))
+#}
 
 dev.off()
