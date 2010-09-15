@@ -8,9 +8,8 @@ try:
     min_dist = int(sys.argv[4])
     min_depth = int(sys.argv[5])
     max_soap_depth = int(sys.argv[6])
-    min_pe = int(sys.argv[7])
 except IndexError:
-    print >>sys.stderr, "python",sys.argv[0],"Snp MinQual Max_soap_rep MinDist MinDepth MaxDepth MinPEdepth"
+    print >>sys.stderr, "python",sys.argv[0],"Snp MinQual Max_soap_rep MinDist MinDepth MaxDepth"
     sys.exit(1)
 
 decode = ["A", "M", "W", "R", "M", "C", "Y", "S", "W", "Y", "T", "K", "R", "S", "K", "G"]
