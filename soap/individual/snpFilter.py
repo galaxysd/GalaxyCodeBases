@@ -8,8 +8,9 @@ try:
     min_dist = int(sys.argv[4])
     min_depth = int(sys.argv[5])
     max_soap_depth = int(sys.argv[6])
+    min_pe = int(sys.argv[7])
 except IndexError:
-    print >>sys.stderr, "python",sys.argv[0],"Snp MinQual Max_soap_rep MinDist MinDepth MaxDepth"
+    print >>sys.stderr, "python",sys.argv[0],"Snp MinQual Max_soap_rep MinDist MinDepth MaxDepth MinPEdepth"
     sys.exit(1)
 
 decode = ["A", "M", "W", "R", "M", "C", "Y", "S", "W", "Y", "T", "K", "R", "S", "K", "G"]
@@ -23,8 +24,8 @@ for line in snp:
     if count< 14:
         continue
     ori = tabs[2]; soap_base = tabs[3]; qual = int(tabs[4])
-    base1Depth = tabs[8]
-    base2Depth = tabs[12]
+    base1Depth = int(tabs[8])
+    base2Depth = int(tabs[12])
     depth = int(tabs[13]); rank_sum = float(tabs[14])
     rep = float(tabs[15]); isSNP = (1==int(tabs[16]) or 5==int(tabs[16]));dist = int(tabs[17])
     if qual>= min_soap_qual and depth <= max_soap_depth and rep <= max_soap_rep and (dist >= min_dist or isSNP):
