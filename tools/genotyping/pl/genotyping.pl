@@ -11,17 +11,21 @@ use FindBin qw($RealBin);
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 
-our $opts='i:o:m:z:c:v:g:bd';
-our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_b, $opt_d);
+our $opts='i:o:m:z:c:v:g:q:e:f:n:bd';
+our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_q, $opt_e, $opt_f, $opt_n, $opt_b, $opt_d);
 
 #our $desc='';
 our $help=<<EOH;
 \t-i RIL pSNP list (ril.lst) in format: /^ChrID\\tpath toadd_ref\$/
-\t-m Parent M list (m.lst) in format: /^ChrID\\tpath to SNP\$/
+\t-m Parent M list (m.lst) in format: /^ChrID\\tpath to CNS\$/
 \t-z Parent Z list (undef), undef for using the Reference sequence
 \t-c ChrID to parse
 \t-o Raw Genotype Output prefix (ril).ChrID.rgt
 \t-g Dump Ref. Genotype to (undef)
+\t-q MinQual (15)
+\t-n MaxCopyNum (1)
+\t-e MinDepth (2)
+\t-f MaxDepth (100)
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -32,17 +36,24 @@ ShowHelp();
 $opt_i='ril.lst' if ! $opt_i;
 $opt_m='m.lst' if ! $opt_m;
 $opt_o='ril' if ! $opt_o;
+$opt_q=15 if ! $opt_q;
+$opt_e=2 if ! $opt_e;
+$opt_f=100 if ! $opt_f;
+$opt_n=1 if ! $opt_n;
 die "[x]Must specify -c ChrID !\n" unless defined $opt_c;
 
 no warnings;
 $opt_v=int $opt_v;
+$opt_q=int $opt_q;
+$opt_e=int $opt_e;
+$opt_f=int $opt_f;
 use warnings;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
 my ($fileM,$fileZ,$fileRIL);
 $fileZ=$opt_z?$opt_z:'_Ref_';
 
-print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ] to [$opt_o].$opt_c.rgt\n";
+print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ][Q:$opt_q,Depth:$opt_e,$opt_f,CopyNum:$opt_n] to [$opt_o].$opt_c.rgt\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Ref GenoType Dump to [$opt_g]\n" if $opt_g;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
@@ -154,27 +165,46 @@ if (defined $opt_z) {
 
 warn "[!]Using [$fileRIL]->[$fileM][$fileZ].\n";
 
-my (%DatM,%DatZ,%DatRef,%DatBoth);
+my (%DatS);
 open M,'<',$fileM  or die "[x]Error opening $fileM: $!\n";
 while (<M>) {
 	#chomp;
-	my ($ChrID,$Pos,$Ref,$Type,$Q)=split /\t/;
-	$DatM{$Pos}=$DatBoth{$Pos}=$bIUB{$Type};
-	$DatRef{$Pos}=$bIUB{$Ref};
+	my ($ChrID,$Pos,$Ref,$Type,$Q,$Dep1,$Dep2,$DepA,$CN)=(split /\t/)[0,1,2,3,4,8,12,13,15];
+	#next unless ($opt_z or $Type =~ /[ATCG]/i);
+	next if ($DepA < $opt_e or $DepA > $opt_f or $CN > $opt_n) or ($Type !~ /[ATCG]/i and ($Dep1<$opt_e or $Dep1<$opt_e));
+	$Type = $Ref if $Q < $opt_q;
+	$DatS{$Pos}=[$bIUB{$Type},$bIUB{$Ref}];
 }
 close M;
 if (defined $opt_z) {
 	open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
 	while (<Z>) {
 		#chomp;
-		my ($ChrID,$Pos,$Ref,$Type,$Q)=split /\t/;
-		$DatZ{$Pos}=$bIUB{$Type};
-		#$DatBoth{$Pos} += 0;
-		$DatBoth{$Pos} |= $bIUB{$Type};
-		$DatRef{$Pos}=$bIUB{$Ref};
+		my ($ChrID,$Pos,$Ref,$Type,$Q,$Dep1,$Dep2,$DepA,$CN)=(split /\t/)[0,1,2,3,4,8,12,13,15];
+		if (($DepA < $opt_e or $DepA > $opt_f or $CN > $opt_n) or ($Type !~ /[ATCG]/i and ($Dep1<$opt_e or $Dep1<$opt_e))) {
+			delete $DatS{$Pos};
+			next;
+		}
+		$Type = $Ref if $Q < $opt_q;
+		if (exists $DatS{$Pos}) {
+			$DatS{$Pos}->[1]=$bIUB{$Type};
+		} else {
+			$DatS{$Pos}=[$bIUB{$Ref},$bIUB{$Type}];
+		}
 	}
 	close Z;
-} else { %DatZ = %DatRef; }
+}
+
+for my $key (keys %DatS) {
+	my ($a,$b)=@{$DatS{$key}};
+	if ($a & $b) {
+		delete $DatS{$key};
+		#print "$a,$b\n";
+	}	# keep only A ^ B = NULL
+}
+
+print "$_\t@{$DatS{$_}}\n" for sort {$a<=>$b} keys %DatS;
+__END__
 =pod
 # & AND, | OR, ^ XOR
 # $M = $DatM{$Pos} ^ ($DatM{$Pos} & $DatRef{$Pos});	# also $DatM{$Pos} & ( ~$DatRef{$Pos} )
@@ -200,7 +230,7 @@ for my $Pos (keys %DatRef) {
 }
 (%DatM,%DatZ,%DatRef)=();
 =cut
-%DatRef=();
+#%DatRef=();
 my $C_SameGT=0;
 for my $Pos (keys %DatBoth) {
 	if ($DatM{$Pos} && $DatZ{$Pos} && $DatM{$Pos} == $DatZ{$Pos}) {
