@@ -179,7 +179,7 @@ close M;
 
 warn "[!]Using [$fileRIL]<-[$fileM][$fileZ].\n";
 
-my ($ChrLen,$inSNPa,$inSNPb,%SNPRefContent,%HeteroHomoContent,%DatS,$t,$NumType,$NumTypez,@OutTmp)=(0,0,0);
+my ($ChrLen,$InZonea,$InZoneb,%SNPRefContent,%HeteroHomoContent,%DatS,$t,$NumType,$NumTypez,@OutTmp)=(0,0,0);
 %SNPRefContent=%HeteroHomoContent=(1=>0, 2=>0, 3=>0);
 open G,'>',$opt_g.".$opt_c.gt" or die "[x]Error opening $opt_g.$opt_c.gt: $!\n";
 print G "# A1 T2 C4 G8
@@ -203,11 +203,11 @@ while (<M>) {
 	if ( $Q < $opt_q or $CN > $opt_n or ($Type !~ /[ATCG]/i and ($het |= 1) and ($Dep1<$opt_e or $Dep2<$opt_e)) ) {
 		$Type = $Ref;
 		$flag &= 2;
-	} else { ++$inSNPa; }
+	} else { ++$InZonea; }
 	if ( $Qz < $opt_q or $CNz > $opt_n or ($Typez !~ /[ATCG]/i and ($het |= 2) and ($Dep1z<$opt_e or $Dep2z<$opt_e)) ) {
 		$Typez = $Refz;
 		$flag &= 1;
-	} else { ++$inSNPb; }
+	} else { ++$InZoneb; }
 	next if $Type eq $Typez;
 	$NumType=$bIUB{$Type}; $NumTypez=$bIUB{$Typez};
 	next if $NumType & $NumTypez;	# keep only A ^ B = NULL
@@ -222,8 +222,8 @@ for (sort keys %SNPRefContent) {
 	push @OutTmp,"$_:$SNPRefContent{$_}";
 	$t += $SNPRefContent{$_};
 }
-print G "# ChrLen:$ChrLen\n# InSNP: $inSNPa, $inSNPb\n# SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
-print STDERR "|\n[!] ChrLen:$ChrLen\n[!] InSNP: $inSNPa, $inSNPb\n[!] SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
+print G "# ChrLen:$ChrLen\n# InZone: $InZonea, $InZoneb\n# SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
+print STDERR "|\n[!] ChrLen:$ChrLen\n[!] InZone: $InZonea, $InZoneb\n[!] SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
 @OutTmp=();
 my $t2=0;
 for (sort keys %HeteroHomoContent) {
@@ -353,4 +353,4 @@ my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
-cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz lpa64cns.lst -m l9311cns.lst -c
+cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz lpa64cns.lst -m l9311cns.lst -o ./20100916/ril -g ./20100916/ref -c
