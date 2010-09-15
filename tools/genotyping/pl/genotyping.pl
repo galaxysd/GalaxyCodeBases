@@ -17,11 +17,11 @@ our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_q, $opt_e, $opt
 #our $desc='';
 our $help=<<EOH;
 \t-i RIL pSNP list (ril.lst) in format: /^ChrID\\tpath toadd_ref\$/
-\t-m Parent M list (m.lst) in format: /^ChrID\\tpath to CNS\$/
-\t-z Parent Z list (undef), undef for using the Reference sequence
+\t-m Parent A list (a.lst) in format: /^ChrID\\tpath to CNS\$/
+\t-z Parent B list (b.lst)
 \t-c ChrID to parse
 \t-o Raw Genotype Output prefix (ril).ChrID.rgt
-\t-g Dump Ref. Genotype to (undef)
+\t-g Dump Ref. Genotype to (ref).ChrID.gt
 \t-q MinQual (15)
 \t-n MaxCopyNum (1)
 \t-e MinDepth (2)
@@ -34,7 +34,9 @@ EOH
 ShowHelp();
 
 $opt_i='ril.lst' if ! $opt_i;
-$opt_m='m.lst' if ! $opt_m;
+$opt_m='a.lst' if ! $opt_m;
+$opt_z='b.lst' if ! $opt_z;
+$opt_g='ref' if ! $opt_g;
 $opt_o='ril' if ! $opt_o;
 $opt_q=15 if ! $opt_q;
 $opt_e=2 if ! $opt_e;
@@ -50,12 +52,11 @@ $opt_f=int $opt_f;
 use warnings;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
+die "[x]-z $opt_z not exists !\n" unless -f $opt_z;
 my ($fileM,$fileZ,$fileRIL);
-$fileZ=$opt_z?$opt_z:'_Ref_';
 
-print STDERR "From [$opt_i][$opt_c] with [$opt_m],[$fileZ][Q:$opt_q,Depth:$opt_e,$opt_f,CopyNum:$opt_n] to [$opt_o].$opt_c.rgt\n";
+print STDERR "From [$opt_i][$opt_c] with [$opt_m][$opt_z],\n     [minQ:$opt_q,Depth:$opt_e,$opt_f,maxCopyNum:$opt_n]\n To  [$opt_g].$opt_c.gt, [$opt_o].$opt_c.rgt\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
-print STDERR "Ref GenoType Dump to [$opt_g]\n" if $opt_g;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
@@ -129,12 +130,27 @@ for my $k (sort keys %IUB) {
 =cut
 
 =pod
+SoapSNP格式：
+参见：http://soap.genomics.org.cn/soapsnp.html#output2
 chromosome_10	1226	A	M	36	C	28	4	5	A	33	3	6	11	0.0285714	1.54545	0	166
 1)	Chromosome name
 2)	Position of locus
 3)	Nucleotide at corresponding locus of reference sequence
 4)	Genotype of sequencing sample
 5)	Quality value
+6)	nucleotide with the highest probability(first nucleotide)
+7)	Quality value of the nucleotide with the highest probability
+8)	Number of supported reads that can only be aligned to this locus
+9)	Number of all supported reads that can be aligned to this locus
+10)	Nucleotide with higher probability
+11)	Quality value of nucleotide with higher probability
+12)	Number of supported reads that can only be aligned to this locus
+13)	Number of all supported reads that can be aligned to this locus
+14)	Total number of reads that can be aligned to this locus
+15)	RST p-value
+16)	Estimated copy number for this locus
+17)	Presence of this locus in the dbSNP database. 1 refers to presence and 0 refers to inexistence
+18)	The distance between this locus and another closest SNP
 =cut
 open M,'<',$opt_m  or die "[x]Error opening $opt_m: $!\n";
 while (<M>) {
@@ -152,130 +168,100 @@ while (<RIL>) {
 	$fileRIL=$fileZ=$file and last;
 }
 close RIL;
-if (defined $opt_z) {
-	open M,'<',$opt_z  or die "[x]Error opening $opt_z: $!\n";
-	while (<M>) {
-		chomp;
-		my ($ChrID,$file)=split /\t/;
-		next if $ChrID ne $opt_c;
-		$fileZ=$file and last;
-	}
-	close M;
+open M,'<',$opt_z  or die "[x]Error opening $opt_z: $!\n";
+while (<M>) {
+	chomp;
+	my ($ChrID,$file)=split /\t/;
+	next if $ChrID ne $opt_c;
+	$fileZ=$file and last;
 }
+close M;
 
-warn "[!]Using [$fileRIL]->[$fileM][$fileZ].\n";
+warn "[!]Using [$fileRIL]<-[$fileM][$fileZ].\n";
 
-my (%DatS);
+my ($ChrLen,$inSNPa,$inSNPb,%SNPRefContent,%HeteroHomoContent,%DatS,$t,$NumType,$NumTypez,@OutTmp)=(0,0,0);
+%SNPRefContent=%HeteroHomoContent=(1=>0, 2=>0, 3=>0);
+open G,'>',$opt_g.".$opt_c.gt" or die "[x]Error opening $opt_g.$opt_c.gt: $!\n";
+print G "# A1 T2 C4 G8
+# minQ:$opt_q, Depth:$opt_e,$opt_f, maxCopyNum:$opt_n
+# ChrID=$opt_c
+# A=$fileM
+# B=$fileZ
+",join("\t",'Pos','A','B','a','b'),"\n";
 open M,'<',$fileM  or die "[x]Error opening $fileM: $!\n";
+open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
 while (<M>) {
 	#chomp;
 	my ($ChrID,$Pos,$Ref,$Type,$Q,$Dep1,$Dep2,$DepA,$CN)=(split /\t/)[0,1,2,3,4,8,12,13,15];
-	#next unless ($opt_z or $Type =~ /[ATCG]/i);
-	next if ($DepA < $opt_e or $DepA > $opt_f or $CN > $opt_n) or ($Type !~ /[ATCG]/i and ($Dep1<$opt_e or $Dep1<$opt_e));
-	$Type = $Ref if $Q < $opt_q;
-	$DatS{$Pos}=[$bIUB{$Type},$bIUB{$Ref}];
+	$t=<Z>;
+	my ($ChrIDz,$Posz,$Refz,$Typez,$Qz,$Dep1z,$Dep2z,$DepAz,$CNz)=(split /\t/,$t)[0,1,2,3,4,8,12,13,15];
+	++$ChrLen;
+	print STDERR "=>\b" unless $ChrLen % 1_000_000;
+	next if ($DepA < $opt_e or $DepA > $opt_f) or ($DepAz < $opt_e or $DepAz > $opt_f);
+	die "[x]CNS Files NOT match !\n" if $ChrID ne $ChrIDz or $Pos ne $Posz or $Ref ne $Refz;
+	my ($flag,$het)=(3,0);
+	if ( $Q < $opt_q or $CN > $opt_n or ($Type !~ /[ATCG]/i and ($het |= 1) and ($Dep1<$opt_e or $Dep2<$opt_e)) ) {
+		$Type = $Ref;
+		$flag &= 2;
+	} else { ++$inSNPa; }
+	if ( $Qz < $opt_q or $CNz > $opt_n or ($Typez !~ /[ATCG]/i and ($het |= 2) and ($Dep1z<$opt_e or $Dep2z<$opt_e)) ) {
+		$Typez = $Refz;
+		$flag &= 1;
+	} else { ++$inSNPb; }
+	next if $Type eq $Typez;
+	$NumType=$bIUB{$Type}; $NumTypez=$bIUB{$Typez};
+	next if $NumType & $NumTypez;	# keep only A ^ B = NULL
+	$DatS{$Pos}=[$NumType,$NumTypez,15^($NumType | $NumTypez)];
+	print G join("\t",$Pos,$Type,$Typez,$NumType,$NumTypez),"\n";
+	++$SNPRefContent{$flag};
+	++$HeteroHomoContent{$het};
 }
+@OutTmp=();
+$t=0;
+for (sort keys %SNPRefContent) {
+	push @OutTmp,"$_:$SNPRefContent{$_}";
+	$t += $SNPRefContent{$_};
+}
+print G "# ChrLen:$ChrLen\n# InSNP: $inSNPa, $inSNPb\n# SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
+print STDERR "|\n[!] ChrLen:$ChrLen\n[!] InSNP: $inSNPa, $inSNPb\n[!] SNP-Ref: ",join(', ',@OutTmp,"All:$t"),' -> ~',int(.5+$ChrLen/$t),' bp';
+@OutTmp=();
+my $t2=0;
+for (sort keys %HeteroHomoContent) {
+	push @OutTmp,"$_:$HeteroHomoContent{$_}";
+	$t2 += $HeteroHomoContent{$_} if $_;
+}
+print G "\n# Hetero-Homo: ",join(', ',@OutTmp,"All_but_0:$t2"),' -> ',100*$t2/$t," %\n";
+print STDERR "\n[!] Hetero-Homo: ",join(', ',@OutTmp,"All_but_0:$t2"),' -> ',100*$t2/$t," %\n";
+close Z;
 close M;
-if (defined $opt_z) {
-	open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
-	while (<Z>) {
-		#chomp;
-		my ($ChrID,$Pos,$Ref,$Type,$Q,$Dep1,$Dep2,$DepA,$CN)=(split /\t/)[0,1,2,3,4,8,12,13,15];
-		if (($DepA < $opt_e or $DepA > $opt_f or $CN > $opt_n) or ($Type !~ /[ATCG]/i and ($Dep1<$opt_e or $Dep1<$opt_e))) {
-			delete $DatS{$Pos};
-			next;
-		}
-		$Type = $Ref if $Q < $opt_q;
-		if (exists $DatS{$Pos}) {
-			$DatS{$Pos}->[1]=$bIUB{$Type};
-		} else {
-			$DatS{$Pos}=[$bIUB{$Ref},$bIUB{$Type}];
-		}
-	}
-	close Z;
-}
-
-for my $key (keys %DatS) {
-	my ($a,$b)=@{$DatS{$key}};
-	if ($a & $b) {
-		delete $DatS{$key};
-		#print "$a,$b\n";
-	}	# keep only A ^ B = NULL
-}
-
-print "$_\t@{$DatS{$_}}\n" for sort {$a<=>$b} keys %DatS;
-__END__
-=pod
-# & AND, | OR, ^ XOR
-# $M = $DatM{$Pos} ^ ($DatM{$Pos} & $DatRef{$Pos});	# also $DatM{$Pos} & ( ~$DatRef{$Pos} )
-my (%DatC,$Common,$M,$Z);
-for my $Pos (keys %DatRef) {
-	if (exists $DatM{$Pos}) {
-		if (exists $DatZ{$Pos}) {
-			# Both exists.
-			$Common = $DatM{$Pos} & $DatZ{$Pos};
-			$M = $DatM{$Pos} ^ $Common;
-			$Z = $DatZ{$Pos} ^ $Common;
-		} else {
-			# Only $DatM{$Pos}
-			$M = $DatM{$Pos} ^ ($DatM{$Pos} & $DatRef{$Pos});	# also $DatM{$Pos} & ( ~$DatRef{$Pos} )
-			$Z = $DatRef{$Pos};
-		}
-	} else {
-		# Only $DatZ{$Pos}, since (keys %DatRef) = (keys %DaM) U (keys %DatZ)
-		$Z = $DatZ{$Pos} ^ ($DatZ{$Pos} & $DatRef{$Pos});
-		$M = $DatRef{$Pos};
-	}
-	$DatGT{$Pos} = [$M,$Z];
-}
-(%DatM,%DatZ,%DatRef)=();
-=cut
-#%DatRef=();
-my $C_SameGT=0;
-for my $Pos (keys %DatBoth) {
-	if ($DatM{$Pos} && $DatZ{$Pos} && $DatM{$Pos} == $DatZ{$Pos}) {
-		delete $DatM{$Pos};
-		delete $DatZ{$Pos};
-		delete $DatBoth{$Pos};
-		++$C_SameGT;
-	} else { $DatBoth{$Pos} = ~$DatBoth{$Pos}; }
-}
-#$DatBoth{$_} = ~$DatBoth{$_} for keys %DatBoth;
-warn "[!]pSNP loaded. [$C_SameGT] positions are identical.\n";
-
-if ($opt_g) {
-	open D,'>',$opt_g or die "[x]Error opening $opt_g: $!\n";
-	print D join("\t",'Pos','Ref','M','Z','Both'),"\n";
-	for my $Pos (sort {$a<=>$b} keys %DatRef) {
-		print D join("\t",$Pos,$REV_IUB{$DatRef{$Pos}},$DatM{$Pos}?($REV_IUB{$DatM{$Pos}}):'-',$DatZ{$Pos}?($REV_IUB{$DatZ{$Pos}}):'-',$REV_IUB{~$DatBoth{$Pos}}),"\n";
-		#print D join("\t",$Pos,$DatRef{$Pos},$REV_IUB{$DatM{$Pos}},$DatZ{$Pos},$DatBoth{$Pos}),"\n";
-	}
-	close D;
-}
+close G;
+$t2=join('','-' x 24,'+','-' x 24,'|','-' x 24,'+---',"\n");
+warn "[!]Parents' SNP done !\n",$t2;
 
 sub GetGT($$) {
 	my ($Pos,$binBase)=@_;
 	my $Result=0;
-	$Result |=1 if $DatM{$Pos} && ($binBase & $DatM{$Pos});	# M
-	$Result |=2 if $DatZ{$Pos} && ($binBase & $DatZ{$Pos});	# Z
-	$Result |=4 if $binBase & $DatBoth{$Pos};	# Extra GenoType
+	#return 0 unless exists $DatS{$Pos};
+	my ($a,$b,$c)=@{$DatS{$Pos}} or return 0;
+	$Result |=1 if $binBase & $a;	# A
+	$Result |=2 if $binBase & $b;	# B
+	$Result |=4 if $binBase & $c;	# Extra GenoType
 	return $Result;
-}
+}	# %DatS
 
 my ($C_PSNP,$C_iSNP,$C_Pos,%GT)=(0,0,0);
 open IN,'<',$fileRIL or die "[x]Error opening $fileRIL: $!\n";
-my $line;
-chomp($line=<IN>);
-$line=(split /\t/,$line)[3];
-my @Samples=split / /,$line;
+chomp($t=<IN>);
+$t=(split /\t/,$t)[3];
+my @Samples=split / /,$t;
 warn '[!]Sample Order: ',(scalar @Samples),':[',join('] [',@Samples),']',"\n";
-my ($chr,$pos,$ref,$tail,$t);
+my ($chr,$pos,$ref,$tail);
 while (<IN>) {
 	chomp;
 	($chr,$pos,$ref,$tail)=split /\t/;
 	next if $chr ne $opt_c;
 	++$C_PSNP;
-	next unless $DatBoth{$pos};
+	next unless $DatS{$pos};
 	++$C_Pos;
 	$t=0;
 	my @indSNP=split / /,$tail;	# /[ACGTRYMKSWHBVDNX-]/
@@ -297,13 +283,15 @@ while (<IN>) {
 close IN;
 warn "[!]GenoTyping done as ${C_PSNP}->$C_Pos,$C_iSNP,",$C_iSNP/$C_Pos,"\n";
 
+my $Deleted=0;
 unless ($opt_d) {
-	my $Deleted=0;
 	for my $Pos (keys %GT) {
 		my $flag=0;
 		for my $s (keys %{$GT{$Pos}}) {
-			delete $GT{$Pos}{$s} if $GT{$Pos}{$s} & 4;
-			++$Deleted;
+			if ($GT{$Pos}{$s} & 4) {
+				delete $GT{$Pos}{$s};
+				++$Deleted;
+			}
 		}
 	}
 	warn "[!]GenoType filtered out $Deleted\n";
@@ -318,15 +306,15 @@ my %FormatGT=(1=>0, 2=>1, 3=>0.5);	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
 $fileM=`readlink -nf $fileM`;
 $fileZ=`readlink -nf $fileZ`;
 $fileRIL=`readlink -nf $fileRIL`;
-print O "#M=0, $fileM\n#Z=1, $fileZ\n#Chimeric_SNP=$C_SameGT\n#RIL $fileRIL\n",join("\t",@Samples),"\n";
+print O "#A=0, $fileM\n#B=1, $fileZ\n#RIL $fileRIL\n",join("\t",@Samples),"\n";
 for my $pos (@PosList) {
 	print O $pos;
 	for my $s (@Samples) {
 		if (exists $GT{$pos}{$s}) {
-			$line=$FormatGT{$GT{$pos}{$s}};
-			print O "\t",$line;
+			$t=$FormatGT{$GT{$pos}{$s}};
+			print O "\t",$t;
 			++$TypeC;
-			++$C_GT{$line};
+			++$C_GT{$t};
 		} else {
 			print O "\t",'NA';
 			++$C_GT{'NA'};
@@ -357,6 +345,7 @@ for (sort keys %C_GT) {
 	warn "\t$_: $C_GT{$_}\n";
 	print O "# $_: $C_GT{$_}\n";
 }
+print O "#Filtered out: $Deleted\n#GenoType written $PosC,$TypeC -> ",$TypeC/$PosC,"\n";
 close O;
 
 #END
@@ -364,4 +353,4 @@ my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
-cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz z.lst -c
+cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz lpa64cns.lst -m l9311cns.lst -c
