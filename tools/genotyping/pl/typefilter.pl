@@ -7,6 +7,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use File::Basename;
 use Galaxy::ShowHelp;
 use FindBin qw($RealBin);
+#use Data::Dump qw(ddx);
 
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
@@ -174,50 +175,112 @@ sub HMMvitFUNrils($$$) {
 	return \@genocr;
 }
 
+my %ReFormatGT=(0=>1, 1=>2, 0.5=>3,'NA'=>0);
+my %FormatGT=(1=>0, 2=>1, 3=>0.5, 0=>'NA');
 sub filter($$) {
 	my @Dat=@{$_[0]};
 	my @Pos=@{$_[1]};
+	#my $ftype=$_[2] || 0;
 	warn 'x' if $#Dat != $#Pos;
 	my (@D,@P);
 	my $len=$#Dat>$#Pos ? $#Pos : $#Dat;
 	for my $i (0..$len) {
+		#$Dat[$i]=$ReFormatGT{$Dat[$i]} if $ftype==0;
 		next if $Dat[$i] !~ /[123]/;
 		push @D,$Dat[$i];
 		push @P,$Pos[$i];
 	}
 	return [\@D,\@P];
 }
+
 ## main()
 open G,'<',$opt_i  or die "[x]Error opening $opt_i: $!\n";
 open O,'>',$opt_o  or die "[x]Error opening $opt_o: $!\n";
-chomp(my $line=<G>);
-print O $line,"\n";
-$line=(split "\t",$line)[1];
-my @Poses=split ',',$line;
-print '[!]Input [',scalar @Poses,"] Positions.\n";
+my $line='#';
+my ($Ftype,@Values,%Count)=(0);	# $Ftype -> 0 => 0,1,0.5,NA; 1 => 1,2,3,0
+while ($line =~ /^#/) {
+	$line=<G>;
+	push @Values,$1 if $line =~ /^[AB]=(\d+)\D/;
+	print O $line;
+}
+if (@Values) {
+	@Values=sort {$a <=> $b} @Values;
+	$Ftype=1 if $Values[1]==2;
+}
+chomp $line;
+#$line=(split "\t",$line)[1];
+my @Samples=split /\t/,$line;
+print STDERR '[!]Inputed [',scalar @Samples,'] Samples, ';
+my (@Poses,%Dat,$i);
 while (<G>) {
+	next if /^#/;
 	chomp;
-	my ($Sample,@Dat)=split "\t";
-	print O $Sample,"\t.",join("\t.",@Dat),"\n" if $opt_d;
-	print O $Sample;
-	print STDERR "[!]$Sample\t";
-	my ($D,$P)=@{&filter(\@Dat,\@Poses)};
+	my ($Pos,@DatLine)=split "\t";
+	push @Poses,$Pos;
+	#push @{$Dat{$_}},shift @DatLine for @Samples;
+	for my $Sample (@Samples) {
+		my $t=shift @DatLine;
+		$t=$ReFormatGT{$t} if $Ftype==0;
+		push @{$Dat{$Sample}},$t;
+		++$Count{$t};
+	}
+}
+print STDERR '[',scalar @Poses,"] Poses.\n";
+close G;
+#ddx \%Dat;
+@Values=();
+push @Values,"$_:$Count{$_}" for sort {$a<=>$b} keys %Count;
+$i=join ', ',@Values;
+warn "[!]In: $i\n";
+print O "#In: $i\n";
+
+my (%DatHmm,%SampleH,%Diff);
+%Count=();
+for my $Sample (@Samples) {
+	my ($D,$P)=@{&filter($Dat{$Sample},\@Poses)};
 	$line = &HMMvitFUNrils($D,$P,[$vp, $vp, $p]);
-	my %SampleH;
+	%SampleH=();
 	@SampleH{@$P} = @$line;
-	my ($diff,$i)=(0,0);
+	my ($diff,@v)=0;
+	$i=0;
 	for (@Poses) {
 		if (exists $SampleH{$_}) {
-			print O "\t",$SampleH{$_};
-			++$diff if $SampleH{$_} ne $Dat[$i];
-		} else { print O "\t-"; }
-		++$i;
+			push @v,$SampleH{$_};
+			++$Count{$SampleH{$_}};
+			++$diff if $SampleH{$_} ne ${$Dat{$Sample}}[$i];
+			++$i;
+		} else { push @v,0;++$Count{0}; }
+	}
+	$DatHmm{$Sample}=\@v;
+	$Diff{$Sample}=[$diff,$i];
+}
+#ddx \%Diff;
+@Values=();
+push @Values,"$_:$Count{$_}" for sort {$a<=>$b} keys %Count;
+$i=join ', ',@Values;
+warn "[!]Out: $i\n";
+print O "#Out: $i\n";
+
+for my $Pos (@Poses) {
+	print O $Pos;
+	for my $Sample (@Samples) {
+		my $t=shift @{$DatHmm{$Sample}};
+		$t=$FormatGT{$t};
+		print O "\t",$t;
 	}
 	print O "\n";
-	print STDERR 'Out: ',scalar @$D,', ',int(.5+10000*(scalar @$D)/(scalar @Poses))/100," % of In\tDiff: $diff, ",int(.5+10000*$diff/(scalar @$D))/100,"% of Out\n";
 }
-close I;
+print O '#Filtered of ',scalar @Samples,' x ',scalar @Poses,":\n";
+my $SumDif;
+$i=0;
+for my $Sample (@Samples) {
+	my ($diff,$ii)=@{$Diff{$Sample}};
+	$SumDif+=$diff; $i+=$ii;
+	print O "# $Sample\t$diff/$ii = ",$diff/$ii,"\n";
+}
+print O "# Average:\t$SumDif/$i = ",$SumDif/$i,"\n";
 close O;
+warn "[!]Filtered $SumDif/$i = ",$SumDif/$i,"\n";
 
 =pod
 my @O = (1,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1,2,2,2,2,

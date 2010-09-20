@@ -302,7 +302,7 @@ open O,'>',$opt_o.".$opt_c.rgt" or die "[x]Error opening $opt_o: $!\n";
 my @PosList=sort {$a<=>$b} keys %GT;
 $PosC = scalar @PosList;
 
-my %FormatGT=(1=>0, 2=>1, 3=>0.5);	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
+my %FormatGT=(1=>0, 2=>1, 3=>0.5, 0=>'NA');	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
 $fileM=`readlink -nf $fileM`;
 $fileZ=`readlink -nf $fileZ`;
 $fileRIL=`readlink -nf $fileRIL`;
