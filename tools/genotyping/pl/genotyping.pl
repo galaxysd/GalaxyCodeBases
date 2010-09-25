@@ -210,7 +210,8 @@ while (<M>) {
 	} else { ++$InZoneb; }
 	next if $Type eq $Typez;
 	$NumType=$bIUB{$Type}; $NumTypez=$bIUB{$Typez};
-	next if $NumType & $NumTypez;	# keep only A ^ B = NULL
+	#next if $NumType & $NumTypez;	# keep only A ^ B = NULL
+	next if $NumType == $NumTypez;
 	$DatS{$Pos}=[$NumType,$NumTypez,15^($NumType | $NumTypez)];
 	print G join("\t",$Pos,$Type,$Typez,$NumType,$NumTypez),"\n";
 	++$SNPRefContent{$flag};
@@ -246,6 +247,7 @@ sub GetGT($$) {
 	$Result |=1 if $binBase & $a;	# A
 	$Result |=2 if $binBase & $b;	# B
 	$Result |=4 if $binBase & $c;	# Extra GenoType
+	$Result = 0 if $Result == 3 and ($a & $b);
 	return $Result;
 }	# %DatS
 

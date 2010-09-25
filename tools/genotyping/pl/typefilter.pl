@@ -12,14 +12,16 @@ use FindBin qw($RealBin);
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 
-our $opts='i:o:g:v:bd';
-our($opt_i, $opt_o, $opt_v, $opt_g, $opt_b, $opt_d);
+our $opts='i:o:g:v:s:l:bd';
+our($opt_i, $opt_o, $opt_v, $opt_g, $opt_b, $opt_d, $opt_s, $opt_l);
 
 #our $desc='';
 our $help=<<EOH;
 \t-i Raw Genotype Output file (ril.rgt)
 \t-g RIL Selfing Generations (10)
 \t-o Filtered Genotype Output file (ril.fgt)
+\t-s Spread distance in bp (4000), half on each way
+\t-l max length for fillable gap (1500)
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -35,11 +37,14 @@ $opt_v=int $opt_v;
 $opt_g=int $opt_g;
 use warnings;
 $opt_g=10 if $opt_g < 1;
+$opt_s=4000 if ! $opt_s;
+$opt_s /= 2;
+$opt_l=1500 if ! $opt_l;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 my $p=0.5 ** $opt_g;
 my $vp=(1-$p)/2;
 
-print STDERR "From [$opt_i] with [$vp:$p:$vp] to [$opt_o]\n";
+print STDERR "From [$opt_i] with [$vp:$p:$vp]\nFilling Spreads: ±[$opt_s],MaxLen: [$opt_l] to [$opt_o]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -193,6 +198,55 @@ sub filter($$) {
 	return [\@D,\@P];
 }
 
+sub ChecknFill($$$) {
+	#($s,$t)=@{&ChecknFill($s,\@v,\@Poses)};
+	my ($p,$Vref,$Pref)=@_;
+	my $Pos=$$Pref[$p];
+	my ($low,$high,$q,@v,%Sum)=(0,$#$Pref,-1);
+	for (my $i=$p;$i>=0;$i--) {
+		if ($$Pref[$i] < $Pos-$opt_s) {
+			$low=$i+1;
+			last;
+		}
+	}
+	for (my $i=$p;$i<=$#$Pref;$i++) {
+		if ($$Vref[$i] != 0) {
+			$q=$i-1;
+			last;
+		}
+	}
+	return [$#$Pref,-1] if $q==-1;
+	return [$q,-1] if ($$Pref[$q]-$$Pref[$p]) > $opt_l;
+	$Pos=$$Pref[$q];
+	for (my $i=$q;$i<=$#$Pref;$i++) {
+		if ($$Pref[$i] > $Pos+$opt_s) {
+			$high=$i-1;
+			last;
+		}
+	}
+#warn "$low - $high, $q\n";
+	for (my $i=$low;$i<$p;$i++) {
+		++$Sum{$$Vref[$i]};
+	}
+	for (my $i=$q+1;$i<=$high;$i++) {
+		next if $$Vref[$i] == 0;
+		++$Sum{$$Vref[$i]};
+	}
+	@v=sort {$Sum{$b} <=> $Sum{$a}} keys %Sum;	# $#$v >= 2 since only gap start comes in
+#warn ">@v\n";
+	shift @v if @v and $v[0] == 0;
+	my $v=shift @v || 0;
+	if ($v == 0) {
+		#warn "\n$$Pref[$p]-$$Pref[$q],[$$Pref[$low],$$Pref[$high]]\n";# @$Vref[$low..$p-1],$$Vref[$p],@$Vref[$p+1..$high]\n";
+		return [$q,0];
+	}
+	for (my $i=$p;$i<=$q;$i++) {
+		$$Vref[$i]=$v;
+	}
+#print STDERR $q-$p+1;
+	return [$q,$q-$p+1];
+}
+
 ## main()
 open G,'<',$opt_i  or die "[x]Error opening $opt_i: $!\n";
 open O,'>',$opt_o  or die "[x]Error opening $opt_o: $!\n";
@@ -215,7 +269,7 @@ my (@Poses,%Dat,$i);
 while (<G>) {
 	next if /^#/;
 	chomp;
-	my ($Pos,@DatLine)=split "\t";
+	my ($Pos,@DatLine)=split /\t/;
 	push @Poses,$Pos;
 	#push @{$Dat{$_}},shift @DatLine for @Samples;
 	for my $Sample (@Samples) {
@@ -234,9 +288,10 @@ $i=join ', ',@Values;
 warn "[!]In: $i\n";
 print O "#In: $i\n";
 
-my (%DatHmm,%SampleH,%Diff);
+my ($j,$k,%DatHmm,%SampleH,%Diff)=(0,0);
 %Count=();
 for my $Sample (@Samples) {
+	print STDERR ".\b";
 	my ($D,$P)=@{&filter($Dat{$Sample},\@Poses)};
 	$line = &HMMvitFUNrils($D,$P,[$vp, $vp, $p]);
 	%SampleH=();
@@ -251,36 +306,60 @@ for my $Sample (@Samples) {
 			++$i;
 		} else { push @v,0;++$Count{0}; }
 	}
+### Now, fill in the blanks ...
+	print STDERR "-\b";
+	for (my $s=0;$s<=$#v;$s++) {
+		my $t;
+#warn ">$s\t@v[(($s-9)>0?($s-9):0)..$s-1],$v[$s],@v[$s+1,$s+9]\n";
+		if ($v[$s] == 0) {
+			($s,$t)=@{&ChecknFill($s,\@v,\@Poses)};
+			if ($t>0) {
+				++$j;
+				$k += $t;
+			}
+		}
+	}
+###
 	$DatHmm{$Sample}=\@v;
-	$Diff{$Sample}=[$diff,$i];
+	$Diff{$Sample}=[$diff,$i,$j,$k];
+	print STDERR '=';
 }
 #ddx \%Diff;
+@Values=();
+push @Values,"$_:$Count{$_}" for sort {$a<=>$b} keys %Count;
+$i=join ', ',@Values;
+warn "\n[!]HMM: $i\n";
+print O "#HMM: $i\n";
+%Count=();
+
+for my $Pos (@Poses) {
+	print O $Pos;
+	for my $Sample (@Samples) {
+		my $t=shift @{$DatHmm{$Sample}};
+		++$Count{$t};
+		$t=$FormatGT{$t};
+		print O "\t",$t;
+	}
+	print O "\n";
+}
 @Values=();
 push @Values,"$_:$Count{$_}" for sort {$a<=>$b} keys %Count;
 $i=join ', ',@Values;
 warn "[!]Out: $i\n";
 print O "#Out: $i\n";
 
-for my $Pos (@Poses) {
-	print O $Pos;
-	for my $Sample (@Samples) {
-		my $t=shift @{$DatHmm{$Sample}};
-		$t=$FormatGT{$t};
-		print O "\t",$t;
-	}
-	print O "\n";
-}
 print O '#Filtered of ',scalar @Samples,' x ',scalar @Poses,":\n";
-my $SumDif;
+my ($SumDif,$Sumfc,$Sumfs);
 $i=0;
 for my $Sample (@Samples) {
-	my ($diff,$ii)=@{$Diff{$Sample}};
+	my ($diff,$ii,$fc,$fs)=@{$Diff{$Sample}};
 	$SumDif+=$diff; $i+=$ii;
-	print O "# $Sample\t$diff/$ii = ",$diff/$ii,"\n";
+	$Sumfc += $fc; $Sumfs += $fs;
+	print O "# $Sample\t$diff/$ii = ",$diff/$ii,"\t$fs/$fc=",$fc?($fs/$fc):'NA',"\n";
 }
-print O "# Average:\t$SumDif/$i = ",$SumDif/$i,"\n";
+print O "# Average:\t$SumDif/$i = ",$SumDif/$i,"\t$Sumfs/$Sumfc=",$Sumfc?($Sumfs/$Sumfc):'NA',"\n";
 close O;
-warn "[!]Filtered $SumDif/$i = ",$SumDif/$i,"\n";
+warn "[!]Filtered $SumDif/$i = ",$SumDif/$i,", $Sumfs/$Sumfc=",$Sumfc?($Sumfs/$Sumfc):'NA',"\n";
 
 =pod
 my @O = (1,1,1,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1,2,2,2,2,
