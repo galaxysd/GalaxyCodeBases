@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 #use DBI;
+use lib '/nas/RD_09C/resequencing/soft/lib';
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.1.4;
@@ -307,3 +308,5 @@ cat chrorderNip | perl -lane '$p="142";$a=$_;open O,">./sh/do$p$a.sh";print O "#
 cat chrorder9311 | perl -lane '$p="143";$a=$_;open O,">./sh/do$p$a.sh";print O "#\$ -N \"C_$a\"\n#\$ -cwd -r y -l vf=12g,p=1\n#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#\$ -o /dev/null -e /dev/null\n./conasmS.pl -c P${p}cns/P${p}.$a.cns -p P${p}snp/P${p}.$a.snp -i P${p}indel.list.filter -nbe -o oP${p}i/m 2>./log/${p}_$a.log";close O'
 
 ./conasm.pl -m soybean.merge.list -i ./Indel/QRS29.indel.txt.filter -c ./consensus/QRS29.SGm1.txt -bno ./out/QRS29 2>./log/QRS29.SGm1.txt.log
+
+cat ../9311/chrorder|while read a; do n="9308"; echo -e "#$ -N c$a\n#$ -cwd -r y -l vf=10.5g\n#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#$ -o /dev/null -e /dev/null\nperl ./conasmS.pl -bi ./indel_f/$n.indel-result.filte -c ./3GLF/$a/${n}_${a}.cns -o ./fa20100926/$n\n" > ./sh/con$n$a.sh; done

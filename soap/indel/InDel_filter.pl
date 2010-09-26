@@ -45,7 +45,7 @@ print "filter finished ..........\n";
 sub get_snp{
 	my @snpFile = `find $snpDir -name '*.add_ref'`;
 	if (@snpFile == 0){
-		@snpFile = `find $snpDir -name '*.Q18'`;
+		@snpFile = `find $snpDir -name '*.Q??'`;
 	}
 	foreach my $snp_file (@snpFile){
 		chomp $snp_file;
@@ -63,7 +63,7 @@ sub get_snp{
 }
 #0		 1		 2		 3		 4	     5		 6		 7		 8
 #chromosome      position        type&size       indel-string    fr(+,-,*)   hete/homo   average-quality indel-depth     total-depth
-#chr1            4834            D1              T               -           homo        27              5               6		
+#chr1            4834            D1              T               -           homo        27              5               6
 sub filter_indel{
 	my $snp_indel = 0;
 	my $homo = 0;

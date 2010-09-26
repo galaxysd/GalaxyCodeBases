@@ -384,3 +384,4 @@ my $stop_time = [gettimeofday];
 
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
+cat ../9311/chrorder | while read a; do ./typefilter.pl -bi ril.$a.rgt -o ril.$a.fgt;done
