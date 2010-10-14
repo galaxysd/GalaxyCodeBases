@@ -41,8 +41,10 @@ my %TRANS=(
 	'0'   => 'A',
 	'1'   => 'B',
 	'0.5' => 'H',
+	'2'   => '-',
 	'NA'  => '-',
 );
+my $Ratio=244000*2;	# 244kb/cM * 2
 
 my $start_time = [gettimeofday];
 #BEGIN
@@ -80,8 +82,12 @@ for my $chr (@ChrID) {
 		chomp;
 		my ($Pos,@Dat)=split /\s+/;
 		$_=$TRANS{$_} for @Dat;
-		print O 'SNP',$chr,'-',$Pos,',',$chr,',0,',join(',',@Dat),"\n";
+		print O 'SNP',$chr,'-',$Pos,',',$chr,',',join(',',$Pos/$Ratio,@Dat),"\n";
+#   Some chromosomes > 1000 cM in length; there may be a problem with the genetic map.
 	}
 	close I;
 }
 close O;
+
+__END__
+find ./v1/*_num | perl -lane '/(\d+)([^\d])+?$/;$a=int $1;print "$a\t$_"' > gen_in.lst
