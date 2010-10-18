@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 #use DBI;
+use lib 'E:/BGI/toGit/perlib/etc';
 use lib '/nas/RD_09C/resequencing/soft/lib';
 use Galaxy::ShowHelp;
 
@@ -129,7 +130,13 @@ sub prograss_bar($$) {
 }
 
 
-open CNS,'<',$opt_c or die "Error opening $opt_c: $!\n";
+#open CNS,'<',$opt_c or die "Error opening $opt_c: $!\n";
+if ($opt_c =~ /\.gz$/) {
+	open( CNS,'-|',"gzip -dc $opt_c") or die "[x]Error opening $opt_c: $!\n";
+} elsif ($opt_c =~ /\.bz2$/) {
+ 	open( CNS,'-|',"bzip2 -dc $opt_c") or die "[x]Error opening $opt_c: $!\n";
+} else {open( CNS,'<',$opt_c) or die "[x]Error opening $opt_c: $!\n";}
+
 my $FL = -s $opt_c;
 my $count=0;
 print "[!]CNS:\n";
@@ -309,4 +316,4 @@ cat chrorder9311 | perl -lane '$p="143";$a=$_;open O,">./sh/do$p$a.sh";print O "
 
 ./conasm.pl -m soybean.merge.list -i ./Indel/QRS29.indel.txt.filter -c ./consensus/QRS29.SGm1.txt -bno ./out/QRS29 2>./log/QRS29.SGm1.txt.log
 
-cat ../9311/chrorder|while read a; do n="9308"; echo -e "#$ -N c$a\n#$ -cwd -r y -l vf=10.5g\n#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#$ -o /dev/null -e /dev/null\nperl ./conasmS.pl -bi ./indel_f/$n.indel-result.filte -c ./3GLF/$a/${n}_${a}.cns -o ./fa20100926/$n\n" > ./sh/con$n$a.sh; done
+cat ../9311/chrorder|while read a; do n="9308"; echo -e "#$ -N c$a\n#$ -cwd -r y -l vf=10.5g\n#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH\n#$ -o ./fa20100926/${n}_${a}.log -e ./fa20100926/${n}_${a}.err\nperl ./conasmS.pl -bi ./indel_f/$n.indel-result.filter -c ./3GLF/$a/${n}_${a}.cns -o ./fa20100926/$n\n" > ./sh/con$n$a.sh; done
