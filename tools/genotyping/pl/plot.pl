@@ -175,3 +175,4 @@ __END__
 /nas/RD_09C/resequencing/user/zhangxm/soft/zijiao/new_selfing.pl
 perl /nas/RD_09C/resequencing/user/zhangxm/soft/zijiao/new_selfing.pl /nas/RD_09C/resequencing/Genome/Rice/Genome_9311/chr.nfo /panfs/POPULATION/PROJECT/Rice_RIL/chongqiong_RIL/data/Chr01.out.new /panfs/POPULATION/PROJECT/Rice_RIL/chongqiong_RIL/pic/Chr01.out.new.svg Chr01 5 40000
 cat ../9311/chrorder |while read a; do ./plot.pl ../9311/chr.nfo ril.$a.rgt ril.$a.r.svg $a 6 40000; done
+find . -name '*.?1.svg'|perl -lane '$a=$_;s/\.svg$/\.png/;system "convert $a $_"'

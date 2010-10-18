@@ -2,6 +2,7 @@
 #use threads;
 use strict;
 use warnings;
+use lib '/nas/RD_09C/resequencing/soft/lib';
 use DBI;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;

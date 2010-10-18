@@ -1,5 +1,5 @@
 #!/bin/env perl
-use lib '/share/raid010/resequencing/soft/lib';
+use lib '/nas/RD_09C/resequencing/soft/lib';
 use lib 'E:/BGI/toGit/perlib/etc';
 use strict;
 use warnings;
@@ -182,7 +182,7 @@ for my $sample (keys %cmdlines) {
 	print SH "#!/bin/sh
 #\$ -N \"sp_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,p=3
+#\$ -cwd -r y -l vf=4.1G,p=2
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
 SEEDFILE=$opath${sample}_soap.cmd
