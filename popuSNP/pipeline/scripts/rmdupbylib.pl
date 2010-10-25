@@ -10,6 +10,7 @@ use Galaxy::ShowHelp;
 ######
 =pod
 Changelog:
+0.3.15  add -u to use only hit==1
 0.3.14	UNION -> UNION ALL
 	UNION removes duplicates, whereas UNION ALL does not. You should avoid of unnecessary UNIONs they are huge performance leak. As a rule of thumb use UNION ALL if you are not sure which to use.
 0.3.12	Return to 0.3.8 for the trim part, which is the CORRECT one.
@@ -29,8 +30,8 @@ Changelog:
 
 $main::VERSION=0.3.14;
 
-our $opts='i:o:c:dbvmf';
-our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_f, $opt_d);
+our $opts='i:o:c:udbvmf';
+our($opt_i, $opt_o, $opt_c, $opt_v, $opt_b, $opt_m, $opt_u, $opt_f, $opt_d);
 
 our $desc='SoapSort library PCR PE Duplication Remover & Merger (Atom Edition)';
 our $help=<<EOH;
@@ -38,6 +39,7 @@ our $help=<<EOH;
 \t-c Chromosome name, the single one to parse
 \t-o Merged output file prefix for a sample, directories must exist
 \t   Output file(with path) will be [{-o}.{-c}]
+\t-u Only use Unique aligenments
 \t-m cache soap file so that no more file reading at output
 \t-f Filter out reads with gaps on [soap2 -g]
 \t-d Dump removed duplicates to [{-o}.{-c}.dup]
@@ -168,8 +170,8 @@ for my $file (@{$FILES{PE}}) {
 			$Offset=tell $FH{$fileid};
 			next;
 		}
-		if ($opt_f and length $types > 2) {
-			print "[v]Skipped:[${fileid}_$soapid]\@Chr:$chr,$pos,$strand\t${types}\n" if $opt_v;
+		if (($opt_u and $hit != 1) or  ($opt_f and length $types > 2)) {
+			print "[v]Skipped:[${fileid}_$soapid]\@Chr:$chr,$pos,$strand\t$hit, ${types}\n" if $opt_v;
 			$Offset=tell $FH{$fileid};
 			++$o_f;
 			next;
@@ -236,16 +238,22 @@ for my $file (@{$FILES{SE}}) {
 	open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n";
 	$Offset=tell $FH{$fileid};
 	#print STDERR 's',$fileid;
-	my ($soapid,$len,$chr,$pos);
+	my ($soapid,$len,$chr,$pos,$hit,$strand);
 	$count=0;
 	while ($_=readline $FH{$fileid}) {
-		($soapid,$len,$chr,$pos) = (split(/\t/))[0,5,7,8];
+		($soapid,$hit,$len,$strand,$chr,$pos) = (split(/\t/))[0,3,5,6,7,8];
 		if ($chr ne $opt_c) {
 			$Offset=tell $FH{$fileid};
 			next;
 		}
 #		if ($trim =~ /\dS/) { $isTrim=1;	++$SEtrimed; }
 #		 else { $isTrim=0; }
+        if ($opt_u and $hit != 1) {
+            print "[v]Skipped:[${fileid}_$soapid]\@Chr:$chr,$pos,$strand\t$hit\n" if $opt_v;
+            $Offset=tell $FH{$fileid};
+            ++$o_f;
+            next;
+        }
 		++$count;	++$itemsInS;	$bpsIS += $len;
 		if ($opt_m) {
 			$PSE{$fileid}{$Offset}=$_;
@@ -537,7 +545,7 @@ $bpsI=$bpsIP+$bpsIS;
 $bpsO=$bpsOP+$bpsOS;
 my $report = "\033\\[32;1m\nIn Chr:[$opt_c]\t[PE,SE]\n
 [${itemsInP},$itemsInS] ($itemsIn) lines from SOAP file(s). Trimed [${PEtrimed},${SEtrimed}].
-[$o_f] PE reads filtered, causing [$o_fs] reads turn to SE and ignored.
+[$o_f] reads filtered, causing [$o_fs] reads turn to SE and ignored.
 PE pairs: [$itemsOutP0] chosen, [$allDroped] dropped, Max dropped per dupilcate is [$maxDroped].
 [$itemsOutP,$itemsOutS] ($itemsOut) lines merged.
 [$bpsIP,$bpsIS] ($bpsI) bps read in, [$bpsOP,$bpsOS] ($bpsO) bps write out.\033\\[0;0m

@@ -182,7 +182,7 @@ for my $sample (keys %cmdlines) {
 	print SH "#!/bin/sh
 #\$ -N \"sp_$sample\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
-#\$ -cwd -r y -l vf=4.1G,p=2
+#\$ -cwd -r y -l vf=4.1G,p=1
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash -t 1-",scalar @{$cmdlines{$sample}},"
 SEEDFILE=$opath${sample}_soap.cmd
@@ -204,7 +204,7 @@ eval perl $SCRIPTS/dosoap.pl \$SEED
 #\$ -S /bin/bash -t 1-",scalar @{$LMScmdlines{$sample}},"
 SEEDFILE=$opath${sample}_lms.cmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval perl $SCRIPTS/rmdupbylib.pl -d \$SEED
+eval perl $SCRIPTS/rmdupbylib.pl -mud \$SEED
 ";
 	close SH;
 
