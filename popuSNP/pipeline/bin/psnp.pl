@@ -176,7 +176,7 @@ for my $Sub (keys %SubSample) {
 #\$ -S /bin/bash -t 1-$lstcount
 SEEDFILE=${dir}/$Chr.popcmd
 SEED=\$(sed -n -e \"\$SGE_TASK_ID p\" \$SEEDFILE)
-eval python $SCRIPTS/GLFmulti.py \$SEED
+eval $SCRIPTS/oglfmulti \$SEED
 ";
 		close SH;
 		open SH,'>',$prefix.'sh/'.$Chr.'_wcsnp.sh' || die "$!\n";
