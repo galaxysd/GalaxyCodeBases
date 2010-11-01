@@ -42,13 +42,13 @@ my $start_time = [gettimeofday];
 my (@ID,%Phe);
 open I,'<',$opt_i  or die "[x]Error opening $opt_i: $!\n";
 my $line=<I>;
-$line =~ s/\r//g;
+$line =~ s/ *\r//g;
 chomp $line;
 my @phe=split /\s*\,\s*/,$line;
 shift @phe;
 while (<I>) {
 	next if /^;/;
-	s/\r//g;
+	s/ *\r//g;
 	chomp;
 	s/\,\s*$//;
 	my @dat=split /\s*\,\s*/;
