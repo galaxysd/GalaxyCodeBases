@@ -53,6 +53,7 @@ while (<I>) {
 	s/\,\s*$//;
 	my @dat=split /\s*\,\s*/;
 	my $id = shift @dat;
+	$id =~ s/\s/_/g;
 	push @ID,$id;
 	$Phe{$id}=\@dat;
 }

@@ -1,3 +1,5 @@
+R CMD INSTALL --no-docs /ifs2/POPULATION/PRJECT/Rice_QQ/sprice/genotyping/qtl/qtl_1.18-7.tar.gz
+
 library('qtl')
 dat=read.cross('csvsr','.','gen_rot.csv','phe_rot.csv')
 
@@ -109,3 +111,13 @@ write.table(out.np,paste(sep='',file,'_tiller_number2.np.txt'))
 png(paste(sep='',file,'_tiller_number2.np.png'),16000,1200)
 plot(out.np, ylab="LOD score", alternate.chrid=TRUE,main='HMM filtered')
 dev.off()
+
+
+
+./qtl.R <gen_rot.csv> <phe_rot.csv> <output_prefix>
+v1_rot.csv
+av1_rot.csv
+
+fv1_phe.csv
+2nd_phe.csv
+3rd_phe.csv
