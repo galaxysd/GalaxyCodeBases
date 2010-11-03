@@ -7,7 +7,7 @@ if (is.null(argv) | length(argv)<2) {
   q(status=1)
 }
 
-#s argv=c('gen_rot.csv','fv1_phe.csv','test1')
+# argv=c('gen_rot.csv','fv1_phe.csv','test1')
 
 #################################################
 outputSO <- function (object, threshold, perms, alpha, lodcolumn = 1, pvalues = FALSE, df = FALSE, ...) {
@@ -206,7 +206,7 @@ for(i in 1:length(phe)) {
   dev.off();
 }
 
-png(paste(argv[3],'in.pairs.png',sep='.'),750,600);
+png(paste(argv[3],'in.pairs.png',sep='.'),1000,1000);
 pairs(jitter( as.matrix(dat$pheno[,1:length(phe)]) ), cex=0.6, las=1)
 dev.off();
 
@@ -218,8 +218,8 @@ for(i in 1:length(phe)) {
 	cat(paste('ScanOne Default for [',phe[i],']:\n',sep=''))
 	out <- scanone(dat0, pheno.col=i)
 	outperm <- scanone(dat0, n.perm=1000, pheno.col=i, verbose=FALSE)
-	summary(outperm, alpha=c(0.01, 0.05, 0.20))
-	summary(out, perms=outperm, alpha=0.5, pvalues=TRUE)
+	print(summary(outperm, alpha=c(0.01, 0.05, 0.20)))
+	print(summary(out, perms=outperm, alpha=0.5, pvalues=TRUE))
 	a=outputSO(out, perms=outperm, alpha=1, pvalues=TRUE)
 	b=outputSO(out, perms=outperm, pvalues=TRUE)
 	write.table(a,paste(argv[3],phe[i],'txt',sep='.'))
@@ -231,8 +231,8 @@ for(i in 1:length(phe)) {
 	cat(paste('ScanOne NP for [',phe[i],']:\n',sep=''))
 	out.np <- scanone(dat, model="np", pheno.col=i)
 	outperm.np <- scanone(dat, model="np", n.perm=1000, pheno.col=i, verbose=FALSE)
-	summary(outperm.np, alpha=c(0.01, 0.05, 0.20))
-	summary(out.np, perms=outperm.np, alpha=0.5, pvalues=TRUE)
+	print(summary(outperm.np, alpha=c(0.01, 0.05, 0.20)))
+	print(summary(out.np, perms=outperm.np, alpha=0.5, pvalues=TRUE))
 	a=outputSO(out.np, perms=outperm.np, alpha=1, pvalues=TRUE)
 	b=outputSO(out.np, perms=outperm.np, pvalues=TRUE)
 	write.table(a,paste(argv[3],phe[i],'np.txt',sep='.'))
@@ -242,4 +242,4 @@ for(i in 1:length(phe)) {
 	dev.off()
 }
 cat('Done !\n');
-sink('');
+sink();
