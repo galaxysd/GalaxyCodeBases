@@ -3,7 +3,7 @@ self='./qtl.R';
 argv = commandArgs(T);
 
 if (is.null(argv) | length(argv)<2) {
-  cat("Error: No options. Run",self,"<gen_rot.csv> <phe_rot.csv> <output_prefix>.{log,*.png,*.txt,*.dump}\n")
+  cat("Error: No options. Run",self,"<gen_rot.csv> <phe_rot.csv> <output_prefix>.{log,*.txt,*.dump}\n")
   q(status=1)
 }
 
@@ -200,16 +200,6 @@ dat=read.cross('csvsr','.',argv[1],argv[2]);
 phe=colnames(dat$pheno);
 phe=phe[-length(phe)];
 
-for(i in 1:length(phe)) {
-  png(paste(argv[3],phe[i],'in.png',sep='.'),640,480);
-  plot.pheno(dat,i,col='gray');
-  dev.off();
-}
-
-png(paste(argv[3],'in.pairs.png',sep='.'),1000,1000);
-pairs(jitter( as.matrix(dat$pheno[,1:length(phe)]) ), cex=0.6, las=1)
-dev.off();
-
 dat0 <- dat
 dat0 <- calc.genoprob(dat0, step=1, error.prob=0.001)
 dat <- calc.genoprob(dat, step=1, error.prob=0.01)
@@ -224,9 +214,6 @@ for(i in 1:length(phe)) {
 	b=outputSO(out, perms=outperm, pvalues=TRUE)
 	write.table(a,paste(argv[3],phe[i],'txt',sep='.'))
 	write.table(b,paste(argv[3],phe[i],'dump',sep='.'))
-	png(paste(argv[3],phe[i],'png',sep='.'),16000,1200)
-	plot(out, ylab="LOD score",main='Raw SNP Markers')
-	dev.off()
 
 	cat(paste('ScanOne NP for [',phe[i],']:\n',sep=''))
 	out.np <- scanone(dat, model="np", pheno.col=i)
@@ -237,9 +224,6 @@ for(i in 1:length(phe)) {
 	b=outputSO(out.np, perms=outperm.np, pvalues=TRUE)
 	write.table(a,paste(argv[3],phe[i],'np.txt',sep='.'))
 	write.table(b,paste(argv[3],phe[i],'np.dump',sep='.'))
-	png(paste(argv[3],phe[i],'np.png',sep='.'),16000,1200)
-	plot(out.np, ylab="LOD score", alternate.chrid=TRUE,main='HMM filtered')
-	dev.off()
 }
 cat('Done !\n');
 sink();
