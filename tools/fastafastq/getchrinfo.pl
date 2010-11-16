@@ -24,7 +24,7 @@ ShowHelp();
 die "[x]Must specify FASTA file !\n" if ! $opt_i;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 
-my $FASTAwidth=80;
+my $FASTAwidth=75;
 
 my ($filename, $outpath) = fileparse($opt_i);
 unless (-w $outpath) {
@@ -45,8 +45,8 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
 if ($opt_f) {
-	mkdir $outpath.$opt_f,0755;
-	die "[x]Error creating [$outpath$opt_f]. $!\n" if $! && $! ne 'File exists';
+	mkdir $outpath.$opt_f,0755;	# its $! is so unpredictable ...
+	die "[x]Error creating [$outpath$opt_f]. $!\n" unless -w $outpath.$opt_f;
 }
 
 #BEGIN
@@ -66,6 +66,7 @@ if ($opt_i =~ /.bz2$/) {
 open CHRO,'>',$outpath.'chrorder' or die "Error: $!\n";
 open STAT,'>',$outpath.'chr.nfo' or die "Error: $!\n";
 print STAT '#',join("\t",qw/ChrID Len EffLen GCratio N n Xx lc GC ChrDesc/),"\n";
+my ($tlen,$tN,$tn,$tX,$tlc,$tGC)=(0,0,0,0,0,0);
 while (<$infile>) {
 	chomp;
 	my $Head;
@@ -95,11 +96,22 @@ while (<$infile>) {
 	my $lc = $seq=~tr/agct/AGCT/;	# may stand for masked region
 	my $GC = $seq=~tr/GCgc//;
 	my $X = $seq=~tr/Xx//;	# stand for masked region
-	my $Efflen=$len-$N-$n;
+	my $Efflen=$len-$N-$n-$X;
 	my $GCratio=sprintf('%.3f',int(0.5+1000*$GC/$len)/1000);
 	print STAT join("\t",$id,$len,$Efflen,$GCratio,$N,$n,$X,$lc,$GC,$desc),"\n";
 	print STDERR " Len:$len, Effictive_Len:$Efflen, GC_Ratio:$GCratio\n";
+	$tlen += $len;
+	$tN += $N;
+	$tn += $n;
+	$tX += $X;
+	$tlc += $lc;
+	$tGC += $GC;
 }
+my $Efflen=$tlen-$tN-$tn-$tX;
+my $GCratio=sprintf('%.3f',int(0.5+1000*$tGC/$tlen)/1000);
+print STAT join("\t",'#Total',$tlen,$Efflen,$GCratio,$tN,$tn,$tX,$tlc,$tGC,'Summary'),"\n";
+print STDERR "\nTotal:\nLen:$tlen, Effictive_Len:$Efflen, GC_Ratio:$GCratio\n";
+
 close CHRO;
 close STAT;
 
