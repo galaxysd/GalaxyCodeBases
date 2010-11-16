@@ -62,6 +62,7 @@ my $start_time = [gettimeofday];
 my (@ChrIDs,%ChrLen);	# Canceled, use both. ;Well, use (keys %ChrCount) instead of @ChrIDs .
 open CHRLEN,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 while (<CHRLEN>) {
+	next if /^#/;	# for New chr.nfo from getchrinfo.pl
 	chomp;
 	s/\r//g;
 	my ($chr,$len)=split /\s+/;

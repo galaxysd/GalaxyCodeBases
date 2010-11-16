@@ -58,7 +58,7 @@ my %noGapLength;
 open L,$length_chr_file || die $!;
 while (<L>){
 	chomp;
-	next if (/total/);
+	next if /^#/;	# for New chr.nfo from getchrinfo.pl
 	my @words = split;
 	$hash{$words[0]} = $words[1];
 #	$noGapLength{$words[0]} = $words[1] - $words[2];
