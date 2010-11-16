@@ -23,7 +23,7 @@ use FindBin qw($Bin);
 
 
 die  "Version 1.0 2009-7-6;\nUsage:
-perl $0 -i population snp  -r reference Chr01.fa -l chr_length -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 12);
+perl $0 -i population snp  -r reference Chr01.fa -l chr.nfo -c Chr -n 50 -m soap.list -o output\n" unless (@ARGV == 12);
 # copyNumLcRst.pl -i ./Watermelon_17/SNP/PE/seg01/seg01 -r ./watermelon_v2_888/faByChr/seg01.fa -l ./Watermelon_17/FinalSNP2/watermelon.merge.len -c seg01 -n 16 -m ./Watermelon_17/SortbyChr/PE/List/seg01.list -o ./Watermelon_17/FinalSNP2/FinalSNP/Population/seg01
 
 my ($numberOfFile,$reference,$length_chr_file,$chromosome,$input,$mergelist,$outfile,$help);
