@@ -251,7 +251,7 @@ while (<>) {
 		$MisSum += $missed;
 		$chrMisSum{$chr} += $missed;
 
-		$hit=10 if $hit>10;	# max to count 9, then >=10
+		$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
 		++$Hit9r{$hit};
 		++$chrHit9r{$chr}{$hit};
 		$Hit9bp{$hit} += $len;

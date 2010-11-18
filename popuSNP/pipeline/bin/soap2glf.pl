@@ -174,6 +174,16 @@ close DEPLSTA;
 
 $opath="$opt_o/2soap/sh/";
 system('mkdir','-p',$opath);
+open SH,'>',"${opath}stats_soap.sh";
+print SH "#!/bin/sh
+#\$ -N \"stat_soap\"
+#\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#\$ -cwd -r y -l vf=20M
+#\$ -o /dev/null -e $opt_o/2soap/soaps.log
+#\$ -S /bin/bash
+eval perl $SCRIPTS/soapsummer.pl $opt_o/2soap/soaps.lst $opt_o/2soap/soaps
+";
+close SH;
 for my $sample (keys %cmdlines) {
 	open SH,'>',"$opath${sample}_soap.cmd";
 	print SH join("\n",@{$cmdlines{$sample}}),"\n";
