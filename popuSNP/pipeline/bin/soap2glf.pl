@@ -72,6 +72,7 @@ my $start_time = [gettimeofday];
 my (@ChrIDs,%ChrLen);
 open CHRLEN,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 while (<CHRLEN>) {
+	next if /^#/;	# for New chr.nfo from getchrinfo.pl
 	chomp;
 	s/\r//g;
 	my ($chr,$len)=split /\s+/;
@@ -174,7 +175,7 @@ close DEPLSTA;
 
 $opath="$opt_o/2soap/sh/";
 system('mkdir','-p',$opath);
-open SH,'>',"${opath}stats_soap.sh";
+open SH,'>',"${opath}soap_stats.sh";	# '*soap.sh' is reserved for SOAP.
 print SH "#!/bin/sh
 #\$ -N \"stat_soap\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
