@@ -116,18 +116,18 @@ if ($opt_v > 3) {
 my (%LMSlist,%MergeOut,%LMScmdlines,%cmdlinesMerged,%mergedbychr,%cmdlinesDepth,%LMScmdlinesJL);
 $opath="$opt_o/2soap/list/";
 system('mkdir','-p',$opath);
-#system('mkdir','-p',"$opt_o/2soap/megred/lst/");
+#system('mkdir','-p',"$opt_o/2soap/merged/lst/");
 
 open SOAPL,'>',"$opt_o/2soap/soaps.lst";
-open LST,'>',"$opt_o/2soap/megred.lst";
+open LST,'>',"$opt_o/2soap/merged.lst";
 system('mkdir','-p',"$opt_o/2soap/depth/");
 open DEPLSTA,'>',"${opath}/_ALL_.deplst";
 for my $sample (sort keys %Lanes) {
 	my $i=1;
-	#$MergedbySample{$sample}="$opt_o/2soap/megred/$sample/";
+	#$MergedbySample{$sample}="$opt_o/2soap/merged/$sample/";
 	my $depthprefix="$opt_o/2soap/depth/$sample";
 	open DEPLST,'>',"${opath}/${sample}.deplst";
-	system('mkdir','-p',"$opt_o/2soap/megred/$sample/");	# ${sample}_ChrID.sp
+	system('mkdir','-p',"$opt_o/2soap/merged/$sample/");	# ${sample}_ChrID.sp
 	system('mkdir','-p',"$opt_o/2soap/$sample/megre/");
 	for my $lib (keys %{$Lanes{$sample}}) {
 		my $listname="$opath${lib}.lst";
@@ -158,12 +158,12 @@ for my $sample (sort keys %Lanes) {
 		open L,'>',"${opath}/${sample}_$chrid.lmslst";
 		print L "${_}.$chrid\n" for @{$MergeOut{$sample}};	# ${_}_$chrid.lms
 		close L;
-		my $spname="$opt_o/2soap/megred/$sample/${sample}_$chrid.sp";
+		my $spname="$opt_o/2soap/merged/$sample/${sample}_$chrid.sp";
 		print LST "$sample\t$chrid\t$SampleRL{$sample}\t$spname\n";
 		print DEPLST $spname,"\n";
 		print DEPLSTA $spname,"\n";
 		push @{$mergedbychr{$chrid}},$spname;	# $spname
-		push @{$cmdlinesMerged{$sample}},"${opath}${sample}_$chrid.lmslst $opt_o/2soap/megred/$sample/${sample}_$chrid"
+		push @{$cmdlinesMerged{$sample}},"${opath}${sample}_$chrid.lmslst $opt_o/2soap/merged/$sample/${sample}_$chrid"
 	}
 	$cmdlinesDepth{$sample}="${opath}/${sample}.deplst $opt_o/2soap/depth/$sample";
 	close DEPLST;
@@ -282,8 +282,8 @@ if (-s "${opath}matrix/all.matrix") {
 #\$ -hold_jid \"mg_*\"
 #\$ -o /dev/null -e /dev/null
 #\$ -S /bin/bash
-#f=`find $opt_o/2soap/megred/ -name '*.sp'|xargs ls -lH|awk '{print \$5,\$9}'|sort -nrk1|head -n1|awk '{print \$2}'`
-perl $SCRIPTS/getmatrix.pl $opt_o/2soap/megred.lst $opt_f ${opath}matrix/all
+#f=`find $opt_o/2soap/merged/ -name '*.sp'|xargs ls -lH|awk '{print \$5,\$9}'|sort -nrk1|head -n1|awk '{print \$2}'`
+perl $SCRIPTS/getmatrix.pl $opt_o/2soap/merged.lst $opt_f ${opath}matrix/all
 ";
 	close SH;
 }
@@ -296,7 +296,7 @@ for my $chrid (@ChrIDs) {
 	print L "$opath$chrid/${_}_$chrid.glf\n" for sort keys %Lanes;	# $sample
 	close L;
 	open L,'>',$opath.$chrid."/$chrid.cmd";
-	print L "$opt_o/2soap/megred/$_/${_}_$chrid.sp $opath$chrid/${_}_$chrid d\n" for keys %Lanes;	# $sample
+	print L "$opt_o/2soap/merged/$_/${_}_$chrid.sp $opath$chrid/${_}_$chrid d\n" for keys %Lanes;	# $sample
 	close L;
 	open SH,'>',$opath."sh/${chrid}_glf.sh";
 	print SH "#!/bin/sh

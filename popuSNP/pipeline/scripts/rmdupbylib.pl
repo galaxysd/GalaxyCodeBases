@@ -60,7 +60,7 @@ print STDERR "-f on\t" if $opt_f;
 print STDERR "-m on\t" if $opt_m;
 print STDERR "-d on\t" if $opt_d;
 print STDERR "\n";
-if (-s $outfile > 1000) {	# Well, just temp ...
+if (-s $outfile > 10000) {	# Well, just temp ...
 	print STDERR "[!]Exists ($outfile), skipped.\n";
 	exit 0;
 }
