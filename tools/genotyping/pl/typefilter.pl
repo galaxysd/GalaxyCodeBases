@@ -12,8 +12,8 @@ use FindBin qw($RealBin);
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 
-our $opts='i:o:g:v:s:l:bd';
-our($opt_i, $opt_o, $opt_v, $opt_g, $opt_b, $opt_d, $opt_s, $opt_l);
+our $opts='i:o:g:v:s:l:abd';
+our($opt_i, $opt_o, $opt_v, $opt_g, $opt_b, $opt_d, $opt_s, $opt_l, $opt_a);
 
 #our $desc='';
 our $help=<<EOH;
@@ -22,6 +22,7 @@ our $help=<<EOH;
 \t-o Filtered Genotype Output file (ril.fgt)
 \t-s Spread distance in bp (4000), half on each way
 \t-l max length for fillable gap (1500)
+\t-a Be aggressive to split with [\\s+] instead of [\\t]
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -31,6 +32,9 @@ ShowHelp();
 
 $opt_i='ril.rgt' if ! $opt_i;
 $opt_o='ril.fgt' if ! $opt_o;
+
+my $Split='\t';	# Must use ', not "
+$Split='\s+' if $opt_a;
 
 no warnings;
 $opt_v=int $opt_v;
@@ -180,7 +184,7 @@ sub HMMvitFUNrils($$$) {
 	return \@genocr;
 }
 
-my %ReFormatGT=(0=>1, 1=>2, 0.5=>3,'NA'=>0);
+my %ReFormatGT=(0=>1, 1=>2, 0.5=>3,'NA'=>0,'-'=>0);
 my %FormatGT=(1=>0, 2=>1, 3=>0.5, 0=>'NA');
 sub filter($$) {
 	my @Dat=@{$_[0]};
@@ -263,13 +267,13 @@ if (@Values) {
 }
 chomp $line;
 #$line=(split "\t",$line)[1];
-my @Samples=split /\t/,$line;
+my @Samples=split /$Split/o,$line;
 print STDERR '[!]Inputed [',scalar @Samples,'] Samples, ';
 my (@Poses,%Dat,$i);
 while (<G>) {
 	next if /^#/;
 	chomp;
-	my ($Pos,@DatLine)=split /\t/;
+	my ($Pos,@DatLine)=split /$Split/o;
 	push @Poses,$Pos;
 	#push @{$Dat{$_}},shift @DatLine for @Samples;
 	for my $Sample (@Samples) {
