@@ -69,20 +69,20 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 my $start_time = [gettimeofday];
 #BEGIN
 unless (-s $opt_i) {die "[x]Soaplist [$opt_i] is nothing !\n";}
-my (%FILES,%FID,$GZ_Mode);
+my (%FILES,%FID,%GZ_Mode);
 open LST,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (<LST>) {
 	chomp;
 	my ($pe,$fid,$file)=split /\t/;
 	unless (-s $file) {
 		$file .= '.gz';
-		$opt_m=$GZ_Mode=1;
+		$opt_m=$GZ_Mode{$fid}=1;	# Well ,gzip -dc cannot open normal file, so, per-file manner.
 	}
 	push @{$FILES{$pe}},$file;
 	$FID{$file}=$fid;
 }
 close LST;
-print STDERR "-m on for .gz input.\n" if $GZ_Mode;
+print STDERR "-m on for .gz input.\n" if keys %GZ_Mode;
 #if ($opt_v) {}
 #system('mkdir','-p',$opt_o);
 open OUT,'>',$outfile or die "[x]Cannot create $outfile: $!\n";	# better to check before
@@ -164,7 +164,7 @@ for my $file (@{$FILES{PE}}) {
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m PE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
 	#open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n";
-	if ($GZ_Mode) {
+	if ($GZ_Mode{$fileid}) {
 		open $FH{$fileid},'-|',"gzip -dc $file" or die "[x]Error opening PE [$file] with gzip: $!\n";
 	} else { open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n"; }
 	$Offset=tell $FH{$fileid};
@@ -244,7 +244,7 @@ for my $file (@{$FILES{SE}}) {
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m SE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
 	#open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n";
-	if ($GZ_Mode) {
+	if ($GZ_Mode{$fileid}) {
 		open $FH{$fileid},'-|',"gzip -dc $file" or die "[x]Error opening SE [$file] with gzip: $!\n";
 	} else { open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n"; }
 	$Offset=tell $FH{$fileid};
