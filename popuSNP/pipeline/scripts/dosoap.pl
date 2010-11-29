@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $bin='/nas/RD_09C/resequencing/soft/bin/soap/soap2.20';
+my $bin='/nas/RD_09C/resequencing/standard/share/soap/soap2.22beta';
 my $arg0='-p 6 -t -s 40 -l 32';
 my $soap2patch=5;
 
@@ -91,12 +91,14 @@ if ($ins > 1500) {
 	($min,$max)=(1000,$ins*2-1000);
 }
 my ($n,$fqcmd,$tmpcmd,$avg,$std,$Lsd,$Rsd,$max_y,$max_x)=(0);
+$ext .= '.gz' unless -s "$path$fqnames[0]$ext";	# Well, sometime we gzip those .fqs later on and ...
 if ($PESE eq 'PE') {	# PE
 	$fqcmd="-a $path$fqnames[0]$ext -b $path$fqnames[-1]$ext -o $opath$fqnames[0].soap -2 $opath$fqnames[0].single";
 	$tmpcmd="-a $path$fqnames[0]$ext -b $path$fqnames[-1]$ext -o $opath$fqnames[0].tp -2 $opath$fqnames[0].ts";
 	system("$bin $tmpcmd -D $Ref $arg0 -m $min -x $max -v $mismatch -g $G 2>$opath$fqnames[0].tlog")==0 or die "[x]system soap failed: $?";
 ###
-	open TP,'<',"$opath$fqnames[0].tp";
+	#open TP,'<',"$opath$fqnames[0].tp";
+	open( TP,"-|","gzip -dc $opath$fqnames[0].tp.gz") or die "Error: $!\n";
 	my ($pairs,$lastpos,$line1,$line2,$pp,$pn,$calins,%insD)=(0);
 	while ($line1=<TP>) {
 		last if eof TP;
@@ -169,7 +171,7 @@ if ($PESE eq 'PE') {	# PE
 	close O;
 	($min,$max)=(int($avg-$Lsd*2.576-$soap2patch),int($avg+$Rsd*2.576+$soap2patch+.5));	# 99%
 	#system("bzip2 -9 $opath$fqnames[0].tp $opath$fqnames[0].ts");
-	unlink qq($opath$fqnames[0].tp $opath$fqnames[0].ts);
+	unlink ("$opath$fqnames[0].tp.gz", "$opath$fqnames[0].ts.gz");
 ###
 	$arg0 .= " -m $min -x $max";
 } else {	# SE
@@ -233,13 +235,14 @@ if ($max==0) {
 	$Rsd=int($Rsd*100+.5)/100;
 	print NFO "#fmtS\tTotal_Pairs\tPaired\tSingled\tMode(p%),Lsd,Rsd,InsAvg,STD\tInsMin,InsMax\n";
 	print NFO "Summary\t",join("\t",$Pairs,$Paired,$Singled,"$max_x($p %),$Lsd,$Rsd,$avg,$std","$min,$max"),"\n";
-	@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
+	#@ARGV=("$opath$fqnames[0].soap", "$opath$fqnames[0].single");
+	open(OUTS,"-|","gzip -dc $opath$fqnames[0].soap.gz $opath$fqnames[0].single.gz") or die "Error: $!\n";
 }
 my ($BadLines,$BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0,0);
 my (%chrBPOut,%chrReadsOut,%chrMisSum,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
 # for 46999 ChrIDs, one hash took 12m RES for {}=$ and 125m VIRT for {}{10}=$, thus fine to work with scaffolds. ( 1 gb VIRT max ? )
 my (@lines,$hit,$len,$chr,$types,$trim,$mistr,$missed);
-while (<>) {
+while (<OUTS>) {
 	@lines = split /\t/;
 	if (@lines > 10) {	# soap2 output always more than 10 columes.
 		($hit,$len,$chr,$types,$trim,$mistr) = @lines[3,5,7,9,-2,-1];
@@ -290,6 +293,8 @@ while (<>) {
 		next;
 	}
 }
+close OUTS;
+
 print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
 print NFO join("\t",'ALL',$ReadsOut,$BPOut,$MisSum,$TrimedReads,$TrimedBP,
 	${&combineC(\%misMatch)},${&combineJ(\%Hit9r)},${&combineJ(\%Hit9bp)},${&combineJ(\%Indel)},$BadLines),"\n\n";
@@ -299,4 +304,4 @@ print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrT
 close NFO;
 
 END:
-system("bzip2 -9 $opath$fqnames[0].unmap");
+#system("bzip2 -9 $opath$fqnames[0].unmap");

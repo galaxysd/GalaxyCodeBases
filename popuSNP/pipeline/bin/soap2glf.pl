@@ -180,6 +180,7 @@ print SH "#!/bin/sh
 #\$ -N \"stat_soap\"
 #\$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
 #\$ -cwd -r y -l vf=20M
+#\$ -hold_jid \"sp_*\"
 #\$ -o /dev/null -e $opt_o/2soap/soaps.log
 #\$ -S /bin/bash
 eval perl $SCRIPTS/soapsummer.pl $opt_o/2soap/soaps.lst $opt_o/2soap/soaps

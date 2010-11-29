@@ -40,7 +40,7 @@ our $help=<<EOH;
 \t-o Merged output file prefix for a sample, directories must exist
 \t   Output file(with path) will be [{-o}.{-c}]
 \t-u Only use Unique aligenments
-\t-m cache soap file so that no more file reading at output
+\t-m cache soap file so that no more file reading at output (implied on .gz input)
 \t-f Filter out reads with gaps on [soap2 -g]
 \t-d Dump removed duplicates to [{-o}.{-c}.dup]
 \t-v show verbose info to STDOUT
@@ -69,15 +69,20 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 my $start_time = [gettimeofday];
 #BEGIN
 unless (-s $opt_i) {die "[x]Soaplist [$opt_i] is nothing !\n";}
-my (%FILES,%FID);
+my (%FILES,%FID,$GZ_Mode);
 open LST,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (<LST>) {
 	chomp;
 	my ($pe,$fid,$file)=split /\t/;
+	unless (-s $file) {
+		$file .= '.gz';
+		$opt_m=$GZ_Mode=1;
+	}
 	push @{$FILES{$pe}},$file;
 	$FID{$file}=$fid;
 }
 close LST;
+print STDERR "-m on for .gz input.\n" if $GZ_Mode;
 #if ($opt_v) {}
 #system('mkdir','-p',$opt_o);
 open OUT,'>',$outfile or die "[x]Cannot create $outfile: $!\n";	# better to check before
@@ -158,7 +163,10 @@ for my $file (@{$FILES{PE}}) {
 	$fileid=$FID{$file};
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m PE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
-	open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n";
+	#open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n";
+	if ($GZ_Mode) {
+		open $FH{$fileid},'-|',"gzip -dc $file" or die "[x]Error opening PE [$file] with gzip: $!\n";
+	} else { open $FH{$fileid},'<',$file or die "[x]Error opening PE [$file]: $!\n"; }
 	$Offset=tell $FH{$fileid};
 	#print STDERR 'p',$fileid;
 	my ($sumQasc,$soapid,$Qstr,$hit,$len,$strand,$chr,$pos,$realpos,@Q,$trim,$trimed,$types);
@@ -235,7 +243,10 @@ for my $file (@{$FILES{SE}}) {
 	$fileid=$FID{$file};
 	$the_time = [gettimeofday];
 	printf STDERR ">Parsing\033[32;1m SE %3u @ %11.6f\033[0;0m sec.\n[%s] ",$fileid,tv_interval($start_time, $the_time),$file;
-	open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n";
+	#open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n";
+	if ($GZ_Mode) {
+		open $FH{$fileid},'-|',"gzip -dc $file" or die "[x]Error opening SE [$file] with gzip: $!\n";
+	} else { open $FH{$fileid},'<',$file or die "[x]Error opening SE [$file]: $!\n"; }
 	$Offset=tell $FH{$fileid};
 	#print STDERR 's',$fileid;
 	my ($soapid,$len,$chr,$pos,$hit,$strand);
