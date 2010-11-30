@@ -183,17 +183,19 @@ my $sh="$bin $fqcmd -D $Ref $arg0 -v $mismatch -g $G 2>$opath$fqnames[0].log";
 print "[$sh]\n";
 
 my ($Pairs,$Paired,$Singled,$Reads,$Alignment);
+
 if (-s "$opath$fqnames[0].nfo") {
 	system("mv -f $opath$fqnames[0].archive $opath$fqnames[0].archive.0"); #if (-e "$opath$fqnames[0].archive");
 	system("mv -f $opath$fqnames[0].nfo $opath$fqnames[0].nfo.0") unless -s "$opath$fqnames[0].nfo.0";
 	# Check both .nfo and .log, whether goto END;
-} else {
+}
+#} else {
 	RUN:
 	open OUT,'>',"$opath$fqnames[0].archive" or warn "[!]Error opening $opath$fqnames[0].archive: $!\n";
 	print OUT "#!/bin/sh\n$sh\n";
 	close OUT;
 	system($sh)==0 or die "[x]system [$sh] failed: $?";
-}
+#}
 open LOG,'<',"$opath$fqnames[0].log" or (warn "[x]Error opening $opath$fqnames[0].log: $!\n" and goto RUN);
 while (<LOG>) {
 	$Pairs = (split)[-2] if /^Total Pairs:/;
