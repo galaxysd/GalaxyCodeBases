@@ -137,7 +137,9 @@ close O;
 print STDERR "|\b";
 
 my $Avg=$sX/$N;
-my $Std=sqrt($sXX/$N-$Avg*$Avg);
+# http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+#my $Std=sqrt($sXX/$N-$Avg*$Avg);
+my $Std=sqrt(($sXX-$Avg*$sX)/($N-1));
 
 $file=$opt_o.'.dat.tmp';
 open I,'<',$file or die "[x]Error opening $file: $!\n";
