@@ -11,17 +11,19 @@ use FindBin qw($RealBin);
 $main::VERSION=0.0.1;
 my $SCRIPTS="$RealBin/../scripts";
 
-our $opts='i:o:m:z:c:v:g:q:e:f:n:bd';
-our($opt_i, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_q, $opt_e, $opt_f, $opt_n, $opt_b, $opt_d);
+our $opts='a:i:p:o:m:z:c:v:g:q:e:f:n:bd';
+our($opt_a, $opt_i, $opt_p, $opt_o, $opt_m, $opt_z, $opt_c, $opt_v, $opt_g, $opt_q, $opt_e, $opt_f, $opt_n, $opt_b, $opt_d);
 
 #our $desc='';
 our $help=<<EOH;
 \t-i RIL pSNP list (ril.lst) in format: /^ChrID\\tpath toadd_ref\$/
-\t-m Parent A list (a.lst) in format: /^ChrID\\tpath to CNS\$/
+\t-p RIL pSNP list (snp.lst) in format: /^ChrID\\tpath to_final.snp\$/
+\t-m Parent A list (a.lst) in format: /^ChrID\\tpath to CNS.bz2\$/
 \t-z Parent B list (b.lst)
 \t-c ChrID to parse
-\t-o Raw Genotype Output prefix (ril).ChrID.rgt
+\t-o Raw Genotype Output prefix (ril).ChrID.{rgt,intercross}
 \t-g Dump Ref. Genotype to (ref).ChrID.gt
+\t-a MinMACount to accept a popSNP site (17)
 \t-q MinQual (15)
 \t-n MaxCopyNum (1)
 \t-e MinDepth (2)
@@ -34,10 +36,12 @@ EOH
 ShowHelp();
 
 $opt_i='ril.lst' if ! $opt_i;
+$opt_p='snp.lst' if ! $opt_p;
 $opt_m='a.lst' if ! $opt_m;
 $opt_z='b.lst' if ! $opt_z;
 $opt_g='ref' if ! $opt_g;
 $opt_o='ril' if ! $opt_o;
+$opt_a=17 if ! $opt_a;
 $opt_q=15 if ! $opt_q;
 $opt_e=2 if ! $opt_e;
 $opt_f=100 if ! $opt_f;
@@ -46,6 +50,7 @@ die "[x]Must specify -c ChrID !\n" unless defined $opt_c;
 
 no warnings;
 $opt_v=int $opt_v;
+$opt_a=int $opt_a;
 $opt_q=int $opt_q;
 $opt_e=int $opt_e;
 $opt_f=int $opt_f;
@@ -53,9 +58,9 @@ use warnings;
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
 die "[x]-m $opt_m not exists !\n" unless -f $opt_m;
 die "[x]-z $opt_z not exists !\n" unless -f $opt_z;
-my ($fileM,$fileZ,$fileRIL);
+my ($fileM,$fileZ,$fileRIL,$filePSNP);
 
-print STDERR "From [$opt_i][$opt_c] with [$opt_m][$opt_z],\n     [minQ:$opt_q,Depth:$opt_e,$opt_f,maxCopyNum:$opt_n]\n To  [$opt_g].$opt_c.gt, [$opt_o].$opt_c.rgt\n";
+print STDERR "From [$opt_i][$opt_p][$opt_c] with [$opt_m][$opt_z],\n     [minQ:$opt_q,Depth:$opt_e,$opt_f,maxCopyNum:$opt_n; MinMACount:$opt_a]\n To  [$opt_g].$opt_c.gt0, [$opt_o].$opt_c.rgt\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -63,7 +68,8 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 my $start_time = [gettimeofday];
 #BEGIN
 # A1 T2 C4 G8
-our %bIUB = ( A => 1,
+our %bIUB = (
+		A => 1,
 		C => 4,
 		G => 8,
 		T => 2,
@@ -79,11 +85,12 @@ our %bIUB = ( A => 1,
 		B => 14,#[qw(C G T)],
 		X => 15,#[qw(G A T C)],
 		N => 15,#[qw(G A T C)]
-		);
-our %REV_IUB = (1	=> 'A',
+);
+our %REV_IUB = (
+		1	=> 'A',
 		2	=> 'T',
 		4	=> 'C',
-		8 	=> 'G',
+		8	=> 'G',
 		5	=> 'M,AC',
 		9	=> 'R,AG',
 		3	=> 'W,AT',
@@ -95,7 +102,25 @@ our %REV_IUB = (1	=> 'A',
 		11	=> 'D,AGT',
 		14	=> 'B,CGT',
 		15	=> 'N',
-		);
+);
+our %lb = (
+		0 => 0,
+		1 => 1,
+		4 => 1,
+		8 => 1,
+		2 => 1,
+		5  => 2,#[qw(A C)],
+		9  => 2,#[qw(A G)],
+		3  => 2,#[qw(A T)],
+		12 => 2,#[qw(C G)],
+		6  => 2,#[qw(C T)],
+		10 => 2,#[qw(G T)],
+		13 => 3,#[qw(A C G)],
+		7  => 3,#[qw(A C T)],
+		11 => 3,#[qw(A G T)],
+		14 => 3,#[qw(C G T)],
+		15 => 4,#[qw(G A T C)],
+);
 =pod
 #http://doc.bioperl.org/bioperl-live/Bio/Tools/IUPAC.html#BEGIN1
 our %IUB = ( A => [qw(A)],
@@ -168,6 +193,14 @@ while (<RIL>) {
 	$fileRIL=$fileZ=$file and last;
 }
 close RIL;
+open RIL,'<',$opt_p  or die "[x]Error opening $opt_p: $!\n";
+while (<RIL>) {
+	chomp;
+	my ($ChrID,$file)=split /\t/;
+	next if $ChrID ne $opt_c;
+	$filePSNP=$file and last;
+}
+close RIL;
 open M,'<',$opt_z  or die "[x]Error opening $opt_z: $!\n";
 while (<M>) {
 	chomp;
@@ -181,15 +214,17 @@ warn "[!]Using [$fileRIL]<-[$fileM][$fileZ].\n";
 
 my ($ChrLen,$InZonea,$InZoneb,%SNPRefContent,%HeteroHomoContent,%DatS,$t,$NumType,$NumTypez,@OutTmp)=(0,0,0);
 %SNPRefContent=%HeteroHomoContent=(1=>0, 2=>0, 3=>0);
-open G,'>',$opt_g.".$opt_c.gt" or die "[x]Error opening $opt_g.$opt_c.gt: $!\n";
+open G,'>',$opt_g.".$opt_c.gt0" or die "[x]Error opening $opt_g.$opt_c.gt0: $!\n";
 print G "# A1 T2 C4 G8
 # minQ:$opt_q, Depth:$opt_e,$opt_f, maxCopyNum:$opt_n
 # ChrID=$opt_c
 # A=$fileM
 # B=$fileZ
 ",join("\t",'Pos','A','B','a','b'),"\n";
-open M,'<',$fileM  or die "[x]Error opening $fileM: $!\n";
-open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
+#open M,'<',$fileM  or die "[x]Error opening $fileM: $!\n";
+#open Z,'<',$fileZ  or die "[x]Error opening $fileZ: $!\n";
+open M,'-|',"bzip2 -dc $fileM" or warn "[x]Error opening [$fileM] with bzip2: $!\n";
+open Z,'-|',"bzip2 -dc $fileZ" or warn "[x]Error opening [$fileZ] with bzip2: $!\n";
 while (<M>) {
 	#chomp;
 	my ($ChrID,$Pos,$Ref,$Type,$Q,$Dep1,$Dep2,$DepA,$CN)=(split /\t/)[0,1,2,3,4,8,12,13,15];
@@ -235,7 +270,7 @@ print G "\n# Hetero-Homo: ",join(', ',@OutTmp,"All_but_0:$t2"),' -> ',100*$t2/$t
 print STDERR "\n[!] Hetero-Homo: ",join(', ',@OutTmp,"All_but_0:$t2"),' -> ',100*$t2/$t," %\n";
 close Z;
 close M;
-close G;
+#close G;
 $t2=join('','-' x 24,'+','-' x 24,'|','-' x 24,'+---',"\n");
 warn "[!]Parents' SNP done !\n",$t2;
 
@@ -244,27 +279,54 @@ sub GetGT($$) {
 	my $Result=0;
 	#return 0 unless exists $DatS{$Pos};
 	my ($a,$b,$c)=@{$DatS{$Pos}} or return 0;
-	$Result |=1 if $binBase & $a;	# A
-	$Result |=2 if $binBase & $b;	# B
+	if ($binBase & $a) {
+		$Result |=1;
+		$Result |=16 unless $binBase & $b;
+	}	# A
+	if ($binBase & $b) {
+		$Result |=2;
+		$Result |=32 unless $binBase & $a;
+	}	# B
 	$Result |=4 if $binBase & $c;	# Extra GenoType
-	$Result = 0 if $Result == 3 and ($a & $b);
+	#$Result = 0 if $Result == 3 and ($a & $b);
 	return $Result;
 }	# %DatS
 
 my ($C_PSNP,$C_iSNP,$C_Pos,%GT)=(0,0,0);
 open IN,'<',$fileRIL or die "[x]Error opening $fileRIL: $!\n";
+open P,'<',$filePSNP or die "[x]Error opening $filePSNP: $!\n";
 chomp($t=<IN>);
 $t=(split /\t/,$t)[3];
 my @Samples=split / /,$t;
 warn '[!]Sample Order: ',(scalar @Samples),':[',join('] [',@Samples),']',"\n";
-my ($chr,$pos,$ref,$tail);
+my ($chr,$pos,$ref,$tail,$pchr,$ppos,$Base1,$Base2,$Count1,$Count2);
 while (<IN>) {
 	chomp;
 	($chr,$pos,$ref,$tail)=split /\t/;
+	$t=<P>;
+	($pchr,$ppos,$Base1,$Base2,$Count1,$Count2)=(split /\t/,$t)[0,1,5,6,7,8];
+	die "[x].\n" if $pos != $ppos;
 	next if $chr ne $opt_c;
 	++$C_PSNP;
 	next unless $DatS{$pos};
+	($Count1,$Count2) = sort {$b <=> $a} ($Count1,$Count2);	# Desc
 	++$C_Pos;
+	if ($Count2 >= $opt_a) {
+		my ($ap,$bp,$cp)=@{$DatS{$pos}};	# $DatS{$Pos}=[$NumType,$NumTypez,15^($NumType | $NumTypez)];
+		my $abp=$ap & $bp;
+		if ($lb{$abp} == 1) {
+			$abp = 15 ^ $abp;
+			my ($a,$b);
+			$a=$ap & $abp;
+			$b=$bp & $abp;
+			if ($a) {$ap=$a;}
+			 elsif ($b) {$bp=$b;}
+			 else {die "[x]Error.";}
+			warn "[2]@ $pos: ${$DatS{$pos}}[0],${$DatS{$pos}}[1],$cp -> $ap,$bp\n" if $opt_v > 1;
+			print G "$pos\t${$DatS{$pos}}[0],${$DatS{$pos}}[1],$cp\t->\t$ap,$bp\n";
+			$DatS{$pos} = [$ap,$bp,$cp];
+		}
+	}
 	$t=0;
 	my @indSNP=split / /,$tail;	# /[ACGTRYMKSWHBVDNX-]/
 #die join "\t",$chr,$pos,$ref,$tail,scalar @indSNP if @indSNP < 135;
@@ -282,7 +344,9 @@ while (<IN>) {
 		}
 	}
 }
+close P;
 close IN;
+close G;
 warn "[!]GenoTyping done as ${C_PSNP}->$C_Pos,$C_iSNP,",$C_iSNP/$C_Pos,"\n";
 
 my $Deleted=0;
@@ -300,29 +364,41 @@ unless ($opt_d) {
 }
 
 my ($PosC,$TypeC,%C_GT)=(0,0);
-open O,'>',$opt_o.".$opt_c.rgt" or die "[x]Error opening $opt_o: $!\n";
+open O,'>',$opt_o.".$opt_c.rgt" or die "[x]Error opening $opt_o.$opt_c.rgt: $!\n";
+open IC,'>',$opt_o.".$opt_c.intercross" or die "[x]Error opening $opt_o.$opt_c.intercross: $!\n";
 my @PosList=sort {$a<=>$b} keys %GT;
 $PosC = scalar @PosList;
 
-my %FormatGT=(1=>0, 2=>1, 3=>0.5, 0=>'NA');	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
+my %FormatGT=(17=>'A', 34=>'B', 35=>'C', 19=>'D' ,3=>'H', 0=>'-');	# 0 for M(1), 1 for Z(2), 0.5 for mixture(3)
 $fileM=`readlink -nf $fileM`;
 $fileZ=`readlink -nf $fileZ`;
 $fileRIL=`readlink -nf $fileRIL`;
-print O "#A=0, $fileM\n#B=1, $fileZ\n#RIL $fileRIL\n",join("\t",@Samples),"\n";
+print O "#A=A, $fileM\n#B=B, $fileZ\n#RIL $fileRIL\n#C for BH, D for AH\n",join("\t",@Samples),"\n";
+print IC "data type f2 intercross\n",scalar @Samples,' ',scalar keys %GT,"\n";
 for my $pos (@PosList) {
 	print O $pos;
+	print IC 'M',$pos;
 	for my $s (@Samples) {
 		if (exists $GT{$pos}{$s}) {
-			$t=$FormatGT{$GT{$pos}{$s}};
-			print O "\t",$t;
-			++$TypeC;
-			++$C_GT{$t};
+			if (exists $FormatGT{$GT{$pos}{$s}}) {
+				$t=$FormatGT{$GT{$pos}{$s}};
+				print O "\t",$t;
+				print IC "\t",$t;
+				++$TypeC;
+				++$C_GT{$t};
+			} else {
+				print O "\t",'-';
+				print IC "\t",'-';
+				++$C_GT{'Un'};
+			}
 		} else {
-			print O "\t",'NA';
-			++$C_GT{'NA'};
+			print O "\t",'-';
+			print IC "\t",'-';
+			++$C_GT{'Err'};
 		}
 	}
 	print O "\n";
+	print IC "\n";
 }
 =pod
 print O 'PosList',"\t",join(',',@PosList),"\n";
@@ -356,3 +432,17 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
 cat ./9311/chrorder |xargs -n1 ./genotyping.pl -bz lpa64cns.lst -m l9311cns.lst -o ./20100916/ril -g ./20100916/ref -c
+
+> binom.test(8,270,0.01)
+
+        Exact binomial test
+
+data:  8 and 270
+number of successes = 8, number of trials = 270, p-value = 0.006323
+alternative hypothesis: true probability of success is not equal to 0.01
+
+binom.test(13,270,0.02)
+number of successes = 13, number of trials = 270, p-value = 0.003461
+
+binom.test(17,270,0.03)
+number of successes = 17, number of trials = 270, p-value = 0.003889
