@@ -12,12 +12,11 @@ use warnings;
 # See also: /nas/RD_09C/resequencing/soft/pipeline/index_pipe/bin/filter_fq_peZ.pl
 
 unless (@ARGV){
-	print "perl $0 <adapter list file> <fq file>\n";
+	print "perl $0 <adapter list file> <fq file> <out.fq.gz> <nfo>\n";
 	exit;
 }
 
-my $adapter = shift;
-my $fq = shift;
+my ($adapter,$fq,$out,$nfo)=@ARGV;
 
 my %adapter;
 open LIST,'<',$adapter || die "$!\n";
@@ -59,15 +58,18 @@ while (my $line1=<FQ>) {
 	if (defined $adapter{$read_name}) {
 		++$filtedreads;
 #		$line1 =~ s/\@\S+\#/\@\_${read_num}_\#/;
-		my $line2_new = substr($line2, 0, $adapter{$read_name});
-		my $line4_new = substr($line4, 0, $adapter{$read_name});
-		my $ii=30-length($line2_new);
-		$outbp += length($line2_new);	# well, every perl variable is a object, thus length takes no much time.
-		if ($adapter{$read_name} < 30) {
-			$line2_new .= 'N' x $ii;
-			$line4_new .= 'B' x $ii;
-		}
-		print "$line1\n$line2_new\n$line3\n$line4_new\n";
+		my $alen=$adapter{$read_name};
+		#my $line2_new = substr($line2, 0, $adapter{$read_name});
+		substr($line2, $alen, $readlen-$alen, 'N' x ($readlen-$alen) );
+		substr($line4, $alen, $readlen-$alen, 'B' x ($readlen-$alen) );
+		$outbp += $alen;
+		#my $ii=30-length($line2_new);
+		#$outbp += length($line2_new);	# well, every perl variable is a object, thus length takes no much time.
+		#if ($adapter{$read_name} < 30) {
+		#	$line2_new .= 'N' x $ii;
+		#	$line4_new .= 'B' x $ii;
+		#}
+		print "$line1\n$line2\n$line3\n$line4\n";
 	} else {
 		++$copyedreads;
 		$outbp += $readlen;
