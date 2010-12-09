@@ -8,14 +8,15 @@ use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
 
-our $opts='i:o:v:r:l:c:bd';
-our($opt_i, $opt_o, $opt_v, $opt_b, $opt_d, $opt_l, $opt_c);
+our $opts='i:o:v:r:l:c:p:bd';
+our($opt_i, $opt_o, $opt_v, $opt_b, $opt_d, $opt_l, $opt_c, $opt_p);
 
 our $help=<<EOH;
 \t-i soaps.lst (2soap/soaps.lst)
 \t-l block file lst (./block.lst)
 \t-c Chromosome NFO file (chr.nfo) in format: /^ChrID\\s+ChrLen\\s?.*\$/
 \t-o Output path (./cfq) for [Sample/F_L_Lib.dat.gz], will mkdir if not exist
+\t-p Parallel id (0)
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -31,11 +32,12 @@ $opt_c='chr.nfo' if ! $opt_c;
 
 no warnings;
 $opt_v=int $opt_v;
+$opt_p=int $opt_p;
 use warnings;
 
 $opt_o=~s#/+$##;
 
-print STDERR "From [$opt_i][$opt_l] to [$opt_o] refer to [$opt_c]\n";
+print STDERR "From [$opt_i],$opt_p [$opt_l] to [$opt_o] refer to [$opt_c]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -181,7 +183,13 @@ sub getSeq($$) {
 }
 
 open LST,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
-while (<LST>) {
+my @LSTdat=<LST>;
+close LST;
+if ($opt_p>0) {
+	--$opt_p;
+	@LSTdat=($LSTdat[$opt_p]);
+}
+for (@LSTdat) {
 	chomp;
 	my ($PESE,$sample,$lib,$FL,$ReadLen,$nfofpath)=split /\t/;
 	readGTtoMEM($sample);
@@ -225,13 +233,13 @@ while (<LST>) {
 		my $GTb=&getGT($chr2,$pos2);
 		my $GTae=&getGT($chr1,$end1);
 		my $GTbe=&getGT($chr2,$end2);
-		print OUT join("\t",$id,$GTa|$GTb|$GTae|$GTbe,"$GTa,$GTae;$GTb,$GTbe","$chr1,$pos1-$end1; $chr2,$pos2-$end2"),"\n";
+		print OUT join("\t",$id,$GTa|$GTb|$GTae|$GTbe,"$GTa,$GTae;$GTb,$GTbe","$chr1,$pos1-$end1; $chr2,$pos2-$end2"),"\n" if $id >=0;
 		$lastID=$id;
 	}
 	close OUT;
 	warn "[!]$opt_o/$sample/${FL}_$lib.dat done.\n",'-' x 75,"\n";
 }
-close LST;
+#close LST;
 
 #END
 my $stop_time = [gettimeofday];
@@ -246,3 +254,10 @@ gzip -dc ./to9311g10a/2soap/BI10-1/ORYqzpRALDIAAPEI-4/100506_I328_FC704U5AAXX_L5
 
 PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
 16   0  681m 605m 1760 S    1  3.8   3:17.54 classifySeqbyBl
+
+#!/bin/sh
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#$ -cwd -r y -l vf=950m
+#$ -o /dev/null -e /dev/null
+#$ -S /bin/bash -t 1-195
+perl ./classifySeqbyBlock.pl -bi ./to9311g10a/2soap/soaps.lst -p $SGE_TASK_ID -o ./ffq2  2> ./log/classifySeqbyBlock.$SGE_TASK_ID.log
