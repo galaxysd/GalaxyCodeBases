@@ -38,18 +38,17 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-my @ChrID;
+system('mkdir','-p',$opt_o);
+my %ChrOutFH;
 open ChrNFO,'<',$opt_c or die "[x]Error opening $opt_c: $!\n";
 while (<ChrNFO>) {
 	next if /^#/;
-	my ($chrid,$len)=split /\t/;
-	push @ChrID,$chrid;
-	system('mkdir','-p',"$opt_o/$chrid");
+	my ($chrid)=split /\t/;
+	open $ChrOutFH{$chrid},'|-',"gzip -9c - >$opt_o/$chrid.ffq.gz" or die "[x]Error opening $opt_o/$chrid.ffq with gzip: $!\n";
 }
 close ChrNFO;
-push @ChrID,'__UnKnown__';
-system('mkdir','-p',"$opt_o/__UnKnown__");
-my (%SampleChrOutFH);
+open $ChrOutFH{'__UnKnown__'},'|-',"gzip -9c - >$opt_o/__UnKnown__.ffq.gz" or die "[x]Error opening $opt_o/__UnKnown__.ffq with gzip: $!\n";
+
 open LST,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
 while (<LST>) {
 	chomp;
@@ -60,13 +59,6 @@ while (<LST>) {
 		@Files=("$nfofpath.soap","$nfofpath.single");
 	} else {
 		@Files=("$nfofpath.soap");
-	}
-	#push @{$SampleAFileName{$sample}},@Files;
-	#push @{$SampleAFileNFO{$sample}},@NFOs;
-	unless (exists $SampleChrOutFH{$sample}) {
-		for my $chrid (@ChrID) {
-			open $SampleChrOutFH{$sample}{$chrid},'>',"$opt_o/$chrid/$sample.ffq" or die "[x]Error opening $opt_o/$chrid/$sample.ffq: $!\n";
-		}
 	}
 	unless (-s "$nfofpath.unmap") {
 		open FQ,'-|',"gzip -dc $nfofpath.unmap.gz" or warn "[x]Error opening $PESE [$nfofpath.unmap.gz] with gzip: $!\n" and next;
@@ -79,7 +71,7 @@ while (<LST>) {
 		chomp($seq=<FQ>);
 		<FQ>;
 		chomp($Qstr=<FQ>);
-		print ${$SampleChrOutFH{$sample}{'__UnKnown__'}} join("\t",$FL,$name,'.','0','0',$seq,$Qstr,$sample,$lib),"\n";
+		print ${$ChrOutFH{'__UnKnown__'}} join("\t",$FL,$name,'.','0','0',$seq,$Qstr,$sample,$lib),"\n";
 	}
 	close FQ;
 	for my $file (@Files) {
@@ -93,23 +85,19 @@ while (<LST>) {
 		while (<SP>) {
 			my ($soapid,$seq,$Qstr,$hit,$strand,$chr,$pos) = (split(/\t/))[0,1,2,3,6,7,8];
 			next unless defined $pos;
+			$chr='__UnKnown__' unless exists $ChrOutFH{$chr};
 			if ($hit == 1) {
-				print ${$SampleChrOutFH{$sample}{$chr}} join("\t",$FL,$soapid,$chr,$pos,$hit,$seq,$Qstr,$sample,$lib),"\n";
+				print ${$ChrOutFH{$chr}} join("\t",$FL,$soapid,$chr,$pos,$hit,$seq,$Qstr,$sample,$lib),"\n";
 			} else {
-				print ${$SampleChrOutFH{$sample}{'__UnKnown__'}} join("\t",$FL,$soapid,$chr,$pos,$hit,$seq,$Qstr,$sample,$lib),"\n";
+				print ${$ChrOutFH{'__UnKnown__'}} join("\t",$FL,$soapid,$chr,$pos,$hit,$seq,$Qstr,$sample,$lib),"\n";
 			}
 		}
 		warn ", done.\n";
 	}
 }
 close LST;
-for my $sample (keys %SampleChrOutFH) {
-	for my $chr (keys %{$SampleChrOutFH{$sample}}) {
-		close $SampleChrOutFH{$sample}{$chr};
-	}
-}
 
-
+close $ChrOutFH{$_} for keys %ChrOutFH;
 
 #END
 my $stop_time = [gettimeofday];

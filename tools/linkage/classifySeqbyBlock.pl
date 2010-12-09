@@ -194,6 +194,15 @@ while (<LST>) {
 		@Files=("$nfofpath.soap");
 		next;
 	}
+	my $shfile="$nfofpath.archive";
+	if (-s $shfile) {
+		open SH,'<',$shfile or die "[x]Error opening $shfile: $!\n";
+	} elsif (-s "$shfile.0") {
+		open SH,'<',"$shfile.0" or die "[x]Error opening $shfile.0: $!\n";
+	} else {
+		warn "[!]$shfile not found, skipped [$PESE,$sample,$lib,$FL].\n";
+		next;
+	}
 	open SH,'<',"$nfofpath.archive" or die "[x]Error opening $nfofpath.archive: $!\n";
 	my %FQ;
 	while (<SH>) {
