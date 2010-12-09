@@ -211,7 +211,6 @@ for (@LSTdat) {
 		warn "[!]$shfile not found, skipped [$PESE,$sample,$lib,$FL].\n";
 		next;
 	}
-	open SH,'<',"$nfofpath.archive" or die "[x]Error opening $nfofpath.archive: $!\n";
 	my %FQ;
 	while (<SH>) {
 		next unless / -[ab] /;
