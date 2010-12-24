@@ -19,7 +19,7 @@ $_=<M>;
 my $ChrID=(split /\t/)[0];
 seek M,$t,0;
 
-my ($ChrLen,$ChrMem)=(0);
+my ($ChrLen,$ChrMem,$SNPMem)=(0);
 open ChrNFO,'<',$chrnfo or die "[x]Error opening $chrnfo: $!\n";
 while (<ChrNFO>) {
 	#next if /^#/;
@@ -30,6 +30,7 @@ while (<ChrNFO>) {
 close ChrNFO;
 die "[x]Cannot find correct ChrLen for [$ChrID] !\n" if $ChrLen<1;
 $ChrMem=initchr($ChrLen);
+$SNPMem=initchr($ChrLen);	# OK, leave the 8th bit and alloc a new byte !
 
 my ($seq,@seq);
 open F,'<',$fabychr_path."/$ChrID.fa" or die $!;
@@ -82,11 +83,12 @@ for my $k (keys %bIUB) {
 
 for my $pos (1..$ChrLen) {
 	my $v=0;
-	if (exists $bIUB{$seq[$pos-1]}) {
-		$v=$bIUB{$seq[$pos-1]};
+	my $base=shift @seq;	# to save running memory as $seq[$pos-1]
+	if (exists $bIUB{$base}) {
+		$v=$bIUB{$base};
 #warn $seq[$pos-1]," $v\t$pos\n";
 	} else {
-		warn "[!]$pos -> ",$seq[$pos-1];
+		warn "[!]$pos -> ",$base;
 	}
 	setbase($ChrMem,$pos,$v) if $v;
 }
@@ -98,10 +100,11 @@ while (<PSNP>) {
 	my ($chr,$pos,$ref,$ga,undef,undef,$gb)=split /\s+/;
 	my @bases=split //,$ga.$gb;
 	my $v;
-	$v |= $ubIUB{$_} for @bases;
-print STDERR "$ref [$ga.$gb] $v\t";
-	$v = orbase($ChrMem,$pos,$v) if $v && ($v != 240);
-warn "$v\n";
+	$v |= $bIUB{$_} for @bases;
+#print STDERR "$ref [$ga.$gb] $v\t";
+	#$v = orbase($ChrMem,$pos,$v) if $v && ($v != 240);
+#warn "$v\n";
+	setbase($SNPMem,$pos,$v) if $v && ($v != 15);
 }
 close PSNP;
 
@@ -114,11 +117,16 @@ while (<M>) {
 	my $marker_seq=substr($seq,$left-1,$marker_len).'N'.substr($seq,$pos,$marker_len);
 	print O ">${ChrID}_${pos}m\n$marker_seq\n";
 =cut
-	my $v=getbase($ChrMem,$pos);
-my $base=$v & 15;
-	my $snp=($v & 240) >> 4;	# $v >> 4 is wrong !
-warn "[$v] -> [$snp][$base]\t$pos\n";
-	setbase($ChrMem,$pos,240+$snp) if $snp;
+#	my $v=getbase($ChrMem,$pos);
+#my $base=$v & 15;
+#	my $snp=($v & 240) >> 4;	# $v >> 4 is wrong !
+my $base=getbase($ChrMem,$pos);
+	my $snp=getbase($SNPMem,$pos);
+#warn "[$snp][$base]\t$pos\n";
+	if ($snp) {
+		setbase($ChrMem,$pos,$snp);
+		setbase($SNPMem,$pos,15);
+	}
 	push @poses,$pos;
 }
 close M;
@@ -126,16 +134,16 @@ for my $pos (@poses) {
 	my ($left,$right)=($pos-$marker_len,$pos+$marker_len);
 	my $marker_seq;
 	for my $ipos ($left..$right) {
-		my $v=getbase($ChrMem,$ipos);
-		my $base=$v & 15;
-		my $snp=$v & 240;
+		#my $v=getbase($ChrMem,$ipos);
+		my $base=getbase($ChrMem,$ipos);
+		my $snp=getbase($SNPMem,$ipos);
 		$base=$rbIUB{$base};
-		if ($snp==240) {	#  or $ipos == $pos
+		if ($snp==15) {	#  or $ipos == $pos
 			$base = lc $base;
 		}
 		$marker_seq .= $base;	#."($snp)";
 	}
-	print O ">${ChrID}_${pos}m\n$marker_seq\n";
+	print O ">${ChrID}_${pos}m${marker_len}\n$marker_seq\n";
 }
 close O;
 
