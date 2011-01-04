@@ -8,10 +8,17 @@ unless (@ARGV > 0) {
 }
 
 # choose Kosambi, which is slower than Haldane, for density markers
+my $Error=0;
 sub corRIL($) {
 	my ($bigRth)=@_;
 	my $smallr;
 	$smallr=0.5*$bigRth/(1-$bigRth);
+	if ($smallr >= 0.5) {
+		$Error=1;
+		return $smallr;
+	} else {
+		$Error=0;
+	}
 	# applies the distance function
 	my $RILdist = 25 * log((1 + 2 * $smallr) / (1 - 2 * $smallr));
 	return $RILdist;
@@ -48,6 +55,7 @@ for my $i (1..$#Pos) {
 	$cross = &corRIL($cross0);
 	$LastcM += $cross;
 	$ratio=$cross? int(0.5+100*($Pos[$i]-$Pos[$i-1])/(1000*$cross)) : 'NA';
+	$ratio='Error' if $Error == 1;
 	print O "$chr\t$Pos[$i]\t",int(0.5+100*$LastcM)/100,"\t",int(0.5+100*$cross)/100,"\t"
 		,$ratio,"\t",100*$cross0,"\n";	#,join(' ',@{$Dat{$Pos[$i]}}),"\n";
 }

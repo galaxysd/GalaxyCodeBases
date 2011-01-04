@@ -13,7 +13,6 @@ our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_l, $opt_o, $opt_v, $opt_b, $opt
 
 our $help=<<EOH;
 \t-i Blast filted file
-\t-c Chromosome NFO file (chr.nfo) in format: /^ChrID\\s+ChrLen\\s?.*\$/
 \t-l linkage map list (./linkagemap.lst)
 \t-n N zone file (Pa64.Nzone)
 \t-o Output file
@@ -25,11 +24,11 @@ EOH
 ShowHelp();
 
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
-$opt_c='chr.nfo' if ! $opt_c;
 $opt_l='./linkagemap.lst' if ! $opt_l;
 $opt_n='Pa64.Nzone' if ! $opt_n;
+$opt_v=0 if ! $opt_v;
 
-print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_n][$opt_l][$opt_c]\n";
+print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_n][$opt_l]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -57,6 +56,10 @@ sub getRel($$$$$) {
 	my ($Qid,$Qs,$Qe,$Ss,$Se,$BTOP)=@_;
 	my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
 	my $cM=$LinkageMap{$mChr}{$mPos};
+	unless (defined $cM) {
+		warn "[!]Cannot find Marker @ $mChr,$mPos !\n";
+		$cM=0;
+	}
 	my $LeftBPalongQ=$mSiderLen-$Qs+1;
 	my $WalkingOn=$LeftBPalongQ;
 	my @btop0=split /(\D+)/,$BTOP;
@@ -106,7 +109,7 @@ sub getRel($$$$$) {
 		$strand=-1;
 	}
 	my $Spos=$Ss + $strand*$LeftBPalongS;
-	warn "$mChr,$Spos,$cM\n";
+	warn "$mChr,$Spos,$cM\n" if $opt_v;
 	return [$mChr,$Spos,$cM];
 }
 sub splitMarkerid($) {
@@ -115,10 +118,10 @@ sub splitMarkerid($) {
 	return [$mChr,$mPos,$mSiderLen];
 }
 sub pushScaf($) {
-	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@{$_[0]};
+	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@{$_[0]};
 	my ($sPosRel,$scM,$sWeight,$Count)=(0,0,0,0);
 	my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
-	my $weight=-log($E)/$Hit;
+	my $weight=-log($E)*$ContinueSNP;
 	my %Dat;
 	if (exists $Scaffords{$Sid}) {
 		%Dat=%{$Scaffords{$Sid}};
@@ -145,11 +148,14 @@ while (<IN>) {
 #Chr01_457584m45 Scaffold011460  95.45   88      87      4       0       1       88      1020    933     1e-34    147    16CA2WA25MA6WA35        1
 	chomp;
 	my @Dat=split /\t/;
-	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@Dat;
+	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@Dat;
 	next if $Sid =~ /^chr/i;	# Just skip ...
 	&pushScaf(\@Dat);
 }
-ddx \%Scaffords;
+close IN;
+ddx \%Scaffords if $opt_v>1;
+open O,'>',$opt_o or die "Error: $!\n";
+print O "ScaffordID\tScaffordAnchorOffect\tChrAnchored\tcM\tWeight,Count\n";
 for my $ScaffID (keys %Scaffords) {
 	my @dat=();	# [key,value(weight)]
 	for (keys %{$Scaffords{$ScaffID}}) {
@@ -157,10 +163,15 @@ for my $ScaffID (keys %Scaffords) {
 	}
 	@dat = sort {$b->[1] <=> $a->[1]} @dat;
 	my ($sPosRel,$scM,$sWeight,$Count)=@{$Scaffords{$ScaffID}{$dat[0][0]}};
-	$sPosRel=$sPosRel/$sWeight;
-	$scM=$scM/$sWeight;
+	$sPosRel=int(0.5+10*$sPosRel/$sWeight)/10;
+	$scM=int(0.5+1000*$scM/$sWeight)/1000;
 	$Count=-$Count;	# just flag
 	$Scaffords{$ScaffID}=[$dat[0][0],$sPosRel,$scM,$sWeight,$Count];
+	print O join("\t",$ScaffID,$sPosRel,$dat[0][0],$scM,"$sWeight,$Count"),"\n";
 }
-ddx \%Scaffords;
+close O;
+ddx \%Scaffords if $opt_v>1;
 
+__END__
+grep -h caff ./out/f3545Chr*.pa64 > f3545ChrScaff.pa64
+./relocate.pl -bi f3545ChrScaff.pa64 -o f3545ChrScaff.pos
