@@ -56,3 +56,5 @@ close O;
 close I;
 __END__
 cat chrorder | while read a; do ./clinkage.pl $a.ccq cm$a.ccq;done &
+
+cat chrorder | while read a; do ./linkage/clinkage.pl dat20101214/$a.marker dat20101214/$a.cm;done &
