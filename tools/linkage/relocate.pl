@@ -105,8 +105,10 @@ sub getRel($$$$$) {
 	my $strand;
 	if ($Ss < $Se) {
 		$strand=1;
+		$mChr .= "\t+";
 	} else {
 		$strand=-1;
+		$mChr .= "\t-";
 	}
 	my $Spos=$Ss + $strand*$LeftBPalongS;
 	warn "$mChr,$Spos,$cM\n" if $opt_v;
@@ -121,6 +123,11 @@ sub pushScaf($) {
 	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@{$_[0]};
 	my ($sPosRel,$scM,$sWeight,$Count)=(0,0,0,0);
 	my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
+	if ($Ss < $Se) {
+		$mChr .= "\t+";
+	} else {
+		$mChr .= "\t-";
+	}
 	my $weight=-log($E)*$ContinueSNP;
 	my %Dat;
 	if (exists $Scaffords{$Sid}) {
@@ -155,7 +162,7 @@ while (<IN>) {
 close IN;
 ddx \%Scaffords if $opt_v>1;
 open O,'>',$opt_o or die "Error: $!\n";
-print O "ScaffordID\tScaffordAnchorOffect\tChrAnchored\tcM\tWeight,Count\n";
+print O "ScaffordID\tScaffordAnchorOffect\tChrAnchored\tStrand\tcM\tWeight,Count\n";
 for my $ScaffID (keys %Scaffords) {
 	my @dat=();	# [key,value(weight)]
 	for (keys %{$Scaffords{$ScaffID}}) {
