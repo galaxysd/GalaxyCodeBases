@@ -4,6 +4,7 @@ use warnings;
 use lib '/nas/RD_09C/resequencing/soft/lib';
 use Galaxy::ShowHelp;
 use Time::HiRes qw ( gettimeofday tv_interval );
+use Data::Dump qw(ddx);
 
 $main::VERSION=0.0.1;
 
@@ -58,9 +59,23 @@ sub getRel($$$$$) {
 	my $cM=$LinkageMap{$mChr}{$mPos};
 	my $LeftBPalongQ=$mSiderLen-$Qs+1;
 	my $WalkingOn=$LeftBPalongQ;
-	my @btop=split /(\D+)/,$BTOP;
-# $ perl -le '$a="45YT9-Ac-c-c-11TC4";@b=split /(\D+)/,$a;print "[",join("|",@b),"]"'
-# [45|YT|9|-Ac-c-c-|11|TC|4]
+	my @btop0=split /(\D+)/,$BTOP;
+	# $ perl -le '$a="45YT9-Ac-c-c-11TC4";@b=split /(\D+)/,$a;print "[",join("|",@b),"]"'
+	# [45|YT|9|-Ac-c-c-|11|TC|4]
+	my @btop=();
+	for (@btop0) {
+		if (/\d+/) {
+			push @btop,$_;
+		} else {
+			my @bin=split /([\w-]{2})/;
+			# $ perl -le '$a="-Ac-c-c-";@b=split /([\w-]{2})/,$a,0;print "[",join("|",@b),"]"'
+			# [|-A||c-||c-||c-]
+			for (@bin) {
+				next unless $_;
+				push @btop,$_;
+			}
+		}
+	}
 	my $LeftBPalongS=0;
 	for (@btop) {
 		if ($WalkingOn <= 0) {
@@ -72,19 +87,13 @@ sub getRel($$$$$) {
 			$LeftBPalongS += $_;
 			$WalkingOn -= $_;
 		} else {
-			my @bin=split /([\w-]{2})/;
-# $ perl -le '$a="-Ac-c-c-";@b=split /([\w-]{2})/,$a,0;print "[",join("|",@b),"]"'
-# [|-A||c-||c-||c-]
-			for (@bin) {
-				next unless $_;
-				my @op=split //;
-				if (/-/) {
-					--$WalkingOn if $op[1] eq '-' and $op[0] ne '-';
-					++$LeftBPalongS if $op[0] eq '-' and $op[1] ne '-';
-				} else {
-					--$WalkingOn;
-					++$LeftBPalongS;
-				}
+			my @op=split //;
+			if (/-/) {
+				--$WalkingOn if $op[1] eq '-' and $op[0] ne '-';
+				++$LeftBPalongS if $op[0] eq '-' and $op[1] ne '-';
+			} else {
+				--$WalkingOn;
+				++$LeftBPalongS;
 			}
 		}
 		print STDERR "-$WalkingOn $LeftBPalongS\n" if $opt_v>1;
@@ -107,23 +116,24 @@ sub splitMarkerid($) {
 }
 sub pushScaf($) {
 	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@{$_[0]};
-	my ($sPosRel,$scM,$sWeight)=(0,0,0);
+	my ($sPosRel,$scM,$sWeight,$Count)=(0,0,0,0);
 	my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
 	my $weight=-log($E)/$Hit;
 	my %Dat;
 	if (exists $Scaffords{$Sid}) {
 		%Dat=%{$Scaffords{$Sid}};
 		if (exists $Scaffords{$Sid}{$mChr}) {
-			($sPosRel,$scM,$sWeight)=@{$Dat{$mChr}};
+			($sPosRel,$scM,$sWeight,$Count)=@{$Dat{$mChr}};
 		}
 	} else {
-		%Dat=($mChr=>[$sPosRel,$scM,$sWeight]);
+		%Dat=($mChr=>[$sPosRel,$scM,$sWeight,$Count]);
 	}
 	my ($chr,$pos,$cM)=@{&getRel($Qid,$Qs,$Qe,$Ss,$Se,$BTOP)};
 	$sPosRel += $pos*$weight;
 	$scM += $cM*$weight;
 	$sWeight += $weight;
-	$Dat{$mChr}=[$sPosRel,$scM,$sWeight];
+	++$Count;
+	$Dat{$mChr}=[$sPosRel,$scM,$sWeight,$Count];
 	$Scaffords{$Sid}=\%Dat;
 }
 
@@ -139,5 +149,18 @@ while (<IN>) {
 	next if $Sid =~ /^chr/i;	# Just skip ...
 	&pushScaf(\@Dat);
 }
-
+ddx \%Scaffords;
+for my $ScaffID (keys %Scaffords) {
+	my @dat=();	# [key,value(weight)]
+	for (keys %{$Scaffords{$ScaffID}}) {
+		push @dat,[$_,${$Scaffords{$ScaffID}{$_}}[2]];
+	}
+	@dat = sort {$b->[1] <=> $a->[1]} @dat;
+	my ($sPosRel,$scM,$sWeight,$Count)=@{$Scaffords{$ScaffID}{$dat[0][0]}};
+	$sPosRel=$sPosRel/$sWeight;
+	$scM=$scM/$sWeight;
+	$Count=-$Count;	# just flag
+	$Scaffords{$ScaffID}=[$dat[0][0],$sPosRel,$scM,$sWeight,$Count];
+}
+ddx \%Scaffords;
 
