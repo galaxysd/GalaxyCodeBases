@@ -49,6 +49,7 @@ while (<L>) {
 		my ($Chr,$Pos,$cM)=split /\t/;
 		die "[x][$ChrID] not match [$File] !\n" if $Chr ne $ChrID;
 		$LinkageMap{$Chr}{$Pos}=$cM;
+		#$Marker{$Chr}{$cM}={$Pos};
 	}
 }
 close L;
@@ -287,3 +288,4 @@ for my $Sid (sort keys %cMcluster) {
 }
 close O;
 __END__
+./mrelocate.pl -o markerpospa64.dat.0
