@@ -12,7 +12,7 @@ our $opts='i:o:n:g:v:r:c:l:h:bqd';
 our($opt_i, $opt_n, $opt_g, $opt_r, $opt_c, $opt_l, $opt_o, $opt_v, $opt_b, $opt_q, $opt_d, $opt_h);
 
 our $help=<<EOH;
-\t-i Blast filted file
+\t-i Blast filted list (./markerblastf.lst)
 \t-l linkage map list (./linkagemap.lst)
 \t-n N zone file (Pa64.Nzone)
 \t-o Output file
@@ -24,7 +24,7 @@ EOH
 ShowHelp();
 
 die "[x]-i $opt_i not exists !\n" unless -f $opt_i;
-$opt_l='./linkagemap.lst' if ! $opt_l;
+$opt_i='./markerblastf.lst' if ! $opt_i;
 $opt_n='Pa64.Nzone' if ! $opt_n;
 $opt_v=0 if ! $opt_v;
 
@@ -147,19 +147,24 @@ sub pushScaf($) {
 	$Scaffords{$Sid}=\%Dat;
 }
 
-open IN,'<',$opt_i or die "Error: $!\n";
-while (<IN>) {
-	next if /^#/;
-# Fields: query id, subject id, % identity, alignment length, identical, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, BTOP
-#-outfmt '6 qseqid sseqid pident length nident mismatch gapopen qstart qend sstart send evalue bitscore btop'
-#Chr01_457584m45 Scaffold011460  95.45   88      87      4       0       1       88      1020    933     1e-34    147    16CA2WA25MA6WA35        1
+open L,'<',$opt_i or die "Error: $!\n";
+while (<L>) {
 	chomp;
-	my @Dat=split /\t/;
-	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@Dat;
-	next if $Sid =~ /^chr/i;	# Just skip ...
-	&pushScaf(\@Dat);
+	my ($ChrID,$File)=split /\t/;
+	open IN,'<',$File or die "Error: $!\n";
+	while (<IN>) {
+		next if /^#/;
+	# Fields: query id, subject id, % identity, alignment length, identical, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score, BTOP
+	#-outfmt '6 qseqid sseqid pident length nident mismatch gapopen qstart qend sstart send evalue bitscore btop'
+	#Chr01_457584m45 Scaffold011460  95.45   88      87      4       0       1       88      1020    933     1e-34    147    16CA2WA25MA6WA35        1
+		chomp;
+		my @Dat=split /\t/;
+		my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@Dat;
+		next if $Sid =~ /^chr/i;	# Just skip ...
+		&pushScaf(\@Dat);
+	}
+	close IN;
 }
-close IN;
 ddx \%Scaffords if $opt_v>1;
 open O,'>',$opt_o or die "Error: $!\n";
 print O "ScaffordID\tScaffordAnchorOffect\tChrAnchored\tStrand\tcM\tWeight,Count\n";
