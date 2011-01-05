@@ -140,8 +140,7 @@ while (<L>) {
 			my $weight=-log($E)/$Hit;	# in case order problem, we will have to choose by weight
 			my ($chr,$pos,$cM,$strand)=@{&getRel($Qid,$Qs,$Qe,$Ss,$Se,$BTOP)};
 			#push @{$cMcluster{$Sid}{$cM}},[$pos,$strand,$weight];
-			$cMcluster{$Sid}{$cM}=[$pos,$strand,$weight];
-			push @{$cMcluster{$Sid}{$cM}},$Qid if $opt_v;
+			$cMcluster{$Sid}{$cM}=[$pos,$strand,$weight,$Qid];
 			#warn "$Qid\t$Sid\t$pos,$strand,$weight\n" if scalar @{$cMcluster{$Sid}{$cM}} > 1;
 		}
 	}
@@ -169,7 +168,7 @@ for my $Sid (sort keys %cMcluster) {
 }
 =cut
 #__END__
-#ddx \%cMcluster;
+ddx \%cMcluster if $opt_v>2;
 for my $Sid (sort keys %cMcluster) {
 	my @cMs;
 	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
@@ -273,18 +272,18 @@ for my $Sid (sort keys %cMcluster) {
 			}
 			++$i;
 		}
-	}
+	}	# Still buggy when more than 1 point out of order ...
 	print STDERR "\n\n" if $opt_v;
 }
-#ddx \%cMcluster;
+ddx \%cMcluster if $opt_v>2;
 
-
-
-
-
-
-
-
-
-
+open O,'>',$opt_o or die "Error: $!\n";
+print O "Marker\tChr\tcM\tPos\tStrand\tWeight\n";
+for my $Sid (sort keys %cMcluster) {
+	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
+		my ($pos,$strand,$weight,$Qid)=@{$cMcluster{$Sid}{$cM}};
+		print O join("\t",$Qid,$Sid,$cM,$pos,$strand,$weight),"\n";	# $pos,$strand,$weight
+	}
+}
+close O;
 __END__
