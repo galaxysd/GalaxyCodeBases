@@ -140,35 +140,131 @@ while (<L>) {
 			my $weight=-log($E)/$Hit;	# in case order problem, we will have to choose by weight
 			my ($chr,$pos,$cM,$strand)=@{&getRel($Qid,$Qs,$Qe,$Ss,$Se,$BTOP)};
 			#push @{$cMcluster{$Sid}{$cM}},[$pos,$strand,$weight];
-			$cMcluster{$Sid}{$cM}=[$pos,$strand,$weight,$Qid];
+			$cMcluster{$Sid}{$cM}=[$pos,$strand,$weight];
+			push @{$cMcluster{$Sid}{$cM}},$Qid if $opt_v;
 			#warn "$Qid\t$Sid\t$pos,$strand,$weight\n" if scalar @{$cMcluster{$Sid}{$cM}} > 1;
 		}
 	}
 }
 close L;
-ddx \%cMcluster;
-ddx \%LinkageMap;
+#ddx \%LinkageMap;
 =pod
 for my $Sid (sort keys %cMcluster) {
-	my $reg = Statistics::Regression->new( "cM", [ "const", "BP" ] );
+	my $reg = Statistics::Regression->new( "BP", [ "const", "cM" ] );
 	for my $cM (keys %{$cMcluster{$Sid}}) {
-		for (@{$cMcluster{$Sid}{$cM}}) {
-			my ($pos,$strand,$weight)=@$_;
-			$weight /= 100 if $strand == -1;	# Well, ...
-			$reg->include( $cM, [ 1.0, $pos ], $weight );
-		}
+		#for (@{$cMcluster{$Sid}{$cM}}) {
+			my ($pos,$strand,$weight)=@{$cMcluster{$Sid}{$cM}};
+			$weight /= 30 if $strand == -1;	# Well, ...
+			$reg->include( $pos, [ 1.0, $cM ], $weight );
+		#}
 	}
 	my ($b,$k) = $reg->theta;
 	warn "$Sid,$k,$b\n";
 	$reg->print();
-}
-=cut
-for my $Sid (sort keys %cMcluster) {
-	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
+	for my $cM (keys %{$cMcluster{$Sid}}) {
+		my ($pos,$strand,$weight,@t)=@{$cMcluster{$Sid}{$cM}};
+		my $nPos=int(0.5+10*($k*$cM+$b))/10;
+		$cMcluster{$Sid}{$cM}=[$cM,$pos,$strand,$weight,@t,$nPos];
 	}
 }
-
-
+=cut
+#__END__
+#ddx \%cMcluster;
+for my $Sid (sort keys %cMcluster) {
+	my @cMs;
+	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
+		push @cMs,[$cM,@{$cMcluster{$Sid}{$cM}}];
+	}
+	my $i=1;
+	my $lastpos=$cMs[0][1];
+	while ($i<=$#cMs) {
+		print STDERR "$i " if $opt_v;
+		my ($cM,$pos,$strand,$weight)=@{$cMs[$i]};
+		if ($pos >= $lastpos) {
+			$lastpos=$pos;
+			++$i;
+		} else {
+			my ($min,$max)=($i-5,$i+4);	# 10 is a big local range, toka.
+			$min=0 if $min<0;
+			my $reg = Statistics::Regression->new( "BP", [ "const", "cM" ] );
+			my ($N,$sX,$sXX,%t)=(0);
+			for my $j ($min..$max) {
+				my ($cM,$pos,$strand,$weight)=@{$cMs[$j]};
+				next unless $cM;
+				#$weight /= 100 if $strand == -1;	# Well, ...
+				next if $strand == -1;	# Well, again, ...
+				$weight /= 5 if $j == $i or $j == $i-1;
+				$reg->include( $pos, [ 1.0, $cM ], $weight );
+				++$N;
+			}
+			if ($N<4) {
+				++$i;
+				next;
+			}
+			my ($B,$k) = $reg->theta;
+			for my $j ($min..$max) {
+				my ($cM,$pos,$strand,$weight)=@{$cMs[$j]};
+				next unless $cM;
+				my $nPos=$k*$cM+$B;
+				my $diff = $nPos- $pos;
+				$sX += $diff;
+				$sXX += $diff*$diff;
+				$nPos=int(0.5+10*$nPos)/10;
+				$t{$j}=[$cM,$pos,$strand,$weight,$nPos,$diff];
+			}
+			my $Avg=$sX/$N;
+			# http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+			#my $Std=sqrt($sXX/$N-$Avg*$Avg);
+			my $Std=sqrt(($sXX-$Avg*$sX)/($N-1));
+			my $N_rm=0;
+			for (my $j=$max;$j>=$min;$j--) {	# from high to low, so that we can splice it.
+				next unless $j == $i or $j == $i-1;
+				my ($cM,$pos,$strand,$weight,$nPos,$diff)=@{$t{$j}};
+				my $limit=2.9;
+				$limit=1 if $strand == -1;
+				if (abs($diff) > $limit*$Std) {
+					splice @cMs,$j,1;
+					--$i;
+					$lastpos=0;
+					delete $cMcluster{$Sid}{$cM};
+					print STDERR ">$i\n" if $opt_v;
+					++$N_rm;
+				}
+			}
+			if ($N_rm < 1) {
+				my @keys=sort { $t{$b}[5] <=> $t{$a}[5] } keys %t;
+				my $key;
+				my $flag=1;
+				while ($flag==1) {
+					$key=-1;
+					for my $t (@keys) {
+						if ($t <= $i) {
+							$key=$t;
+							last;
+						}
+					}
+					last if $key == -1;
+					my ($cM,$pos,$strand,$weight,$nPos,$diff)=@{$t{$key}};
+					splice @cMs,$key,1;
+					delete $cMcluster{$Sid}{$cM};
+					--$i;
+					my $lastpos=$t{$i}->[1];
+					print STDERR "<$i\n" if $opt_v;
+					$flag=0;
+					for (my $j=$i-1;$j>=$min;$j--) {
+						my ($cM,$pos,$strand,$weight,$nPos,$diff)=@{$t{$j}};
+						if ($pos <= $lastpos) {
+							$lastpos=$pos;
+						} else {$flag=1;}
+					}
+				}
+				++$i;
+			}
+		}
+=cut
+	}
+}
+#ddx \%cMcluster;
 
 
 
