@@ -279,7 +279,7 @@ for my $Sid (sort keys %cMcluster) {
 ddx \%cMcluster if $opt_v>2;
 
 open O,'>',$opt_o or die "Error: $!\n";
-print O "Marker\tChr\tcM\tPos\tStrand\tWeight\n";
+print O "#Marker\tChr\tcM\tPos\tStrand\tWeight\n";
 for my $Sid (sort keys %cMcluster) {
 	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
 		my ($pos,$strand,$weight,$Qid)=@{$cMcluster{$Sid}{$cM}};
