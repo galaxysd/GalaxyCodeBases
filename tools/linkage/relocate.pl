@@ -120,7 +120,7 @@ sub splitMarkerid($) {
 	return [$mChr,$mPos,$mSiderLen];
 }
 sub pushScaf($) {
-	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@{$_[0]};
+	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@{$_[0]};
 	my ($sPosRel,$scM,$sWeight,$Count)=(0,0,0,0);
 	my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
 	if ($Ss < $Se) {
@@ -128,7 +128,7 @@ sub pushScaf($) {
 	} else {
 		$mChr .= "\t-";
 	}
-	my $weight=-log($E)*$ContinueSNP;
+	my $weight=-log($E)/$Hit;
 	my %Dat;
 	if (exists $Scaffords{$Sid}) {
 		%Dat=%{$Scaffords{$Sid}};
@@ -155,7 +155,7 @@ while (<IN>) {
 #Chr01_457584m45 Scaffold011460  95.45   88      87      4       0       1       88      1020    933     1e-34    147    16CA2WA25MA6WA35        1
 	chomp;
 	my @Dat=split /\t/;
-	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@Dat;
+	my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@Dat;
 	next if $Sid =~ /^chr/i;	# Just skip ...
 	&pushScaf(\@Dat);
 }

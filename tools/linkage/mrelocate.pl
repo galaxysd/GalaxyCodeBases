@@ -129,24 +129,26 @@ while (<L>) {
 	while (<LM>) {
 		chomp;
 		my @Dat=split /\t/;
-		my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$ContinueSNP)=@Dat;
-		next if $Sid !~ /^chr/i;;
+		my ($Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP,$Hit)=@Dat;
+		next if $Sid !~ /^chr/i;
 		my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
-		next if $mChr ne $Sid;	# Well, since we caltuate cM in such a way ...
+		next if $mChr ne $Sid;	# Well, since we caltuate cM in such a way ... So, no duplication on same cM
 		next unless exists $LinkageMap{$mChr}{$mPos};
 		my $cM=$LinkageMap{$mChr}{$mPos};
 		if ($lastcM != $cM) {
 			$lastcM=$cM;
-			my $weight=-log($E)*$ContinueSNP;	# in case order problem, we have to choose
+			my $weight=-log($E)/$Hit;	# in case order problem, we will have to choose by weight
 			my ($chr,$pos,$cM,$strand)=@{&getRel($Qid,$Qs,$Qe,$Ss,$Se,$BTOP)};
-			push @{$cMcluster{$Sid}{$cM}},[$pos,$strand,$weight];
-			warn "$Qid\t$Sid\t$pos,$strand,$weight\n" if scalar @{$cMcluster{$Sid}{$cM}} > 1;
+			#push @{$cMcluster{$Sid}{$cM}},[$pos,$strand,$weight];
+			$cMcluster{$Sid}{$cM}=[$pos,$strand,$weight,$Qid];
+			#warn "$Qid\t$Sid\t$pos,$strand,$weight\n" if scalar @{$cMcluster{$Sid}{$cM}} > 1;
 		}
 	}
 }
 close L;
 ddx \%cMcluster;
-
+ddx \%LinkageMap;
+=pod
 for my $Sid (sort keys %cMcluster) {
 	my $reg = Statistics::Regression->new( "cM", [ "const", "BP" ] );
 	for my $cM (keys %{$cMcluster{$Sid}}) {
@@ -160,8 +162,11 @@ for my $Sid (sort keys %cMcluster) {
 	warn "$Sid,$k,$b\n";
 	$reg->print();
 }
-
-
+=cut
+for my $Sid (sort keys %cMcluster) {
+	for my $cM (sort {$a<=>$b} keys %{$cMcluster{$Sid}}) {
+	}
+}
 
 
 
