@@ -6,6 +6,10 @@ unless (@ARGV > 0) {
     print "perl $0 <max trim> <outfile> <infiles>\n";
     exit 0;
 }
+# infiles should be of :
+# -evalue 3e-11 -best_hit_overhang 0.25 -best_hit_score_edge 0.05 -outfmt '6 qseqid sseqid pident length nident mismatch gapopen qstart qend sstart send evalue bitscore btop'
+# since each marker can only in one blast result file, we can split by chr.
+# For PA64 g=347534994(non-N), 0.01*1/g=2.877e-11. Alpha=0.96 %
 
 my $maxTrim=shift;
 my $out_file = shift;
@@ -29,9 +33,9 @@ sub pasteSinf() {
 		}
 		$_=[$Qid,$Sid,$Pidentity,$AlnLen,$identical,$mismatches,$Gap,$Qs,$Qe,$Ss,$Se,$E,$bitScore,$BTOP];
 	}
-	my $A=&getO(4,-1,\@Sinf);
-	$A=&getO(11,0,$A);
-	return [] if $#$A > 0;
+	my $A=&getO(4,-1,\@Sinf);	# by col.4 identical, max
+	$A=&getO(11,0,$A);	# by col.11 E, min
+	return [] if $#$A > 0;	# if still more than 1, is duplicated
 	return $$A[0];
 }
 

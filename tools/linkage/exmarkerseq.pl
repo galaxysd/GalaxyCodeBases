@@ -150,3 +150,12 @@ close O;
 __END__
 ./exmarkerseq.pl chr.nfo ./fabychr/ 45 ./dat20101214/Chr01.marker ./psnp/parent_Chr01.snp eChr01.marker
 cat chrorder | while read a; do ./exmarkerseq.pl chr.nfo ./fabychr/ 45 ./dat20101214/${a}.marker ./psnp/parent_$a.snp ex45${a}.marker;done &
+
+#!/bin/sh
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH,BLASTDB
+#$ -cwd -r y -l vf=8g
+#$ -o /dev/null -e /dev/null
+#$ -S /bin/bash -t 1-12
+SEEDFILE=./chrorder
+a=$(sed -n -e "$SGE_TASK_ID p" $SEEDFILE)
+eval ./exmarkerseq.pl chr.nfo ./fabychr/ 25 ./dat20101214/${a}.marker ./psnp/parent_$a.snp ./out20110106/ex25${a}.marker

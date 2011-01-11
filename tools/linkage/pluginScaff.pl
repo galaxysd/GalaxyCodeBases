@@ -15,7 +15,7 @@ our $help=<<EOH;
 \t-i Genome FASTA (./Pa64_genome.fa)
 \t-p Anchor Pos file (./f3545ChrScaff.pos.n3)
 \t-n N zone file (Pa64.Nzone)
-\t-o Output file
+\t-o Output prefix
 \t-v Verbose level (undef=0)
 \t-b No pause for batch runs
 \t-d Debug Mode, for test only
@@ -28,7 +28,7 @@ $opt_p='./f3545ChrScaff.pos.n3' if ! $opt_p;
 $opt_n='Pa64.Nzone' if ! $opt_n;
 $opt_v=0 if ! $opt_v;
 
-print STDERR "From [$opt_i] to [$opt_o] refer to [$opt_n][$opt_p]\n";
+print STDERR "From [$opt_i] to [$opt_o].{fa,stat} refer to [$opt_n][$opt_p]\n";
 print STDERR "DEBUG Mode on !\n" if $opt_d;
 print STDERR "Verbose Mode [$opt_v] !\n" if $opt_v;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
@@ -100,11 +100,13 @@ sub searchtoPlug($$$$) {
 	}
 	return [$thePos,$cutL,$cutR];
 }
-open O,'>',$opt_o or die $!;
+open S,'>',$opt_o.'.stat' or die $!;
+open O,'>',$opt_o.'.fa' or die $!;
 for my $chr (sort keys %SacffPos) {
 	my $lastPos=1;
 	print O ">$chr\n";
-	warn ">$chr";
+	print S "[$chr]\n";
+	warn ">$chr\n";
 	for my $ref (sort {$a->[3] <=> $b->[3]} @{$SacffPos{$chr}}) {
 		my ($ScaffID,$strand,$sPosRel,$pos,$err)=@$ref;
 		my $ScaffLen=length $Genome{$ScaffID};
@@ -118,13 +120,15 @@ for my $chr (sort keys %SacffPos) {
 		}
 		my ($left,$right)=($pos+$ScaffLeft-$err,$pos+$ScaffRight+$err);	# this should be wrong but should be right.
 		my ($thePos,$cutL,$cutR)=@{&searchtoPlug($chr,$pos,$left,$right)};
+		print S "$ScaffID\t",length($Genome{$ScaffID}),"\t$strand\t$thePos\t$cutL,$cutR\n";
 		print O substr($Genome{$chr},$lastPos-1,$thePos-$lastPos+1-$cutL),"\nx",$Genome{$ScaffID},"x\n";
 		$lastPos=$thePos+$cutR;
 	}
 	print O "\n";
+	print S "\n";
 }
 close O;
-
+close S;
 
 __END__
 ./pluginScaff.pl -o PA64new.fa
