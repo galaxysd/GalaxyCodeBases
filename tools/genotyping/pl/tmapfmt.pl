@@ -38,9 +38,18 @@ use warnings;
 #warn $population;
 #die;
 
+my %TtoMarkers;
+
 for my $D (keys %deDup) {
-	my ($min,$max)=sort {$a<=>$b} @{$deDup{$D}};
-	$deDup{$D}=$max?[$min,$max]:[$min];
+	my @T;
+	@T=sort {$a<=>$b} @{$deDup{$D}};
+	if (@T>1) {
+		$deDup{$D}=[ $T[0],$T[-1] ];	# Remember the old version is $T[0,1] !
+	} else {
+		$deDup{$D}=[ $T[0] ];
+	}
+	#$deDup{$D}=$max?[$min,$max]:[$min];
+	$TtoMarkers{$D}=\@T;
 }
 my @OrderD=sort {$deDup{$a}->[0] <=> $deDup{$b}->[0]} keys %deDup;
 #ddx %deDup;
@@ -54,6 +63,7 @@ $Count=keys %deDup;
 
 open O,'>',$ARGV[1].'.intercross' or die $!;
 open OO,'>',$ARGV[1].'.order' or die $!;
+open G,'>',$ARGV[1].'.group' or die $!;
 print O "data type f2 intercross\n$population $Count\n";
 #for my $pos (sort {$a<=>$b} keys %DAT) {
 for my $D (@OrderD) {
@@ -62,7 +72,11 @@ for my $D (@OrderD) {
 	$str =~ tr/012/ABH/;
 	print O $ARGV[2],"m$pos\t",join("\t",split /\s+/,$str),"\n";
 	print OO '*',$ARGV[2],"m$pos\n";
+	print G substr($ARGV[2].'m'.$pos,0,15-1),'=',$ARGV[2],"m$pos\n";
+	print G $ARGV[2],'m',$_,"\n" for @{$TtoMarkers{$D}};
+	print G ">\n";
 }
+close G;
 close OO;
 close O;
 
