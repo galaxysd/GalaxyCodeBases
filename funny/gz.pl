@@ -112,7 +112,7 @@ pid_t waitpid(pid_t pid, int *status, int options);
 
 my ($ttt,$aaa);
 my($chld_out, $chld_in);
-$|=1;
+#$|=1;
 my ($a,$b,$c,$sumA,$sumB);
 open IN,'<',$ARGV[0] or die "$!";
 #my $i=1;

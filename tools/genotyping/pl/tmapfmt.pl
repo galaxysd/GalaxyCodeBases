@@ -44,7 +44,7 @@ for my $D (keys %deDup) {
 	my @T;
 	@T=sort {$a<=>$b} @{$deDup{$D}};
 	if (@T>1) {
-		$deDup{$D}=[ $T[0],$T[-1] ];	# Remember the old version is $T[0,1] !
+		$deDup{$D}=[ $T[0],$T[1] ];	# Remember the old version is $T[0,1] ! The correct is 0,-1 .
 	} else {
 		$deDup{$D}=[ $T[0] ];
 	}
@@ -72,7 +72,7 @@ for my $D (@OrderD) {
 	$str =~ tr/012/ABH/;
 	print O $ARGV[2],"m$pos\t",join("\t",split /\s+/,$str),"\n";
 	print OO '*',$ARGV[2],"m$pos\n";
-	print G substr($ARGV[2].'m'.$pos,0,15-1),'=',$ARGV[2],"m$pos\n";
+	print G substr($ARGV[2].'m'.$pos,0,15),'=',$ARGV[2],"m$pos\n";
 	print G $ARGV[2],'m',$_,"\n" for @{$TtoMarkers{$D}};
 	print G ">\n";
 }

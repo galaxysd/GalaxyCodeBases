@@ -39,9 +39,15 @@ sub pasteSinf() {
 	return $$A[0];
 }
 
+if (-s $out_file) {
+	die "[x]$out_file exists, remove first !\n";
+} else {
+	warn "[!]Open $out_file for write.\n";
+}
 open O,'>',$out_file or die $!;
+open LOG,'>',$out_file.'.log' or die $!;
 while (my $in_file=shift) {
-	print STDERR ">$in_file\t";
+	print LOG ">$in_file\t";
 	open I,'<',$in_file or warn "\n[!]Error opening $in_file: $!\n";
 	my ($lastQid,$MarkerLen);
 	while (<I>) {
@@ -57,10 +63,10 @@ while (my $in_file=shift) {
 			goto tNEXT if $#t == -1;
 			my ($Qs,$Qe)=@t[7,8];	# @{$t[0]}[7,8]
 			if ( ($Qs > $maxTrim) or (($MarkerLen-$Qe)> $maxTrim) ) {
-				print STDERR "|$Qs,$Qe\n";
+				print LOG "|$Qs,$Qe\n";
 				goto tNEXT;
 			} else {
-				print STDERR "-";
+				print LOG "-";
 			}
 			print O join("\t",@t,scalar @Sinf),"\n";
 tNEXT:		@Sinf=(\@Dat);
@@ -71,13 +77,14 @@ tNEXT:		@Sinf=(\@Dat);
 		$MarkerLen=1 + 2*(split /m/,$Qid)[-1];
 	}
 	close I;
-	print STDERR ".\n";
+	print LOG ".\n";
 }
+close LOG;
 close O;
 
 __END__
 ./readblast.pl 15 t.out ex32Chr01.pa64m7e
-cat chrorder|while read a;do ./readblast.pl 15 ./out/f45$a.pa64 ./out/ex45$a.pa64m6 2> ./out/f45$a.pa64.log;done
+cat chrorder|while read a;do ./readblast.pl 15 ./out/f45$a.pa64 ./out/ex45$a.pa64m6;done	# 2> ./out/f45$a.pa64.log
 
 perl -lane 'BEGIN {my %d} ++$d{$F[1]}; END {print "$_\t$d{$_}" for sort {$d{$a} <=> $d{$b}} keys %d;}' ./out/f45*.pa64 | tee stat.pa64
 grep Scaffold stat.pa64 |perl -lane 'BEGIN {my %a;my $b} ++$a{$F[1]};$b += $F[1]; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a; print "\n$b"}'
