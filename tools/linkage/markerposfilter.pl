@@ -11,6 +11,13 @@ unless (@ARGV > 0) {
 }
 
 my ($file)=@ARGV;
+
+sub splitMarkerid($) {
+	my $MarkerID=$_[0];
+	my ($mChr,$mPos,$mSiderLen)=split /[_m]/,$MarkerID,3;
+	return [$mChr,$mPos,$mSiderLen];
+}
+
 open I,'<',$file or die "Error:[$file] $!\n";
 open O,'>',$file.'.f' or die "Error:[$file.f] $!\n";
 $_=<I>;
@@ -20,6 +27,10 @@ while (<I>) {
 	chomp;
 	my ($Qid,$mcM,$Sid,$pos,$strand,$Pidentity,$E,$BTOP)=split /\t/;
 	next if $E > 3e-11;
+	if ($Sid =~ /^chr/i) {	# needed ? Well, it is what we supposed previously ...
+		my ($mChr,$mPos,$mSiderLen)=@{&splitMarkerid($Qid)};
+		next if $mChr ne $Sid;
+	}
 	print O join("\t",$Qid,$mcM,$Sid,$pos,$strand,$Pidentity,$E,$BTOP),"\n";
 }
 close I;
