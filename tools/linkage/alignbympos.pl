@@ -3,10 +3,9 @@ use strict;
 use warnings;
 use lib '/nas/RD_09C/resequencing/soft/lib';
 #use GalaxyXS::ChromByte;
-use Algorithm::Cluster;
 use Data::Dump qw(ddx);
 
-my $maxIndelR=0.05;
+my $maxkbRchg=0.05;
 my $scaffmainR=0.7;
 
 unless (@ARGV > 0) {
@@ -63,6 +62,12 @@ for my $markid (keys %MarkerDat) {
 #                      },
 #                    },
 
+my $valuecount=1;
+sub addavg ($$) {
+	my ($base,$add)=@_;
+	$base=($base*$valuecount+$add)/($valuecount+1);
+	return $base;
+}
 my $inScaff = keys %ScaffAlign;
 my $outScaff=$inScaff;
 for my $Scaff (keys %ScaffAlign) {
@@ -77,6 +82,7 @@ for my $Scaff (keys %ScaffAlign) {
 			}
 		}
 	}
+	$datAref=$ScaffAlign{$Scaff}{$datMPath[0]}{$datMPath[1]};
 	if ($opt_v && $posMax != $posSum) {
 		print '-'x75,"\n[!]$posMax\t$posSum\n";
 		ddx $ScaffAlign{$Scaff};
@@ -85,13 +91,42 @@ for my $Scaff (keys %ScaffAlign) {
 		delete $ScaffAlign{$Scaff};
 		--$outScaff;
 		print "Deleted !\n" if $opt_v;
+		next;
+	} elsif ($posMax>1) {
+		my @dat=@{$datAref};
+		my ($S0pos,$C0pos)=@{shift @dat};
+		my ($S1pos,$C1pos)=@{shift @dat};
+	warn $Scaff,"\n";
+	ddx $ScaffAlign{$Scaff} if $S1pos==$S0pos;
+		my $k=($C1pos-$C0pos)/($S1pos-$S0pos);
+		my $b=($S1pos*$C0pos-$S0pos*$C1pos)/($S1pos-$S0pos);
+		my ($i,%newDat)=(1);
+		$valuecount=1;
+		$newDat{$i}=[ [$S0pos,$C0pos],[$S1pos,$C1pos] ];
+		for (@dat) {
+			my ($Spos,$Cpos)=@$_;
+			my $k1=($C1pos-$Cpos)/($S1pos-$Spos);
+			my $b1=($S1pos*$Cpos-$Spos*$C1pos)/($S1pos-$Spos);
+			if ( ($k1-$k)/$k > $maxkbRchg or ($b1-$b)/$b > $maxkbRchg ) {
+				++$i;
+				$valuecount=0;
+				$k=$k1; $b=$b1;
+				$C1pos=$Cpos; $S1pos=$Spos;
+			} else {
+				$k=&addavg($k,$k1); $b=&addavg($b,$b1);
+				$C1pos=&addavg($C1pos,$Cpos); $S1pos=&addavg($S1pos,$Spos);
+			}
+			push @{$newDat{$i}},[$Spos,$Cpos];
+			++$valuecount;
+		}
+		;
 	} else {
-		$ScaffAlign{$Scaff}=[@datMPath,$datAref];
+		;
 	}
-
+	$ScaffAlign{$Scaff}=[@datMPath,$datAref];
 }
 warn "[!]Scaffold Count: $inScaff -> $outScaff\n";
-ddx \%ScaffAlign;
+#ddx \%ScaffAlign;
 #   scaffold94519 => [
 #                      "Chr10",
 #                      1,

@@ -1,4 +1,5 @@
-﻿
+﻿cd /ifs1/POPULATION/Rice/gapfilling/denovo20110113
+
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTns6.rd ./out20110113/ex45$a.mTns6;done
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mToc6.rd ./out20110113/ex45$a.mToc6;done
 
