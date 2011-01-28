@@ -6,8 +6,8 @@ use lib '/nas/RD_09C/resequencing/soft/lib';
 use Data::Dump qw(ddx);
 
 my $scaffKnot1R=0.1;
-my $maxKdiffto1=0.05;
-my $maxbRchg=0.001;
+my $maxKdiffto1=0.1;
+my $maxIndelR=0.001;
 my $scaffmainR=0.7;
 
 unless (@ARGV > 0) {
@@ -113,27 +113,43 @@ for my $Scaff (keys %ScaffAlign) {
 		#my @dat=@{$datAref};
 		my @dat=sort {$a->[0] <=> $b->[0] } @{$datAref};
 		my $maxKnot1cnt=int($scaffKnot1R * @dat);
-		++$maxKnot1cnt unless $maxKnot1cnt;	# at least 1.
+		++$maxKnot1cnt unless $maxKnot1cnt;	# at least 1 since scaffold come with 1 center 'PE' gap
 		my ($item,$Knot1cnt,%newDat)=(1,0);
 		my ($Spos,$Cpos)=@{$dat[0]};
 		push @{$newDat{$item}},[$Spos,$Cpos,$datMPath[1],$Cpos-$Spos];
+		my ($j,$jj)=(1,0);
 		for (my $i=1;$i<=$#dat;$i++) {
-			my ($S0pos,$C0pos)=@{$dat[$i-1]};
+			my ($S0pos,$C0pos)=@{$dat[$i-$j]};
 			my ($S1pos,$C1pos)=@{$dat[$i]};
-			my $kp=($C1pos-$C0pos)/($S1pos-$S0pos);
+			JUMP: my $kp=($C1pos-$C0pos)/($S1pos-$S0pos);
 			#my $bp=($S1pos*$C0pos-$S0pos*$C1pos)/($S1pos-$S0pos);
 			my $bp=$C0pos-$S0pos;
 			my $b=$C1pos-$S1pos; #my $k=$kp;
 			if ( abs(abs($kp)-1) > $maxKdiffto1 ) {
+				$jj=$j unless $jj;
+				while ($jj > 1) {	# backward
+					--$jj;
+					($S0pos,$C0pos)=@{$dat[$i-$jj]};
+					print "-x-$jj-x-\t$Scaff\n";
+					goto JUMP;
+				}
+				if ($jj==1 and $i<$#dat) {	# forward, just 1 step
+					$jj=-1;
+					($S0pos,$C0pos)=@{$dat[$i+1]};
+					print "-y-",$i+1,"-y-\t$Scaff\n";
+					goto JUMP;
+				}
 				++$Knot1cnt;
-push @{$newDat{$item}},[-$S1pos,-$C1pos,$kp,$bp,$b];
+				push @{$newDat{$item}},[-$S1pos,-$C1pos,$kp,$b,$j];	# for debug.
+				$jj=0;
+				++$j;
 				next;	# skip those with too much indels
-			} elsif ( abs(($b-$bp)/$bp) < $maxbRchg ) {
-				push @{$newDat{$item}},[$S1pos,$C1pos,$kp-1*$datMPath[1],$bp,$b];
-			} else {
+			} elsif ( abs(($b-$bp)/($S1pos-$S0pos)) > $maxIndelR ) {
 				++$item;
-				push @{$newDat{$item}},[$S1pos,$C1pos,$kp-1*$datMPath[1],$bp,$b];
+				$j=1;
 			}
+			push @{$newDat{$item}},[$S1pos,$C1pos,$kp-1*$datMPath[1],$b,$jj?$jj:$j];
+			$jj=0;
 		}
 =pod
 		my ($S0pos,$C0pos)=@{shift @dat};
@@ -170,7 +186,7 @@ push @{$newDat{$item}},[-$S1pos,-$C1pos,$kp,$bp,$b];
 =cut
 		if ($Knot1cnt > $maxKnot1cnt) {
 			if ($opt_v) {
-				print '-'x75,"\n[!][MoreBadK]Deleted: [$Scaff]<@datMPath> ",scalar @dat," $Knot1cnt > $maxKnot1cnt\t";
+				print "[!][MoreBadK]Deleted: [$Scaff]<@datMPath> ",scalar @dat," $Knot1cnt > $maxKnot1cnt\t";
 				#ddx $datAref;
 				ddx \@dat;
 				ddx \%newDat;
@@ -180,8 +196,8 @@ push @{$newDat{$item}},[-$S1pos,-$C1pos,$kp,$bp,$b];
 			--$outScaff;
 			next;	# skip this
 		}
-		print "[!]<@datMPath> ";
-		ddx \%newDat;
+		#print "[!]<@datMPath> ";
+		#ddx \%newDat;
 		;
 	} else {
 		;
