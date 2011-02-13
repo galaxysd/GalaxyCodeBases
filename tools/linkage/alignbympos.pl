@@ -162,83 +162,51 @@ for my $Scaff (keys %ScaffAlign) {
 			print "Deleted,too !\n" if $opt_v;
 			next;
 		}
-		ddx $ScaffAlign{$Scaff};
-=pod
-		my $maxKnot1cnt=int($scaffKnot1R * @dat);
-		++$maxKnot1cnt unless $maxKnot1cnt;	# at least 1 since scaffold come with 1 center 'PE' gap
-		my ($item,$Knot1cnt,%newDat)=(1,0);
-		my ($Spos,$Cpos)=@{$dat[0]};
-		push @{$newDat{$item}},[$Spos,$Cpos,$datMPath[1],$Cpos-$Spos];
-		my ($j,$jj)=(1,0);
-		for (my $i=1;$i<=$#dat;$i++) {
-			my ($S0pos,$C0pos)=@{$dat[$i-$j]};
-			my ($S1pos,$C1pos)=@{$dat[$i]};
-			JUMP: my $kp=($C1pos-$C0pos)/($S1pos-$S0pos);
-			#my $bp=($S1pos*$C0pos-$S0pos*$C1pos)/($S1pos-$S0pos);
-			my $bp=$C0pos-$S0pos;
-			my $b=$C1pos-$S1pos; #my $k=$kp;
-			if ( abs(abs($kp)-1) > $maxKdiffto1 ) {
-				$jj=$j unless $jj;
-				while ($jj > 1) {	# backward
-					--$jj;
-					($S0pos,$C0pos)=@{$dat[$i-$jj]};
-					print "-x-$jj-x-\t$Scaff\n";
-					goto JUMP;
-				}
-				if ($jj==1 and $i<$#dat) {	# forward, just 1 step
-					$jj=-1;
-					($S0pos,$C0pos)=@{$dat[$i+1]};
-					print "-y-",$i+1,"-y-\t$Scaff\n";
-					goto JUMP;
-				}
-				++$Knot1cnt;
-				push @{$newDat{$item}},[-$S1pos,-$C1pos,$kp,$b,$j];	# for debug.
-				$jj=0;
-				++$j;
-				next;	# skip those with too much indels
-			} elsif ( abs(($b-$bp)/($S1pos-$S0pos)) > $maxIndelR ) {
-				++$item;
-				$j=1;
-			}
-			push @{$newDat{$item}},[$S1pos,$C1pos,$kp-1*$datMPath[1],$b,$jj?$jj:$j];
-			$jj=0;
+		#ddx $ScaffAlign{$Scaff};
+		@dat=sort { ${$IndelsDat{$a}}[0][0] <=> ${$IndelsDat{$b}}[0][0] } keys %IndelsDat;
+		$datAref=[$#dat];
+		for (@dat) {
+			push @$datAref,$_,$IndelsDat{$_};
 		}
-		if ($Knot1cnt > $maxKnot1cnt) {
-			if ($opt_v) {
-				print "[!][MoreBadK]Deleted: [$Scaff]<@datMPath> ",scalar @dat," $Knot1cnt > $maxKnot1cnt\t";
-				#ddx $datAref;
-				ddx \@dat;
-				ddx \%newDat;
-				print '-'x75,"\n";
-			}
-			delete $ScaffAlign{$Scaff};
-			--$outScaff;
-			next;	# skip this
-		}
-		print "[!]<@datMPath> ";
-		ddx \%newDat;
-=cut
-		;
 	} else {
-		;
+		$datAref=[0,$$datAref[0][1]-$$datAref[0][0],$datAref];
 	}
 	$ScaffAlign{$Scaff}=[@datMPath,$datAref];
 }
 warn "[!]Scaffold Count: $inScaff -> $outScaff\n";
 #ddx \%ScaffAlign;
-#   scaffold94519 => [
+#   scaffold95088 => [
 #                      "Chr10",
 #                      1,
 #                      [
-#                        [1322, 16088080],
-#                        [2610, 16089368],
-#                        [1271, 16088029],
-#                        [1738, 16088496],
-#                        [1597, 16088355],
-#                        [1777, 16088535],
-#                        [1855, 16088613],
+#                        2,
+#                        12418282,
+#                        [[1476, 12419758], [1690, 12419972]],
+#                        12418248,
+#                        [
+#                          [2154, 12420402],
+#                          [2175, 12420423],
+#                          [3093, 12421341],
+#                          [5973, 12424221],
+#                          [6197, 12424445],
+#                        ],
+#                        12418246,
+#                        [
+#                          [6235, 12424481],
+#                          [6255, 12424501],
+#                          [7279, 12425525],
+#                        ],
 #                      ],
 #                    ],
+#   scaffold9564  => [
+#                      "Chr10",
+#                      -1,
+#                      [1, 8711880, [[445, 8712325]], 8710850, [[997, 8711847]]]
+#                    ],
+#   scaffold92619 => ["Chr10", 1, [0, 17878303, [[2999, 17881302]] ] ],
+
+
+
 
 __END__
 ./alignbympos.pl markerpos/m2sChr10.pos.f markerpos/m2cChr10.pos.f ../9311.Nzone ../chr.nfo t.out
