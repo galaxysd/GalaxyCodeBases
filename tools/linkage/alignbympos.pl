@@ -2,23 +2,40 @@
 use strict;
 use warnings;
 use lib '/nas/RD_09C/resequencing/soft/lib';
-#use GalaxyXS::ChromByte;
+use GalaxyXS::ChromByte;
 use Data::Dump qw(ddx);
 
 my $scaffKnot1R=0.1;
 my $maxKdiffto1=0.1;
-my $maxIndelR=0.001;
+my $maxIndelR=0.002;
 my $scaffmainR=0.7;
 
 unless (@ARGV > 0) {
-    print "perl $0 <markerpos scaffold> <markerpos chr> <out>\n";
+    print "perl $0 <markerpos scaffold> <markerpos chr> <chr Nzone> <chr nfo> <out>\n";
     exit 0;
 }
 
-my ($scaff,$chrf,$outf)=@ARGV;
+my ($scaff,$chrf,$NZchrf,$ChrNFO,$outf)=@ARGV;
 my $opt_v=1;
-my (%MarkerDat,%ScaffAlign);
+my (%MarkerDat,%ScaffAlign,%NZone);
 
+open S,'<',$ChrNFO or die "Error:[$ChrNFO] $!\n";
+while (<S>) {
+	next if /^#/;
+	#chomp;
+	my ($chrid,$len)=split /\t/;
+	$NZone{$chrid}=initchr($len);
+}
+close S;
+open N,'<',$NZchrf or die "Error:[$NZchrf] $!\n";
+while (<N>) {
+	next if /^#/;
+	#chomp;
+	my ($chrid,$start,$end)=split /\t/;
+	die "[x]Wrong ChrID as [$chrid] !\n" unless exists $NZone{$chrid};
+	setbases($NZone{$chrid},$start,$end,1);
+}
+close N;
 open S,'<',$scaff or die "Error:[$scaff] $!\n";
 #Markerid       MarkercM        Sid     pos     strand  Pidentity       E       BTOP
 while (<S>) {
@@ -112,6 +129,41 @@ for my $Scaff (keys %ScaffAlign) {
 		#$datAref = [ sort {$a->[0] <=> $b->[0] } @{$datAref} ];
 		#my @dat=@{$datAref};
 		my @dat=sort {$a->[0] <=> $b->[0] } @{$datAref};
+		my (%IndelsDat,@IndelsGroup);
+		for (@dat) {
+			my ($Spos,$Cpos)=@$_;
+			push @{$IndelsDat{$Cpos-$Spos}},$_;
+		}
+		#ddx \%IndelsDat;
+		my $majorIndelGroup2R=0.6;
+		my $majorIndelGroup3R=0.85;
+		@dat=sort {$#{$IndelsDat{$b}} <=> $#{$IndelsDat{$a}} } keys %IndelsDat;
+		my ($Sum,@CountArr,$t)=(0);
+		for (@dat) {
+			$t=scalar @{$IndelsDat{$_}};
+			push @CountArr,$t;
+			$Sum += $t;
+		}
+		$t=0;
+		my ($flag,$ss)=(0,0);
+		for (@CountArr) {
+			++$t;
+			$ss += $_;
+			if ($t == 2) {
+				$flag=1 if $ss/$Sum >= $majorIndelGroup2R;
+			} elsif ($t == 3) {
+				$flag=1 if $ss/$Sum >= $majorIndelGroup3R;
+			}
+		}
+		$flag=1 if $t==1;
+		if ($flag==0) {
+			delete $ScaffAlign{$Scaff};
+			--$outScaff;
+			print "Deleted,too !\n" if $opt_v;
+			next;
+		}
+		ddx $ScaffAlign{$Scaff};
+=pod
 		my $maxKnot1cnt=int($scaffKnot1R * @dat);
 		++$maxKnot1cnt unless $maxKnot1cnt;	# at least 1 since scaffold come with 1 center 'PE' gap
 		my ($item,$Knot1cnt,%newDat)=(1,0);
@@ -151,39 +203,6 @@ for my $Scaff (keys %ScaffAlign) {
 			push @{$newDat{$item}},[$S1pos,$C1pos,$kp-1*$datMPath[1],$b,$jj?$jj:$j];
 			$jj=0;
 		}
-=pod
-		my ($S0pos,$C0pos)=@{shift @dat};
-		my ($S1pos,$C1pos)=@{shift @dat};
-	#warn $Scaff,"\n";
-	#ddx $ScaffAlign{$Scaff} if $S1pos==$S0pos;
-		my $k=($C1pos-$C0pos)/($S1pos-$S0pos);
-		my $b=($S1pos*$C0pos-$S0pos*$C1pos)/($S1pos-$S0pos);
-		my ($i,$Knot1cnt,%newDat)=(1,0);
-		$valuecount=1;
-		my $datCount=2;
-		$newDat{$i}=[ [$S0pos,$C0pos],[$S1pos,$C1pos,$k-1,$b] ];
-		for (@dat) {
-			my ($Spos,$Cpos)=@$_;
-			my $k1=($C1pos-$Cpos)/($S1pos-$Spos);
-			my $b1=($S1pos*$Cpos-$Spos*$C1pos)/($S1pos-$Spos);
-			++$datCount;
-			if ( abs($k1-1) > $maxKdiffto1 ) {
-				++$Knot1cnt;
-				next;	# skip those with too much indels
-			}
-			if ( abs(($b1-$b)/$b) > $maxbRchg ) {
-				++$i;
-				$valuecount=0;
-				$k=$k1; $b=$b1;
-				$C1pos=$Cpos; $S1pos=$Spos;
-			} else {
-				$k=&addavg($k,$k1); $b=&addavg($b,$b1);
-				$C1pos=&addavg($C1pos,$Cpos); $S1pos=&addavg($S1pos,$Spos);
-			}
-			push @{$newDat{$i}},[$Spos,$Cpos,$k-1,$b,$k1-1,$b1];
-			++$valuecount;
-		}
-=cut
 		if ($Knot1cnt > $maxKnot1cnt) {
 			if ($opt_v) {
 				print "[!][MoreBadK]Deleted: [$Scaff]<@datMPath> ",scalar @dat," $Knot1cnt > $maxKnot1cnt\t";
@@ -196,8 +215,9 @@ for my $Scaff (keys %ScaffAlign) {
 			--$outScaff;
 			next;	# skip this
 		}
-		#print "[!]<@datMPath> ";
-		#ddx \%newDat;
+		print "[!]<@datMPath> ";
+		ddx \%newDat;
+=cut
 		;
 	} else {
 		;
@@ -221,4 +241,7 @@ warn "[!]Scaffold Count: $inScaff -> $outScaff\n";
 #                    ],
 
 __END__
-./alignbympos.pl markerpos/m2sChr10.pos.f markerpos/m2cChr10.pos.f t.out
+./alignbympos.pl markerpos/m2sChr10.pos.f markerpos/m2cChr10.pos.f ../9311.Nzone ../chr.nfo t.out
+
+1. change to contig.
+2. indel only

@@ -1,9 +1,11 @@
 ﻿cd /ifs1/POPULATION/Rice/gapfilling/denovo20110113
 
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTns6.rd ./out20110113/ex45$a.mTns6;done
+cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTnc6.rd ./out20110113/ex45$a.mTnc6;done
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mToc6.rd ./out20110113/ex45$a.mToc6;done
 
 cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mTns6.rd ./markerpos/m2s$a.pos;done
+cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mTnc6.rd ./markerpos/m2n$a.pos;done
 cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mToc6.rd ./markerpos/m2c$a.pos;done
 
 find ./markerpos/ -name '*.pos'|xargs -n1 ./markerposfilter.pl
