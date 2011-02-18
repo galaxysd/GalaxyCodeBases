@@ -38,7 +38,7 @@ cat pa64chro | while read a;do echo $a; ./alignbympos.pl markerpos/m2s$a.pos.f m
 
 alignbympos.pl需要输出结果，然后再写个程序都fasta序列去统计N的改善情况。./out20110113/scafSeq.sTo? 是新scaffold和旧染色体的比对结果，3种格式的都有。
 
-现在alignbympos.pl中的比对结果数据结构见208行的例子，242行开始那段的读取的例子（已经注释掉了）。
+现在alignbympos.pl中的比对结果数据结构见208行的例子，242行开始那段是读取的例子（已经注释掉了）。
 
 
 
