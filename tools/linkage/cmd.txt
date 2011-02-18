@@ -1,11 +1,53 @@
-﻿cd /ifs1/POPULATION/Rice/gapfilling/denovo20110113
+﻿[Get Marker Seq. from SNP sets]
+cd /ifs1/POPULATION/Rice/gapfilling
+cat chrorder | while read a; do ./exmarkerseq.pl chr.nfo ./fabychr/ 45 ./dat20101214/${a}.marker ./psnp/parent_$a.snp ./marker/ex45${a}.marker;done &
+
+[do blast]
+PATH = /nas/RD_09C/resequencing/soft/bin/blast2/
+cd /ifs1/POPULATION/Rice/gapfilling/denovo20110113
+
+建库命令参考：
+./makeblastdb -dbtype nucl -parse_seqids -hash_index -taxid 39946 -in Rice_PA64_63Km.scafSeq -out PA64newScaffold -logfile PA64newScaffold.log -title PA64newScaffold
+
+export BLASTDB=/ifs1/POPULATION/Rice/gapfilling/denovo20110113
+./blastn -task megablast -db PA64oldChr -outfmt '6 qseqid sseqid pident length nident mismatch gapopen qstart qend sstart send evalue bitscore btop' -num_threads 2 -evalue 3e-9 -best_hit_overhang 0.25 -best_hit_score_edge 0.05 -query ./Rice_PA64_63Km.scafSeq -out ./out20110113/scafSeq.sTo6
+
+需要作marker到旧染色体(.mToc6)、marker到新scaffold(.mTns6)、新scaffold到旧染色体(.sTo6)，3组比对。
+
+[提取信息]
+
+BLAST结果信息
+cd /ifs1/POPULATION/Rice/gapfilling/denovo20110113
 
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTns6.rd ./out20110113/ex45$a.mTns6;done
-cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTnc6.rd ./out20110113/ex45$a.mTnc6;done
+#cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mTnc6.rd ./out20110113/ex45$a.mTnc6;done
 cat ../chrorder|while read a;do ./readblast.pl 15 ./out20110113/ex45$a.mToc6.rd ./out20110113/ex45$a.mToc6;done
 
 cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mTns6.rd ./markerpos/m2s$a.pos;done
-cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mTnc6.rd ./markerpos/m2n$a.pos;done
+#cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mTnc6.rd ./markerpos/m2n$a.pos;done
 cat ../chrorder|while read a;do ./blast2markerpos.pl ./markerl/cm$a.18 ./out20110113/ex45$a.mToc6.rd ./markerpos/m2c$a.pos;done
 
 find ./markerpos/ -name '*.pos'|xargs -n1 ./markerposfilter.pl
+#如果有更合适的过滤方法，可以加到这。包括考虑不同scaffold间重叠之类的。
+
+新scaffold与旧染色体的N区信息
+../getNzones.pl ../denovo20110113/Rice_PA64_63Km.scafSeq ../denovo20110113/Rice_PA64_63Km.scafSeq.Nzone 2> ../denovo20110113/Rice_PA64_63Km.scafSeq.Nzone.log
+
+[将新scaffold对齐到旧染色体上]
+cat pa64chro | while read a;do echo $a; ./alignbympos.pl markerpos/m2s$a.pos.f markerpos/m2c$a.pos.f pa64chronly.nfo ../Pa64.Nzone ../denovo20110113/Rice_PA64_63Km.scafSeq.chr.nfo ../denovo20110113/Rice_PA64_63Km.scafSeq.Nzone t$a.out; done
+
+alignbympos.pl需要输出结果，然后再写个程序都fasta序列去统计N的改善情况。./out20110113/scafSeq.sTo? 是新scaffold和旧染色体的比对结果，3种格式的都有。
+
+现在alignbympos.pl中的比对结果数据结构见208行的例子，242行开始那段的读取的例子（已经注释掉了）。
+
+
+
+
+
+
+
+
+__DAT__
+新一轮的数据都在
+/ifs1/POPULATION/Rice/RIL/New_data/data/Q15/ （里面的step文件夹里面的脚本包括亲本和子代数据所在的地方）
+

@@ -5,20 +5,28 @@ use lib '/nas/RD_09C/resequencing/soft/lib';
 use GalaxyXS::ChromByte;
 use Data::Dump qw(ddx);
 
-my $scaffKnot1R=0.1;
-my $maxKdiffto1=0.1;
-my $maxIndelR=0.002;
+#my $scaffKnot1R=0.1;
+#my $maxKdiffto1=0.1;
+#my $maxIndelR=0.002;
 my $scaffmainR=0.7;
 
 unless (@ARGV > 0) {
-    print "perl $0 <markerpos scaffold> <markerpos chr> <chr Nzone> <chr nfo> <out>\n";
+    print "perl $0 <markerpos scaffold> <markerpos chr> <chr nfo> <chr Nzone> <scaff nfo> <scaff Nzone> <out>\n";
     exit 0;
 }
 
-my ($scaff,$chrf,$NZchrf,$ChrNFO,$outf)=@ARGV;
-my $opt_v=1;
-my (%MarkerDat,%ScaffAlign,%NZone);
+my ($scaff,$chrf,$ChrNFO,$NZchrf,$ScaffNFO,$NZScafff,$outf)=@ARGV;
+my $opt_v=0;
+my (%MarkerDat,%ScaffAlign,%NZone,%ScaffLen);
 
+open S,'<',$ScaffNFO or die "Error:[$ScaffNFO] $!\n";
+while (<S>) {
+	next if /^#/;
+	#chomp;
+	my ($chrid,$len,$EffLen)=split /\t/;
+	$ScaffLen{$chrid}=[$len,$EffLen];
+}
+close S;
 open S,'<',$ChrNFO or die "Error:[$ChrNFO] $!\n";
 while (<S>) {
 	next if /^#/;
@@ -32,7 +40,8 @@ while (<N>) {
 	next if /^#/;
 	#chomp;
 	my ($chrid,$start,$end)=split /\t/;
-	die "[x]Wrong ChrID as [$chrid] !\n" unless exists $NZone{$chrid};
+	next unless exists $NZone{$chrid};
+	#die "[x]Wrong ChrID as [$chrid] !\n" unless exists $NZone{$chrid};
 	setbases($NZone{$chrid},$start,$end,1);
 }
 close N;
@@ -42,6 +51,7 @@ while (<S>) {
 	next if /^#/;
 	chomp;
 	my ($Qid,$mcM,$Sid,$pos,$strand,$Pidentity,$E,$BTOP)=split /\t/;
+	next if $mcM eq '-';	# '-' is due to different version of marker id set. If this may lead to false negative, the BLAST must be re-run towards the new filtered marker sets.
 	$MarkerDat{$Qid}=[[$Sid,$pos,$strand]];
 }
 close S;
@@ -109,19 +119,21 @@ for my $Scaff (keys %ScaffAlign) {
 			#$datAref=$ScaffAlign{$Scaff}{$Chr}{$Strand};
 			$ScaffAlign{$Scaff}{$Chr}{$Strand}=$datAref;
 			$posSum += @$datAref;
-			if ($posMax < @$datAref) {
+			if ($posMax <= @$datAref) {
 				$posMax = @$datAref;
 				@datMPath=($Chr,$Strand);
 			}
 		}
 	}
 	$datAref=$ScaffAlign{$Scaff}{$datMPath[0]}{$datMPath[1]};
+	#next unless defined $$datAref[0][0];	# alignbympos.pl:183: [[]]
 	if ($opt_v && $posMax != $posSum) {
 		print '-'x75,"\n[!][DiffStrand]$Scaff:\t$posSum -> $posMax\n";
 		ddx $ScaffAlign{$Scaff};
 	}
-	if ($posMax < $posSum * $scaffmainR) {
+	if ($posMax < $posSum * $scaffmainR or (! defined $$datAref[0][0]) ) {
 		delete $ScaffAlign{$Scaff};
+		#delete $ScaffLen{$Scaff};
 		--$outScaff;
 		print "Deleted !\n" if $opt_v;
 		next;
@@ -158,6 +170,7 @@ for my $Scaff (keys %ScaffAlign) {
 		$flag=1 if $t==1;
 		if ($flag==0) {
 			delete $ScaffAlign{$Scaff};
+			#delete $ScaffLen{$Scaff};
 			--$outScaff;
 			print "Deleted,too !\n" if $opt_v;
 			next;
@@ -169,11 +182,29 @@ for my $Scaff (keys %ScaffAlign) {
 			push @$datAref,$_,$IndelsDat{$_};
 		}
 	} else {
+		#ddx $datAref unless defined $$datAref[0][1];
 		$datAref=[0,$$datAref[0][1]-$$datAref[0][0],$datAref];
 	}
 	$ScaffAlign{$Scaff}=[@datMPath,$datAref];
 }
-warn "[!]Scaffold Count: $inScaff -> $outScaff\n";
+print STDERR "[!]Scaffold Count: $inScaff -> $outScaff\t";
+
+my ($ScafflenTotal,$ScafflenEff,%ScaffNZone)=(0,0);
+open N,'<',$NZScafff or die "Error:[$NZScafff] $!\n";
+while (<N>) {
+	next if /^#/;
+	#chomp;
+	my ($chrid,$start,$end)=split /\t/;
+	next unless exists $ScaffAlign{$chrid};
+	$ScafflenTotal += $ScaffLen{$chrid}->[0];
+	$ScafflenEff += $ScaffLen{$chrid}->[1];
+	$ScaffNZone{$chrid}=initchr($ScaffLen{$chrid}->[0]) unless exists $ScaffNZone{$chrid};	# malloc only once.
+	setbases($ScaffNZone{$chrid},$start,$end,1);
+	#print STDERR '.';
+}
+close N;
+warn "Len: $ScafflenTotal, $ScafflenEff\n";
+#__END__
 #ddx \%ScaffAlign;
 #   scaffold95088 => [
 #                      "Chr10",
@@ -204,12 +235,28 @@ warn "[!]Scaffold Count: $inScaff -> $outScaff\n";
 #                      [1, 8711880, [[445, 8712325]], 8710850, [[997, 8711847]]]
 #                    ],
 #   scaffold92619 => ["Chr10", 1, [0, 17878303, [[2999, 17881302]] ] ],
-
+#                      ChrID, 正负链, [记录项数减一, 第一个indel组的偏移值，第一个indel组的[起点，终点], 第二个，第二个, ... ]
+for my $Scaff (keys %ScaffAlign) {
+	my ($chr,$sscs,$datAref)=@{$ScaffAlign{$Scaff}};
+	my ($MaxIndex,@DAT)=@$datAref;
+#	for (0..$MaxIndex) {
+#		my $CptoSp = shift @DAT;
+#		my $SpCpArr = shift @DAT;
+#	}
+# Within Indel Group, should be match, choose the base that not N, we may favor the ref. base type;
+# Between I.G., may with indels, choose the strand with less N or do seq. aligenment that favor the marker anchor first.
+# Since all N zone are artific, within IG, we can favor the scafford base to do base fixing;
+# between, seq. ali. might be a must. (./out20110113/scafSeq.sTo6)
+	my ($lastScaffPos,$lastChrPos)=(1,0);
+	;
+}
 
 
 
 __END__
-./alignbympos.pl markerpos/m2sChr10.pos.f markerpos/m2cChr10.pos.f ../9311.Nzone ../chr.nfo t.out
+./alignbympos.pl markerpos/m2sChr10.pos.f markerpos/m2cChr10.pos.f pa64chronly.nfo ../Pa64.Nzone ../denovo20110113/Rice_PA64_63Km.scafSeq.chr.nfo ../denovo20110113/Rice_PA64_63Km.scafSeq.Nzone t.out
 
 1. change to contig.
 2. indel only
+
+cat pa64chro | while read a;do echo $a; ./alignbympos.pl markerpos/m2s$a.pos.f markerpos/m2c$a.pos.f pa64chronly.nfo ../Pa64.Nzone ../denovo20110113/Rice_PA64_63Km.scafSeq.chr.nfo ../denovo20110113/Rice_PA64_63Km.scafSeq.Nzone t$a.out; done
