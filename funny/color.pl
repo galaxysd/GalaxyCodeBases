@@ -9,7 +9,7 @@ for my $bg (0..7) {
 	print "\n";
 }
 
-for my $attr (0..9) {
+for my $attr (0,1,5,7,4,8,9) {
 	print "\nAttr:$attr\n";
 	for my $bg (0..7) {
 		print "before ";
