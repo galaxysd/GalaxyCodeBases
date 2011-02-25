@@ -12,7 +12,8 @@ my $soapfile = $ARGV[0];
 my $insert = $ARGV[1];
 my $frequence = $ARGV[2];
 my $drop = $ARGV[3];
-open SOAP, "<", "$soapfile";
+#open SOAP, "<", "$soapfile";
+open( SOAP,"-|","gzip -dc $soapfile");
 open INSERT, ">", "$insert";
 open FREQUENCE, ">", "$frequence";
 
@@ -162,7 +163,7 @@ sub gam2
 	my ($a_gam,$x_gam) = ($_[0],$_[1]);
   my ($n_gam,$p_gam,$q_gam,$d_gam,$s_gam,$s1_gam,$p0_gam,$q0_gam,$p1_gam,$q1_gam,$qq_gam);
   if(($a_gam <= 0)||($x_gam < 0))
-  { 
+  {
   	if($a_gam <= 0)
   	{
   		print "err**a<=0!\n";
@@ -173,40 +174,40 @@ sub gam2
     }
     exit 0;
 	}
-  if($x_gam == 0) 
+  if($x_gam == 0)
   {
   	return 0;
   }
   if($x_gam > 1e35)
-  { 
+  {
   	return 1;
   }
   $q_gam = $a_gam*log($x_gam);
   $qq_gam = exp($q_gam);
   if($x_gam < 1+$a_gam)
-  { 
-  	$p_gam = $a_gam; 
+  {
+  	$p_gam = $a_gam;
   	$s_gam = $d_gam = 1/$a_gam;
   	for($n_gam = 1; $n_gam <= 100; $n_gam++)
-    { 
+    {
     	$p_gam++;
     	$d_gam = $d_gam*$x_gam/$p_gam;
     	$s_gam += $d_gam;
 	    if(abs($d_gam) < abs($s_gam)*1e-7)
-      { 
+      {
       	$s_gam=$s_gam*exp(-$x_gam)*$qq_gam/&gam1($a_gam);
         return $s_gam;
       }
     }
   }
   else
-  { 
+  {
   	$s_gam = 1/$x_gam;
-  	$p0_gam = 0; 
+  	$p0_gam = 0;
   	$q0_gam = $p1_gam=1;
   	$q1_gam = $x_gam;
   	for($n_gam = 1; $n_gam <= 100; $n_gam++)
-  	{ 
+  	{
   		$p0_gam = $p1_gam+($n_gam-$a_gam)*$p0_gam;
   		$q0_gam = $q1_gam+($n_gam-$a_gam)*$q0_gam;
   		$p_gam = $x_gam*$p0_gam+$n_gam*$p1_gam;
@@ -217,7 +218,7 @@ sub gam2
   			$p1_gam = $p_gam;
   			$q1_gam = $q_gam;
   			if(abs(($s1_gam-$s_gam)/$s1_gam) < 1e-7)
-  			{ 
+  			{
   				$s_gam = $s1_gam*exp(-$x_gam)*$qq_gam/&gam1($a_gam);
   				return (1-$s_gam);
   			}

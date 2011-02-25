@@ -41,7 +41,7 @@ Attr:
 1	FG BRIGHT
 5	BG BRIGHT under sh/putty
 7	REVERSE FG and BG
-4	UNDERLINE under gnome-terminal
+4	UNDERLINE under gnome-terminal and putty
 8	HIDDENT (sh => fg black, gnome-terminal => fg==bg)
 9	Strikethrough under gnome-terminal
 
