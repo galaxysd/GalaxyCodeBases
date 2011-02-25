@@ -35,7 +35,7 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-my (%Nzone,%SacffPos,%Genome);
+my (%Nzone,%SacffPos,%Genome,%GenomPos);
 open I,'<',$opt_n or die $!;
 while (<I>) {
 	#chomp;
@@ -68,9 +68,21 @@ while (<I>) {
 	$/="\n";
 	print STDERR ">$id,\t[$desc]: ",length $seq,"\n";
 	$Genome{$id}=$seq;
+	$GenomPos{$id}=0;
 }
 close I;
 
+sub getChrSeq($$) {	# Well, no more N triming.
+	my ($id,$end)=@_;
+	my $last=$GenomPos{$id};
+	$GenomPos{$id}=$end;
+	my $str=substr $Genome{$id},$last,$end-$last;
+	if ($str) {
+		$str =~ s/^NN+/N/;
+		$str .= "\n";
+	}
+	return \$str;
+}
 sub searchtoPlug($$$$) {
 	my ($chr,$pos,$left,$right)=@_;
 	my $theZone;
@@ -100,6 +112,14 @@ sub searchtoPlug($$$$) {
 	}
 	return [$thePos,$cutL,$cutR];
 }
+sub revcom($) {
+    my $str = $_[0];
+    $str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+    my $rev = reverse $str;
+    $rev    =~ tr/[](){}<>/][)(}{></;
+    return $rev;
+}
+
 open S,'>',$opt_o.'.stat' or die $!;
 open O,'>',$opt_o.'.fa' or die $!;
 for my $chr (sort keys %SacffPos) {
@@ -111,18 +131,21 @@ for my $chr (sort keys %SacffPos) {
 		my ($ScaffID,$strand,$sPosRel,$pos,$err)=@$ref;
 		my $ScaffLen=length $Genome{$ScaffID};
 		my ($ScaffLeft,$ScaffRight);
+		my $str;
 		if ($strand eq '+') {
 			$ScaffLeft=1-$sPosRel;
 			$ScaffRight=$ScaffLen-$sPosRel;
+			$str=$Genome{$ScaffID};
 		} else {
 			$ScaffLeft=$sPosRel-$ScaffLen;
 			$ScaffRight=$sPosRel-1;
+			$str=revcom($Genome{$ScaffID});
 		}
 		my ($left,$right)=($pos+$ScaffLeft-$err,$pos+$ScaffRight+$err);	# this should be wrong but should be right.
 		my ($thePos,$cutL,$cutR)=@{&searchtoPlug($chr,$pos,$left,$right)};
-		print S "$ScaffID\t",length($Genome{$ScaffID}),"\t$strand\t$thePos\t$cutL,$cutR\n";
-		print O substr($Genome{$chr},$lastPos-1,$thePos-$lastPos+1-$cutL),"\nx",$Genome{$ScaffID},"x\n";
-		$lastPos=$thePos+$cutR;
+		print S "$ScaffID\t",length($Genome{$ScaffID}),"\t$strand\t$thePos\t$cutL,$cutR\t$thePos\n";
+		print O ${&getChrSeq($chr,$thePos)},"x",$str,"x\n";
+		#$lastPos=$thePos+$cutR;
 	}
 	print O "\n";
 	print S "\n";
