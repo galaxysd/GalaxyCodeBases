@@ -76,10 +76,16 @@ sub getChrSeq($$) {	# Well, no more N triming.
 	my ($id,$end)=@_;
 	my $last=$GenomPos{$id};
 	$GenomPos{$id}=$end;
-	my $str=substr $Genome{$id},$last,$end-$last;
+	my $str;
+	if ($end != -1) {
+		$str=substr $Genome{$id},$last,$end-$last;
+	} else {
+		$str=substr $Genome{$id},$last;
+	}
 	if ($str) {
 		$str =~ s/^NN+/N/;
 		$str .= "\n";
+		warn "[!]$id\t$last\t",$end-$last,"\n";
 	}
 	return \$str;
 }
@@ -144,14 +150,22 @@ for my $chr (sort keys %SacffPos) {
 		my ($left,$right)=($pos+$ScaffLeft-$err,$pos+$ScaffRight+$err);	# this should be wrong but should be right.
 		my ($thePos,$cutL,$cutR)=@{&searchtoPlug($chr,$pos,$left,$right)};
 		print S "$ScaffID\t",length($Genome{$ScaffID}),"\t$strand\t$thePos\t$cutL,$cutR\t$thePos\n";
-		print O ${&getChrSeq($chr,$thePos)},"x",$str,"x\n";
+		print O ${&getChrSeq($chr,$thePos-1)},"x",$str,"x\n";
 		#$lastPos=$thePos+$cutR;
+		delete $Genome{$ScaffID};
 	}
-	print O "\n";
+	print O ${&getChrSeq($chr,-1)},"\n";
 	print S "\n";
+}
+my $SCount=0;
+for my $id (keys %Genome) {
+	next if $id =~ /^chr/i;
+	++$SCount;
+	print O '>',$id,"\n",$Genome{$id},"\n";
 }
 close O;
 close S;
+warn "[!]$SCount Scaffold(s) remains.\n";
 
 __END__
 ./pluginScaff.pl -o PA64new.fa
