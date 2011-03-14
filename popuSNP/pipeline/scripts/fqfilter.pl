@@ -78,7 +78,7 @@ while (my $line1=<FQ>) {
 	#	print "$line1\n$line2\n$line3\n$line4\n";
 	}
 
-	if ($maxL && $maxL<$line2) {
+	if ($maxL && $maxL<$readlen) {
 		$line2=substr $line2,0,$maxL;
 		$line4=substr $line4,0,$maxL;
 		$readlen=$maxL;
