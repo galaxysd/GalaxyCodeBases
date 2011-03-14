@@ -12,11 +12,11 @@ use warnings;
 # See also: /nas/RD_09C/resequencing/soft/pipeline/index_pipe/bin/filter_fq_peZ.pl
 
 unless (@ARGV){
-	print "perl $0 <adapter list file> <fq file> <out.fq.gz> <nfo>\n";
+	print "perl $0 <adapter list file> <fq file> <out.fq.gz> <nfo> <max len>\n";
 	exit;
 }
 
-my ($adapter,$fq,$out,$nfo)=@ARGV;
+my ($adapter,$fq,$out,$nfo,$maxL)=@ARGV;
 
 my %adapter;
 open LIST,'<',$adapter || die "$!\n";
@@ -47,7 +47,7 @@ while (my $line1=<FQ>) {
 	my $line2 = <FQ>;
 	chomp $line2;
 	$readlen=length $line2;
-	$maxreadlen = $readlen if $maxreadlen < $readlen;
+#	$maxreadlen = $readlen if $maxreadlen < $readlen;
 	$inbp += $readlen;
 	my $line3 = <FQ>;
 	chomp $line3;
@@ -62,20 +62,31 @@ while (my $line1=<FQ>) {
 		#my $line2_new = substr($line2, 0, $adapter{$read_name});
 		substr($line2, $alen, $readlen-$alen, 'N' x ($readlen-$alen) );
 		substr($line4, $alen, $readlen-$alen, 'B' x ($readlen-$alen) );
-		$outbp += $alen;
+	#	$outbp += $alen;
+		$readlen = $alen;
 		#my $ii=30-length($line2_new);
 		#$outbp += length($line2_new);	# well, every perl variable is a object, thus length takes no much time.
 		#if ($adapter{$read_name} < 30) {
 		#	$line2_new .= 'N' x $ii;
 		#	$line4_new .= 'B' x $ii;
 		#}
-		print "$line1\n$line2\n$line3\n$line4\n";
+	#	print "$line1\n$line2\n$line3\n$line4\n";
 	} else {
 		++$copyedreads;
-		$outbp += $readlen;
+	#	$outbp += $readlen;
 	#	$line1 =~ s/FC\w{9}:\d+:\d+:\d+:\d+/_${read_num}_/;
-		print "$line1\n$line2\n$line3\n$line4\n";
+	#	print "$line1\n$line2\n$line3\n$line4\n";
 	}
+
+	if ($maxL && $maxL<$line2) {
+		$line2=substr $line2,0,$maxL;
+		$line4=substr $line4,0,$maxL;
+		$readlen=$maxL;
+	}
+	$maxreadlen = $readlen if $maxreadlen < $readlen;
+
+	print "$line1\n$line2\n$line3\n$line4\n";
+	$outbp += $readlen;
 }
 close FQ;
 
