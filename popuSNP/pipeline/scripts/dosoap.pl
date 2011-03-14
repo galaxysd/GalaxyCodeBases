@@ -83,8 +83,9 @@ my ($PESE,$rlins,$G,$opath,$Ref,$fqextpath,$fqname,$u) = @ARGV;
 my ($readlen,$ins)=split ',',$rlins;
 my ($ext,$path)=split ',',$fqextpath;
 my @fqnames=split ',',$fqname;
-my $mismatch=$readlen>70?3:1;
-$mismatch = 5 if $readlen >= 90;
+my $mismatch=$readlen>70?3:1;	# 50,75
+$mismatch = 5 if $readlen >= 90;	# 100
+$mismatch = 12 if $readlen >= 120;	# 150. Well, a bit higher, leave to SoapSNP.
 my ($min,$max)=(140,1200);
 if ($ins > 1500) {
 	$arg0 .= ' -R';
