@@ -14,8 +14,12 @@ my $bin='/nas/RD_09C/resequencing/soft/bin/SoapSNP';
 $sp =~ /\/([^_\/]+)_([^_]+)\.sp$/;
 my $sample=$1;
 my $ChrID=$2.'.fa';
-
 my $sh="$bin -i $sp -d $ref/$ChrID -o $out.glf -F 1 ${DM}-I $matrix -L $readlen 2>$out.log";
+
+if (-f $matrix.'.s') {
+	$sh="$bin -i $sp -d $ref/$ChrID -o $out.cns ${DM}-M $out.matrix -L $readlen 2>$out.log";
+}
+
 # if you need monoploid calling mode, -m must be just in front of -I
 open OUT,'>',"${out}_glf.sh.archive" or warn "[!]Error opening ${out}_glf.sh.archive: $!\n";
 print OUT "#!/bin/sh\n$sh\n";
