@@ -1,0 +1,6 @@
+[submodule "c_cpp/gnulib"]
+	path = c_cpp/gnulib
+	url = http://git.savannah.gnu.org/r/gnulib.git
+[submodule "c_cpp/pspp"]
+	path = c_cpp/pspp
+	url = http://git.savannah.gnu.org/r/pspp.git
