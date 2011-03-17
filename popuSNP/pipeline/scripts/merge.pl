@@ -12,21 +12,29 @@ open LST,'<',$listf or die "[x]Error opening $listf: $!\n";
 my @files=<LST>;
 chomp @files;
 close LST;
+for (@files) {
+	$_ .='.gz' unless -f $_;
+}
+
 my $n=$#files;
 print '[!]',$n+1," file(s) to be megred.\n";
-if ($n == 0) {
+if ($n == 0) {	# maybe I should patch the filename with '.gz' suffix ?
 	system('mv',$files[0],"$outf.sp") and exit 1;	# mv returus 0 for success
 	link "$outf.sp",$files[0] or symlink "$outf.sp",$files[0];
 } else {
 	open O,'>',"$outf.sp" or die "[x]Error opening $outf.sp: $!\n";
 	my @FHL;
 	for (0..$n) {
-		open $FHL[$_][0],'<',$files[$_] or die "[x]Error opening $files[$_]: $!\n";
+		if ($files[$_] =~ /\.gz$/) {
+			open($FHL[$_][0],"-|","gzip -dc $files[$_]") or die "[x]Error opening $files[$_]: $!\n";
+		} else {
+			open $FHL[$_][0],'<',$files[$_] or die "[x]Error opening $files[$_]: $!\n";
+		}
 	}
 	#chomp ($FHL[$_][1]=readline $FHL[$_][0]) for (0..$n);
 	for (@FHL) {
-		$$_[1]=readline $$_[0];	# no need to chomp
-		$$_[2]=(split /\t/,$$_[1])[8];
+		$$_[1]=readline $$_[0];	# no need to chomp.
+		$$_[2]=(split /\t/,$$_[1])[8];	# Will warn uninitialized if $$_[0] is empty, but OK if the file is empty.
 	}
 #print '[',$FHL[$_][1],"]\t[",$FHL[$_][2],"]\n" for (0..$n);
 	while ($n>-1) {
