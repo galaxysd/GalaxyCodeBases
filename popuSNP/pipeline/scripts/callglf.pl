@@ -11,7 +11,7 @@ my ($matrix,$ref,$readlen,$sp,$out,$DM)=@ARGV;
 $DM = ($DM=~/^m/i)?'-m ':'';
 #warn $DM;
 my $bin='/nas/RD_09C/resequencing/soft/bin/SoapSNP';
-$sp =~ /\/([^_\/]+)_([^_]+)\.sp$/;
+$sp =~ /\/?([^_\/]+)_([^.]+)\.sp$/;	# There may be "BsH_chr17_ctg5_hap1.sp"
 my $sample=$1;
 my $ChrID=$2.'.fa';
 my $sh="$bin -i $sp -d $ref/$ChrID -o $out.glf -F 1 ${DM}-I $matrix -L $readlen 2>$out.log";
