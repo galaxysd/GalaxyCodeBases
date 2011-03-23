@@ -74,12 +74,17 @@ while(<IN>) {
 			my @chr=split(//,$_);
 			my $len=@chr;
 			my $count=0;
+			my $Ncount=0;
 			for(my $i=$len-$dis;$i<$len;$i++) {
 				if($chr[$i]=~/[gc]/i) {
 					$count++;
+				} elsif ($chr[$i]=~/n/i) {
+					++$Ncount;
 				}
 			}
-			my $aver=int(($sum-$count)/$win_size*100);
+			my $theV=$win_size-$Ncount;
+			$theV=1 unless $theV;
+			my $aver=int(($sum-$count)/$theV*100);
 			push @{$chr},$aver;
 			$sum=$count;
 			$cnt=$dis;

@@ -11,9 +11,10 @@ my $statf=$depf;
 $statf =~ s/\.[^.\/\\]+$//;
 $statf .= '.depstat';
 
-my ($ChrID,%Stat)=('Empty');
+my ($ChrID,%Stat,%StatA)=('Empty');
 open DEPTH,'<',$depf or die "[x]Error opening $depf: $!\n";
 open STAT,'>',$statf or die "[x]Error opening $statf: $!\n";
+open STATA,'>',$statf.'all' or die "[x]Error opening ${statf}all: $!\n";
 while (<DEPTH>) {
 	chomp;
 	if (/^>/) {
@@ -32,11 +33,15 @@ while (<DEPTH>) {
 		$ChrID=$_;
 		next;
 	} else {
-		++$Stat{$ChrID}{$_} for (split /\s+/);
+		for (split /\s+/) {
+			++$Stat{$ChrID}{$_};
+			++$StatA{$_};
+		}
 	}
 }
 close DEPTH;
 
+		# for the last Chr.
 		if (exists $Stat{$ChrID}) {
 			print STAT "[$ChrID]\n";
 			for my $v (sort {$a <=> $b} keys %{$Stat{$ChrID}}) {
@@ -49,7 +54,37 @@ close DEPTH;
 
 close STAT;
 
+for my $v (sort {$a <=> $b} keys %StatA) {
+	print STATA $v,"\t",$StatA{$v},"\n";
+}
+
+close STATA;
+
 __END__
+> x=seq(0,30,1)
+> plot(x,dpois(x,12),type='p')
+> lines(x,dpois(x,12))
+> lines(c(12,12),c(-1,1),col='blue')
+
+HUMfcmRABDMAAPE
+Lib='HUMfcmRAADDAAPE'
+a=read.delim(paste('g',Lib,'.depstatall',sep=''),F)
+a[1,2]=a[1,2]-239850802
+EffLen=sum(as.numeric(a$V2))
+maxX=20
+maxY=0.15
+x=seq(0,maxX+1,1)
+c=sum(as.numeric(a$V1*a$V2))/EffLen
+pdf(paste('g',Lib,'.pdf',sep=''),width=8,height=6,paper="special")
+plot(a$V1,a$V2/EffLen,xlim=c(0,maxX),ylim=c(0,maxY),type='b',xlab='depth',ylab='density',main=paste('g',Lib,sep=''),
+	sub=paste('depth=',round(c,4),', ','cvg=',round(100*(1-a[1,2]/EffLen),4),' % < ',round(100*(1-exp(-c)),4),' %',sep='')
+	)
+#lines(a$V1,a$V2/EffLen)
+lines(x,dpois(x,c),col='blue')
+lines(c(c,c),c(-1,1),col='red')
+axis(1,at=c)
+dev.off()
+
 https://stat.ethz.ch/pipermail/r-help/2007-June/134110.html
 
 Since in my problem the structure of the INI sections is almost static and
