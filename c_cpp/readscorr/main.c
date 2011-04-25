@@ -1,5 +1,8 @@
+#include <stdlib.h>
 #include <argp.h>
+#include <string.h>
 #include "MurmurHash3.h"
+#include <stdio.h>
 
 const char *argp_program_version =
 "readscorr 0.1";
@@ -18,8 +21,8 @@ static struct argp_option options[] = {
 {"verbose",  'v', 0,      0,  "Produce verbose output" },
 {"quiet",    'q', 0,      0,  "Don't produce any output" },
 {"silent",   's', 0,      OPTION_ALIAS },
-{"output",   'o', "FILE", 0,
-"Output to FILE instead of standard output" },
+{"outprefix",   'o', "./out", 0, "Output to [./out.{dat,stat,log}]" },
+{"inlist",   'i', "./in.lst", 0, "List of input sequence file(s)"  },
 { 0 }
 };
 
@@ -94,6 +97,14 @@ printf ("ARG1 = %s\nARG2 = %s\nOUTPUT_FILE = %s\n"
        arguments.output_file,
        arguments.verbose ? "yes" : "no",
        arguments.silent ? "yes" : "no");
+
+uint64_t tout[2];
+char * str=(char *) arguments.args[0];
+size_t len=strlen(str);
+uint32_t key=atoi(arguments.args[1]);
+MurmurHash3_x64_128(str,len,key,tout);
+printf("Str:[%s] Seed:[%i] -> [%016llx %016lx]\n",str,key,tout[0],tout[1]);
+//free(tout);
 
 exit (0);
 }
