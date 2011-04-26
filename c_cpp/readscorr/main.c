@@ -18,7 +18,7 @@ static char doc[] =
 ;
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "ARG1 ARG2";
+static char args_doc[] = "input_list (in format \"Type\\t/PATH/to/File\\n\")";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -26,16 +26,15 @@ static struct argp_option options[] = {
 {"quiet",    'q', 0,      0,  "Don't produce any output" },
 {"silent",   's', 0,      OPTION_ALIAS },
 {"outprefix",   'o', "./out", 0, "Output to [./out.{dat,stat,log}]" },
-{"inlist",   'i', "./in.lst", 0, "List of input sequence file(s)"  },
 { 0 }
 };
 
 /* Used by main to communicate with parse_opt. */
 struct arguments
 {
-char *args[2];                /* arg1 & arg2 */
+char *args[1];                /* arg1 */
 int silent, verbose;
-char *output_file;
+char *outprefix;
 };
 
 /* Parse a single option. */
@@ -55,11 +54,11 @@ switch (key)
    arguments->verbose = 1;
    break;
  case 'o':
-   arguments->output_file = arg;
+   arguments->outprefix = arg;
    break;
 
  case ARGP_KEY_ARG:
-   if (state->arg_num >= 2)
+   if (state->arg_num >= 1)
      /* Too many arguments. */
      argp_usage (state);
 
@@ -68,7 +67,7 @@ switch (key)
    break;
 
  case ARGP_KEY_END:
-   if (state->arg_num < 2)
+   if (state->arg_num < 1)
      /* Not enough arguments. */
      argp_usage (state);
    break;
@@ -92,22 +91,22 @@ struct arguments arguments;
 /* Default values. */
 arguments.silent = 0;
 arguments.verbose = 0;
-arguments.output_file = "-";
+arguments.outprefix = "./out";
 
 /* Parse our arguments; every option seen by parse_opt will
   be reflected in arguments. */
 argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
-printf ("ARG1 = %s\nARG2 = %s\nOUTPUT_FILE = %s\n"
+printf ("ARG1 = %s\nOutputPrefix = %s\n"
        "VERBOSE = %s\nSILENT = %s\n",
-       arguments.args[0], arguments.args[1],
-       arguments.output_file,
+       arguments.args[0],
+       arguments.outprefix,
        arguments.verbose ? "yes" : "no",
        arguments.silent ? "yes" : "no");
 
-char * str=(char *) arguments.args[0];
+char * str=(char *) arguments.outprefix;
 size_t len=strlen(str);
-uint32_t key=atoi(arguments.args[1]);
+uint32_t key=atoi(arguments.args[0]);
 MurmurHash3_x64_128(str,len,key,tout);
 printf("Str:[%s] Seed:[%i] -> [%016llx %016lx]\n",str,key,tout[0],tout[1]);
 //free(tout);
