@@ -1,6 +1,6 @@
 /* The MIT License
 
-   Copyright (c) 2008 Genome Research Ltd (GRL).
+   Copyright (c) 2008, by Heng Li <lh3@sanger.ac.uk>
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -23,20 +23,12 @@
    SOFTWARE.
 */
 
-/* Contact: Heng Li <lh3@sanger.ac.uk> */
-
-/* Last Modified: 12APR2009 */
-
 #ifndef AC_KSEQ_H
 #define AC_KSEQ_H
 
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-
-#define KS_SEP_SPACE 0 // isspace(): \t, \n, \v, \f, \r
-#define KS_SEP_TAB   1 // isspace() && !' '
-#define KS_SEP_MAX   1
 
 #define __KS_TYPE(type_t)						\
 	typedef struct __kstream_t {				\
@@ -105,16 +97,13 @@ typedef struct __kstring_t {
 					if (ks->end == 0) break;							\
 				} else break;											\
 			}															\
-			if (delimiter > KS_SEP_MAX) {								\
+			if (delimiter) {											\
 				for (i = ks->begin; i < ks->end; ++i)					\
 					if (ks->buf[i] == delimiter) break;					\
-			} else if (delimiter == KS_SEP_SPACE) {						\
+			} else {													\
 				for (i = ks->begin; i < ks->end; ++i)					\
 					if (isspace(ks->buf[i])) break;						\
-			} else if (delimiter == KS_SEP_TAB) {						\
-				for (i = ks->begin; i < ks->end; ++i)					\
-					if (isspace(ks->buf[i]) && ks->buf[i] != ' ') break; \
-			} else i = 0; /* never come to here! */						\
+			}															\
 			if (str->m - str->l < i - ks->begin + 1) {					\
 				str->m = str->l + (i - ks->begin) + 1;					\
 				kroundup32(str->m);										\
@@ -127,10 +116,6 @@ typedef struct __kstring_t {
 				if (dret) *dret = ks->buf[i];							\
 				break;													\
 			}															\
-		}																\
-		if (str->l == 0) {												\
-			str->m = 1;													\
-			str->s = (char*)calloc(1, 1);								\
 		}																\
 		str->s[str->l] = '\0';											\
 		return str->l;													\
