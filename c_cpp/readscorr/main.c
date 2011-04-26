@@ -80,6 +80,9 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main (int argc, char **argv)
 {
+uint64_t tout[2];
+MurmurHash3_x64_128("test",4,123,tout);
+
 struct arguments arguments;
 
 /* Default values. */
@@ -98,7 +101,6 @@ printf ("ARG1 = %s\nARG2 = %s\nOUTPUT_FILE = %s\n"
        arguments.verbose ? "yes" : "no",
        arguments.silent ? "yes" : "no");
 
-uint64_t tout[2];
 char * str=(char *) arguments.args[0];
 size_t len=strlen(str);
 uint32_t key=atoi(arguments.args[1]);
