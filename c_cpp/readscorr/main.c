@@ -11,11 +11,11 @@ const char *argp_program_bug_address =
 
 /* Program documentation. */
 static char doc[] =
-"a Solexa Reads Corrector using Bloom filter\
+"a Solexa Reads Corrector using Bloom filter"
 #ifdef DEBUG
- (Debug Version)\
+" (Debug Version)"
 #endif
-";
+;
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "ARG1 ARG2";

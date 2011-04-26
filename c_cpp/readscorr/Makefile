@@ -25,18 +25,18 @@ objects = $(cobjects) $(cppobjects) $(c99objects)
 all: clean $(objects) readscorr
 
 readscorr : $(objects)
-	$(CPP) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
 
 $(cobjects): %.o: %.c 
 	$(CC) $(MAKEARG) -c $< -o $@ > $@.asm
 $(cppobjects): %.o: %.cpp
 	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
 $(c99objects): %.o: %.c
-	$(CC) $(MAKEARG) -std=c99 -c $< -o $@ > $@.asm
+	$(CC) -std=c99 $(MAKEARG) -c $< -o $@ > $@.asm
 
-debug: override MAKEARG := $(CFLAGS) $(DEF) -D DEBUG -g $(ASMO)
+debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
-	$(CPP) $(CFLAGS) $(LDFLAGS) $(DEBUG) -o readscorr $(objects)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(DEBUG) -o readscorr $(objects)
 
 .PHONY : clean
 clean :

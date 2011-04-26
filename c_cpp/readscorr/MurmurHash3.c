@@ -41,8 +41,8 @@ inline uint64_t rotl64 ( uint64_t x, int8_t r )
   return (x << r) | (x >> (64 - r));
 }
 
-#define	ROTL32(x,y)	rotl32(x,y)
-#define ROTL64(x,y)	rotl64(x,y)
+#define	ROTL32(x,y)	rotl32(x,y) // at least -O is needed for this to work.
+#define ROTL64(x,y)	rotl64(x,y) // Or, MurmurHash3.c:127: undefined reference to `rotl64' when link.
 
 #define BIG_CONSTANT(x) (x##LLU)
 
