@@ -21,7 +21,7 @@ static char doc[] =
 ;
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "input_list (in format \"Type\\t/PATH/to/File\\n\")";
+static char args_doc[] = "input_list (of FASTA or FASTQ files, gzipped is OK)";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -111,7 +111,7 @@ char * str=(char *) arguments.outprefix;
 size_t len=strlen(str);
 uint32_t key=atoi(arguments.args[0]);
 MurmurHash3_x64_128(str,len,key,tout);
-printf("Str:[%s] Seed:[%i] -> [%016llx %016lx]\n",str,key,tout[0],tout[1]);
+printf("Str:[%s] Seed:[%i] -> [%016lx %016lx]\n",str,key,tout[0],tout[1]);
 //free(tout);
 
 	gzFile fp;
