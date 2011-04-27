@@ -1,7 +1,6 @@
 CC = gcc
 CPP = g++
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic
-DEBUG = -g
 LDFLAGS = -lz -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
 OPT = -O3
 ASMO = -Wa,-a,-ad
@@ -36,8 +35,8 @@ $(c99objects): %.o: %.c
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
-	$(CC) $(CFLAGS) $(LDFLAGS) $(DEBUG) -o readscorr $(objects)
+	$(CC) $(CFLAGS) $(LDFLAGS) -g -o readscorr $(objects)
 
 .PHONY : clean
 clean :
-	-rm readscorr $(objects) $(cppobjects)
+	-rm readscorr $(objects)
