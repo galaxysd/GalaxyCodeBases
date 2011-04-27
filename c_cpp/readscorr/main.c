@@ -7,6 +7,7 @@
 #include <err.h>
 #include <argp.h>
 #include "MurmurHash3.h"
+#include "getch.h"
 //#include <zlib.h>
 //#include "kseq.h"
 //KSEQ_INIT(gzFile, gzread)
@@ -172,7 +173,8 @@ int main (int argc, char **argv) {
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
     size_t bloomLen = 1024*1024*arguments.bloomsize;
-    printf ("ARG1 = %s\nOutputPrefix = %s\n"
+    if (arguments.interactive) {
+      printf ("ARG1 = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"
            "kmersize = %i, bloomsize = %i MiB (%zu Bytes)\n",
            arguments.args[0],
@@ -180,7 +182,9 @@ int main (int argc, char **argv) {
            arguments.verbose ? "yes" : "no",
            arguments.silent ? "yes" : "no",
            arguments.kmersize,arguments.bloomsize,bloomLen);
-
+      pressAnyKey();
+      //printf("[%i]\n",pressAnyKey());
+    }
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
