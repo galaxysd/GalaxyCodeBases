@@ -1,8 +1,8 @@
 CC = gcc
 CPP = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -pipe -march=core2 -mtune=generic
 DEBUG = -g
-LDFLAGS = -lz
+LDFLAGS = -lz -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
 OPT = -O3
 ASMO = -Wa,-a,-ad
 
