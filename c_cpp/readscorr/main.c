@@ -12,15 +12,15 @@
 //KSEQ_INIT(gzFile, gzread)
 
 const char *argp_program_version =
-"readscorr 0.1";
+    "readscorr 0.1";
 const char *argp_program_bug_address =
-"<huxuesong@genomics.org.cn>";
+    "<huxuesong@genomics.org.cn>";
 
 /* Program documentation. */
 static char doc[] =
-"a Solexa Reads Corrector using Bloom filter"
+    "a Solexa Reads Corrector using Bloom filter"
 #ifdef DEBUG
-" (Debug Version)"
+    " (Debug Version)"
 #endif
 ;
 
@@ -42,7 +42,7 @@ static struct argp_option options[] = {
 /* Used by main to communicate with parse_opt. */
 struct arguments {
     char *args[1];                /* arg1 */
-    uint_fast8_t silent, verbose, interactive;  //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
+    uint_fast8_t silent, verbose, interactive;   //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
     int bloomsize, kmersize;
     char *outprefix;
 };
@@ -70,7 +70,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'k':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>2 && tmpArgValue%2) {    // odd numbers only
+            if (tmpArgValue>2 && tmpArgValue%2) {   // odd numbers only
                arguments->kmersize = tmpArgValue;
             } else {
                errx(2,"-k \"%s\"=%i is not a positive odd number !",arg,tmpArgValue);
@@ -94,9 +94,8 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         
         case ARGP_KEY_END:
-            if (state->arg_num < 1)
-             /* Not enough arguments. */
-             argp_usage (state);
+            if (state->arg_num < 1)   /* Not enough arguments. */
+               argp_usage (state);
             break;
         
         default:
@@ -109,53 +108,53 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 /*
-int main (int argc, char **argv)                                          
-{                                                                         
-uint64_t tout[2];                                                         
-MurmurHash3_x64_128("test",4,123,tout);                                   
-                                                                          
-struct arguments arguments;                                               
-                                                                          
-// Default values.              
-arguments.silent = 0;                                                     
-arguments.verbose = 0;                                                    
-arguments.outprefix = "./out";                                            
-                                                                          
-// Parse our arguments; every option seen by parse_opt will be reflected in arguments.                           
-argp_parse (&argp, argc, argv, 0, 0, &arguments);                         
-                                                                          
-printf ("ARG1 = %s\nOutputPrefix = %s\n"                                  
-       "VERBOSE = %s\nSILENT = %s\n",                                     
-       arguments.args[0],                                                 
-       arguments.outprefix,                                               
-       arguments.verbose ? "yes" : "no",                                  
-       arguments.silent ? "yes" : "no");                                  
-                                                                          
-char * str=(char *) arguments.outprefix;                                  
-size_t len=strlen(str);                                                   
-uint32_t key=atoi(arguments.args[0]);                                     
-MurmurHash3_x64_128(str,len,key,tout);                                    
+int main (int argc, char **argv)
+{
+uint64_t tout[2];
+MurmurHash3_x64_128("test",4,123,tout);
+
+struct arguments arguments;
+
+// Default values.
+arguments.silent = 0;
+arguments.verbose = 0;
+arguments.outprefix = "./out";
+
+// Parse our arguments; every option seen by parse_opt will be reflected in arguments.
+argp_parse (&argp, argc, argv, 0, 0, &arguments);
+
+printf ("ARG1 = %s\nOutputPrefix = %s\n"
+       "VERBOSE = %s\nSILENT = %s\n",
+       arguments.args[0],
+       arguments.outprefix,
+       arguments.verbose ? "yes" : "no",
+       arguments.silent ? "yes" : "no");
+
+char * str=(char *) arguments.outprefix;
+size_t len=strlen(str);
+uint32_t key=atoi(arguments.args[0]);
+MurmurHash3_x64_128(str,len,key,tout);
 printf("Str:[%s] Seed:[%i] -> [%016lx %016lx]\n",str,key,tout[0],tout[1]);
-//free(tout);                                                             
-                                                                          
-    gzFile fp;                                                            
-    kseq_t *seq;                                                          
-    int l;                                                                
-    fp = gzopen(arguments.args[0], "r");                                  
-    seq = kseq_init(fp);                                                  
-    while ((l = kseq_read(seq)) >= 0) {                                   
-        printf("name: %s\n", seq->name.s);                                
-        if (seq->comment.l) printf("comment: %s\n", seq->comment.s);      
-        printf("seq: %s\n", seq->seq.s);                                  
-        if (seq->qual.l) printf("qual: %s\n", seq->qual.s);               
-    }                                                                     
-    printf("return value: %d\n", l);                                      
-    kseq_destroy(seq);                                                    
-    gzclose(fp);                                                          
-                                                                          
-                                                                          
-exit (0);                                                                 
-}                                                                         
+//free(tout);
+
+    gzFile fp;
+    kseq_t *seq;
+    int l;
+    fp = gzopen(arguments.args[0], "r");
+    seq = kseq_init(fp);
+    while ((l = kseq_read(seq)) >= 0) {
+        printf("name: %s\n", seq->name.s);
+        if (seq->comment.l) printf("comment: %s\n", seq->comment.s);
+        printf("seq: %s\n", seq->seq.s);
+        if (seq->qual.l) printf("qual: %s\n", seq->qual.s);
+    }
+    printf("return value: %d\n", l);
+    kseq_destroy(seq);
+    gzclose(fp);
+
+
+exit (0);
+}
 */
 
 int main (int argc, char **argv) {
@@ -175,37 +174,37 @@ int main (int argc, char **argv) {
     size_t bloomLen = 1024*1024*arguments.bloomsize;
     printf ("ARG1 = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"
-            "kmersize = %i, bloomsize = %i\n",
+           "kmersize = %i, bloomsize = %i MiB (%zu Bytes)\n",
            arguments.args[0],
            arguments.outprefix,
            arguments.verbose ? "yes" : "no",
            arguments.silent ? "yes" : "no",
-           arguments.kmersize,arguments.bloomsize);
+           arguments.kmersize,arguments.bloomsize,bloomLen);
 
-	FILE *fp;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
 
-	fp = fopen(arguments.args[0], "r");
-	if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
+    fp = fopen(arguments.args[0], "r");
+    if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
 
     fputs("\nFirst pass:\n", stderr);
-	while ((read = getline(&line, &len, fp)) != -1) {
-		if (*(line+read-1)=='\n') *(line+(--read))='\0';	// line[read-1] = '\0';
-		fprintf(stderr, " <%s> ...", line);
-		sleep(1);	// the Call ...
-		fputs("\b\b\b\b, done !\n", stderr);
-	}
+    while ((read = getline(&line, &len, fp)) != -1) {
+        if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
+        fprintf(stderr, " <%s> ...", line);
+        sleep(1);    // the Call ...
+        fputs("\b\b\b\b, done !\n", stderr);
+    }
 
     rewind(fp);
-	fputs("\nSecond pass:\n", stderr);
-	while ((read = getline(&line, &len, fp)) != -1) {
-		if (*(line+read-1)=='\n') *(line+(--read))='\0';
-		printf("[%zu]+%zu <%s>\n", read, len, line);
-	}
-	fputs("\nHashing Done!\n", stderr);
-	free(line);
+    fputs("\nSecond pass:\n", stderr);
+    while ((read = getline(&line, &len, fp)) != -1) {
+        if (*(line+read-1)=='\n') *(line+(--read))='\0';
+        printf("[%zu]+%zu <%s>\n", read, len, line);
+    }
+    fputs("\nHashing Done!\n", stderr);
+    free(line);
 
     exit(EXIT_SUCCESS);
 }

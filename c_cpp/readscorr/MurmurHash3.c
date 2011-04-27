@@ -7,6 +7,9 @@
 // compile and run any of them on any platform, but your performance with the
 // non-native version will be less than optimal.
 
+// This version is based on the C++ version and trimed to only MurmurHash3_x64_128.
+// Edited by Hu Xuesong @ Apr 26 2011, based on r135 | 2011-04-14 07:36:49 +0800 (Thu, 14 Apr 2011)
+
 #include "MurmurHash3.h"
 
 //-----------------------------------------------------------------------------
