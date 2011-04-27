@@ -2,7 +2,7 @@ CC = gcc
 CPP = g++
 CFLAGS = -Wall
 DEBUG = -g
-LDFLAGS = -lm
+LDFLAGS = -lz
 OPT = -O3
 ASMO = -Wa,-a,-ad
 

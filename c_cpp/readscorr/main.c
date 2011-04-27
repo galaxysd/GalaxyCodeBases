@@ -3,6 +3,9 @@
 #include <string.h>
 #include "MurmurHash3.h"
 #include <stdio.h>
+#include <zlib.h>
+#include "kseq.h"
+KSEQ_INIT(gzFile, gzread)
 
 const char *argp_program_version =
 "readscorr 0.1";
@@ -110,6 +113,22 @@ uint32_t key=atoi(arguments.args[0]);
 MurmurHash3_x64_128(str,len,key,tout);
 printf("Str:[%s] Seed:[%i] -> [%016llx %016lx]\n",str,key,tout[0],tout[1]);
 //free(tout);
+
+	gzFile fp;
+	kseq_t *seq;
+	int l;
+	fp = gzopen(arguments.args[0], "r");
+	seq = kseq_init(fp);
+	while ((l = kseq_read(seq)) >= 0) {
+		printf("name: %s\n", seq->name.s);
+		if (seq->comment.l) printf("comment: %s\n", seq->comment.s);
+		printf("seq: %s\n", seq->seq.s);
+		if (seq->qual.l) printf("qual: %s\n", seq->qual.s);
+	}
+	printf("return value: %d\n", l);
+	kseq_destroy(seq);
+	gzclose(fp);
+
 
 exit (0);
 }
