@@ -8,6 +8,7 @@
 #include <argp.h>
 #include "MurmurHash3.h"
 #include "getch.h"
+#include "2bitarray.h"
 //#include <zlib.h>
 //#include "kseq.h"
 //KSEQ_INIT(gzFile, gzread)
@@ -172,7 +173,7 @@ int main (int argc, char **argv) {
     // Parse our arguments; every option seen by parse_opt will be reflected in arguments.
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
-    size_t bloomLen = 1024*1024*arguments.bloomsize;
+    size_t bloomLen = 512*1024*arguments.bloomsize;
     if (arguments.interactive) {
       printf ("ARG1 = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"

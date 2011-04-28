@@ -1,6 +1,9 @@
 // From http://faq.cprogramming.com/cgi-bin/smartfaq.cgi?answer=1042856625&id=1043284385
 // Edited by Hu Xuesong @ Thu Apr 28 CST 2011
 
+#ifndef _GA_GETCH_H
+#define _GA_GETCH_H
+
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -29,3 +32,6 @@ int pressAnyKey (void) {
   fputs("\n", stderr);
   return ch;
 }
+
+#endif /* getch.h */
+

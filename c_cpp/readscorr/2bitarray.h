@@ -3,36 +3,46 @@
 // Added BitToggle, BitValue and BitCopy without ByteInArray from xtrapbits.h.
 // by Hu Xuesong
 
-#ifndef __GA_XTRAPBITS__
-#define __GA_XTRAPBITS__ "@(#)bitarray.h	0.1 - 20110428"
+#ifndef _GA_TBITARRAY_H
+#define _GA_TBITARRAY_H
+
+#include <stdint.h>
+#include <stdlib.h>
 
 #include <limits.h>		/* for CHAR_BIT */
 
-#define BITMASK(b) /* Returns the bit mask of a byte */ \
-    (1 << ((b) % CHAR_BIT))
+#define CHAR_TBIT (CHAR_BIT>>1)	// 8/2 = 4
 
-#define BITSLOT(b) ((b) / CHAR_BIT) // Just the index of char[]
+#define TBITSHIFT(b) (((b) % CHAR_TBIT)<<1)
 
-#define BITSET(a, b) /* Set a specific bit to be True */ \
-    ((a)[BITSLOT(b)] |= BITMASK(b))
+#define TBITMASK(b) /* Returns the bit mask of a byte */ \
+    (3 << TBITSHIFT(b))
 
-#define BITCLEAR(a, b) /* Set a specific bit to be False */ \
-    ((a)[BITSLOT(b)] &= ~BITMASK(b))
+#define TBITSLOT(b) ((b) / CHAR_TBIT) // Just the index of char[]
 
-#define BitToggle(a,b)    /* Toggle a specific bit */ \
-    ((a)[BITSLOT(b)] ^= BITMASK(b))
+#define TBITGETVALUE(a, b) /* Get Value */ \
+    (((a)[TBITSLOT(b)] >> TBITSHIFT(b)) & 3)
+//  (((a)[2BITSLOT(b)] & 2BITMASK(b)) >> 2BITSHIFT(b))
 
-#define BITTEST(a, b) /* Test to see if a specific bit is True={1,2,4,8} */ \
-    ((a)[BITSLOT(b)] & BITMASK(b))
+#define TBITNSLOTS(nb) ((2*(nb) + CHAR_BIT - 1) / CHAR_BIT) // caltulate the length of char[]. x*2 can overflow while x<<1 cannot.
 
-#define BitCopy(dest,src,bit)   /* Copy a specific bit between TWO bit-arrays*/ \
-    BITTEST((src),(bit)) ? BITSET((dest),(bit)) : BITCLEAR((dest),(bit))
 
-#define BitValue(array,bit)     /* Return True=1 or False=0 depending on bit */ \
-    (BITSET((array),(bit)) ? 1 : 0)
+#if defined(_MSC_VER)
 
-#define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT) // caltulate the length of char[]
+#define FORCE_INLINE	__forceinline
 
+#else	// defined(_MSC_VER)
+
+#define	FORCE_INLINE __attribute__((always_inline))
+
+#endif // !defined(_MSC_VER)
+
+void TBITSetValue ( char arr[], size_t index, uint_fast8_t value );
+uint_fast8_t TBITSaturatedADD ( char arr[], size_t index, int_fast8_t value );
+uint_fast8_t TBITSaturatedINC ( char arr[], size_t index );
+uint_fast8_t TBITSaturatedDEC ( char arr[], size_t index );
+
+#endif /* 2bitarray.h */
 /*
 (If you don't have <limits.h>, try using 8 for CHAR_BIT.)
 
@@ -81,5 +91,4 @@ int main()
 	return 0;
 }
 */
-#endif /* __GA_XTRAPBITS__ */
 
