@@ -5,7 +5,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-int mygetch ( void ) {
+inline int mygetch ( void ) {
   int ch;
   struct termios oldt, newt;
 
