@@ -27,16 +27,6 @@
 #define TBITNSLOTS(nb) ((2*(nb) + CHAR_BIT - 1) / CHAR_BIT) // caltulate the length of char[]. x*2 can overflow while x<<1 cannot.
 
 
-#if defined(_MSC_VER)
-
-#define FORCE_INLINE	__forceinline
-
-#else	// defined(_MSC_VER)
-
-#define	FORCE_INLINE __attribute__((always_inline))
-
-#endif // !defined(_MSC_VER)
-
 void TBITSetValue ( char arr[], size_t index, uint_fast8_t value );
 uint_fast8_t TBITSaturatedADD ( char arr[], size_t index, int_fast8_t value );
 uint_fast8_t TBITSaturatedINC ( char arr[], size_t index );

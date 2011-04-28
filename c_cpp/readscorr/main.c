@@ -14,7 +14,7 @@
 //KSEQ_INIT(gzFile, gzread)
 
 const char *argp_program_version =
-    "readscorr 0.1";
+    "readscorr 0.1 @"__TIME__ "," __DATE__;
 const char *argp_program_bug_address =
     "<huxuesong@genomics.org.cn>";
 
