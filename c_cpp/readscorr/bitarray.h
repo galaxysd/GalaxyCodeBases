@@ -1,17 +1,12 @@
 // From http://c-faq.com/misc/bitsets.html
 // See also /usr/include/X11/extensions/xtrapbits.h
-// Added BitToggle and BitCopy with ByteInArray from xtrapbits.h. Not tested yet.
+// Added BitToggle, BitValue and BitCopy without ByteInArray from xtrapbits.h.
 // by Hu Xuesong
 
 #include <limits.h>		/* for CHAR_BIT */
 
-typedef unsigned char * UByteP;  /* Pointer to an unsigned byte array */
-
 #define BITMASK(b) /* Returns the bit mask of a byte */ \
     (1 << ((b) % CHAR_BIT))
-
-#define ByteInArray(array,bit) /* Returns the byte offset to get to a bit */ \
-    (((UByteP)(array))[(bit) / CHAR_BIT)])
 
 #define BITSLOT(b) ((b) / CHAR_BIT) // Just the index of char[]
 
@@ -21,14 +16,17 @@ typedef unsigned char * UByteP;  /* Pointer to an unsigned byte array */
 #define BITCLEAR(a, b) /* Set a specific bit to be False */ \
     ((a)[BITSLOT(b)] &= ~BITMASK(b))
 
-#define BitToggle(array,bit)    /* Toggle a specific bit */ \
-    (ByteInArray(array,bit) ^= BITMASK(bit))
+#define BitToggle(a,b)    /* Toggle a specific bit */ \
+    ((a)[BITSLOT(b)] ^= BITMASK(b))
 
-#define BITTEST(a, b) /* Test to see if a specific bit is True */ \
+#define BITTEST(a, b) /* Test to see if a specific bit is True={1,2,4,8} */ \
     ((a)[BITSLOT(b)] & BITMASK(b))
 
-#define BitCopy(dest,src,bit)   /* Copy a specific bit */ \
+#define BitCopy(dest,src,bit)   /* Copy a specific bit between TWO bit-arrays*/ \
     BITTEST((src),(bit)) ? BITSET((dest),(bit)) : BITCLEAR((dest),(bit))
+
+#define BitValue(array,bit)     /* Return True=1 or False=0 depending on bit */ \
+    (BITSET((array),(bit)) ? 1 : 0)
 
 #define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT) // caltulate the length of char[]
 
