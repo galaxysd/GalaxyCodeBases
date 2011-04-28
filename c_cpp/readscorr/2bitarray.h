@@ -1,6 +1,3 @@
-// From http://c-faq.com/misc/bitsets.html
-// See also /usr/include/X11/extensions/xtrapbits.h
-// Added BitToggle, BitValue and BitCopy without ByteInArray from xtrapbits.h.
 // by Hu Xuesong
 
 #ifndef _GA_TBITARRAY_H
