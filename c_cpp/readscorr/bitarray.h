@@ -1,10 +1,10 @@
 // From http://c-faq.com/misc/bitsets.html
 // See also /usr/include/X11/extensions/xtrapbits.h
-// Added BitToggle, BitValue and BitCopy without ByteInArray from xtrapbits.h.
+// Added BITTOGGLE, BITCOPY and BITVALUE without ByteInArray from xtrapbits.h, also change to UPPER case.
 // by Hu Xuesong
 
-#ifndef __GA_XTRAPBITS__
-#define __GA_XTRAPBITS__ "@(#)bitarray.h	0.1 - 20110428"
+#ifndef __GA_BITARRAY_H
+#define __GA_BITARRAY_H "@(#)bitarray.h	0.1 - 20110428"
 
 #include <limits.h>		/* for CHAR_BIT */
 
@@ -19,16 +19,16 @@
 #define BITCLEAR(a, b) /* Set a specific bit to be False */ \
     ((a)[BITSLOT(b)] &= ~BITMASK(b))
 
-#define BitToggle(a,b)    /* Toggle a specific bit */ \
+#define BITTOGGLE(a,b)    /* Toggle a specific bit */ \
     ((a)[BITSLOT(b)] ^= BITMASK(b))
 
 #define BITTEST(a, b) /* Test to see if a specific bit is True={1,2,4,8} */ \
     ((a)[BITSLOT(b)] & BITMASK(b))
 
-#define BitCopy(dest,src,bit)   /* Copy a specific bit between TWO bit-arrays*/ \
+#define BITCOPY(dest,src,bit)   /* Copy a specific bit between TWO bit-arrays*/ \
     BITTEST((src),(bit)) ? BITSET((dest),(bit)) : BITCLEAR((dest),(bit))
 
-#define BitValue(array,bit)     /* Return True=1 or False=0 depending on bit */ \
+#define BITVALUE(array,bit)     /* Return True=1 or False=0 depending on bit */ \
     (BITSET((array),(bit)) ? 1 : 0)
 
 #define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT) // caltulate the length of char[]
@@ -81,5 +81,5 @@ int main()
 	return 0;
 }
 */
-#endif /* __GA_XTRAPBITS__ */
+#endif /* __GA_BITARRAY_H */
 
