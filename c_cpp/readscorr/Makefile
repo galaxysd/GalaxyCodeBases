@@ -16,7 +16,7 @@ override CFLAGS := $(CFLAGS) -fopenmp
 override DEF := $(DEF) -D OPENMP
 endif
  
-cobjects = main.o 2bitarray.o
+cobjects = main.o
 cppobjects = 
 c99objects = MurmurHash3.o
 objects = $(cobjects) $(cppobjects) $(c99objects)
