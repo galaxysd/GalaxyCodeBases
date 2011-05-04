@@ -9,6 +9,7 @@
 #include "MurmurHash3.h"
 #include "getch.h"
 #include "2bitarray.h"
+#include "gFileIO.h"
 //#include <zlib.h>
 //#include "kseq.h"
 //KSEQ_INIT(gzFile, gzread)

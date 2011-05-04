@@ -1,6 +1,7 @@
 CC = gcc
 CPP = g++
-CFLAGS = -Wall -pipe -march=core2 -mtune=generic
+CFLAGS = -Wall -pipe -march=core2 -mtune=generic \
+-ftree-vectorize -ftree-vectorizer-verbose=5
 LDFLAGS = -lz -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
 OPT = -O3
 ASMO = -Wa,-a,-ad
@@ -18,7 +19,7 @@ endif
  
 cobjects = main.o
 cppobjects = 
-c99objects = MurmurHash3.o
+c99objects = MurmurHash3.o gFileIO.o
 objects = $(cobjects) $(cppobjects) $(c99objects)
 
 all: clean $(objects) readscorr
