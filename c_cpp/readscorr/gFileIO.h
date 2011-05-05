@@ -2,7 +2,7 @@
 #ifndef _G_FILEIO_H
 #define _G_FILEIO_H
 
-#include <stdio.h>	// for fpos_t
+#include "gFileType.h"	// for file ID
 
 #ifndef KSTRING_T
 #define KSTRING_T kstring_t
@@ -12,15 +12,22 @@ typedef struct __kstring_t {
 } kstring_t;
 #endif	// Yes, it is the same as that in kseq.h
 
+typedef int (*G_int_oneIN)(void *);
 typedef struct __SeqFileObj {
+   const kstring_t *name, *comment, *seq, *qual;   // when SeqFileObj.ReadNext, they are being updated.
+   const kstring_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
+   const kstring_t *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
+   //int (*getNextSeq)(void *);   // void * fh
+   G_int_oneIN getNextSeq;
    void * fh;   // Not just FILE *fp
-   int (*getNextSeq)(void *);   // void * fh
-   fpos_t datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
-   kstring_t * name, comment;   // when SeqFileObj.ReadNext, they are being updated.
-   kstring_t diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
-   kstring_t hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
+   long datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
+   //long datePosOffset,datePosItem;
 } SeqFileObj;   // We may support both FA/FQ and binary formats. So, object is a good thing.
 
+SeqFileObj * inSeqFinit(const char * const);
+int inSeqFreadNext(SeqFileObj * const);
+int inSeqFseek(SeqFileObj * const, const fpos_t datePos[]);
+void inSeqFdestroy(SeqFileObj * const);
 
 #endif /* gFileIO.h */
 

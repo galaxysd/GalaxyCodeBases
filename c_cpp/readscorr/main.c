@@ -199,7 +199,10 @@ int main (int argc, char **argv) {
     while ((read = getline(&line, &len, fp)) != -1) {
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
-        sleep(1);    // the Call ...
+        //sleep(1);    // the Call ...
+        SeqFileObj *seqobj = inSeqFinit(line);
+        printf("ID:[%s,%s]\nSeq:[%s]\nQ:[%s]\n",
+        	seqobj->name->s,seqobj->comment->s,seqobj->seq->s,seqobj->qual->s);
         fputs("\b\b\b\b, done !\n", stderr);
     }
 
