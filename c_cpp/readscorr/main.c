@@ -197,6 +197,7 @@ int main (int argc, char **argv) {
 
     fputs("\nFirst pass:\n", stderr);
     while ((read = getline(&line, &len, fp)) != -1) {
+    	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
