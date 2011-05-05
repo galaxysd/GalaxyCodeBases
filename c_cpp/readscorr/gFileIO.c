@@ -9,8 +9,7 @@
 #include <zlib.h>
 #include "kseq.h"
 #include "gFileIO.h"
-
-KSEQ_INIT(gzFile, gzread)
+KSEQ_INIT(gzFile, gzread)	// Just like include, to inline some static inline functions.
 
 SeqFileObj * inSeqFinit(const char * const filename) {
 	int fd;
@@ -25,14 +24,13 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 	if ( fdstat )
 		warn("ErrNo:[%zd] while closing file [%s].", fdstat, filename);
 
-	//SeqFileObj * const seqObj = NULL;
-	SeqFileObj * const seqObj = calloc(1,sizeof(SeqFileObj));	//&(SeqFileObj) {.datePos={0}}; thread safe sine not static
+	SeqFileObj * const seqObj = calloc(1,sizeof(SeqFileObj));	// in fact, just {.datePos[1]=0} is needed for kseq way.
+	//CANNOT use `&(SeqFileObj) {.datePos={0}};`, which is of a short lifetime !
 
 	if ( memcmp(G_TYPE_FAQC, FileID, G_HEADER_LENGTH) ) {	// Not G_TYPE_FAQC, thus to kseq.h
 		gzFile fp;
 		kseq_t *seq;
 
-		int seqlen;
 		fp = gzopen(filename, "r");
 		if (! fp) err(EXIT_FAILURE, "Cannot open with zlib for [%s]", filename);
 		seq = kseq_init(fp);	// calloc, thus safe
@@ -45,7 +43,8 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 		seqObj->getNextSeq = (G_int_oneIN) kseq_read;	// (int (*)(void*))
 		seqObj->diBseq = NULL;	// later ...
 		seqObj->hexBQ = NULL;
-	(*seqObj->getNextSeq)(seqObj->fh);	//seqlen = kseq_read(seq);	// TEST ONLY !
+	int seqlen;	// TEST ONLY !
+	seqlen = (*seqObj->getNextSeq)(seqObj->fh);	//seqlen = kseq_read(seq); // TEST ONLY !
 		
 	} else {	// is G_TYPE_FAQC
 		errx(EXIT_FAILURE, "FAQC file not supported now.");
@@ -53,35 +52,3 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 
 	return seqObj;
 }
-
-/*
-#include <zlib.h>
-#include <stdio.h>
-#include "kseq.h"
-KSEQ_INIT(gzFile, gzread)
-
-int main(int argc, char *argv[])
-{
-	gzFile fp;
-	kseq_t *seq;
-	int l;
-	if (argc == 1) {
-		fprintf(stderr, "Usage: %s <in.seq>\n", argv[0]);
-		return 1;
-	}
-	fp = gzopen(argv[1], "r");
-	seq = kseq_init(fp);
-	while ((l = kseq_read(seq)) >= 0) {
-		printf("name: %s\n", seq->name.s);
-		if (seq->comment.l) printf("comment: %s\n", 
-seq->comment.s);
-		printf("seq: %s\n", seq->seq.s);
-		if (seq->qual.l) printf("qual: %s\n", seq->qual.s);
-	}
-	printf("return value: %d\n", l);
-	kseq_destroy(seq);
-	gzclose(fp);
-	return 0;
-}
-*/
-
