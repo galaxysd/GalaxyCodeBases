@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <zlib.h>
 
+#define __GKSEQ_FILETYPE gzFile	// Well, EP enough to use define here.
+#define __GKSEQ_READFUNC gzread	// Maybe "lh3" just want to make debug harder for his code ?
 //#define ks_eof(ks) ((ks)->is_eof && (ks)->begin >= (ks)->end)
 //#define ks_rewind(ks) ((ks)->is_eof = (ks)->begin = (ks)->end = 0)
 #define __GKSEQ_BUFSIZE 4096
@@ -32,7 +34,7 @@ typedef struct __kstring_t {
 typedef struct __kstream_t {
     char *buf;
     int begin, end, is_eof;
-    gzFile f;
+    __GKSEQ_FILETYPE f;
 } kstream_t;
 
 typedef struct {
@@ -41,7 +43,7 @@ typedef struct {
     kstream_t *f;
 } kseq_t;
 
-static inline kstream_t *ks_init(gzFile f) {
+static inline kstream_t *ks_init(__GKSEQ_FILETYPE f) {
     kstream_t *ks = (kstream_t *) calloc(1, sizeof(kstream_t));
     ks->f = f;
     ks->buf = (char *) malloc(__GKSEQ_BUFSIZE);
@@ -60,7 +62,7 @@ static inline int ks_getc(kstream_t * ks) {
         return -1;
     if (ks->begin >= ks->end) {
         ks->begin = 0;
-        ks->end = gzread(ks->f, ks->buf, __GKSEQ_BUFSIZE);
+        ks->end = __GKSEQ_READFUNC(ks->f, ks->buf, __GKSEQ_BUFSIZE);
         if (ks->end < __GKSEQ_BUFSIZE)
             ks->is_eof = 1;
         if (ks->end == 0)
@@ -80,7 +82,7 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
         if (ks->begin >= ks->end) {
             if (!ks->is_eof) {
                 ks->begin = 0;
-                ks->end = gzread(ks->f, ks->buf, __GKSEQ_BUFSIZE);
+                ks->end = __GKSEQ_READFUNC(ks->f, ks->buf, __GKSEQ_BUFSIZE);
                 if (ks->end < __GKSEQ_BUFSIZE)
                     ks->is_eof = 1;
                 if (ks->end == 0)
@@ -115,7 +117,7 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
     return str->l;
 }
 
-static inline kseq_t *kseq_init(gzFile fd) {
+static inline kseq_t *kseq_init(__GKSEQ_FILETYPE fd) {
     kseq_t *s = (kseq_t *) calloc(1, sizeof(kseq_t));
     s->f = ks_init(fd);
 /*  realloc() may change the address, 
