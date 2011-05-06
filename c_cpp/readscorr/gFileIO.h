@@ -15,7 +15,9 @@ typedef struct __kstring_t {
 typedef int (*G_int_oneIN)(void *);
 typedef struct __SeqFileObj {
    const size_t *readlength;
-   const char **name, **comment, **seq, **qual;   // when SeqFileObj.ReadNext, they are being updated.
+   char *const*name, *const*comment, *const*seq, *const*qual;
+	// $ cdecl explain "char * const* name"
+	// declare name as pointer to const pointer to char
    const kstring_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
    const kstring_t *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
    //int (*getNextSeq)(void *);   // void * fh
