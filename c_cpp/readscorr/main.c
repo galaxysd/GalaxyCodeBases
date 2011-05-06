@@ -187,6 +187,17 @@ int main (int argc, char **argv) {
       pressAnyKey();
       //printf("[%i]\n",pressAnyKey());
     }
+/*
+#ifndef kroundup32
+#define kroundup32(x) (--(x), (x)|=(x)>>1, (x)|=(x)>>2, (x)|=(x)>>4, (x)|=(x)>>8, (x)|=(x)>>16, ++(x))
+#endif
+int t;
+for (t=0;t<=65;t++) {
+	int k=t;
+	kroundup32(k);
+	printf("%d -> %d\n",t,k);
+}
+*/
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
@@ -197,14 +208,18 @@ int main (int argc, char **argv) {
 
     fputs("\nFirst pass:\n", stderr);
     while ((read = getline(&line, &len, fp)) != -1) {
+    	size_t readlength;
     	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line);
-        printf("ID:[%s,%s]\nSeq:[%s]\nQ:[%s]\n",
-        	seqobj->name->s,seqobj->comment->s,seqobj->seq->s,seqobj->qual->s);
+        if (seqobj) {
+        	readlength = inSeqFreadNext(seqobj);
+        } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
+        printf("ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s]\n",
+        	*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual);
     }
 
     rewind(fp);
