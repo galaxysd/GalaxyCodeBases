@@ -37,10 +37,10 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 		if (! fp) err(EXIT_FAILURE, "\n[x]Cannot open with zlib for [%s]", filename);
 		seq = kseq_init(fp);	// calloc, thus safe
 		seqObj->datePos[0] = -1;	// seeking not available here.
-		seqObj->name = (void*) &seq->name.s;
-		seqObj->comment = &seq->comment.s;
-		seqObj->seq = &seq->seq.s;
-		seqObj->qual = &seq->qual.s;
+		seqObj->name = (const char **) &seq->name.s;
+		seqObj->comment = (const char **) &seq->comment.s;
+		seqObj->seq = (const char **) &seq->seq.s;
+		seqObj->qual = (const char **) &seq->qual.s;
 		seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
 		seqObj->getNextSeq = (G_int_oneIN) kseq_read;	// (int (*)(void*))
