@@ -132,6 +132,11 @@ typedef struct __kstring_t {
 	{																	\
 		kseq_t *s = (kseq_t*)calloc(1, sizeof(kseq_t));					\
 		s->f = ks_init(fd);												\
+		s->name.s = malloc(32);	\
+		s->comment.s = malloc(32);	\
+		s->seq.s = malloc(32);	\
+		s->qual.s = malloc(32);	\
+		s->name.m = s->comment.m = s->seq.m = s->qual.m = 32;	\
 		return s;														\
 	}																	\
 	static inline void kseq_rewind(kseq_t *ks)							\
