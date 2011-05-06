@@ -26,7 +26,7 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 	if ( fdstat )
 		warn("[!]ErrNo:[%zd] while closing file [%s].", fdstat, filename);
 
-	SeqFileObj * const seqObj = calloc(1,sizeof(SeqFileObj));	// in fact, just {.datePos[1]=0} is needed for kseq way.
+	SeqFileObj * const seqObj = malloc(sizeof(SeqFileObj));	// no more calloc(), just {.datePos[1]=0} is needed for kseq way.
 	//CANNOT use `&(SeqFileObj) {.datePos={0}};`, which is of a short lifetime !
 
 	if ( memcmp(G_TYPE_FAQC, FileID, G_HEADER_LENGTH) ) {	// Not G_TYPE_FAQC, thus to kseq.h
@@ -37,6 +37,7 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 		if (! fp) err(EXIT_FAILURE, "\n[x]Cannot open with zlib for [%s]", filename);
 		seq = kseq_init(fp);	// calloc, thus safe
 		seqObj->datePos[0] = -1;	// seeking not available here.
+		seqObj->datePos[1] = 0;
 		seqObj->name = (const char **) &seq->name.s;
 		seqObj->comment = (const char **) &seq->comment.s;
 		seqObj->seq = (const char **) &seq->seq.s;
