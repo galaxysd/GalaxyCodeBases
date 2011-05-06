@@ -56,9 +56,14 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 	return seqObj;
 }
 
-size_t inSeqFreadNext(SeqFileObj * const seqObj) {
-	size_t seqlen;
+ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
+	ssize_t seqlen;	// in fact size_t, but minus values are meanful.
 	seqlen = (*seqObj->getNextSeq)(seqObj->fh);
 	return seqlen;
+}
+
+void inSeqFdestroy(SeqFileObj * const seqObj) {
+	kseq_destroy(seqObj->fh);
+	free(seqObj);
 }
 

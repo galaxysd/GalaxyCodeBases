@@ -119,11 +119,11 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
 static inline kseq_t *kseq_init(gzFile fd) {
     kseq_t *s = (kseq_t *) calloc(1, sizeof(kseq_t));
     s->f = ks_init(fd);
-    s->name.s = malloc(32);
+/*    s->name.s = malloc(32);
     s->comment.s = malloc(32);
     s->seq.s = malloc(32);
     s->qual.s = malloc(32);
-    s->name.m = s->comment.m = s->seq.m = s->qual.m = 32;
+    s->name.m = s->comment.m = s->seq.m = s->qual.m = 32;*/
     return s;
 }
 
@@ -144,7 +144,7 @@ static inline void kseq_destroy(kseq_t * ks) {
    -1   end-of-file
    -2   truncated quality string
 */
-static int kseq_read(kseq_t * seq) {
+static int kseq_read(kseq_t * seq) {	// better to be ssize_t
     int c;
     kstream_t *ks = seq->f;
     if (seq->last_char == 0) {	// then jump to the next header line

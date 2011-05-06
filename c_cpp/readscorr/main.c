@@ -208,18 +208,21 @@ for (t=0;t<=65;t++) {
 
     fputs("\nFirst pass:\n", stderr);
     while ((read = getline(&line, &len, fp)) != -1) {
-    	size_t readlength;
+    	ssize_t readlength;
     	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line);
         if (seqobj) {
-        	readlength = inSeqFreadNext(seqobj);
+        	while ( readlength = inSeqFreadNext(seqobj) >= 0 ) {
+        	puts(line);
+        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
+        		*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
+        	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
-        printf("ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s]\n",
-        	*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual);
+        inSeqFdestroy(seqobj);
     }
 
     rewind(fp);

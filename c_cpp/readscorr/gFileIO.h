@@ -26,7 +26,7 @@ typedef struct __SeqFileObj {
 } SeqFileObj;   // We may support both FA/FQ and binary formats. So, object is a good thing.
 
 SeqFileObj * inSeqFinit(const char * const);
-size_t inSeqFreadNext(SeqFileObj * const);
+ssize_t inSeqFreadNext(SeqFileObj * const);
 int inSeqFseek(SeqFileObj * const, const fpos_t datePos[]);
 void inSeqFdestroy(SeqFileObj * const);
 
