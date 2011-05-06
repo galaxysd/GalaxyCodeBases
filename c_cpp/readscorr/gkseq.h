@@ -119,11 +119,10 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
 static inline kseq_t *kseq_init(gzFile fd) {
     kseq_t *s = (kseq_t *) calloc(1, sizeof(kseq_t));
     s->f = ks_init(fd);
-/*    s->name.s = malloc(32);
-    s->comment.s = malloc(32);
-    s->seq.s = malloc(32);
-    s->qual.s = malloc(32);
-    s->name.m = s->comment.m = s->seq.m = s->qual.m = 32;*/
+/*  realloc() may change the address, 
+    thus, even we `malloc(32)` here and set `s->seq.m`, 
+    `s->seq.s` still may be changed later on realloc().
+*/
     return s;
 }
 
