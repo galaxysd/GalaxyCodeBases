@@ -77,7 +77,6 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
         return -1;
     for (;;) {
         int i;
-
         if (ks->begin >= ks->end) {
             if (!ks->is_eof) {
                 ks->begin = 0;
