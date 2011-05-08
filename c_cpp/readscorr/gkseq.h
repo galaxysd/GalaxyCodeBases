@@ -171,8 +171,10 @@ static int kseq_read(kseq_t * seq) {	// better to be ssize_t
     if (c == '>' || c == '@')
         seq->last_char = c;	// the first header char has been read
     seq->seq.s[seq->seq.l] = 0;	// null terminated string
-    if (c != '+')
+    if (c != '+') {
+        seq->qual.s[0] = 0;	// set Q to "". also bool, 0 for no Q.
         return seq->seq.l;	// FASTA
+    }
     if (seq->qual.m < seq->seq.m) {	// allocate enough memory
         seq->qual.m = seq->seq.m;
         seq->qual.s = (char *) realloc(seq->qual.s, seq->qual.m);

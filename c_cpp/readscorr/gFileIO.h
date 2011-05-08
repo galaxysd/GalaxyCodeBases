@@ -15,6 +15,7 @@ typedef struct __kstring_t {
 typedef int (*G_int_oneIN)(void *);
 typedef struct __SeqFileObj {
    const size_t *readlength;
+   uint_fast8_t hasQ;
    char *const*name, *const*comment, *const*seq, *const*qual;
 	// $ cdecl explain "char * const* name"
 	// declare name as pointer to const pointer to char

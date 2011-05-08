@@ -6,6 +6,7 @@
 #include <string.h>	// memcmp
 #include <stdlib.h>	//calloc
 #include <stdio.h>	// puts
+#include <stdint.h>	// uint_fast8_t
 //#include <zlib.h>	// already in gkseq.h
 #include "gkseq.h"	// No more `kseq.h` with tons of Macros !!!
 #include "gFileIO.h"
@@ -38,6 +39,7 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 		seq = kseq_init(fp);	// calloc, thus safe
 		seqObj->datePos[0] = -1;	// seeking not available here.
 		seqObj->datePos[1] = 0;
+		seqObj->hasQ = 0;
 		seqObj->name = &seq->name.s;
 		seqObj->comment = &seq->comment.s;
 		seqObj->seq = &seq->seq.s;
@@ -60,6 +62,7 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
 	ssize_t seqlen;	// in fact size_t, but minus values are meanful.
 	seqlen = (*seqObj->getNextSeq)(seqObj->fh);
+	seqObj->hasQ = (*seqObj->qual != 0);
 	return seqlen;
 }
 
