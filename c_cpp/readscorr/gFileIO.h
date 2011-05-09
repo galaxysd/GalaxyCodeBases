@@ -15,7 +15,7 @@ typedef struct __kstring_t {
 typedef int (*G_int_oneIN)(void *);
 typedef struct __SeqFileObj {
    const size_t *readlength;
-   uint_fast8_t hasQ;
+   //uint_fast8_t hasQ;	// Strange to found "free(): invalid next size (fast)" if here ...
    char *const*name, *const*comment, *const*seq, *const*qual;
 	// $ cdecl explain "char * const* name"
 	// declare name as pointer to const pointer to char
@@ -26,6 +26,7 @@ typedef struct __SeqFileObj {
    void * fh;   // Not just FILE *fp
    long datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
    //long datePosOffset,datePosItem;
+   uint_fast8_t hasQ;
 } SeqFileObj;   // We may support both FA/FQ and binary formats. So, object is a good thing.
 
 SeqFileObj * inSeqFinit(const char * const, unsigned char);

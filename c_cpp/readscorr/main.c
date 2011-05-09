@@ -207,6 +207,7 @@ for (t=0;t<=65;t++) {
     if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
 
     fputs("\nFirst pass:\n", stderr);
+    //DLeftObj dleftp = dleft_arrayinit(9,27,1000,4);
     while ((read = getline(&line, &len, fp)) != -1) {
     	ssize_t readlength;
     	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
@@ -219,6 +220,7 @@ for (t=0;t<=65;t++) {
         		puts(line);
 	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
         			*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
+        		
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);

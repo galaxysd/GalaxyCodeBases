@@ -40,7 +40,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seq = kseq_init(fp);	// calloc, thus safe
 		seqObj->datePos[0] = -1;	// seeking not available here.
 		seqObj->datePos[1] = 0;
-		seqObj->hasQ = 0;
+		//seqObj->hasQ = 0;
 		seqObj->name = &seq->name.s;
 		seqObj->comment = &seq->comment.s;
 		seqObj->seq = &seq->seq.s;
@@ -70,7 +70,7 @@ int_fast8_t read_faqc_withbasechar()
 ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
 	ssize_t seqlen;	// in fact size_t, but minus values are meanful.
 	seqlen = (*seqObj->getNextSeq)(seqObj->fh);
-	seqObj->hasQ = (*seqObj->qual != 0);
+	//seqObj->hasQ = (*seqObj->qual != 0);
 	return seqlen;
 }
 
