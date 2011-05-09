@@ -12,6 +12,19 @@
 #include "gFileIO.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
+/*
+A 41h 0100 0001   65
+a 61h 0110 0001   97
+T 54h 0101 0100   84
+t 74h 0111 0100   116
+C 43h 0100 0011   67
+c 63h 0110 0011   99
+G 47h 0100 0111   71
+g 67h 0110 0111   103
+N 4eh 0100 1110   78
+n 6eh 0110 1110   110
+*/
+
 ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
     size_t seqlen;	// in fact size_t, but minus values are meanful.
     int_fast8_t rvalue = kseq_read(seqObj->fh);
