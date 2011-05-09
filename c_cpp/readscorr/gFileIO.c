@@ -46,7 +46,7 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocDW);
             seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocDW<<2);
         }
-        base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
+        size_t Ncount = base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
         seqObj->readlength = seqlen;
         seqObj->type = type;
         return seqlen;

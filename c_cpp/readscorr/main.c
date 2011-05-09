@@ -217,7 +217,7 @@ for (t=0;t<=65;t++) {
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line,1);
         if (seqobj) {
-        	while ( readlength = (*seqobj->getNextSeq)(seqobj) >= 0 ) {
+        	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);
 	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
         			*seqobj->name,*seqobj->comment,seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
