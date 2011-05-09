@@ -18,8 +18,8 @@ typedef struct __SeqFileObj {
    char *const*name, *const*comment, *const*seq, *const*qual;
 	// $ cdecl explain "char * const* name"
 	// declare name as pointer to const pointer to char
-   const kstring_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
-   const kstring_t *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
+   unsigned char *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
+   unsigned char *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
    //int (*getNextSeq)(void *);   // void * fh
    G_ssize_t_oneIN getNextSeq;
    void * fh;   // Not just FILE *fp

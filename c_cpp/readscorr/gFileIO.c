@@ -10,6 +10,7 @@
 //#include <zlib.h>	// already in gkseq.h
 #include "gkseq.h"	// No more `kseq.h` with tons of Macros !!!
 #include "gFileIO.h"
+#include "2bitseq.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
 /*
@@ -30,18 +31,22 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
     int_fast8_t rvalue = kseq_read(seqObj->fh);
     if (rvalue>0) {
         uint_fast8_t type = rvalue; // 1 or 3. No need to &3 now.
-        seqlen = ((kseq_t*)(seqObj->fh))->seq.l;
+        kseq_t *kseq = seqObj->fh;
+        seqlen = kseq->seq.l;
+        char * qstr = NULL;
         if (rvalue&2) { // withQ
             //encodeQ;
             type |= 8;
-        } 
+            qstr = kseq->qual.s;
+        }
         size_t needtomallocDW = (seqlen+3)>>2;  // 1 DWord = 4 Bytes. Well, I just mean the 4-time relationship.
         if (needtomallocDW > seqObj->binMallocedDWord) {
             KROUNDUP32(needtomallocDW);
             seqObj->binMallocedDWord = needtomallocDW;
-            seqObj->diBseq = realloc(seqObj->diBseq,needtomallocDW);
-            seqObj->hexBQ = realloc(seqObj->hexBQ,needtomallocDW<<2);
+            seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocDW);
+            seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocDW<<2);
         }
+        base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
         seqObj->readlength = seqlen;
         seqObj->type = type;
         return seqlen;
@@ -83,7 +88,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->qual = &seq->qual.s;
 		//seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
-		seqObj->getNextSeq = read_kseq_with2bit;	// (int (*)(void*))
+		seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
 		seqObj->binMallocedDWord = 0;
