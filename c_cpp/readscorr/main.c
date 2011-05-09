@@ -213,12 +213,12 @@ for (t=0;t<=65;t++) {
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
-        SeqFileObj *seqobj = inSeqFinit(line);
+        SeqFileObj *seqobj = inSeqFinit(line,1);
         if (seqobj) {
         	while ( readlength = inSeqFreadNext(seqobj) >= 0 ) {
-        	puts(line);
-        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
-        		*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
+        		puts(line);
+	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
+        			*seqobj->name,*seqobj->comment,*seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);

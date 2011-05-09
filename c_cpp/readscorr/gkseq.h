@@ -172,7 +172,7 @@ static int kseq_read(kseq_t * seq) {	// better to be ssize_t
         seq->last_char = c;	// the first header char has been read
     seq->seq.s[seq->seq.l] = 0;	// null terminated string
     if (c != '+') {
-        seq->qual.s[0] = 0;	// set Q to "". also bool, 0 for no Q.
+        //seq->qual.s[0] = 0;	// set Q to "". also bool, 0 for no Q. JUST TEMP, should change back later !!!
         return seq->seq.l;	// FASTA
     }
     if (seq->qual.m < seq->seq.m) {	// allocate enough memory

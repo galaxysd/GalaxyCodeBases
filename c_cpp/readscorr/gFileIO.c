@@ -12,7 +12,8 @@
 #include "gFileIO.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
-SeqFileObj * inSeqFinit(const char * const filename) {
+// binmode: 1=base char, 2=base 2bit
+SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 	int fd;
 	ssize_t fdstat;
 	char FileID[G_HEADER_LENGTH];
@@ -58,6 +59,13 @@ SeqFileObj * inSeqFinit(const char * const filename) {
 
 	return seqObj;
 }
+
+/*
+int_fast8_t read_kseq_no2bit()
+int_fast8_t read_kseq_with2bit()
+int_fast8_t read_faqc_nobasechar()
+int_fast8_t read_faqc_withbasechar()
+*/
 
 ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
 	ssize_t seqlen;	// in fact size_t, but minus values are meanful.
