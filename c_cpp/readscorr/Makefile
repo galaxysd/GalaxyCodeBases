@@ -19,7 +19,7 @@ endif
  
 cobjects = main.o
 cppobjects = 
-c99objects = MurmurHash3.o gFileIO.o
+c99objects = MurmurHash3.o gFileIO.o dleft.o
 objects = $(cobjects) $(cppobjects) $(c99objects)
 
 all: clean $(objects) readscorr

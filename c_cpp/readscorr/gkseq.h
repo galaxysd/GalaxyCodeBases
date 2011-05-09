@@ -140,11 +140,13 @@ static inline void kseq_destroy(kseq_t * ks) {
 }
 
 /* Return value:
-   >=0  length of the sequence (normal)
+//   >=0  length of the sequence (normal)
+    1   FASTA, just bases
+    3   FASTQ, both bases and Q
    -1   end-of-file
    -2   truncated quality string
 */
-static int kseq_read(kseq_t * seq) {	// better to be ssize_t
+static int_fast8_t kseq_read(kseq_t * seq) {	// better to be ssize_t
     int c;
     kstream_t *ks = seq->f;
     if (seq->last_char == 0) {	// then jump to the next header line
@@ -173,7 +175,7 @@ static int kseq_read(kseq_t * seq) {	// better to be ssize_t
     seq->seq.s[seq->seq.l] = 0;	// null terminated string
     if (c != '+') {
         //seq->qual.s[0] = 0;	// set Q to "". also bool, 0 for no Q. JUST TEMP, should change back later !!!
-        return seq->seq.l;	// FASTA
+        return 1;	// FASTA, only bases
     }
     if (seq->qual.m < seq->seq.m) {	// allocate enough memory
         seq->qual.m = seq->seq.m;
@@ -189,7 +191,8 @@ static int kseq_read(kseq_t * seq) {	// better to be ssize_t
     seq->last_char = 0;	// we have not come to the next header line
     if (seq->seq.l != seq->qual.l)
         return -2;	// qual string is shorter than seq string
-    return seq->seq.l;
+    //return seq->seq.l;
+    return 3;   // both base and Q
 }
 
 #endif

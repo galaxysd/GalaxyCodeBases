@@ -12,9 +12,9 @@ typedef struct __kstring_t {
 } kstring_t;
 #endif	// Yes, it is the same as that in kseq.h
 
-typedef int (*G_int_oneIN)(void *);
+typedef ssize_t (*G_ssize_t_oneIN)(void * const);
 typedef struct __SeqFileObj {
-   const size_t *readlength;
+   size_t readlength;
    //uint_fast8_t hasQ;	// Strange to found "free(): invalid next size (fast)" if here ...
    char *const*name, *const*comment, *const*seq, *const*qual;
 	// $ cdecl explain "char * const* name"
@@ -22,7 +22,7 @@ typedef struct __SeqFileObj {
    const kstring_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
    const kstring_t *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
    //int (*getNextSeq)(void *);   // void * fh
-   G_int_oneIN getNextSeq;
+   G_ssize_t_oneIN getNextSeq;
    void * fh;   // Not just FILE *fp
    long datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
    //long datePosOffset,datePosItem;
@@ -30,7 +30,7 @@ typedef struct __SeqFileObj {
 } SeqFileObj;   // We may support both FA/FQ and binary formats. So, object is a good thing.
 
 SeqFileObj * inSeqFinit(const char * const, unsigned char);
-ssize_t inSeqFreadNext(SeqFileObj * const);
+//ssize_t inSeqFreadNext(SeqFileObj * const);
 int inSeqFseek(SeqFileObj * const, const fpos_t datePos[]);
 void inSeqFdestroy(SeqFileObj * const);
 

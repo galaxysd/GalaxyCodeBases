@@ -12,6 +12,16 @@
 #include "gFileIO.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
+ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
+    ssize_t seqlen;	// in fact size_t, but minus values are meanful.
+    int_fast8_t rvalue = kseq_read(seqObj->fh);
+    if (rvalue>0) {
+        seqlen = ((kseq_t*)(seqObj->fh))->seq.l;
+        seqObj->readlength = seqlen;
+        return seqlen;
+    } else return rvalue;
+}
+
 // binmode: 1=base char, 2=base 2bit
 SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 	int fd;
@@ -47,7 +57,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->qual = &seq->qual.s;
 		seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
-		seqObj->getNextSeq = (G_int_oneIN) kseq_read;	// (int (*)(void*))
+		seqObj->getNextSeq = read_kseq_with2bit;	// (int (*)(void*))
 		seqObj->diBseq = NULL;	// later ...
 		seqObj->hexBQ = NULL;
 	//int seqlen;	// TEST ONLY !
@@ -66,14 +76,14 @@ int_fast8_t read_kseq_with2bit()
 int_fast8_t read_faqc_nobasechar()
 int_fast8_t read_faqc_withbasechar()
 */
-
+/*
 ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
 	ssize_t seqlen;	// in fact size_t, but minus values are meanful.
-	seqlen = (*seqObj->getNextSeq)(seqObj->fh);
+	seqlen = (*seqObj->getNextSeq)(seqObj);
 	//seqObj->hasQ = (*seqObj->qual != 0);
 	return seqlen;
 }
-
+*/
 void inSeqFdestroy(SeqFileObj * const seqObj) {
 	kseq_destroy(seqObj->fh);
 	free(seqObj);
