@@ -13,11 +13,24 @@
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
 ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
-    ssize_t seqlen;	// in fact size_t, but minus values are meanful.
+    size_t seqlen;	// in fact size_t, but minus values are meanful.
     int_fast8_t rvalue = kseq_read(seqObj->fh);
     if (rvalue>0) {
+        uint_fast8_t type = rvalue; // 1 or 3. No need to &3 now.
         seqlen = ((kseq_t*)(seqObj->fh))->seq.l;
+        if (rvalue&2) { // withQ
+            //encodeQ;
+            type |= 8;
+        } 
+        size_t needtomallocDW = (seqlen+3)>>2;  // 1 DWord = 4 Bytes. Well, I just mean the 4-time relationship.
+        if (needtomallocDW > seqObj->binMallocedDWord) {
+            KROUNDUP32(needtomallocDW);
+            seqObj->binMallocedDWord = needtomallocDW;
+            seqObj->diBseq = realloc(seqObj->diBseq,needtomallocDW);
+            seqObj->hexBQ = realloc(seqObj->hexBQ,needtomallocDW<<2);
+        }
         seqObj->readlength = seqlen;
+        seqObj->type = type;
         return seqlen;
     } else return rvalue;
 }
@@ -55,11 +68,13 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->comment = &seq->comment.s;
 		seqObj->seq = &seq->seq.s;
 		seqObj->qual = &seq->qual.s;
-		seqObj->readlength = &seq->seq.l;
+		//seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
 		seqObj->getNextSeq = read_kseq_with2bit;	// (int (*)(void*))
-		seqObj->diBseq = NULL;	// later ...
+		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
+		seqObj->binMallocedDWord = 0;
+		//seqObj->readlength = 0;
 	//int seqlen;	// TEST ONLY !
 	//seqlen = (*seqObj->getNextSeq)(seqObj->fh);	//seqlen = kseq_read(seq); // TEST ONLY !
 		
@@ -86,6 +101,8 @@ ssize_t inSeqFreadNext(SeqFileObj * const seqObj) {
 */
 void inSeqFdestroy(SeqFileObj * const seqObj) {
 	kseq_destroy(seqObj->fh);
+	free(seqObj->diBseq);
+	free(seqObj->hexBQ);
 	free(seqObj);
 }
 
