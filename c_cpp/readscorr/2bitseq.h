@@ -9,8 +9,8 @@
 
 size_t Ncount;
 
-FORCE_INLINE unsigned char singlebase2dbit(const char base, unsigned char *const hexBQchr) {
-	switch (base) {
+FORCE_INLINE unsigned char singlebase2dbit(const char *const base, unsigned char *const hexBQchr) {
+	switch (*base) {
 	case 'a': case 'A':
 		return 0;
 		break;
@@ -34,32 +34,33 @@ FORCE_INLINE unsigned char singlebase2dbit(const char base, unsigned char *const
 
 FORCE_INLINE int_fast8_t base2dbit(const size_t seqlen,
  const char *const baseschr, const char *const qstr,
- unsigned char *diBseq, unsigned char *hexBQ) {
+ uint64_t *diBseq, unsigned char *hexBQ) {
 // First, do the bases, overwrite output arrays since we have just malloc without setting to zero. 
     Ncount=0;
-    size_t i;
-    for (i=0;i<=seqlen;i+=4) {
+    size_t i,j;
+	const size_t seqlenDowntoDW = (seqlen>>5)<<5;
+	uint64_t tmpqdbase;
+    for (i=0;i<seqlenDowntoDW;i+=32u) {
+        tmpqdbase=0;
+        for (j=0;j<32;j++) {
+            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<((31u-j)<<2);
+        }
+/*
         *diBseq++ = (singlebase2dbit(i,hexBQ+i)<<6)       |
                     ((singlebase2dbit(i+1,hexBQ+i+1)&3)<<4) |
                     ((singlebase2dbit(i+2,hexBQ+i+2)&3)<<2) |
                      (singlebase2dbit(i+3,hexBQ+i+3)&3);
-        // should be better than diBseq[i/4]
-    }
-    // now, i=seqlen+1
-    unsigned char tmpqdbase = 0;
-    switch (seqlen % 4) {
-    case 3:
-        tmpqdbase |= (singlebase2dbit(i+2,hexBQ+i+2)&3)<<6;
-    case 2:
-        tmpqdbase |= (singlebase2dbit(i+1,hexBQ+i+1)&3)<<4;
-    case 1:
-        tmpqdbase |= (singlebase2dbit(i,hexBQ+i)&3)<<2;
+*/
         *diBseq++ = tmpqdbase;
-    default:
-        // Everything should done in for-cycle when seqlen%4 == 0.
-        // No need to add '/0' since we have got seqlen, and there may be poly-A.
-        break;
+        // should be better than diBseq[i/32]
     }
+    tmpqdbase = 0;
+    for (j=0;j<=seqlen-i;j++) {
+        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<((31-j)<<2);
+    }
+	*diBseq++ = tmpqdbase;
+    // Everything should done in for-cycle when seqlen%4 == 0.
+    // No need to add '/0' since we have got seqlen, and there may be poly-A.
 // Then, for the Q values ...
     if (qstr != NULL) {
         for (i=0;i<=seqlen;i++) {
@@ -73,6 +74,15 @@ FORCE_INLINE int_fast8_t base2dbit(const size_t seqlen,
     return Ncount;
 }
 
+FORCE_INLINE uint64_t unitReverseComp(uint64_t seq32mer){
+	seq32mer = ~seq32mer;
+	seq32mer = ((seq32mer & 0x3333333333333333LLU)<< 2) | ((seq32mer & 0xCCCCCCCCCCCCCCCCLLU)>> 2);
+	seq32mer = ((seq32mer & 0x0F0F0F0F0F0F0F0FLLU)<< 4) | ((seq32mer & 0xF0F0F0F0F0F0F0F0LLU)>> 4);
+	seq32mer = ((seq32mer & 0x00FF00FF00FF00FFLLU)<< 8) | ((seq32mer & 0xFF00FF00FF00FF00LLU)>> 8);
+	seq32mer = ((seq32mer & 0x0000FFFF0000FFFFLLU)<<16) | ((seq32mer & 0xFFFF0000FFFF0000LLU)>>16);
+	seq32mer = ((seq32mer & 0x00000000FFFFFFFFLLU)<<32) | ((seq32mer & 0xFFFFFFFF00000000LLU)>>32);
+	return seq32mer;
+}
 
 
 

@@ -39,12 +39,12 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             type |= 8;
             qstr = kseq->qual.s;
         }
-        size_t needtomallocDW = (seqlen+3)>>2;  // 1 DWord = 4 Bytes. Well, I just mean the 4-time relationship.
+        size_t needtomallocQQW = (seqlen+31u)>>5;  // 1 "QQWord" = 4 QWord = 32 bp. Well, I say there is QQW.
         if (needtomallocDW > seqObj->binMallocedDWord) {
             KROUNDUP32(needtomallocDW);
             seqObj->binMallocedDWord = needtomallocDW;
-            seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocDW);
-            seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocDW<<2);
+            seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
+            seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
         size_t Ncount = base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
         seqObj->readlength = seqlen;

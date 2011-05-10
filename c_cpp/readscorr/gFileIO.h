@@ -3,6 +3,7 @@
 #define _G_FILEIO_H
 
 #include "gFileType.h"	// for file ID
+#include <stdint.h>	// uint64_t
 
 #ifndef KSTRING_T
 #define KSTRING_T kstring_t
@@ -18,7 +19,7 @@ typedef struct __SeqFileObj {
    char *const*name, *const*comment, *const*seq, *const*qual;
 	// $ cdecl explain "char * const* name"
 	// declare name as pointer to const pointer to char
-   unsigned char *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
+   uint64_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
    unsigned char *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked
    //int (*getNextSeq)(void *);   // void * fh
    G_ssize_t_oneIN getNextSeq;
