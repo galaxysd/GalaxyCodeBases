@@ -14,6 +14,7 @@
 //#include <zlib.h>
 //#include "kseq.h"
 //KSEQ_INIT(gzFile, gzread)
+#include "2bitseq.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
@@ -219,9 +220,13 @@ for (t=0;t<=65;t++) {
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);
-	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zu\n",
+	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zx\n",
         			*seqobj->name,*seqobj->comment,seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
-        		
+        		int i;
+        		for (i=0;i<=seqobj->readlength/32;i++) {
+        		    printf("[%s]",unit2basechr(seqobj->diBseq[i]));
+        		}
+        		puts("");
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);

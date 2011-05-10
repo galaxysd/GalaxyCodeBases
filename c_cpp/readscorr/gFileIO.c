@@ -10,6 +10,7 @@
 //#include <zlib.h>	// already in gkseq.h
 #include "gkseq.h"	// No more `kseq.h` with tons of Macros !!!
 #include "gFileIO.h"
+#include "2bitseqinline.h"
 #include "2bitseq.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
@@ -31,7 +32,8 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
     int_fast8_t rvalue = kseq_read(seqObj->fh);
     if (rvalue>0) {
         uint_fast8_t type = rvalue; // 1 or 3. No need to &3 now.
-        kseq_t *kseq = seqObj->fh;
+        kseq_t *kseq;
+        kseq = seqObj->fh;
         seqlen = kseq->seq.l;
         char * qstr = NULL;
         if (rvalue&2) { // withQ
@@ -40,13 +42,14 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             qstr = kseq->qual.s;
         }
         size_t needtomallocQQW = (seqlen+31u)>>5;  // 1 "QQWord" = 4 QWord = 32 bp. Well, I say there is QQW.
-        if (needtomallocDW > seqObj->binMallocedDWord) {
-            KROUNDUP32(needtomallocDW);
-            seqObj->binMallocedDWord = needtomallocDW;
+        if (needtomallocQQW > seqObj->binMallocedQQWord) {
+            KROUNDUP32(needtomallocQQW);
+            seqObj->binMallocedQQWord = needtomallocQQW;
             seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
             seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
         size_t Ncount = base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
+        printf("-[%s]<%s><%llx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
         seqObj->readlength = seqlen;
         seqObj->type = type;
         return seqlen;
@@ -91,7 +94,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
-		seqObj->binMallocedDWord = 0;
+		seqObj->binMallocedQQWord = 0;
 		//seqObj->readlength = 0;
 	//int seqlen;	// TEST ONLY !
 	//seqlen = (*seqObj->getNextSeq)(seqObj->fh);	//seqlen = kseq_read(seq); // TEST ONLY !
