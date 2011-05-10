@@ -223,8 +223,10 @@ for (t=0;t<=65;t++) {
 	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zx\n",
         			*seqobj->name,*seqobj->comment,seqobj->readlength,*seqobj->seq,*seqobj->qual,seqobj->seq);
         		int i;
+        		unsigned char *tmpstr;
         		for (i=0;i<=seqobj->readlength/32;i++) {
-        		    printf("[%s]",unit2basechr(seqobj->diBseq[i]));
+        		    printf("[%s]",tmpstr=unit2basechr(seqobj->diBseq[i]));
+        		    free(tmpstr);
         		}
         		puts("");
         	}

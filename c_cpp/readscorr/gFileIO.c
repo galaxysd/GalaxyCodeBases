@@ -38,7 +38,7 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
         char * qstr = NULL;
         if (rvalue&2) { // withQ
             //encodeQ;
-            type |= 8;
+            type |= 8u;
             qstr = kseq->qual.s;
         }
         size_t needtomallocQQW = (seqlen+31u)>>5;  // 1 "QQWord" = 4 QWord = 32 bp. Well, I say there is QQW.
@@ -49,7 +49,7 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
         size_t Ncount = base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
-        printf("-[%s]<%s><%llx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
+// printf("-[%s]<%s><%zx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
         seqObj->readlength = seqlen;
         seqObj->type = type;
         return seqlen;

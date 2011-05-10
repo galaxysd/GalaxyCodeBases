@@ -1,6 +1,6 @@
 CC = gcc
 CPP = g++
-CFLAGS = -Wall -pipe -march=core2 -mtune=generic \
+CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic\
 #-ftree-vectorize -ftree-vectorizer-verbose=5
 LDFLAGS = -lz -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
 OPT = -O3
@@ -17,14 +17,14 @@ override CFLAGS := $(CFLAGS) -fopenmp
 override DEF := $(DEF) -D OPENMP
 endif
  
-cobjects = main.o
-cppobjects = 
-c99objects = MurmurHash3.o gFileIO.o dleft.o 2bitseq.o
-objects = $(cobjects) $(cppobjects) $(c99objects)
+cobjects =
+customobjects =
+c99objects = main.o MurmurHash3.o gFileIO.o dleft.o 2bitseq.o
+objects = $(cobjects) $(c99objects)
 
 all: clean $(objects) readscorr
 
-readscorr : $(objects)
+readscorr : $(objects) $(customobjects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
 
 $(cobjects): %.o: %.c 
@@ -32,7 +32,7 @@ $(cobjects): %.o: %.c
 $(cppobjects): %.o: %.cpp
 	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
 $(c99objects): %.o: %.c
-	$(CC) -std=c99 $(MAKEARG) -c $< -o $@ > $@.asm
+	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $@.asm
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
@@ -40,4 +40,4 @@ debug: clean $(objects)
 
 .PHONY : clean
 clean :
-	-rm readscorr $(objects)
+	-rm readscorr $(objects) $(customobjects)

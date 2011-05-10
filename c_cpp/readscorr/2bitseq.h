@@ -10,7 +10,7 @@
 #define DBIT2COMPBASE(dbit) ("TGCA"[dbit])
 #endif
 
-char *unit2basechr(uint64_t);
+unsigned char *unit2basechr(uint64_t);
 
 #endif  // 2bitseq.h
 

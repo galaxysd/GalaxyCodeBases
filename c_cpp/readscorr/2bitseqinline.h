@@ -11,7 +11,7 @@
 
 size_t Ncount;
 
-FORCE_INLINE unsigned char singlebase2dbit(const char *const base, unsigned char *const hexBQchr) {
+FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *const hexBQchr) {
 	switch (*base) {
 	case 'a': case 'A':
 		return 0;
@@ -26,7 +26,7 @@ FORCE_INLINE unsigned char singlebase2dbit(const char *const base, unsigned char
 		return 2;
 		break;
 	default:
-    	*hexBQchr = 1<<7;    // 128 for N
+    	*hexBQchr = 1u<<7;    // 128 for N
     	++Ncount;
     	// DONOT use `|=` since the memory is just malloced
 		return 0;
@@ -39,28 +39,24 @@ FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
  uint64_t *diBseq, unsigned char *hexBQ) {
 // First, do the bases, overwrite output arrays since we have just malloc without setting to zero. 
     Ncount=0;
-    size_t i;
-    uint_fast8_t j;
-	const size_t seqlenDowntoDW = seqlen & ~((2<<6)-1);
+    size_t i,j;
+	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
+ printf("[a]%zu %zu\n",seqlen,seqlenDowntoDW);
 	uint64_t tmpqdbase;
     for (i=0;i<seqlenDowntoDW;i+=32u) {
         tmpqdbase=0;
-        for (j=0;j<64;j+=2) {
-            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(62u-j);
+        for (j=0;j<32;j++) {
+            //tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(62u-j);
+            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2);
+// printf(" A{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
         }
-/*
-        *diBseq++ = (singlebase2dbit(i,hexBQ+i)<<6)       |
-                    ((singlebase2dbit(i+1,hexBQ+i+1)&3)<<4) |
-                    ((singlebase2dbit(i+2,hexBQ+i+2)&3)<<2) |
-                     (singlebase2dbit(i+3,hexBQ+i+3)&3);
-*/
         *diBseq++ = tmpqdbase;
-        // should be better than diBseq[i/32]
     }
+// printf("[b]%zu %zu\n",i,j);
     tmpqdbase = 0;
     for (j=0;j<=seqlen-i-1;j++) {   // seqlen starts from 0
-        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(62u-j*2);
-        //printf("{%lx,%s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<((31u-j)<<1));
+        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2);
+// printf(" B{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
     }
 	*diBseq++ = tmpqdbase;
     // Everything should done in for-cycle when seqlen%4 == 0.
