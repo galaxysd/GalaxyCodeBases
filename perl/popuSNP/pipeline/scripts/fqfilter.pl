@@ -19,7 +19,12 @@ unless (@ARGV){
 my ($adapter,$fq,$out,$nfo,$maxL)=@ARGV;
 
 my %adapter;
-open LIST,'<',$adapter || die "$!\n";
+#open LIST,'<',$adapter || die "$!\n";
+if ($adapter =~ /\.gz$/) {
+	open( LIST,'-|',"gzip -dc $adapter") or die "[x]Error on $adapter: $!\n";
+} elsif ($adapter =~ /\.bz2$/) {
+ 	open( LIST,'-|',"bzip2 -dc $adapter") or die "[x]Error on $adapter: $!\n";
+} else {open( LIST,'<',$adapter) or die "[x]Error on $adapter: $!\n";}
 while (<LIST>) {
 	next if /^#/;
 	chomp;
