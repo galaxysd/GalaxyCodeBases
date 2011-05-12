@@ -6,7 +6,7 @@
 //#ifndef ROUNDUPMOD8
 //#define ROUNDUPMOD8(x) ( ((x)+7) & ~(x) )
 //#endif
-#define	FORCE_INLINE __attribute__((always_inline))
+#define	FORCE_INLINE static inline __attribute__((always_inline))
 
 DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount) {
     unsigned char itemByte = (CountBit+rBit+7) >> 3;
