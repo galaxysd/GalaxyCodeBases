@@ -3,7 +3,10 @@
 
 #include <stdint.h>	// int_fast8_t
 #include <stdlib.h> // malloc
-#include "2bitseq.h"
+//#include "2bitseq.h"
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 #ifndef FORCE_INLINE
 #define	FORCE_INLINE static inline __attribute__((always_inline))
@@ -41,7 +44,9 @@ FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
     Ncount=0;
     size_t i,j;
 	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
+#ifdef DEBUG
  printf("[a]%zu %zu\n",seqlen,seqlenDowntoDW);
+#endif
 	uint64_t tmpqdbase;
     for (i=0;i<seqlenDowntoDW;i+=32u) {
         tmpqdbase=0;
@@ -89,5 +94,5 @@ FORCE_INLINE uint64_t unitReverseComp(uint64_t seq32mer){
 	return seq32mer;
 }
 
-#endif  // 2bitseq.h
+#endif  // 2bitseqinline.h
 

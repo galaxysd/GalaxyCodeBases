@@ -10,7 +10,6 @@
 //#include <zlib.h>	// already in gkseq.h
 #include "gkseq.h"	// No more `kseq.h` with tons of Macros !!!
 #include "gFileIO.h"
-#include "2bitseqinline.h"
 #include "2bitseq.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 

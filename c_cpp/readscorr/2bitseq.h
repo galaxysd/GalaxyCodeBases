@@ -3,6 +3,7 @@
 
 #include <stdint.h>	// int_fast8_t
 #include <stdlib.h> // malloc
+#include "2bitseqinline.h"
 
 #ifndef DBIT2BASES
 #define DBIT2BASES
