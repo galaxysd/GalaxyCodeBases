@@ -87,27 +87,36 @@ while (<L>) {
 }
 close L;
 
-open O,'>',$out_file.'.dat' or die "[x]Can not open $out_file :$!\n";
+open O,'>',$out_file.'.dat' or die "[x]Can not open $out_file.dat :$!\n";
+open OD,'>',$out_file.'.db' or die "[x]Can not open $out_file.db :$!\n";
 my @GC;
-for my $gc (keys %wincvgcnt) {
+print OD '#';
+for my $gc (sort {$a<=>$b} keys %wincvgcnt) {
+	print OD "$gc:",$wincvgcnt{$gc},"\t";
 	if ($wincvgcnt{$gc} >= 10) {
 		push @GC,$gc;
 	}
 }
-@GC=sort {$a<=>$b} @GC;
+#@GC=sort {$a<=>$b} @GC;
 print O join("\t",@GC),"\n";
+print OD "\n#Total:$windepcnt\n\n",join("\t",@GC),"\n";
 for my $dep (sort { $a<=>$b } keys %DEPGCcnt) {
-	my @out=();
+	my (@out,$tout)=();
 	for my $gc (@GC) {
 		if (exists $DEPGCcnt{$dep}{$gc}) {
-			push @out,$windepcnt*$DEPGCcnt{$dep}{$gc}/$wincvgcnt{$gc};
+			$tout = $windepcnt*$DEPGCcnt{$dep}{$gc}/$wincvgcnt{$gc};
+			print OD $DEPGCcnt{$dep}{$gc},"\t";
 		} else {
-			push @out,'NA';
+			$tout = 'NA';
+			print OD "NA\t";
 		}
+		push @out,$tout;
 	}
 	print O join("\t",@out),"\n";
+	print OD "\n";
 }
 close O;
+close OD;
 
 #R plot
 open(OUT,">$out_file.R")or die;
