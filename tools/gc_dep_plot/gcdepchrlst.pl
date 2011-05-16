@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#use strict;
+use strict;
 #use Time::HiRes qw ( gettimeofday tv_interval );
 use Getopt::Long;
 my ($depth_path,$fa_path,$out_file,$win_size,$help,$chrlst);
@@ -27,14 +27,15 @@ open L,'<',$chrlst or die "[x]Can not open $chrlst :$!\n";
 while (<L>) {
 	chomp;
 	my $chrid=$_;
+	my ($title,$seqname,$genome);
 	open FA,'<',$fa_path.'/'.$chrid.'.fa' or die "can not open $fa_path/$chrid.fa:$!";
 	while (<FA>) {
 		s/^>//;
-		my $title = $_;
-		my $seqname = $1 if($title =~ /^(\S+)/);
+		$title = $_;
+		$seqname = $1 if($title =~ /^(\S+)/);
 		print STDERR "loading >$seqname ...\t";
 		$/=">";
-		my $genome=<FA>;
+		$genome=<FA>;
 		chomp $genome;
 		$genome=~s/\s//g;
 		$/="\n";
@@ -44,22 +45,22 @@ while (<L>) {
 	print "$len -> ";
 	open DP,'<',$depth_path.'/'.$chrid.'.coverage' or die "can not open $depth_path/$chrid.coverage:$!";
 	$title=<DP>;
-	$title = $1 if($title =~ /^(\S+)/);
+	$title = $1 if($title =~ /^>(\S+)/);
 	die "\n[!]ChrID not match for [$seqname] and [$title] !\n" if $title ne $seqname;
 	my ($sum,$pos,$tpos)=(0,0,0);
 	while (<DP>) {
 		#chomp;
+		#my $w=0;
 		while($_=~/(\d+)/g) {
 			my $num=$1;
-			my $w=0;
 			if ($num != 65535) {
 				$sum+=$num;
-				++$w;
+				#++$w;
 			}
 			++$pos;
 			if ( ! ($pos % $win_size) ) {
-				if ($w) {
-					my $averD=$sum/$w;
+				if ($sum) {
+					#my $averD=$sum/$w;
 					my $seq=substr $genome,$pos-1,$win_size;
 					my @STR=split //,$seq;
 					my ($gccnt,$ncnt)=(0,0);
@@ -67,14 +68,17 @@ while (<L>) {
 						++$gccnt if $_ =~ /[gc]/i;
 						++$ncnt if $_ =~ /n/i;
 					}
-					warn "[!]N count not match @ $pos [$w!=",$win_size-$ncnt,"] !\n" if $w != $win_size-$ncnt;
+					#warn "[!]N count not match @$pos:$seq [$w!=",$win_size-$ncnt,"] !\n" if $w != $win_size-$ncnt;
+					my $w=$win_size-$ncnt;
+					next if $w == 0;
+					my $averD=$sum/$w;
 					my $gcR=int(2*$gccnt/$w)/2;
 					++$wincvgcnt{$gcR};
 					++$windepcnt;
 					++$DEPGCcnt{$averD}{$gcR};
 					$tpos=$pos;
 				}
-				$sum=0;
+				$sum=0;	#$w=0;
 			}
 		}	# the last half window will be skipped ...
 	}
@@ -86,8 +90,8 @@ close L;
 open O,'>',$out_file.'.dat' or die "[x]Can not open $out_file :$!\n";
 my @GC;
 for my $gc (keys %wincvgcnt) {
-	if ($wincvgcnt{$gc} >= 30) {
-		push @GC,$wincvgcnt{$gc};
+	if ($wincvgcnt{$gc} >= 10) {
+		push @GC,$gc;
 	}
 }
 @GC=sort {$a<=>$b} @GC;
@@ -122,3 +126,5 @@ close OUT;
 system("Rscript $out_file.R");
 
 __END__
+./gcdepchrlst.pl -chrlst chr.lst -depth ./depth/ -fa ./ref/chromFa/ -win 100 -output da100
+
