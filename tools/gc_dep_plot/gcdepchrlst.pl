@@ -68,14 +68,14 @@ while (<L>) {
 				my $w=$win_size-$ncnt;
 				next unless $w;
 				$windepcnt += $sum;
-				my $gcR=int(200*$gccnt/$w)/2;
+				#my $gcR=int(200*$gccnt/$w)/2;
+				my $gcR=int($gccnt/$w);	# later plotting needs 0..100
 				++$wincvgcnt{$gcR};
-				if ($w>=3) {
+				if ($w>=3) {	# at least 3 points needed.
 					#my $averD=$sum/$w;
 					#warn '[!]N count not match @',"$pos:$seq [$w<$cnt] !\n" if $cnt > $w;
 					#next if $w < 3;
 					my $averD=$sum/$w;
-					my $gcR=int(200*$gccnt/$w)/2;
 					++$DEPGCcnt{$averD}{$gcR};
 					$tpos=$pos;
 #print "$cnt $w,";
@@ -96,10 +96,10 @@ my ($gcsum,@GC)=(0);
 print OD '#';
 for my $gc (sort {$a<=>$b} keys %wincvgcnt) {
 	print OD "$gc:",$wincvgcnt{$gc},"\t";
-	if ($wincvgcnt{$gc} >= 30) {
+	#if ($wincvgcnt{$gc} >= 30) {
 		push @GC,$gc;
 		$gcsum += $wincvgcnt{$gc};
-	}
+	#}
 }
 print OXY "GC\tR\n";
 for my $gc (@GC) {
@@ -107,6 +107,7 @@ for my $gc (@GC) {
 }
 close OXY;
 #@GC=sort {$a<=>$b} @GC;
+@GC=0..100;
 print O join("\t",@GC),"\n";
 print OD "\n#Total:$windepcnt\n\n",join("\t",@GC),"\n";
 for my $dep (sort { $a<=>$b } keys %DEPGCcnt) {
