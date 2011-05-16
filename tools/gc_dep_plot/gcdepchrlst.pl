@@ -42,7 +42,7 @@ while (<L>) {
 	}
 	close FA;
 	my $len=length $genome;
-	print "$len -> ";
+	print STDERR "$len -> ";
 	open DP,'<',$depth_path.'/'.$chrid.'.coverage' or die "can not open $depth_path/$chrid.coverage:$!";
 	$title=<DP>;
 	$title = $1 if($title =~ /^>(\S+)/);
@@ -85,7 +85,7 @@ while (<L>) {
 		}	# the last half window will be skipped ...
 	}
 	close DP;
-	print "$tpos\t$windepcnt\n";
+	print STDERR "$tpos\t$windepcnt\n";
 }
 close L;
 
