@@ -94,5 +94,7 @@ FORCE_INLINE uint64_t unitReverseComp(uint64_t seq32mer){
 	return seq32mer;
 }
 
+//FORCE_INLINE uint64_t QQWkmerMovHigher(uint64_t *seq32mer, unsigned char bphigher, uint64_t ){}
+
 #endif  // 2bitseqinline.h
 
