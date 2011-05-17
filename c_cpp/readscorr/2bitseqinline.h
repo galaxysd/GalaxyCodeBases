@@ -59,7 +59,8 @@ FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
     }
 // printf("[b]%zu %zu\n",i,j);
     tmpqdbase = 0;
-    for (j=0;j<=seqlen-i-1;j++) {   // seqlen starts from 0
+    for (j=0;j<seqlen-i;j++) {   // seqlen starts from 0.
+// Cannot use 'j<=seqlen-i-1' here since 'size_t j' cannot be negative.
         tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2);
 // printf(" B{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
     }
