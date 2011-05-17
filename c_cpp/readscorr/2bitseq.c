@@ -18,7 +18,7 @@ unsigned char *unit2basechr(uint64_t seq32mer){
 |--------->|    |------>nnn|, lastBits=7, remainBits=3 (%10)
 |   -------|--> |   ------>|. Well, left is right here ...
 */
-uint64_t *dibrevcomp(uint64_t *inseq, size_t len){
+uint64_t *dibrevcomp(uint64_t const *const inseq, size_t len){
     size_t needtomallocQQW = (len+31u)>>5;
     uint64_t *outseq = malloc(needtomallocQQW*8);
     char lastBits = len % 64;   // well "% 64" will also be "andl $63,%esi"

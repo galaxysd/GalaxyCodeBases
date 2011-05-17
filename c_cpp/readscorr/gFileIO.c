@@ -34,11 +34,15 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
         kseq_t *kseq;
         kseq = seqObj->fh;
         seqlen = kseq->seq.l;
-        char * qstr = NULL;
+		seqObj->name = kseq->name.s;
+		seqObj->comment = kseq->comment.s;
+		seqObj->seq = kseq->seq.s;
         if (rvalue&2) { // withQ
             //encodeQ;
             type |= 8u;
-            qstr = kseq->qual.s;
+            seqObj->qual = kseq->qual.s;
+        } else {
+            seqObj->qual = NULL;
         }
         size_t needtomallocQQW = (seqlen+31u)>>5;  // 1 "QQWord" = 4 QWord = 32 bp. Well, I say there is QQW.
         if (needtomallocQQW > seqObj->binMallocedQQWord) {
@@ -47,7 +51,7 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
             seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
-        size_t Ncount = base2dbit(seqlen, kseq->seq.s, qstr, seqObj->diBseq, seqObj->hexBQ);
+        size_t Ncount = base2dbit(seqlen, kseq->seq.s, seqObj->qual, seqObj->diBseq, seqObj->hexBQ);
 // printf("-[%s]<%s><%zx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
         seqObj->readlength = seqlen;
         seqObj->type = type;
@@ -84,10 +88,10 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->datePos[0] = -1;	// seeking not available here.
 		seqObj->datePos[1] = 0;
 		//seqObj->hasQ = 0;
-		seqObj->name = &seq->name.s;
-		seqObj->comment = &seq->comment.s;
-		seqObj->seq = &seq->seq.s;
-		seqObj->qual = &seq->qual.s;
+		//seqObj->name = &seq->name.s;
+		//seqObj->comment = &seq->comment.s;
+		//seqObj->seq = &seq->seq.s;
+		//seqObj->qual = &seq->qual.s;
 		//seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
 		seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))

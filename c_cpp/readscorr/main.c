@@ -221,7 +221,7 @@ for (t=0;t<=65;t++) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);
 	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zx\n",
-        			*seqobj->name,*seqobj->comment,seqobj->readlength,*seqobj->seq,*seqobj->qual,(size_t)seqobj->seq);
+        			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
         		int i;
         		unsigned char *tmpstr;
         		for (i=0;i<=seqobj->readlength/32;i++) {
