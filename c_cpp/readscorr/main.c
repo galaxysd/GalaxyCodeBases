@@ -223,12 +223,20 @@ for (t=0;t<=65;t++) {
 	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zx\n",
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
         		int i;
-        		unsigned char *tmpstr;
+        		char *tmpstr;
         		for (i=0;i<=seqobj->readlength/32;i++) {
         		    printf("[%s]",tmpstr=unit2basechr(seqobj->diBseq[i]));
         		    free(tmpstr);
         		}
         		puts("");
+        		printf("[%s]\n",tmpstr=dib2basechr(seqobj->diBseq,seqobj->readlength));
+        		free(tmpstr);
+        		uint64_t *revcomseq=dibrevcomp(seqobj->diBseq,seqobj->readlength);
+        		printf("[%s]\n",tmpstr=dib2basechr(revcomseq,seqobj->readlength));
+        		free(tmpstr);
+        		uint64_t *revcomseq2=dibrevcomp(revcomseq,seqobj->readlength);
+        		printf("[%s]\n",tmpstr=dib2basechr(revcomseq2,seqobj->readlength));
+        		free(tmpstr);
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
