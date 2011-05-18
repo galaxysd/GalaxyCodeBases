@@ -3,15 +3,14 @@
 #include <math.h>	//log2, ceil
 #include <stdio.h>	//fprintf
 #include <err.h>
+#include <string.h> //strcmp
 #include "dleft.h"
 #include "MurmurHash3.h"
 #include "2bitseq.h"
 
 #define HASH_LENB 128u
 #define DLA_ITEMARRAY 8u
-//#ifndef ROUNDUPMOD8
-//#define ROUNDUPMOD8(x) ( ((x)+7) & ~(x) )
-//#endif
+
 #define	FORCE_INLINE static inline __attribute__((always_inline))
 
 DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount) {
@@ -36,7 +35,7 @@ DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t
 void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
     fprintf(stream,"%#zx -> {\n\
  Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*Array:%u\n\
- Hash:%u*%uB   ItemCount:%u, with overflow:%u\n\
+ Hash:%u*%uB   ItemCount:%lu, with overflow:%lu\n\
  FP:%g   estimated FP item count:%.2f\n\
 ",
       (size_t)dleftobj,
@@ -47,10 +46,16 @@ void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
     fputs("}\n", stream);
 }
 
-FORCE_INLINE int_fast8_t dleft_insert_kmer(dBitSeq_t * str, DLeftArray_t * dleftobj) {
+FORCE_INLINE int_fast8_t dleft_insert_kmer(uint64_t *const kmer, size_t len, DLeftArray_t * dleftobj) {
+    uint64_t* revcomkmer = dibrevcomp(kmer,len);
+    char xx = memcmp(kmer,revcomkmer,(len+3u)>>2);
+    uint64_t* smallerkmer = (memcmp(kmer,revcomkmer,(len+3u)>>2)<=0)?kmer:revcomkmer;
+    printf("[%zd]->[%lx,%lx,%lx] %d\n",len,*kmer,*revcomkmer,*smallerkmer,xx);
+    free(smallerkmer);
 }
 
-int_fast8_t dleft_insert_read(dBitSeq_t * str, DLeftArray_t * dleftobj) {
+int_fast8_t dleft_insert_read(uint64_t const *const inseq, size_t len, DLeftArray_t * dleftobj) {
+    dleft_insert_kmer(inseq,len,dleftobj);
 }
 
 void dleft_arraydestroy(DLeftArray_t * const dleftobj){

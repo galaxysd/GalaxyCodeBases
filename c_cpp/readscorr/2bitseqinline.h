@@ -14,6 +14,12 @@
 
 size_t Ncount;
 
+FORCE_INLINE uint64_t *dibmalloc(size_t len){
+    size_t needtomallocQQW = (len+31u)>>5;
+    uint64_t *outseq = malloc(needtomallocQQW*8);
+    return outseq;
+}
+
 FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *const hexBQchr) {
 	switch (*base) {
 	case 'a': case 'A':
