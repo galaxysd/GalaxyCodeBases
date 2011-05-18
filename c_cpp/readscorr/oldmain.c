@@ -218,7 +218,7 @@ for (t=0;t<=65;t++) {
         if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
-        SeqFileObj *seqobj = inSeqFinit(line,1);
+        SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE|GFIODIBBASE);
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);

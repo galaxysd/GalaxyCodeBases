@@ -5,6 +5,9 @@
 #include "gFileType.h"	// for file ID
 #include <stdint.h>	// uint64_t
 
+#define GFIOCHRBASE 1
+#define GFIODIBBASE 2
+
 #ifndef KSTRING_T
 #define KSTRING_T kstring_t
 typedef struct __kstring_t {
