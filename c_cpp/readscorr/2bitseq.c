@@ -31,6 +31,12 @@ char *dib2basechr(uint64_t *diBseq, size_t len){
     return basechar;
 }
 
+uint64_t *dibmalloc(size_t len){
+    size_t needtomallocQQW = (len+31u)>>5;
+    uint64_t *outseq = malloc(needtomallocQQW*8);
+    return outseq;
+}
+
 /*
 |000000000>||111111111>||2222222>...|, lastBits=7, nullBits=3 (%10)
 |...0000000||00>1111111||11>2222222>|. Well, left is right here ...

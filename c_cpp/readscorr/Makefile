@@ -2,7 +2,7 @@ CC = gcc
 CPP = g++
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic\
 #-ftree-vectorize -ftree-vectorizer-verbose=5
-LDFLAGS = -lz -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
+LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
 OPT = -O3
 ASMO = -Wa,-a,-ad
 

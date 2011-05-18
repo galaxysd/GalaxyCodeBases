@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 typedef struct __DLeftArray_t {
-    unsigned char CountBit;
-    unsigned char rBit;
+    unsigned char CountBit, rBit, ArrayBit;
+    unsigned char HashCnt;
     size_t ArraySize;
     unsigned char ArrayCount;
     uint64_t ItemInsideAll, CellOverflowCount; // ItemInsideAll = ItemInsideArray + CellOverflowCount
@@ -24,6 +24,7 @@ typedef struct __dbitseq_t {
 
 DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount);
 
+void dleft_arraydestroy(DLeftArray_t * const dleftobj);
 
 #endif /* dleft.h */
 

@@ -210,6 +210,8 @@ for (t=0;t<=65;t++) {
 
     fputs("\nFirst pass:\n", stderr);
     DLeftArray_t *dleftp = dleft_arrayinit(9,27,1000,4);
+    fputs("DLA nfo: ", stderr);
+    fprintDLAnfo(stderr,dleftp);
     while ((read = getline(&line, &len, fp)) != -1) {
     	ssize_t readlength;
     	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
@@ -220,11 +222,12 @@ for (t=0;t<=65;t++) {
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);
-	        	printf("-ID:[%s,%s] %zu\nSeq:[%s]\nQ:[%s] %zx\n",
-        			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
+	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] %zx\n",
+        			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,
+				seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
         		int i;
         		char *tmpstr;
-        		for (i=0;i<=seqobj->readlength/32;i++) {
+        		for (i=0;i<seqobj->readlength/32;i++) {
         		    printf("[%s]",tmpstr=unit2basechr(seqobj->diBseq[i]));
         		    free(tmpstr);
         		}
@@ -251,6 +254,6 @@ for (t=0;t<=65;t++) {
     }
     fputs("\nHashing Done!\n", stderr);
     free(line);
-
+    dleft_arraydestroy(dleftp);
     exit(EXIT_SUCCESS);
 }
