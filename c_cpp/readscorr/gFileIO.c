@@ -26,6 +26,30 @@ N 4eh 0100 1110   78
 n 6eh 0110 1110   110
 */
 
+ssize_t read_kseq_no2bit(SeqFileObj * const seqObj) {
+    size_t seqlen;	// in fact size_t, but minus values are meanful.
+    int_fast8_t rvalue = kseq_read(seqObj->fh);
+//fputs("<--->", stderr);
+    if (rvalue>0) {
+        uint_fast8_t type = rvalue; // 1 or 3. No need to &3 now.
+        kseq_t *kseq;
+        kseq = seqObj->fh;
+        seqlen = kseq->seq.l;
+		seqObj->name = kseq->name.s;
+		seqObj->comment = kseq->comment.s;
+		seqObj->seq = kseq->seq.s;
+        if (rvalue&2) { // withQ
+            //encodeQ;
+            type |= 8u;
+            seqObj->qual = kseq->qual.s;
+        } else {
+            seqObj->qual = NULL;
+        }
+        seqObj->readlength = seqlen;
+        seqObj->type = type;
+        return seqlen;
+    } else return rvalue;
+}
 ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
     size_t seqlen;	// in fact size_t, but minus values are meanful.
     int_fast8_t rvalue = kseq_read(seqObj->fh);
@@ -94,7 +118,11 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		//seqObj->qual = &seq->qual.s;
 		//seqObj->readlength = &seq->seq.l;
 		seqObj->fh = seq;
-		seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))
+		if (binmode & GFIODIBBASE) {
+		    seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))
+		} else {
+		    seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_no2bit;
+		}
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
 		seqObj->binMallocedQQWord = 0;
