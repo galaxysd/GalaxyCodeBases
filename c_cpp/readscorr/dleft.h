@@ -12,6 +12,7 @@ typedef struct __DLeftArray_t {
     uint64_t ItemInsideAll, CellOverflowCount; // ItemInsideAll = ItemInsideArray + CellOverflowCount
     double FalsePositiveRatio;
     char *dlap, *extreep;
+    uint64_t *outhash;
 } DLeftArray_t;
 
 /*

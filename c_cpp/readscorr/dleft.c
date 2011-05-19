@@ -27,6 +27,7 @@ DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t
     dleftobj->ArraySize = ArraySize;
     dleftobj->ArrayCount = ArrayCount;
     dleftobj->HashCnt = (rBit+ArrayBit+HASH_LENB-1)/HASH_LENB;
+    dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);
     dleftobj->FalsePositiveRatio = ArrayCount*(DLA_ITEMARRAY*3/4)*exp2(-rBit);
     dleftobj->ItemInsideAll=0;
     dleftobj->CellOverflowCount=0;
@@ -36,13 +37,15 @@ DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t
 void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
     fprintf(stream,"%#zx -> {\n\
  Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*Array:%u\n\
- Hash:%u*%uB   ItemCount:%lu, with overflow:%lu\n\
- FP:%g   estimated FP item count:%.2f\n\
+ Hash:%u*%uB   Designed Capacity:%lu\n\
+ ItemCount:%lu, with Overflow:%lu\n\
+ FP:%g, estimated FP item count:%.2f\n\
 ",
       (size_t)dleftobj,
       dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize/dleftobj->ArrayCount),
         dleftobj->ArrayBit,dleftobj->ArrayCount,
-      dleftobj->HashCnt,HASH_LENB,dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
+      dleftobj->HashCnt,HASH_LENB, dleftobj->ArrayCount*dleftobj->ArraySize*(DLA_ITEMARRAY*3/4),
+      dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
       dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio);
     fputs("}\n", stream);
 }
@@ -61,11 +64,12 @@ printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
     size_t bytelen = (len+3u)/4;
     size_t Ncount = ChrSeq2dib(smallerkmer,len,&dibskmer,&uint64cnt);
 printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",uint64cnt,bytelen,dibskmer[0],dibskmer[1],dib2basechr(dibskmer,len),Ncount);
+    uint64_t *ptmpout = dleftobj->outhash;
     for(uint_fast8_t i=0;i<dleftobj->HashCnt;i++){
         uint32_t seed=0x3ab2ae35-i;
-        uint64_t outhash[2];
-        MurmurHash3_x64_128(dibskmer,bytelen,seed,outhash);
-printf("[%016lx,%016lx]\n",outhash[0],outhash[1]);
+        MurmurHash3_x64_128(dibskmer,bytelen,seed,ptmpout);
+printf("[%016lx,%016lx]\n",ptmpout[0],ptmpout[1]);
+        ptmpout += 2;
     }
     free(revcomkmer);
 }
@@ -76,5 +80,6 @@ int_fast8_t dleft_insert_read(char const *const inseq, size_t len, DLeftArray_t 
 
 void dleft_arraydestroy(DLeftArray_t * const dleftobj){
 	free(dleftobj->dlap);
+	free(dleftobj->outhash);
 	free(dleftobj);
 }

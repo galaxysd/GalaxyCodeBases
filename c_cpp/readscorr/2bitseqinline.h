@@ -153,7 +153,7 @@ FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64
 	while (tmpdiBseqp < (*diBseqp)+*puint64cnt) {
 	    *tmpdiBseqp++ = 0LLU;
 	}
-#endif  // not nessary since we have seqlen and the last uint64 is always with tailing 0s.
+#endif  // not nessary since we already have seqlen and the last uint64 is always with tailing 0s.
 #ifdef DEBUG
  printf("[a]%zu %zu [%lx] [%s]\n",seqlen,seqlenDowntoDW,**diBseqp,baseschr);  // just show the 1st one.
 #endif
