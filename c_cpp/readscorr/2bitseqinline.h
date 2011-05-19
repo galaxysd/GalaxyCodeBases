@@ -38,7 +38,7 @@ FORCE_INLINE uint64_t singlebase2dbitplus(const char *const base, unsigned char 
     	// DONOT use `|=` since the memory is just malloced
 		return 0;
 		break;
-	}
+	}   // Whether a looking-up array[64] can be faster ?
 }
 
 FORCE_INLINE size_t base2dbit(size_t seqlen,
@@ -124,32 +124,40 @@ FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncou
     	// DONOT use `|=` since the memory is just malloced
 		return 0;
 		break;
-	}
+	}   // Whether a looking-up array[32] can be faster ?
 }
-FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64_t **diBseqp, size_t *const Ncountp){
+FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64_t **diBseqp, size_t *const puint64cnt){
     size_t needtomallocQQW = (seqlen+31u)>>5;  // in fact length in sizeof(uint64_t)
-    *diBseqp = realloc(*diBseqp, needtomallocQQW*8);
+    if (needtomallocQQW > *puint64cnt) {
+        *diBseqp = realloc(*diBseqp, needtomallocQQW*8);
+        *puint64cnt = needtomallocQQW;
+    }
     uint64_t *tmpdiBseqp = *diBseqp;
-    *Ncountp = 0;
+    size_t Ncount = 0;
     size_t i,j;
 	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
 	uint64_t tmpqdbase;
     for (i=0;i<seqlenDowntoDW;i+=32u) {
         tmpqdbase=0;
         for (j=0;j<32;j++) {
-            tmpqdbase |= singlebase2dbit(baseschr+i+j,Ncountp)<<(j*2);
+            tmpqdbase |= singlebase2dbit(baseschr+i+j,&Ncount)<<(j*2);
         }
         *tmpdiBseqp++ = tmpqdbase;
     }
     tmpqdbase = 0;
     for (j=0;j<seqlen-i;j++) {   // seqlen starts from 0.
-        tmpqdbase |= singlebase2dbit(baseschr+i+j,Ncountp)<<(j*2);
+        tmpqdbase |= singlebase2dbit(baseschr+i+j,&Ncount)<<(j*2);
     }
 	*tmpdiBseqp++ = tmpqdbase;
+#ifdef EP	
+	while (tmpdiBseqp < (*diBseqp)+*puint64cnt) {
+	    *tmpdiBseqp++ = 0LLU;
+	}
+#endif  // not nessary since we have seqlen and the last uint64 is always with tailing 0s.
 #ifdef DEBUG
- printf("[a]%zu %zu [%lx]\n",seqlen,seqlenDowntoDW,**diBseqp);  // just show the 1st one.
+ printf("[a]%zu %zu [%lx] [%s]\n",seqlen,seqlenDowntoDW,**diBseqp,baseschr);  // just show the 1st one.
 #endif
-    return needtomallocQQW;
+    return Ncount;
 }
 
 #endif  // 2bitseqinline.h

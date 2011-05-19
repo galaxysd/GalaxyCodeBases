@@ -26,33 +26,34 @@ FORCE_INLINE void NormalizeChrSeq(char *seq){
 	    default:
             *seq = 'N';
 		    break;
-        }
+        }   // Whether a looking-up array[64] can be faster ?
         ++seq;
     }
 }
 
+// *seq must have been Normalized to /[ATCGN]*/
 FORCE_INLINE char *ChrSeqRevComp(char const * seq, size_t len){
     char *revcomseq=malloc(len+1);
     const char *tmpseqin=seq+len-1;
     char *tmpseqrc=revcomseq;
     while(tmpseqin>=seq){
         switch (*tmpseqin) {
-	    case 'a': case 'A':
+	    case 'A':
 		    *tmpseqrc++ = 'T';
 		    break;
-	    case 't': case 'T':
+	    case 'T':
 		    *tmpseqrc++ = 'A';
 		    break;
-	    case 'c': case 'C':
+	    case 'C':
 		    *tmpseqrc++ = 'G';
 		    break;
-	    case 'g': case 'G':
+	    case 'G':
 		    *tmpseqrc++ = 'C';
 		    break;
 	    default:
             *tmpseqrc++ = 'N';
 		    break;
-        }
+        }   // Whether a looking-up array[32] can be faster ?
         --tmpseqin;
     }
     *tmpseqrc++ = '\0';

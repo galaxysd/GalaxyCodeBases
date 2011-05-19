@@ -47,15 +47,26 @@ void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
     fputs("}\n", stream);
 }
 
+FORCE_INLINE uint32_t rotl32 ( uint32_t x, int8_t r ){
+  return (x << r) | (x >> (32 - r));
+}
+
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, DLeftArray_t *dleftobj) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
 char xx = strcmp(kmer,revcomkmer);
     const char *const smallerkmer = (strcmp(kmer,revcomkmer)<=0)?kmer:revcomkmer;
 printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
     uint64_t *dibskmer=NULL;
-    size_t Ncount=0;
-    size_t uint64cnt = ChrSeq2dib(smallerkmer,len,&dibskmer,&Ncount);
-printf("%zd:[%lx]->[%s] (%zd)\n",uint64cnt,dibskmer[0],dib2basechr(dibskmer,len),Ncount);
+    size_t uint64cnt = 0;
+    size_t bytelen = (len+3u)/4;
+    size_t Ncount = ChrSeq2dib(smallerkmer,len,&dibskmer,&uint64cnt);
+printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",uint64cnt,bytelen,dibskmer[0],dibskmer[1],dib2basechr(dibskmer,len),Ncount);
+    for(uint_fast8_t i=0;i<dleftobj->HashCnt;i++){
+        uint32_t seed=0x3ab2ae35-i;
+        uint64_t outhash[2];
+        MurmurHash3_x64_128(dibskmer,bytelen,seed,outhash);
+printf("[%016lx,%016lx]\n",outhash[0],outhash[1]);
+    }
     free(revcomkmer);
 }
 
