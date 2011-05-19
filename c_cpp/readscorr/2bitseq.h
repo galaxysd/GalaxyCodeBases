@@ -7,7 +7,7 @@
 
 #ifndef DBIT2BASES
 #define DBIT2BASES
-#define DBIT2BASE(dbit) ("acgt"[dbit]) // ("ACGT"[dbit])
+#define DBIT2BASE(dbit) ("ACGT"[dbit]) // ("acgt"[dbit])
 #define DBIT2COMPBASE(dbit) ("TGCA"[dbit])
 #endif
 

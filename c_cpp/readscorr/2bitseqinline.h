@@ -18,7 +18,7 @@ FORCE_INLINE uint64_t *dibmalloc(size_t len){
     return outseq;
 }
 
-FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *const hexBQchr, size_t *const Ncount) {
+FORCE_INLINE uint64_t singlebase2dbitplus(const char *const base, unsigned char *const hexBQchr, size_t *const Ncountp) {
 	switch (*base) {
 	case 'a': case 'A':
 		return 0;
@@ -34,7 +34,7 @@ FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *con
 		break;
 	default:
     	*hexBQchr = 1u<<7;    // 128 for N
-    	++(*Ncount);
+    	++(*Ncountp);
     	// DONOT use `|=` since the memory is just malloced
 		return 0;
 		break;
@@ -56,7 +56,7 @@ FORCE_INLINE size_t base2dbit(size_t seqlen,
         tmpqdbase=0;
         for (j=0;j<32;j++) {
             //tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(62u-j);
-            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
+            tmpqdbase |= singlebase2dbitplus(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
 // printf(" A{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
         }
         *diBseq++ = tmpqdbase;
@@ -65,7 +65,7 @@ FORCE_INLINE size_t base2dbit(size_t seqlen,
     tmpqdbase = 0;
     for (j=0;j<seqlen-i;j++) {   // seqlen starts from 0.
 // Cannot use 'j<=seqlen-i-1' here since 'size_t j' cannot be negative.
-        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
+        tmpqdbase |= singlebase2dbitplus(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
 // printf(" B{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
     }
 	*diBseq++ = tmpqdbase;
@@ -103,6 +103,54 @@ FORCE_INLINE uint64_t unitReverseComp(uint64_t seq32mer){
 revcomp ->            cccaatagacaatttgtctagtgggcgactcg
 */
 //FORCE_INLINE uint64_t QQWkmerMovHigher(uint64_t *seq32mer, unsigned char bphigher, uint64_t ){}
+
+// *base must have been Normalized to /[ATCGN]*/
+FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncountp) {
+	switch (*base) {
+	case 'A':
+		return 0;
+		break;
+	case 'T':
+		return 3;
+		break;
+	case 'C':
+		return 1;
+		break;
+	case 'G':
+		return 2;
+		break;
+	default:
+    	++(*Ncountp);
+    	// DONOT use `|=` since the memory is just malloced
+		return 0;
+		break;
+	}
+}
+FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64_t **diBseqp, size_t *const Ncountp){
+    size_t needtomallocQQW = (seqlen+31u)>>5;  // in fact length in sizeof(uint64_t)
+    *diBseqp = realloc(*diBseqp, needtomallocQQW*8);
+    uint64_t *tmpdiBseqp = *diBseqp;
+    *Ncountp = 0;
+    size_t i,j;
+	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
+	uint64_t tmpqdbase;
+    for (i=0;i<seqlenDowntoDW;i+=32u) {
+        tmpqdbase=0;
+        for (j=0;j<32;j++) {
+            tmpqdbase |= singlebase2dbit(baseschr+i+j,Ncountp)<<(j*2);
+        }
+        *tmpdiBseqp++ = tmpqdbase;
+    }
+    tmpqdbase = 0;
+    for (j=0;j<seqlen-i;j++) {   // seqlen starts from 0.
+        tmpqdbase |= singlebase2dbit(baseschr+i+j,Ncountp)<<(j*2);
+    }
+	*tmpdiBseqp++ = tmpqdbase;
+#ifdef DEBUG
+ printf("[a]%zu %zu [%lx]\n",seqlen,seqlenDowntoDW,**diBseqp);  // just show the 1st one.
+#endif
+    return needtomallocQQW;
+}
 
 #endif  // 2bitseqinline.h
 

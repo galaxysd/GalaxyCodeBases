@@ -7,6 +7,7 @@
 #include "dleft.h"
 #include "MurmurHash3.h"
 #include "2bitseq.h"
+#include "chrseq.h"
 
 #define HASH_LENB 128u
 #define DLA_ITEMARRAY 8u
@@ -46,15 +47,19 @@ void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
     fputs("}\n", stream);
 }
 
-FORCE_INLINE int_fast8_t dleft_insert_kmer(uint64_t *const kmer, size_t len, DLeftArray_t * dleftobj) {
-    uint64_t* revcomkmer = dibrevcomp(kmer,len);
-    char xx = memcmp(kmer,revcomkmer,(len+3u)>>2);
-    uint64_t* smallerkmer = (memcmp(kmer,revcomkmer,(len+3u)>>2)<=0)?kmer:revcomkmer;
-    printf("[%zd]->[%lx,%lx,%lx] %d\n",len,*kmer,*revcomkmer,*smallerkmer,xx);
-    free(smallerkmer);
+FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, DLeftArray_t *dleftobj) {
+    char* revcomkmer = ChrSeqRevComp(kmer,len);
+char xx = strcmp(kmer,revcomkmer);
+    const char *const smallerkmer = (strcmp(kmer,revcomkmer)<=0)?kmer:revcomkmer;
+printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
+    uint64_t *dibskmer=NULL;
+    size_t Ncount=0;
+    size_t uint64cnt = ChrSeq2dib(smallerkmer,len,&dibskmer,&Ncount);
+printf("%zd:[%lx]->[%s] (%zd)\n",uint64cnt,dibskmer[0],dib2basechr(dibskmer,len),Ncount);
+    free(revcomkmer);
 }
 
-int_fast8_t dleft_insert_read(uint64_t const *const inseq, size_t len, DLeftArray_t * dleftobj) {
+int_fast8_t dleft_insert_read(char const *const inseq, size_t len, DLeftArray_t *dleftobj) {
     dleft_insert_kmer(inseq,len,dleftobj);
 }
 

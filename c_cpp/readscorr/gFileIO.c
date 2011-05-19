@@ -74,8 +74,8 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
         if (needtomallocQQW > seqObj->binMallocedQQWord) {
             KROUNDUP32(needtomallocQQW);
             seqObj->binMallocedQQWord = needtomallocQQW;
-            seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
-            seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
+            seqObj->diBseq = realloc(seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
+            seqObj->hexBQ = realloc(seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
         seqObj->binNcount = base2dbit(seqlen, kseq->seq.s, seqObj->qual, seqObj->diBseq, seqObj->hexBQ);
 // printf("-[%s]<%s><%zx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
