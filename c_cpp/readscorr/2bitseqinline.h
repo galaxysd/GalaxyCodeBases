@@ -12,15 +12,13 @@
 #define	FORCE_INLINE static inline __attribute__((always_inline))
 #endif
 
-size_t Ncount;
-
 FORCE_INLINE uint64_t *dibmalloc(size_t len){
     size_t needtomallocQQW = (len+31u)>>5;
     uint64_t *outseq = malloc(needtomallocQQW*8);
     return outseq;
 }
 
-FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *const hexBQchr) {
+FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *const hexBQchr, size_t *const Ncount) {
 	switch (*base) {
 	case 'a': case 'A':
 		return 0;
@@ -36,18 +34,18 @@ FORCE_INLINE uint64_t singlebase2dbit(const char *const base, unsigned char *con
 		break;
 	default:
     	*hexBQchr = 1u<<7;    // 128 for N
-    	++Ncount;
+    	++(*Ncount);
     	// DONOT use `|=` since the memory is just malloced
 		return 0;
 		break;
 	}
 }
 
-FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
+FORCE_INLINE size_t base2dbit(size_t seqlen,
  const char *const baseschr, const char *const qstr,
  uint64_t *diBseq, unsigned char *hexBQ) {
 // First, do the bases, overwrite output arrays since we have just malloc without setting to zero. 
-    Ncount=0;
+    size_t Ncount=0;
     size_t i,j;
 	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
 #ifdef DEBUG
@@ -58,7 +56,7 @@ FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
         tmpqdbase=0;
         for (j=0;j<32;j++) {
             //tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(62u-j);
-            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2);
+            tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
 // printf(" A{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
         }
         *diBseq++ = tmpqdbase;
@@ -67,7 +65,7 @@ FORCE_INLINE int_fast8_t base2dbit(size_t seqlen,
     tmpqdbase = 0;
     for (j=0;j<seqlen-i;j++) {   // seqlen starts from 0.
 // Cannot use 'j<=seqlen-i-1' here since 'size_t j' cannot be negative.
-        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2);
+        tmpqdbase |= singlebase2dbit(baseschr+i+j,hexBQ+i+j,&Ncount)<<(j*2);
 // printf(" B{%lx,%.1s,%lx}",tmpqdbase,baseschr+i+j,singlebase2dbit(baseschr+i+j,hexBQ+i+j)<<(j*2));
     }
 	*diBseq++ = tmpqdbase;

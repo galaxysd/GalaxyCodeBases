@@ -11,6 +11,7 @@
 #include "gkseq.h"	// No more `kseq.h` with tons of Macros !!!
 #include "gFileIO.h"
 #include "2bitseq.h"
+#include "chrseq.h"
 //KSEQ_INIT(gzFile, gzread)	// [kseq.h] Just like include, to inline some static inline functions.
 
 /*
@@ -38,6 +39,7 @@ ssize_t read_kseq_no2bit(SeqFileObj * const seqObj) {
 		seqObj->name = kseq->name.s;
 		seqObj->comment = kseq->comment.s;
 		seqObj->seq = kseq->seq.s;
+		NormalizeChrSeq(kseq->seq.s);   // to /[ATCGN]*/
         if (rvalue&2) { // withQ
             //encodeQ;
             type |= 8u;
@@ -75,7 +77,7 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
             seqObj->diBseq = realloc((void*)seqObj->diBseq,needtomallocQQW<<3);	// 2^3=8
             seqObj->hexBQ = realloc((void*)seqObj->hexBQ,needtomallocQQW<<5);	// 4*2^3=32
         }
-        size_t Ncount = base2dbit(seqlen, kseq->seq.s, seqObj->qual, seqObj->diBseq, seqObj->hexBQ);
+        seqObj->binNcount = base2dbit(seqlen, kseq->seq.s, seqObj->qual, seqObj->diBseq, seqObj->hexBQ);
 // printf("-[%s]<%s><%zx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
         seqObj->readlength = seqlen;
         seqObj->type = type;
@@ -126,6 +128,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
 		seqObj->binMallocedQQWord = 0;
+		seqObj->binNcount = 0;
 		//seqObj->readlength = 0;
 	//int seqlen;	// TEST ONLY !
 	//seqlen = (*seqObj->getNextSeq)(seqObj->fh);	//seqlen = kseq_read(seq); // TEST ONLY !

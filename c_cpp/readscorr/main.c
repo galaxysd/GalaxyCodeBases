@@ -160,8 +160,9 @@ int main (int argc, char **argv) {
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,
 				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
 				char *tmpseq;
-			    NormalizeChrSeq((char*)seqobj->seq);
-			    printf("uc[%s]\nrc[%s]\n",seqobj->seq,tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
+			    //NormalizeChrSeq((char*)seqobj->seq);
+			    printf("rc[%s]\n",tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
+			    free(tmpseq);
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
