@@ -9,9 +9,6 @@
 #include "2bitseq.h"
 #include "chrseq.h"
 
-#define HASH_LENB 128u
-#define SDLA_ITEMARRAY 32u
-
 #define	FORCE_INLINE static inline __attribute__((always_inline))
 
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize) {
@@ -20,10 +17,13 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = malloc(sizeof(SDLeftArray_t));
-    dleftobj->dlap = calloc(SDLA_ITEMARRAY,itemByte*ArraySize);
+    dleftobj->pDLA = calloc(SDLA_ITEMARRAY,itemByte*ArraySize);
+    //unsigned char SDLArray[ArraySize][SDLA_ITEMARRAY][itemByte];
+    //the GNU C Compiler allocates memory for VLAs on the stack, >_<
     dleftobj->CountBit = CountBit;
     dleftobj->rBit = (itemByte<<3) - CountBit;
     dleftobj->ArrayBit = ArrayBit;
+    dleftobj->itemByte = itemByte;
     dleftobj->ArraySize = ArraySize;
     //dleftobj->ArrayCount = ArrayCount;
     dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
@@ -71,7 +71,7 @@ printf("[b]%d,%d,%016zx,%016zx\n",bits,nullBits,bitMask,outUnit);
     }
     *(pdat+i-1) = *(pdat+i-1) >> bits;
     *pdatLen64u -= bits/(8*sizeof(size_t));
-printf("[c][%016lx,%016lx]\n",pdat[0],pdat[1]);
+//printf("[c][%016lx,%016lx]\n",pdat[0],pdat[1]);
     return outUnit;
 }
 
@@ -102,7 +102,7 @@ int_fast8_t dleft_insert_read(char const *const inseq, size_t len, SDLeftArray_t
 }
 
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
-	free(dleftobj->dlap);
+	free(dleftobj->pDLA);
 	free(dleftobj->outhash);
 	free(dleftobj);
 }

@@ -4,14 +4,17 @@
 
 #include <stdint.h>
 
-typedef struct __DLeftArray_t {
+#define HASH_LENB 128u
+#define SDLA_ITEMARRAY 32u
+
+typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
-    unsigned char HashCnt;
+    unsigned char itemByte, HashCnt;
     size_t ArraySize;
     //unsigned char ArrayCount;
     uint64_t ItemInsideAll, CellOverflowCount; // ItemInsideAll = ItemInsideArray + CellOverflowCount
     double FalsePositiveRatio;
-    char *dlap, *extreep;
+    void *pDLA, *pextree;
     uint64_t *outhash;
 } SDLeftArray_t;
 
