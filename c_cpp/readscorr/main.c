@@ -10,7 +10,7 @@
 #include "getch.h"
 #include "2bitarray.h"
 #include "gFileIO.h"
-#include "dleft.h"
+#include "sdleft.h"
 #include "chrseq.h"
 
 const char *argp_program_version =
@@ -143,9 +143,9 @@ int main (int argc, char **argv) {
     if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
 
     fputs("\nFirst pass:\n", stderr);
-    DLeftArray_t *dleftp = dleft_arrayinit(9,27,1000,4);
-    fputs("DLA nfo: ", stderr);
-    fprintDLAnfo(stderr,dleftp);
+    SDLeftArray_t *dleftp = dleft_arrayinit(9,27,1000,4);
+    fputs("SDLA nfo: ", stderr);
+    fprintSDLAnfo(stderr,dleftp);
     while ((read = getline(&line, &len, fp)) != -1) {
     	ssize_t readlength;
     	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible

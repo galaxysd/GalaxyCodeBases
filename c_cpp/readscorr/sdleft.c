@@ -4,7 +4,7 @@
 #include <stdio.h>	//fprintf
 #include <err.h>
 #include <string.h> //strcmp
-#include "dleft.h"
+#include "sdleft.h"
 #include "MurmurHash3.h"
 #include "2bitseq.h"
 #include "chrseq.h"
@@ -14,12 +14,12 @@
 
 #define	FORCE_INLINE static inline __attribute__((always_inline))
 
-DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount) {
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount) {
     if (ArraySize<2 || ArrayCount<1 || CountBit<1 || rBit<1)
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zdx%d",rBit,CountBit,ArraySize,ArrayCount);
     unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
     unsigned char ArrayBit = ceil(log2(ArraySize/ArrayCount));
-    DLeftArray_t *dleftobj = malloc(sizeof(DLeftArray_t));
+    SDLeftArray_t *dleftobj = malloc(sizeof(SDLeftArray_t));
     dleftobj->dlap = calloc(ArrayCount,itemByte*ArraySize*DLA_ITEMARRAY);
     dleftobj->CountBit = CountBit;
     dleftobj->rBit = (itemByte<<3) - CountBit;
@@ -34,8 +34,8 @@ DLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t
     return dleftobj;
 }
 
-void fprintDLAnfo(FILE *stream, const DLeftArray_t * dleftobj){
-    fprintf(stream,"%#zx -> {\n\
+void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
+    fprintf(stream,"SDLA(%#zx) -> {\n\
  Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*Array:%u\n\
  Hash:%u*%uB   Designed Capacity:%lu\n\
  ItemCount:%lu, with Overflow:%lu\n\
@@ -75,7 +75,7 @@ printf("[c][%016lx,%016lx]\n",pdat[0],pdat[1]);
     return outUnit;
 }
 
-FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, DLeftArray_t *dleftobj) {
+FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
 char xx = strcmp(kmer,revcomkmer);
     const char *const smallerkmer = (strcmp(kmer,revcomkmer)<=0)?kmer:revcomkmer;
@@ -97,11 +97,11 @@ printf("[x][%016lx,%016lx]\n",popLowestBits(60,dleftobj->outhash,&datLen64u),pop
     free(revcomkmer);
 }
 
-int_fast8_t dleft_insert_read(char const *const inseq, size_t len, DLeftArray_t *dleftobj) {
+int_fast8_t dleft_insert_read(char const *const inseq, size_t len, SDLeftArray_t *dleftobj) {
     dleft_insert_kmer(inseq,len,dleftobj);
 }
 
-void dleft_arraydestroy(DLeftArray_t * const dleftobj){
+void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
 	free(dleftobj->dlap);
 	free(dleftobj->outhash);
 	free(dleftobj);

@@ -19,7 +19,7 @@ endif
  
 cobjects =
 customobjects =
-c99objects = main.o MurmurHash3.o gFileIO.o dleft.o 2bitseq.o
+c99objects = main.o MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o
 objects = $(cobjects) $(c99objects)
 
 all: clean $(objects) readscorr
