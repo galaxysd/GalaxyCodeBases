@@ -8,7 +8,7 @@ typedef struct __DLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
     unsigned char HashCnt;
     size_t ArraySize;
-    unsigned char ArrayCount;
+    //unsigned char ArrayCount;
     uint64_t ItemInsideAll, CellOverflowCount; // ItemInsideAll = ItemInsideArray + CellOverflowCount
     double FalsePositiveRatio;
     char *dlap, *extreep;
@@ -25,7 +25,7 @@ typedef struct __dbitseq_t {
 #endif
 */
 
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount);
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize);
 int_fast8_t dleft_insert_read(char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);

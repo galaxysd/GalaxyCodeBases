@@ -10,25 +10,25 @@
 #include "chrseq.h"
 
 #define HASH_LENB 128u
-#define DLA_ITEMARRAY 8u
+#define SDLA_ITEMARRAY 32u
 
 #define	FORCE_INLINE static inline __attribute__((always_inline))
 
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, unsigned char ArrayCount) {
-    if (ArraySize<2 || ArrayCount<1 || CountBit<1 || rBit<1)
-       err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zdx%d",rBit,CountBit,ArraySize,ArrayCount);
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize) {
+    if (ArraySize<2 || CountBit<1 || rBit<1)
+       err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zd ",rBit,CountBit,ArraySize);
     unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
-    unsigned char ArrayBit = ceil(log2(ArraySize/ArrayCount));
+    unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = malloc(sizeof(SDLeftArray_t));
-    dleftobj->dlap = calloc(ArrayCount,itemByte*ArraySize*DLA_ITEMARRAY);
+    dleftobj->dlap = calloc(SDLA_ITEMARRAY,itemByte*ArraySize);
     dleftobj->CountBit = CountBit;
     dleftobj->rBit = (itemByte<<3) - CountBit;
     dleftobj->ArrayBit = ArrayBit;
     dleftobj->ArraySize = ArraySize;
-    dleftobj->ArrayCount = ArrayCount;
-    dleftobj->HashCnt = (rBit+ArrayBit+HASH_LENB-1)/HASH_LENB;
+    //dleftobj->ArrayCount = ArrayCount;
+    dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
     dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);
-    dleftobj->FalsePositiveRatio = ArrayCount*(DLA_ITEMARRAY*3/4)*exp2(-rBit);
+    dleftobj->FalsePositiveRatio = (SDLA_ITEMARRAY*3/4)*exp2(-rBit);
     dleftobj->ItemInsideAll=0;
     dleftobj->CellOverflowCount=0;
     return dleftobj;
@@ -36,15 +36,15 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
 
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
     fprintf(stream,"SDLA(%#zx) -> {\n\
- Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*Array:%u\n\
+ Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*subArray:%u\n\
  Hash:%u*%uB   Designed Capacity:%lu\n\
  ItemCount:%lu, with Overflow:%lu\n\
  FP:%g, estimated FP item count:%.2f\n\
 ",
       (size_t)dleftobj,
-      dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize/dleftobj->ArrayCount),
-        dleftobj->ArrayBit,dleftobj->ArrayCount,
-      dleftobj->HashCnt,HASH_LENB, dleftobj->ArrayCount*dleftobj->ArraySize*(DLA_ITEMARRAY*3/4),
+      dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize),
+        dleftobj->ArrayBit,SDLA_ITEMARRAY,
+      dleftobj->HashCnt,HASH_LENB, dleftobj->ArraySize*(SDLA_ITEMARRAY*3/4),
       dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
       dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio);
     fputs("}\n", stream);
