@@ -54,6 +54,27 @@ FORCE_INLINE uint32_t rotl32 ( uint32_t x, int8_t r ){
   return (x << r) | (x >> (32 - r));
 }
 
+// this is POP, thus the input *pdat will be changed/shifted.
+// Max bits is the same as size_t
+// this is a static function, bits has already been <= 8*sizeof(size_t)
+FORCE_INLINE size_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fast8_t *pdatLen64u){
+    //unsigned char lastBits = bits % (8*sizeof(size_t));
+    unsigned char nullBits = 8*sizeof(size_t)-bits;
+    //char MoreUnit = (bits-lastBits)/sizeof(size_t);
+    size_t bitMask = (1LLU<<bits)-1U;
+    size_t outUnit = pdat[0] & bitMask;
+printf("[b]%d,%d,%016zx,%016zx\n",bits,nullBits,bitMask,outUnit);
+    uint_fast8_t i;
+    for(i=1;i<*pdatLen64u;i++){
+        size_t tmpUnit = *(pdat+i) & bitMask;
+        *(pdat+i-1) = (*(pdat+i-1) >> bits) | (tmpUnit << nullBits);
+    }
+    *(pdat+i-1) = *(pdat+i-1) >> bits;
+    *pdatLen64u -= bits/(8*sizeof(size_t));
+printf("[c][%016lx,%016lx]\n",pdat[0],pdat[1]);
+    return outUnit;
+}
+
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, DLeftArray_t *dleftobj) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
 char xx = strcmp(kmer,revcomkmer);
@@ -66,11 +87,13 @@ printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
 printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",uint64cnt,bytelen,dibskmer[0],dibskmer[1],dib2basechr(dibskmer,len),Ncount);
     uint64_t *ptmpout = dleftobj->outhash;
     for(uint_fast8_t i=0;i<dleftobj->HashCnt;i++){
-        uint32_t seed=0x3ab2ae35-i;
+        uint32_t seed=rotl32(0x3ab2ae35-i,i);
         MurmurHash3_x64_128(dibskmer,bytelen,seed,ptmpout);
 printf("[%016lx,%016lx]\n",ptmpout[0],ptmpout[1]);
         ptmpout += 2;
     }
+    uint_fast8_t datLen64u = dleftobj->HashCnt * HASH_LENB/(8*sizeof(uint64_t));
+printf("[x][%016lx,%016lx]\n",popLowestBits(60,dleftobj->outhash,&datLen64u),popLowestBits(56,dleftobj->outhash,&datLen64u));
     free(revcomkmer);
 }
 
