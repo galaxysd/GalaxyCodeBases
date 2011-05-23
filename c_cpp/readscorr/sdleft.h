@@ -13,13 +13,15 @@ typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
     unsigned char itemByte; //, HashCnt;
     size_t ArraySize;
+    //uint64_t maxCount; == Item_CountBitMask
     //unsigned char ArrayCount;
-    uint64_t ItemInsideAll, CellOverflowCount; // ItemInsideAll = ItemInsideArray + CellOverflowCount
+    uint64_t ItemInsideAll, CellOverflowCount, CountBitOverflow; // ItemInsideAll = ItemInsideArray + CellOverflowCount
     double FalsePositiveRatio;
     void *pDLA, *pextree;
     //uint64_t *outhash;
     uint64_t outhash[2];    // both ArrayBit and rBit is (0,64], so HashCnt==1 for MurmurHash3_x64_128
-    uint128_t rBitMask, CountBitMask;
+    uint128_t Item_rBitMask;
+    uint64_t Hash_ArrayBitMask, Hash_rBitMask, Item_CountBitMask;
 } SDLeftArray_t;
 
 /*

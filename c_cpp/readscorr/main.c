@@ -143,7 +143,7 @@ int main (int argc, char **argv) {
     if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
 
     fputs("\nFirst pass:\n", stderr);
-    SDLeftArray_t *dleftp = dleft_arrayinit(9,27,1000);
+    SDLeftArray_t *dleftp = dleft_arrayinit(29,27,1000);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
     while ((read = getline(&line, &len, fp)) != -1) {
