@@ -106,7 +106,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
         unsigned char byte[16];
     } theItem;                 
 */
-    while (pChunk<pEndChunk) {
+    while (pChunk < pEndChunk) {
         theItem = 0;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
@@ -114,17 +114,31 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
         }
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {
+            Item_CountBits = 1;
             break;
         }
         Item_rBits = (theItem & dleftobj->Item_rBitMask) >> dleftobj->CountBit;
         if (Item_rBits == rBits) {
             if (Item_CountBits < dleftobj->Item_CountBitMask) {
                 ++Item_CountBits;
+                break;
             } else {
                 ++dleftobj->CountBitOverflow;
+                return;
             }
         }
         pChunk += dleftobj->itemByte;
+    }
+    if (pChunk < pEndChunk) {
+        theItem = (((uint128_t)Item_rBits)<<dleftobj->CountBit) | Item_CountBits;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
+            uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
+            *pChunk++ = (theItem & tmpMask)>>(i*8u);
+        }
+    } else {
+        ++dleftobj->CellOverflowCount;
+        // deal(*pextree);
     }
 }
 
