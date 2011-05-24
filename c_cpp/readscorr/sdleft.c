@@ -57,12 +57,14 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
       dleftobj->ArraySize*(SDLA_ITEMARRAY*3/4),
       dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
       dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio);
-    fprintf(stream,"Item_rBitMask:[%016lX %016lX]\n", (uint64_t)(dleftobj->Item_rBitMask>>64), (uint64_t)dleftobj->Item_rBitMask);
-    fprintf(stream,"Item_CountBitMask:[%016lX]\n", dleftobj->Item_CountBitMask);
+/*
+    fprintf(stream," Item_rBitMask:[%016lX %016lX]\n", (uint64_t)(dleftobj->Item_rBitMask>>64), (uint64_t)dleftobj->Item_rBitMask);
+    fprintf(stream," Item_CountBitMask:[%016lX]\n", dleftobj->Item_CountBitMask);
     uint128_t check = dleftobj->Item_rBitMask + dleftobj->Item_CountBitMask;
-    fprintf(stream,"Sum:[%016lX %016lX]\n", (uint64_t)(check>>64), (uint64_t)check);
-    fprintf(stream,"Hash_ArrayBitMask:[%016lX]\n", dleftobj->Hash_ArrayBitMask);
-    fprintf(stream,"Hash_rBitMask:[%016lX]\n", dleftobj->Hash_rBitMask);
+    fprintf(stream," Sum:[%016lX %016lX]\n", (uint64_t)(check>>64), (uint64_t)check);
+    fprintf(stream," Hash_ArrayBitMask:[%016lX]\n", dleftobj->Hash_ArrayBitMask);
+    fprintf(stream," Hash_rBitMask:[%016lX]\n", dleftobj->Hash_rBitMask);
+*/
     fputs("}\n", stream);
 }
 
@@ -113,7 +115,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
             //theItem.byte[i] = *(pChunk+i);
         }
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
-        if (Item_CountBits == 0) {
+        if (Item_CountBits == 0) {  // reaching the pre-end
             Item_CountBits = 1;
             break;
         }
@@ -128,7 +130,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
             }
         }
         pChunk += dleftobj->itemByte;
-    }
+    }  // reaching the structure-end
     if (pChunk < pEndChunk) {
         theItem = (((uint128_t)Item_rBits)<<dleftobj->CountBit) | Item_CountBits;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
@@ -136,10 +138,38 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
             uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
             *pChunk++ = (theItem & tmpMask)>>(i*8u);
         }
-    } else {
+    } else {  // reaching the structure-end
         ++dleftobj->CellOverflowCount;
         // deal(*pextree);
     }
+}
+// return 0 for not found
+FORCE_INLINE uint64_t querySDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dleftobj){
+    size_t relAddr = ArrayPos*SDLA_ITEMARRAY*dleftobj->itemByte;
+    unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
+    unsigned char* pEndChunk = (unsigned char*)pChunk + SDLA_ITEMARRAY*dleftobj->itemByte;
+    uint64_t Item_rBits;
+    uint64_t Item_CountBits=0;  // set value in case SDLA_ITEMARRAY*dleftobj->itemByte == 0 (EP ?)
+    uint128_t theItem;
+    while (pChunk < pEndChunk) {
+        theItem = 0;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
+        }
+        Item_CountBits = theItem & dleftobj->Item_CountBitMask;
+        if (Item_CountBits == 0) {  // reaching the pre-end, not found
+            break;
+        }
+        Item_rBits = (theItem & dleftobj->Item_rBitMask) >> dleftobj->CountBit;
+        if (Item_rBits == rBits) {  // found
+            break;
+        }
+        pChunk += dleftobj->itemByte;
+    }
+    if (pChunk >= pEndChunk) {  // reaching the structure-end
+        // deal(*pextree);
+    }
+    return Item_rBits;
 }
 
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj) {
