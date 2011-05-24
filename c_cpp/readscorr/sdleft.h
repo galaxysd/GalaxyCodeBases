@@ -35,7 +35,7 @@ typedef struct __dbitseq_t {
 */
 
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize);
-int_fast8_t dleft_insert_read(char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
+size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj);

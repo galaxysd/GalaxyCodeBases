@@ -156,7 +156,7 @@ FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64
 	}
 #endif  // not nessary since we already have seqlen and the last uint64 is always with tailing 0s.
 #ifdef DEBUG
- printf("[s2d]%zu %zu [%lx] [%s]\n",seqlen,seqlenDowntoDW,**diBseqp,baseschr);  // just show the 1st one.
+ printf("[s2d]%zu %zu [%lx] [%.*s]\n",seqlen,*puint64cnt,**diBseqp,(int)seqlen,baseschr);  // just show the 1st one.
 #endif
     return Ncount;
 }

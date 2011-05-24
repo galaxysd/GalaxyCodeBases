@@ -34,7 +34,7 @@ FORCE_INLINE void NormalizeChrSeq(char *seq){
 // *seq must have been Normalized to /[ATCGN]*/
 FORCE_INLINE char *ChrSeqRevComp(char const * seq, size_t len){
     char *revcomseq=malloc(len+1);
-    const char *tmpseqin=seq+len-1;
+    const char *tmpseqin=seq+len-1; // if len is shorter than real length, trim it.
     char *tmpseqrc=revcomseq;
     while(tmpseqin>=seq){
         switch (*tmpseqin) {

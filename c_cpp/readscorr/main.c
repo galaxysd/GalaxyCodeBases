@@ -75,7 +75,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             if (tmpArgValue>2 && tmpArgValue%2) {   // odd numbers only
                arguments->kmersize = tmpArgValue;
             } else {
-               errx(2,"-k \"%s\"=%i is not a positive odd number !",arg,tmpArgValue);
+               errx(2,"-k \"%s\"=%i is not a positive odd number that >2 !",arg,tmpArgValue);
             }
             break;
         case 'b':
@@ -163,7 +163,8 @@ int main (int argc, char **argv) {
 			    //NormalizeChrSeq((char*)seqobj->seq);
 			    printf("rc[%s]\n",tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
 			    free(tmpseq);*/
-                dleft_insert_read(seqobj->seq,seqobj->readlength,dleftp);
+                size_t insertedCount = dleft_insert_read(arguments.kmersize,seqobj->seq,seqobj->readlength,dleftp);
+                printf("Inserted:[%zu]\n",insertedCount);
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
@@ -178,6 +179,9 @@ int main (int argc, char **argv) {
     }
     fputs("\nHashing Done!\n", stderr);
     free(line);
+    fclose(fp);
+    fputs("SDLA nfo: ", stderr);
+    fprintSDLAnfo(stderr,dleftp);
     dleft_arraydestroy(dleftp);
     exit(EXIT_SUCCESS);
 }
