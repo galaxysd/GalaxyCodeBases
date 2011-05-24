@@ -41,6 +41,7 @@ FORCE_INLINE uint64_t singlebase2dbitplus(const char *const base, unsigned char 
 	}   // Whether a looking-up array[64] can be faster ?
 }
 
+// for gFileIO only
 FORCE_INLINE size_t base2dbit(size_t seqlen,
  const char *const baseschr, const char *const qstr,
  uint64_t *diBseq, unsigned char *hexBQ) {
@@ -49,7 +50,7 @@ FORCE_INLINE size_t base2dbit(size_t seqlen,
     size_t i,j;
 	const size_t seqlenDowntoDW = seqlen & ~((2u<<4)-1);
 #ifdef DEBUG
- printf("[a]%zu %zu\n",seqlen,seqlenDowntoDW);
+ printf("[b2d]%zu %zu\n",seqlen,seqlenDowntoDW);
 #endif
 	uint64_t tmpqdbase;
     for (i=0;i<seqlenDowntoDW;i+=32u) {
@@ -155,7 +156,7 @@ FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64
 	}
 #endif  // not nessary since we already have seqlen and the last uint64 is always with tailing 0s.
 #ifdef DEBUG
- printf("[a]%zu %zu [%lx] [%s]\n",seqlen,seqlenDowntoDW,**diBseqp,baseschr);  // just show the 1st one.
+ printf("[s2d]%zu %zu [%lx] [%s]\n",seqlen,seqlenDowntoDW,**diBseqp,baseschr);  // just show the 1st one.
 #endif
     return Ncount;
 }

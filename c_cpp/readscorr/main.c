@@ -156,13 +156,14 @@ int main (int argc, char **argv) {
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
         		puts(line);
-	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] %zx\n",
+	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,
-				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq);
-				char *tmpseq;
+				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq,seqobj->type);
+				/*char *tmpseq;
 			    //NormalizeChrSeq((char*)seqobj->seq);
 			    printf("rc[%s]\n",tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
-			    free(tmpseq);
+			    free(tmpseq);*/
+                dleft_insert_read(seqobj->seq,seqobj->readlength,dleftp);
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);

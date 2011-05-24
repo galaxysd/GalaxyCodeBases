@@ -82,7 +82,7 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
     //char MoreUnit = (bits-lastBits)/sizeof(size_t);
     uint64_t bitMask = (1LLU<<bits)-1U;
     uint64_t outUnit = pdat[0] & bitMask;
-printf("[b]%d,%d,%016zx,%016zx\n",bits,nullBits,bitMask,outUnit);
+//printf("[b]%d,%d,%016zx,%016zx\n",bits,nullBits,bitMask,outUnit);
     uint_fast8_t i;
     for(i=1;i<*pdatLenu64t;i++){
         uint64_t tmpUnit = *(pdat+i) & bitMask;
@@ -182,27 +182,29 @@ FORCE_INLINE uint64_t querySDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray
 
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
-char xx = strcmp(kmer,revcomkmer);
+//char xx = strcmp(kmer,revcomkmer);
     const char *const smallerkmer = (strcmp(kmer,revcomkmer)<=0)?kmer:revcomkmer;
-printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
+//printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
     uint64_t *dibskmer=NULL;
     size_t uint64cnt = 0;
     size_t bytelen = (len+3u)/4;
     size_t Ncount = ChrSeq2dib(smallerkmer,len,&dibskmer,&uint64cnt);
-printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",uint64cnt,bytelen,dibskmer[0],dibskmer[1],dib2basechr(dibskmer,len),Ncount);
+//printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",uint64cnt,bytelen,dibskmer[0],dibskmer[1],dib2basechr(dibskmer,len),Ncount);
     //uint64_t *ptmpout = dleftobj->outhash;
     //for(uint_fast8_t i=0;i<dleftobj->HashCnt;i++){
         //uint32_t seed=rotl32(0x3ab2ae35-i,i);
         //MurmurHash3_x64_128(dibskmer,bytelen,seed,ptmpout);
-    MurmurHash3_x64_128(dibskmer,bytelen,HASHSEED,dleftobj->outhash);
-printf("[%016lx,%016lx]\n",dleftobj->outhash[0],dleftobj->outhash[1]);
-        //ptmpout += 2;
-    //}
-    uint_fast8_t datLenu64t = HASH_LENB/(8*sizeof(uint64_t));
+    if (! Ncount) {
+        MurmurHash3_x64_128(dibskmer,bytelen,HASHSEED,dleftobj->outhash);
+//printf("[%016lx,%016lx]\n",dleftobj->outhash[0],dleftobj->outhash[1]);
+            //ptmpout += 2;
+        //}
+        uint_fast8_t datLenu64t = HASH_LENB/(8*sizeof(uint64_t));
 //printf("[x][%016lx,%016lx]\n",popLowestBits(60,dleftobj->outhash,&datLenu64t),popLowestBits(56,dleftobj->outhash,&datLenu64t));
-    size_t ArrayPos = popLowestBits(dleftobj->ArrayBit,dleftobj->outhash,&datLenu64t) % dleftobj->ArraySize;
-    uint64_t rBits = popLowestBits(dleftobj->rBit,dleftobj->outhash,&datLenu64t);
-    incSDLArray(ArrayPos, rBits, dleftobj);
+        size_t ArrayPos = popLowestBits(dleftobj->ArrayBit,dleftobj->outhash,&datLenu64t) % dleftobj->ArraySize;
+        uint64_t rBits = popLowestBits(dleftobj->rBit,dleftobj->outhash,&datLenu64t);
+        incSDLArray(ArrayPos, rBits, dleftobj);
+    }
     free(revcomkmer);
 }
 

@@ -79,6 +79,8 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
         }
         seqObj->binNcount = base2dbit(seqlen, kseq->seq.s, seqObj->qual, seqObj->diBseq, seqObj->hexBQ);
 // printf("-[%s]<%s><%zx>[%s]-\n",kseq->seq.s, qstr, seqObj->diBseq[0], unit2basechr(seqObj->diBseq[0]));
+    // Well, how to deal with smallcase masking ? Not using this information yet.
+        NormalizeChrSeq(kseq->seq.s);   // to /[ATCGN]*/
         seqObj->readlength = seqlen;
         seqObj->type = type;
         return seqlen;
