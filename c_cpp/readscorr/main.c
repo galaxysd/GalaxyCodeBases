@@ -170,13 +170,14 @@ int main (int argc, char **argv) {
         fputs("\b\b\b\b, done !\n", stderr);
         inSeqFdestroy(seqobj);
     }
-
+/*
     rewind(fp);
     fputs("\nSecond pass:\n", stderr);
     while ((read = getline(&line, &len, fp)) != -1) {
         if (*(line+read-1)=='\n') *(line+(--read))='\0';
         printf("[%zu]+%zu <%s>\n", read, len, line);
     }
+*/
     fputs("\nHashing Done!\n", stderr);
     free(line);
     fclose(fp);

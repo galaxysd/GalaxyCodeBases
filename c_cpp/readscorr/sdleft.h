@@ -18,6 +18,7 @@ typedef struct __SDLeftArray_t {
     uint64_t ItemInsideAll, CellOverflowCount, CountBitOverflow; // ItemInsideAll = ItemInsideArray + CellOverflowCount
     double FalsePositiveRatio;
     void *pDLA, *pextree;
+    uint64_t maxCountSeen;
     //uint64_t *outhash;
     uint64_t outhash[2];    // both ArrayBit and rBit is (0,64], so HashCnt==1 for MurmurHash3_x64_128
     uint128_t Item_rBitMask;

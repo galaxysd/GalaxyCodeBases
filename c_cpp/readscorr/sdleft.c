@@ -30,6 +30,7 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     dleftobj->ArrayBit = ArrayBit;
     dleftobj->itemByte = itemByte;
     dleftobj->ArraySize = ArraySize;
+    dleftobj->maxCountSeen = 1; //if SDLA is not empty, maxCountSeen>=1.
     //dleftobj->ArrayCount = ArrayCount;
     //dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
     //dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);
@@ -46,14 +47,14 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
     fprintf(stream,"SDLA(%#zx) -> {\n\
  Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*subArray:%u = %g MiB\n\
- Hash:%u*%uB   ItemByte:%u\n\
+ Hash:%u*%uB   ItemByte:%u   MaxCountSeen:%lu%s\n\
  Designed Capacity:%lu   ItemCount:%lu, with Overflow:%lu\n\
  FP:%g, estimated FP item count:%.2f\n\
 ",
       (size_t)dleftobj,
       dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize),
         dleftobj->ArrayBit,SDLA_ITEMARRAY,(double)SDLA_ITEMARRAY*dleftobj->itemByte*dleftobj->ArraySize/1048576,
-      1,HASH_LENB,dleftobj->itemByte,
+      1,HASH_LENB,dleftobj->itemByte,dleftobj->maxCountSeen,(dleftobj->ItemInsideAll)?"":"(=0, as SDLA is empty)",
       dleftobj->ArraySize*(SDLA_ITEMARRAY*3/4),
       dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
       dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio);
@@ -125,6 +126,9 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
         if (Item_rBits == rBits) {
             if (Item_CountBits < dleftobj->Item_CountBitMask) {
                 ++Item_CountBits;
+                if (Item_CountBits > dleftobj->maxCountSeen) {
+                    dleftobj->maxCountSeen = Item_CountBits;
+                }   // if SDLA is not empty, maxCountSeen>=1, no need to check when Item_CountBits == 0.
                 break;
             } else {
                 ++dleftobj->CountBitOverflow;
