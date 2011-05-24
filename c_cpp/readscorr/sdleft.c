@@ -117,6 +117,8 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {  // reaching the pre-end
             Item_CountBits = 1;
+            ++dleftobj->ItemInsideAll;
+//printf("<%lu>",dleftobj->ItemInsideAll);
             break;
         }
         Item_rBits = (theItem & dleftobj->Item_rBitMask) >> dleftobj->CountBit;
@@ -132,12 +134,18 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
         pChunk += dleftobj->itemByte;
     }  // reaching the structure-end
     if (pChunk < pEndChunk) {
-        theItem = (((uint128_t)Item_rBits)<<dleftobj->CountBit) | Item_CountBits;
+//printf("Old:%zu[%lx %lx]<-[%lx][%lx][%lx %lx] ",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr,(uint64_t)(theItem>>64),(uint64_t)theItem,rBits,Item_CountBits,(uint64_t)((((uint128_t)rBits)<<dleftobj->CountBit)>>64),(uint64_t)(((uint128_t)rBits)<<dleftobj->CountBit));
+        theItem = (((uint128_t)rBits)<<dleftobj->CountBit) | Item_CountBits;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
-            theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
             uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
             *pChunk++ = (theItem & tmpMask)>>(i*8u);
         }
+/*printf("New:%zu[%lx %lx] ",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr,(uint64_t)(theItem>>64),(uint64_t)theItem);
+printf("Mem:%zu[",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr);
+for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+    printf("%x ",*(pChunk-dleftobj->itemByte+i));
+}
+puts("]");*/
     } else {  // reaching the structure-end
         ++dleftobj->CellOverflowCount;
         // deal(*pextree);
@@ -169,7 +177,7 @@ FORCE_INLINE uint64_t querySDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray
     if (pChunk >= pEndChunk) {  // reaching the structure-end
         // deal(*pextree);
     }
-    return Item_rBits;
+    return Item_CountBits;
 }
 
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj) {
