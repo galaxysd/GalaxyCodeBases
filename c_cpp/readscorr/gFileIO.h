@@ -41,11 +41,4 @@ SeqFileObj * inSeqFinit(const char * const, unsigned char);
 int inSeqFseek(SeqFileObj * const, const fpos_t datePos[]);
 void inSeqFdestroy(SeqFileObj * const);
 
-typedef struct __OutFileObj {
-    const char * fullname;
-    FILE *fp;
-} OutFileObj;
-OutFileObj outFinit(const char * const filename);
-
 #endif /* gFileIO.h */
-
