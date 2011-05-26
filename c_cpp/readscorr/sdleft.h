@@ -2,7 +2,9 @@
 #ifndef _G_SDLEFT_H
 #define _G_SDLEFT_H
 
-#include <stdint.h>
+#include <stddef.h> //size_t
+#include <stdint.h> //uint64_t
+#include <stdio.h>  //FILE
 
 #define HASH_LENB 128u
 #define SDLA_ITEMARRAY 32u

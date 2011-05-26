@@ -132,7 +132,7 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		} else {
 		    seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_no2bit;
 		}
-		seqObj->closefh = (G_int_oneIN) close_kseq;
+		seqObj->closefh = (G_p_oneIN) close_kseq;
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
 		seqObj->binMallocedQQWord = 0;

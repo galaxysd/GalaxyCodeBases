@@ -1,5 +1,5 @@
 CC = gcc
-CPP = g++
+#CPP = g++
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic\
 #-ftree-vectorize -ftree-vectorizer-verbose=5
 LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
@@ -19,19 +19,28 @@ override DEF := $(DEF) -D OPENMP
 endif
  
 cobjects =
-customobjects =
+customobjects = sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o
 c99objects = main.o MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o
-objects = $(cobjects) $(c99objects)
+objects = $(cobjects) $(c99objects) $(customobjects)
 
 all: clean $(objects) readscorr
 
-readscorr : $(objects) $(customobjects)
+readscorr : $(objects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
+
+sdleftTFuint16.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $@.asm
+sdleftTFuint32.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $@.asm
+sdleftTFuint64.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $@.asm
+sdleftTFpublic.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $@.asm
 
 $(cobjects): %.o: %.c 
 	$(CC) $(MAKEARG) -c $< -o $@ > $@.asm
-$(cppobjects): %.o: %.cpp
-	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
+#$(cppobjects): %.o: %.cpp
+#	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
 $(c99objects): %.o: %.c
 	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $@.asm
 
@@ -41,4 +50,4 @@ debug: clean $(objects)
 
 .PHONY : clean
 clean :
-	-rm readscorr $(objects) $(customobjects)
+	-rm readscorr $(objects)
