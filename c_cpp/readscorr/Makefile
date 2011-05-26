@@ -35,7 +35,7 @@ sdleftTFuint32.o:
 sdleftTFuint64.o:
 	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $@.asm
 sdleftTFpublic.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $@.asm
+	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $@.asm
 
 $(cobjects): %.o: %.c 
 	$(CC) $(MAKEARG) -c $< -o $@ > $@.asm

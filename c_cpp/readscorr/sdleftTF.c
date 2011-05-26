@@ -2,6 +2,10 @@
 #include "sdleft.h"
 #include "sdleftTF.h"
 
+uint16_t *dleft_statu16(SDLeftArray_t *dleftobj);
+uint32_t *dleft_statu32(SDLeftArray_t *dleftobj);
+uint64_t *dleft_statu64(SDLeftArray_t *dleftobj);
+
 #ifndef PUBLIC
     #ifdef USEUINT16
     uint16_t  *dleft_statu16
@@ -17,5 +21,5 @@
     }
 #else
 
-void *pf = (G_SDLeftArray_IN) dleft_statu16;
+G_SDLeftArray_IN pf = (G_SDLeftArray_IN) dleft_statu16;
 #endif
