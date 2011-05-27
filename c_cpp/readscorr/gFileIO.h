@@ -16,10 +16,11 @@ typedef struct __kstring_t {
 } kstring_t;
 #endif	// Yes, it is the same as that in kseq.h
 
-typedef ssize_t (*G_ssize_t_oneIN)(void * const);
+//typedef ssize_t (*G_ssize_t_oneIN)(void * const);
 //typedef void (*G_p_oneIN)(void * const);
 struct __SeqFileObj;
-typedef void (*G_p_oneIN)(struct __SeqFileObj * const);
+typedef ssize_t (G_ssize_t_oneIN)(struct __SeqFileObj * const);
+typedef void (G_p_oneIN)(struct __SeqFileObj * const);
 
 typedef struct __SeqFileObj {
    size_t readlength,binNcount,binMallocedQQWord;
@@ -29,9 +30,9 @@ typedef struct __SeqFileObj {
    uint64_t *diBseq;   // 2bit, {A,C,G,T}={0,1,2,3}
    unsigned char *hexBQ;   // 0~63 for Quality, 128 for N, 64 for Eamss-masked or smallcase-masked
    //int (*getNextSeq)(void *);   // void * fh
-   G_ssize_t_oneIN getNextSeq;
-   G_p_oneIN closefh; // remember to close file handle
-   void * fobj;   // Not just FILE *fp
+   G_ssize_t_oneIN *getNextSeq;
+   G_p_oneIN *closefh; // remember to close file handle
+   void *fobj;   // Not just FILE *fp
    long datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
    //long datePosOffset,datePosItem;
    uint_fast8_t type;   // 1->hasBaseChr, 2->hasQchar, 4->hasBase2bit,

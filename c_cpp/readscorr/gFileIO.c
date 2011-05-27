@@ -128,11 +128,11 @@ SeqFileObj * inSeqFinit(const char * const filename, unsigned char binmode) {
 		//seqObj->readlength = &seq->seq.l;
 		seqObj->fobj = seq;
 		if (binmode & GFIODIBBASE) {
-		    seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_with2bit;	// (int (*)(void*))
+		    seqObj->getNextSeq = read_kseq_with2bit;	// (ssize_t (*)(void*))
 		} else {
-		    seqObj->getNextSeq = (G_ssize_t_oneIN) read_kseq_no2bit;
+		    seqObj->getNextSeq = read_kseq_no2bit;
 		}
-		seqObj->closefh = (G_p_oneIN) close_kseq;
+		seqObj->closefh = close_kseq;
 		seqObj->diBseq = NULL;	// We need NULL to free ...
 		seqObj->hexBQ = NULL;
 		seqObj->binMallocedQQWord = 0;

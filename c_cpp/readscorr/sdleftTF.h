@@ -15,6 +15,6 @@ typedef struct __SDLeftStat_t {
     uint64_t Sum;
 } SDLeftStat_t;
 
-typedef SDLeftStat_t * (*G_SDLeftArray_IN)(SDLeftArray_t * const);
+typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const);    //*G_SDLeftArray_IN() is OK,too .
 
 #endif  // sdleftTF.h

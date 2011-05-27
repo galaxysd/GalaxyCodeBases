@@ -57,5 +57,5 @@ SDLeftStat_t * ADDSUFFIX(dleft_stat) (SDLeftArray_t * const dleftobj) {
     return pSDLeftStat;
 }
 #else   // PUBLIC
-G_SDLeftArray_IN pf = dleft_stat_uint16_t;
+G_SDLeftArray_IN *pf = dleft_stat_uint16_t;
 #endif
