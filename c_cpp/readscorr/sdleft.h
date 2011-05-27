@@ -9,7 +9,10 @@
 #define HASH_LENB 128u
 #define SDLA_ITEMARRAY 32u
 
+#ifndef _G_UINT128_T
+#define _G_UINT128_T
 typedef unsigned int uint128_t __attribute__((mode(TI)));
+#endif
 
 typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;

@@ -6,6 +6,7 @@
 #include <string.h> //strcmp
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
 #include "sdleft.h"
+#include "sdleftTF.h"
 #include "MurmurHash3.h"
 #include "2bitseq.h"
 #include "chrseq.h"

@@ -1,8 +1,10 @@
 CC = gcc
 #CPP = g++
-CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic\
-#-ftree-vectorize -ftree-vectorizer-verbose=5
-LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both
+CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic \
+# -DMKL_ILP64 -m64 -I$(MKLROOT)/include \
+# -ftree-vectorize -ftree-vectorizer-verbose=5
+LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both \
+# $(MKLROOT)/lib/em64t/libmkl_solver_ilp64_sequential.a -Wl,--start-group $(MKLROOT)/lib/em64t/libmkl_intel_ilp64.a $(MKLROOT)/lib/em64t/libmkl_sequential.a $(MKLROOT)/lib/em64t/libmkl_core.a -Wl,--end-group -lpthread
 OPT = -O3
 ASMO = -Wa,-a,-ad
 
