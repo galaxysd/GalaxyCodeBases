@@ -32,6 +32,7 @@ typedef struct __SeqFileObj {
    //int (*getNextSeq)(void *);   // void * fh
    G_ssize_t_oneIN *getNextSeq;
    G_p_oneIN *closefh; // remember to close file handle
+   //= void (*closefh)(struct __SeqFileObj * const);
    void *fobj;   // Not just FILE *fp
    long datePos[1];   // [1] for item id, [0] for offset. For Text file, item id == 0.
    //long datePosOffset,datePosItem;
