@@ -8,6 +8,8 @@ LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dta
 OPT = -O3
 ASMO = -Wa,-a,-ad
 
+OBJDIR = ./objects/
+
 MAXKMERLENGTH=31
 DEF = \
 #-D MAXKMERLENGTH=$(MAXKMERLENGTH) 
@@ -21,8 +23,8 @@ override DEF := $(DEF) -D OPENMP
 endif
  
 cobjects =
-customobjects = sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o
-c99objects = main.o MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o
+customobjects = $(addprefix $(OBJDIR), sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
+c99objects = $(addprefix $(OBJDIR), main.o MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o )
 objects = $(cobjects) $(c99objects) $(customobjects)
 
 all: clean $(objects) readscorr
@@ -30,21 +32,21 @@ all: clean $(objects) readscorr
 readscorr : $(objects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
 
-sdleftTFuint16.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $@.asm
-sdleftTFuint32.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $@.asm
-sdleftTFuint64.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $@.asm
-sdleftTFpublic.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $@.asm
+$(OBJDIR)sdleftTFuint16.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint32.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint64.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFpublic.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
 
-$(cobjects): %.o: %.c 
-	$(CC) $(MAKEARG) -c $< -o $@ > $@.asm
+$(cobjects): $(OBJDIR)%.o: %.c 
+	$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 #$(cppobjects): %.o: %.cpp
 #	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
-$(c99objects): %.o: %.c
-	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $@.asm
+$(c99objects): $(OBJDIR)%.o: %.c
+	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
@@ -53,3 +55,5 @@ debug: clean $(objects)
 .PHONY : clean
 clean :
 	-rm readscorr $(objects)
+	mkdir -p $(OBJDIR)
+
