@@ -29,7 +29,7 @@ objects = $(cobjects) $(c99objects) $(customobjects)
 
 all: clean $(objects) readscorr
 
-readscorr : $(objects)
+readscorr: $(objects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
 
 $(OBJDIR)sdleftTFuint16.o:
@@ -52,8 +52,11 @@ debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
 	$(CC) $(CFLAGS) $(LDFLAGS) -g -o readscorr $(objects)
 
+test: readscorr
+	valgrind ./readscorr test.lst -k 17
+
 .PHONY : clean
-clean :
+clean:
 	-rm readscorr $(objects)
 	mkdir -p $(OBJDIR)
 

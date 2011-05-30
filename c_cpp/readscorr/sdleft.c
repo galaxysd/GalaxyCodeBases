@@ -1,12 +1,12 @@
 #include <stdlib.h>	//calloc
 #include <stdint.h>	// uint_fast8_t
 #include <math.h>	//log2, ceil
-#include <stdio.h>	//fprintf
+#include <stdio.h>	//fprintf, fseek
 #include <err.h>
 #include <string.h> //strcmp
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
 #include "sdleft.h"
-#include "sdleftTF.h"
+//#include "sdleftTF.h"
 #include "MurmurHash3.h"
 #include "2bitseq.h"
 #include "chrseq.h"
@@ -22,6 +22,7 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
     dleftobj->pDLA = calloc(SDLA_ITEMARRAY,itemByte*ArraySize);
+    dleftobj->SDLAbyte = SDLA_ITEMARRAY*itemByte*ArraySize;
     //unsigned char SDLArray[ArraySize][SDLA_ITEMARRAY][itemByte];
     //the GNU C Compiler allocates memory for VLAs on the stack, >_<
     dleftobj->CountBit = CountBit;
@@ -226,6 +227,10 @@ size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SD
     }
     free(dibskmer);
     return insertedCount;
+}
+
+void dleft_dump(const SDLeftArray_t * const dleftobj, const SDLdumpHead * const pSDLeftStat, FILE *stream){
+    rewind(stream);  // for Binary file, position is important.
 }
 
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj){

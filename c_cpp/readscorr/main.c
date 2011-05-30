@@ -72,18 +72,18 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'k':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>2 && tmpArgValue%2) {   // odd numbers only
+            if (tmpArgValue>2 && tmpArgValue%2 && tmpArgValue <= UINT16_MAX) {   // odd numbers only
                arguments->kmersize = tmpArgValue;
             } else {
-               errx(2,"-k \"%s\"=%i is not a positive odd number that >2 !",arg,tmpArgValue);
+               errx(2,"-k \"%s\"=%i is not a odd number of [3,%d] !",arg,tmpArgValue,UINT16_MAX);
             }
             break;
         case 'b':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>0)
+            if (tmpArgValue>0 && tmpArgValue <= UINT32_MAX)
                arguments->bloomsize = tmpArgValue;
             else
-               errx(2,"-b \"%s\"=%i is not a positive number !",arg,tmpArgValue);
+               errx(2,"-b \"%s\"=%i is not a positive number <= %u!",arg,tmpArgValue,UINT32_MAX);
             break;
         
         case ARGP_KEY_ARG:
@@ -195,8 +195,18 @@ int main (int argc, char **argv) {
     fprintSDLAnfo(stderr,dleftp);
     fp = fopen(outStat, "w");
     fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%llu\n",arguments.kmersize,1ULL<<(2*arguments.kmersize));
-    dleft_stat(dleftp,fp);
+    SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
     fclose(fp);
+    fp = fopen(outDat, "w");
+    SDLdumpHead *DatHead = calloc(1,sizeof(SDLdumpHead));
+    DatHead->HistMaxCntVal = SDLeftStat->HistMaxCntVal;
+    DatHead->HistMaxHistVal = SDLeftStat->HistMaxHistVal;
+    DatHead->HistMean = SDLeftStat->HistMean;
+    DatHead->HistSStd = SDLeftStat->HistSStd;
+    free(SDLeftStat);
+    dleft_dump(dleftp,SDLeftStat,fp);
+    fclose(fp);
+    free(DatHead);
     dleft_arraydestroy(dleftp);
     
     free(outStat); free(outDat); free(outLog);

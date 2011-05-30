@@ -53,20 +53,24 @@ fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
         ++pCountHistArray[Item_CountBits];
         //++HistSum;
     }
-    THETYPE HistSum=0;
+    //THETYPE HistSum=0;    // HistSum == dleftobj->ItemInsideAll
     DILTYPE HistSumSquared=0;
     double SStd;    // We need to return in a fixed type for printf
     for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
-        HistSum += pCountHistArray[p];
+        //HistSum += pCountHistArray[p];
         HistSumSquared += pCountHistArray[p] * pCountHistArray[p];
     }
     //http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-    SStd = ( (FLOTYPE)HistSumSquared - ((FLOTYPE)HistSum*(FLOTYPE)HistSum/(FLOTYPE)dleftobj->maxCountSeen) )
+    SStd = ( (FLOTYPE)HistSumSquared - ((FLOTYPE)dleftobj->ItemInsideAll*(FLOTYPE)dleftobj->ItemInsideAll/(FLOTYPE)dleftobj->maxCountSeen) )
             / (dleftobj->maxCountSeen -1);
     pSDLeftStat->HistSStd = SStd;
-    pSDLeftStat->HistMean = (double)HistSum / (double)dleftobj->maxCountSeen;
-    fprintf(stream,"#Kmer_real_count:%d\n#Kmer_count_hist:%d\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
-        dleftobj->ItemInsideAll,dleftobj->maxCountSeen);
+    pSDLeftStat->HistMean = (double)dleftobj->ItemInsideAll / (double)dleftobj->maxCountSeen;
+    fprintf(stream,"#Kmer_real_count:%ld\n#Kmer_count_hist:%ld\n#Kmer_depth_mean:%f\n#Kmer_depth_sStd:%f\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
+        dleftobj->ItemInsideAll,dleftobj->maxCountSeen,pSDLeftStat->HistMean,SStd);
+    for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
+        fprintf(stream,"%zu\t%lu\t%lu\t%g\n",p,(uint64_t)pCountHistArray[p],
+            (uint64_t)pCountHistArray[p]*(uint64_t)p,(double)pCountHistArray[p]/(double)dleftobj->ItemInsideAll);
+    }
     free(pCountHistArray);
     // deal(*pextree);
     return pSDLeftStat;
