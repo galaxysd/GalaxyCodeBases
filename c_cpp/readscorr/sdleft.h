@@ -5,7 +5,6 @@
 #include <stddef.h> //size_t
 #include <stdint.h> //uint64_t
 #include <stdio.h>  //FILE
-//#include "sdleftTF.h"
 
 #define HASH_LENB 128u
 #define SDLA_ITEMARRAY 32u
@@ -47,5 +46,6 @@ size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SD
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj);
 
+#include "sdleftTF.h"
 #endif /* sdleft.h */
 

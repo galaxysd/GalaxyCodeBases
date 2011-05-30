@@ -12,7 +12,6 @@
 #include "gFileIO.h"
 #include "sdleft.h"
 #include "chrseq.h"
-#include "sdleftTF.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;

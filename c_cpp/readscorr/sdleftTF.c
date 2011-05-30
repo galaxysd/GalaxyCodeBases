@@ -51,20 +51,20 @@ fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
         }
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         ++pCountHistArray[Item_CountBits];
-        //++CountSum;
+        //++HistSum;
     }
-    THETYPE CountSum=0;
-    DILTYPE CountSumSquared=0;
+    THETYPE HistSum=0;
+    DILTYPE HistSumSquared=0;
     double SStd;    // We need to return in a fixed type for printf
-    for (size_t p=1;p<=dleftobj->maxCountSeen;p+=sizeof(size_t)) {
-        CountSum += pCountHistArray[p];
-        CountSumSquared += pCountHistArray[p] * pCountHistArray[p];
+    for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
+        HistSum += pCountHistArray[p];
+        HistSumSquared += pCountHistArray[p] * pCountHistArray[p];
     }
     //http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-    SStd = ( (FLOTYPE)CountSumSquared - ((FLOTYPE)CountSum*(FLOTYPE)CountSum/(FLOTYPE)dleftobj->ItemInsideAll) )
-            / (dleftobj->ItemInsideAll -1);
-    pSDLeftStat->SStd = SStd;
-    pSDLeftStat->Mean = (double)CountSum / (double)dleftobj->ItemInsideAll;
+    SStd = ( (FLOTYPE)HistSumSquared - ((FLOTYPE)HistSum*(FLOTYPE)HistSum/(FLOTYPE)dleftobj->maxCountSeen) )
+            / (dleftobj->maxCountSeen -1);
+    pSDLeftStat->HistSStd = SStd;
+    pSDLeftStat->HistMean = (double)HistSum / (double)dleftobj->maxCountSeen;
     free(pCountHistArray);
     // deal(*pextree);
     return pSDLeftStat;

@@ -10,10 +10,12 @@ Here, we select typeof(Count) on SUM(Count)==dleftobj->ItemInsideAll
 #include <stddef.h> //size_t
 #include <stdint.h> //uint64_t
 #include <stdio.h>  //FILE
+#include "sdleft.h"
 
 #ifndef _G_UINT128_T
 #define _G_UINT128_T
-typedef unsigned __int128 uint128_t __attribute__((mode(TI)));
+//typedef unsigned __int128 uint128_t __attribute__((mode(TI)));
+typedef unsigned int uint128_t __attribute__((mode(TI)));
 #endif
 
 #ifndef _G_FLOAT128_T
@@ -50,8 +52,10 @@ Quad 	1   	15      	112          	128     		16383       	113
 */
 
 typedef struct __SDLeftStat_t {
-    double Mean;
-    double SStd;
+    uint64_t HistMaxCntVal;
+    uint64_t HistMaxHistVal;
+    double HistMean;
+    double HistSStd;
 } SDLeftStat_t;
 
 typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const, FILE *);    //*G_SDLeftArray_IN() is OK,too .
