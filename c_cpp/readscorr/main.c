@@ -193,7 +193,8 @@ int main (int argc, char **argv) {
     fclose(fp);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
-    fp = fopen(outDat, "w");
+    fp = fopen(outStat, "w");
+    fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%llu\n",arguments.kmersize,1ULL<<(2*arguments.kmersize));
     dleft_stat(dleftp,fp);
     fclose(fp);
     dleft_arraydestroy(dleftp);

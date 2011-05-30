@@ -65,6 +65,8 @@ fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
             / (dleftobj->maxCountSeen -1);
     pSDLeftStat->HistSStd = SStd;
     pSDLeftStat->HistMean = (double)HistSum / (double)dleftobj->maxCountSeen;
+    fprintf(stream,"#Kmer_real_count:%d\n#Kmer_count_hist:%d\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
+        dleftobj->ItemInsideAll,dleftobj->maxCountSeen);
     free(pCountHistArray);
     // deal(*pextree);
     return pSDLeftStat;
