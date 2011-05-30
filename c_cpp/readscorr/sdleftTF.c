@@ -2,9 +2,12 @@
 #include <stdlib.h> //calloc
 #include "sdleft.h"
 #include "sdleftTF.h"
+#include <stdio.h>
 
 #define TOKENPASTE(x, y) x ## y
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)
+#define CAT0(x) #x
+#define CAT(x) CAT0(x)
 
 #ifdef USEUINT16
     #define THETYPE uint16_t
@@ -26,12 +29,13 @@
 
 #define ADDSUFFIX(x) TOKENPASTE2(x ## _,THETYPE)
 
-SDLeftStat_t *dleft_stat_uint16_t(SDLeftArray_t * const dleftobj);
-SDLeftStat_t *dleft_stat_uint32_t(SDLeftArray_t * const dleftobj);
-SDLeftStat_t *dleft_stat_uint64_t(SDLeftArray_t * const dleftobj);
+SDLeftStat_t *dleft_stat_uint16_t(SDLeftArray_t * const dleftobj, FILE *);
+SDLeftStat_t *dleft_stat_uint32_t(SDLeftArray_t * const dleftobj, FILE *);
+SDLeftStat_t *dleft_stat_uint64_t(SDLeftArray_t * const dleftobj, FILE *);
 
 #ifndef PUBLIC  // USEUINT{16,32,64}
-SDLeftStat_t * ADDSUFFIX(dleft_stat) (SDLeftArray_t * const dleftobj) {
+SDLeftStat_t * ADDSUFFIX(dleft_stat) (SDLeftArray_t * const dleftobj, FILE *stream) {
+fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
     SDLeftStat_t *pSDLeftStat = malloc(sizeof(SDLeftStat_t));
     THETYPE * const pCountHistArray = calloc(sizeof(THETYPE),1+dleftobj->maxCountSeen);
     size_t totalDLAsize = SDLA_ITEMARRAY*dleftobj->itemByte*dleftobj->ArraySize;
@@ -57,13 +61,25 @@ SDLeftStat_t * ADDSUFFIX(dleft_stat) (SDLeftArray_t * const dleftobj) {
         CountSumSquared += pCountHistArray[p] * pCountHistArray[p];
     }
     //http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-    SStd = ( (FLOTYPE)CountSumSquared - ((FLOTYPE)CountSum*(FLOTYPE)CountSum/(FLOTYPE)dleftobj->maxCountSeen) )
-            / (dleftobj->maxCountSeen -1);
+    SStd = ( (FLOTYPE)CountSumSquared - ((FLOTYPE)CountSum*(FLOTYPE)CountSum/(FLOTYPE)dleftobj->ItemInsideAll) )
+            / (dleftobj->ItemInsideAll -1);
     pSDLeftStat->SStd = SStd;
+    pSDLeftStat->Mean = (double)CountSum / (double)dleftobj->ItemInsideAll;
     free(pCountHistArray);
     // deal(*pextree);
     return pSDLeftStat;
 }
 #else   // PUBLIC
-G_SDLeftArray_IN *pf = dleft_stat_uint16_t;
+//G_SDLeftArray_IN *pf = dleft_stat_uint16_t;
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
+    G_SDLeftArray_IN *pf;
+    if (dleftobj->ItemInsideAll <= UINT16_MAX) {
+        pf = dleft_stat_uint16_t;
+    } else if (dleftobj->ItemInsideAll <= UINT32_MAX) {
+        pf = dleft_stat_uint32_t;
+    } else {    // uint64_t ItemInsideAll
+        pf = dleft_stat_uint64_t;
+    }
+    return (*pf)(dleftobj,stream);
+}
 #endif

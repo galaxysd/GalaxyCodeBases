@@ -7,6 +7,10 @@ Since the function body is the same, I prefer to call it "template" instead of "
 Here, we select typeof(Count) on SUM(Count)==dleftobj->ItemInsideAll
 */
 
+#include <stddef.h> //size_t
+#include <stdint.h> //uint64_t
+#include <stdio.h>  //FILE
+
 #ifndef _G_UINT128_T
 #define _G_UINT128_T
 typedef unsigned __int128 uint128_t __attribute__((mode(TI)));
@@ -46,10 +50,12 @@ Quad 	1   	15      	112          	128     		16383       	113
 */
 
 typedef struct __SDLeftStat_t {
-    size_t Count;
+    double Mean;
     double SStd;
 } SDLeftStat_t;
 
-typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const);    //*G_SDLeftArray_IN() is OK,too .
+typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const, FILE *);    //*G_SDLeftArray_IN() is OK,too .
+
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream);
 
 #endif  // sdleftTF.h

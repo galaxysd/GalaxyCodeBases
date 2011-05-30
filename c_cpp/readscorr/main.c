@@ -12,6 +12,7 @@
 #include "gFileIO.h"
 #include "sdleft.h"
 #include "chrseq.h"
+#include "sdleftTF.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
@@ -107,6 +108,13 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+char *strlinker(char *main, char *suffix) {
+    char *outstr = malloc(strlen(main)+strlen(suffix)+1);
+    strcpy(outstr,main);
+    strcat(outstr,suffix);
+    return outstr;
+}
+
 int main (int argc, char **argv) {
     struct arguments arguments;
     
@@ -133,7 +141,10 @@ int main (int argc, char **argv) {
            arguments.kmersize,arguments.bloomsize,bloomLen);
       pressAnyKey();
     }
-
+    char *outStat = strlinker(arguments.outprefix, ".stat");
+    char *outDat  = strlinker(arguments.outprefix, ".dat");
+    char *outLog  = strlinker(arguments.outprefix, ".log");
+//printf("Out[%s][%s][%s]\n",outStat,outDat,outLog);
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
@@ -183,6 +194,11 @@ int main (int argc, char **argv) {
     fclose(fp);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
+    fp = fopen(outDat, "w");
+    dleft_stat(dleftp,fp);
+    fclose(fp);
     dleft_arraydestroy(dleftp);
+    
+    free(outStat); free(outDat); free(outLog);
     exit(EXIT_SUCCESS);
 }
