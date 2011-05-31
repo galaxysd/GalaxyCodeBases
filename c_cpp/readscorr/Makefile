@@ -24,13 +24,16 @@ endif
  
 cobjects =
 customobjects = $(addprefix $(OBJDIR), sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
-c99objects = $(addprefix $(OBJDIR), main.o MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o )
+c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o )
+mainobjects = $(addprefix $(OBJDIR), main.o tester.o )
 objects = $(cobjects) $(c99objects) $(customobjects)
 
-all: clean $(objects) readscorr
+all: clean $(objects) readscorr tester
 
-readscorr: $(objects)
-	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects)
+readscorr: $(objects) $(mainobjects)
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects) $(addprefix $(OBJDIR), main.o)
+tester: $(objects) $(mainobjects)
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o tester $(objects) $(addprefix $(OBJDIR), tester.o)
 
 $(OBJDIR)sdleftTFuint16.o:
 	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
@@ -45,12 +48,13 @@ $(cobjects): $(OBJDIR)%.o: %.c
 	$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 #$(cppobjects): %.o: %.cpp
 #	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
-$(c99objects): $(OBJDIR)%.o: %.c
+$(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c
 	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: clean $(objects) 
-	$(CC) $(CFLAGS) $(LDFLAGS) -g -o readscorr $(objects)
+	$(CC) $(CFLAGS) $(LDFLAGS) -g -o readscorr $(objects) $(addprefix $(OBJDIR), main.o)
+	$(CC) $(CFLAGS) $(LDFLAGS) -g -o tester $(objects) $(addprefix $(OBJDIR), tester.o)
 
 test: readscorr
 	valgrind ./readscorr test.lst -k 17
