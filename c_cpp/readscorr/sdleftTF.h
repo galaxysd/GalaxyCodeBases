@@ -7,21 +7,12 @@ Since the function body is the same, I prefer to call it "template" instead of "
 Here, we select typeof(Count) on SUM(Count)==dleftobj->ItemInsideAll
 */
 
+#include "gtypendef.h"
 #include <stddef.h> //size_t
 #include <stdint.h> //uint64_t
 #include <stdio.h>  //FILE
 #include "sdleft.h"
 
-#ifndef _G_UINT128_T
-#define _G_UINT128_T
-//typedef unsigned __int128 uint128_t __attribute__((mode(TI)));
-typedef unsigned int uint128_t __attribute__((mode(TI)));
-#endif
-
-#ifndef _G_FLOAT128_T
-#define _G_FLOAT128_T
-typedef __float128 float128 __attribute__((mode(TF)));
-#endif
 /*
 http://stackoverflow.com/questions/1188939/representing-128-bit-numbers-in-c
 typedef unsigned int uint128_t __attribute__((mode(TI)));

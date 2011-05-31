@@ -1,15 +1,12 @@
 #ifndef _G_DBSEQ_INLINE_H
 #define _G_DBSEQ_INLINE_H
 
+#include "gtypendef.h"
 #include <stdint.h>	// int_fast8_t
 #include <stdlib.h> // malloc
 //#include "2bitseq.h"
 #ifdef DEBUG
 #include <stdio.h>
-#endif
-
-#ifndef FORCE_INLINE
-#define	FORCE_INLINE static inline __attribute__((always_inline))
 #endif
 
 FORCE_INLINE uint64_t *dibmalloc(size_t len){

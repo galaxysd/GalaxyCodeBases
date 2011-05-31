@@ -204,7 +204,7 @@ int main (int argc, char **argv) {
     DatHead->HistMean = SDLeftStat->HistMean;
     DatHead->HistSStd = SDLeftStat->HistSStd;
     free(SDLeftStat);
-    dleft_dump(dleftp,SDLeftStat,fp);
+    dleft_dump(dleftp,DatHead,fp);
     fclose(fp);
     free(DatHead);
     dleft_arraydestroy(dleftp);

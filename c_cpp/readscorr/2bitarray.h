@@ -3,6 +3,7 @@
 #ifndef _GA_TBITARRAY_H
 #define _GA_TBITARRAY_H
 
+#include "gtypendef.h"
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -31,16 +32,6 @@ __inline uint_fast8_t TBITSaturatedDEC ( char arr[], size_t index );
 */
 
 // I find gcc will not inline functions in other c files, thus move them here.
-
-#if defined(_MSC_VER)
-
-#define FORCE_INLINE	__forceinline
-
-#else	// defined(_MSC_VER)
-
-#define	FORCE_INLINE	__attribute__((always_inline))
-
-#endif // !defined(_MSC_VER)
 
 FORCE_INLINE void TBITSetValue ( char arr[], size_t index, uint_fast8_t value ) {
     if (value>3) value=3;

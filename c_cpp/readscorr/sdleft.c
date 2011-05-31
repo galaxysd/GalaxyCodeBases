@@ -52,6 +52,7 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
  Hash:%u*%uB   ItemByte:%u   MaxCountSeen:%lu%s\n\
  Designed Capacity:%lu   ItemCount:%lu, with Overflow:%lu\n\
  FP:%g, estimated FP item count:%.2f\n\
+ Mem:%zu bytes\n\
 ",
       (size_t)dleftobj,
       dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize),
@@ -59,7 +60,8 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
       1,HASH_LENB,dleftobj->itemByte,dleftobj->maxCountSeen,(dleftobj->ItemInsideAll)?"":"(=0, as SDLA is empty)",
       dleftobj->ArraySize*(SDLA_ITEMARRAY*3/4),
       dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
-      dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio);
+      dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio,
+      dleftobj->SDLAbyte);
 /*
     fprintf(stream," Item_rBitMask:[%016lX %016lX]\n", (uint64_t)(dleftobj->Item_rBitMask>>64), (uint64_t)dleftobj->Item_rBitMask);
     fprintf(stream," Item_CountBitMask:[%016lX]\n", dleftobj->Item_CountBitMask);
