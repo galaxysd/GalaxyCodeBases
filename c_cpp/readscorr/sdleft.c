@@ -132,6 +132,10 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
                 ++Item_CountBits;
                 if (Item_CountBits > dleftobj->maxCountSeen) {
                     dleftobj->maxCountSeen = Item_CountBits;
+#ifdef DEBUG
+fprintf(stderr,">[%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
+    ArrayPos,SDLA_ITEMARRAY-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
+#endif
                 }   // if SDLA is not empty, maxCountSeen>=1, no need to check when Item_CountBits == 0.
                 break;
             } else {
@@ -245,14 +249,15 @@ void dleft_dump(const SDLeftArray_t * const dleftobj, SDLdumpHead * const pSDLef
     pSDLeftStat->CellOverflowCount=dleftobj->CellOverflowCount;
     pSDLeftStat->CountBitOverflow=dleftobj->CountBitOverflow;
     pSDLeftStat->maxCountSeen=dleftobj->maxCountSeen;
-    pSDLeftStat->crc32c=0u; //later
-    size_t bytewritten;
-    bytewritten=fwrite(pSDLeftStat,sizeof(SDLdumpHead),1u,stream);
-    if (bytewritten != 1)
-        err(EXIT_FAILURE, "Fail to write dat file ! [%zd]",bytewritten);
-    bytewritten=fwrite(dleftobj->pDLA,pSDLeftStat->SDLAbyte,1u,stream);
-    if (bytewritten != 1)
-        err(EXIT_FAILURE, "Cannot write to dat file ! [%zd]",bytewritten);
+    pSDLeftStat->crc32c=0xffffffff; //later
+    size_t unitwritten;
+    unitwritten=fwrite(pSDLeftStat,sizeof(SDLdumpHead),1u,stream);
+    if (unitwritten != 1)
+        err(EXIT_FAILURE, "Fail to write dat file ! [%zd]",unitwritten);
+    unitwritten=fwrite(dleftobj->pDLA,pSDLeftStat->SDLAbyte,1u,stream);
+    if (unitwritten != 1)
+        err(EXIT_FAILURE, "Cannot write to dat file ! [%zd]",unitwritten);
+printf("Cb %x rB %x AS %lx Size %lx HMC %lx HMH %lx\n",pSDLeftStat->CountBit,pSDLeftStat->rBit,pSDLeftStat->ArraySize,pSDLeftStat->SDLAbyte,pSDLeftStat->HistMaxCntVal,pSDLeftStat->HistMaxHistVal);
 }
 
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
