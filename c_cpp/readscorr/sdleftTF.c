@@ -1,8 +1,14 @@
 #include <stdint.h> //uint64_t
 #include <stdlib.h> //calloc
 #include "sdleft.h"
-#include "sdleftTF.h"
+//#include "sdleftTF.h"
 #include <stdio.h>
+/*
+Well, let's try "Template" in C with #define and pointer to function.
+Since the function body is the same, I prefer to call it "template" instead of "overload".
+
+Here, we select typeof(Count) on SUM(Count)==dleftobj->ItemInsideAll
+*/
 
 #define TOKENPASTE(x, y) x ## y
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)

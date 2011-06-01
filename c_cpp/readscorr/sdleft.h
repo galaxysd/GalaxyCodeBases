@@ -44,7 +44,17 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj);
 void dleft_dump(const SDLeftArray_t * const, const SDLdumpHead * const, FILE *);
 
-#include "sdleftTF.h"
+//#include "sdleftTF.h"
+typedef struct __SDLeftStat_t {
+    uint64_t HistMaxCntVal;
+    uint64_t HistMaxHistVal;
+    double HistMean;
+    double HistSStd;
+} SDLeftStat_t;
+
+typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const, FILE *);    //*G_SDLeftArray_IN() is OK,too .
+
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream);
 
 #endif /* sdleft.h */
 
