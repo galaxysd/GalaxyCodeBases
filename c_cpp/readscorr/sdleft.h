@@ -27,22 +27,28 @@ typedef struct __SDLeftArray_t {
     uint64_t Hash_ArrayBitMask, Hash_rBitMask, Item_CountBitMask;
 } SDLeftArray_t;
 
-/*
-#ifndef KMER_T
-#define KMER_T
-typedef struct __dbitseq_t {
-    size_t l, m;
-    char *s;
-} dBitSeq_t;
-#endif
-*/
+typedef struct __SDLdumpHead_t {
+    char FileID[4]; //"GDSD"
+    unsigned char FileVersion[2];    //0,1
+    uint16_t kmersize;
+    uint64_t extreebyte;
+    unsigned char CountBit, rBit;
+    uint64_t ArraySize, SDLAbyte;
+    uint64_t ItemInsideAll, CellOverflowCount, CountBitOverflow;
+    uint64_t maxCountSeen;
+    uint64_t HistMaxCntVal;
+    uint64_t HistMaxHistVal;
+    double HistMean;
+    double HistSStd;
+    uint32_t crc32c;
+} SDLdumpHead;
 
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize);
 size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj);
-void dleft_dump(const SDLeftArray_t * const, const SDLdumpHead * const, FILE *);
+void dleft_dump(const SDLeftArray_t * const, SDLdumpHead * const, FILE *);
 
 //#include "sdleftTF.h"
 typedef struct __SDLeftStat_t {

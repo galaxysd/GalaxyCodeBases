@@ -47,21 +47,4 @@ SeqFileObj * inSeqFinit(const char * const, unsigned char);
 int inSeqFseek(SeqFileObj * const, const fpos_t datePos[]);
 void inSeqFdestroy(SeqFileObj * const);
 
-typedef struct __SDLdumpHead_t {
-    char FileID[4]; //"GDSD"
-    unsigned char FileVersion[2];    //0,1
-    uint16_t kmersize;
-    uint32_t bloomsize;
-    unsigned char CountBit, rBit;
-    uint64_t ArraySize, SDLAbyte;
-    uint64_t ItemInsideAll, CellOverflowCount, CountBitOverflow;
-    uint64_t maxCountSeen;
-    uint64_t HistMaxCntVal;
-    uint64_t HistMaxHistVal;
-    double HistMean;
-    double HistSStd;
-    uint32_t crc32c;
-} SDLdumpHead;
-
-
 #endif /* gFileIO.h */

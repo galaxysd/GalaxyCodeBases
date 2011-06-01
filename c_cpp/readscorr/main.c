@@ -198,7 +198,8 @@ int main (int argc, char **argv) {
     SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
     fclose(fp);
     fp = fopen(outDat, "w");
-    SDLdumpHead *DatHead = calloc(1,sizeof(SDLdumpHead));
+    SDLdumpHead *DatHead = malloc(sizeof(SDLdumpHead));
+    DatHead->kmersize = arguments.kmersize;
     DatHead->HistMaxCntVal = SDLeftStat->HistMaxCntVal;
     DatHead->HistMaxHistVal = SDLeftStat->HistMaxHistVal;
     DatHead->HistMean = SDLeftStat->HistMean;

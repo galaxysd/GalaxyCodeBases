@@ -3,7 +3,7 @@
 #include <math.h>	//log2, ceil
 #include <stdio.h>	//fprintf, fseek
 #include <err.h>
-#include <string.h> //strcmp
+#include <string.h> //strcmp, strncpy
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
 #include "sdleft.h"
 //#include "sdleftTF.h"
@@ -231,8 +231,28 @@ size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SD
     return insertedCount;
 }
 
-void dleft_dump(const SDLeftArray_t * const dleftobj, const SDLdumpHead * const pSDLeftStat, FILE *stream){
+void dleft_dump(const SDLeftArray_t * const dleftobj, SDLdumpHead * const pSDLeftStat, FILE *stream){
     rewind(stream);  // for Binary file, position is important.
+    strncpy(pSDLeftStat->FileID,"GDSD",4);
+    pSDLeftStat->FileVersion[0]=0u;
+    pSDLeftStat->FileVersion[1]=1u;
+    //pSDLeftStat->extreebyte = 0;
+    pSDLeftStat->CountBit=dleftobj->CountBit;
+    pSDLeftStat->rBit=dleftobj->rBit;
+    pSDLeftStat->ArraySize=dleftobj->ArraySize;
+    pSDLeftStat->SDLAbyte=dleftobj->SDLAbyte;
+    pSDLeftStat->ItemInsideAll=dleftobj->ItemInsideAll;
+    pSDLeftStat->CellOverflowCount=dleftobj->CellOverflowCount;
+    pSDLeftStat->CountBitOverflow=dleftobj->CountBitOverflow;
+    pSDLeftStat->maxCountSeen=dleftobj->maxCountSeen;
+    pSDLeftStat->crc32c=0u; //later
+    size_t bytewritten;
+    bytewritten=fwrite(pSDLeftStat,sizeof(SDLdumpHead),1u,stream);
+    if (bytewritten != 1)
+        err(EXIT_FAILURE, "Fail to write dat file ! [%zd]",bytewritten);
+    bytewritten=fwrite(dleftobj->pDLA,pSDLeftStat->SDLAbyte,1u,stream);
+    if (bytewritten != 1)
+        err(EXIT_FAILURE, "Cannot write to dat file ! [%zd]",bytewritten);
 }
 
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
