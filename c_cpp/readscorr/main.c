@@ -1,9 +1,9 @@
 #define _GNU_SOURCE
-#include <stdlib.h>
+#include <stdlib.h> //EXIT_FAILURE
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
+//#include <errno.h>
 #include <err.h>
 #include <argp.h>
 #include "MurmurHash3.h"
@@ -12,6 +12,7 @@
 #include "gFileIO.h"
 #include "sdleft.h"
 #include "chrseq.h"
+#include "cfgparser.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
@@ -27,7 +28,7 @@ static char doc[] =
 ;
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "input_list (of FASTA or FASTQ files, gzipped is OK)";
+static char args_doc[] = "input_config (of nfo & FASTA or FASTQ files)";
 
 /* The options we understand. */
 static struct argp_option options[] = {
@@ -38,13 +39,14 @@ static struct argp_option options[] = {
     {"outprefix",'o', "./out",0,  "Output to [./out.{dat,stat,log}]" },
     {"kmersize", 'k', "21",   0,  "K-mer size, must be odd number" },
     {"bloomsize",'b', "256",  0,  "Size in MiB for Bloom Filter"  },
+    {"example",  'e', 0,      0,  "OVERWRITE an example to [input_config]"},
     { 0 }
 };
 
 /* Used by main to communicate with parse_opt. */
 struct arguments {
     char *args[1];                /* arg1 */
-    uint_fast8_t silent, verbose, interactive;   //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
+    uint_fast8_t silent, verbose, interactive, writexample;   //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
     int bloomsize, kmersize;
     char *outprefix;
 };
@@ -63,6 +65,9 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'v':
             arguments->verbose = 1;
+            break;
+        case 'e':
+            arguments->writexample = 1;
             break;
         case 'i':
             arguments->interactive = 1;
@@ -95,7 +100,8 @@ parse_opt (int key, char *arg, struct argp_state *state) {
         
         case ARGP_KEY_END:
             if (state->arg_num < 1)   /* Not enough arguments. */
-               argp_usage (state);
+               //argp_usage (state);
+               argp_state_help (state,stderr,ARGP_HELP_STD_HELP);
             break;
         
         default:
@@ -121,6 +127,7 @@ int main (int argc, char **argv) {
     arguments.silent = 0;
     arguments.verbose = 0;
     arguments.interactive = 0;
+    arguments.writexample = 0;
     arguments.outprefix = "./out";
     arguments.kmersize = 21;
     arguments.bloomsize = 256;
@@ -129,6 +136,12 @@ int main (int argc, char **argv) {
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
     size_t bloomLen = 512*1024*arguments.bloomsize;
+    if (arguments.writexample) {
+        printf("[!] Going to OVERWRITE an example to [%s] !\n",arguments.args[0]);
+        pressAnyKey();
+        write_example_cfg(arguments.args[0]);
+        exit(EXIT_SUCCESS);
+    }
     if (arguments.interactive) {
       printf ("ARG1 = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"

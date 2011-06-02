@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <errno.h>
+//#include <errno.h>
 #include <err.h>
 #include <argp.h>
 #include "MurmurHash3.h"
