@@ -133,7 +133,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
                 if (Item_CountBits > dleftobj->maxCountSeen) {
                     dleftobj->maxCountSeen = Item_CountBits;
 #ifdef DEBUG
-fprintf(stderr,">[%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
+fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
     ArrayPos,SDLA_ITEMARRAY-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
 #endif
                 }   // if SDLA is not empty, maxCountSeen>=1, no need to check when Item_CountBits == 0.
