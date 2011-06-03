@@ -74,7 +74,7 @@ SDLConfig *read_SDL_cfg(const char * const filename){
     psdlcfg->fp = fopen(filename, "r");
     psdlcfg->seqfilename=NULL;
     psdlcfg->seqfilename_length=0u;
-    if (psdlcfg->fp == NULL) err(EXIT_FAILURE, "Cannot write to [%s]", filename);
+    if (psdlcfg->fp == NULL) err(EXIT_FAILURE, "Cannot open input_config [%s]", filename);
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
@@ -119,7 +119,7 @@ SDLConfig *read_SDL_cfg(const char * const filename){
     }
     if (SDLConfig_Count != ConfigCount)
         err(EXIT_FAILURE, "Invalid file format:(%u != %u). See example input_config.", ConfigCount,SDLConfig_Count);
-    if (! strcmp(line,"[Sequence Files]") ) {
+    if (strcmp(line,"[Sequence Files]")) {
         err(EXIT_FAILURE, "The first section is \"%s\", not \"[Sequence Files]\". See example input_config.", line);
     }
     free(line);
@@ -127,8 +127,13 @@ SDLConfig *read_SDL_cfg(const char * const filename){
 }
 
 ssize_t get_next_seqfile(SDLConfig * const psdlcfg){
-    ssize_t read = getline(&(psdlcfg->seqfilename), &(psdlcfg->seqfilename_length), psdlcfg->fp);
-    return read;
+    ssize_t read;
+    while ( (read = getline(&(psdlcfg->seqfilename), &(psdlcfg->seqfilename_length), psdlcfg->fp)) != -1) {
+    	if (*(psdlcfg->seqfilename)=='\n') continue;
+        if (*((psdlcfg->seqfilename)+read-1)=='\n') *((psdlcfg->seqfilename)+(--read))='\0';
+        return read;
+    }
+    return read;    // return -1;
 }
 
 void destory_seqfile(SDLConfig * psdlcfg){

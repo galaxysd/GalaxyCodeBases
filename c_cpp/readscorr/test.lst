@@ -1,3 +1,20 @@
+# Estimated Genome Size in M bp
+Genome_Size=3000
+
+# Heterozygosity rate
+Het=0.01
+
+# DNA sequence error rate
+Seq_Err=0.02
+
+# Sequence Depth
+Seq_Depth=20
+
+# Mutation to extra kmer effective ratio (that less than 'k' or '2k-1')
+Mut_Effect=0.8
+
+[Sequence Files]
+./fullpath/to/fasta.or.fastaq.gz
 ./test.seq
 test.seq.gz
 

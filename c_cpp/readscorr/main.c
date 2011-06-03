@@ -157,22 +157,17 @@ int main (int argc, char **argv) {
     char *outDat  = strlinker(arguments.outprefix, ".dat");
     char *outLog  = strlinker(arguments.outprefix, ".log");
 //printf("Out[%s][%s][%s]\n",outStat,outDat,outLog);
-    FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
+    SDLConfig *psdlcfg=read_SDL_cfg(arguments.args[0]);
     ssize_t read;
-
-    fp = fopen(arguments.args[0], "r");
-    if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
+    char *line;
 
     fputs("\nFirst pass:\n", stderr);
     SDLeftArray_t *dleftp = dleft_arrayinit(29,27,1000);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
-    while ((read = getline(&line, &len, fp)) != -1) {
+    while ((read = get_next_seqfile(psdlcfg)) != -1) {
     	ssize_t readlength;
-    	if (*line=='\n') continue;	// skip empty lines, which is definitely impossible
-        if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
+    	line=psdlcfg->seqfilename;
         fprintf(stderr, " <%s> ...", line);
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE);
@@ -202,10 +197,10 @@ int main (int argc, char **argv) {
     }
 */
     fputs("\nHashing Done!\n", stderr);
-    free(line);
-    fclose(fp);
+    destory_seqfile(psdlcfg);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
+    FILE *fp;
     fp = fopen(outStat, "w");
     fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%llu\n",arguments.kmersize,1ULL<<(2*arguments.kmersize));
     SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
