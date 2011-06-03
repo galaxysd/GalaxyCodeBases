@@ -69,7 +69,7 @@ Mut_Effect=0.8\n\
     fputs("\n", stderr);
 }
 
-SDLConfig *read_SDL_cfg(const char * const filename){
+SDLConfig *read_SDL_cfg(const double dkmersize, const char * const filename){
     SDLConfig *psdlcfg = malloc(sizeof(SDLConfig));
     psdlcfg->fp = fopen(filename, "r");
     psdlcfg->seqfilename=NULL;
@@ -93,37 +93,59 @@ SDLConfig *read_SDL_cfg(const char * const filename){
         line = strtrim(line);
         if (strcmp(line,"Genome_Size")==0) {
             psdlcfg->GenomeSize=atof(p2);
+            if (psdlcfg->GenomeSize < 0)
+                errx(EXIT_FAILURE, "Invalid Genome_Size:[%f].", psdlcfg->GenomeSize);
             ++ConfigCount;
             continue;
         }
         if (strcmp(line,"Het")==0) {
             psdlcfg->HetRatio=atof(p2);
+            if (psdlcfg->HetRatio < 0 || psdlcfg->HetRatio > 1)
+                errx(EXIT_FAILURE, "Invalid Het:[%f].", psdlcfg->HetRatio);
             ++ConfigCount;
             continue;
         }
         if (strcmp(line,"Seq_Err")==0) {
             psdlcfg->SeqErrRate=atof(p2);
+            if (psdlcfg->SeqErrRate < 0 || psdlcfg->SeqErrRate > 1)
+                errx(EXIT_FAILURE, "Invalid Seq_Err:[%f].", psdlcfg->SeqErrRate);
             ++ConfigCount;
             continue;
         }
         if (strcmp(line,"Seq_Depth")==0) {
             psdlcfg->SeqDepth=atof(p2);
+            if (psdlcfg->SeqDepth < 0)
+                errx(EXIT_FAILURE, "Invalid Seq_Depth:[%f].", psdlcfg->SeqDepth);
             ++ConfigCount;
             continue;
         }
         if (strcmp(line,"Mut_Effect")==0) {
             psdlcfg->MutEffect=atof(p2);
+            if (psdlcfg->MutEffect < 0 || psdlcfg->MutEffect > 1)
+                errx(EXIT_FAILURE, "Invalid Mut_Effect:[%f].", psdlcfg->MutEffect);
             ++ConfigCount;
             continue;
         }
     }
     if (SDLConfig_Count != ConfigCount)
-        err(EXIT_FAILURE, "Invalid file format:(%u != %u). See example input_config.", ConfigCount,SDLConfig_Count);
+        errx(EXIT_FAILURE, "Invalid file format:(%u != %u). See example input_config.", ConfigCount,SDLConfig_Count);
     if (strcmp(line,"[Sequence Files]")) {
-        err(EXIT_FAILURE, "The first section is \"%s\", not \"[Sequence Files]\". See example input_config.", line);
+        errx(EXIT_FAILURE, "The first section is \"%s\", not \"[Sequence Files]\". See example input_config.", line);
     }
     free(line);
+    //calculate
+    calculate_SDL_cfg(dkmersize, psdlcfg);
     return psdlcfg;
+}
+void calculate_SDL_cfg(const double dkmersize, SDLConfig *psdlcfg){
+    double HetX=2.0*dkmersize*psdlcfg->HetRatio-1.0;
+    if (HetX>1.0) HetX=1.0;
+    double ErrX=dkmersize*psdlcfg->SeqErrRate;
+    if (ErrX>1.0) ErrX=1.0;
+    double TotalKmerX=(1.0+HetX)*(1.0 + psdlcfg->SeqDepth*ErrX);
+    if (TotalKmerX > psdlcfg->SeqDepth*dkmersize)
+        TotalKmerX = psdlcfg->SeqDepth*dkmersize;
+    psdlcfg->MaxKmerCount = TotalKmerX * psdlcfg->GenomeSize;
 }
 
 ssize_t get_next_seqfile(SDLConfig * const psdlcfg){

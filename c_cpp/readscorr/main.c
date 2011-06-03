@@ -157,7 +157,7 @@ int main (int argc, char **argv) {
     char *outDat  = strlinker(arguments.outprefix, ".dat");
     char *outLog  = strlinker(arguments.outprefix, ".log");
 //printf("Out[%s][%s][%s]\n",outStat,outDat,outLog);
-    SDLConfig *psdlcfg=read_SDL_cfg(arguments.args[0]);
+    SDLConfig *psdlcfg=read_SDL_cfg((double)arguments.kmersize,arguments.args[0]);
     ssize_t read;
     char *line;
 
