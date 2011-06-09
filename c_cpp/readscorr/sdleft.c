@@ -11,17 +11,25 @@
 #include "2bitseq.h"
 #include "chrseq.h"
 
-#define	FORCE_INLINE static inline __attribute__((always_inline))
+#define HASHSEED (0x3ab2ae35)
 
-#define HASHSEED 0x3ab2ae35
+// the smarter one
+SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const psdlcfg){
+    unsigned char rBit;
+    size_t ArraySize;
+    uint16_t SubItemCount;
+    ;
+    return dleft_arrayinit(CountBit, rBit, ArraySize, SubItemCount);
+}
 
+// the native one
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
-    if (ArraySize<2 || CountBit<1 || rBit<1 || rBit>8*sizeof(uint64_t) || CountBit>8*sizeof(uint64_t) )
+    if (ArraySize<2u || CountBit<1u || rBit<1u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) )
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zd ",rBit,CountBit,ArraySize);
     unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
-    SubItemCount = (SubItemCount+3u) & (~3u);   // at least multi. of 4
-    if (SubItemCount<4)
-        errx(EXIT_FAILURE, "[x]SDLA sub item size should between [4,32768]. Got [%u] ! ", SubItemCount);
+    //SubItemCount = (SubItemCount+3u) & (~3u);   // at least multi. of 4
+    if (SubItemCount<1u)
+        errx(EXIT_FAILURE, "[x]SDLA sub item size should between [1,%u]. Got [%u] ! ",UINT16_MAX,SubItemCount);
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
     dleftobj->pDLA = calloc(SubItemCount,itemByte*ArraySize);
@@ -55,7 +63,7 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
  Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB)*subArray:%u = %g MiB\n\
  Hash:%u*%uB   ItemByte:%u   MaxCountSeen:%lu%s\n\
  Designed Capacity:%lu   ItemCount:%lu, with Overflow:%lu\n\
- FP:%g, estimated FP item count:%.2f\n\
+ FP:%g, estimated FP item count:%.10g\n\
  Mem:%zu bytes\n\
 ",
       (size_t)dleftobj,
@@ -138,7 +146,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
                     dleftobj->maxCountSeen = Item_CountBits;
 #ifdef DEBUG
 fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
-    ArrayPos,SubItemCount-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
+    ArrayPos,dleftobj->SubItemCount-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
 #endif
                 }   // if SDLA is not empty, maxCountSeen>=1, no need to check when Item_CountBits == 0.
                 break;

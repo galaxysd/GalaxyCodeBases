@@ -7,9 +7,12 @@
 #include <stdint.h> //uint64_t
 #include <stdio.h>  //FILE
 #include "gFileIO.h"
+#include "cfgparser.h"
 
-#define HASH_LENB 128u
+#define HASH_LENB (128u)
 //#define SDLA_ITEMARRAY 32u
+#define SUBARRAY_SIZE (32u*1024u)
+//gcc -### -march=native -E /usr/include/stdlib.h 2>&1 | grep l1-cache-size
 
 typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
@@ -43,6 +46,7 @@ typedef struct __SDLdumpHead_t {
     uint32_t crc32c;
 } __attribute__ ((packed)) SDLdumpHead;
 
+SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const psdlcfg);
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount);
 size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 

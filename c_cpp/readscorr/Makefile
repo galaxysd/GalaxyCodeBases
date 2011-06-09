@@ -54,9 +54,7 @@ $(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c
 	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
-debug: clean $(objects) 
-	$(CC) $(CFLAGS) $(LDFLAGS) -g -o readscorr $(objects) $(addprefix $(OBJDIR), main.o)
-	$(CC) $(CFLAGS) $(LDFLAGS) -g -o tester $(objects) $(addprefix $(OBJDIR), tester.o)
+debug: all
 
 test: readscorr
 	valgrind ./readscorr test.lst -k 17
