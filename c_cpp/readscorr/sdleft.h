@@ -50,6 +50,8 @@ SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const ps
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount);
 size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
+unsigned char GETitemByte_PADrBit_trimSubItemCount(unsigned char CountBit, unsigned char *prBit, uint16_t *pSubItemCount);
+
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);
 void dleft_arraydestroy(SDLeftArray_t * const dleftobj);
 void dleft_dump(const SDLeftArray_t * const, SDLdumpHead * const, FILE *);

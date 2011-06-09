@@ -13,6 +13,14 @@
 
 #define HASHSEED (0x3ab2ae35)
 
+unsigned char GETitemByte_PADrBit_trimSubItemCount(unsigned char CountBit, unsigned char *prBit, uint16_t *pSubItemCount){
+    unsigned char itemByte = (CountBit+*prBit+7u) >> 3;	// 2^3=8
+    *prBit = (itemByte<<3) - CountBit;
+    double maxSubItemByR = floor(pow(2.0,(double)*prBit));
+    if ( *pSubItemCount > maxSubItemByR ) *pSubItemCount = (uint16_t)maxSubItemByR; // safe since *pSubItemCount was bigger
+    return itemByte;
+}
+
 // the smarter one
 SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const psdlcfg){
     unsigned char rBit;
@@ -24,12 +32,10 @@ SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const ps
 
 // the native one
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
-    if (ArraySize<2u || CountBit<1u || rBit<1u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) )
-       err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zd ",rBit,CountBit,ArraySize);
-    unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
-    //SubItemCount = (SubItemCount+3u) & (~3u);   // at least multi. of 4
-    if (SubItemCount<1u)
-        errx(EXIT_FAILURE, "[x]SDLA sub item size should between [1,%u]. Got [%u] ! ",UINT16_MAX,SubItemCount);
+    if (ArraySize<2u || CountBit<1u || rBit<1u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
+       err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)[%u]x%zd ",rBit,CountBit,SubItemCount,ArraySize);
+    }
+    unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(CountBit,&rBit,&SubItemCount);
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
     dleftobj->pDLA = calloc(SubItemCount,itemByte*ArraySize);
@@ -37,17 +43,16 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     //unsigned char SDLArray[ArraySize][SubItemCount][itemByte];
     //the GNU C Compiler allocates memory for VLAs on the stack, >_<
     dleftobj->CountBit = CountBit;
-    //dleftobj->maxCount = (1LLU<<CountBit)-iu;
-    rBit = (itemByte<<3) - CountBit;
     dleftobj->rBit = rBit;
     dleftobj->ArrayBit = ArrayBit;
     dleftobj->itemByte = itemByte;
     dleftobj->ArraySize = ArraySize;
     dleftobj->SubItemCount = SubItemCount;
     dleftobj->maxCountSeen = 1; //if SDLA is not empty, maxCountSeen>=1.
-    //dleftobj->ArrayCount = ArrayCount;
-    //dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
-    //dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);
+    /* only one 128bit hash needed.
+    dleftobj->ArrayCount = ArrayCount;
+    dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
+    dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);*/
     dleftobj->FalsePositiveRatio = exp2(-rBit)/(double)ArraySize;
     dleftobj->ItemInsideAll=0;
     dleftobj->CellOverflowCount=0;

@@ -39,7 +39,10 @@ static struct argp_option options[] = {
     //{"silent",   's', 0,      OPTION_ALIAS },
     {"outprefix",'o', "./out",0,  "Output to [./out.{dat,stat,log}]" },
     {"kmersize", 'k', "21",   0,  "K-mer size, must be odd number" },
-    {"bloomsize",'b', "256",  0,  "Size in MiB for Bloom Filter"  },
+    {"countbit",'c', "9",  0,  "length of kmer freq. Count in bit"  },
+    {"arrayklen",'a', "512",  0,  "Size in kilo(x1024) for Simplied D-Left Array"  },
+    {"subarray",'s', "32",  0,  "Size of single sub array of the SDLA"  },
+    {"remainkeybit",'r', "31",  0,  "length of SDLA Remain-Key in bit.\nWill elongate to align(8) with countbit."  },
     {"example",  'e', 0,      0,  "OVERWRITE an example to [input_config]"},
     { 0 }
 };
@@ -48,7 +51,10 @@ static struct argp_option options[] = {
 struct arguments {
     char *args[1];                /* arg1 */
     uint_fast8_t silent, verbose, interactive, writexample;   //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
-    int bloomsize, kmersize;
+    int kmersize;
+    unsigned char CountBit, rBit;
+    size_t ArraySizeK;
+    uint16_t SubItemCount;
     char *outprefix;
 };
 
@@ -84,12 +90,37 @@ parse_opt (int key, char *arg, struct argp_state *state) {
                errx(2,"-k \"%s\"=%i is not a odd number of [3,%d] !",arg,tmpArgValue,UINT16_MAX);
             }
             break;
-        case 'b':
+        case 'c':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>0 && tmpArgValue <= UINT32_MAX)
-               arguments->bloomsize = tmpArgValue;
-            else
-               errx(2,"-b \"%s\"=%i is not a positive number <= %u!",arg,tmpArgValue,UINT32_MAX);
+            if (tmpArgValue>0 && tmpArgValue <= 64) {
+               arguments->CountBit = tmpArgValue;
+            } else {
+               errx(2,"-c \"%s\"=%i is not a integer of [1,64] !",arg,tmpArgValue);
+            }
+            break;
+        case 'a':
+            tmpArgValue = atoi(arg);
+            if (tmpArgValue>0 && tmpArgValue <= SIZE_MAX/1024) {
+               arguments->ArraySizeK = tmpArgValue;
+            } else {
+               errx(2,"-a \"%s\"=%i is not a integer of [1,%zu] !",arg,tmpArgValue,SIZE_MAX/1024);
+            }
+            break;
+        case 's':
+            tmpArgValue = atoi(arg);
+            if (tmpArgValue>0 && tmpArgValue <= UINT16_MAX) {
+               arguments->SubItemCount = tmpArgValue;
+            } else {
+               errx(2,"-s \"%s\"=%i is not a integer of [1,%u] !",arg,tmpArgValue,UINT16_MAX);
+            }
+            break;
+        case 'r':
+            tmpArgValue = atoi(arg);
+            if (tmpArgValue>0 && tmpArgValue <= 64) {
+               arguments->rBit = tmpArgValue;
+            } else {
+               errx(2,"-r \"%s\"=%i is not a integer of [1,64] !",arg,tmpArgValue);
+            }
             break;
         
         case ARGP_KEY_ARG:
@@ -131,12 +162,14 @@ int main (int argc, char **argv) {
     arguments.writexample = 0;
     arguments.outprefix = "./out";
     arguments.kmersize = 21;
-    arguments.bloomsize = 256;
+    arguments.CountBit = 9;
+    arguments.rBit = 31;
+    arguments.ArraySizeK = 512;
+    arguments.SubItemCount = 32;
     
     // Parse our arguments; every option seen by parse_opt will be reflected in arguments.
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
-    size_t bloomLen = 512*1024*arguments.bloomsize;
     if (arguments.writexample) {
         printf("[!] Going to OVERWRITE an example to [%s] !\n",arguments.args[0]);
         pressAnyKey();
@@ -146,12 +179,12 @@ int main (int argc, char **argv) {
     if (arguments.interactive) {
       printf ("ARG1 = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"
-           "kmersize = %i, bloomsize = %i MiB (%zu Bytes)\n",
+           "kmersize = %i, SDLAsize = i MiB (zu Bytes)\n",
            arguments.args[0],
            arguments.outprefix,
            arguments.verbose ? "yes" : "no",
            arguments.silent ? "yes" : "no",
-           arguments.kmersize,arguments.bloomsize,bloomLen);
+           arguments.kmersize);
       pressAnyKey();
     }
     char *outStat = strlinker(arguments.outprefix, ".stat");
