@@ -6,6 +6,7 @@
 //#include <errno.h>
 #include <err.h>
 #include <argp.h>
+#include <math.h>
 #include "MurmurHash3.h"
 #include "getch.h"
 #include "2bitarray.h"
@@ -160,11 +161,13 @@ int main (int argc, char **argv) {
     SDLConfig *psdlcfg=read_SDL_cfg((double)arguments.kmersize,arguments.args[0]);
     ssize_t read;
     char *line;
+    uint64_t insertedCount=0;
 
-    fputs("\nFirst pass:\n", stderr);
-    SDLeftArray_t *dleftp = dleft_arrayinit(29,27,1000);
+    SDLeftArray_t *dleftp = dleft_arrayinit(29,27,1000,48); // (9,31,5000000,48);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
+
+    fputs("\nParsing Sequence Files:\n", stderr);
     while ((read = get_next_seqfile(psdlcfg)) != -1) {
     	ssize_t readlength;
     	line=psdlcfg->seqfilename;
@@ -173,6 +176,7 @@ int main (int argc, char **argv) {
         SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE);
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
+        	#ifdef DEBUG
         		puts(line);
 	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,
@@ -181,11 +185,16 @@ int main (int argc, char **argv) {
 			    //NormalizeChrSeq((char*)seqobj->seq);
 			    printf("rc[%s]\n",tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
 			    free(tmpseq);*/
-                size_t insertedCount = dleft_insert_read(arguments.kmersize,seqobj->seq,seqobj->readlength,dleftp);
-                printf("Inserted:[%zu]\n",insertedCount);
+			#endif
+                size_t insertedKmer = dleft_insert_read(arguments.kmersize,seqobj->seq,seqobj->readlength,dleftp);
+                insertedCount += insertedKmer;
+            #ifdef DEBUG
+                printf("Inserted:[%zu of %lu]\n",insertedKmer,insertedCount);
+            #endif
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
+        fprintf(stderr, "[!]Inserted Kmer:[%lu] times\n", insertedCount);
         inSeqFdestroy(seqobj);
     }
 /*
@@ -202,7 +211,7 @@ int main (int argc, char **argv) {
     fprintSDLAnfo(stderr,dleftp);
     FILE *fp;
     fp = fopen(outStat, "w");
-    fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%llu\n",arguments.kmersize,1ULL<<(2*arguments.kmersize));
+    fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
     SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
     fclose(fp);
     fp = fopen(outDat, "w");

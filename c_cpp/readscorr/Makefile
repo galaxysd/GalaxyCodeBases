@@ -1,6 +1,8 @@
 CC = gcc
 #CPP = g++
-CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic \
+CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal\
+# -Wno-packed-bitfield-compat\
+# -Wpadded -Wextra
 # -DMKL_ILP64 -m64 -I$(MKLROOT)/include \
 # -ftree-vectorize -ftree-vectorizer-verbose=5
 LDFLAGS = -lz -lm -Wl,-O1 -Wl,--as-needed -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both \
@@ -61,6 +63,6 @@ test: readscorr
 
 .PHONY : clean
 clean:
-	-rm readscorr $(objects)
+	-rm readscorr tester $(mainobjects) $(objects)
 	mkdir -p $(OBJDIR)
 

@@ -9,11 +9,12 @@
 #include "gFileIO.h"
 
 #define HASH_LENB 128u
-#define SDLA_ITEMARRAY 32u
+//#define SDLA_ITEMARRAY 32u
 
 typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
     unsigned char itemByte; //, HashCnt;
+    uint16_t SubItemCount;  //max should be 32768
     size_t ArraySize,SDLAbyte;
     //uint64_t maxCount; == Item_CountBitMask
     //unsigned char ArrayCount;
@@ -40,9 +41,9 @@ typedef struct __SDLdumpHead_t {
     double HistMean;
     double HistSStd;
     uint32_t crc32c;
-} SDLdumpHead;
+} __attribute__ ((packed)) SDLdumpHead;
 
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize);
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount);
 size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
 void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj);

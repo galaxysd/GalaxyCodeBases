@@ -44,7 +44,7 @@ SDLeftStat_t * ADDSUFFIX(dleft_stat) (SDLeftArray_t * const dleftobj, FILE *stre
 fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
     SDLeftStat_t *pSDLeftStat = malloc(sizeof(SDLeftStat_t));
     THETYPE * const pCountHistArray = calloc(sizeof(THETYPE),1+dleftobj->maxCountSeen);
-    size_t totalDLAsize = SDLA_ITEMARRAY*dleftobj->itemByte*dleftobj->ArraySize;
+    size_t totalDLAsize = dleftobj->SubItemCount * dleftobj->itemByte * dleftobj->ArraySize;
     //size_t firstlevelDLAitemsize = SDLA_ITEMARRAY*dleftobj->itemByte;
     const unsigned char * const pDLA = dleftobj->pDLA;
     THETYPE Item_CountBits=0;  // set value in case SDLA_ITEMARRAY*dleftobj->itemByte == 0 (EP ?)

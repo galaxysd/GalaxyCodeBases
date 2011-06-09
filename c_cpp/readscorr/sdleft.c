@@ -15,15 +15,18 @@
 
 #define HASHSEED 0x3ab2ae35
 
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize) {
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
     if (ArraySize<2 || CountBit<1 || rBit<1 || rBit>8*sizeof(uint64_t) || CountBit>8*sizeof(uint64_t) )
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)x%zd ",rBit,CountBit,ArraySize);
     unsigned char itemByte = (CountBit+rBit+7u) >> 3;	// 2^3=8
+    SubItemCount = (SubItemCount+3u) & (~3u);   // at least multi. of 4
+    if (SubItemCount<4)
+        errx(EXIT_FAILURE, "[x]SDLA sub item size should between [4,32768]. Got [%u] ! ", SubItemCount);
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
-    dleftobj->pDLA = calloc(SDLA_ITEMARRAY,itemByte*ArraySize);
-    dleftobj->SDLAbyte = SDLA_ITEMARRAY*itemByte*ArraySize;
-    //unsigned char SDLArray[ArraySize][SDLA_ITEMARRAY][itemByte];
+    dleftobj->pDLA = calloc(SubItemCount,itemByte*ArraySize);
+    dleftobj->SDLAbyte = SubItemCount*itemByte*ArraySize;
+    //unsigned char SDLArray[ArraySize][SubItemCount][itemByte];
     //the GNU C Compiler allocates memory for VLAs on the stack, >_<
     dleftobj->CountBit = CountBit;
     //dleftobj->maxCount = (1LLU<<CountBit)-iu;
@@ -32,11 +35,12 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     dleftobj->ArrayBit = ArrayBit;
     dleftobj->itemByte = itemByte;
     dleftobj->ArraySize = ArraySize;
+    dleftobj->SubItemCount = SubItemCount;
     dleftobj->maxCountSeen = 1; //if SDLA is not empty, maxCountSeen>=1.
     //dleftobj->ArrayCount = ArrayCount;
     //dleftobj->HashCnt = (rBit+ArrayBit+(HASH_LENB-1))/HASH_LENB;
     //dleftobj->outhash = malloc(dleftobj->HashCnt * HASH_LENB/8);
-    dleftobj->FalsePositiveRatio = (SDLA_ITEMARRAY*3/4)*exp2(-rBit);
+    dleftobj->FalsePositiveRatio = exp2(-rBit)/(double)ArraySize;
     dleftobj->ItemInsideAll=0;
     dleftobj->CellOverflowCount=0;
     dleftobj->Item_rBitMask=(uint128_t)((1LLU<<rBit)-1u) << CountBit;
@@ -56,9 +60,9 @@ void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
 ",
       (size_t)dleftobj,
       dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize),
-        dleftobj->ArrayBit,SDLA_ITEMARRAY,(double)SDLA_ITEMARRAY*dleftobj->itemByte*dleftobj->ArraySize/1048576,
+        dleftobj->ArrayBit,dleftobj->SubItemCount,(double)dleftobj->SubItemCount*dleftobj->itemByte*dleftobj->ArraySize/1048576,
       1,HASH_LENB,dleftobj->itemByte,dleftobj->maxCountSeen,(dleftobj->ItemInsideAll)?"":"(=0, as SDLA is empty)",
-      dleftobj->ArraySize*(SDLA_ITEMARRAY*3/4),
+      dleftobj->ArraySize*(dleftobj->SubItemCount*3/4),
       dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
       dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio,
       dleftobj->SDLAbyte);
@@ -101,9 +105,9 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
 
 // rBits is (0,64]
 FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dleftobj){
-    size_t relAddr = ArrayPos*SDLA_ITEMARRAY*dleftobj->itemByte;
+    size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
-    unsigned char* pEndChunk = (unsigned char*)pChunk + SDLA_ITEMARRAY*dleftobj->itemByte;
+    unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
     //unsigned char BoundaryByteRel = rBits % 8;    // Well, I will not touch the egg-head ...
     uint64_t Item_rBits, Item_CountBits;
     uint128_t theItem;
@@ -134,7 +138,7 @@ FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dl
                     dleftobj->maxCountSeen = Item_CountBits;
 #ifdef DEBUG
 fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
-    ArrayPos,SDLA_ITEMARRAY-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
+    ArrayPos,SubItemCount-(pEndChunk-pChunk)/dleftobj->itemByte,rBits,Item_CountBits,(uint64_t)(theItem>>64u),(uint64_t)theItem);
 #endif
                 }   // if SDLA is not empty, maxCountSeen>=1, no need to check when Item_CountBits == 0.
                 break;
@@ -165,11 +169,11 @@ puts("]");*/
 }
 // return 0 for not found
 FORCE_INLINE uint64_t querySDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dleftobj){
-    size_t relAddr = ArrayPos*SDLA_ITEMARRAY*dleftobj->itemByte;
+    size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
-    unsigned char* pEndChunk = (unsigned char*)pChunk + SDLA_ITEMARRAY*dleftobj->itemByte;
+    unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
     uint64_t Item_rBits;
-    uint64_t Item_CountBits=0;  // set value in case SDLA_ITEMARRAY*dleftobj->itemByte == 0 (EP ?)
+    uint64_t Item_CountBits=0;  // set value in case SubItemCount*dleftobj->itemByte == 0 (EP ?)
     uint128_t theItem;
     while (pChunk < pEndChunk) {
         theItem = 0;

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE // getline
 #include <stdio.h>
 #include <stdlib.h> //EXIT_FAILURE
 #include <err.h>
