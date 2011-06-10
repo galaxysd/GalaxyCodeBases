@@ -22,7 +22,7 @@ const char *argp_program_bug_address =
 
 /* Program documentation. */
 static char doc[] =
-    "a Solexa Reads Corrector using Bloom filter"
+    "a Solexa Reads Kmer Counter using simplied D-Left hashing"
 #ifdef DEBUG
     " (Debug Version)"
 #endif
@@ -177,14 +177,20 @@ int main (int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
     if (arguments.interactive) {
-      printf ("ARG1 = %s\nOutputPrefix = %s\n"
+      unsigned char rBit = arguments.rBit;
+      uint16_t SubItemCount = arguments.SubItemCount;
+      unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(arguments.CountBit,&rBit,&SubItemCount);
+      uint64_t SDLsize = SubItemCount*itemByte*arguments.ArraySizeK*1024;
+      printf ("input_config = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"
-           "kmersize = %i, SDLAsize = i MiB (zu Bytes)\n",
+           "SDLA { CountBit:%u. rBit:%u(%u), ArraySize:%lu(k), SubItemCount:%u(%u) }\n"
+           "kmersize = %i, SDLAsize = %lu MiB (%lu Bytes)\n",
            arguments.args[0],
            arguments.outprefix,
            arguments.verbose ? "yes" : "no",
            arguments.silent ? "yes" : "no",
-           arguments.kmersize);
+           arguments.CountBit,rBit,arguments.rBit,arguments.ArraySizeK,SubItemCount,arguments.SubItemCount,
+           arguments.kmersize,SDLsize/1048576,SDLsize);
       pressAnyKey();
     }
     char *outStat = strlinker(arguments.outprefix, ".stat");

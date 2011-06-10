@@ -22,7 +22,7 @@ unsigned char GETitemByte_PADrBit_trimSubItemCount(unsigned char CountBit, unsig
 }
 
 // the smarter one
-SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const psdlcfg){
+SDLeftArray_t *dleft_arraynew(const unsigned char CountBit, const SDLConfig * const psdlcfg){
     unsigned char rBit;
     size_t ArraySize;
     uint16_t SubItemCount;
