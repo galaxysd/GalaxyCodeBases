@@ -7,9 +7,6 @@
 #include <err.h>
 #include <argp.h>
 #include <math.h>
-//#include <time.h>   //clock
-#include <sys/time.h>   //getrusage
-#include <sys/resource.h>
 #include "MurmurHash3.h"
 #include "getch.h"
 #include "2bitarray.h"
@@ -17,6 +14,7 @@
 #include "sdleft.h"
 #include "chrseq.h"
 #include "cfgparser.h"
+#include "timer.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
@@ -209,9 +207,7 @@ int main (int argc, char **argv) {
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
 
-    //clock_t __clock_start=clock(), __clock_diff;
-    struct timeval __timeofday_start, __timeofday_end, __timeofday_diff;
-    gettimeofday(&__timeofday_start,NULL);
+    G_TIMER_START;
 
     fputs("\nParsing Sequence Files:\n", stderr);
     while ((read = get_next_seqfile(psdlcfg)) != -1) {
@@ -277,24 +273,7 @@ int main (int argc, char **argv) {
     dleft_arraydestroy(dleftp);
     free(outStat); free(outDat); free(outLog);
 
-    struct rusage __resource_usage;
-    getrusage(RUSAGE_SELF, &__resource_usage);
+    G_TIMER_END;
 
-    gettimeofday(&__timeofday_end,NULL);
-    timersub(&__timeofday_end,&__timeofday_start,&__timeofday_diff);
-
-    fprintf(stderr,"--------------------------------------------------------------------------------\n"
-        "Resource Usage:\n"
-        "   User:%ld.%06ld s, System:%ld.%06ld s. Real:%ld.%06ld s\n"
-        "   Block I/O times: %ld/%ld. MaxRSS: %ld KiB\n"
-        "   Wait times: %ld(nvcsw) + %ld(nivcsw). "
-        "Page Faults times: %ld(minflt) + %ld(majflt)\n",
-        __resource_usage.ru_utime.tv_sec, __resource_usage.ru_utime.tv_usec,
-        __resource_usage.ru_stime.tv_sec, __resource_usage.ru_stime.tv_usec,
-        __timeofday_diff.tv_sec, __timeofday_diff.tv_usec,
-        __resource_usage.ru_inblock, __resource_usage.ru_oublock,
-        __resource_usage.ru_maxrss,
-        __resource_usage.ru_nvcsw, __resource_usage.ru_nivcsw,
-        __resource_usage.ru_minflt, __resource_usage.ru_majflt);
     exit(EXIT_SUCCESS);
 }
