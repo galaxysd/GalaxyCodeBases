@@ -7,6 +7,9 @@
 #include <err.h>
 #include <argp.h>
 #include <math.h>
+//#include <time.h>   //clock
+#include <sys/time.h>   //getrusage
+#include <sys/resource.h>
 #include "MurmurHash3.h"
 #include "getch.h"
 #include "2bitarray.h"
@@ -206,6 +209,7 @@ int main (int argc, char **argv) {
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
 
+    //clock_t __clock_start=clock(), __clock_diff;
     fputs("\nParsing Sequence Files:\n", stderr);
     while ((read = get_next_seqfile(psdlcfg)) != -1) {
     	ssize_t readlength;
@@ -245,6 +249,9 @@ int main (int argc, char **argv) {
     }
 */
     fputs("\nHashing Done!\n", stderr);
+    //__clock_diff = clock() - __clock_start;
+    //fprintf(stderr,"\nHashing Done with CPU time: %zd.%06zd s\n", __clock_diff/CLOCKS_PER_SEC, __clock_diff%CLOCKS_PER_SEC);
+
     destory_seqfile(psdlcfg);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
@@ -265,7 +272,21 @@ int main (int argc, char **argv) {
     fclose(fp);
     free(DatHead);
     dleft_arraydestroy(dleftp);
-    
     free(outStat); free(outDat); free(outLog);
+
+    struct rusage __resource_usage;
+    getrusage(RUSAGE_SELF, &__resource_usage);
+    fprintf(stderr,"--------------------------------------------------------------------------------\n"
+        "Resource Usage:\n"
+        "   User: %ld.%06ld s, System: %ld.%06ld s. MaxRSS: %ld KiB\n"
+        "   Block I/O times: %ld/%ld.\n"
+        "   Wait times: %ld(nvcsw) + %ld(nivcsw). "
+        "Page Faults times: %ld(minflt) + %ld(majflt)\n",
+        __resource_usage.ru_utime.tv_sec, __resource_usage.ru_utime.tv_usec,
+        __resource_usage.ru_stime.tv_sec, __resource_usage.ru_stime.tv_usec,
+        __resource_usage.ru_maxrss,
+        __resource_usage.ru_inblock, __resource_usage.ru_oublock,
+        __resource_usage.ru_nvcsw, __resource_usage.ru_nivcsw,
+        __resource_usage.ru_minflt, __resource_usage.ru_majflt);
     exit(EXIT_SUCCESS);
 }
