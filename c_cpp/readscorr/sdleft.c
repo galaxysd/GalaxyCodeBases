@@ -258,6 +258,7 @@ void dleft_dump(const SDLeftArray_t * const dleftobj, SDLdumpHead * const pSDLef
     pSDLeftStat->FileVersion[0]=0u;
     pSDLeftStat->FileVersion[1]=1u;
     //pSDLeftStat->extreebyte = 0;
+    pSDLeftStat->SubItemCount=dleftobj->SubItemCount;
     pSDLeftStat->CountBit=dleftobj->CountBit;
     pSDLeftStat->rBit=dleftobj->rBit;
     pSDLeftStat->ArraySize=dleftobj->ArraySize;

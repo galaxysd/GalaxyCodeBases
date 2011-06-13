@@ -36,6 +36,7 @@ typedef struct __SDLdumpHead_t {
     unsigned char FileVersion[2];    //0,1
     uint16_t kmersize;
     unsigned char CountBit, rBit;
+    uint16_t SubItemCount;
     uint64_t ArraySize, SDLAbyte, extreebyte;
     uint64_t ItemInsideAll, CellOverflowCount, CountBitOverflow;
     uint64_t maxCountSeen;
