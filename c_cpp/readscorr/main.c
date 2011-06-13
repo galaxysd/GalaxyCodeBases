@@ -274,6 +274,7 @@ int main (int argc, char **argv) {
     free(outStat); free(outDat); free(outLog);
 
     G_TIMER_END;
+    G_TIMER_PRINT;
 
     exit(EXIT_SUCCESS);
 }

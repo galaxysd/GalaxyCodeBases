@@ -10,15 +10,18 @@ struct timeval __g_timeofday_start, __g_timeofday_end, __g_timeofday_diff,\
 struct rusage __g_resource_usage;
 
 #define G_TIMER_START \
-do { gettimeofday(&__g_timeofday_start,NULL); } while (0)
+    gettimeofday(&__g_timeofday_start,NULL)
 
 #define G_TIMER_END \
-do {\
-    getrusage(RUSAGE_SELF, &__g_resource_usage);\
-    gettimeofday(&__g_timeofday_end,NULL);\
-    timersub(&__g_timeofday_end,&__g_timeofday_start,&__g_timeofday_diff);\
-    timersub(&__g_timeofday_diff,&__g_resource_usage.ru_utime,&__g_resource_usage_tmp);\
-    timersub(&__g_resource_usage_tmp,&__g_resource_usage.ru_stime,&__g_resource_usage_other_time);\
+    do {\
+        getrusage(RUSAGE_SELF, &__g_resource_usage);\
+        gettimeofday(&__g_timeofday_end,NULL);\
+        timersub(&__g_timeofday_end,&__g_timeofday_start,&__g_timeofday_diff);\
+        timersub(&__g_timeofday_diff,&__g_resource_usage.ru_utime,&__g_resource_usage_tmp);\
+        timersub(&__g_resource_usage_tmp,&__g_resource_usage.ru_stime,&__g_resource_usage_other_time);\
+    } while (0)
+
+#define G_TIMER_PRINT \
     fprintf(stderr,"\n--------------------------------------------------------------------------------\n"\
         "Resource Usage Measures:\n"\
         "   User: %ld.%06ld(s), System: %ld.%06ld(s). Real: %ld.%06ld(s).\n"\
@@ -32,7 +35,6 @@ do {\
         __g_resource_usage.ru_inblock, __g_resource_usage.ru_oublock,\
         __g_resource_usage.ru_maxrss,\
         __g_resource_usage.ru_nvcsw, __g_resource_usage.ru_nivcsw,\
-        __g_resource_usage.ru_minflt, __g_resource_usage.ru_majflt);\
-} while (0)
+        __g_resource_usage.ru_minflt, __g_resource_usage.ru_majflt)
 
 #endif /* timer.h */
