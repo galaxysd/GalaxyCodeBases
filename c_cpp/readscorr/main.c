@@ -210,6 +210,9 @@ int main (int argc, char **argv) {
     fprintSDLAnfo(stderr,dleftp);
 
     //clock_t __clock_start=clock(), __clock_diff;
+    struct timeval __timeofday_start, __timeofday_end, __timeofday_diff;
+    gettimeofday(&__timeofday_start,NULL);
+
     fputs("\nParsing Sequence Files:\n", stderr);
     while ((read = get_next_seqfile(psdlcfg)) != -1) {
     	ssize_t readlength;
@@ -276,16 +279,21 @@ int main (int argc, char **argv) {
 
     struct rusage __resource_usage;
     getrusage(RUSAGE_SELF, &__resource_usage);
+
+    gettimeofday(&__timeofday_end,NULL);
+    timersub(&__timeofday_end,&__timeofday_start,&__timeofday_diff);
+
     fprintf(stderr,"--------------------------------------------------------------------------------\n"
         "Resource Usage:\n"
-        "   User: %ld.%06ld s, System: %ld.%06ld s. MaxRSS: %ld KiB\n"
-        "   Block I/O times: %ld/%ld.\n"
+        "   User:%ld.%06ld s, System:%ld.%06ld s. Real:%ld.%06ld s\n"
+        "   Block I/O times: %ld/%ld. MaxRSS: %ld KiB\n"
         "   Wait times: %ld(nvcsw) + %ld(nivcsw). "
         "Page Faults times: %ld(minflt) + %ld(majflt)\n",
         __resource_usage.ru_utime.tv_sec, __resource_usage.ru_utime.tv_usec,
         __resource_usage.ru_stime.tv_sec, __resource_usage.ru_stime.tv_usec,
-        __resource_usage.ru_maxrss,
+        __timeofday_diff.tv_sec, __timeofday_diff.tv_usec,
         __resource_usage.ru_inblock, __resource_usage.ru_oublock,
+        __resource_usage.ru_maxrss,
         __resource_usage.ru_nvcsw, __resource_usage.ru_nivcsw,
         __resource_usage.ru_minflt, __resource_usage.ru_majflt);
     exit(EXIT_SUCCESS);
