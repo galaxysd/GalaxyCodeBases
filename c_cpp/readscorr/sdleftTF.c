@@ -73,7 +73,7 @@ fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
     pSDLeftStat->HistMean = (double)dleftobj->ItemInsideAll / (double)dleftobj->maxCountSeen;
     pSDLeftStat->HistMaxCntVal = 1; //later
     pSDLeftStat->HistMaxHistVal = 1; //later
-    fprintf(stream,"#Kmer_real_count:%ld\n#Kmer_count_hist:%ld\n#Kmer_depth_mean:%f\n#Kmer_depth_sStd:%f\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
+    fprintf(stream,"#Kmer_real_count: %ld\n#Kmer_count_hist: %ld\n#Kmer_depth_mean: %f\n#Kmer_depth_sStd: %f\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
         dleftobj->ItemInsideAll,dleftobj->maxCountSeen,pSDLeftStat->HistMean,SStd);
     for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
         fprintf(stream,"%zu\t%lu\t%lu\t%g\n",p,(uint64_t)pCountHistArray[p],

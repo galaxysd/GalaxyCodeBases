@@ -15,6 +15,7 @@
 #include "chrseq.h"
 #include "cfgparser.h"
 #include "timer.h"
+#include "gtools.h"
 
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
@@ -181,17 +182,23 @@ int main (int argc, char **argv) {
       unsigned char rBit = arguments.rBit;
       uint16_t SubItemCount = arguments.SubItemCount;
       unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(arguments.CountBit,&rBit,&SubItemCount);
-      uint64_t SDLsize = SubItemCount*itemByte*arguments.ArraySizeK*1024;
+      uint64_t ArraySize = arguments.ArraySizeK*1024;
+      uint64_t Capacity = ArraySize*SubItemCount;
+      uint64_t SDLsize = itemByte*Capacity;
+      double HashBit = rBit + log(ArraySize)/log(2);
       printf ("input_config = %s\nOutputPrefix = %s\n"
            "VERBOSE = %s\nSILENT = %s\n"
            "SDLA { CountBit:%u. rBit:%u(%u), ArraySize:%lu(k), SubItemCount:%u(%u) }\n"
-           "kmersize = %i, SDLAsize = %lu MiB (%lu Bytes)\n",
+           "kmersize = %i, SDLAsize = %.1f MiB (%s Bytes)\n"
+           "HashBit:%.3g, ErrRate:%.12g\nMaxCapacity: %s\n",
            arguments.args[0],
            arguments.outprefix,
            arguments.verbose ? "yes" : "no",
            arguments.silent ? "yes" : "no",
            arguments.CountBit,rBit,arguments.rBit,arguments.ArraySizeK,SubItemCount,arguments.SubItemCount,
-           arguments.kmersize,SDLsize/1048576,SDLsize);
+           arguments.kmersize,(double)SDLsize/1048576.0,commaprint(SDLsize),
+           HashBit,pow(0.5,rBit)/ArraySize,commaprint(Capacity)
+           );
       pressAnyKey();
     }
     char *outStat = strlinker(arguments.outprefix, ".stat");
@@ -256,7 +263,7 @@ int main (int argc, char **argv) {
     fprintSDLAnfo(stderr,dleftp);
     FILE *fp;
     fp = fopen(outStat, "w");
-    fprintf(fp,"#KmerSize:%d\n#Kmer_theory_count:%.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
+    fprintf(fp,"#KmerSize: %d\n#Kmer_theory_count: %.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
     SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
     fclose(fp);
     fp = fopen(outDat, "w");
