@@ -243,7 +243,7 @@ int main (int argc, char **argv) {
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
-        fprintf(stderr, "[!]Inserted Kmer:[%lu] times\n", insertedCount);
+        fprintf(stderr, "[!]Accumulated Inserted Kmer:[%lu] times\n", insertedCount);
         inSeqFdestroy(seqobj);
     }
 /*

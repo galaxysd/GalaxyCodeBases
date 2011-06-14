@@ -7,7 +7,7 @@
 char *commaprint(unsigned long n)
 {
 	static int comma = '\0';
-	static char retbuf[4*(sizeof(unsigned long)*CHAR_BIT+2)/3/3+1];
+	static char retbuf[4*(sizeof(unsigned long)*CHAR_BIT+2)/3/3+1]; // size=30
 	char *p = &retbuf[sizeof(retbuf)-1];
 	int i = 0;
 
