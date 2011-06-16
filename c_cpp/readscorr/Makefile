@@ -56,6 +56,9 @@ $(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
 debug: all
 
+alpha: override MAKEARG := $(CFLAGS) $(DEF) $(OPT) $(ASMO) -D TEST
+alpha: all
+
 test: readscorr
 	valgrind ./readscorr test.lst -k 17
 

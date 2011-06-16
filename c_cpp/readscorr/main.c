@@ -28,6 +28,9 @@ static char doc[] =
 #ifdef DEBUG
     " (Debug Version)"
 #endif
+#ifdef TEST
+    " (Test Version)"
+#endif
 ;
 
 /* A description of the arguments we accept. */
@@ -266,6 +269,7 @@ int main (int argc, char **argv) {
     fprintf(fp,"#KmerSize: %d\n#Kmer_theory_count: %.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
     SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
     fclose(fp);
+#ifndef TEST    /* No out.stat in test mode. */
     fp = fopen(outDat, "w");
     SDLdumpHead *DatHead = malloc(sizeof(SDLdumpHead));
     DatHead->kmersize = arguments.kmersize;
@@ -277,8 +281,9 @@ int main (int argc, char **argv) {
     dleft_dump(dleftp,DatHead,fp);
     fclose(fp);
     free(DatHead);
+#endif
     dleft_arraydestroy(dleftp);
-    free(outStat); free(outDat); free(outLog);
+    free(outStat); free(outDat); free(outLog);  // just filenames
 
     G_TIMER_END;
     G_TIMER_PRINT;

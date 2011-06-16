@@ -16,8 +16,10 @@
 unsigned char GETitemByte_PADrBit_trimSubItemCount(unsigned char CountBit, unsigned char *prBit, uint16_t *pSubItemCount){
     unsigned char itemByte = (CountBit+*prBit+7u) >> 3;	// 2^3=8
     *prBit = (itemByte<<3) - CountBit;
+#ifndef TEST    /* SubItemCount is trimed on rBit only */
     double maxSubItemByR = floor(pow(2.0,(double)*prBit));
     if ( *pSubItemCount > maxSubItemByR ) *pSubItemCount = (uint16_t)maxSubItemByR; // safe since *pSubItemCount was bigger
+#endif
     return itemByte;
 }
 
@@ -35,7 +37,11 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     if (ArraySize<2u || CountBit<1u || rBit<1u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)[%u]x%zd ",rBit,CountBit,SubItemCount,ArraySize);
     }
+#ifdef TEST    /* Test mode, keep rBit, pad CountBit */
+    unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(rBit,&CountBit,&SubItemCount);
+#else   /* Normal, keep CountBit, pad rBit */
     unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(CountBit,&rBit,&SubItemCount);
+#endif
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
     dleftobj->pDLA = calloc(SubItemCount,itemByte*ArraySize);
