@@ -123,7 +123,8 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
 }
 
 // rBits is (0,64]
-FORCE_INLINE void incSDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dleftobj){
+FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
+    size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
     size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
     unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
@@ -187,7 +188,8 @@ puts("]");*/
     }
 }
 // return 0 for not found
-FORCE_INLINE uint64_t querySDLArray(size_t ArrayPos, uint64_t rBits, SDLeftArray_t *dleftobj){
+FORCE_INLINE uint64_t querySDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
+    size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
     size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
     unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
@@ -236,9 +238,9 @@ FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t 
         //}
         uint_fast8_t datLenu64t = HASH_LENB/(8*sizeof(uint64_t));
 //printf("[x][%016lx,%016lx]\n",popLowestBits(60,dleftobj->outhash,&datLenu64t),popLowestBits(56,dleftobj->outhash,&datLenu64t));
-        size_t ArrayPos = popLowestBits(dleftobj->ArrayBit,dleftobj->outhash,&datLenu64t) % dleftobj->ArraySize;
         uint64_t rBits = popLowestBits(dleftobj->rBit,dleftobj->outhash,&datLenu64t);
-        incSDLArray(ArrayPos, rBits, dleftobj);
+        size_t ArrayBits = popLowestBits(dleftobj->ArrayBit,dleftobj->outhash,&datLenu64t);
+        incSDLArray(ArrayBits, rBits, dleftobj);
         return 1;
     }
     return 0;
