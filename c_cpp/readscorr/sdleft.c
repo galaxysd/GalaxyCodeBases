@@ -4,6 +4,7 @@
 #include <stdio.h>	//fprintf, fseek
 #include <err.h>
 #include <string.h> //strcmp, strncpy
+#include <sys/mman.h>
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
 #include "sdleft.h"
 //#include "sdleftTF.h"
@@ -44,8 +45,10 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
 #endif
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
-    dleftobj->pDLA = calloc(SubItemCount,itemByte*ArraySize);
     dleftobj->SDLAbyte = SubItemCount*itemByte*ArraySize;
+    dleftobj->pDLA = calloc(1,dleftobj->SDLAbyte);
+    int mlock_r = mlock(dleftobj->pDLA,dleftobj->SDLAbyte);
+    if (mlock_r) warn("[!]Cannot lock SDL array in memory. Performance maybe reduced.");
     //unsigned char SDLArray[ArraySize][SubItemCount][itemByte];
     //the GNU C Compiler allocates memory for VLAs on the stack, >_<
     dleftobj->CountBit = CountBit;
