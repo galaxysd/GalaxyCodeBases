@@ -6,7 +6,6 @@
 //#include <errno.h>
 #include <err.h>
 #include <argp.h>
-#include <math.h>
 #include "getch.h"
 #include "gFileIO.h"
 #include "chrseq.h"
@@ -106,10 +105,9 @@ int main (int argc, char **argv) {
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
     if (arguments.interactive) {
-      printf ("input_list = %s\nOutput = %s\nCountBases = %s\n",
+      printf ("input_list = %s\nOutput = %s\n",
            arguments.args[0],
-           arguments.outfile,
-           arguments.countbase ? "yes" : "no"
+           arguments.outfile
            );
       pressAnyKey();
     }

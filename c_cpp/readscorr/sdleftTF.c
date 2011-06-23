@@ -1,5 +1,6 @@
 #include <stdint.h> //uint64_t
 #include <stdlib.h> //calloc
+#include <math.h>
 #include "sdleft.h"
 //#include "sdleftTF.h"
 #include <stdio.h>
@@ -67,8 +68,7 @@ fprintf(stderr,"[!]Count with[%s]\n",CAT(THETYPE));
         HistSumSquared += pCountHistArray[p] * pCountHistArray[p];
     }
     //http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-    SStd = ( (FLOTYPE)HistSumSquared - ((FLOTYPE)dleftobj->ItemInsideAll*(FLOTYPE)dleftobj->ItemInsideAll/(FLOTYPE)dleftobj->maxCountSeen) )
-            / (dleftobj->maxCountSeen -1);
+    SStd = sqrtl( ( (long double)HistSumSquared-((long double)dleftobj->ItemInsideAll*(long double)dleftobj->ItemInsideAll/(long double)dleftobj->maxCountSeen) ) / (long double)(dleftobj->maxCountSeen -1) );
     pSDLeftStat->HistSStd = SStd;
     pSDLeftStat->HistMean = (double)dleftobj->ItemInsideAll / (double)dleftobj->maxCountSeen;
     pSDLeftStat->HistMaxCntVal = 1; //later

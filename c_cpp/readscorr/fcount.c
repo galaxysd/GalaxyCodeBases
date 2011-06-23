@@ -165,8 +165,7 @@ int main (int argc, char **argv) {
     free(line);
     fclose(fp);
 
-    SStd = ( SS - (float128)allbases*(float128)allbases/(float128)allreads )
-            / (double)(allreads -1);
+    SStd = sqrtl(( SS - (float128)allbases*(float128)allbases/(float128)allreads ) / (long double)(allreads -1));
 
     fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
