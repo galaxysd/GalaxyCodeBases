@@ -27,15 +27,17 @@ endif
 cobjects =
 customobjects = $(addprefix $(OBJDIR), sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
 c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o cfgparser.o gtools.o )
-mainobjects = $(addprefix $(OBJDIR), main.o tester.o )
+mainobjects = $(addprefix $(OBJDIR), main.o tester.o fcount.o )
 objects = $(cobjects) $(c99objects) $(customobjects)
 
-all: clean $(objects) readscorr tester
+all: clean $(objects) readscorr tester fcount
 
 readscorr: $(objects) $(mainobjects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects) $(addprefix $(OBJDIR), main.o)
 tester: $(objects) $(mainobjects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o tester $(objects) $(addprefix $(OBJDIR), tester.o)
+fcount: $(objects) $(mainobjects)
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o fcount $(objects) $(addprefix $(OBJDIR), fcount.o)
 
 $(OBJDIR)sdleftTFuint16.o:
 	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
