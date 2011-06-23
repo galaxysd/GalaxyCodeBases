@@ -13,11 +13,11 @@
 #include "timer.h"
 #include "gtools.h"
 
-#define MAXREADLEN (8ull*1024*1024)
+#define MAXREADLEN (8ul*1024*1024)
 uint64_t ReadsLenArr[MAXREADLEN];
 
 const char *argp_program_version =
-    "readscorr 0.1 @"__TIME__ "," __DATE__;
+    "fcounter 0.1 @"__TIME__ "," __DATE__;
 const char *argp_program_bug_address =
     "<huxuesong@genomics.org.cn>";
 
@@ -135,22 +135,26 @@ int main (int argc, char **argv) {
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE);
         if (seqobj) {
-        	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
+        	while ( (readlength = (*seqobj->getNextSeq)(seqobj)) >= 0 ) {
         	#ifdef DEBUG
         		puts(line);
-	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
-        			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,
+	        	printf("-ID:[%s,%s] %zu %zu %zd\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
+        			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,readlength,
 				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq,seqobj->type);
 				/*char *tmpseq;
 			    //NormalizeChrSeq((char*)seqobj->seq);
 			    printf("rc[%s]\n",tmpseq=ChrSeqRevComp(seqobj->seq,seqobj->readlength));
 			    free(tmpseq);*/
 			#endif
-                allbases += seqobj->readlength;
-                SS += (seqobj->readlength)*(seqobj->readlength);
+                allbases += readlength;
+                SS += readlength*readlength;
                 ++allreads;
-                if (maxReadLen < seqobj->readlength) maxReadLen = seqobj->readlength;
-                ++ReadsLenArr[seqobj->readlength];  // should be enough
+                if (maxReadLen < readlength) maxReadLen = readlength;
+                if (readlength < MAXREADLEN) {
+                    ++ReadsLenArr[readlength];
+                } else {
+                    ++ReadsLenArr[0];
+                }
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
@@ -167,13 +171,17 @@ int main (int argc, char **argv) {
     fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
         "#Max_Read_Len: %lu\n"
+        "#Overflow: %lu\n"
         "\n#Read_Len\tCount\tRatio\n",
         allbases,allreads,
         0.05+((double)allbases/(double)allreads), SStd,
-        maxReadLen);
+        maxReadLen,ReadsLenArr[0]);
     for (uint64_t i=1; i<=maxReadLen; i++) {
         fprintf(fp,"%lu\t%lu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
         //printf("%lu\t%lu\n",i,ReadsLenArr[i]);
+    }
+    if (ReadsLenArr[0]) {
+        fprintf(fp,"#>=%lu\t%lu\t%g\n",MAXREADLEN,ReadsLenArr[0],(double)ReadsLenArr[0]/(double)allreads);
     }
     fclose(fp);
 

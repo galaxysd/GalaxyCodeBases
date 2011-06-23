@@ -227,7 +227,7 @@ int main (int argc, char **argv) {
         //sleep(1);    // the Call ...
         SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE);
         if (seqobj) {
-        	while ( (readlength = (*seqobj->getNextSeq)(seqobj) >= 0) ) {
+        	while ( (readlength = (*seqobj->getNextSeq)(seqobj)) >= 0 ) {
         	#ifdef DEBUG
         		puts(line);
 	        	printf("-ID:[%s,%s] %zu %zu\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
