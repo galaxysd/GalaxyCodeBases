@@ -64,6 +64,9 @@ debug: all
 alpha: override MAKEARG := $(CFLAGS) $(DEF) $(OPT) $(ASMO) -D TEST
 alpha: all
 
+alphadbg: override MAKEARG := $(CFLAGS) $(DEF) $(OPT) $(ASMO) -D TEST -D DEBUG -g
+alphadbg: all
+
 test: readscorr
 	valgrind ./readscorr test.lst -k 17
 

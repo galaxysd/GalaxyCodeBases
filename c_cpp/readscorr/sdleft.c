@@ -307,6 +307,7 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     uint64_t * const pCountSubArray = calloc(sizeof(uint64_t),1+SubItemCount);
     uint16_t SubItemUsed=0;
     uint64_t ArraySize = dleftobj->ArraySize;
+    size_t mainArrayID=1;
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
@@ -314,13 +315,16 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
         for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
             theItem |= ((uint128_t)*(pDLA + i + j)) << (j*8u);
         }
-        Item_CountBits = theItem & dleftobj->Item_CountBitMask;
+        Item_CountBits = (uint64_t)theItem & dleftobj->Item_CountBitMask;   // Item_CountBitMask is uint64_t.
         ++pCountHistArray[Item_CountBits];
 #ifdef TEST
-        if ((i+1) % SubItemCount) { // (i+1) mod SubItemCount != 0
+        ++mainArrayID;
+        if (mainArrayID % SubItemCount) { // mainArrayID mod SubItemCount != 0. Not (i+1) !!!
             if (Item_CountBits) ++SubItemUsed;
+//printf("---%zd %% %ld = %ld %ld\n",mainArrayID,SubItemCount,mainArrayID % SubItemCount,SubItemUsed);
         } else {
             ++pCountSubArray[SubItemUsed];
+//printf("-%u\n",SubItemUsed);
             SubItemUsed=0;
         }
 #endif
