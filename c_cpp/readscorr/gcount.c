@@ -10,7 +10,6 @@
 #include "gFileIO.h"
 #include "chrseq.h"
 #include "timer.h"
-#include "gtools.h"
 
 #define MAXHOMOPOLYLEN (2l*1024*1024)
 #define BaseA 1

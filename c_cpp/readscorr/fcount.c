@@ -11,7 +11,6 @@
 #include "gFileIO.h"
 #include "chrseq.h"
 #include "timer.h"
-#include "gtools.h"
 
 #define MAXREADLEN (8ul*1024*1024)
 uint64_t ReadsLenArr[MAXREADLEN];
