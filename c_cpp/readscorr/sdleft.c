@@ -299,10 +299,15 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     SDLeftStat_t *pSDLeftStat = malloc(sizeof(SDLeftStat_t));
     uint64_t * const pCountHistArray = calloc(sizeof(uint64_t),1+dleftobj->maxCountSeen);
     size_t totalDLAsize = dleftobj->SubItemCount * dleftobj->itemByte * dleftobj->ArraySize;
-    //size_t firstlevelDLAitemsize = SDLA_ITEMARRAY*dleftobj->itemByte;
     const unsigned char * const pDLA = dleftobj->pDLA;
     uint64_t Item_CountBits=0;  // set value in case SDLA_ITEMARRAY*dleftobj->itemByte == 0 (EP ?)
     uint128_t theItem;
+#ifdef TEST
+    uint16_t SubItemCount = dleftobj->SubItemCount;
+    uint64_t * const pCountSubArray = calloc(sizeof(uint64_t),1+SubItemCount);
+    uint16_t SubItemUsed=0;
+    uint64_t ArraySize = dleftobj->ArraySize;
+#endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
         theItem = 0;
@@ -311,7 +316,14 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
         }
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         ++pCountHistArray[Item_CountBits];
-        //++HistSum;
+#ifdef TEST
+        if ((i+1) % SubItemCount) { // (i+1) mod SubItemCount != 0
+            if (Item_CountBits) ++SubItemUsed;
+        } else {
+            ++pCountSubArray[SubItemUsed];
+            SubItemUsed=0;
+        }
+#endif
     }
     //THETYPE HistSum=0;    // HistSum == dleftobj->ItemInsideAll
     float128 HistSumSquared=0.0;
@@ -334,5 +346,13 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     }
     free(pCountHistArray);
     // deal(*pextree);
+#ifdef TEST
+    fprintf(stream,"#-----------------------------------------------\n\n#Array_size: %lu\n\n"
+        "SubArrayFilled\tCount\tRatio\n",ArraySize);
+    for (uint16_t i=0;i<=SubItemCount;i++) {
+        fprintf(stream,"%u\t%lu\t%g\n",i,pCountSubArray[i],(double)pCountSubArray[i]/(double)ArraySize);
+    }
+    free(pCountSubArray);
+#endif
     return pSDLeftStat;
 }
