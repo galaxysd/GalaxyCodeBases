@@ -25,7 +25,7 @@ override DEF := $(DEF) -D OPENMP
 endif
  
 cobjects =
-customobjects = $(addprefix $(OBJDIR), sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
+customobjects = $(addprefix $(OBJDIR),)# sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
 c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o cfgparser.o gtools.o )
 mainobjects = $(addprefix $(OBJDIR), main.o tester.o fcount.o gcount.o )
 objects = $(cobjects) $(c99objects) $(customobjects)
@@ -42,14 +42,14 @@ fcount: $(objects) $(mainobjects)
 gcount: $(objects) $(mainobjects)
 	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o gcount $(objects) $(addprefix $(OBJDIR), gcount.o)
 
-$(OBJDIR)sdleftTFuint16.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-$(OBJDIR)sdleftTFuint32.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-$(OBJDIR)sdleftTFuint64.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-$(OBJDIR)sdleftTFpublic.o:
-	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
+#$(OBJDIR)sdleftTFuint16.o:
+#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+#$(OBJDIR)sdleftTFuint32.o:
+#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+#$(OBJDIR)sdleftTFuint64.o:
+#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+#$(OBJDIR)sdleftTFpublic.o:
+#	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
 
 $(cobjects): $(OBJDIR)%.o: %.c 
 	@$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)

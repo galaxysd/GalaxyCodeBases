@@ -97,3 +97,18 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     return (*pf)(dleftobj,stream);
 }
 #endif
+
+/*
+Not using now.
+
+customobjects = $(addprefix $(OBJDIR), sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
+
+$(OBJDIR)sdleftTFuint16.o:
+   $(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint32.o:
+   $(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint64.o:
+   $(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFpublic.o:
+   $(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
+*/

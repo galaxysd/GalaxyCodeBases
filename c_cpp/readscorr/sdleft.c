@@ -294,3 +294,45 @@ void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
 	//free(dleftobj->outhash);
 	free(dleftobj);
 }
+
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
+    SDLeftStat_t *pSDLeftStat = malloc(sizeof(SDLeftStat_t));
+    uint64_t * const pCountHistArray = calloc(sizeof(uint64_t),1+dleftobj->maxCountSeen);
+    size_t totalDLAsize = dleftobj->SubItemCount * dleftobj->itemByte * dleftobj->ArraySize;
+    //size_t firstlevelDLAitemsize = SDLA_ITEMARRAY*dleftobj->itemByte;
+    const unsigned char * const pDLA = dleftobj->pDLA;
+    uint64_t Item_CountBits=0;  // set value in case SDLA_ITEMARRAY*dleftobj->itemByte == 0 (EP ?)
+    uint128_t theItem;
+    for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
+        //const unsigned char * pChunk = pDLA + i;
+        theItem = 0;
+        for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
+            theItem |= ((uint128_t)*(pDLA + i + j)) << (j*8u);
+        }
+        Item_CountBits = theItem & dleftobj->Item_CountBitMask;
+        ++pCountHistArray[Item_CountBits];
+        //++HistSum;
+    }
+    //THETYPE HistSum=0;    // HistSum == dleftobj->ItemInsideAll
+    float128 HistSumSquared=0.0;
+    double SStd;    // We need to return in a fixed type for printf
+    for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
+        //HistSum += pCountHistArray[p];
+        HistSumSquared += pCountHistArray[p] * pCountHistArray[p];
+    }
+    //http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    SStd = sqrtl( ( HistSumSquared-((long double)dleftobj->ItemInsideAll*(long double)dleftobj->ItemInsideAll/(long double)dleftobj->maxCountSeen) ) / (long double)(dleftobj->maxCountSeen -1) );
+    pSDLeftStat->HistSStd = SStd;
+    pSDLeftStat->HistMean = (double)dleftobj->ItemInsideAll / (double)dleftobj->maxCountSeen;
+    pSDLeftStat->HistMaxCntVal = 1; //later
+    pSDLeftStat->HistMaxHistVal = 1; //later
+    fprintf(stream,"#Kmer_real_count: %ld\n#Kmer_count_hist: %ld\n#Kmer_depth_mean: %f\n#Kmer_depth_sStd: %f\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
+        dleftobj->ItemInsideAll,dleftobj->maxCountSeen,pSDLeftStat->HistMean,SStd);
+    for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
+        fprintf(stream,"%zu\t%lu\t%lu\t%g\n",p,(uint64_t)pCountHistArray[p],
+            (uint64_t)pCountHistArray[p]*(uint64_t)p,(double)pCountHistArray[p]/(double)dleftobj->ItemInsideAll);
+    }
+    free(pCountHistArray);
+    // deal(*pextree);
+    return pSDLeftStat;
+}
