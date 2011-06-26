@@ -43,7 +43,7 @@ static struct argp_option options[] = {
     {"quiet",    'q', 0,      0,  "Don't produce any output" },
     //{"silent",   's', 0,      OPTION_ALIAS },
     {"outprefix",'o', "./out",0,  "Output to [./out.{dat,stat,log}]" },
-    {"kmersize", 'k', "21",   0,  "K-mer size, must be odd number" },
+    {"kmersize", 'k', "21",   0,  "K-mer size" },
     {"countbit",'c', "9",  0,  "length of kmer freq. Count in bit"  },
     {"arrayklen",'a', "512",  0,  "Size in kilo(x1024) for Simplied D-Left Array"  },
     {"subarray",'s', "32",  0,  "Size of single sub array of the SDLA"  },
@@ -89,10 +89,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'k':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>2 && tmpArgValue%2 && tmpArgValue <= UINT16_MAX) {   // odd numbers only
+            if (tmpArgValue>2 && tmpArgValue <= UINT16_MAX) {
                arguments->kmersize = tmpArgValue;
             } else {
-               errx(2,"-k \"%s\"=%i is not a odd number of [3,%d] !",arg,tmpArgValue,UINT16_MAX);
+               errx(2,"-k \"%s\"=%i is not between [3,%d] !",arg,tmpArgValue,UINT16_MAX);
             }
             break;
         case 'c':
