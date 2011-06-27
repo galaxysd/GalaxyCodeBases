@@ -32,11 +32,10 @@ static char doc[] =
 ;
 
 /* A description of the arguments we accept. */
-static char args_doc[] = "input_list (of FASTA or FASTQ files)";
+static char args_doc[] = "input_files (FASTA or FASTQ)";
 
 /* The options we understand. */
 static struct argp_option options[] = {
-    {"interactive", 'i', 0,   0,  "Prompt arguments before procedure"},
     {"outfile",     'o', "./out.stat",0,  "Output file" },
 //    {"countbase",   'c', 0,   0,  "Also count bases" },
     { 0 }
@@ -44,8 +43,7 @@ static struct argp_option options[] = {
 
 /* Used by main to communicate with parse_opt. */
 struct arguments {
-    char *args[1];                /* arg1 */
-    uint_fast8_t countbase, interactive;   //_Bool is the same under amd64, as typedef unsigned char uint_fast8_t;
+    char **args;
     char *outfile;
 };
 
@@ -57,20 +55,11 @@ parse_opt (int key, char *arg, struct argp_state *state) {
     struct arguments *arguments = state->input;
     
     switch (key) {
-        case 'i':
-            arguments->interactive = 1;
-            break;
-        case 'c':
-            arguments->countbase = 1;
-            break;
         case 'o':
             arguments->outfile = arg;
             break;
         
         case ARGP_KEY_ARG:
-            if (state->arg_num >= 1)
-             /* Too many arguments. */
-             argp_usage (state);
             arguments->args[state->arg_num] = arg;
             break;
         
@@ -91,48 +80,29 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 int main (int argc, char **argv) {
     struct arguments arguments;
+    arguments.args=calloc(sizeof(size_t),argc); // the first is $0, so tailing NULL is of sure.
     
     // Default values.
-    arguments.countbase = 0;
-    arguments.interactive = 0;
     arguments.outfile = "./out.stat";
     
     // Parse our arguments; every option seen by parse_opt will be reflected in arguments.
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
     
-    if (arguments.interactive) {
-      printf ("input_list = %s\nOutput = %s\nCountBases = %s\n",
-           arguments.args[0],
-           arguments.outfile,
-           arguments.countbase ? "yes" : "no"
-           );
-      pressAnyKey();
-    }
-//printf("Out[%s][%s][%s]\n",outStat,outDat,outLog);
-
     uint64_t allbases=0;
     uint64_t allreads=0;
     uint64_t maxReadLen=0;
     float128 SS=0.0;
     double SStd;
 
-    FILE *fp;
-    ssize_t read;
-    char *line = NULL;
-    size_t len = 0;
-    fp = fopen(arguments.args[0], "r");
-    if (fp == NULL) err(EXIT_FAILURE, "Cannot open input_list [%s]", arguments.args[0]); //exit(EXIT_FAILURE);
+    char *const*line = arguments.args-1;    // so that we can use *(++line)
 
     G_TIMER_START;
 
     fputs("\nParsing Sequence Files:\n", stderr);
-     while ((read = getline(&line, &len, fp)) != -1) {
+    while ( *(++line) ) {
         ssize_t readlength;
-        if (*line=='\n') continue;      // skip empty lines, which is definitely impossible
-        if (*(line+read-1)=='\n') *(line+(--read))='\0';    // line[read-1] = '\0';
-        fprintf(stderr, " <%s> ...", line);
-        //sleep(1);    // the Call ...
-        SeqFileObj *seqobj = inSeqFinit(line,GFIOCHRBASE);
+        fprintf(stderr, " <%s> ...", *line);
+        SeqFileObj *seqobj = inSeqFinit(*line,GFIOCHRBASE);
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj)) >= 0 ) {
         	#ifdef DEBUG
@@ -159,14 +129,12 @@ int main (int argc, char **argv) {
         fputs("\b\b\b\b, done !\n", stderr);
         inSeqFdestroy(seqobj);
     }
-
+    free(arguments.args);
     fputs("\nCount Done!\n", stderr);
-    free(line);
-    fclose(fp);
 
     SStd = sqrtl(( SS - (float128)allbases*(float128)allbases/(float128)allreads ) / (long double)(allreads -1));
 
-    fp = fopen(arguments.outfile, "w");
+    FILE *fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
         "#Max_Read_Len: %lu\n"
         "#Overflow: %lu\n"
