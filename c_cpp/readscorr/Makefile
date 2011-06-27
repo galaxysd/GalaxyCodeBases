@@ -1,6 +1,7 @@
 CC = gcc
 #CPP = g++
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal\
+ -fopenmp\
 # -Wno-packed-bitfield-compat\
 # -Wpadded -Wextra
 # -DMKL_ILP64 -m64 -I$(MKLROOT)/include \
@@ -67,8 +68,16 @@ alpha: all
 alphadbg: override MAKEARG := $(CFLAGS) $(DEF) $(OPT) $(ASMO) -D TEST -D DEBUG -g
 alphadbg: all
 
+alphapf: override MAKEARG := $(CFLAGS) $(DEF) $(OPT) $(ASMO) -D TEST -pg -g
+alphapf: override LDFLAGS += -pg
+alphapf: gprofmain
+
+gprofmain: clean readscorr
+	./readscorr -o gprof test.lst 2> gprof.log
+	gprof -l readscorr > gprof.report
+
 test: readscorr
-	valgrind ./readscorr test.lst -k 17
+	valgrind --leak-check=yes ./readscorr test.lst -k 17
 
 .PHONY : clean
 clean:
