@@ -106,7 +106,7 @@ int main (int argc, char **argv) {
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj)) >= 0 ) {
         	#ifdef DEBUG
-        		puts(line);
+        		puts(*line);
 	        	printf("-ID:[%s,%s] %zu %zu %zd\nSeq:[%s]\nQ:[%s] *%zx,%u\n",
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,readlength,
 				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq,seqobj->type);
