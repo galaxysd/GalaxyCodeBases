@@ -141,11 +141,15 @@ FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *d
     } theItem;                 
 */
     while (pChunk < pEndChunk) {
+/*
         theItem = 0;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
             //theItem.byte[i] = *(pChunk+i);
         }
+*/
+        theItem = *(uint128_t*)pChunk;
+
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {  // reaching the pre-end
             Item_CountBits = 1;
@@ -174,6 +178,11 @@ fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
     }  // reaching the structure-end
     if (pChunk < pEndChunk) {
 //printf("Old:%zu[%lx %lx]<-[%lx][%lx][%lx %lx] ",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr,(uint64_t)(theItem>>64),(uint64_t)theItem,rBits,Item_CountBits,(uint64_t)((((uint128_t)rBits)<<dleftobj->CountBit)>>64),(uint64_t)(((uint128_t)rBits)<<dleftobj->CountBit));
+/*
+        theItem &= ~dleftobj->CountBit;
+        theItem |= Item_CountBits;
+        *(uint128_t*)pChunk = theItem;
+*/
         theItem = (((uint128_t)rBits)<<dleftobj->CountBit) | Item_CountBits;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
@@ -311,10 +320,14 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
+/*
         theItem = 0;
         for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
             theItem |= ((uint128_t)*(pDLA + i + j)) << (j*8u);
         }
+*/
+        theItem = *(uint128_t*)(pDLA+i);
+
         Item_CountBits = (uint64_t)theItem & dleftobj->Item_CountBitMask;   // Item_CountBitMask is uint64_t.
         ++pCountHistArray[Item_CountBits];
 #ifdef TEST
