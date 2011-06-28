@@ -5,6 +5,7 @@
 #include <err.h>
 #include <string.h> //strcmp, strncpy
 #include <sys/mman.h>
+#include <endian.h> //BYTE_ORDER, LITTLE_ENDIAN 1234
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
 #include "sdleft.h"
 //#include "sdleftTF.h"
@@ -141,22 +142,23 @@ FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *d
     } theItem;                 
 */
     while (pChunk < pEndChunk) {
-/*
+#ifdef OLD
         theItem = 0;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
             //theItem.byte[i] = *(pChunk+i);
         }
-*/
-#ifdef NEW  /* faster for one less register shift operation for memory uint8_t */
+#elif defined NEW  /* faster for one less register shift operation for memory uint8_t */
         theItem = 0;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             theItem = theItem << 8u;
             theItem |= *(pChunk+i);
             //theItem.byte[i] = *(pChunk+i);
         }
-#else
+#elif BYTE_ORDER == LITTLE_ENDIAN
         theItem = *(uint128_t*)pChunk;
+#else
+    #error Faster version is Little Endian, choose OLD or NEW to define !
 #endif
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {  // reaching the pre-end
@@ -208,11 +210,13 @@ fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
         }
 printf("New: %lx, %lx\n",(uint64_t)(theItem>>64u),(uint64_t)theItem);
 */
-#else
+#elif (BYTE_ORDER == LITTLE_ENDIAN) || (defined OLD)
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
             *pChunk++ = (theItem & tmpMask)>>(i*8u);
         }
+#else
+    #error Faster version is Little Endian, choose OLD or NEW to define !
 #endif
 /*printf("New:%zu[%lx %lx] ",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr,(uint64_t)(theItem>>64),(uint64_t)theItem);
 printf("Mem:%zu[",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr);
@@ -347,20 +351,21 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
-/*
+#ifdef OLD
         theItem = 0;
         for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
             theItem |= ((uint128_t)*(pDLA + i + j)) << (j*8u);
         }
-*/
-#ifdef NEW
+#elif defined NEW
         theItem = 0;
         for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
             theItem = theItem << 8u;
             theItem |= *(pDLA + i + j);
         }
-#else
+#elif BYTE_ORDER == LITTLE_ENDIAN
         theItem = *(uint128_t*)(pDLA+i);
+#else
+    #error Faster version is Little Endian, choose OLD or NEW to define !
 #endif
         Item_CountBits = (uint64_t)theItem & dleftobj->Item_CountBitMask;   // Item_CountBitMask is uint64_t.
         ++pCountHistArray[Item_CountBits];
@@ -407,3 +412,23 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
 #endif
     return pSDLeftStat;
 }
+
+/*
+Speed test with OLD 2bitseqinline.h:
+./readscorr Saccharomyces_cerevisiae.cfg -o ttmp 2> ttmp.log
+
+==> tnew.log <==
+   User: 170.445088(s), System: 0.400939(s). Real: 174.093140(s).
+   Sleep: 3.247113(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
+   Wait(s): 62(nvcsw) + 54770(nivcsw). Page Fault(s): 41294(minflt) + 0(majflt).
+
+==> told.log <==
+   User: 204.444919(s), System: 2.459626(s). Real: 215.708506(s).
+   Sleep: 8.803961(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
+   Wait(s): 143(nvcsw) + 58522(nivcsw). Page Fault(s): 41294(minflt) + 0(majflt).
+
+==> ttmp.log <==
+   User: 133.809657(s), System: 1.160823(s). Real: 137.159722(s).
+   Sleep: 2.189242(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
+   Wait(s): 64(nvcsw) + 82900(nivcsw). Page Fault(s): 41301(minflt) + 0(majflt).
+*/

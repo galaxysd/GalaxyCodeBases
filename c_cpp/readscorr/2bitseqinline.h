@@ -104,7 +104,7 @@ revcomp ->            cccaatagacaatttgtctagtgggcgactcg
 
 // *base must have been Normalized to /[ATCGN]*/
 FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncountp) {
-#ifdef NEW
+#ifdef NEWTRY   /* slower than switch */
     const unsigned char baseswitcher[]={
         4,0,4,1,4,   // 64-68
         4,4,2,4,4,   // 69-73
@@ -112,18 +112,14 @@ FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncou
         4,4,4,4,4,   // 79-83
         3            // 84
     };
-    if (*base < 'A' || *base > 'T') {
+    if (*base == 'N') {
         ++(*Ncountp);
         return 0;
     }
+    // Now, only /[ATCG]/
     unsigned char thebase = *base - 64;
     thebase = baseswitcher[thebase];
-    if (thebase!=4) {
-        return thebase;
-    } else {
-        ++(*Ncountp);
-        return 0;
-    }
+    return thebase;
 #else
 	switch (*base) {
 	case 'A':
@@ -182,3 +178,17 @@ FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64
 
 #endif  // 2bitseqinline.h
 
+/*
+NEWTRY(use array instead of switch) is slower ...
+and User: 183.165154(s) if const uint64_t baseswitcher[]
+
+==> tnne.log <==
+   User: 143.039254(s), System: 0.682896(s). Real: 144.603003(s).
+   Sleep: 0.880853(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
+   Wait(s): 117(nvcsw) + 14195(nivcsw). Page Fault(s): 41291(minflt) + 0(majflt).
+
+==> ttmp.log <==
+   User: 132.749818(s), System: 1.740735(s). Real: 136.756637(s).
+   Sleep: 2.266084(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
+   Wait(s): 71(nvcsw) + 42227(nivcsw). Page Fault(s): 41292(minflt) + 0(majflt).
+*/
