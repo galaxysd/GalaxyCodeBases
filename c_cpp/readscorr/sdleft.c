@@ -360,7 +360,7 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     uint64_t * const pCountSubArray = calloc(sizeof(uint64_t),1+SubItemCount);
     uint16_t SubItemUsed=0;
     uint64_t ArraySize = dleftobj->ArraySize;
-    size_t mainArrayID=1;
+    size_t mainArrayID=0;
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
@@ -384,13 +384,13 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
         ++pCountHistArray[Item_CountBits];
 #ifdef TEST
         ++mainArrayID;
-        if (mainArrayID % SubItemCount) { // mainArrayID mod SubItemCount != 0. Not (i+1) !!!
-            if (Item_CountBits) ++SubItemUsed;
-//printf("---%zd %% %ld = %ld %ld\n",mainArrayID,SubItemCount,mainArrayID % SubItemCount,SubItemUsed);
-        } else {
+        if (Item_CountBits) ++SubItemUsed;
+        if (!(mainArrayID % SubItemCount)) {
             ++pCountSubArray[SubItemUsed];
-//printf("-%u\n",SubItemUsed);
+//printf("-%zd %u\n",mainArrayID,SubItemUsed);
             SubItemUsed=0;
+        } else {    // mainArrayID mod SubItemCount != 0. mainArrayID == (i+1)/dleftobj->itemByte .
+//printf("---%zd %% %d = %zd %d\n",mainArrayID,SubItemCount,mainArrayID % SubItemCount,SubItemUsed);
         }
 #endif
     }
@@ -407,8 +407,11 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     pSDLeftStat->HistMean = (double)dleftobj->ItemInsideAll / (double)dleftobj->maxCountSeen;
     pSDLeftStat->HistMaxCntVal = 1; //later
     pSDLeftStat->HistMaxHistVal = 1; //later
-    fprintf(stream,"#Kmer_real_count: %ld\n#Kmer_count_hist: %ld\n#Kmer_depth_mean: %f\n#Kmer_depth_sStd: %f\n\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
-        dleftobj->ItemInsideAll,dleftobj->maxCountSeen,pSDLeftStat->HistMean,SStd);
+    fprintf(stream,"#Kmer_real_count: %ld\n#Kmer_count_hist: %ld\n"
+        "#Kmer_depth_mean: %f\n#Kmer_depth_sStd: %f\n"
+        "#CountBit_overflow: %lu\n"
+        "\n#Kmer_frequence\tHist_value\tKmer_count\tHist_ratio\n",
+        dleftobj->ItemInsideAll,dleftobj->maxCountSeen,pSDLeftStat->HistMean,SStd,dleftobj->CountBitOverflow);
     for (size_t p=1;p<=dleftobj->maxCountSeen;p++) {
         fprintf(stream,"%zu\t%lu\t%lu\t%g\n",p,(uint64_t)pCountHistArray[p],
             (uint64_t)pCountHistArray[p]*(uint64_t)p,(double)pCountHistArray[p]/(double)dleftobj->ItemInsideAll);
