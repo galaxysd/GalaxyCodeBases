@@ -148,8 +148,16 @@ FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *d
             //theItem.byte[i] = *(pChunk+i);
         }
 */
+#ifdef NEW  /* faster for one less register shift operation for memory uint8_t */
+        theItem = 0;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            theItem = theItem << 8u;
+            theItem |= *(pChunk+i);
+            //theItem.byte[i] = *(pChunk+i);
+        }
+#else
         theItem = *(uint128_t*)pChunk;
-
+#endif
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {  // reaching the pre-end
             Item_CountBits = 1;
@@ -184,10 +192,28 @@ fprintf(stderr,"[sdlm][%zu][%lu]:[%lx],[%lu] [%016lx %016lx]\n",
         *(uint128_t*)pChunk = theItem;
 */
         theItem = (((uint128_t)rBits)<<dleftobj->CountBit) | Item_CountBits;
+#ifdef NEW
+//printf("Old: %lx, %lx\n",(uint64_t)(theItem>>64u),(uint64_t)theItem);
+        pChunk += dleftobj->itemByte-1;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            *pChunk-- = (uint8_t)(theItem>>(i*8u));
+        }
+/*
+        ++pChunk;
+        theItem = 0;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            theItem = theItem << 8u;
+            theItem |= (uint128_t)*(pChunk+i);
+            //theItem.byte[i] = *(pChunk+i);
+        }
+printf("New: %lx, %lx\n",(uint64_t)(theItem>>64u),(uint64_t)theItem);
+*/
+#else
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             uint128_t tmpMask = ((uint128_t)0xffLLU) << (i*8u);
             *pChunk++ = (theItem & tmpMask)>>(i*8u);
         }
+#endif
 /*printf("New:%zu[%lx %lx] ",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr,(uint64_t)(theItem>>64),(uint64_t)theItem);
 printf("Mem:%zu[",(size_t)((char*)pChunk - (char*)dleftobj->pDLA)-relAddr);
 for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
@@ -232,9 +258,10 @@ FORCE_INLINE uint64_t querySDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArra
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj,
                                            uint64_t **dibskmer,size_t * const uint64cnt) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
-//char xx = strcmp(kmer,revcomkmer);
     const char *const smallerkmer = (strcmp(kmer,revcomkmer)<=0)?kmer:revcomkmer;   // not strncmp since the first odd len bytes mush be different.
-//printf("[%zd]->[%s,%s,%s] (%d)\n",len,kmer,revcomkmer,smallerkmer,xx);
+#ifdef DEBUGMORE
+ printf("[%zd]->[%s,%s,%s]\n",len,kmer,revcomkmer,smallerkmer);
+#endif
     size_t bytelen = (len+3u)/4;
     size_t Ncount = ChrSeq2dib(smallerkmer,len,dibskmer,uint64cnt);
 //printf("%zd:%zd:[%016lx][%016lx]->[%s] (%zd)\n",*uint64cnt,bytelen,*dibskmer[0],*dibskmer[1],dib2basechr(*dibskmer,len),Ncount);
@@ -326,8 +353,15 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
             theItem |= ((uint128_t)*(pDLA + i + j)) << (j*8u);
         }
 */
+#ifdef NEW
+        theItem = 0;
+        for (uint_fast8_t j=0;j<dleftobj->itemByte;j++) {
+            theItem = theItem << 8u;
+            theItem |= *(pDLA + i + j);
+        }
+#else
         theItem = *(uint128_t*)(pDLA+i);
-
+#endif
         Item_CountBits = (uint64_t)theItem & dleftobj->Item_CountBitMask;   // Item_CountBitMask is uint64_t.
         ++pCountHistArray[Item_CountBits];
 #ifdef TEST

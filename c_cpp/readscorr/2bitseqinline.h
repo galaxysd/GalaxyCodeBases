@@ -104,6 +104,27 @@ revcomp ->            cccaatagacaatttgtctagtgggcgactcg
 
 // *base must have been Normalized to /[ATCGN]*/
 FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncountp) {
+#ifdef NEW
+    const unsigned char baseswitcher[]={
+        4,0,4,1,4,   // 64-68
+        4,4,2,4,4,   // 69-73
+        4,4,4,4,4,   // 74-78
+        4,4,4,4,4,   // 79-83
+        3            // 84
+    };
+    if (*base < 'A' || *base > 'T') {
+        ++(*Ncountp);
+        return 0;
+    }
+    unsigned char thebase = *base - 64;
+    thebase = baseswitcher[thebase];
+    if (thebase!=4) {
+        return thebase;
+    } else {
+        ++(*Ncountp);
+        return 0;
+    }
+#else
 	switch (*base) {
 	case 'A':
 		return 0;
@@ -123,6 +144,7 @@ FORCE_INLINE uint64_t singlebase2dbit(const char *const base, size_t *const Ncou
 		return 0;
 		break;
 	}   // Whether a looking-up array[32] can be faster ?
+#endif
 }
 FORCE_INLINE size_t ChrSeq2dib(const char *const baseschr, size_t seqlen, uint64_t **diBseqp, size_t *const puint64cnt){
     size_t needtomallocQQW = (seqlen+31u)>>5;  // in fact length in sizeof(uint64_t)

@@ -13,9 +13,7 @@ ASMO = -Wa,-a,-ad
 
 OBJDIR = ./objects/
 
-MAXKMERLENGTH=31
-DEF = \
-#-D MAXKMERLENGTH=$(MAXKMERLENGTH) 
+DEF = #-D NEW
 
 MAKEARG = $(CFLAGS) $(DEF) $(OPT) $(ASMO)
 

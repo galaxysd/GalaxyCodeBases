@@ -56,7 +56,23 @@ void test_types(void) {
     printf("%04X %012lX %016lX\n", (uint16_t)bar.bits.exp, (uint64_t)bar.bits.frac1, bar.bits.frac0);
 }
 
+void test_baseswitcher(void) {
+    const unsigned char baseswitcher[]={
+        4,0,4,1,4,   // 64-68
+        4,4,2,4,4,   // 69-73
+        4,4,4,4,4,   // 74-78
+        4,4,4,4,4,   // 79-83
+        3            // 84
+    };
+    char *seq="ATCGatcgNn";
+    while (*seq) {
+        printf("%c -> %u\n",*seq,baseswitcher[*seq-64]);
+        ++seq;
+    }
+}
+
 int main(void) {
     test_types();
+    test_baseswitcher();
     return 0;
 }
