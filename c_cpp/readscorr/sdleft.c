@@ -239,10 +239,23 @@ FORCE_INLINE uint64_t querySDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArra
     uint64_t Item_CountBits=0;  // set value in case SubItemCount*dleftobj->itemByte == 0 (EP ?)
     uint128_t theItem;
     while (pChunk < pEndChunk) {
+#ifdef OLD
         theItem = 0;
         for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
             theItem |= ((uint128_t)*(pChunk+i)) << (i*8u);
         }
+#elif defined NEW  /* faster for one less register shift operation for memory uint8_t */
+        theItem = 0;
+        for (uint_fast8_t i=0;i<dleftobj->itemByte;i++) {
+            theItem = theItem << 8u;
+            theItem |= *(pChunk+i);
+            //theItem.byte[i] = *(pChunk+i);
+        }
+#elif BYTE_ORDER == LITTLE_ENDIAN
+        theItem = *(uint128_t*)pChunk;
+#else
+    #error Faster version is Little Endian, choose OLD or NEW to define !
+#endif
         Item_CountBits = theItem & dleftobj->Item_CountBitMask;
         if (Item_CountBits == 0) {  // reaching the pre-end, not found
             break;
