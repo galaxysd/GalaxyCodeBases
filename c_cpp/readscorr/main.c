@@ -97,10 +97,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'c':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>0 && tmpArgValue <= 64) {
+            if (tmpArgValue>4 && tmpArgValue <= 64) {
                arguments->CountBit = tmpArgValue;
             } else {
-               errx(2,"-c \"%s\"=%i is not a integer of [1,64] !",arg,tmpArgValue);
+               errx(2,"-c \"%s\"=%i is not a integer of [5,64] !",arg,tmpArgValue);
             }
             break;
         case 'a':
@@ -121,10 +121,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'r':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>0 && tmpArgValue <= 64) {
+            if (tmpArgValue>3 && tmpArgValue <= 64) {
                arguments->rBit = tmpArgValue;
             } else {
-               errx(2,"-r \"%s\"=%i is not a integer of [1,64] !",arg,tmpArgValue);
+               errx(2,"-r \"%s\"=%i is not a integer of [4,64] !",arg,tmpArgValue);
             }
             break;
         

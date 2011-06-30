@@ -36,9 +36,9 @@ SDLeftArray_t *dleft_arraynew(const unsigned char CountBit, const SDLConfig * co
 
 // the native one
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
-    if (ArraySize<2u || CountBit<1u || rBit<1u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
+    if (ArraySize<2u || CountBit<5u || rBit<4u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)[%u]x%zd ",rBit,CountBit,SubItemCount,ArraySize);
-    }
+    }   // CountBit+rBit >= 9, makes uint16_t always OK
 #ifdef TEST    /* Test mode, keep rBit, pad CountBit */
     unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(rBit,&CountBit,&SubItemCount);
 #else   /* Normal, keep CountBit, pad rBit */
@@ -46,7 +46,7 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
 #endif
     unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
-    dleftobj->SDLAbyte = SubItemCount*itemByte*ArraySize;
+    dleftobj->SDLAbyte = (SubItemCount*itemByte*ArraySize+127u)&(~(size_t)127u);    // We are reading in uint128_t now.
     dleftobj->pDLA = calloc(1,dleftobj->SDLAbyte);
     int mlock_r = mlock(dleftobj->pDLA,dleftobj->SDLAbyte);
     if (mlock_r) warn("[!]Cannot lock SDL array in memory. Performance maybe reduced.");
@@ -128,7 +128,8 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
 
 // rBits is (0,64]
 FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
-    size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
+    //size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
+    size_t ArrayPos = ((uint128_t)ArrayBits*(uint128_t)dleftobj->ArraySize) >> dleftobj->ArrayBit;
     size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
     unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
@@ -231,7 +232,7 @@ puts("]");*/
 }
 // return 0 for not found
 FORCE_INLINE uint64_t querySDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
-    size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
+    size_t ArrayPos = ((uint128_t)ArrayBits*(uint128_t)dleftobj->ArraySize) >> dleftobj->ArrayBit;
     size_t relAddr = ArrayPos*dleftobj->SubItemCount*dleftobj->itemByte;
     unsigned char* pChunk = (unsigned char*)dleftobj->pDLA + relAddr;
     unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SubItemCount*dleftobj->itemByte;
