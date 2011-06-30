@@ -36,7 +36,7 @@ SDLeftArray_t *dleft_arraynew(const unsigned char CountBit, const SDLConfig * co
 
 // the native one
 SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
-    if (ArraySize<2u || CountBit<5u || rBit<4u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
+    if (ArraySize<2u || CountBit<3u || rBit<6u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)[%u]x%zd ",rBit,CountBit,SubItemCount,ArraySize);
     }   // CountBit+rBit >= 9, makes uint16_t always OK
 #ifdef TEST    /* Test mode, keep rBit, pad CountBit */
@@ -349,7 +349,11 @@ void dleft_arraydestroy(SDLeftArray_t * const dleftobj){
 	free(dleftobj);
 }
 
+#ifdef TEST
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream, FILE *fpdat) {
+#else
 SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
+#endif
     SDLeftStat_t *pSDLeftStat = malloc(sizeof(SDLeftStat_t));
     uint64_t * const pCountHistArray = calloc(sizeof(uint64_t),1+dleftobj->maxCountSeen);
     size_t totalDLAsize = dleftobj->SubItemCount * dleftobj->itemByte * dleftobj->ArraySize;
@@ -362,6 +366,11 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     uint16_t SubItemUsed=0;
     uint64_t ArraySize = dleftobj->ArraySize;
     size_t mainArrayID=0;
+    rewind(fpdat);
+    size_t unitwritten;
+    unitwritten=fwrite(&ArraySize,sizeof(uint64_t),1u,fpdat);
+    if (unitwritten != 1)
+        err(EXIT_FAILURE, "Fail to write dat file ! [%zd]",unitwritten);
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
@@ -388,6 +397,7 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
         if (Item_CountBits) ++SubItemUsed;
         if (!(mainArrayID % SubItemCount)) {
             ++pCountSubArray[SubItemUsed];
+            fwrite(&SubItemUsed,sizeof(uint8_t),1u,fpdat);  // Well, just write 1 byte each. (LE)
 //printf("-%zd %u\n",mainArrayID,SubItemUsed);
             SubItemUsed=0;
         } else {    // mainArrayID mod SubItemCount != 0. mainArrayID == (i+1)/dleftobj->itemByte .
@@ -448,4 +458,16 @@ Speed test with OLD 2bitseqinline.h:
    User: 133.809657(s), System: 1.160823(s). Real: 137.159722(s).
    Sleep: 2.189242(s). Block I/O times: 0/0. MaxRSS: 0 kiB.
    Wait(s): 64(nvcsw) + 82900(nivcsw). Page Fault(s): 41301(minflt) + 0(majflt).
+*/
+
+/*
+zz <- file("oSCa8ms64r25k17.dat", "rb")
+l=readBin(zz,"integer",size=8,signed=F)
+a=readBin(zz,"integer",l,size=1,signed=F)
+dim(a)<-c(l/8192,8192)
+b=colMeans(a)
+png("oSCa8ms64r25k17.png",2048,600)
+plot(x=1:length(b),y=b)
+dev.off();
+close(zz);
 */

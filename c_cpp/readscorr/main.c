@@ -97,10 +97,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'c':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>4 && tmpArgValue <= 64) {
+            if (tmpArgValue>2 && tmpArgValue <= 64) {
                arguments->CountBit = tmpArgValue;
             } else {
-               errx(2,"-c \"%s\"=%i is not a integer of [5,64] !",arg,tmpArgValue);
+               errx(2,"-c \"%s\"=%i is not a integer of [3,64] !",arg,tmpArgValue);
             }
             break;
         case 'a':
@@ -121,10 +121,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'r':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>3 && tmpArgValue <= 64) {
+            if (tmpArgValue>5 && tmpArgValue <= 64) {
                arguments->rBit = tmpArgValue;
             } else {
-               errx(2,"-r \"%s\"=%i is not a integer of [4,64] !",arg,tmpArgValue);
+               errx(2,"-r \"%s\"=%i is not a integer of [6,64] !",arg,tmpArgValue);
             }
             break;
         
@@ -264,13 +264,16 @@ int main (int argc, char **argv) {
     destory_seqfile(psdlcfg);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
-    FILE *fp;
-    fp = fopen(outStat, "w");
-    fprintf(fp,"#KmerSize: %d\n#Kmer_theory_count: %.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
-    SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fp);
-    fclose(fp);
-#ifndef TEST    /* No out.stat in test mode. */
-    fp = fopen(outDat, "w");
+    FILE *fpstat, *fpdat;
+    fpstat = fopen(outStat, "w");
+    fpdat = fopen(outDat, "w");
+    fprintf(fpstat,"#KmerSize: %d\n#Kmer_theory_count: %.34Lg\n",arguments.kmersize,powl(4.0,(long double)arguments.kmersize));   // 34 from http://en.wikipedia.org/wiki/Quadruple_precision
+
+#ifdef TEST    /* in TEST mode, "out.stat" changed to subArray filling count */
+    SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fpstat,fpdat);
+#else           /* Normal out.stat  */
+    SDLeftStat_t *SDLeftStat = dleft_stat(dleftp,fpstat);
+
     SDLdumpHead *DatHead = malloc(sizeof(SDLdumpHead));
     DatHead->kmersize = arguments.kmersize;
     DatHead->HistMaxCntVal = SDLeftStat->HistMaxCntVal;
@@ -278,10 +281,12 @@ int main (int argc, char **argv) {
     DatHead->HistMean = SDLeftStat->HistMean;
     DatHead->HistSStd = SDLeftStat->HistSStd;
     //free(SDLeftStat);
-    dleft_dump(dleftp,DatHead,fp);
-    fclose(fp);
+    dleft_dump(dleftp,DatHead,fpdat);
     free(DatHead);
 #endif
+    fclose(fpstat);
+    fclose(fpdat);
+
     free(SDLeftStat);
     dleft_arraydestroy(dleftp);
     free(outStat); free(outDat); free(outLog);  // just filenames

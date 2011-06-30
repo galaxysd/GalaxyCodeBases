@@ -67,7 +67,11 @@ typedef struct __SDLeftStat_t {
 
 typedef SDLeftStat_t *(G_SDLeftArray_IN)(SDLeftArray_t * const, FILE *);    //*G_SDLeftArray_IN() is OK,too .
 
+#ifdef TEST
+SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream, FILE *fpdat);
+#else
 SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream);
+#endif
 
 #endif /* sdleft.h */
 
