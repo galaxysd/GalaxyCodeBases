@@ -8,3 +8,7 @@
 soap/adapterfilter/?/*
 .svn/
 blib/
+*.vpj
+*.vpw
+*.vpwhist
+*.vtg
