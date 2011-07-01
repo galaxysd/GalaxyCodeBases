@@ -34,7 +34,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = tests
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/compat.sh.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
 	$(top_srcdir)/m4/alloca.m4 $(top_srcdir)/m4/argp.m4 \
@@ -67,7 +68,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = compat.sh
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -490,6 +491,7 @@ LN_S = @LN_S@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MD5 = @MD5@
 MKDIR_P = @MKDIR_P@
 NEXT_AS_FIRST_DIRECTIVE_ERRNO_H = @NEXT_AS_FIRST_DIRECTIVE_ERRNO_H@
 NEXT_AS_FIRST_DIRECTIVE_FLOAT_H = @NEXT_AS_FIRST_DIRECTIVE_FLOAT_H@
@@ -697,7 +699,10 @@ TEST_EXTENSIONS = .sh
 SH_LOG_COMPILER = /bin/sh
 AM_SH_LOG_FLAGS = 
 TESTS = generate_sequence.sh serial_hashing.sh parallel_hashing.sh	\
-serial_direct_indexing.sh parallel_direct_indexing.sh
+serial_direct_indexing.sh parallel_direct_indexing.sh raw_hash.sh	\
+generate_fastq_sequence.sh parallel_fastq_hashing.sh multi_file.sh	\
+multi_file_fastq.sh from_stream.sh parallel_fastq_sequence_hashing.sh	\
+from_stream_fastq.sh merge.sh min_qual.sh big.sh
 
 EXTRA_DIST = $(TESTS)
 all: all-am
@@ -734,6 +739,8 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+compat.sh: $(top_builddir)/config.status $(srcdir)/compat.sh.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1052,12 +1059,21 @@ uninstall-am:
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
-	-rm -f seq10m*
+	-rm -f seq10m* seq1m* *_0 *_1 *_2 *.md5sum *.histo *.stats *.timing *.query *.dump *.fa
 
 serial_hashing.log: generate_sequence.log
 parallel_hashing.log: generate_sequence.log
 serial_direct_indexing.log: generate_sequence.log
 parallel_direct_indexing.log: generate_sequence.log
+multi_file.log: generate_sequence.log
+raw_hash.log: generate_sequence.log
+from_stream.log: generate_sequence.log
+parallel_fastq_hashing.log: generate_fastq_sequence.log
+parallel_fastq_sequence_hashing.log: generate_fastq_sequence.log
+multi_file_fastq.log: generate_fastq_sequence.log
+from_stream_fastq.log: generate_fastq_sequence.log
+merge.log: generate_fastq_sequence.log
+min_qual.log: generate_fastq_sequence.log
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

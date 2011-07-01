@@ -24,50 +24,75 @@
 #include <sys/mman.h>
 #include <vector>
 #include <errno.h>
+#include <iostream>
 
+#include <jellyfish/err.hpp>
 #include <jellyfish/misc.hpp>
+#include <jellyfish/atomic_gcc.hpp>
 
 class mapped_file {
+protected:
+  bool    _unmap;
   char   *_base, *_end;
   size_t  _length;
-  bool    unmap;
 
-public:
-  define_error_class(ErrorMMap);
-  mapped_file(char *__base, size_t __length) :
-    _base(__base), _end(__base + __length), _length(__length), unmap(false) {}
-
-  mapped_file(const char *filename) {
+  void map(const char *filename) {
     int fd = open(filename, O_RDONLY);
     struct stat stat;
-
+    
     if(fd < 0)
-      throw_perror<ErrorMMap>("Can't open file '%s'", filename);
+      raise(ErrorMMap) << "Can't open file '" << filename << "'" << err::no;
     
     if(fstat(fd, &stat) < 0)
-      throw_perror<ErrorMMap>("Can't stat file '%s'", filename);
+      raise(ErrorMMap) << "Can't stat file '" << filename << "'" << err::no;
 
     _length = stat.st_size;
     _base = (char *)mmap(NULL, _length, PROT_READ, MAP_SHARED, fd, 0);
     if(_base == MAP_FAILED)
-      throw_perror<ErrorMMap>("Can't mmap file '%s'", filename);
+      raise(ErrorMMap) << "Can't mmap file '" << filename << "'" << err::no;
     close(fd);
     _end = _base + _length;
+  }
+  
+public:
+  define_error_class(ErrorMMap);
+  mapped_file(char *__base, size_t __length) :
+    _unmap(false), _base(__base), _end(__base + __length), _length(__length) {}
 
-    unmap = true;
+  mapped_file(const char *filename) : _unmap(false) {
+    map(filename);
+  }
+  mapped_file(const mapped_file &mf) : 
+    _unmap(false), _base(mf._base), _end(mf._end), _length(mf._length) {}
+
+  ~mapped_file() {
+    if(_unmap)
+      unmap();
   }
 
-  ~mapped_file() { }
+  void unmap() {
+    if(!_base)
+      return;
+    munmap(_base, _length);
+    _base = 0;
+    _length = 0;
+  }
 
   char *base() const { return _base; }
   char *end() const { return _end; }
   size_t length() const { return _length; }
 
-  void will_need() const {
+  const mapped_file & will_need() const {
     madvise(_base, _length, MADV_WILLNEED);
+    return *this;
   }
-  void sequential() const {
+  const mapped_file & sequential() const {
     madvise(_base, _length, MADV_SEQUENTIAL);
+    return *this;
+  }
+  const mapped_file & random() const {
+    madvise(_base, _length, MADV_RANDOM);
+    return *this;
   }
 };
 
@@ -81,6 +106,53 @@ public:
   mapped_files_t(int nb_files, char *argv[], bool sequential) {
     for(int j = 0; j < nb_files; j++) {
       push_back(mapped_file(argv[j]));
+      if(sequential)
+        end()->sequential();
+    }
+  }
+};
+
+// File mapped on demand.
+class lazy_mapped_file_t : public mapped_file {
+  std::string       _path;
+  volatile bool     done;
+  volatile long     used_counter;
+
+public:
+  lazy_mapped_file_t(const char *path) : 
+    mapped_file((char *)0, (size_t)0),
+    _path(path), done(false), used_counter(0) {}
+  
+  void map() {
+    used_counter = 1;
+    done = false;
+    mapped_file::map(_path.c_str());
+  }
+  void unmap() { 
+    done = true;
+    dec();
+  }
+
+  void inc() {
+    atomic::gcc::fetch_add(&used_counter, (typeof(used_counter))1);
+  }
+  void dec() {
+    long val = atomic::gcc::add_fetch(&used_counter, (typeof(used_counter))-1);
+    if(done && val == 0)
+      mapped_file::unmap();
+  }
+};
+
+class lazy_mapped_files_t : public std::vector<lazy_mapped_file_t> {
+public:
+  lazy_mapped_files_t(int nb_files, char *argv[]) {
+    for(int j = 0; j < nb_files; j++)
+      push_back(lazy_mapped_file_t(argv[j]));
+  }
+
+  lazy_mapped_files_t(int nb_files, char *argv[], bool sequential) {
+    for(int j = 0; j < nb_files; j++) {
+      push_back(lazy_mapped_file_t(argv[j]));
       if(sequential)
         end()->sequential();
     }

@@ -1,63 +1,29 @@
-#include <argp.h>
+/*  This file is part of Jellyfish.
+
+    Jellyfish is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Jellyfish is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Jellyfish.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
 
+#include <jellyfish/err.hpp>
 #include <jellyfish/misc.hpp>
 #include <jellyfish/square_binary_matrix.hpp>
 #include <jellyfish/randomc.h>
-
-/*
- * Option parsing
- */
-static char doc[] = "Generate random sequence";
-static char args_doc[] = "seed";
-
-static struct argp_option options[] = {
-  {"mer",       'm',    "SIZE",         0,      "Mer size. Generate matrix of size 2*m"},
-  {"output",    'o',    "PREFIX",       0,      "Output prefix"},
-  {"verbose",           'v',            0,      0,      "Be verbose (false)"},
-  { 0 }
-};
-
-struct arguments {
-  std::vector<int>  sizes;
-  const char       *output;
-  bool verbose;
-};
-
-static error_t parse_opt (int key, char *arg, struct argp_state *state)
-{
-  struct arguments *arguments = (struct arguments *)state->input;
-  unsigned long tmp;
-  error_t error;
-
-#define ULONGP(field) \
-  error = parse_long(arg, &std::cerr, &arguments->field);       \
-  if(error) return(error); else break;
-
-#define AULONGP(field)                       \
-  error = parse_long(arg, &std::cerr, &tmp); \
-  if(error) return(error);                   \
-  arguments->field.push_back(tmp);           \
-  break;
-
-#define FLAG(field) arguments->field = true; break;
-
-#define STRING(field) arguments->field = arg; break;
-
-  switch(key) {
-  case 'm': AULONGP(sizes);
-  case 'v': FLAG(verbose);
-  case 'o': STRING(output);
-
-  default:
-    return ARGP_ERR_UNKNOWN;
-  }
-  return 0;
-}
-static struct argp argp = { options, parse_opt, args_doc, doc };
+#include <jellyfish/generate_sequence_cmdline.hpp>
 
 class rDNAg_t {
 public:
@@ -70,6 +36,9 @@ public:
     buff >>= 2;
     return res;
   }
+  char qual_Illumina() {
+    return rng->IRandom(66, 104);
+  }
 private:
   CRandomMersenne *rng;
   int i;
@@ -78,42 +47,40 @@ private:
 };
 const char rDNAg_t::letters[4] = { 'A', 'C', 'G', 'T' };
 
+struct generate_sequence_args args;
+
+void create_path(char *path, unsigned int path_size, const char *ext, bool many, int i) {
+  int len;
+  if(many)
+    len = snprintf(path, path_size, "%s_%d.%s", args.output_arg, i, ext);
+  else
+    len = snprintf(path, path_size, "%s.%s", args.output_arg, ext);
+  if(len < 0)
+    die << "Error creating the fasta file '" << path << "'" << err::no;
+  if((unsigned int)len >= path_size)
+    die << "Output prefix too long '" << args.output_arg << "'";
+}
+
 int main(int argc, char *argv[])
 {
-  struct arguments arguments;
-  int arg_st;
-
-  arguments.output = "output";
-  arguments.verbose      = false;
-
-  argp_parse(&argp, argc, argv, 0, &arg_st, &arguments);
-  if(arg_st != argc - 2) {
-    fprintf(stderr, "Wrong number of argument\n");
-    argp_help(&argp, stderr, ARGP_HELP_SEE, argv[0]);
-    exit(1);
-  }
-  unsigned long seed;
-  error_t error = parse_long(argv[arg_st++], &std::cerr, &seed);
-  if(error)
-    return error;
-
-  size_t length;
-  error = parse_long(argv[arg_st], &std::cerr, &length);
-  if(error)
-    return error;
   
+  if(generate_sequence_cmdline(argc, argv, &args) != 0)
+    die << "Command line parser failed";
 
-  if(arguments.verbose)
-    std::cout << "Seed: " << seed << "\n";
-  CRandomMersenne rng(seed);
+  if(args.inputs_num == 0)
+    die << "Need at least 1 length\n" 
+        << generate_sequence_args_usage << "\n" << generate_sequence_args_help;
+  
+  if(args.verbose_flag)
+    std::cout << "Seed: " << args.seed_arg << "\n";
+  CRandomMersenne rng(args.seed_arg);
   
   // Generate matrices
   uint64_t lines[64];
-  for(std::vector<int>::iterator it = arguments.sizes.begin();
-      it < arguments.sizes.end(); it++) {
-    if(*it <= 0 || *it > 32)
-      die("Invalid mer size '%d'. It must be between 1 and 32.", *it);
-    int matrix_size = *it << 1;
+  for(unsigned int j = 0; j < args.mer_given; j++) {
+    if(args.mer_arg[j] <= 0 || args.mer_arg[j] > 31)
+      die << "Mer size (" << args.mer_arg[j] << ") must be between 1 and 31.";
+    int matrix_size = args.mer_arg[j] << 1;
     SquareBinaryMatrix mat(matrix_size), inv(matrix_size);
     while(true) {
       for(int i = 0; i < matrix_size; i++)
@@ -125,46 +92,84 @@ int main(int argc, char *argv[])
       } catch(SquareBinaryMatrix::SingularMatrix e) {}
     }
     char path[4096];
-    int len = snprintf(path, sizeof(path), "%s_matrix_%d", arguments.output, *it);
+    int len = snprintf(path, sizeof(path), "%s_matrix_%d", args.output_arg, 
+                       args.mer_arg[j]);
     if(len < 0)
-      die("Error creating the matrix file path: %s", strerror_string(errno).c_str());
+      die << "Error creating the matrix file '" << path << "'" << err::no;
     if((unsigned int)len >= sizeof(path))
-      die("Output prefix too long '%s'", arguments.output);
+      die << "Output prefix too long '" << args.output_arg << "'";
     std::ofstream fd(path);
     if(!fd.good())
-      die("Can't open matrix file '%s': %s", path, strerror_string(errno).c_str());
-    if(arguments.verbose)
+      die << "Can't open matrix file '" << path << "'" << err::no;
+    if(args.verbose_flag)
       std::cout << "Creating matrix file '" << path << "'\n";
     mat.dump(&fd);
     if(!fd.good())
-      die("Error while writing matrix '%s': %s", path, strerror_string(errno).c_str());
+      die << "Error while writing matrix '" << path << "'" << err::no;
     fd.close();
   }
   
   // Output sequence
   rDNAg_t rDNAg(&rng);
   char path[4096];
-  int len = snprintf(path, sizeof(path), "%s.fa", arguments.output);
-  if(len < 0)
-    die("Error creating the fasta file path: %s", strerror_string(errno).c_str());
-  if((unsigned int)len >= sizeof(path))
-    die("Output prefix too long '%s'", arguments.output);
-  std::ofstream fd(path);
-  if(!fd.good())
-    die("Can't open fasta file '%s': %s", path, strerror_string(errno).c_str());
-  if(arguments.verbose)
-    std::cout << "Creating fasta file '" << path << "'\n";
-  fd << ">read\n";
-  size_t total_len = 0;
-  while(total_len < length) {
-    for(int i = 0; i < 70 && total_len < length; i++) {
-      fd << rDNAg.letter();
-      total_len++;
+  bool many = args.inputs_num > 1;
+  
+  for(unsigned int i = 0; i < args.inputs_num; ++i) {
+    size_t length = atol(args.inputs[i]);
+  
+    if(args.fastq_flag) {
+      create_path(path, sizeof(path), "fq", many, i);
+      std::ofstream fd(path);
+      if(!fd.good())
+        die << "Can't open fasta file '" << path << err::no;
+      if(args.verbose_flag)
+        std::cout << "Creating fastq file '" << path << "'\n";
+      size_t total_len = 0;
+      unsigned long read_id = 0;
+      while(total_len < length) {
+        fd << "@read_" << (read_id++) << "\n";
+        int base;
+        for(base = 0; base < 70 && total_len < length; base++, total_len++)
+          fd << rDNAg.letter();
+        fd << "\n+\n";
+        for(int j = 0; j < base; j++)
+          fd << rDNAg.qual_Illumina();
+        fd << "\n";
+      }
+      if(!fd.good())
+        die << "Error while writing fasta file '" << path << err::no;
+      fd.close();
+    } else {
+      create_path(path, sizeof(path), "fa", many, i);
+      std::ofstream fd(path);
+      if(!fd.good())
+        die << "Can't open fasta file '" << path << err::no;
+      if(args.verbose_flag)
+        std::cout << "Creating fasta file '" << path << "'\n";
+
+      size_t read_length = args.read_length_given ? args.read_length_arg : length;
+      size_t total_len = 0;
+      size_t read = 0;
+      long rid = 0;
+      fd << ">read" << ++rid << "\n";
+      while(total_len < length) {
+        for(int base = 0; base < 70 && total_len < length && read < read_length; 
+            base++) {
+          fd << rDNAg.letter();
+          total_len++;
+          read++;
+        }
+        fd << "\n";
+        if(read >= read_length) {
+          fd << ">read" << ++rid << "\n";
+          read = 0;
+        }
+      }
+      if(!fd.good())
+        die << "Error while writing fasta file '" << path << err::no;
+      fd.close();
     }
-    fd << "\n";
   }
-  if(!fd.good())
-    die("Error while writing fasta file '%s': %s", path, strerror_string(errno).c_str());
-  fd.close();
+
   return 0;
 }
