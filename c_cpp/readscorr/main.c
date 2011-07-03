@@ -17,6 +17,8 @@
 #include "timer.h"
 #include "gtools.h"
 
+#define SUBARRAY_MAX 8192u
+
 const char *argp_program_version =
     "readscorr 0.1 @"__TIME__ "," __DATE__;
 const char *argp_program_bug_address =
@@ -46,7 +48,7 @@ static struct argp_option options[] = {
     {"kmersize", 'k', "21",   0,  "K-mer size" },
     {"countbit",'c', "9",  0,  "length of kmer freq. Count in bit"  },
     {"arrayklen",'a', "512",  0,  "Size in kilo(x1024) for Simplied D-Left Array"  },
-    {"subarray",'s', "32",  0,  "Size of single sub array of the SDLA"  },
+    {"subarray",'s', "32",  0,  "Size of single sub array of the SDLA (mod " CAT(SDL_SUBARRAY_UNIT) ")"  },
     {"remainkeybit",'r', "31",  0,  "length of SDLA Remain-Key in bit.\nWill elongate to align(8) with countbit."  },
     {"example",  'e', 0,      0,  "OVERWRITE an example to [input_config]"},
     { 0 }
@@ -113,10 +115,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 's':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>0 && tmpArgValue <= UINT16_MAX) {
-               arguments->SubItemCount = tmpArgValue;
+            if (tmpArgValue>0 && tmpArgValue <= SUBARRAY_MAX) {
+               arguments->SubItemCount = (tmpArgValue+SDL_SUBARRAY_UNIT-1)&(~(uint16_t)(SDL_SUBARRAY_UNIT-1));
             } else {
-               errx(2,"-s \"%s\"=%i is not a integer of [1,%u] !",arg,tmpArgValue,UINT16_MAX);
+               errx(2,"-s \"%s\"=%i is not a integer of [1,%u] !",arg,tmpArgValue,SUBARRAY_MAX);
             }
             break;
         case 'r':

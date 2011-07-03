@@ -10,6 +10,7 @@
 #include "cfgparser.h"
 
 #define HASH_LENB (128u)
+#define SDL_SUBARRAY_UNIT 8
 //#define SDLA_ITEMARRAY 32u
 #define SUBARRAY_SIZE (32u*1024u)
 //gcc -### -march=native -E /usr/include/stdlib.h 2>&1 | grep l1-cache-size
@@ -17,7 +18,7 @@
 typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
     unsigned char itemByte; //, HashCnt;
-    uint16_t SubItemCount;  //max should be 32768
+    uint16_t SubItemCount,SubItemByUnit;  //max should be 32768
     size_t ArraySize,SDLAbyte;
     //uint64_t maxCount; == Item_CountBitMask
     //unsigned char ArrayCount;

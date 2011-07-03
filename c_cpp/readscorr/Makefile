@@ -1,7 +1,6 @@
 CC = gcc
 #CPP = g++
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal\
- -fopenmp\
 # -Wno-packed-bitfield-compat\
 # -Wpadded -Wextra
 # -DMKL_ILP64 -m64 -I$(MKLROOT)/include \
@@ -22,7 +21,13 @@ ifdef OPENMP
 override CFLAGS := $(CFLAGS) -fopenmp
 override DEF := $(DEF) -D OPENMP
 endif
- 
+
+# pthread
+ifdef PTHREAD
+override LDFLAGS := $(LDFLAGS) -lpthread
+override DEF := $(DEF) -D PTHREAD
+endif
+
 cobjects =
 customobjects = $(addprefix $(OBJDIR),)# sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
 c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o sdleft.o 2bitseq.o cfgparser.o gtools.o )
@@ -31,6 +36,7 @@ objects = $(cobjects) $(c99objects) $(customobjects)
 exefiles = readscorr tester fcount gcount
 
 all: clean $(objects) $(exefiles)
+	@echo [$(CC) $(CFLAGS) $(OPT) $(LDFLAGS)][$(MAKEARG)].
 
 readscorr: $(objects) $(mainobjects)
 	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readscorr $(objects) $(addprefix $(OBJDIR), main.o)

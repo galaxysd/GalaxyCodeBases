@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <endian.h> //BYTE_ORDER, LITTLE_ENDIAN 1234
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
+#include <pthread.h>
 #include "sdleft.h"
 //#include "sdleftTF.h"
 #include "MurmurHash3.h"
@@ -14,6 +15,10 @@
 #include "chrseq.h"
 
 #define HASHSEED (0x3ab2ae35)
+
+#if BYTE_ORDER != LITTLE_ENDIAN
+    #error We focus on Little Endian now.
+#endif
 
 unsigned char GETitemByte_PADrBit_trimSubItemCount(unsigned char CountBit, unsigned char *prBit, uint16_t *pSubItemCount){
     unsigned char itemByte = (CountBit+*prBit+7u) >> 3;	// 2^3=8
@@ -58,6 +63,7 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_
     dleftobj->itemByte = itemByte;
     dleftobj->ArraySize = ArraySize;
     dleftobj->SubItemCount = SubItemCount;
+    dleftobj->SubItemByUnit = SubItemCount/SDL_SUBARRAY_UNIT;
     dleftobj->maxCountSeen = 1; //if SDLA is not empty, maxCountSeen>=1.
     /* only one 128bit hash needed.
     dleftobj->ArrayCount = ArrayCount;
@@ -126,6 +132,8 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
     return outUnit;
 }
 
+char searchSubArray(unsigned char* pChunk){}
+
 // rBits is (0,64]
 FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
     //size_t ArrayPos = ArrayBits % dleftobj->ArraySize;
@@ -142,6 +150,20 @@ FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *d
         unsigned char byte[16];
     } theItem;                 
 */
+#ifdef PTHREAD
+    uint16_t SubItemByUnit=dleftobj->SubItemByUnit;
+    unsigned char itemByte=dleftobj->itemByte;
+    pthread_t *ptWorkers=malloc(sizeof(pthread_t)*SubItemByUnit);
+    for (uint16_t i=0;i<SubItemByUnit;i++) {
+         pthread_create(ptWorkers+i,NULL,&searchSubArray,pChunk+i*itemByte);
+    }
+    ;
+    for (uint16_t i=0;i<SubItemByUnit;i++) {
+         pthread_join(*(ptWorkers+i),NULL);
+    }
+    free(ptWorkers);
+#else
+#endif
     while (pChunk < pEndChunk) {
 #ifdef OLD
         theItem = 0;
