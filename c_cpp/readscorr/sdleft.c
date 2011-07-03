@@ -363,7 +363,9 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
 #ifdef TEST
     uint16_t SubItemCount = dleftobj->SubItemCount;
     uint64_t * const pCountSubArray = calloc(sizeof(uint64_t),1+SubItemCount);
+    uint64_t * const pCountSubNoOneArray = calloc(sizeof(uint64_t),1+SubItemCount);
     uint16_t SubItemUsed=0;
+    uint16_t SubItemUsedCountIsOne=0;
     uint64_t ArraySize = dleftobj->ArraySize;
     size_t mainArrayID=0;
     rewind(fpdat);
@@ -394,12 +396,17 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
         ++pCountHistArray[Item_CountBits];
 #ifdef TEST
         ++mainArrayID;
-        if (Item_CountBits) ++SubItemUsed;
+        if (Item_CountBits) {
+            ++SubItemUsed;
+            if (Item_CountBits==1) ++SubItemUsedCountIsOne;
+        }
         if (!(mainArrayID % SubItemCount)) {
             ++pCountSubArray[SubItemUsed];
+            ++pCountSubNoOneArray[SubItemUsed-SubItemUsedCountIsOne];
             fwrite(&SubItemUsed,sizeof(uint8_t),1u,fpdat);  // Well, just write 1 byte each. (LE)
 //printf("-%zd %u\n",mainArrayID,SubItemUsed);
             SubItemUsed=0;
+            SubItemUsedCountIsOne=0;
         } else {    // mainArrayID mod SubItemCount != 0. mainArrayID == (i+1)/dleftobj->itemByte .
 //printf("---%zd %% %d = %zd %d\n",mainArrayID,SubItemCount,mainArrayID % SubItemCount,SubItemUsed);
         }
@@ -431,9 +438,9 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     // deal(*pextree);
 #ifdef TEST
     fprintf(stream,"#-----------------------------------------------\n\n#Array_size: %lu\n\n"
-        "SubArrayFilled\tCount\tRatio\n",ArraySize);
+        "SubArrayFilled\tCount\tCount_without_1\n",ArraySize);
     for (uint16_t i=0;i<=SubItemCount;i++) {
-        fprintf(stream,"%u\t%lu\t%g\n",i,pCountSubArray[i],(double)pCountSubArray[i]/(double)ArraySize);
+        fprintf(stream,"%u\t%lu, %g\t%lu, %g\n",i,pCountSubArray[i],(double)pCountSubArray[i]/(double)ArraySize,pCountSubNoOneArray[i],(double)pCountSubNoOneArray[i]/(double)ArraySize);
     }
     free(pCountSubArray);
 #endif
