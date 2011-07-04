@@ -88,6 +88,7 @@ int main (int argc, char **argv) {
     uint64_t allbases=0;
     uint64_t allreads=0;
     uint64_t maxReadLen=0;
+    uint64_t minReadLen=MAXREADLEN+1;
     float128 SS=0.0;
     double SStd;
 
@@ -111,6 +112,7 @@ int main (int argc, char **argv) {
                 SS += readlength*readlength;
                 ++allreads;
                 if (maxReadLen < readlength) maxReadLen = readlength;
+                if (minReadLen > readlength) minReadLen = readlength;
                 if (readlength < MAXREADLEN) {
                     ++ReadsLenArr[readlength];
                 } else {
@@ -128,14 +130,15 @@ int main (int argc, char **argv) {
 
     FILE *fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
-        "#Max_Read_Len: %lu\n"
+        "#Read_Len_Range: [%lu,%lu]\n"
         "#Overflow: %lu\n"
         "\n#Read_Len\tCount\tRatio\n",
         allbases,allreads,
         0.05+((double)allbases/(double)allreads), SStd,
-        maxReadLen,ReadsLenArr[0]);
-    for (uint64_t i=1; i<=maxReadLen; i++) {
-        fprintf(fp,"%lu\t%lu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
+        minReadLen,maxReadLen,ReadsLenArr[0]);
+    for (uint64_t i=minReadLen; i<=maxReadLen; i++) {
+        if (ReadsLenArr[i])
+            fprintf(fp,"%lu\t%lu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
     }
     if (ReadsLenArr[0]) {
         fprintf(fp,"#>=%lu\t%lu\t%g\n",MAXREADLEN,ReadsLenArr[0],(double)ReadsLenArr[0]/(double)allreads);

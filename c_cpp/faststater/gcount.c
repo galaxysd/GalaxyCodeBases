@@ -9,14 +9,15 @@
 #include "chrseq.h"
 #include "timer.h"
 
-#define MAXHOMOPOLYLEN (2l*1024*1024)
+#define MAXHOMOPOLYLEN (128ul*1024)
 #define BaseA 1
 #define BaseT 3
 #define BaseC 2
 #define BaseG 4
+#define BaseATCG 5
 #define BaseN 0
-uint64_t HomoPoly[5][MAXHOMOPOLYLEN];
-uint64_t maxHomoPoly[5];
+uint64_t HomoPoly[6][MAXHOMOPOLYLEN];
+uint64_t maxHomoPoly[6],BaseCounter[5];
 unsigned char theBase;
 
 const char *argp_program_version =
@@ -133,10 +134,16 @@ int main (int argc, char **argv) {
                         }
                         if (polymerLen<MAXHOMOPOLYLEN) {
                             ++HomoPoly[theBase][polymerLen];
-                            if (maxHomoPoly[theBase]<polymerLen) maxHomoPoly[theBase]=polymerLen;
+                            ++HomoPoly[BaseATCG][polymerLen];
+                            if (maxHomoPoly[theBase]<polymerLen) {
+                                maxHomoPoly[theBase]=polymerLen;
+                                if (maxHomoPoly[BaseATCG]<polymerLen) maxHomoPoly[BaseATCG]=polymerLen;
+                            }
                         } else {
                             ++HomoPoly[theBase][0];
+                            ++HomoPoly[BaseATCG][0];
                         }
+                        BaseCounter[theBase] += polymerLen;
                         lastbase=seqobj->seq[i];
                         lastpos=i;
                     }
@@ -150,9 +157,16 @@ int main (int argc, char **argv) {
     fputs("\nStat Done!\n", stderr);
 
     FILE *fp = fopen(arguments.outfile, "w");
-    fprintf(fp,"#Total_Bases: %lu\n"
-        "\n#Base\tRepeat_Count\tTimes\n",allbases);
-    for (unsigned char base=0;base<5;base++) {
+    fprintf(fp,"# Total_Bases: %lu\n"
+        "# A: %lu\tT: %lu\tC: %lu\tG: %lu\tN: %lu\n"
+        "# A%%: %.3f\tT%%: %.3f\tC%%: %.3f\tG%%: %.3f\tN%%: %.3f\n"
+        "\n#Base\tRepeat_Count\tTimes\tBaseRatio\n",
+        allbases,
+        BaseCounter[BaseA],BaseCounter[BaseT],BaseCounter[BaseC],BaseCounter[BaseG],BaseCounter[BaseN],
+        100*(double)BaseCounter[BaseA]/allbases,100*(double)BaseCounter[BaseT]/allbases,
+        100*(double)BaseCounter[BaseC]/allbases,100*(double)BaseCounter[BaseG]/allbases,
+        100*(double)BaseCounter[BaseN]/allbases);
+    for (unsigned char base=0;base<6;base++) {
         switch (base) {
         case BaseA:
             theBase='A';
@@ -166,12 +180,17 @@ int main (int argc, char **argv) {
         case BaseG:
             theBase='G';
             break;
+        case BaseATCG:
+            theBase='H';
+            break;
         default:
             theBase='N';
             break;
         }
         for (size_t polymerLen=1;polymerLen<=maxHomoPoly[base];polymerLen++) {
-            fprintf(fp,"%c\t%lu\t%lu\n",theBase,polymerLen,HomoPoly[base][polymerLen]);
+            if (HomoPoly[base][polymerLen])
+                fprintf(fp,"%c\t%lu\t%lu\t%g\n",theBase,polymerLen,HomoPoly[base][polymerLen],
+                (double)HomoPoly[base][polymerLen]*polymerLen/allbases);
         }
         if (HomoPoly[base][0]) {
             fprintf(fp,"#%c\t>=%lu\t%lu\n",theBase,MAXHOMOPOLYLEN,HomoPoly[base][0]);
