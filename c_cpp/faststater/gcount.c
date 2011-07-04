@@ -100,7 +100,7 @@ int main (int argc, char **argv) {
     fputs("\nParsing Sequence Files:\n", stderr);
     while ( *(++line) ) {
         ssize_t readlength;
-        fprintf(stderr, " <%s> ...", *line);
+        fprintf(stderr, " <%s>:\n", *line);
         SeqFileObj *seqobj = inSeqFinit(*line,GFIOCHRBASE);
         if (seqobj) {
         	while ( (readlength = (*seqobj->getNextSeq)(seqobj)) >= 0 ) {
@@ -109,6 +109,7 @@ int main (int argc, char **argv) {
         			seqobj->name,seqobj->comment,seqobj->readlength,seqobj->binMallocedQQWord,readlength,
 				    seqobj->seq,seqobj->qual,(size_t)seqobj->seq,seqobj->type);
 			#endif
+			    fprintf(stderr, "  >%s %s,%zu ...",seqobj->name,seqobj->comment,seqobj->readlength);
                 lastbase=seqobj->seq[0];
                 lastpos=0;
                 allbases += readlength;
@@ -134,23 +135,24 @@ int main (int argc, char **argv) {
                         }
                         if (polymerLen<MAXHOMOPOLYLEN) {
                             ++HomoPoly[theBase][polymerLen];
-                            ++HomoPoly[BaseATCG][polymerLen];
+                            if (lastbase != 'N') ++HomoPoly[BaseATCG][polymerLen];
                             if (maxHomoPoly[theBase]<polymerLen) {
                                 maxHomoPoly[theBase]=polymerLen;
-                                if (maxHomoPoly[BaseATCG]<polymerLen) maxHomoPoly[BaseATCG]=polymerLen;
+                                if (lastbase != 'N' && maxHomoPoly[BaseATCG]<polymerLen)
+                                    maxHomoPoly[BaseATCG]=polymerLen;
                             }
                         } else {
                             ++HomoPoly[theBase][0];
-                            ++HomoPoly[BaseATCG][0];
+                            if (lastbase != 'N') ++HomoPoly[BaseATCG][0];
                         }
                         BaseCounter[theBase] += polymerLen;
                         lastbase=seqobj->seq[i];
                         lastpos=i;
                     }
                 }
+                fputs("\b\b\b\b, done !\n", stderr);
         	}
         } else continue;
-        fputs("\b\b\b\b, done !\n", stderr);
         inSeqFdestroy(seqobj);
     }
     free(arguments.args);
