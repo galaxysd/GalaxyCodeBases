@@ -37,7 +37,8 @@ ssize_t read_kseq_no2bit(SeqFileObj * const seqObj) {
         kseq = seqObj->fobj;
         seqlen = kseq->seq.l;
 		seqObj->name = kseq->name.s;
-		seqObj->comment = kseq->comment.s;
+		if (! kseq->comment.l) seqObj->comment = NULL;
+		 else seqObj->comment = kseq->comment.s;
 		seqObj->seq = kseq->seq.s;
 		NormalizeChrSeq(kseq->seq.s);   // to /[ATCGN]*/
         if (rvalue&2) { // withQ
@@ -61,7 +62,8 @@ ssize_t read_kseq_with2bit(SeqFileObj * const seqObj) {
         kseq = seqObj->fobj;
         seqlen = kseq->seq.l;
 		seqObj->name = kseq->name.s;
-		seqObj->comment = kseq->comment.s;
+		if (! kseq->comment.l) seqObj->comment = NULL;
+		 else seqObj->comment = kseq->comment.s;
 		seqObj->seq = kseq->seq.s;
         if (rvalue&2) { // withQ
             //encodeQ;
