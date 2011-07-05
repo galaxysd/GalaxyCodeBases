@@ -5,7 +5,7 @@
 #include <string.h>
 #include <err.h>
 #include <argp.h>
-#include "gFileIO.h"
+#include "libgFileIO.h"
 
 #define MAXREADLEN (8ul*1024*1024)
 uint64_t ReadsLenArr[MAXREADLEN];
