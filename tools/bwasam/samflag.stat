@@ -1,0 +1,24 @@
+# zcat ./bwamask/mask110621_I263_FCB066DABXX_L8_HUMjrmRACDKAAPEI-3.sam.gz|head -n500000|perl -lane 'BEGIN {my %a;} next if /^@/;++$a{$F[1]}; END {print $_,"\t",$a{$_} for sort {$a<=>$b} keys %a}'|tee samflag.stat
+
+65	515
+69	645
+73	1259
+77	7343
+81	832
+83	117732
+89	1260
+97	925
+99	118305
+113	509
+117	650
+129	515
+133	1259
+137	645
+141	7343
+145	925
+147	118305
+153	650
+161	832
+163	117732
+177	509
+181	1260
