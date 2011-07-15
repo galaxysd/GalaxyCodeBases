@@ -12,7 +12,7 @@ our($opt_o, $opt_r, $opt_b);
 #our $desc='';
 our $help=<<EOH;
 \t-r ref fasta file (./ref/human.fa)
-\t-o output prefix (./matrix).{raw,ratio}
+\t-o output prefix (./matrix).{mcount,mratio}
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='sampe_files';
