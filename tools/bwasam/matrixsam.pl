@@ -88,17 +88,17 @@ while (<>) {
     my @read2=split /\t/;
 #print join("\t",@read1),"\n-",join("\t",@read2),"\n";
     die "[x]Not PE sam file.\n" if $read1[0] ne $read2[0];
-    next unless $read1[1] & 3;
-    next if $read1[1] >= 256;
+    next unless $read1[1] & 3;  # paired + mapped in a proper pair
+    next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
     next unless $read2[1] & 3;
     next if $read2[1] >= 256;
     next unless $read1[5] =~ /^(\d+)M$/;
     next unless $1 == $READLEN;
     next unless $read2[5] =~ /^(\d+)M$/;
     next unless $1 == $READLEN;
-    next unless $read1[6] eq '=';
+    next unless $read1[6] eq '=';   # same Reference sequence NAME
     next unless $read2[6] eq '=';
-    next if $read1[11] eq 'XT:A:R';
+    next if $read1[11] eq 'XT:A:R'; # Type: Unique/Repeat/N/Mate-sw, N not found.
     next if $read2[11] eq 'XT:A:R';
     my $ref1=uc getBases($read1[2],$read1[3],$READLEN) or print join("\t",@read1),"\n";
     my $ref2=uc getBases($read2[2],$read2[3],$READLEN) or print join("\t",@read2),"\n";
@@ -121,11 +121,14 @@ my @BaseQ;
 for my $base (@BaseOrder) {
     push @BaseQ,"$base-$_" for (1..$MaxQ);
 }
-$tmp .= "\n#".join("\t",'Ref','Cycle',@BaseQ)."\n";
+$tmp .= "\n#".join("\t",'Ref','Cycle',@BaseQ);
 print OA $tmp;
 print OB $tmp;
+print OA "\tRowSum";
+print OB "\n";
 my ($count,$countsum);
 for my $ref (@BaseOrder) {
+    print OA "\n";
     for my $cycle (1..(2*$READLEN)) {
         $tmp="$ref\t$cycle\t";
         print OA $tmp; print OB $tmp;
@@ -141,7 +144,7 @@ for my $ref (@BaseOrder) {
         $countsum=0;
         $countsum += $_ for @Counts;
         push @Rates,$_/$countsum for @Counts;
-        print OA join("\t",@Counts),"\n";
+        print OA join("\t",@Counts,$countsum),"\n";
         print OB join("\t",@Rates),"\n";
     }
 }
@@ -153,4 +156,9 @@ my $stop_time = [gettimeofday];
 print STDERR "\nTime Elapsed:\t",tv_interval( $start_time, $stop_time )," second(s).\n";
 __END__
 zcat bwamask/mask110621_I263_FCB066DABXX_L8_HUMjrmRACDKAAPEI-3.sam.gz|head -n200|./matrixsam.pl -b 2>&1 |tee logerr.txt
+
+3289m for Hg18 reference.
+
+0.192234941 ms per line.
+Thus, for a LANE of 216009064 lines, 11.5345804648626 hours needed.
 
