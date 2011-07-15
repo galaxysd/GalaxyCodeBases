@@ -160,5 +160,5 @@ zcat bwamask/mask110621_I263_FCB066DABXX_L8_HUMjrmRACDKAAPEI-3.sam.gz|head -n200
 3289m for Hg18 reference.
 
 0.192234941 ms per line.
-Thus, for a LANE of 216009064 lines, 11.5345804648626 hours needed.
+Thus, for a LANE of 216009064 lines, which is (108004507 sequences)x2+50, 11.5345804648626 hours needed.
 
