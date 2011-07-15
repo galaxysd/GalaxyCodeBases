@@ -32,7 +32,8 @@ warn "[!]Reading Reference Genome:\n";
 my %Genome;
 open GENOME,'<',$opt_r or die "Error: $!\n";
 while (<GENOME>) {
-	/^>(\S+)/ or next;
+    s/^>//;
+	/^(\S+)/ or next;
 	my $seqname = $1;
     print STDERR " >$seqname ...";
 	$/=">";
@@ -41,7 +42,7 @@ while (<GENOME>) {
 	$genome=~s/\s//g;
 	$/="\n";
     $Genome{$seqname}=$genome;
-    print STDERR "\b\b\bdone !\n";
+    print STDERR "\b\b\b",length $Genome{$seqname},".\n";
 	$genome='';
 }
 close GENOME;
@@ -51,25 +52,32 @@ sub getBases($$$) {
 }
 
 my $READLEN=100;
+my $MaxQ=40;
 
+my ($TotalBase,$TotalReads,%BaseCountTypeRef);
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
 sub statRead($$$$$) {
     my ($ref,$isReverse,$read,$Qstr,$cyclestart)=@_;
-    my $PEpos;
+    my $PEpos=-1;
     for (my $i=0;$i<$READLEN;$i++) {
         my $refBase=substr $ref,$i,1;
+        next if $refBase eq 'N';
         my $readBase=substr $read,$i,1;
+        next if $readBase eq 'N';
         my $QstrSingle=substr $Qstr,$i,1;
         my $Qval=ord($QstrSingle)-33;
+        $MaxQ=$Qval if $MaxQ<$Qval;
         if ($isReverse) {
             $PEpos=$cyclestart+$READLEN-1-$i;
         } else {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
-        
-print "$isReverse {$refBase}{$PEpos}{$readBase}{$Qval} ",($refBase eq $readBase)?'=':'x',"\n";
+        ++$BaseCountTypeRef{$refBase};
+        ++$TotalBase;
+#print "$isReverse {$refBase}{$PEpos}{$readBase}{$Qval} ",($refBase eq $readBase)?'=':'x',"\n";
     }
+    ++$TotalReads unless $PEpos==-1;
 }
 
 while (<>) {
@@ -78,7 +86,7 @@ while (<>) {
     my @read1=split /\t/;
     chomp($_=<>) or last;
     my @read2=split /\t/;
-print join("\t",@read1),"\n-",join("\t",@read2),"\n";
+#print join("\t",@read1),"\n-",join("\t",@read2),"\n";
     die "[x]Not PE sam file.\n" if $read1[0] ne $read2[0];
     next unless $read1[1] & 3;
     next if $read1[1] >= 256;
@@ -100,6 +108,45 @@ print join("\t",@read1),"\n-",join("\t",@read2),"\n";
     statRead($ref2,$read2[1] & 16,$read2[9],$read2[10],101);
 }
 
+open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";
+open OB,'>',$opt_o.'.mratio' or die "Error: $!\n";
+my $tmp;
+$tmp="#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
+#Reference Base Ratio in reads: ";
+my @BaseOrder=sort keys %BaseCountTypeRef;  # qw{A T C G};
+for (@BaseOrder) {
+    $tmp .= $_.' '. int(0.5+100*1000*$BaseCountTypeRef{$_}/$TotalBase)/1000 .' %;   ';
+}
+my @BaseQ;
+for my $base (@BaseOrder) {
+    push @BaseQ,"$base-$_" for (1..$MaxQ);
+}
+$tmp .= "\n#".join("\t",'Ref','Cycle',@BaseQ)."\n";
+print OA $tmp;
+print OB $tmp;
+my ($count,$countsum);
+for my $ref (@BaseOrder) {
+    for my $cycle (1..(2*$READLEN)) {
+        $tmp="$ref\t$cycle\t";
+        print OA $tmp; print OB $tmp;
+        my (@Counts,@Rates)=();
+        for my $base (@BaseOrder) {
+            for my $q (1..$MaxQ) {
+                if (exists $Stat{$ref}{$cycle} and exists $Stat{$ref}{$cycle}{$base} and exists $Stat{$ref}{$cycle}{$base}{$q}) {
+                    $count=$Stat{$ref}{$cycle}{$base}{$q};
+                } else {$count=0;}
+                push @Counts,$count;
+            }
+        }
+        $countsum=0;
+        $countsum += $_ for @Counts;
+        push @Rates,$_/$countsum for @Counts;
+        print OA join("\t",@Counts),"\n";
+        print OB join("\t",@Rates),"\n";
+    }
+}
+close OA;
+close OB;
 #END
 my $stop_time = [gettimeofday];
 
