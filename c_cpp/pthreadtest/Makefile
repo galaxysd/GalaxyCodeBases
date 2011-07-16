@@ -1,0 +1,32 @@
+# The options used in linking as well as in any direct use of ld.
+LDLIB     = -lpthread
+
+LDFLAGS   = -Wl,-O1 -Wl,--sort-common -Wl,--enable-new-dtags -Wl,--hash-style=both $(LDLIB)
+# The directories in which source files reside.
+# If not specified, only the current directory will be serached.
+SRCDIRS   =
+
+## Implicit Section: change the following only when necessary.
+##==========================================================================
+
+# The source file types (headers excluded).
+# .c indicates C source files, and others C++ ones.
+SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp
+
+CFLAGS  = -Wall -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal
+
+ifeq ($(SRCDIRS),)
+  SRCDIRS = .
+endif
+SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
+TARGET  = $(basename $(SOURCES))
+
+all: $(TARGET)
+	ls -l $(TARGET)
+
+%: %.c
+	gcc $(CFLAGS) $(LDFLAGS) -o $@ $@.c
+
+.PHONY : clean
+clean:
+	-rm $(TARGET)
