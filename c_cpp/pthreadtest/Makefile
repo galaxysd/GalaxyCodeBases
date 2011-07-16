@@ -13,20 +13,25 @@ SRCDIRS   =
 # .c indicates C source files, and others C++ ones.
 SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp
 
-CFLAGS  = -Wall -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal
+CFLAGS  = -pipe -march=core2 -mtune=generic -Wfloat-equal \
+#-Wall -pedantic
 
 ifeq ($(SRCDIRS),)
   SRCDIRS = .
 endif
 SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
-TARGET  = $(basename $(SOURCES))
+TARGET  = $(addprefix bin/,$(basename $(SOURCES)))
 
 all: $(TARGET)
 	ls -l $(TARGET)
 
-%: %.c
-	gcc $(CFLAGS) $(LDFLAGS) -o $@ $@.c
+bin/%: %.c dir
+	gcc $(CFLAGS) $(LDFLAGS) -o $@ $<
+
+dir:
+	@-mkdir bin
 
 .PHONY : clean
 clean:
 	-rm $(TARGET)
+	-rmdir bin
