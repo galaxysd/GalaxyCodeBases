@@ -1,0 +1,48 @@
+2008-04-05  whyglinux <whyglinux@gmail.com>
+
+	* Makefile: ver 0.5
+	Fixed the dependency generating error under MinGW.
+	Added as an example Makefile.gtk+-2.0 for building GTK+ programs.
+
+2007-06-26  whyglinux <whyglinux@gmail.com>
+
+	* Makefile: ver 0.4
+	Fixed the dependency generating bug (thanks wxycyel on ChinaUnix.net).
+	Fixed the bug not successfully retrieving HEADERS.
+	Added "help" target for online help.
+
+2007-04-09  whyglinux <whyglinux@gmail.com>
+
+	* Makefile: ver 0.3
+	Added default CXXFLAGS.
+	Added $(PROGRAM).exe to the clean target.
+	Added NODEP variable to allow user to disable dependency generating.
+	Added HDREXTS variable to locate header files (used in creating tags.)
+	Added tags and ctags targets.
+
+2007-03-24  whyglinux <whyglinux@gmail.com>
+
+	* Makefile: ver 0.2
+	Fixed the bug not finding objects when multiple directories.
+	Added ChangeLog.
+	GPLed.
+	Almost re-written to make it more easily usable:
+	  no need to set <PROGRAM> (default: the directory name.)
+	  no need to set <SRCDIRS> (default: current directory.)
+	  no need to set <SRCEXTS> (default: all possible C/C++ types.)
+
+	and more conventional:
+	  substitute CFLAGS with MY_CFLAGS and LIBS with MY_LIBS so that
+	    CFLAGS can still be used from the command line.
+	  rebuild target removed.
+	  make cleanall becomes make distclean.
+	  -include becomes sinclude and protect when no source files.
+
+	and others:
+	  special dependency generating option (-MM -MP) for GCC compiler.
+
+2007-03-23  whyglinux <whyglinux@gmail.com>
+
+	* Makefile: ver 0.1
+	The initial gcmakefile created 1 year ago.
+
