@@ -18,7 +18,7 @@
 typedef struct __SDLeftArray_t {
     unsigned char CountBit, rBit, ArrayBit;
     unsigned char itemByte; //, HashCnt;
-    uint16_t SubItemCount,SubItemByUnit;  //max should be 32768
+    uint16_t SubItemCount,SubItemByUnit;  //max(SubItemCount) should be 32768
     size_t ArraySize,SDLAbyte;
     //uint64_t maxCount; == Item_CountBitMask
     //unsigned char ArrayCount;

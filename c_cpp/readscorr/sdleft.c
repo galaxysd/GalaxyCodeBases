@@ -7,7 +7,9 @@
 #include <sys/mman.h>
 #include <endian.h> //BYTE_ORDER, LITTLE_ENDIAN 1234
 //#include <asm/byteorder.h>  // __LITTLE_ENDIAN_BITFIELD or __BIG_ENDIAN_BITFIELD
+#ifdef PTHREAD
 #include <pthread.h>
+#endif
 #include "sdleft.h"
 //#include "sdleftTF.h"
 #include "MurmurHash3.h"
@@ -132,7 +134,7 @@ FORCE_INLINE uint64_t popLowestBits(unsigned char bits, uint64_t *pdat, uint_fas
     return outUnit;
 }
 
-char searchSubArray(unsigned char* pChunk){}
+void *searchSubArray(unsigned char* pChunk){}
 
 // rBits is (0,64]
 FORCE_INLINE void incSDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArray_t *dleftobj){
