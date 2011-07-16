@@ -1,3 +1,4 @@
+# learned from http://sourceforge.net/projects/gcmakefile/
 # The options used in linking as well as in any direct use of ld.
 LDLIB     = -lpthread
 
