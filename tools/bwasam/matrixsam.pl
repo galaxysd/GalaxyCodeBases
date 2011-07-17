@@ -60,7 +60,7 @@ sub statRead($$$$$) {
     my ($ref,$isReverse,$read,$Qstr,$cyclestart)=@_;
     my $PEpos=-1;
     for (my $i=0;$i<$READLEN;$i++) {
-        my $refBase=substr $ref,$i,1;
+        my $refBase=substr $ref,$i,1 or return;
         next if $refBase eq 'N';
         my $readBase=substr $read,$i,1;
         next if $readBase eq 'N';
@@ -143,6 +143,7 @@ for my $ref (@BaseOrder) {
         }
         $countsum=0;
         $countsum += $_ for @Counts;
+		$countsum=-1 if $countsum==0;
         push @Rates,$_/$countsum for @Counts;
         print OA join("\t",@Counts,$countsum),"\n";
         print OB join("\t",@Rates),"\n";
