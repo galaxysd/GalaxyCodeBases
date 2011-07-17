@@ -4,7 +4,7 @@ use strict;
 use Getopt::Std;
 #use Exporter 'import';
 #our @EXPORT = qw(ShowHelp);
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 
@@ -34,8 +34,9 @@ sub main::HELP_MESSAGE() {
 	$main::help =~ s|\\:(\s*\n?\s*)\033\[0;1m|:$1|g;
 
 	$main::help =~ s|\n|\033[32;1m\n|g;
+	$main::ARG_DESC='[PROGRAM_ARG1 ...]' unless $main::ARG_DESC;
 	print STDERR <<EOH;
-\nUsage: \033[0;1m$0\033[0;0m [-OPTIONS [-MORE_OPTIONS]] [--] [PROGRAM_ARG1 ...]
+\nUsage: \033[0;1m$0\033[0;0m [-OPTIONS [-MORE_OPTIONS]] [--] $main::ARG_DESC
 
 The following single-character options are accepted:
 \033[32;1m$main::help\033[0;0mOptions may be merged together.  -- stops processing of options.
