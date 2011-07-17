@@ -7,6 +7,7 @@
  */
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
     pthread_mutex_t     mutex;  /* Protects access to value */

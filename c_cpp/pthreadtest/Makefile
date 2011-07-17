@@ -14,8 +14,9 @@ SRCDIRS   =
 # .c indicates C source files, and others C++ ones.
 SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp
 
-CFLAGS  = -pipe -march=core2 -mtune=generic -Wfloat-equal \
-#-Wall -pedantic
+OLevel= -O3
+CFLAGS  = -pipe -march=core2 -mtune=generic -Wfloat-equal -Wall \
+#-pedantic
 
 ifeq ($(SRCDIRS),)
   SRCDIRS = .
@@ -24,10 +25,13 @@ SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
 TARGET  = $(addprefix bin/,$(basename $(SOURCES)))
 
 all: $(TARGET)
+	@echo [@gcc $(CFLAGS) $(OLevel) $(LDFLAGS)]
 	ls -l $(TARGET)
 
+bin/./11locktest: override OLevel := -O0
+
 bin/%: %.c dir
-	gcc $(CFLAGS) $(LDFLAGS) -o $@ $<
+	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) -g -Wa,-a,-ad -o $@ $< > ${@}.asm
 
 dir:
 	@-mkdir bin
