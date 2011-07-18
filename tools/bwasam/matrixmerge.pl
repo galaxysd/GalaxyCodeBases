@@ -45,6 +45,7 @@ while (<>) {
     chomp;
     my ($ref,$cycle,@BQ)=split /\t/;
     #print "$ref,$cycle,@BQ\n";
+    next unless $ref =~ /^[ATCG]$/;
     #die "[$_]\n$ref,$cycle,[@BQ]\n$#BQ < $#BQHeader " if $#BQ < $#BQHeader;
     for my $key (@BQHeader) {
         my $value=shift @BQ;

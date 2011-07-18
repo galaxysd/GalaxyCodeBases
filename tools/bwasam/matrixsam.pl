@@ -61,7 +61,7 @@ sub statRead($$$$$) {
     my $PEpos=-1;
     for (my $i=0;$i<$READLEN;$i++) {
         my $refBase=substr $ref,$i,1 or return;
-        next if $refBase eq 'N';
+        next unless $refBase =~ /^[ATCG]$/;
         my $readBase=substr $read,$i,1;
         next if $readBase eq 'N';
         my $QstrSingle=substr $Qstr,$i,1;
