@@ -62,7 +62,7 @@ int main( int argc, char *argv[] ) {
   } else {
     SumCount=atoi(argv[2]);
     NumThreads=atoi(argv[1]);
-	printf("Threads:%d, To_Count:%d\n\n",NumThreads,SumCount);
+	fprintf(stderr, "Threads:%d, To_Count:%d\n\n",NumThreads,SumCount);
   }
   pthread_t *tid=malloc(NumThreads*sizeof(pthread_t));      /* array of thread IDs */
   //pthread_mutex_init(&mut1, NULL);
