@@ -15,7 +15,7 @@ SRCDIRS   =
 SRCEXTS = .c# .C .cc .cpp .CPP .c++ .cxx .cp
 
 OLevel= -O3
-CFLAGS  = -pipe -march=core2 -mtune=generic
+CFLAGS  = -pipe -march=core2 -mtune=generic# -std=gnu99
 WARNFLAGS =  -Wfloat-equal -Wall \
 #-pedantic
 
@@ -40,10 +40,10 @@ all: $(SOURCES:.c=)
 	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) $(LDFLAGS) -o $@ $<
 	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o ./asm/$@.s $<
 	@as -alhnd ./asm/$@.s > ./asm/$@.asm
-	#@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
+#@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
 	@rm ./asm/$@.s
 
-./11locktest: override OLevel := -O0
+./11locktest: override OLevel += 
 
 clean:
 	-rm $(SOURCES:.c=)
