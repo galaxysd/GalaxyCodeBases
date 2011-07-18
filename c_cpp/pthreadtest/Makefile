@@ -12,31 +12,39 @@ SRCDIRS   =
 
 # The source file types (headers excluded).
 # .c indicates C source files, and others C++ ones.
-SRCEXTS = .c .C .cc .cpp .CPP .c++ .cxx .cp
+SRCEXTS = .c# .C .cc .cpp .CPP .c++ .cxx .cp
 
 OLevel= -O3
-CFLAGS  = -pipe -march=core2 -mtune=generic -Wfloat-equal -Wall \
+CFLAGS  = -pipe -march=core2 -mtune=generic
+WARNFLAGS =  -Wfloat-equal -Wall \
 #-pedantic
+
+ASMFLAGS = -S -fverbose-asm -g -masm=intel
 
 ifeq ($(SRCDIRS),)
   SRCDIRS = .
 endif
+
 SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
-TARGET  = $(addprefix bin/,$(basename $(SOURCES)))
 
-all: $(TARGET)
+.PHONY: all clean
+
+all: $(SOURCES:.c=)
+#$(patsubst $.c,%,$(SOURCES))
 	@echo [@gcc $(CFLAGS) $(OLevel) $(LDFLAGS)]
-	ls -l $(TARGET)
+#@echo [$(SOURCES)] to [$(SOURCES:.c=)].
 
-bin/./11locktest: override OLevel := -O0
+%: %.c
+	@mkdir -p asm
+	@echo  [$(OLevel)]:${<} -\> ${@}
+	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) $(LDFLAGS) -o $@ $<
+	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o ./asm/$@.s $<
+	@as -alhnd ./asm/$@.s > ./asm/$@.asm
+	#@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
+	@rm ./asm/$@.s
 
-bin/%: %.c dir
-	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) -g -Wa,-a,-ad -o $@ $< > ${@}.asm
+./11locktest: override OLevel := -O0
 
-dir:
-	@-mkdir bin
-
-.PHONY : clean
 clean:
-	-rm $(TARGET)
-	-rmdir bin
+	-rm $(SOURCES:.c=)
+	-rm -frv ./asm
