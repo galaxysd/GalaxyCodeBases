@@ -53,6 +53,7 @@ while (keys %Files) {
         if ($size != $FileSizes0{$name}) {
             print "$date [d]$name. $FileSizes0{$name} -> $size\n";
             $FileSizes0{$name} = $size;
+            $FileSizesC{$name} = 0;
         } else {
             ++$FileSizesC{$name};
             if ($FileSizesC{$name} > 2) {
