@@ -18,29 +18,51 @@ our $ARG_DESC='sampe_files';
 
 ShowHelp();
 $opt_t=3600 if ! $opt_t;
-$opt_z=0 if ! $opt_z;
 
-print STDERR "Waits changing of [@ARGV] for [$opt_t]s, Zero File[$opt_z]\n";
+print STDERR "Waits changing of [@ARGV] for [$opt_t]s, Zero File[",$opt_z?'OK':'Wait',"]\n";
 
 my $start_time = [gettimeofday];
 #BEGIN
-my %FileSizes0;
+my (%FileSizes0,%Files);
 for my $name (@ARGV) {
     my $size=-1;
     $size = (-s $name) if (-f $name);
     $FileSizes0{$name} = $size;
+    ++$Files{$name};
     print "[$name]: $size\n";
 }
-my %FileSizes;
-while (1) {
+my %FileSizesC;
+while (keys %Files) {
     sleep $opt_t;
-    for my $name (@ARGV) {
+    for my $name (keys %Files) {
         my $size=-1;
-        $size = (-s $name) if (-f $name);
-        $FileSizes{$name} = $size;
-        print "[$name]: $size\n";
+        chomp(my $date=`date`);
+        if (-f $name) {
+            $size = (-s $name);
+        } else {
+            print "$date [!]$name. NULL\n";
+            next;
+        }
+        unless ($opt_z) {
+            if ($size==0) {
+                print "$date [d]$name. $FileSizes0{$name} -> $size\n";
+                $FileSizes0{$name} = $size;
+                next;
+            }
+        }
+        if ($size != $FileSizes0{$name}) {
+            print "$date [d]$name. $FileSizes0{$name} -> $size\n";
+            $FileSizes0{$name} = $size;
+        } else {
+            ++$FileSizesC{$name};
+            if ($FileSizesC{$name} > 2) {
+                delete $Files{$name};
+                print "$date [O]$name. Stablie @ $size\n\n";
+            } else {
+                print "$date [s]$name. $FileSizes0{$name} == $size\n";
+            }
+        }
     }
-    ;
 }
 #END
 my $stop_time = [gettimeofday];
