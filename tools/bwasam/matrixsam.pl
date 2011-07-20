@@ -113,7 +113,7 @@ open OB,'>',$opt_o.'.mratio' or die "Error: $!\n";
 my $tmp;
 $tmp="#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Reference Base Ratio in reads: ";
-my @BaseOrder=sort keys %BaseCountTypeRef;  # qw{A T C G};
+my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {
     $tmp .= $_.' '. int(0.5+100*1000*$BaseCountTypeRef{$_}/$TotalBase)/1000 .' %;   ';
 }
