@@ -92,7 +92,7 @@ while (<>) {
     next if $read1[9] > 100 or $read2[9] > 100; # No Indel
     next unless $read1[5] == $READLEN;
     next unless $read2[5] == $READLEN;
-    next unless $read1[7] == $read2[7];   # same Reference sequence NAME
+    next unless $read1[7] eq $read2[7];   # same Reference sequence NAME
     my $ref1=uc getBases($read1[7],$read1[8],$READLEN) or print join("\t",@read1),"\n";
     my $ref2=uc getBases($read2[7],$read2[8],$READLEN) or print join("\t",@read2),"\n";
     #my ($QNAME,$Seq,$Qual,$Hit,$a/b,$Len,$Strand,$Chr,$Pos,$Type,$SMID,$CIAGR,$Etc)=@read1;
