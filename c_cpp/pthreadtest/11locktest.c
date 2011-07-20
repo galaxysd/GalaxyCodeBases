@@ -24,7 +24,8 @@ void * simplecas4(void *);
 void * simplecas5(void *);
 void * simplena(void *);
 
-int bignum,NumThreads,SumCount;
+int NumThreads,SumCount;
+volatile int bignum;
 pthread_mutex_t mut1=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mut2=PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 pthread_mutex_t mut3=PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
@@ -320,7 +321,7 @@ void * simplecas4(void * parm)
   return NULL;
 }
 
-#pragma GCC optimize 0
+//#pragma GCC optimize 0
 void * simplena(void * parm)
 { 
   register int i;
@@ -329,5 +330,5 @@ void * simplena(void * parm)
   }
   return NULL;
 }
-#pragma GCC optimize 3
+//#pragma GCC optimize 3
 
