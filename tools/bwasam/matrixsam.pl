@@ -66,7 +66,10 @@ sub statRead($$$$$) {
         next if $readBase eq 'N';
         my $QstrSingle=substr $Qstr,$i,1;
         my $Qval=ord($QstrSingle)-33;
-        $MaxQ=$Qval if $MaxQ<$Qval;
+        if ($MaxQ<$Qval) {
+            $MaxQ=$Qval;
+            warn "[!] Qval=$Qval($QstrSingle) > 40 found. Remember to add -I at bwa aln for Illumina reads !\n";
+        }
         if ($isReverse) {
             $PEpos=$cyclestart+$READLEN-1-$i;
         } else {
@@ -111,7 +114,17 @@ while (<>) {
 open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";
 open OB,'>',$opt_o.'.mratio' or die "Error: $!\n";
 my $tmp;
+chomp(my $user=`id -nru`);
+@ARGV=('/etc/passwd');
+chomp(my @passwd=<>);
+($_)=grep /$user/,@passwd;
+$tmp=(split /:/)[4];
+my $mail='';
+$mail=" <$tmp>" unless $tmp =~ /^\s*$/;
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
+my $date=sprintf "%02d:%02d:%02d,%4d-%02d-%02d",$hour,$min,$sec,$year+1900,$mon+1,$mday;
 $tmp="#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
+#Generate @ $date by ${user}$mail
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {
