@@ -119,7 +119,7 @@ for (@BaseOrder) {
 }
 my @BaseQ;
 for my $base (@BaseOrder) {
-    push @BaseQ,"$base-$_" for (1..$MaxQ);
+    push @BaseQ,"$base-$_" for (0..$MaxQ);
 }
 $tmp .= "\n#".join("\t",'Ref','Cycle',@BaseQ);
 print OA $tmp;
@@ -134,7 +134,7 @@ for my $ref (@BaseOrder) {
         print OA $tmp; print OB $tmp;
         my (@Counts,@Rates)=();
         for my $base (@BaseOrder) {
-            for my $q (1..$MaxQ) {
+            for my $q (0..$MaxQ) {
                 if (exists $Stat{$ref}{$cycle} and exists $Stat{$ref}{$cycle}{$base} and exists $Stat{$ref}{$cycle}{$base}{$q}) {
                     $count=$Stat{$ref}{$cycle}{$base}{$q};
                 } else {$count=0;}
