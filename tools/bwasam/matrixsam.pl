@@ -105,7 +105,7 @@ while (<>) {
     #my ($QNAME,$FLAG,$RNAME,$POS,$MAPQ,$CIAGR,$MRNM,$MPOS,$ISIZE,$SEQ,$QUAL,$OPT)=@read1;
     #       0      1    2       3   4       5   6       7     8     9    10    11
     statRead($ref1,$read1[1] & 16,$read1[9],$read1[10],1);
-    statRead($ref2,$read2[1] & 16,$read2[9],$read2[10],101);
+    statRead($ref2,$read2[1] & 16,$read2[9],$read2[10],1+$READLEN);
 }
 
 open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";

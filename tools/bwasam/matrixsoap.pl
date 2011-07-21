@@ -98,7 +98,7 @@ while (<>) {
     #my ($QNAME,$Seq,$Qual,$Hit,$a/b,$Len,$Strand,$Chr,$Pos,$Type,$SMID,$CIAGR,$Etc)=@read1;
     #       0     1    2     3    4    5     6      7    8    9     10     11   12
     statRead($ref1,$read1[6] eq '-',$read1[1],$read1[2],1);
-    statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],101);
+    statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],1+$READLEN);
 }
 
 open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";
