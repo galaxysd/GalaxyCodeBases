@@ -58,6 +58,11 @@ my ($TotalBase,$TotalReads,%BaseCountTypeRef);
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
 sub statRead($$$$$) {
     my ($ref,$isReverse,$read,$Qstr,$cyclestart)=@_;
+    if ($isReverse) {
+        #return;
+        $ref =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+        $read =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+    }
     my $PEpos=-1;
     for (my $i=0;$i<$READLEN;$i++) {
         my $refBase=substr $ref,$i,1 or return;
