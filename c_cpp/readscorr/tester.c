@@ -51,7 +51,7 @@ void test_types(void) {
     foo.val = 65536.0;
     foo.val += 1.0;
     foo.val *= foo.val;
-    bar.ourval = 8191.0;
+    bar.ourval = (__float128)1/(__float128)3;
     printf("%04X %012lX %016lX\n", (uint16_t)foo.bits.exp, (uint64_t)foo.bits.frac1, foo.bits.frac0);
     printf("%04X %012lX %016lX\n", (uint16_t)bar.bits.exp, (uint64_t)bar.bits.frac1, bar.bits.frac0);
 }
