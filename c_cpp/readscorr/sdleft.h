@@ -10,13 +10,26 @@
 #include "cfgparser.h"
 
 #define HASH_LENB (128u)
-#define SDL_SUBARRAY_UNIT 8
+#define SDL_SUBARRAY_UNIT (8u)
 //#define SDLA_ITEMARRAY 32u
 #define SUBARRAY_SIZE (32u*1024u)
 //gcc -### -march=native -E /usr/include/stdlib.h 2>&1 | grep l1-cache-size
+#define ENCODEDBIT_ENTROPY_PAD (1u);
+/* 
+http://math.stackexchange.com/questions/53353/is-there-some-reversible-mapping-that-as-uniform-as-a-hash 
+Let $H$ be a hash function taking an arbitrary string as input and producing an $n$-bit string as output. 
+Given an input string $s$, let $s_0$ denote the first $n$ bits of $s$ and $s_1$ the rest 
+(i.e. $s = s_0\;||\;s_1$, where $s_0$ is $n$ bits long and $||$ denotes concatenation). 
+Then define $$f(s) = (s_0 \oplus H(s_1))\;||\;s_1,$$ where $\oplus$ means bitwise XOR. 
+It's easy to see that $f$ is its own inverse, i.e.$f(f(s)) = s$, 
+so that the input string $s$ can be recovered from $f(s)$ just by running it through $f$ again. 
 
+f(s)=(s0 XOR H(s1))||s1, length(s0)=EncodedBit, length(s1)=rBit 
+ 
+EncodedBit < ArrayBit < rBit
+*/ 
 typedef struct __SDLeftArray_t {
-    unsigned char CountBit, rBit, ArrayBit;
+    unsigned char CountBit, rBit, ArrayBit, EncodedBit;
     unsigned char itemByte; //, HashCnt;
     uint16_t SubItemCount,SubItemByUnit;  //max(SubItemCount) should be 32768
     size_t ArraySize,SDLAbyte;
@@ -49,7 +62,7 @@ typedef struct __SDLdumpHead_t {
 } __attribute__ ((packed)) SDLdumpHead;
 
 SDLeftArray_t *dleft_arraynew(unsigned char CountBit, const SDLConfig * const psdlcfg);
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount);
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, size_t ArraySize, uint16_t SubItemCount);
 size_t dleft_insert_read(unsigned int k, char const *const inseq, size_t len, SDLeftArray_t *dleftobj);
 
 unsigned char GETitemByte_PADrBit_trimSubItemCount(const unsigned char CountBit, unsigned char *prBit, uint16_t *pSubItemCount);

@@ -38,20 +38,25 @@ SDLeftArray_t *dleft_arraynew(const unsigned char CountBit, const SDLConfig * co
     size_t ArraySize;
     uint16_t SubItemCount;
     ;
-    return dleft_arrayinit(CountBit, rBit, ArraySize, SubItemCount);
+    return dleft_arrayinit(CountBit, ArraySize, SubItemCount);
 }
 
 // the native one
-SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, unsigned char rBit, size_t ArraySize, uint16_t SubItemCount) {
-    if (ArraySize<2u || CountBit<3u || rBit<6u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
+SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, size_t ArraySize, uint16_t SubItemCount) {
+    if (ArraySize<2u || ArraySize>(1LLU<<63) || CountBit<3u || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
+       err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d)[%u]x%zd ",CountBit,SubItemCount,ArraySize);
+    }   // CountBit+rBit >= 9, makes uint16_t always OK
+    unsigned char ArrayBit = ceil(log2(ArraySize));
+    unsigned char rBit = ArrayBit + ENCODEDBIT_ENTROPY_PAD;
+/*    if (ArraySize<2u || CountBit<3u || rBit<6u || rBit>8u*sizeof(uint64_t) || CountBit>8u*sizeof(uint64_t) || SubItemCount<1u ) {
        err(EXIT_FAILURE, "[x]Wrong D Left Array Parameters:(%d+%d)[%u]x%zd ",rBit,CountBit,SubItemCount,ArraySize);
     }   // CountBit+rBit >= 9, makes uint16_t always OK
+*/ 
 #ifdef TEST    /* Test mode, keep rBit, pad CountBit */
     unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(rBit,&CountBit,&SubItemCount);
 #else   /* Normal, keep CountBit, pad rBit */
     unsigned char itemByte = GETitemByte_PADrBit_trimSubItemCount(CountBit,&rBit,&SubItemCount);
 #endif
-    unsigned char ArrayBit = ceil(log2(ArraySize));
     SDLeftArray_t *dleftobj = calloc(1,sizeof(SDLeftArray_t));    // set other int to 0
     dleftobj->SDLAbyte = (SubItemCount*itemByte*ArraySize+127u)&(~(size_t)127u);    // We are reading in uint128_t now.
     dleftobj->pDLA = calloc(1,dleftobj->SDLAbyte);

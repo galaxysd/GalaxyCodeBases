@@ -215,7 +215,7 @@ int main (int argc, char **argv) {
     char *line;
     uint64_t insertedCount=0;
 
-    SDLeftArray_t *dleftp = dleft_arrayinit(arguments.CountBit,arguments.rBit,arguments.ArraySizeK*1024,arguments.SubItemCount); // (9,31,5000000,48);
+    SDLeftArray_t *dleftp = dleft_arrayinit(arguments.CountBit,arguments.ArraySizeK*1024,arguments.SubItemCount); // (9,31,5000000,48);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
 
