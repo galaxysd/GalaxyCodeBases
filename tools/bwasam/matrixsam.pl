@@ -6,12 +6,13 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='r:o:b';
-our($opt_o, $opt_r, $opt_b);
+our $opts='r:o:l:b';
+our($opt_o, $opt_r, $opt_l, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
 \t-r ref fasta file (./ref/human.fa)
+\t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
 \t-b No pause for batch runs
 EOH
@@ -20,9 +21,10 @@ our $ARG_DESC='sampe_files';
 ShowHelp();
 $opt_r='./ref/human.fa' if ! $opt_r;
 $opt_o='./matrix' if ! $opt_o;
+$opt_l=100 if ! $opt_l;
 die "[x]-r $opt_r not exists !\n" unless -f $opt_r;
 
-print STDERR "From [@ARGV] with [$opt_r] to [$opt_o]\n";
+print STDERR "From [@ARGV] of [$opt_l] with [$opt_r] to [$opt_o]\n";
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
@@ -51,8 +53,9 @@ sub getBases($$$) {
     return substr $Genome{$chr},$start-1,$len;
 }
 
-my $READLEN=100;
+my $READLEN=$opt_l;
 my $MaxQ=40;
+my $MisBase=0;
 
 my ($TotalBase,$TotalReads,%BaseCountTypeRef);
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
@@ -80,6 +83,7 @@ sub statRead($$$$$) {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
+        ++$MisBase if $refBase ne $readBase;
         ++$BaseCountTypeRef{$refBase};
         ++$TotalBase;
 #print "$isReverse {$refBase}{$PEpos}{$readBase}{$Qval} ",($refBase eq $readBase)?'=':'x',"\n";
@@ -127,8 +131,13 @@ my $mail='';
 $mail=" <$tmp>" unless $tmp =~ /^\s*$/;
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
 my $date=sprintf "%02d:%02d:%02d,%4d-%02d-%02d",$hour,$min,$sec,$year+1900,$mon+1,$mday;
-$tmp="#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
-#Generate @ $date by ${user}$mail
+my $Cycle=2*$READLEN;
+my $Qcount=$MaxQ+1;
+my $MisRate=100*$MisBase/$TotalBase;
+$tmp="#Generate @ $date by ${user}$mail
+#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
+#Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
+#Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {

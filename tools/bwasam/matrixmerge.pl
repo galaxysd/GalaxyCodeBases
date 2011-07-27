@@ -25,7 +25,8 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 my $start_time = [gettimeofday];
 #BEGIN
 my $READLEN=0;
-my ($TotalReads,$TotalBase,%BaseCountTypeRef)=(0);
+my $Qcount=40;
+my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
 my %Stat;   # $Stat{Ref}{Cycle}{Read-Quality}
 my @BQHeader;
 while (<>) {
@@ -39,6 +40,12 @@ while (<>) {
         chomp;
         (undef,undef,@BQHeader)=split /\t/;
         pop @BQHeader if $BQHeader[-1] eq 'RowSum';
+    }
+    if (/^#Dimensions:.+?Quality_number (\d+)$/) {
+        $Qcount = $1 if $Qcount<$1;
+    }
+    if (/^#Mismatch_base: (\d+)/) {
+        $MisBase += $1;
     }
     next if /^#/;
     next if /^$/;
@@ -69,8 +76,12 @@ my $mail='';
 $mail=" <$tmp>" unless $tmp =~ /^\s*$/;
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
 my $date=sprintf "%02d:%02d:%02d,%4d-%02d-%02d",$hour,$min,$sec,$year+1900,$mon+1,$mday;
+my $Cycle=2*$READLEN;
+my $MisRate=100*$MisBase/$TotalBase;
 $tmp="#Generate @ $date by ${user}$mail
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
+#Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
+#Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort keys %BaseCountTypeRef;  # qw{A T C G};
 for (@BaseOrder) {

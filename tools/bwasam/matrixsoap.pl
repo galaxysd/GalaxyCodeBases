@@ -53,6 +53,7 @@ sub getBases($$$) {
 
 my $READLEN=100;
 my $MaxQ=40;
+my $MisBase=0;
 
 my ($TotalBase,$TotalReads,%BaseCountTypeRef);
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
@@ -78,6 +79,7 @@ sub statRead($$$$$) {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
+        ++$MisBase if $refBase ne $readBase;
         ++$BaseCountTypeRef{$refBase};
         ++$TotalBase;
 #print "$isReverse {$refBase}{$PEpos}{$readBase}{$Qval} ",($refBase eq $readBase)?'=':'x',"\n";
@@ -118,8 +120,13 @@ my $mail='';
 $mail=" <$tmp>" unless $tmp =~ /^\s*$/;
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time);
 my $date=sprintf "%02d:%02d:%02d,%4d-%02d-%02d",$hour,$min,$sec,$year+1900,$mon+1,$mday;
-$tmp="#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
-#Generate @ $date by ${user}$mail
+my $Cycle=2*$READLEN;
+my $Qcount=$MaxQ+1;
+my $MisRate=100*$MisBase/$TotalBase;
+$tmp="#Generate @ $date by ${user}$mail
+#Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
+#Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
+#Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {
