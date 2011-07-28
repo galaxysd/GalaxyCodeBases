@@ -27,9 +27,16 @@ my $start_time = [gettimeofday];
 my $READLEN=0;
 my $Qcount=40;
 my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
+my ($mapBase,$mapReads)=(0,0);
+my $type='N/A';
 my %Stat;   # $Stat{Ref}{Cycle}{Read-Quality}
 my @BQHeader;
 while (<>) {
+    if (/^#Input \[(\w+)\] file of mapped Reads: (\d+) , mapped Bases (\d+) \(no base stat for sam files\)$/) {
+        $type=$1 if $type ne 'sam';
+        $mapReads += $2;
+        $mapBase += $3 if $type ne 'sam';
+    }
     if (/^#Total statistical Bases: (\d+) , Reads: (\d+) of ReadLength (\d+)$/) {
         print " >$ARGV|   Reads:$2   ReadLen:$3   Bases:$1\n";
         $TotalReads += $2;
@@ -79,6 +86,7 @@ my $date=sprintf "%02d:%02d:%02d,%4d-%02d-%02d",$hour,$min,$sec,$year+1900,$mon+
 my $Cycle=2*$READLEN;
 my $MisRate=100*$MisBase/$TotalBase;
 $tmp="#Generate @ $date by ${user}$mail
+#Input [$type] file of Reads: $mapReads , Bases $mapBase (no base stat for sam files)
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %

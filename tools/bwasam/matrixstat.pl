@@ -130,6 +130,7 @@ if ($opt_p eq 'sam') {
 LABEL:
 print "[!]Input file type is [$type].\n";
 
+#my ($RL1,$RL2)=(0,0);
 if ($type eq 'sam') {
     while (<>) {
         next if /^@\w\w\t\w\w:/;
@@ -145,6 +146,8 @@ if ($type eq 'sam') {
         next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
         next unless $read2[1] & 3;
         next if $read2[1] >= 256;
+        #$RL1=length($read1[9]);
+        #$RL2=length($read2[9]);
         next unless $read1[5] =~ /^(\d+)M$/;
         next unless $1 == $READLEN;
         next unless $read2[5] =~ /^(\d+)M$/;
@@ -202,7 +205,7 @@ my $Qcount=$MaxQ+1;
 $TotalBase=-1 unless $TotalBase;
 my $MisRate=100*$MisBase/$TotalBase;
 $tmp="#Generate @ $date by ${user}$mail
-#Input [$type] file of Reads: $mapReads , Bases $mapBase (no base stat for sam files)
+#Input [$type] file of mapped Reads: $mapReads , mapped Bases $mapBase (no base stat for sam files)
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
