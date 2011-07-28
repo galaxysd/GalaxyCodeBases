@@ -8,7 +8,7 @@
 use strict;
 unless(@ARGV)
 {
-	die "<input file><output file><value:any value>\n";
+	die "$0 <input file> <output file> <sourceID>\n";
 }
 open IN,"$ARGV[0]" or die "can't open the input file:$!";
 open OUT,">$ARGV[1]" or die "can't write the output:$!";
