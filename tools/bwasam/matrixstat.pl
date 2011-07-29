@@ -6,13 +6,14 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='r:o:l:p:b';
-our($opt_o, $opt_r, $opt_l, $opt_p, $opt_b);
+our $opts='r:o:l:p:s:b';
+our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
 \t-p type of input files {(auto),sam,soap}
 \t-r ref fasta file (./ref/human.fa)
+\t-s trim SNP pos from /ChrID\tPos/ files
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
 \t-b No pause for batch runs
@@ -25,8 +26,9 @@ $opt_p='auto' if ! $opt_p;
 $opt_o='./matrix' if ! $opt_o;
 $opt_l=100 if ! $opt_l;
 die "[x]-r $opt_r not exists !\n" unless -f $opt_r;
+if ($opt_s) {die "[x]-s $opt_s not exists !\n" unless -f $opt_s;}
 
-print STDERR "From [@ARGV]($opt_p) of [$opt_l] with [$opt_r] to [$opt_o]\n";
+print STDERR "From [@ARGV]($opt_p) of [$opt_l] with [$opt_r][$opt_s] to [$opt_o]\n";
 unless ($opt_b) {print STDERR "Wait 3 seconds to continue...\n"; sleep 3;}
 
 my $start_time = [gettimeofday];
