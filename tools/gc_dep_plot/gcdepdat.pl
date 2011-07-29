@@ -175,7 +175,7 @@ for my $win (@wins) {
 #GC%\tRefCnt\tMean\tSmall\tQ1\tMiddle\tQ3\tBig\tmin\tmax\trefcntcal\n";
     for my $gc (sort {$a<=>$b} keys %{$Result{$win}}) {
         print O $gc,'.5',"\t",$Stat{$win}[$gc][1],"\t",$Stat{$win}[$gc][0]/$Stat{$win}[$gc][1],"\t";
-        ###
+        ### &calboxvalues();
         print O "\n";
     }
 }
