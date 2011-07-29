@@ -84,7 +84,7 @@ while(<$firstFH>) {
 	#print STDERR length $genome,"|\t";
     my @DepDatChr=();
     while($genome=~/(\d+)/g) {
-        my $v=$1;
+        my $v=$1+0;
         $v=0 if $v==65536;
         push @DepDatChr,$v;
     }
@@ -108,10 +108,11 @@ while(<$firstFH>) {
 	    }
 	    print STDERR '.';
 	}
-	for (@DepDatChr) {
-	    $_=65535 if $_>65535;
-	}
-	print STDERR "\n";
+	print STDERR 'r';
+#	for (@DepDatChr) {
+#	    $_=65535 if $_>65535;
+#	}
+	print STDERR 'R';
 	# one chr done
 	for my $win (@wins) {
 	    my $chrlenOK=length($Genome{$SeqName})-$win;
@@ -126,12 +127,14 @@ while(<$firstFH>) {
 	        my $sum=0;
 	        $sum+=$DepDatChr[$_] for ($start..$start+$win);
 	        my $value=$sum/$size;
-	        push @{$Result{$win}{$gc}},$value;
+	        #push @{$Result{$win}{$gc}},$value;
+	        $Result{$win}{$gc}->[0]=$value; # TEMPARY ONLY
 	        $Stat{$win}[$gc][0] += $value;
 	        ++$Stat{$win}[$gc][1];
 	        $start += $win;
 	    }
 	}
+	print STDERR 'C';
 	for (@DepDatChr) {
 	    if ($_) {
 	        ++$CVG{$SeqName};
@@ -142,6 +145,7 @@ while(<$firstFH>) {
 	        ++$DepCnt{$_}{'__ALL__'};
 	    }
 	}
+	print STDERR "\n";
 }
 close $_ for (@FH,$firstFH);
 @FH=();

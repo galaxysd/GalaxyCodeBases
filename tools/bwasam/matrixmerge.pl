@@ -25,7 +25,7 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 my $start_time = [gettimeofday];
 #BEGIN
 my $READLEN=0;
-my $Qcount=40;
+my $Qcount=41;
 my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
 my ($mapBase,$mapReads)=(0,0);
 my $type='N/A';
