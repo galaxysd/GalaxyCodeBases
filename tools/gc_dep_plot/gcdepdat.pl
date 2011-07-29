@@ -6,14 +6,16 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='o:r:w:b';
-our($opt_o, $opt_r, $opt_w, $opt_b);
+our $opts='o:r:w:m:n:b';
+our($opt_o, $opt_r, $opt_w, $opt_m, $opt_n, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
 \t-w window sizes (100,200,500,1000)
 \t-r ref fasta file (./ref/human.fa)
 \t-o output prefix (./gcdepdat).{mcount,mratio}
+\t-m min win non-N-base count (30)
+\t-n max N ratio in one win (0.75)
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='coverage_fa_files{,.gz,.bz2}';
@@ -21,6 +23,8 @@ our $ARG_DESC='coverage_fa_files{,.gz,.bz2}';
 ShowHelp();
 $opt_w='100,200,500,1000' if ! $opt_w;
 $opt_r='./ref/human.fa' if ! $opt_r;
+$opt_m=30 if ! $opt_m;
+$opt_n=0.75 if ! $opt_n;
 $opt_o='./gcdepdat' if ! $opt_o;
 die "[x]No input files found !\n" unless @ARGV;
 die "[!]Max 252 files supported.\n" if @ARGV>252;
@@ -28,7 +32,7 @@ die "[!]Max 252 files supported.\n" if @ARGV>252;
 my @wins=grep {$_>=50} map {int $_} split /,/,$opt_w;
 die "[x]Window Size must >= 50.\n" unless @wins;
 
-print STDERR "From [@ARGV] with [$opt_r] to [$opt_o] of [",join(',',@wins),"]\n";
+print STDERR "From [@ARGV] with [$opt_r][$opt_m][$opt_n] to [$opt_o] of [",join(',',@wins),"]\n";
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
@@ -116,8 +120,8 @@ while(<$firstFH>) {
 	        my $seq=substr $Genome{$SeqName},$start,$win;
 	        my $gc=($seq=~s/[GC]/A/ig);
 	        my $n=($seq=~s/[^ATCG]/A/ig);
-	        my $size-$win-$n;
-###
+	        my $size=$win-$n;
+	        next if $size<$opt_m or ($n/$win)>$opt_n;
 	        $gc=int($gc/$size);
 	        my $sum=0;
 	        $sum+=$DepDatChr[$_] for ($start..$start+$win);
