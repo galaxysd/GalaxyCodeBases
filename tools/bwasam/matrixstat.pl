@@ -36,7 +36,12 @@ my $start_time = [gettimeofday];
 
 warn "[!]Reading Reference Genome:\n";
 my %Genome;
-open GENOME,'<',$opt_r or die "Error: $!\n";
+if ($opt_r =~ /.bz2$/) {
+    open( GENOME,"-|","bzip2 -dc $opt_r") or die "Error opening $opt_r: $!\n";
+} elsif ($opt_r =~ /.gz$/) {
+ 	open( GENOME,"-|","gzip -dc $opt_r") or die "Error opening $opt_r: $!\n";
+} else {open( GENOME,"<",$opt_r) or die "Error opening $opt_r: $!\n";}
+#open GENOME,'<',$opt_r or die "Error: $!\n";
 while (<GENOME>) {
     s/^>//;
 	/^(\S+)/ or next;
