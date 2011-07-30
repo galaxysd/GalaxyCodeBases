@@ -31,7 +31,7 @@ open O,'>',$opt_o or die "Error: $!\n";
 my %Stat;
 for my $chr (sort keys %Dat) {
     for my $pos (sort {$a<=>$b} keys %{$Dat{$chr}}) {
-        print O "$chr\t$pos\n";
+        print O "$chr\t$pos\t$Dat{$chr}{$pos}\n";
         ++$Stat{$Dat{$chr}{$pos}};
     }
 }
