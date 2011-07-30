@@ -62,7 +62,7 @@ if ($opt_s) {
     close SNP;
 }
 ###
-print ">$_\n$Genome{$_}\n\n" for sort keys %Genome;
+#print ">$_\n$Genome{$_}\n\n" for sort keys %Genome;
 ###
 sub getBases($$$) {
     my ($chr,$start,$len)=@_;
