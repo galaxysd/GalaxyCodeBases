@@ -53,6 +53,7 @@ while (<GENOME>) {
 }
 close GENOME;
 if ($opt_s) {
+    print STDERR "[!]Reading SNP: ";
     open SNP,'<',$opt_s or die "Error: $!\n";
     while(<SNP>) {
         chomp;
@@ -60,6 +61,7 @@ if ($opt_s) {
         substr $Genome{$chr},$pos-1,1,'x';
     }
     close SNP;
+    print STDERR "done.\n";
 }
 ###
 #print ">$_\n$Genome{$_}\n\n" for sort keys %Genome;
