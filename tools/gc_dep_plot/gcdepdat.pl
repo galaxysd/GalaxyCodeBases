@@ -84,6 +84,7 @@ while(<$firstFH>) {
 	#print STDERR length $genome,"|\t";
     my @DepDatChr=();
     while($genome=~/(\d+)/g) {
+        use integer;
         my $v=$1+0;
         $v=0 if $v==65536;
         push @DepDatChr,$v;
@@ -117,22 +118,27 @@ while(<$firstFH>) {
 	for my $win (@wins) {
 	    my $chrlenOK=length($Genome{$SeqName})-$win;
 	    my $start=0;
+	    my @tmp=@DepDatChr;
 	    while($start<$chrlenOK) {   # the last win is canceled ...
+    	    print STDERR '-';
 	        my $seq=substr $Genome{$SeqName},$start,$win;
-	        my $gc=($seq=~s/[GC]/A/ig);
-	        my $n=($seq=~s/[^ATCG]/A/ig);
+	        my $gc=($seq=~tr/GC//);
+	        my $n=($seq=~tr/RYMKSWHBVDNX//);
 	        my $size=$win-$n;
 	        next if $size<$opt_m or ($n/$win)>$opt_n;
 	        $gc=int($gc/$size);
 	        my $sum=0;
-	        $sum+=$DepDatChr[$_] for ($start..$start+$win);
+	        #$sum+=$DepDatChr[$_] for ($start..$start+$win);
+	        $sum+=shift @tmp for (1..$win);
 	        my $value=$sum/$size;
 	        #push @{$Result{$win}{$gc}},$value;
 	        $Result{$win}{$gc}->[0]=$value; # TEMPARY ONLY
 	        $Stat{$win}[$gc][0] += $value;
 	        ++$Stat{$win}[$gc][1];
 	        $start += $win;
+	        print STDERR ',';
 	    }
+	    print STDERR 'w';
 	}
 	print STDERR 'C';
 	for (@DepDatChr) {
