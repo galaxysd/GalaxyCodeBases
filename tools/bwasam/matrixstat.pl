@@ -13,7 +13,7 @@ our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_b);
 our $help=<<EOH;
 \t-p type of input files {(auto),sam,soap}
 \t-r ref fasta file (./ref/human.fa)
-\t-s trim SNP pos from /ChrID\tPos/ files
+\t-s trim SNP pos from /ChrID\\tPos/ files
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
 \t-b No pause for batch runs
@@ -52,6 +52,18 @@ while (<GENOME>) {
 	$genome='';
 }
 close GENOME;
+if ($opt_s) {
+    open SNP,'<',$opt_s or die "Error: $!\n";
+    while(<SNP>) {
+        chomp;
+        my ($chr,$pos)=split /\s+/;
+        substr $Genome{$chr},$pos-1,1,'x';
+    }
+    close SNP;
+}
+###
+print ">$_\n$Genome{$_}\n\n" for sort keys %Genome;
+###
 sub getBases($$$) {
     my ($chr,$start,$len)=@_;
     return substr $Genome{$chr},$start-1,$len;
