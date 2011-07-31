@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 
-die "Usage: $0 <datfile>\n" unless @ARGV;
+die "Usage: $0 <datfile> [max-depth-to-plot]\n" unless @ARGV;
 my $name=$ARGV[0];
+my $maxdep=$ARGV[1];
 
 my $WinSize=0;
 my (%GCdat,@GCvalues);
@@ -52,10 +53,14 @@ if ($user eq 'galaxy') {
     $font='/ifs1/ST_ASMB/USER/huxuesong/public/fonts/arial.ttf';
 }
 open P,'>',$name.'.dem' or die "Error openimg $name.dem: $!\n";
+my $yrange='#set yrange [0:10]';
+if ($maxdep) {
+	$yrange="set yrange [0:$maxdep]";
+}
 print P <<"CODE";
 reset
 set xrange [-1:101]
-#set yrange [0:10]
+$yrange
 #set y2range [0:100]
 set border 11
 set xtics 0,5 nomirror
@@ -73,8 +78,9 @@ set style fill empty
 plot '$name' using 1:6:5:9:8 with candlesticks lt 3 lw 2 title 'depth' whiskerbars 0.5, \\
      ''      using 1:7:7:7:7 with candlesticks lt -1 lw 2 notitle, \\
      ''      using 1:4 lt rgb "red" lw 2 title 'mean depth', \\
-     ''      using 1:2 with points axis x1y2 lt rgb "brown" lw 1 notitle, \\
-     ''      using 1:2 smooth csplines axis x1y2 lt rgb "brown" lw 1 title 'Ref. win. cnt.'
+     ''      using 1:3 with points axis x1y2 lt rgb "brown" lw 1 notitle, \\
+     ''      using 1:11 with points lt rgb "royalblue" lw 1 title 'max depth', \\
+     ''      using 1:3 smooth csplines axis x1y2 lt rgb "brown" lw 1 title 'Ref. win. cnt.'
 #pause -1 "Hit return to continue"
 CODE
 close P;
