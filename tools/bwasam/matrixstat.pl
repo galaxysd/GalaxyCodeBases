@@ -6,8 +6,8 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='r:o:l:p:s:b';
-our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_b);
+our $opts='r:o:l:p:s:db';
+our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_d, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
@@ -16,6 +16,7 @@ our $help=<<EOH;
 \t-s trim SNP pos from /ChrID\\tPos/ files
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
+\t-d dump mismatch positions
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='{sam,soap}pe_files';
@@ -57,6 +58,12 @@ while (<GENOME>) {
 	$genome='';
 }
 close GENOME;
+my %Mismatch;
+if ($opt_d) {
+	for my $chr (keys %Genome) {
+		$Mismatch{$chr}->[length $Genome{$chr}]=0;
+	}
+}
 if ($opt_s) {
     print STDERR "[!]Reading SNP: ";
     open SNP,'<',$opt_s or die "Error: $!\n";
