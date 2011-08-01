@@ -7,8 +7,8 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='r:o:l:p:s:db';
-our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_d, $opt_b);
+our $opts='r:o:l:p:s:cb';
+our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
@@ -17,7 +17,7 @@ our $help=<<EOH;
 \t-s trim SNP pos from /ChrID\\tPos/ files
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
-\t-d dump mismatch positions
+\t-c ChrID list (./chrtouse)
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='{sam,soap}pe_files';
@@ -26,18 +26,25 @@ ShowHelp();
 $opt_r='./ref/human.fa' if ! $opt_r;
 $opt_p='auto' if ! $opt_p;
 $opt_o='./matrix' if ! $opt_o;
+$opt_c='./chrtouse' if ! $opt_c;
 $opt_l=100 if ! $opt_l;
 die "[x]-r $opt_r not exists !\n" unless -f $opt_r;
 if ($opt_s) {die "[x]-s $opt_s not exists !\n" unless -f $opt_s;}
 
-print STDERR "From [@ARGV]($opt_p) of [$opt_l] with [$opt_r][$opt_s] to [$opt_o]\n";
+print STDERR "From [@ARGV]($opt_p) of [$opt_l][$opt_c] with [$opt_r][$opt_s] to [$opt_o]\n";
 unless ($opt_b) {print STDERR "Wait 3 seconds to continue...\n"; sleep 3;}
 
 my $start_time = [gettimeofday];
 #BEGIN
 
-warn "[!]Reading Reference Genome:\n";
 my %Genome;
+open C,'<',$opt_c or die "Error: $!\n";
+while(<C>){
+    chomp;
+    ++$Genome{$_};
+}
+close C;
+warn "[!]Reading Reference Genome:\n";
 if ($opt_r =~ /.bz2$/) {
     open( GENOME,"-|","bzip2 -dc $opt_r") or die "Error opening $opt_r: $!\n";
 } elsif ($opt_r =~ /.gz$/) {
@@ -54,18 +61,13 @@ while (<GENOME>) {
 	chomp $genome;
 	$genome=~s/\s//g;
 	$/="\n";
-    $Genome{$seqname}=$genome;
-    print STDERR "\b\b\b",length $Genome{$seqname},".\n";
+	if (exists $Genome{$seqname}) {
+        $Genome{$seqname}=$genome;
+        print STDERR "\b\b\b",length $Genome{$seqname},".\n";
+    } else {print STDERR "\b\b\b",length $Genome{$seqname},", skipped.\n";}
 	$genome='';
 }
 close GENOME;
-my (%Mismatch,%Depth);
-if ($opt_d) {
-	for my $chr (keys %Genome) {
-		$Mismatch{$chr}->[length $Genome{$chr}]=0;
-		$Depth{$chr}->[length $Genome{$chr}]=0;
-	}
-}
 if ($opt_s) {
     print STDERR "[!]Reading SNP: ";
     open SNP,'<',$opt_s or die "Error: $!\n";
@@ -93,8 +95,8 @@ my ($TotalBase,$TotalReads,%BaseCountTypeRef);
 my ($mapBase,$mapReads)=(0,0);
 my $Qascii=33;  # Sam 33, Soap 64.
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
-sub statRead($$$$$$$) {
-    my ($ref,$isReverse,$read,$Qstr,$cyclestart,$chr,$refStart)=@_;
+sub statRead($$$$$) {
+    my ($ref,$isReverse,$read,$Qstr,$cyclestart)=@_;
     if ($isReverse) {
         $ref =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
         $read =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
@@ -118,14 +120,8 @@ sub statRead($$$$$$$) {
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
         if ($refBase ne $readBase) {
-		++$MisBase;
-		if ($opt_d) {
-			++$Mismatch{$chr}->[$refStart+$i];
-		}
-	}
-	if ($opt_d) {
-		++$Depth{$chr}->[$refStart+$i];
-	}
+            ++$MisBase;
+        }
         ++$BaseCountTypeRef{$refBase};
         ++$TotalBase;
 #print "$isReverse {$refBase}{$PEpos}{$readBase}{$Qval} ",($refBase eq $readBase)?'=':'x',"\n";
@@ -161,8 +157,8 @@ if ($opt_p eq 'sam') {
         my $ref2=uc getBases($read2[7],$read2[8],$READLEN) or print join("\t",@read2),"\n";
         #my ($QNAME,$Seq,$Qual,$Hit,$a/b,$Len,$Strand,$Chr,$Pos,$Type,$SMID,$CIAGR,$Etc)=@read1;
         #       0     1    2     3    4    5     6      7    8    9     10     11   12
-        statRead($ref1,$read1[6] eq '-',$read1[1],$read1[2],1,$read1[7],$read1[8]);
-        statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],1+$READLEN,$read1[7],$read1[8]);
+        statRead($ref1,$read1[6] eq '-',$read1[1],$read1[2],1);
+        statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],1+$READLEN);
     }
 }
 LABEL:
@@ -198,8 +194,8 @@ if ($type eq 'sam') {
         my $ref2=uc getBases($read2[2],$read2[3],$READLEN) or print join("\t",@read2),"\n";
         #my ($QNAME,$FLAG,$RNAME,$POS,$MAPQ,$CIAGR,$MRNM,$MPOS,$ISIZE,$SEQ,$QUAL,$OPT)=@read1;
         #       0      1    2       3   4       5   6       7     8     9    10    11
-        statRead($ref1,$read1[1] & 16,$read1[9],$read1[10],1,$read1[2],$read1[3]);
-        statRead($ref2,$read2[1] & 16,$read2[9],$read2[10],1+$READLEN,$read1[2],$read1[3]);
+        statRead($ref1,$read1[1] & 16,$read1[9],$read1[10],1);
+        statRead($ref2,$read2[1] & 16,$read2[9],$read2[10],1+$READLEN);
     }
 } else {
     while (<>) {
@@ -221,8 +217,8 @@ if ($type eq 'sam') {
         my $ref2=uc getBases($read2[7],$read2[8],$READLEN) or print join("\t",@read2),"\n";
         #my ($QNAME,$Seq,$Qual,$Hit,$a/b,$Len,$Strand,$Chr,$Pos,$Type,$SMID,$CIAGR,$Etc)=@read1;
         #       0     1    2     3    4    5     6      7    8    9     10     11   12
-        statRead($ref1,$read1[6] eq '-',$read1[1],$read1[2],1,$read1[7],$read1[8]);
-        statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],1+$READLEN,$read1[7],$read1[8]);
+        statRead($ref1,$read1[6] eq '-',$read1[1],$read1[2],1);
+        statRead($ref2,$read2[6] eq '-',$read2[1],$read2[2],1+$READLEN);
     }
 }
 
@@ -286,19 +282,6 @@ for my $ref (@BaseOrder) {
 }
 close OA;
 close OB;
-if ($opt_d) {
-	open D,'|-',"gzip -9c - >$opt_o.mismatch" or die "Error: $!\n";
-	print D "#ChrID\tPos\tMismatch\tDepth\tRatio\n";
-	for my $chr (sort keys %Mismatch) {
-		my $pos=0;
-		for my $mis (@{$Mismatch{$chr}}) {
-			++$pos;
-			my $d=shift @{$Depth{$chr}};
-			print D "$chr\t$pos\t$mis\t$d\t",$mis/$d,"\n";
-		}
-	}
-	close D;
-}
 #END
 my $stop_time = [gettimeofday];
 
