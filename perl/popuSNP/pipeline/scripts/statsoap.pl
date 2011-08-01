@@ -95,6 +95,57 @@ Well, InsertSize should always be defined from the 2 terminals of a sequencing f
 Thus, for FR, the same as what from the gel; for RF, should be less than the gel result by the length of what actually been sequenced.
 =cut
 
+sub openfile($) {
+    my ($filename)=@_;
+    my $infile;
+    if ($filename=~/.bz2$/) {
+	    open( $infile,"-|","bzip2 -dc $filename") or die "Error opening $filename: $!\n";
+    } elsif ($filename=~/.gz$/) {
+     	open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
+    } else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
+    return $infile;
+}
+sub checkfiletype($) {
+    my $fh=$_[0];
+    my $type;
+    my $head=<$fh>;
+    if ($head =~ /^\[bwa_sai2sam_pe_core\]/) {
+        $type='samlog';
+    } elsif ($head =~ /^@SQ/) {
+        $type='sam';
+    } elsif ($head =~ /[ATCG]/) {
+        $type='soap';
+    } elsif ($head =~ /^$/) {
+=pod
+00000000  0a 42 65 67 69 6e 20 50  72 6f 67 72 61 6d 20 53  |.Begin Program S|
+00000010  4f 41 50 61 6c 69 67 6e  65 72 2f 73 6f 61 70 32  |OAPaligner/soap2|
+00000020  0a 46 72 69 20 4a 75 6c  20 31 35 20 30 39 3a 32  |.Fri Jul 15 09:2|
+00000030  39 3a 34 32 20 32 30 31  31 0a 52 65 66 65 72 65  |9:42 2011.Refere|
+00000040  6e 63 65 3a 20 2e 2f 72  65 66 2f 68 75 6d 61 6e  |nce: ./ref/human|
+00000050  2e 66 61 2e 69 6e 64 65  78 0a 51 75 65 72 79 20  |.fa.index.Query |
+00000060  46 69 6c 65 20 61 3a 20  2e 2f 30 6e 6f 6d 61 73  |File a: ./0nomas|
+=cut
+        $type='soaplog';
+    }
+    return $type;
+}
+sub statsoap($) {
+    my ($fh)=@_;
+}
+sub statsoaplog($) {
+    my ($fh)=@_;
+}
+sub statsam($) {
+    my ($fh)=@_;
+}
+my %dostat=(
+    'sam' => \&statsam(),
+    'soap' => \&statsoap(),
+    'samlog' => sub {},
+    'soaplog' => \&statsoaplog(),
+);
+
+
 my ($pairs,$Paired,$Singled,$Reads,$Alignment,%insD)=(0,0,0,0,0);
 open LOG,'<',$opt_l or (warn "[x]Error opening $opt_l: $!\n" and goto RUN);
 while (<LOG>) {
@@ -124,17 +175,16 @@ Alignment:   22 (88.00%)
 
 my $files=0;
 while($_=shift @ARGV) {
-    my $infile;
-    if (/.bz2$/) {
-	    open( $infile,"-|","bzip2 -dc $_") or die "Error opening $_: $!\n";
-    } elsif (/.gz$/) {
-     	open( $infile,"-|","gzip -dc $_") or die "Error opening $_: $!\n";
-    } else {open( $infile,"<",$_) or die "Error opening $_: $!\n";}
-    while(<$infile>){
-        ;
-    }
     ++$files;
+    my $infile;
+    $infile=openfile($_);
+    my $type=checkfiletype($infile);
     close $infile;
+    print STDERR "$files\t[$type] $_ ...";
+    $infile=openfile($_);
+    $dostat{$type}->($infile);
+    close $infile;
+    print STDERR "\n";
 }
 warn "[!]Files Read: $files\n";
 
