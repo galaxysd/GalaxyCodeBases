@@ -67,7 +67,7 @@ while (<GENOME>) {
 	if ((!$opt_c) or exists $Genome{$seqname}) {
         $Genome{$seqname}=$genome;
         print STDERR "\b\b\b",length $Genome{$seqname},".\n";
-    } else {print STDERR "\b\b\b",length $Genome{$seqname},", skipped.\n";}
+    } else {print STDERR "\b\b\b",length $genome,", skipped.\n";}
 	$genome='';
 }
 close GENOME;
