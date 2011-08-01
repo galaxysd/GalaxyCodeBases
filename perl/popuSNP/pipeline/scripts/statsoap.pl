@@ -1,16 +1,18 @@
 #!/bin/env perl
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
+use lib '/export/data0/gentoo/tmp';
 use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='o:b';
-our($opt_o, $opt_b);
+our $opts='o:l:b';
+our($opt_o, $opt_l, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
+\t-l soap log file
 \t-o output prefix (./stat).{alistat,insert}
 \t-b No pause for batch runs
 EOH
@@ -26,7 +28,6 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-
 
 sub combineC($) {
 	my $href=$_[0];
@@ -93,6 +94,34 @@ else if(!o->FR){	# RF, (-R)
 Well, InsertSize should always be defined from the 2 terminals of a sequencing fragument.
 Thus, for FR, the same as what from the gel; for RF, should be less than the gel result by the length of what actually been sequenced.
 =cut
+
+my ($pairs,$Paired,$Singled,$Reads,$Alignment,%insD)=(0,0,0,0,0);
+open LOG,'<',$opt_l or (warn "[x]Error opening $opt_l: $!\n" and goto RUN);
+while (<LOG>) {
+	$Pairs = (split)[-2] if /^Total Pairs:/;
+	$Paired = (split)[1] if /^Paired:/;
+	$Singled = (split)[1] if /^Singled:/;
+	$Reads = (split)[-1] if /^Total Reads/;
+	$Alignment = (split)[1] if /^Alignment:/;
+}
+close LOG;
+=pod
+Total Pairs: 34776407 PE
+Paired:      17719335 (50.95%) PE
+Singled:     30467634 (43.81%) SE
+
+IN:	34776407 reads x 2 fq file = 69552814 reads from _1 & _2.fq
+-o:	17719335 pairs = 17719335 x 2 =35438670 lines in .soap
+-2:	30467634 lines in .single
+
+17719335/34776407 = 0.50952172833726037310294878939046
+30467634/69552814 = 0.43805034257851882168275750856033
+
+
+Total Reads: 25
+Alignment:   22 (88.00%)
+=cut
+
 my $files=0;
 while($_=shift @ARGV) {
     my $infile;
@@ -200,35 +229,6 @@ if ($PESE eq 'PE') {	# PE
 }
 my ($Pairs,$Paired,$Singled,$Reads,$Alignment);
 
-open LOG,'<',"$opath$fqnames[0].log" or (warn "[x]Error opening $opath$fqnames[0].log: $!\n" and goto RUN);
-while (<LOG>) {
-	$Pairs = (split)[-2] if /^Total Pairs:/;
-	$Paired = (split)[1] if /^Paired:/;
-	$Singled = (split)[1] if /^Singled:/;
-	$Reads = (split)[-1] if /^Total Reads/;
-	$Alignment = (split)[1] if /^Alignment:/;
-}
-close LOG;
-unless ($Pairs or $Reads) {
-	system("mv -f $opath$fqnames[0].log $opath$fqnames[0].log.0");
-	goto RUN;
-}
-=pod
-Total Pairs: 34776407 PE
-Paired:      17719335 (50.95%) PE
-Singled:     30467634 (43.81%) SE
-
-IN:	34776407 reads x 2 fq file = 69552814 reads from _1 & _2.fq
--o:	17719335 pairs = 17719335 x 2 =35438670 lines in .soap
--2:	30467634 lines in .single
-
-17719335/34776407 = 0.50952172833726037310294878939046
-30467634/69552814 = 0.43805034257851882168275750856033
-
-
-Total Reads: 25
-Alignment:   22 (88.00%)
-=cut
 open NFO,'>',"$opath$fqnames[0].nfo" or die "[x]Error opening $opath$fqnames[0].nfo: $!\n";
 if ($max==0) {
 	print NFO "#fmtS\tTotal_Reads\tAlignment\n";
