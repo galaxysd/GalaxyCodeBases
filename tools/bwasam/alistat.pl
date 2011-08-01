@@ -7,12 +7,11 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='o:l:b';
-our($opt_o, $opt_l, $opt_b);
+our $opts='o:b';
+our($opt_o, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
-\t-l soap log file
 \t-o output prefix (./stat).{alistat,insert}
 \t-b No pause for batch runs
 EOH
@@ -28,6 +27,7 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
+our $fh;
 
 sub combineC($) {
 	my $href=$_[0];
@@ -106,12 +106,12 @@ sub openfile($) {
     return $infile;
 }
 sub checkfiletype($) {
-    my $fh=$_[0];
+    my $fhc=$_[0];
     my $type;
-    my $head=<$fh>;
+    my $head=<$fhc>;
     if ($head =~ /^\[bwa_sai2sam_pe_core\]/) {
         $type='samlog';
-    } elsif ($head =~ /^@SQ/) {
+    } elsif ($head =~ /^\@SQ/) {
         $type='sam';
     } elsif ($head =~ /[ATCG]/) {
         $type='soap';
@@ -129,33 +129,21 @@ sub checkfiletype($) {
     }
     return $type;
 }
-sub statsoap($) {
-    my ($fh)=@_;
-}
-sub statsoaplog($) {
-    my ($fh)=@_;
-}
-sub statsam($) {
-    my ($fh)=@_;
-}
-my %dostat=(
-    'sam' => \&statsam(),
-    'soap' => \&statsoap(),
-    'samlog' => sub {},
-    'soaplog' => \&statsoaplog(),
-);
 
-
-my ($pairs,$Paired,$Singled,$Reads,$Alignment,%insD)=(0,0,0,0,0);
-open LOG,'<',$opt_l or (warn "[x]Error opening $opt_l: $!\n" and goto RUN);
-while (<LOG>) {
-	$Pairs = (split)[-2] if /^Total Pairs:/;
-	$Paired = (split)[1] if /^Paired:/;
-	$Singled = (split)[1] if /^Singled:/;
-	$Reads = (split)[-1] if /^Total Reads/;
-	$Alignment = (split)[1] if /^Alignment:/;
+sub statsoap() {
 }
-close LOG;
+sub statsoaplog() {
+    my ($Pairs,$Paired,$Singled,$Reads,$Alignment,%insD,$PESE)=(0,0,0,0,0);
+    while(<$fh>) {
+	    $Pairs = (split)[-2] if /^Total Pairs:/;
+	    $Paired = (split)[1] if /^Paired:/;
+	    $Singled = (split)[1] if /^Singled:/;
+	    $Reads = (split)[-1] if /^Total Reads/;
+	    $Alignment = (split)[1] if /^Alignment:/;
+    }
+    if ($Reads) {
+        $PESE='SE';
+    }
 =pod
 Total Pairs: 34776407 PE
 Paired:      17719335 (50.95%) PE
@@ -172,6 +160,19 @@ IN:	34776407 reads x 2 fq file = 69552814 reads from _1 & _2.fq
 Total Reads: 25
 Alignment:   22 (88.00%)
 =cut
+}
+sub statsam($) {
+}
+my %dostat=(
+    'sam' => \&statsam(),
+    'soap' => \&statsoap(),
+    'samlog' => sub {},
+    'soaplog' => \&statsoaplog(),
+);
+
+
+
+
 
 my $files=0;
 while($_=shift @ARGV) {
@@ -181,15 +182,15 @@ while($_=shift @ARGV) {
     my $type=checkfiletype($infile);
     close $infile;
     print STDERR "$files\t[$type] $_ ...";
-    $infile=openfile($_);
-    $dostat{$type}->($infile);
-    close $infile;
+    $fh=openfile($_);
+    &{$dostat{$type}}();
+    close $fh;
     print STDERR "\n";
 }
 warn "[!]Files Read: $files\n";
 
 
-
+__END__
 
 my ($PESE,$rlins,$G,$opath,$Ref,$fqextpath,$fqname,$u) = @ARGV;
 #print '[',join('] [',@ARGV),"]\n";
