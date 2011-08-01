@@ -7,7 +7,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='r:o:l:p:s:cb';
+our $opts='r:o:l:p:s:c:b';
 our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 
 #our $desc='';
@@ -26,24 +26,27 @@ ShowHelp();
 $opt_r='./ref/human.fa' if ! $opt_r;
 $opt_p='auto' if ! $opt_p;
 $opt_o='./matrix' if ! $opt_o;
-$opt_c='./chrtouse' if ! $opt_c;
+#$opt_c='./chrtouse' if ! $opt_c;
 $opt_l=100 if ! $opt_l;
 die "[x]-r $opt_r not exists !\n" unless -f $opt_r;
 if ($opt_s) {die "[x]-s $opt_s not exists !\n" unless -f $opt_s;}
 
-print STDERR "From [@ARGV]($opt_p) of [$opt_l][$opt_c] with [$opt_r][$opt_s] to [$opt_o]\n";
+print STDERR "From [@ARGV]($opt_p) of [$opt_l] with [$opt_r][$opt_s] to [$opt_o]\n";
+print STDERR "ChrID list:[$opt_c]\n" if $opt_c;
 unless ($opt_b) {print STDERR "Wait 3 seconds to continue...\n"; sleep 3;}
 
 my $start_time = [gettimeofday];
 #BEGIN
 
 my %Genome;
-open C,'<',$opt_c or die "Error: $!\n";
-while(<C>){
-    chomp;
-    ++$Genome{$_};
+if ($opt_c) {
+    open C,'<',$opt_c or die "Error: $!\n";
+    while(<C>){
+        chomp;
+        ++$Genome{$_};
+    }
+    close C;
 }
-close C;
 warn "[!]Reading Reference Genome:\n";
 if ($opt_r =~ /.bz2$/) {
     open( GENOME,"-|","bzip2 -dc $opt_r") or die "Error opening $opt_r: $!\n";
@@ -61,7 +64,7 @@ while (<GENOME>) {
 	chomp $genome;
 	$genome=~s/\s//g;
 	$/="\n";
-	if (exists $Genome{$seqname}) {
+	if ((!$opt_c) or exists $Genome{$seqname}) {
         $Genome{$seqname}=$genome;
         print STDERR "\b\b\b",length $Genome{$seqname},".\n";
     } else {print STDERR "\b\b\b",length $Genome{$seqname},", skipped.\n";}
@@ -148,6 +151,7 @@ if ($opt_p eq 'sam') {
         die "[x]Not PE soap file.\n" if $read1[0] ne $read2[0];
         $mapBase += $read1[5]+$read2[5];
         $mapReads +=2;
+        goto LABEL unless exists $Genome{$read1[7]};
         goto LABEL unless $read1[3] == 1 and $read2[3] == 1;  # Hit==1
         goto LABEL if $read1[9] > 100 or $read2[9] > 100; # No Indel
         goto LABEL unless $read1[5] == $READLEN;
@@ -176,6 +180,7 @@ if ($type eq 'sam') {
         die "[x]Not PE sam file.\n" if $read1[0] ne $read2[0];
         ++$mapReads if $read1[2] ne '*';
         ++$mapReads if $read2[2] ne '*';
+        next unless exists $Genome{$read1[2]};
         next unless $read1[1] & 3;  # paired + mapped in a proper pair
         next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
         next unless $read2[1] & 3;
@@ -208,6 +213,7 @@ if ($type eq 'sam') {
         die "[x]Not PE soap file.\n" if $read1[0] ne $read2[0];
         $mapBase += $read1[5]+$read2[5];
         $mapReads +=2;
+        next unless exists $Genome{$read1[7]};
         next unless $read1[3] == 1 and $read2[3] == 1;  # Hit==1
         next if $read1[9] > 100 or $read2[9] > 100; # No Indel
         next unless $read1[5] == $READLEN;
