@@ -15,6 +15,8 @@ our($opt_o, $opt_b);
 our $help=<<EOH;
 \t-o output prefix (./stat).{alistat,insert}
 \t-b No pause for batch runs
+
+For SOAP, both soap/single files and STDERR dump are needed.
 EOH
 our $ARG_DESC='soap_files{,.gz,.bz2}';
 
@@ -184,7 +186,7 @@ sub sumsoapdata($$) {
     $dathref->{'TrimedBP'} += $TrimedBP;
     $dathref->{'misMatch'}{$_} += $misMatch{$_} for keys %misMatch;
     $dathref->{'Indel'}{$_} += $Indel{$_} for keys %Indel;
-    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;
+    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;  # sth. wrong
     $dathref->{'Hit9bp'}{$_} += $Hit9bp{$_} for keys %Hit9bp;
 }
 sub statsoap($) {
@@ -302,14 +304,14 @@ sub statsam($) {
 		my @read1=split /\t/, $line1;
 		#print "[",join('|',@read1),"]\n";
 		#print scalar @read1,"|\n";
-		if (scalar @read1 < 11) {    # soap2 output always more than 10 columes.
+		if (scalar @read1 < 11) {
 		    ++$BadLines;
 		    last;
 		}
 		$line2=<$fh>;
 		last unless $line2;
 		my @read2=split /\t/, $line2;
-		if (scalar @read2 < 11) {    # soap2 output always more than 10 columes.
+		if (scalar @read2 < 11) {
 		    ++$BadLines;
 		    last;
 		}
