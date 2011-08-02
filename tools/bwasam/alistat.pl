@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
-use Data::Dump qw(dump);
+#use Data::Dump qw(dump);
 
 $main::VERSION=0.0.1;
 our $opts='o:b';
@@ -298,7 +298,7 @@ sub sumintohash($$) {
 }
 
 my $files=0;
-my ($InReads,$mapPair,$mapSingle,%DatSum,%InsD)=(0,0,0);
+my ($withPE,$InReads,$mapPair,$mapSingle,%DatSum,%InsD)=(0,0,0,0);
 while($_=shift @ARGV) {
     ++$files;
     my $infile;
@@ -313,6 +313,7 @@ while($_=shift @ARGV) {
         $mapPair += $ret->[1]->[1];
         $mapSingle += $ret->[1]->[2];
         if ($ret->[0] eq 'PE') {
+            $withPE=1;
             &sumintohash($ret->[2],\%DatSum) if $ret->[2];
             &sumintohash($ret->[3],\%InsD) if $ret->[3];
         }
@@ -325,7 +326,69 @@ while($_=shift @ARGV) {
 }
 warn "[!]Files Read: $files\n";
 
-print "\n[";dump([$InReads,$mapPair,$mapSingle,\%DatSum,\%InsD]);print "]\n";
+my ($n,$v,$avg,$std,$Lsd,$Rsd,$max_y,$max_x,$sum,$sum2)=(0);
+if ($withPE) {
+    open O,'>',"$opt_o.insD" or die "[x]Error opening $opt_o.insD: $!\n";
+    for my $k (sort {$a <=> $b} keys %InsD) {
+	    $v=$InsD{$k};
+	    print O "$k\t$v\n";
+	    $sum += $k * $v;
+	    $n += $v;
+	    $sum2 += $k*$k * $v;
+    }
+    $avg = $sum/$n;
+    $std = sqrt($sum2/$n-$avg*$avg);
+    print O "# $avg ± $std\n";
+    ($max_y,$max_x)=(-1,0);
+    for my $k ($avg-$std .. $avg+$std) {	# 68.27%
+	    next unless $v=$InsD{$k};
+	    if ($max_y < $v) {
+		    $max_x = $k;
+		    $max_y = $v;
+	    }
+    }
+    my $cutoff = $max_y / 1000;
+    $cutoff = 3 if $cutoff<3;
+    my ($diff, $Lc, $Rc);
+    for my $k (keys %InsD) {
+	    $v=$InsD{$k};
+	    next if $v < $cutoff;
+	    $diff = $k - $max_x;
+	    if ($diff < 0) {
+		    $Lsd += $v * $diff * $diff;
+		    $Lc += $v;
+	    }
+	    elsif ($diff > 0) {
+		    $Rsd += $v * $diff * $diff;
+		    $Rc += $v;
+	    }
+    }
+    $Lsd = sqrt($Lsd/$Lc);
+    $Rsd = sqrt($Rsd/$Rc);
+    print O "# +$Lsd -$Rsd\n";
+    close O;
+}
+
+open NFO,'>',"$opt_o.nfo" or die "[x]Error opening $opt_o.nfo: $!\n";
+if ($withPE) {
+	my $p=sprintf "%.2f",100*$max_y/$n;
+	$avg=int($avg*10+.5)/10;
+	$Lsd=int($Lsd*100+.5)/100;
+	$Rsd=int($Rsd*100+.5)/100;
+	print NFO "#fmtS\tTotal_Reads\ttoPaired\ttoSingled\tModeIns(p%),Lsd,Rsd,InsAvg,STD\n";
+	print NFO "Summary\t",join("\t",$InReads,$mapPair,$mapSingle,"$max_x($p %),$Lsd,$Rsd,$avg,$std"),"\n";
+} else {
+	print NFO "#fmtS\tTotal_Reads\tAlignment\n";
+	print NFO "Summary\t",join("\t",$InReads,$mapSingle),"\n";
+}
+print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
+print NFO join("\t",'ALL',$DatSum{'ReadsOut'},$DatSum{'BPOut'},$DatSum{'MisSum'},$DatSum{'TrimedReads'},$DatSum{'TrimedBP'},
+	${&combineC($DatSum{'misMatch'})},${&combineJ($DatSum{'Hit9r'})},${&combineJ($DatSum{'Hit9bp'})},${&combineJ($DatSum{'Indel'})},$DatSum{'BadLines'}),"\n\n";
+#print NFO "#fmtP\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
+#print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
+close NFO;
+
+#print "\n[";dump([$InReads,$mapPair,$mapSingle,\%DatSum,\%InsD]);print "]\n";
 
 __END__
 
