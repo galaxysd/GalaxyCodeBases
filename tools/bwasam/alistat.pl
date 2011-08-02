@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
+#use Data::Dump qw(dump);
 
 $main::VERSION=0.0.1;
 our $opts='o:b';
@@ -129,7 +130,7 @@ sub checkfiletype($) {
 }
 
 sub sumsoapdata($$) {
-    my ($hit,$len,$chr,$types,$trim,$mistr)=@$_[0];
+    my ($hit,$len,$chr,$types,$trim,$mistr)=@{$_[0]};
     my $dathref=$_[1];
     my ($BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
     #my (%chrBPOut,%chrReadsOut,%chrMisSum,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
@@ -192,9 +193,10 @@ sub statsoap($) {
     $datsum{'PEuniqPairs'}=0;
     my ($BadLines,$PESE,$pairs,$lastpos,$line1,$line2,$pp,$pn,$calins,%insD)=(0,'PE',0);
 	while ($line1=<$fh>) {
+#print "[$line1]\n";
 		my ($id1, $n1, $len1, $f1, $chr1, $x1, $types1, $m1, $mistr1)
 		 = (split "\t", $line1)[0,3,5,6,7,8,9,-2,-1];
-		unless ($types1) {    # soap2 output always more than 10 columes.
+		unless (defined $types1) {    # soap2 output always more than 10 columes.
 		    ++$BadLines;
 		    last;
 		}
@@ -202,7 +204,7 @@ sub statsoap($) {
 		last unless $line2;
 		my ($id2, $n2, $len2, $f2, $chr2, $x2, $types2, $m2, $mistr2)
 		 = (split "\t", $line2)[0,3,5,6,7,8,9,-2,-1];
-		unless ($types2) {    # soap2 output always more than 10 columes.
+		unless (defined $types2) {    # soap2 output always more than 10 columes.
 		    ++$BadLines;
 		    last;
 		}
@@ -233,6 +235,7 @@ sub statsoap($) {
 		$calins=abs($line1-$line2);	# -.starting=0
 		++$insD{$calins};
 	}
+	$datsum{'BadLines'}=$BadLines;
 	if ($PESE eq 'PE') {
     	$datsum{'PEuniqPairs'}=$pairs;
 	}
@@ -250,9 +253,9 @@ sub statsoaplog($) {
     }
     my @RET;
     if ($Reads) {
-        @RET=['SE',[$Reads,0,$Alignment]];
+        @RET=('SE',[$Reads,0,$Alignment]);
     } else {
-        @RET=['PE',[$Pairs*2,$Paired*2,$Singled]];
+        @RET=('PE',[$Pairs*2,$Paired*2,$Singled]);
     }
     return \@RET;
 =pod
@@ -274,20 +277,28 @@ Alignment:   22 (88.00%)
 }
 sub statsam($) {
     my $fh=$_[0];
-    return 'a';
+    return ['SE',[0,0,0]];
 }
 my %dostat=(
-    'sam' => \&statsam,
+#    'sam' => \&statsam,
     'soap' => \&statsoap,
 #    'samlog' => sub {},
     'soaplog' => \&statsoaplog,
 );
 
-sub mergehash($$) {
+sub sumintohash($$) {
     my ($inhref,$intohref)=@_;
+    for my $key (keys %{$inhref}) {
+        if (ref($$inhref{$key}) eq 'HASH') {
+            &mergehash($$inhref{$key},$$intohref{$key});
+        } else {
+            $$intohref{$key} += $$inhref{$key};
+        }
+    }
 }
 
 my $files=0;
+my ($InReads,$mapPair,$mapSingle,%DatSum,%InsD)=(0,0,0);
 while($_=shift @ARGV) {
     ++$files;
     my $infile;
@@ -297,8 +308,15 @@ while($_=shift @ARGV) {
     print STDERR "$files\t[$type] $_ ...";
     $infile=openfile($_);
     if (exists $dostat{$type}) {
-        my $ret=&{$dostat{$type}}($infile);
-        print "$ret\n";
+        my $ret=&{$dostat{$type}}($infile); # [$PESE,[$Reads,$Paired*2,$Singled],\%datsum,\%insD]
+        $InReads += $ret->[1]->[0];
+        $mapPair += $ret->[1]->[1];
+        $mapSingle += $ret->[1]->[2];
+        if ($ret->[0] eq 'PE') {
+            &sumintohash(\%DatSum,$ret->[2]) if $ret->[2];
+            &sumintohash(\%InsD,$ret->[3]) if $ret->[3];
+        }
+        #print "\n[";dump($ret);print "]\n";
     } else {
         print STDERR "\b\b\bskipped."
     }
