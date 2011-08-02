@@ -128,13 +128,119 @@ sub checkfiletype($) {
     return $type;
 }
 
+sub sumsoapdata($$) {
+    my ($hit,$len,$chr,$types,$trim,$mistr)=@$_[0];
+    my $dathref=$_[1];
+    my ($BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
+    #my (%chrBPOut,%chrReadsOut,%chrMisSum,%chrTrimedBP,%chrTrimedReads,%chrHit9r,%chrHit9bp,%chrmisMatch,%chrIndel);
+    my (@trims,$missed);
+		$BPOut += $len;#	$chrBPOut{$chr} += $len;
+		++$ReadsOut;#	++$chrReadsOut{$chr};
+		$missed=$mistr=~tr/ATCGatcg//;
+		++$misMatch{$missed};
+		#++$chrmisMatch{$chr}{$missed};
+		$MisSum += $missed;
+		#$chrMisSum{$chr} += $missed;
+
+		$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
+		++$Hit9r{$hit};
+		#++$chrHit9r{$chr}{$hit};
+		$Hit9bp{$hit} += $len;
+		#$chrHit9bp{$chr}{$hit} += $len;
+=pod
+		if ($types < 100) {
+			#++$misMatch{$types};
+			#++$chrmisMatch{$chr}{$types};
+		} elsif ($types < 200) {	# '3S33M9D39M', '32M1D14M29S' exists ?
+			++$Indel{$types-100};
+			++$chrIndel{$chr}{$types-100};
+		} else {
+			++$Indel{200-$types};
+			++$chrIndel{$chr}{200-$types};
+		}
+=cut
+		if ($types > 200) {
+			++$Indel{200-$types};
+			#++$chrIndel{$chr}{200-$types};
+		} elsif ($types > 100) {
+			++$Indel{$types-100};
+			#++$chrIndel{$chr}{$types-100};
+		}
+
+		@trims = $trim =~ /(\d+)S/;
+		if (@trims) {
+			++$TrimedReads;
+			#++$chrTrimedReads{$chr};
+			for ( @trims ) {
+				$TrimedBP += $_;
+				#$chrTrimedBP{$chr} += $_;
+			}
+		}
+    $dathref->{'BPOut'} += $BPOut;
+    $dathref->{'ReadsOut'} += $ReadsOut;
+    $dathref->{'MisSum'} += $MisSum;
+    $dathref->{'TrimedReads'} += $TrimedReads;
+    $dathref->{'TrimedBP'} += $TrimedBP;
+    $dathref->{'misMatch'}{$_} += $misMatch{$_} for keys %misMatch;
+    $dathref->{'Indel'}{$_} += $Indel{$_} for keys %Indel;
+    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;
+    $dathref->{'Hit9bp'}{$_} += $Hit9bp{$_} for keys %Hit9bp;
+}
 sub statsoap($) {
     my $fh=$_[0];
-    return 'a';
+    my (%datsum);
+    $datsum{'PEuniqPairs'}=0;
+    my ($BadLines,$PESE,$pairs,$lastpos,$line1,$line2,$pp,$pn,$calins,%insD)=(0,'PE',0);
+	while ($line1=<$fh>) {
+		my ($id1, $n1, $len1, $f1, $chr1, $x1, $types1, $m1, $mistr1)
+		 = (split "\t", $line1)[0,3,5,6,7,8,9,-2,-1];
+		unless ($types1) {    # soap2 output always more than 10 columes.
+		    ++$BadLines;
+		    last;
+		}
+		$line2=<$fh>;
+		last unless $line2;
+		my ($id2, $n2, $len2, $f2, $chr2, $x2, $types2, $m2, $mistr2)
+		 = (split "\t", $line2)[0,3,5,6,7,8,9,-2,-1];
+		unless ($types2) {    # soap2 output always more than 10 columes.
+		    ++$BadLines;
+		    last;
+		}
+			#($soapid,$hit,$len,$strand,$chr,$pos,$trim) = (split(/\t/))[0,3,5,6,7,8,-2];
+			#        ($hit,$len,        $chr,$types,$trim,$mistr) = @lines[3,5,7,9,-2,-1];
+		$id1 =~ s/\/[12]$//;
+		$id2 =~ s/\/[12]$//;
+		&sumsoapdata([$n1, $len1, $chr1, $types1, $m1, $mistr1],\%datsum);
+		&sumsoapdata([$n2, $len2, $chr2, $types2, $m2, $mistr2],\%datsum);
+		if (($PESE eq 'SE') or ($id1 ne $id2)){	# single
+			$PESE='SE';
+			next;
+		}
+		next if $n1+$n2>2 or $chr1 ne $chr2;
+=pod
+		if ($f1 eq '+') {
+			($pp,$pn)=($x1,$x2);
+		} else {
+			($pp,$pn)=($x2,$x1);
+		}
+		if ($ins > 1500) {	# FR => +.pos < -.pos; RF => -.pos < +.pos
+			next if $pp < $pn;
+		} else { next if $pp > $pn; }
+=cut
+		++$pairs;
+		$line1=&getRealpos($len1, $f1, $x1, $m1);	# $len,$strand,$realpos,$trim
+		$line2=&getRealpos($len2, $f2, $x2, $m2);	# Well, $line{1,2} is recycled.
+		$calins=abs($line1-$line2);	# -.starting=0
+		++$insD{$calins};
+	}
+	if ($PESE eq 'PE') {
+    	$datsum{'PEuniqPairs'}=$pairs;
+	}
+	return [$PESE,[0,0,0],\%datsum,\%insD];
 }
 sub statsoaplog($) {
     my $fh=$_[0];
-    my ($Pairs,$Paired,$Singled,$Reads,$Alignment,%insD,$PESE)=(0,0,0,0,0);
+    my ($Pairs,$Paired,$Singled,$Reads,$Alignment)=(0,0,0,0,0);
     while(<$fh>) {
 	    $Pairs = (split)[-2] if /^Total Pairs:/;
 	    $Paired = (split)[1] if /^Paired:/;
@@ -142,10 +248,13 @@ sub statsoaplog($) {
 	    $Reads = (split)[-1] if /^Total Reads/;
 	    $Alignment = (split)[1] if /^Alignment:/;
     }
+    my @RET;
     if ($Reads) {
-        $PESE='SE';
+        @RET=['SE',[$Reads,0,$Alignment]];
+    } else {
+        @RET=['PE',[$Pairs*2,$Paired*2,$Singled]];
     }
-    return "[$Pairs,$Paired,$Singled,$Reads,$Alignment]";
+    return \@RET;
 =pod
 Total Pairs: 34776407 PE
 Paired:      17719335 (50.95%) PE
@@ -174,9 +283,9 @@ my %dostat=(
     'soaplog' => \&statsoaplog,
 );
 
-
-
-
+sub mergehash($$) {
+    my ($inhref,$intohref)=@_;
+}
 
 my $files=0;
 while($_=shift @ARGV) {
