@@ -277,11 +277,51 @@ Alignment:   22 (88.00%)
 }
 sub statsam($) {
     my $fh=$_[0];
-    return ['SE',[0,0,0]];
+    my ($Reads,$toPaired,$toSingled,$BadLines,%datsum,%insD)=(0,0,0,0);
+    my ($line1,$line2,$calins);
+=pod
+       │Col │ Field │                       Description                        │
+       ├────┼───────┼──────────────────────────────────────────────────────────┤
+       │ 1  │ QNAME │ Query (pair) NAME                                        │
+       │ 2  │ FLAG  │ bitwise FLAG                                             │
+       │ 3  │ RNAME │ Reference sequence NAME                                  │
+       │ 4  │ POS   │ 1-based leftmost POSition/coordinate of clipped sequence │
+       │ 5  │ MAPQ  │ MAPping Quality (Phred-scaled)                           │
+       │ 6  │ CIAGR │ extended CIGAR string                                    │
+       │ 7  │ MRNM  │ Mate Reference sequence NaMe (`=' if same as RNAME)      │
+       │ 8  │ MPOS  │ 1-based Mate POSistion                                   │
+       │ 9  │ ISIZE │ Inferred insert SIZE                                     │
+       │10  │ SEQ   │ query SEQuence on the same strand as the reference       │
+       │11  │ QUAL  │ query QUALity (ASCII-33 gives the Phred base quality)    │
+       │12  │ OPT   │ variable OPTional fields in the format TAG:VTYPE:VALUE   │
+        #my ($QNAME,$FLAG,$RNAME,$POS,$MAPQ,$CIAGR,$MRNM,$MPOS,$ISIZE,$SEQ,$QUAL,$OPT)=@read1;
+        #       0      1    2       3   4       5   6       7     8     9    10    11
+=cut
+    while ($line1=<$fh>) {
+        next if $line1=~/^@\w\w\t\w\w:/;
+		my @read1=split /\t/, $line1;
+		#print "[",join('|',@read1),"]\n";
+		#print scalar @read1,"|\n";
+		if (scalar @read1 < 11) {    # soap2 output always more than 10 columes.
+		    ++$BadLines;
+		    last;
+		}
+		$line2=<$fh>;
+		last unless $line2;
+		my @read2=split /\t/, $line2;
+		if (scalar @read2 < 11) {    # soap2 output always more than 10 columes.
+		    ++$BadLines;
+		    last;
+		}
+		$calins=abs($read2[8]);
+		++$insD{$calins} if $calins < 1500;
+    }
+    $datsum{'BadLines'}=$BadLines;
+    return ['PE',[0,0,0],\%datsum,\%insD];
 }
 my %dostat=(
-#    'sam' => \&statsam,
-    'soap' => \&statsoap,
+    'sam'     => \&statsam,
+    'soap'    => \&statsoap,
 #    'samlog' => sub {},
     'soaplog' => \&statsoaplog,
 );
@@ -336,6 +376,7 @@ if ($withPE) {
 	    $n += $v;
 	    $sum2 += $k*$k * $v;
     }
+    $n=-1 unless $n;
     $avg = $sum/$n;
     $std = sqrt($sum2/$n-$avg*$avg);
     print O "# $avg ± $std\n";
@@ -391,4 +432,52 @@ close NFO;
 #print "\n[";dump([$InReads,$mapPair,$mapSingle,\%DatSum,\%InsD]);print "]\n";
 
 __END__
+[$InReads,$mapPair,$mapSingle,\%DatSum,\%InsD]
+[
+  195396612,
+  165784596,
+  13243429,
+  {
+    BadLines    => 0,
+    BPOut       => 196395,
+    MisSum      => 1008,
+    PEuniqPairs => 973,
+    ReadsOut    => 2000,
+    TrimedBP    => 3568,
+    TrimedReads => 122,
+  },
+  {
+    653 => 9,
+    654 => 12,
+    655 => 15,
+    656 => 18,
+    657 => 18,
+    658 => 13,
+    659 => 21,
+    660 => 25,
+    661 => 22,
+    662 => 19,
+    663 => 18,
+    664 => 24,
+    665 => 24,
+    666 => 35,
+    667 => 27,
+    668 => 24,
+    669 => 24,
+    670 => 25,
+    671 => 29,
+    672 => 36,
+    673 => 38,
+    674 => 42,
+    675 => 32,
+    676 => 32,
+    677 => 32,
+    678 => 31,
+    679 => 26,
+    680 => 19,
+    681 => 20,
+    682 => 9,
+    683 => 16,
+  },
+]
 
