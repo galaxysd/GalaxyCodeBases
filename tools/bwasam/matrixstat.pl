@@ -77,7 +77,7 @@ if ($opt_s) {
     while(<SNP>) {
         chomp;
         my ($chr,$pos)=split /\s+/;
-        substr $Genome{$chr},$pos-1,1,'x';
+        substr $Genome{$chr},$pos-1,1,'x' if exists $Genome{$chr};
     }
     close SNP;
     print STDERR "done.\n";

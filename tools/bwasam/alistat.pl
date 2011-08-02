@@ -27,8 +27,6 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
 #BEGIN
-our $fh;
-
 sub combineC($) {
 	my $href=$_[0];
 	if ($href and %$href) {
@@ -130,9 +128,12 @@ sub checkfiletype($) {
     return $type;
 }
 
-sub statsoap() {
+sub statsoap($) {
+    my $fh=$_[0];
+    return 'a';
 }
-sub statsoaplog() {
+sub statsoaplog($) {
+    my $fh=$_[0];
     my ($Pairs,$Paired,$Singled,$Reads,$Alignment,%insD,$PESE)=(0,0,0,0,0);
     while(<$fh>) {
 	    $Pairs = (split)[-2] if /^Total Pairs:/;
@@ -144,6 +145,7 @@ sub statsoaplog() {
     if ($Reads) {
         $PESE='SE';
     }
+    return "[$Pairs,$Paired,$Singled,$Reads,$Alignment]";
 =pod
 Total Pairs: 34776407 PE
 Paired:      17719335 (50.95%) PE
@@ -162,12 +164,14 @@ Alignment:   22 (88.00%)
 =cut
 }
 sub statsam($) {
+    my $fh=$_[0];
+    return 'a';
 }
 my %dostat=(
-    'sam' => \&statsam(),
-    'soap' => \&statsoap(),
-    'samlog' => sub {},
-    'soaplog' => \&statsoaplog(),
+    'sam' => \&statsam,
+    'soap' => \&statsoap,
+#    'samlog' => sub {},
+    'soaplog' => \&statsoaplog,
 );
 
 
@@ -182,9 +186,14 @@ while($_=shift @ARGV) {
     my $type=checkfiletype($infile);
     close $infile;
     print STDERR "$files\t[$type] $_ ...";
-    $fh=openfile($_);
-    &{$dostat{$type}}();
-    close $fh;
+    $infile=openfile($_);
+    if (exists $dostat{$type}) {
+        my $ret=&{$dostat{$type}}($infile);
+        print "$ret\n";
+    } else {
+        print STDERR "\b\b\bskipped."
+    }
+    close $infile;
     print STDERR "\n";
 }
 warn "[!]Files Read: $files\n";
