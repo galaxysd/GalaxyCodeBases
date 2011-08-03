@@ -1,17 +1,21 @@
 #!/bin/env perl
+=pod
+Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
+Version: 0.1.0 @ 20110803
+=cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
 use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.1.0;
 our $opts='o:b';
 our($opt_o, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
-\t-o output prefix (./allmatrix).{mcount,mratio}
+\t-o output prefix (./allmatrix).{count,ratio}.matrix
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='matrix_count_files';
@@ -71,8 +75,8 @@ while (<>) {
 }
 #print $TotalReads,"\t",$READLEN,"\n";
 #print join("\t",@BQHeader),"\n";
-open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";
-open OB,'>',$opt_o.'.mratio' or die "Error: $!\n";
+open OA,'>',$opt_o.'.count.matrix' or die "Error: $!\n";
+open OB,'>',$opt_o.'.ratio.matrix' or die "Error: $!\n";
 my $tmp;
 chomp(my $user=`id -nru`);
 @ARGV=('/etc/passwd');

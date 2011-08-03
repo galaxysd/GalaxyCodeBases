@@ -1,12 +1,16 @@
 #!/bin/env perl
+=pod
+Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
+Version: 0.1.0 @ 20110803
+=cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
-use lib '/export/data0/gentoo/tmp';
+#use lib '/export/data0/gentoo/tmp';
 use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.1.0;
 our $opts='r:o:l:p:s:c:b';
 our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 
@@ -14,11 +18,12 @@ our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 our $help=<<EOH;
 \t-p type of input files {(auto),sam,soap}
 \t-r ref fasta file (./ref/human.fa)
-\t-s trim SNP pos from /ChrID\\tPos/ files
+\t-s trim SNP positions from (<filename>) in format /^ChrID\\tPos/
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{mcount,mratio}
 \t-c ChrID list (./chrtouse)
 \t-b No pause for batch runs
+For gzipped files, use zcat and pipe(|).
 EOH
 our $ARG_DESC='{sam,soap}pe_files';
 

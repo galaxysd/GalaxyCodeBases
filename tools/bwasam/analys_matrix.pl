@@ -1,5 +1,37 @@
 #!/usr/bin/perl -w
 
+=head1 Name
+
+	error_matrix_analyzer.pl
+
+=head1 Description
+
+	analyse the matrix about reads' characteristic count from comparison results
+
+	the program need the matrix file as input.It will creat 6 files:
+	  *.misVSerr.base.stat : mismatch rate and error rate calculate by quality value for every cycle
+	  *.qualVSmis.stat : compair the real mismatch rate and the calculated error rate for each quality value
+	  *.transform.cycle.stat : the rate of the reference nucleotide be sequenced to each for nucleotide for every cycle
+	  *.transform.avg.stat : the average the reference nucleotide be sequenced to each for nucleotide for all cycle along read
+	  *.qual.mat.dis : the distribution of quality value for matched read base
+	  *.qual.mis.dis : the distribution of quality value for mismatched read base
+
+=head1 Version
+	
+	Author: Shi Yujian , shiyujian@genomics.org.cn
+	Version: 1.0 , Date:2011-6
+
+=head1 Usage
+
+	perl error_matrix_analyzer.pl [option]
+	  -i <str>       matrix file
+	  -o <str>       output prefix
+	  -m <num>       min quality score[default:0]
+	  -x <num>       max quality score[default:40]
+	  -h             help
+
+=cut
+
 use strict;
 use Getopt::Long;
 
@@ -13,37 +45,18 @@ GetOptions(
 	"help"=>\$help
 );
 
-if($help || !defined $in_file)
-{
-	print "Name
-
-$0  --analyse the matrix about reads' characteristic count from comparison results
-
-the program need the matrix file as input.It will creat 7 files:
-*\.ratio :\tMatrix after normalization on the basis of row
-*\.misVSerr\.base\.stat :\tmismatch rate and error rate calculate by quality value for every cycle
-*\.qualVSmis\.stat :\tcompair the real mismatch rate and the calculated error rate for each quality value
-*\.transform\.cycle\.stat :\tthe rate of the reference nucleotide be sequenced to each for nucleotide for every cycle
-*\.transform\.avg\.stat :\tthe average the reference nucleotide be sequenced to each for nucleotide for all cycle along read
-*.qual\.mat\.dis :\tthe distribution of quality value for matched read base
-*\.qual\.mis\.dis :\tthe distribution of quality value for mismatched read base
-
-Usage
-
- perl $0 [option]
- 
- 	-i\t<str>	matrix file
- 	-o\t<str>	output prefix
- 	-m\t<num>	min quality score[default:0]
- 	-x\t<num>	max quality score[default:40]
- 	-h\t\thelp
-";
-	exit;
-}
+die `pod2text $0` if($help || !defined $in_file);
 
 $min_qual ||= 0;
 $max_qual ||= 40;
-$out ||= $in_file;
+if($in_file=~/\/([^\/]+)$/)
+{
+	$out ||= $1;
+}
+else
+{
+	$out ||= $in_file;
+}
 
 my %seq2bit = ("A"=>0,"C"=>1,"G"=>2,"T"=>3);
 my @bit2seq = ("A","C","G","T");
@@ -112,43 +125,43 @@ for(my $ref=0;$ref<@matrix;$ref++)
 	}
 }
 
-open OUT,">$out\.ratio" || die "$!";
+#open OUT,">$out\.ratio" || die "$!";
 my $total_base = $match_sum + $mis_sum;
-print OUT "#total_base_number:\t$total_base\n";
-print OUT "#base_rario:\t";
-for(my $ref=0;$ref<@matrix;$ref++)
-{
-	my $sum_ref_rate = $sum_ref[$ref] / $total_base;
-	print OUT "$bit2seq[$ref]:$sum_ref_rate\t";
-}
-print OUT "\n#ref_base\tcycle\t";
-for(my $base=0;$base<@{$matrix[0][0]};$base++)
-{
-	for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
-	{
-		print OUT "$bit2seq[$base]$qual\t";
-	}
-}
-print OUT "\n";
-for(my $ref=0;$ref<@matrix;$ref++)
-{
-	for(my $cycle=0;$cycle<@{$matrix[$ref]};$cycle++)
-	{
-		my $cycle_tmp = $cycle + 1;
-		print OUT "$bit2seq[$ref]\t$cycle_tmp\t";
-		for(my $base=0;$base<@{$matrix[$ref][$cycle]};$base++)
-		{
-			for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
-			{
-				my $ratio = 0;
-				$ratio = $matrix[$ref][$cycle][$base][$qual] / $sum_row[$ref][$cycle] if($sum_row[$ref][$cycle]);
-				print OUT "$ratio\t";
-			}
-		}
-		print OUT "\n";
-	}
-}
-close OUT;
+#print OUT "#total_base_number:\t$total_base\n";
+#print OUT "#base_rario:\t";
+#for(my $ref=0;$ref<@matrix;$ref++)
+#{
+#	my $sum_ref_rate = $sum_ref[$ref] / $total_base;
+#	print OUT "$bit2seq[$ref]:$sum_ref_rate\t";
+#}
+#print OUT "\n#ref_base\tcycle\t";
+#for(my $base=0;$base<@{$matrix[0][0]};$base++)
+#{
+#	for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
+#	{
+#		print OUT "$bit2seq[$base]$qual\t";
+#	}
+#}
+#print OUT "\n";
+#for(my $ref=0;$ref<@matrix;$ref++)
+#{
+#	for(my $cycle=0;$cycle<@{$matrix[$ref]};$cycle++)
+#	{
+#		my $cycle_tmp = $cycle + 1;
+#		print OUT "$bit2seq[$ref]\t$cycle_tmp\t";
+#		for(my $base=0;$base<@{$matrix[$ref][$cycle]};$base++)
+#		{
+#			for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
+#			{
+#				my $ratio = 0;
+#				$ratio = $matrix[$ref][$cycle][$base][$qual] / $sum_row[$ref][$cycle] if($sum_row[$ref][$cycle]);
+#				print OUT "$ratio\t";
+#			}
+#		}
+#		print OUT "\n";
+#	}
+#}
+#close OUT;
 
 open OUT,">$out\.misVSerr\.base\.stat" || die "$!";
 my $avg_mis_rate = $mis_sum / $total_base;
@@ -172,7 +185,8 @@ for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
 {
 	my $mis_tmp = 0;
 	$mis_tmp = $mis_qual_sum[$qual] / ($match_qual_sum[$qual]+$mis_qual_sum[$qual]) if($match_qual_sum[$qual]+$mis_qual_sum[$qual]);
-	my $qual_tmp = chr($qual + 64);
+#	my $qual_tmp = chr($qual + 64);
+	my $qual_tmp = $qual;
 	print OUT "$qual_tmp\t$q2e[$qual]\t$mis_tmp\n";
 }
 close OUT;
@@ -242,18 +256,18 @@ print OUT2 "#qual\tavg\t";
 for(my $cycle=0;$cycle<@match_qual_cycle;$cycle++)
 {
 	my $cycle_tmp = $cycle + 1;
-	print OUT1 "$cycle_tmp\t";
-	print OUT2 "$cycle_tmp\t";
+	print OUT1 "cycl:$cycle_tmp\t";
+	print OUT2 "cycl:$cycle_tmp\t";
 }
 print OUT1 "\n";
 print OUT2 "\n";
 for(my $qual=$min_qual;$qual<=$max_qual;$qual++)
 {
-	my $qual_tmp = chr($qual+64);
+#	my $qual_tmp = chr($qual+64);
 	my $match_tmp = $match_qual_sum[$qual] / $match_sum;
 	my $mis_tmp = $mis_qual_sum[$qual] / $mis_sum;
-	print OUT1 "$qual_tmp\t$match_tmp\t";
-	print OUT2 "$qual_tmp\t$mis_tmp\t";
+	print OUT1 "$qual\t$match_tmp\t";
+	print OUT2 "$qual\t$mis_tmp\t";
 	for(my $cycle=0;$cycle<@match_qual_cycle;$cycle++)
 	{
 		$match_tmp = 0;
