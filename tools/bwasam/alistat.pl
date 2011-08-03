@@ -1,6 +1,6 @@
 #!/bin/env perl
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
-use lib '/export/data0/gentoo/tmp';
+#use lib '/export/data0/gentoo/tmp';
 use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
@@ -277,10 +277,79 @@ Total Reads: 25
 Alignment:   22 (88.00%)
 =cut
 }
+
+sub sumsamdata($$) {
+        #my ($QNAME,$FLAG,$RNAME,$POS,$MAPQ,$CIAGR,$MRNM,$MPOS,$ISIZE,$SEQ,$QUAL,$OPT)=@read1;
+        #       0      1    2       3   4       5   6       7     8     9    10    11
+    my ($FLAG,$RNAME,$POS,$CIAGR,$MRNM,$MPOS,$ISIZE)=@{$_[0]}[1,2,3,5,6,7,8];
+    my $dathref=$_[1];
+    my ($BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
+    my (@trims,@matches,@inserts,$missed);
+    my ($isPaired,$isSingled)=(0,0);
+	@matches = $CIAGR =~ /(\d+)M/;
+	for ( @matches ) {
+		$BPOut += $_;
+	}
+	@inserts = $CIAGR =~ /(\d+)I/;
+	for ( @inserts ) {
+		$BPOut += $_;
+	}
+	@trims = $CIAGR =~ /(\d+)S/;
+	if (@trims) {
+		++$TrimedReads;
+		#++$chrTrimedReads{$chr};
+		for ( @trims ) {
+			$TrimedBP += $_;
+			#$chrTrimedBP{$chr} += $_;
+		}
+	}
+=pod
+		++$ReadsOut;#	++$chrReadsOut{$chr};
+		$missed=$mistr=~tr/ATCGatcg//;
+		++$misMatch{$missed};
+		#++$chrmisMatch{$chr}{$missed};
+		$MisSum += $missed;
+		#$chrMisSum{$chr} += $missed;
+
+		$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
+		++$Hit9r{$hit};
+		#++$chrHit9r{$chr}{$hit};
+		$Hit9bp{$hit} += $len;
+		#$chrHit9bp{$chr}{$hit} += $len;
+		if ($types > 200) {
+			++$Indel{200-$types};
+			#++$chrIndel{$chr}{200-$types};
+		} elsif ($types > 100) {
+			++$Indel{$types-100};
+			#++$chrIndel{$chr}{$types-100};
+		}
+
+		@trims = $trim =~ /(\d+)S/;
+		if (@trims) {
+			++$TrimedReads;
+			#++$chrTrimedReads{$chr};
+			for ( @trims ) {
+				$TrimedBP += $_;
+				#$chrTrimedBP{$chr} += $_;
+			}
+		}
+    $dathref->{'BPOut'} += $BPOut;
+    $dathref->{'ReadsOut'} += $ReadsOut;
+    $dathref->{'MisSum'} += $MisSum;
+    $dathref->{'TrimedReads'} += $TrimedReads;
+    $dathref->{'TrimedBP'} += $TrimedBP;
+    $dathref->{'misMatch'}{$_} += $misMatch{$_} for keys %misMatch;
+    $dathref->{'Indel'}{$_} += $Indel{$_} for keys %Indel;
+    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;
+    $dathref->{'Hit9bp'}{$_} += $Hit9bp{$_} for keys %Hit9bp;
+=cut
+    return [$isPaired,$isSingled];
+}
 sub statsam($) {
     my $fh=$_[0];
-    my ($Reads,$toPaired,$toSingled,$BadLines,%datsum,%insD)=(0,0,0,0);
-    my ($line1,$line2,$calins);
+    my ($PESE,$Reads,$toPaired,$toSingled,$BadLines,%datsum,%insD)=('PE',0,0,0,0);
+    my ($Paired,$Singled,$Reads,$Alignment)=(0,0,0,0);
+    my ($line1,$line2,$calins,$sumret);
 =pod
        │Col │ Field │                       Description                        │
        ├────┼───────┼──────────────────────────────────────────────────────────┤
@@ -308,6 +377,10 @@ sub statsam($) {
 		    ++$BadLines;
 		    last;
 		}
+		++$Reads;
+		$sumret=&sumsamdata(\@read1,\%datsum);
+		$Paired += $sumret->[0];
+		$Singled += $sumret->[1];
 		$line2=<$fh>;
 		last unless $line2;
 		my @read2=split /\t/, $line2;
@@ -315,11 +388,19 @@ sub statsam($) {
 		    ++$BadLines;
 		    last;
 		}
+		++$Reads;
+		$sumret=&sumsamdata(\@read2,\%datsum);
+		$Paired += $sumret->[0];
+		$Singled += $sumret->[1];
+		if (($PESE eq 'SE') or ($read1[0] ne $read2[0])){	# single
+			$PESE='SE';
+			next;
+		}
 		$calins=abs($read2[8]);
 		++$insD{$calins} if $calins < 1500;
     }
     $datsum{'BadLines'}=$BadLines;
-    return ['PE',[0,0,0],\%datsum,\%insD];
+    return [$PESE,[$Reads,$Paired,$Singled],\%datsum,\%insD];
 }
 my %dostat=(
     'sam'     => \&statsam,
@@ -364,9 +445,9 @@ while($_=shift @ARGV) {
         $mapSingle += $ret->[1]->[2];
         if ($ret->[0] eq 'PE') {
             $withPE=1;
-            &sumintohash($ret->[2],\%DatSum) if $ret->[2];
             &sumintohash($ret->[3],\%InsD) if $ret->[3];
         }
+        &sumintohash($ret->[2],\%DatSum) if $ret->[2];
         #print "\n[";dump($ret);print "]\n";
     } else {
         print STDERR "\b\b\bskipped."
@@ -414,6 +495,8 @@ if ($withPE) {
 		    $Rc += $v;
 	    }
     }
+    $Lc=-1 unless $Lc;
+    $Rc=-1 unless $Rc;
     $Lsd = sqrt($Lsd/$Lc);
     $Rsd = sqrt($Rsd/$Rc);
     print O "# +$Lsd -$Rsd\n";
