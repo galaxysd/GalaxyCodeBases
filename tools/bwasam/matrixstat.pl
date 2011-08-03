@@ -20,7 +20,7 @@ our $help=<<EOH;
 \t-r ref fasta file (./ref/human.fa)
 \t-s trim SNP positions from (<filename>) in format /^ChrID\\tPos/
 \t-l read length of reads (100)
-\t-o output prefix (./matrix).{mcount,mratio}
+\t-o output prefix (./matrix).{count,ratio}.matrix
 \t-c ChrID list (./chrtouse)
 \t-b No pause for batch runs
 For gzipped files, use zcat and pipe(|).
@@ -233,8 +233,8 @@ if ($type eq 'sam') {
     }
 }
 
-open OA,'>',$opt_o.'.mcount' or die "Error: $!\n";
-open OB,'>',$opt_o.'.mratio' or die "Error: $!\n";
+open OA,'>',$opt_o.'.count.matrix' or die "Error: $!\n";
+open OB,'>',$opt_o.'.ratio.matrix' or die "Error: $!\n";
 my $tmp;
 chomp(my $user=`id -nru`);
 @ARGV=('/etc/passwd');
