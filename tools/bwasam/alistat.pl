@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
-#use Data::Dump qw(dump);
+use Data::Dump qw(dump);
 
 $main::VERSION=0.0.1;
 our $opts='o:b';
@@ -186,7 +186,7 @@ sub sumsoapdata($$) {
     $dathref->{'TrimedBP'} += $TrimedBP;
     $dathref->{'misMatch'}{$_} += $misMatch{$_} for keys %misMatch;
     $dathref->{'Indel'}{$_} += $Indel{$_} for keys %Indel;
-    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;  # sth. wrong
+    $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;
     $dathref->{'Hit9bp'}{$_} += $Hit9bp{$_} for keys %Hit9bp;
 }
 sub statsoap($) {
@@ -332,11 +332,19 @@ sub sumintohash($$) {
     my ($inhref,$intohref)=@_;
     for my $key (keys %{$inhref}) {
         if (ref($$inhref{$key}) eq 'HASH') {
+            $$intohref{$key}={} unless exists $$intohref{$key};
             &sumintohash($$inhref{$key},$$intohref{$key});
         } else {
             $$intohref{$key} += $$inhref{$key};
         }
     }
+=pod
+    print STDERR '-' x 80,"\n";
+    dump($inhref);
+    print STDERR 'to',"\n";
+    dump($intohref);
+    print STDERR '-' x 80,"\n";
+=cut
 }
 
 my $files=0;
