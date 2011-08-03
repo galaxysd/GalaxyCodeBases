@@ -17,7 +17,7 @@ our($opt_o, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
-\t-o output prefix (./stat).{nfo,insD}
+\t-o output prefix (./stat).{info,insD}
 \t-b No pause for batch runs
 For SOAP, both soap/single files and STDERR dump are needed.
 For BWA , only insert size stat. is done currently.
@@ -507,7 +507,7 @@ if ($withPE) {
     close O;
 }
 
-open NFO,'>',"$opt_o.nfo" or die "[x]Error opening $opt_o.nfo: $!\n";
+open NFO,'>',"$opt_o.info" or die "[x]Error opening $opt_o.nfo: $!\n";
 if ($withPE) {
 	my $p=sprintf "%.2f",100*$max_y/$n;
 	$avg=int($avg*10+.5)/10;
