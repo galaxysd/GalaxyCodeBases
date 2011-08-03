@@ -1,4 +1,8 @@
 #!/bin/env perl
+=pod
+Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
+Version: 0.0.1 @ 20110803
+=cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
 #use lib '/export/data0/gentoo/tmp';
 use strict;
@@ -13,11 +17,12 @@ our($opt_o, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
-\t-o output prefix (./stat).{alistat,insert}
+\t-o output prefix (./stat).{nfo,insD}
 \t-b No pause for batch runs
 For SOAP, both soap/single files and STDERR dump are needed.
+For BWA , only insert size stat. is done currently.
 EOH
-our $ARG_DESC='soap_files{,.gz,.bz2}';
+our $ARG_DESC='soap/sam files{,.gz,.bz2}';
 
 ShowHelp();
 $opt_o='./stat' if ! $opt_o;
@@ -347,7 +352,7 @@ sub sumsamdata($$) {
 sub statsam($) {
     my $fh=$_[0];
     my ($PESE,$Reads,$toPaired,$toSingled,$BadLines,%datsum,%insD)=('PE',0,0,0,0);
-    my ($Paired,$Singled,$Reads,$Alignment)=(0,0,0,0);
+    my ($Paired,$Singled)=(0,0);
     my ($line1,$line2,$calins,$sumret);
 =pod
        │Col │ Field │                       Description                        │
