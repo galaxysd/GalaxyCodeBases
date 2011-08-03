@@ -738,7 +738,7 @@ void stat_soap_coverage::DealStat()
         }
 
         double k = sum_avg/sum_ref_count;
-        out << "#Win_Size=" << width << "\tWinCount=" << map_sumwincount[width] << "\tDepthCount=" << map_sumdepthcount[width] << endl
+        out << "#WinSize=" << width << "\tWinCount=" << map_sumwincount[width] << "\tDepthCount=" << map_sumdepthcount[width] << endl
             << "#GC%\tRefCnt\tDepthCnt\tMean\tSmall\tQ1\tMid\tQ3\tBig\tMin\tMax\tRefcntcal"
             << endl;
         for(int i=0; i<gc_keyname.size(); ++i)
@@ -769,7 +769,7 @@ void stat_soap_coverage::DealStat()
         exit(EXIT_FAILURE);
     }
     
-    log << "#chrid\tdepth\tcovered\tcvgratio\tchrlen_no_N\tNzone\tchrlen" << endl;
+    log << "#ChrID\tDepth\tCovered\tcvgRatio\tchrlen_no_N\tNzone\tchrlen" << endl;
     for(map<string, vector<double> >::iterator it=map_stat_coverage.begin(); it!=map_stat_coverage.end(); ++it)
     {
         log << it->first << "\t" << it->second[0] << "\t" << uint64_t(it->second[1]) << "\t" << it->second[2] << "\t" << uint64_t(it->second[3]) << "\t" << uint64_t(it->second[4]) << "\t" << uint64_t(it->second[5]) << endl;

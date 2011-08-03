@@ -13,4 +13,4 @@ main.o:main.cpp
 stat_soap_coverage.o:stat_soap_coverage.h stat_soap_coverage.cpp
 	${CC} -c ${LIBRARY} stat_soap_coverage.h stat_soap_coverage.cpp
 clean:
-	-rm ${OBJ}
+	-rm ${OBJ} *.gch
