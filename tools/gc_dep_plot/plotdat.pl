@@ -25,7 +25,7 @@ while(<IN>) {
 }
 close IN;
 
-open OUT,'>',$name.'.simple' or die "Error openimg ${name}.simple: $!\n";
+open OUT,'>',$name.'.gc' or die "Error openimg ${name}.gc: $!\n";
 print OUT "#WinSize: $WinSize\n",join("\t",'#GC%(left border)','MeanDepth'),"\n";
 my $step=5; # 5%
 my $lastGC=0;
