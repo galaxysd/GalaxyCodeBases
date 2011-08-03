@@ -15,7 +15,6 @@ our($opt_o, $opt_b);
 our $help=<<EOH;
 \t-o output prefix (./stat).{alistat,insert}
 \t-b No pause for batch runs
-
 For SOAP, both soap/single files and STDERR dump are needed.
 EOH
 our $ARG_DESC='soap_files{,.gz,.bz2}';

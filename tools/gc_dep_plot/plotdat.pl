@@ -1,5 +1,8 @@
 #!/bin/env perl
-#use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
+=pod
+Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
+Version: 0.1.0 @ 20110803
+=cut
 use strict;
 use warnings;
 
