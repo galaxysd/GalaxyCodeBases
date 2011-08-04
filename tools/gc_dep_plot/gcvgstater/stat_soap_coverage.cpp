@@ -628,7 +628,7 @@ void stat_soap_coverage::statDepth()
     boost::progress_timer timer;
     ofstream out((str_output_prefix + "_" + "stat.depth").c_str());
 
-    out << "#Depth\t_ALL_";
+    out << "#Depth\t_All_";
     for(int j=0; j<vec_chr_keyname.size(); j++)
     {
         out << "\t" << vec_chr_keyname[j];

@@ -524,7 +524,7 @@ if ($withPE) {
 }
 print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
 print NFO join("\t",'ALL',$DatSum{'ReadsOut'},$DatSum{'BPOut'},$DatSum{'MisSum'},$DatSum{'TrimedReads'},$DatSum{'TrimedBP'},
-	${&combineC($DatSum{'misMatch'})},${&combineJ($DatSum{'Hit9r'})},${&combineJ($DatSum{'Hit9bp'})},${&combineJ($DatSum{'Indel'})},$DatSum{'BadLines'}),"\n\n";
+	${&combineC($DatSum{'misMatch'})},${&combineJ($DatSum{'Hit9r'})},${&combineJ($DatSum{'Hit9bp'})},${&combineJ($DatSum{'Indel'})},$DatSum{'BadLines'}),"\n\n" if exists $DatSum{'Hit9r'};
 #print NFO "#fmtP\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
 #print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
 close NFO;
