@@ -288,16 +288,52 @@ sub sumsamdata($$) {
     my ($FLAG,$RNAME,$POS,$CIAGR,$MRNM,$MPOS,$ISIZE)=@{$_[0]}[1,2,3,5,6,7,8];
     my $dathref=$_[1];
     my ($BPOut,$ReadsOut,$MisSum,$TrimedBP,$TrimedReads,%Hit9r,%Hit9bp,%misMatch,%Indel)=(0,0,0,0,0);
-    my (@trims,@matches,@inserts,$missed);
+    my (@trims,@matches,@inserts,@deletes,$missed);
     my ($isPaired,$isSingled)=(0,0);
+    unless ($CIAGR eq '*') {
+        ++$ReadsOut;
+    } else { return [0,0]; }
+    if ($FLAG & 2) {
+        $isPaired=1;
+    } else {   #($FLAG & 8) and ($FLAG & 4 == 0)
+        $isSingled=1;
+#print '[',join('|',@{$_[0]}),']' unless $FLAG & 8;
+#print $FLAG & 8,'|';
+    }
 	@matches = $CIAGR =~ /(\d+)M/;
 	for ( @matches ) {
 		$BPOut += $_;
 	}
+	my ($Insertion,$Deletion)=(0,0);
 	@inserts = $CIAGR =~ /(\d+)I/;
 	for ( @inserts ) {
 		$BPOut += $_;
+		$Insertion += $_;
 	}
+	@deletes = $CIAGR =~ /(\d+)D/;
+	for ( @deletes ) {
+		$Deletion -= $_;
+	}
+	if ($Insertion and $Deletion) {
+	    $Indel{$Insertion} += 0.5;
+	    $Indel{$Deletion} += 0.5;
+	} elsif ($Insertion) {
+	    ++$Indel{$Insertion};
+	} else {
+	    ++$Indel{$Deletion};
+	}
+	my $Alternativehits='';
+	for ( @{$_[0]} ) {
+    	$Alternativehits = $1 if /^XA:Z:([\w,+-;]+)$/; #XA:Z:chrX,+1144912,100M,0;
+	    next unless /^XM:i:(\d+)$/;
+	    $MisSum += $1;
+#print '[',join('|',@{$_[0]}),']',"\t[$1,$MisSum]\n";
+	}
+	my $hit=1+scalar split(';',$Alternativehits);
+	$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
+	++$Hit9r{$hit};
+	$Hit9bp{$hit} += $BPOut;
+	++$misMatch{$MisSum};
 	@trims = $CIAGR =~ /(\d+)S/;
 	if (@trims) {
 		++$TrimedReads;
@@ -307,36 +343,6 @@ sub sumsamdata($$) {
 			#$chrTrimedBP{$chr} += $_;
 		}
 	}
-=pod
-		++$ReadsOut;#	++$chrReadsOut{$chr};
-		$missed=$mistr=~tr/ATCGatcg//;
-		++$misMatch{$missed};
-		#++$chrmisMatch{$chr}{$missed};
-		$MisSum += $missed;
-		#$chrMisSum{$chr} += $missed;
-
-		$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
-		++$Hit9r{$hit};
-		#++$chrHit9r{$chr}{$hit};
-		$Hit9bp{$hit} += $len;
-		#$chrHit9bp{$chr}{$hit} += $len;
-		if ($types > 200) {
-			++$Indel{200-$types};
-			#++$chrIndel{$chr}{200-$types};
-		} elsif ($types > 100) {
-			++$Indel{$types-100};
-			#++$chrIndel{$chr}{$types-100};
-		}
-
-		@trims = $trim =~ /(\d+)S/;
-		if (@trims) {
-			++$TrimedReads;
-			#++$chrTrimedReads{$chr};
-			for ( @trims ) {
-				$TrimedBP += $_;
-				#$chrTrimedBP{$chr} += $_;
-			}
-		}
     $dathref->{'BPOut'} += $BPOut;
     $dathref->{'ReadsOut'} += $ReadsOut;
     $dathref->{'MisSum'} += $MisSum;
@@ -346,7 +352,6 @@ sub sumsamdata($$) {
     $dathref->{'Indel'}{$_} += $Indel{$_} for keys %Indel;
     $dathref->{'Hit9r'}{$_} += $Hit9r{$_} for keys %Hit9r;
     $dathref->{'Hit9bp'}{$_} += $Hit9bp{$_} for keys %Hit9bp;
-=cut
     return [$isPaired,$isSingled];
 }
 sub statsam($) {
@@ -401,7 +406,7 @@ sub statsam($) {
 			next;
 		}
 		$calins=abs($read2[8]);
-		++$insD{$calins} if $calins < 1500;
+		++$insD{$calins} if $sumret->[0] and $calins < 1500;
     }
     $datsum{'BadLines'}=$BadLines;
     return [$PESE,[$Reads,$Paired,$Singled],\%datsum,\%insD];
@@ -524,7 +529,7 @@ if ($withPE) {
 }
 print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
 print NFO join("\t",'ALL',$DatSum{'ReadsOut'},$DatSum{'BPOut'},$DatSum{'MisSum'},$DatSum{'TrimedReads'},$DatSum{'TrimedBP'},
-	${&combineC($DatSum{'misMatch'})},${&combineJ($DatSum{'Hit9r'})},${&combineJ($DatSum{'Hit9bp'})},${&combineJ($DatSum{'Indel'})},$DatSum{'BadLines'}),"\n\n" if exists $DatSum{'Hit9r'};
+	${&combineC($DatSum{'misMatch'})},${&combineJ($DatSum{'Hit9r'})},${&combineJ($DatSum{'Hit9bp'})},${&combineJ($DatSum{'Indel'})},$DatSum{'BadLines'}),"\n\n";# if exists $DatSum{'Hit9r'};
 #print NFO "#fmtP\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\n";
 #print NFO join("\t",";$_",$chrReadsOut{$_},$chrBPOut{$_},$chrMisSum{$_}||0,$chrTrimedReads{$_}||0,$chrTrimedBP{$_}||0,${&combineC(\%{$chrmisMatch{$_}})},${&combineJ(\%{$chrHit9r{$_}})},${&combineJ(\%{$chrHit9bp{$_}})},${&combineJ(\%{$chrIndel{$_}})}),"\n" for sort keys %chrReadsOut;
 close NFO;
