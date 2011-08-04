@@ -18,5 +18,8 @@ test: gc_coverage_bias
 	-./gc_coverage_bias_plot test_100.dat
 	-./gc_coverage_bias_plot test_200.dat
 	ls -l test*
+testclean:
+	-rm -v test_*
 clean:
-	-rm ${OBJ} *.gch
+	-rm -v ${OBJ} *.gch
+
