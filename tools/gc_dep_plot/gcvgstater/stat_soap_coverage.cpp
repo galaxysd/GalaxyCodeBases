@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <vector>
 #include <boost/progress.hpp>
-//#include <boost/regex.hpp>
 #include <boost/progress.hpp>
 #include "gzstream.h"
 #include "self_util.h"
@@ -33,15 +32,7 @@ stat_soap_coverage::~stat_soap_coverage()
 
 void stat_soap_coverage::DealReference()
 {
-//    cout << "deal reference time: " ;
     boost::progress_timer timer;
-    /*
-    for(int i=0; i<1000000; i++)
-    {
-        int m = 0;
-        m += 1;
-    }
-    */
     igzstream in(str_ref_file_name.c_str());
     string line;
     string keyname = "";
@@ -51,23 +42,25 @@ void stat_soap_coverage::DealReference()
 
     while(getline(in, line))
     {
-//        cout << "1__:" << line << endl;
         TrimLeft(line);
-//        cout << "2__:" << line << endl;
         TrimRight(line);
-//        cout << "__:" << line << endl;
         if(line[0] == '>')
         {
             if(sequence.length() != 0)
             {
                 map_reference_base[keyname] = sequence;
+                cerr << "map_reference_base:" << keyname << ":" << sequence.length() << endl;
                 vec_chr_keyname.push_back(keyname);
             }
 
             int index;
-            if(((index = line.find(" ")) == string::npos) || ((index = line.find("\t")) == string::npos) || ((index = line.find("\n")) == string::npos))
+            if(((index = line.find(" ")) != string::npos) || ((index = line.find("\t")) != string::npos) || ((index = line.find("\n")) != string::npos))
             {
-                keyname = line.substr(1, index);
+                keyname = line.substr(1, index-1);
+            }
+            else
+            {
+                keyname = line.substr(1);
             }
 
             sequence.clear();
@@ -76,15 +69,12 @@ void stat_soap_coverage::DealReference()
 
         sequence += line;
     }
-//    exit(EXIT_FAILURE);
 
-//    cout << "sequence.size():" << sequence.length()<< endl;
     if(sequence.length() != 0)
     {
         map_reference_base[keyname] = sequence;
         vec_chr_keyname.push_back(keyname);
     }
-//    cout << " map_reference_base:" << map_reference_base.size() << endl;
     
     in.close();
     cout << "deal reference time: " ;
@@ -93,14 +83,12 @@ void stat_soap_coverage::DealReference()
 void stat_soap_coverage::DealSoapCoverage()
 {
   
-//    cout << "deal soapcoverage time: ";
     boost::progress_timer timer;
     boost::progress_display display(vec_soap_file_name.size());
 
     for(vector<string>::iterator it = vec_soap_file_name.begin(); it != vec_soap_file_name.end(); ++it)
     {
         igzstream in((*it).c_str());
-//        cerr << (*it) << " begin!" << endl;
         string line;
         string keyname;
         string strTemp = "";
@@ -120,13 +108,17 @@ void stat_soap_coverage::DealSoapCoverage()
                 if(chr_soap_coverage.size() == 0)
                 {
                     int index;
-                    if(((index = line.find(" ")) == string::npos) || ((index = line. find("\t")) == string::npos) || ((index = line.find("\n")) == string::npos))
+                    if(((index = line.find(" ")) != string::npos) || ((index = line. find("\t")) != string::npos) || ((index = line.find("\n")) != string::npos))
                     {
-                        keyname = line.substr(1, index);    
+                        keyname = line.substr(1, index-1);    
+                    }
+                    else
+                    {
+                        keyname = line.substr(1);
                     }
                     for(int i=0; i<map_reference_base[keyname].size(); ++i)
                     {
-                        //unsigned int in_temp;
+                        
                         in >> in_temp;
                         if(in_temp == 65535)
                         {
@@ -153,168 +145,16 @@ void stat_soap_coverage::DealSoapCoverage()
                             }
                         }
                     }
+
+                  
                 }
 
                 keyname = "";
                 chr_soap_coverage.clear();
 
             }
-    /*
 
-            if(line[0] == '>')
-            {
-                cerr << keyname << endl;
-                if(strTemp.length() != 0)
-                {
-//                    cerr << keyname << endl;
-                    string str("65535");
-                    while(strTemp.find(str) != string::npos)
-                    {
-                        strTemp.replace(line.find(str), str.length(), "0");
-                    }
-
-                //    cout << "strTemp " << strTemp.size() << endl;
-                    stringstream ss;
-                    ss << strTemp;
-                    int i;
-                    while(ss >> i)
-                    {
-                        chr_soap_coverage.push_back(i);
-                    }
-                    //chr_soap_coverage = splitStringToInt(strTemp);
-*/
-                    
-            /*
-                    cout << "boost" << endl;
-                    boost::regex reg("\\s+");
-                    const char * chstrTemp = strTemp.c_str();
-                    boost::cregex_token_iterator itrBegin = make_regex_token_iterator(chstrTemp, reg, -1);
-                    boost::cregex_token_iterator itrEnd;
-
-                    for(boost::cregex_token_iterator itr = itrBegin; itr!=itrEnd; ++itr)
-                    {
-                        //char* ch = itr;
-                        string s = *itr;
-                        chr_soap_coverage.push_back((unsigned short int)atoi(s.c_str()));
-                    }
-                    
-              //      cout << "chr_soap_coverage " << chr_soap_coverage.size() << endl;
-              */
-            /*
-                    if(map_soap_coverage.count(keyname) == 0)
-                    {
-                        map_soap_coverage[keyname] = chr_soap_coverage;
-                    }
-                    else
-                    {
-                        for(int i=0; i<map_soap_coverage[keyname].size(); ++i)
-                        {
-                            uint64_t temp = map_soap_coverage[keyname][i] + chr_soap_coverage[i];
-                            if(temp > 65534)
-                            {
-                                map_soap_coverage[keyname][i] = 65534;
-                            }
-                            else
-                            {
-                                map_soap_coverage[keyname][i] += chr_soap_coverage[i];
-                            }
-                        }
-                    }
-                }
-
-                int index;
-                if(((index = line.find(" ")) == string::npos) || ((index = line.find("\t")) == string::npos) || ((index = line.find("\n")) == string::npos))
-                {
-                    keyname = line.substr(1, index);
-                }
-
-                chr_soap_coverage.clear();
-                strTemp = "";
-                continue;
-            }
-            
-            strTemp += "\t";
-            strTemp += line;
-            */
-//            cout << "strTemp" <<strTemp << endl;
-            //strTemp = strTemp + "\t" + line;
         }
-        
-//        cout << "boost" << endl;
-//        cout << "strTemp" <<strTemp << endl;
-//
-/*
-        if(strTemp.length() != 0)
-        {
-            cerr << keyname << endl;
-
-            string str("65535");
-            while(strTemp.find(str) != string::npos)
-            {
-                strTemp.replace(line.find(str), str.length(), "0");
-            }
-
-            //cout << "strTemp: " << strTemp.size() << endl;
-            
-            stringstream ss;
-            ss << strTemp;
-            int i;
-            while(ss >> i)
-            {
-                chr_soap_coverage.push_back(i);
-            }
-           // chr_soap_coverage = splitStringToInt(strTemp);
-*/
-/*            
-            boost::regex reg("\\s+");
-            const char * chstrTemp = strTemp.c_str();
-            cout << "----------" << endl;
-            //boost::cregex_token_iterator itrBegin = make_regex_token_iterator(chstrTemp, reg, -1);
-            const string& hs(strTemp);//= "11111111111111 1111111111";
-            boost::sregex_iterator itr(hs.begin(), hs.end(), reg);
-            cout << "+++++++++" << endl;
-            //boost::cregex_token_iterator itrEnd;
-            boost::sregex_iterator itrEnd;
-            
-            
-            //cout << "strTemp: " << chstrTemp << endl;
-            for(; itr!=itrEnd; ++itr)
-            {
-                //char* ch = itr;
-                //string s = *itr;
-                cout << "-----------" << endl;
-                chr_soap_coverage.push_back((unsigned short int)atoi(itr->str().c_str()));
-                cout << (unsigned short int)atoi(itr->str().c_str()) << "\t" << endl;
-            }
-            */
-//            cout << "--------------------" << endl;
-//            cout << chr_soap_coverage.size() << ":chr_soap_coverage" << endl;
-                
-                
-            //cout << "chr_soap_coverage " << chr_soap_coverage.size() << endl;
-  /*          if(map_soap_coverage.count(keyname) == 0)
-            {
-                map_soap_coverage[keyname] = chr_soap_coverage;
-            }
-            else
-            {
-                for(int i=0; i<map_soap_coverage[keyname].size(); ++i)
-                {
-                    uint64_t temp = map_soap_coverage[keyname][i]+chr_soap_coverage[i];
-                    if(temp > 65534)
-                    {
-                        map_soap_coverage[keyname][i] = 65534;
-                    }
-                    else
-                    {
-                        map_soap_coverage[keyname][i] += chr_soap_coverage[i];
-                    }
-                }
-            }
-        }
-
-        */
-//        cerr << *it << " finished!" << endl;
         in.close();
         ++display;
     }
@@ -323,7 +163,6 @@ void stat_soap_coverage::DealSoapCoverage()
 
 void stat_soap_coverage::StatGC()
 {
-//    cout << "stat GC time: ";
     boost::progress_timer timer;
     boost::progress_display display(vec_width.size());
     bool b_depth = true;
@@ -333,9 +172,9 @@ void stat_soap_coverage::StatGC()
         map<double, vector<double> > map_soap_gc_depth;
         vector<double> gc_keyname;
         map<double, uint64_t> map_temp_wincount;
-        //map<double, map<string, uint64_t> > map_depth;
 
         ogzstream gzgcdump, gzdepwindump;
+        winCountN[width] = 0;
         if(b_gcdump)
         {
             gzgcdump.open((str_output_prefix+"_"+toStr(width)+".refgc.gz").c_str());
@@ -404,12 +243,6 @@ void stat_soap_coverage::StatGC()
                     {
                         countGC++;
                     }
-/*
-                    if((it->second[j] != 'N') || (it->second[j] != 'n'))
-                    {
-                        sumBase += map_soap_coverage[keyname][j];
-                    }
-                    */
                 }
                 else
                 {
@@ -422,15 +255,22 @@ void stat_soap_coverage::StatGC()
                         map_sumwincount[width] += 1;
                     }
 
-                    double rate = (double)countGC/(width-countN) * 100;
-                    double key = int(rate) + 0.5;
-                    if(map_temp_wincount.count(key) == 0)
+                    if((width-countN) != 0)
                     {
-                        map_temp_wincount[key] = 1;
+                        double rate = (double)countGC/(width-countN) * 100;
+                        double key = int(rate) + 0.5;
+                        if(map_temp_wincount.count(key) == 0)
+                        {
+                            map_temp_wincount[key] = 1;
+                        }
+                        else
+                        {
+                            map_temp_wincount[key] += 1;
+                        }
                     }
                     else
                     {
-                        map_temp_wincount[key] += 1;
+                        winCountN[width] += 1;
                     }
 
                     if(((double)countN/width >= 0.75) || ((width - countN) <= 30))
@@ -503,12 +343,6 @@ void stat_soap_coverage::StatGC()
                     {
                         countGC++;
                     }
-/*                    
-                    if((it->second[j] != 'N') || (it->second[j] != 'n'))
-                    {
-                        sumBase += map_soap_coverage[keyname][j];
-                    }
-*/
                     countPos = 1;
                 }
             }
@@ -525,7 +359,6 @@ void stat_soap_coverage::StatGC()
         }
 
         map_wincount[width] = map_temp_wincount;
-        //map_stat_depth[width] = map_depth;
         b_depth = false;
         if(map_width_soap_gc_depth.count(width) == 0)
         {
@@ -545,7 +378,6 @@ void stat_soap_coverage::StatGC()
 
 void stat_soap_coverage::StatCoverage()
 {
-//    cout << "stat coverage time: ";
     boost::progress_timer timer;
     boost::progress_display display(map_reference_base.size());
     uint64_t all_countN = 0;
@@ -597,7 +429,7 @@ void stat_soap_coverage::StatCoverage()
         ++display;
     }
 
-    if(map_stat_coverage.count("_All") == 0)
+    if(map_stat_coverage.count("_All_") == 0)
     {
         vector<double> temp;
         temp.push_back((double)all_sumBase/(all_sum - all_countN));
@@ -606,7 +438,7 @@ void stat_soap_coverage::StatCoverage()
         temp.push_back((double)(all_sum - all_countN));
         temp.push_back((double)all_countN);
         temp.push_back((double)all_sum);
-        map_stat_coverage["_All"] = temp;
+        map_stat_coverage["_All_"] = temp;
     }
     cout << "stat coverage time: ";
 }
@@ -620,7 +452,6 @@ void stat_soap_coverage::DealStat()
     StatCoverage();
     cout << "statCoverage end!" << endl;
     
-//    cout << "deal stat time: ";
     boost::progress_timer timer;
     boost::progress_display display(map_width_soap_gc_depth.size());
     for(map<int, map<double, vector<double> > >::iterator it = map_width_soap_gc_depth.begin(); it != map_width_soap_gc_depth.end(); ++it)
@@ -661,7 +492,7 @@ void stat_soap_coverage::DealStat()
                 {
                     Q1 = 0;
                     Q2 = 0;
-                    Q3 = 0;//temp[int((temp.size()+1)/4)] + (temp[int((temp.size()+1)/4) + 1] - temp[int((temp.size()+1)/4)]) * (((double)(temp.size()+1)/4)-(int((temp.size()+ 1)/4)));
+                    Q3 = 0;
                 }
                 else
                 {
@@ -689,8 +520,6 @@ void stat_soap_coverage::DealStat()
             double small_value, big_value;
             double small_temp_value = Q1-1.5*(Q3-Q1);
             double big_temp_value = Q3+1.5*(Q3-Q1);
-//            cout << "small_temp_value" << small_temp_value << endl;
-//            cout << "big_temp_value" << big_temp_value << endl;
 
             for(int small_i = 0; small_i < temp.size(); small_i++)
             {
@@ -739,6 +568,7 @@ void stat_soap_coverage::DealStat()
 
         double k = sum_avg/sum_ref_count;
         out << "#WinSize=" << width << "\tWinCount=" << map_sumwincount[width] << "\tDepthCount=" << map_sumdepthcount[width] << endl
+            << "#All-N windows count: " << winCountN[width] << endl
             << "#GC%\tRefCnt\tDepthCnt\tMean\tSmall\tQ1\tMid\tQ3\tBig\tMin\tMax\tRefcntcal"
             << endl;
         for(int i=0; i<gc_keyname.size(); ++i)
@@ -769,7 +599,7 @@ void stat_soap_coverage::DealStat()
         exit(EXIT_FAILURE);
     }
     
-    log << "#ChrID\tDepth\tCovered\tcvgRatio\tchrlen_no_N\tNzone\tchrlen" << endl;
+    log << "#chrid\tdepth\tcovered\tcvgratio\tchrlen_no_N\tNzone\tchrlen" << endl;
     for(map<string, vector<double> >::iterator it=map_stat_coverage.begin(); it!=map_stat_coverage.end(); ++it)
     {
         log << it->first << "\t" << it->second[0] << "\t" << uint64_t(it->second[1]) << "\t" << it->second[2] << "\t" << uint64_t(it->second[3]) << "\t" << uint64_t(it->second[4]) << "\t" << uint64_t(it->second[5]) << endl;
@@ -796,43 +626,35 @@ void stat_soap_coverage::statDepth()
 {
     cout << "stat depth time: ";
     boost::progress_timer timer;
-//    for(map<int, map<double, map<string, uint64_t> > >::iterator it = map_stat_depth.begin(); it != map_stat_depth.end(); it++)
-//    {
-//        int width = it->first;
-        ofstream out((str_output_prefix + "_" + "stat.depth").c_str());
+    ofstream out((str_output_prefix + "_" + "stat.depth").c_str());
 
-        out << "#Depth\t_ALL_";
+    out << "#Depth\t_ALL_";
+    for(int j=0; j<vec_chr_keyname.size(); j++)
+    {
+        out << "\t" << vec_chr_keyname[j];
+    }
+
+    out << endl;
+    vector<double> temp;
+    for(map<double, map<string, uint64_t> >::iterator it2 = map_stat_depth.begin(); it2 != map_stat_depth.end(); it2++)
+    {
+        temp.push_back(it2->first);
+    }
+    sort(temp.begin(), temp.end());
+    for(int i=0; i<temp.size(); ++i)
+    {
+        uint64_t sum = 0;
         for(int j=0; j<vec_chr_keyname.size(); j++)
         {
-            out << "\t" << vec_chr_keyname[j];
+            sum += map_stat_depth[temp[i]][vec_chr_keyname[j]];
         }
 
+        out << temp[i] << "\t" << sum << "\t";
+        for(int j=0; j<vec_chr_keyname.size(); j++)
+        {
+            out << "\t" << uint64_t(map_stat_depth[temp[i]][vec_chr_keyname[j]]);
+        }
         out << endl;
-        vector<double> temp;
-        for(map<double, map<string, uint64_t> >::iterator it2 = map_stat_depth.begin(); it2 != map_stat_depth.end(); it2++)
-        {
-            temp.push_back(it2->first);
-        }
-        sort(temp.begin(), temp.end());
-        //cout << "~~~~~~~~~~~~~:" << temp.size() << endl;
-        for(int i=0; i<temp.size(); ++i)
-        {
-//            for(map<double, map<string, uint64_t> >::iterator it2 = map_stat_depth[width].begin(); it2 != map_stat_depth[width].end(); it2++)
-           // {
-                uint64_t sum = 0;
-                for(int j=0; j<vec_chr_keyname.size(); j++)
-                {
-                    sum += map_stat_depth[temp[i]][vec_chr_keyname[j]];
-                }
-
-                out << temp[i] << "\t" << sum << "\t";
-                for(int j=0; j<vec_chr_keyname.size(); j++)
-                {
-                    out << "\t" << uint64_t(map_stat_depth[temp[i]][vec_chr_keyname[j]]);
-                }
-                //out << endl;
-            out << endl;
-        }
-            out.close();
-    //}
+    }
+    out.close();
 }

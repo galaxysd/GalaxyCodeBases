@@ -17,14 +17,6 @@ class stat_soap_coverage
         bool b_gcdump;
         bool b_depwindump;
         map<string, string> map_reference_base;
-        //uint64_t:
-        //vecotr[2]
-        //1.the sumbase in x width
-        //2.the N_num in x width
-
-        //3.the chr_sum_base
-        //4.the coverage_num > 0
-        //map<int, map<string, vector<vector<vector<uint64_t> >, uint64_t, uint64_t> > > map_soap_coverage;
         map<string, vector<unsigned int> > map_soap_coverage;
         map<int, map<double, vector<double> > > map_width_soap_gc_depth;
         map<int, vector<double> > map_gc_keyname;
@@ -34,6 +26,7 @@ class stat_soap_coverage
         map<int, map<double, uint64_t> >map_wincount;
         map<double, map<string, uint64_t> > map_stat_depth;
         vector<string> vec_chr_keyname;
+        map<int, uint64_t> winCountN;
 
     public:
         stat_soap_coverage(string str_ref_file_name, string str_output_prefix,
