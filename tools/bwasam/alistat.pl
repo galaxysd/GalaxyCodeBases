@@ -329,7 +329,8 @@ sub sumsamdata($$) {
 	    $MisSum += $1;
 #print '[',join('|',@{$_[0]}),']',"\t[$1,$MisSum]\n";
 	}
-	my $hit=1+scalar split(';',$Alternativehits);
+	my @excigar=split(';',$Alternativehits);
+	my $hit=1+scalar @excigar;
 	$hit=4 if $hit>4;	# max to count 3, then >=4. Ancient Chinese wisdom, and a bit more ...
 	++$Hit9r{$hit};
 	$Hit9bp{$hit} += $BPOut;
@@ -440,6 +441,7 @@ sub sumintohash($$) {
 my $files=0;
 my ($withPE,$InReads,$mapPair,$mapSingle,%DatSum,%InsD)=(0,0,0,0);
 while($_=shift @ARGV) {
+    next unless -f $_;
     ++$files;
     my $infile;
     $infile=openfile($_);
