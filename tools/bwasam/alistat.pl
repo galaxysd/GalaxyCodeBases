@@ -464,9 +464,8 @@ warn "[!]Files Read: $files\n";
 my ($n,$v,$avg,$std,$Lsd,$Rsd,$max_y,$max_x,$sum,$sum2)=(0);
 if ($withPE) {
     open O,'>',"$opt_o.insD" or die "[x]Error opening $opt_o.insD: $!\n";
-    for my $k (sort {$a <=> $b} keys %InsD) {
+    for my $k (keys %InsD) {
 	    $v=$InsD{$k};
-	    print O "$k\t$v\n";
 	    $sum += $k * $v;
 	    $n += $v;
 	    $sum2 += $k*$k * $v;
@@ -503,20 +502,24 @@ if ($withPE) {
     $Rc=-1 unless $Rc;
     $Lsd = sqrt($Lsd/$Lc);
     $Rsd = sqrt($Rsd/$Rc);
-    print O "# +$Lsd -$Rsd\n";
+    print O "# +$Lsd -$Rsd\n#InsertSize\tCount\n";
+    for my $k (sort {$a <=> $b} keys %InsD) {
+	    $v=$InsD{$k};
+	    print O "$k\t$v\n";
+    }
     close O;
 }
 
-open NFO,'>',"$opt_o.info" or die "[x]Error opening $opt_o.nfo: $!\n";
+open NFO,'>',"$opt_o.info" or die "[x]Error opening $opt_o.info: $!\n";
 if ($withPE) {
 	my $p=sprintf "%.2f",100*$max_y/$n;
 	$avg=int($avg*10+.5)/10;
 	$Lsd=int($Lsd*100+.5)/100;
 	$Rsd=int($Rsd*100+.5)/100;
-	print NFO "#fmtS\tTotal_Reads\ttoPaired\ttoSingled\tModeIns(p%),Lsd,Rsd,InsAvg,STD\n";
+	print NFO "#fmtS\tTotalReads\ttoPaired\ttoSingled\tModeIns(p%),Lsd,Rsd,InsAvg,STD\n";
 	print NFO "Summary\t",join("\t",$InReads,$mapPair,$mapSingle,"$max_x($p %),$Lsd,$Rsd,$avg,$std"),"\n";
 } else {
-	print NFO "#fmtS\tTotal_Reads\tAlignment\n";
+	print NFO "#fmtS\tTotalReads\tAlignment\n";
 	print NFO "Summary\t",join("\t",$InReads,$mapSingle),"\n";
 }
 print NFO "\n#fmtC\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads\tReads\@Hit\tBP\@Hit\tIndelReads\tBadLines\n";
@@ -531,15 +534,27 @@ close NFO;
 __END__
 [$InReads,$mapPair,$mapSingle,\%DatSum,\%InsD]
 [
-  195396612,
-  165784596,
-  13243429,
+  196657088,
+  171314024,
+  11148094,
   {
     BadLines    => 0,
-    BPOut       => 196395,
-    MisSum      => 1008,
+    BPOut       => 396395,
+    Hit9bp      => { 1 => 323074, 2 => 7900, 3 => 3063, 4 => 62358 },
+    Hit9r       => { 1 => 3266, 2 => 79, 3 => 31, 4 => 624 },
+    misMatch    => {
+                     "0" => 2441,
+                     "1" => 498,
+                     "2" => 380,
+                     "3" => 129,
+                     "4" => 218,
+                     "5" => 116,
+                     "6" => 107,
+                     "7" => 111,
+                   },
+    MisSum      => 4516,
     PEuniqPairs => 973,
-    ReadsOut    => 2000,
+    ReadsOut    => 4000,
     TrimedBP    => 3568,
     TrimedReads => 122,
   },
