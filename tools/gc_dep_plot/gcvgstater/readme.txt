@@ -18,3 +18,15 @@ Insert size & mapping ratio stat:
 2. run alignment_stator *.
 * alignment_stator cannot stat. mapping ratio for sam files now.
 
+c7618d69b6a8786715431fbfc33dc20e *alignment_stator
+c7618d69b6a8786715431fbfc33dc20e *alignment_stator.pl
+6f68d7dfc60a523557953f67b3281f97 *error_matrix_analyzer
+6f68d7dfc60a523557953f67b3281f97 *error_matrix_analyzer.pl
+8b921ff206f40fc608f06abb126842b0 *error_matrix_calculator
+8b921ff206f40fc608f06abb126842b0 *error_matrix_calculator.pl
+101728bda732f984c05513671785881b *error_matrix_merger
+101728bda732f984c05513671785881b *error_matrix_merger.pl
+e5a51d46f5f676057e4123136ba4cae2 *gc_coverage_bias
+e0ef280b60477f828bff8d0653dc4e9c *gc_coverage_bias_plot
+e0ef280b60477f828bff8d0653dc4e9c *gc_coverage_bias_plot.pl
+78f578c83fed400dca2fb23c6e5068d8 *readme.txt
