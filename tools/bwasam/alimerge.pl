@@ -27,9 +27,19 @@ sub combineC($) {
 		return \join('|',@str);
 	} else {return \'.';}
 }
+sub combineJ($) {
+	my $href=$_[0];
+	if ($href and %$href) {
+		my @str;
+		for (sort {$a<=>$b} keys %$href) {
+			push @str,join(':',$_,$$href{$_});
+		}
+		return \join(',',@str);
+	} else {return \'.';}
+}
 sub combineLineA($) {
 	my $ref=$_[0];
-	return join ',',@{$$ref{Summary}},@{$$ref{ALL}}[0..4],${&combineC($$ref{ALL}[5])},${&combineC($$ref{ALL}[6])},${&combineC($$ref{ALL}[7])},${&combineC($$ref{ALL}[8])},$$ref{ALL}[9];
+	return join "\t",@{$$ref{Summary}},@{$$ref{ALL}}[0..4],${&combineC($$ref{ALL}[5])},${&combineC($$ref{ALL}[6])},${&combineC($$ref{ALL}[7])},${&combineJ($$ref{ALL}[8])},$$ref{ALL}[9];
 }
 sub combineLine($) {
 	my $ref=$_[0];
@@ -96,7 +106,7 @@ close INS;
 #__END__
 my %Chr;
 open O,'>',$statout.'.stat' or die "[x]Error opening $statout.stat: $!\n";
-print O "#Summary\tSubItemOrder: Total_Reads,Aligned_Pairs,Aligned_Single,ReadsOut,BPOut,MisSum,TrimedReads,TrimedBP,misMatchReads|ASC,Reads\@Hit|ASC,BP\@Hit|ASC,IndelReads|ASC,BadLines\n";
+print O "#Summary:\n#Total_Reads	Aligned_Pairs,Aligned_Single\tReadsOut\tBPOut\tMisSum\tTrimedReads\tTrimedBP\tmisMatchReads|ASC\tReads\@Hit|ASC\tBP\@Hit|ASC\tIndelReads|ASC\tBadLines\n";
 my $RFL=&combineLineA($Dathref);
 print O $RFL,"\n";
 close O;
