@@ -393,6 +393,7 @@ void stat_soap_coverage::StatCoverage()
 
         for(int i=0; i<it->second.length(); ++i)
         {
+            all_sum++;
             if((it->second[i] == 'N') || (it->second[i] == 'n'))
             {
                 all_countN++;
@@ -400,7 +401,6 @@ void stat_soap_coverage::StatCoverage()
                 continue;
             }
             
-            all_sum++;
             if(map_soap_coverage[keyname][i] != 0)
             {
                 all_coverageNum++;

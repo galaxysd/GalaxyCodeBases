@@ -18,7 +18,7 @@ void usage()
         << "Name:           gc_coverage_bias" << endl
         << "Compile Date:   2011-08-03" << endl
         << "Author:         ganjun" << endl
-        << "Version:        1.0" << endl
+        << "Version:        1.01" << endl
         << "Contact:        ganjun@genomics.org,cn" << endl;
 
     cerr << "\n\nUsage:\tgc_coverage_bias [options] <*.soap.coverage>" << endl
