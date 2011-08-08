@@ -11,7 +11,7 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 use Data::Dump qw(dump);
 
-$main::VERSION=0.0.1;
+$main::VERSION=0.0.2;
 our $opts='o:b';
 our($opt_o, $opt_b);
 
@@ -206,6 +206,7 @@ sub statsoap($) {
 		    ++$BadLines;
 		    last;
 		}
+		&sumsoapdata([$n1, $len1, $chr1, $types1, $m1, $mistr1],\%datsum);
 		$line2=<$fh>;
 		last unless $line2;
 		my ($id2, $n2, $len2, $f2, $chr2, $x2, $types2, $m2, $mistr2)
@@ -218,7 +219,6 @@ sub statsoap($) {
 			#        ($hit,$len,        $chr,$types,$trim,$mistr) = @lines[3,5,7,9,-2,-1];
 		$id1 =~ s/\/[12]$//;
 		$id2 =~ s/\/[12]$//;
-		&sumsoapdata([$n1, $len1, $chr1, $types1, $m1, $mistr1],\%datsum);
 		&sumsoapdata([$n2, $len2, $chr2, $types2, $m2, $mistr2],\%datsum);
 		if (($PESE eq 'SE') or ($id1 ne $id2)){	# single
 			$PESE='SE';
