@@ -56,7 +56,7 @@ sub sumup ($$$) {
 	my ($a,$m)=($$sum{Summary},$$sum{ALL});
 	my ($b,$n)=($$item{Summary},$$item{ALL});
 	if ($PESE eq 'PE') {
-		$$a[0] += $$b[0]+$$b[0];
+		$$a[0] += $$b[0];#+$$b[0];
 		$$a[1] += $$b[1];
 		$$a[2] += $$b[2];
 	} else {
