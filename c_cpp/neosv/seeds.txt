@@ -1,0 +1,41 @@
+Seeds of Weight 12:
+small regions (transition rich),#@###@-##--#---####,####@-#@##-####
+average regions (transition rich),#@##-#---##---#--@####,####-#@#@#--##-##
+small regions,###-###-##-####,#####-#---#---#-##-##
+average regions,###-#-##-#--##-###,#-##-#---##--#---#-####
+coding regions,##-##--#-#@-@#-##-##
+Seeds of Weight 11:
+small regions (transition rich),#####-#@#-@###,##@-#--#-#--##-##@#
+average regions (transition rich),##-##-@#-#--@--##-##,###-###@#@-###
+small regions,##-##-##--#----####,###-##---###-##-#
+average regions,##-#-#-####-#--##,##-##----#--##-##-##
+coding regions,##-@#-#---#-#@-##-##
+Seeds of Weight 10:
+small regions (transition rich),###@##-##-#@#,###-@-#--@--#####
+average regions (transition rich),##@#-#-##@-###,#-##--#--#@#--@-###
+small regions,###-###-####,###-#--#--#-####
+average regions,##-#----###-####,###--#-#-#--#--###
+coding regions,##-@#-##--@-##-##
+Seeds of Weight 9:
+small regions (transition rich),###@-#--@-#-###,###@#-##@-##
+average regions (transition rich),####-@#---#--#@#,##-#-#@#-#@##
+small regions,###-##-####,###-#-#---#-###
+average regions,##-###-#-###,##-#-#--#--####
+coding regions,##-@#-#---#-#@-##
+Seeds of Weight 8:
+small regions (transition rich),###-#@#@##,###-@--#-#@-##
+average regions (transition rich),##-#-@-#--@-###,##-#@#--##@#
+small regions,####-####,###--#---#-###
+average regions,##---##--#--###,##-#--#-#-###
+coding regions,##-#@--#-#@-##
+Seeds of Weight 7:
+small regions (transition rich),##--@@-#--###,##@#-#-@##
+average regions (transition rich),#@#--#---#-@##,###-#@-#-@#
+small regions,###----#-##-#,#-###-###
+average regions,##--#---#--#-##,##-#-#-###
+coding regions,##--#-@@--#-##
+Other:
+[High sensitivity] (maybe slow),#-##--#-#-##,##---#--####,###-####,#-###-#--##
+[Very High sensitivity](maybe very slow),#@--@#-###,#@-##---@##,##-@---#-#-@#,###-#-##
+[Tiny sequences](one sequence less than 40 bp),##-#,###
+
