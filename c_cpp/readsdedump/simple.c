@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "gkseq.h"
 //#include <stdarg.h>
 //#include <stdio.h>
 
