@@ -30,16 +30,19 @@ endif
 
 cobjects =
 customobjects = $(addprefix $(OBJDIR),)# sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
-c99objects = $(addprefix $(OBJDIR), prb.o prb-test.o)
-mainobjects = $(addprefix $(OBJDIR), test.o )
+c99objects = $(addprefix $(OBJDIR), prb.o)
+noshareobjects = $(addprefix $(OBJDIR), test.o main.o prb-tree.o prb-test.o)
 objects = $(cobjects) $(c99objects) $(customobjects)
-exefiles = prb-test
+exefiles = prb-test readsdedump
 
 all: clean $(objects) $(exefiles)
 	@echo [$(CC) $(CFLAGS) $(OPT) $(LDFLAGS)][$(MAKEARG)].
 
-prb-test: $(objects) $(mainobjects)
-	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o prb-test $(objects) $(addprefix $(OBJDIR), test.o)
+readsdedump: $(objects) $(noshareobjects)
+	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o readsdedump $(objects) $(addprefix $(OBJDIR), prb-tree.o main.o)
+
+prb-test: $(objects) $(noshareobjects)
+	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o prb-test $(objects) $(addprefix $(OBJDIR), prb-test.o test.o)
 
 #$(OBJDIR)sdleftTFuint16.o:
 #	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
@@ -54,7 +57,7 @@ $(cobjects): $(OBJDIR)%.o: %.c
 	@$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 #$(cppobjects): %.o: %.cpp
 #	$(CPP) $(MAKEARG) -c $< -o $@ > $@.asm
-$(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c
+$(c99objects) $(noshareobjects): $(OBJDIR)%.o: %.c
 	@$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
 
 debug: override MAKEARG := $(CFLAGS) $(DEF) -O -D DEBUG -g $(ASMO)
@@ -79,6 +82,6 @@ test: readscorr
 
 .PHONY : clean
 clean:
-	-rm $(exefiles) $(mainobjects) $(objects)
+	-rm $(exefiles) $(noshareobjects) $(objects)
 	@mkdir -p $(OBJDIR)
 
