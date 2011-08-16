@@ -7,6 +7,7 @@
 #define _G_KSEQ_H
 
 #include <ctype.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <zlib.h>
