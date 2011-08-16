@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "test.h"
+#include "prbtest.h"
 
 /* Insertion order. */
 enum insert_order

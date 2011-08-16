@@ -27,7 +27,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include "prb.h"
-#include "test.h"
+#include "prbtest.h"
 
 /* Prints the structure of |node|,
    which is |level| levels from the top of the tree. */
