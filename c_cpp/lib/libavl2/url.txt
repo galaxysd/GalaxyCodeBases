@@ -1,0 +1,4 @@
+http://www.stanford.edu/~blp/avl/
+ftp://ftp.gnu.org/pub/gnu/avl/avl-2.0.2a.tar.gz
+
+http://benpfaff.org/papers/libavl.pdf
