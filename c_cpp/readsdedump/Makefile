@@ -44,14 +44,6 @@ readsdedump: $(objects) $(noshareobjects)
 prb-test: $(objects) $(noshareobjects)
 	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o prb-test $(objects) $(addprefix $(OBJDIR), prb-test.o prbtest.o)
 
-#$(OBJDIR)sdleftTFuint16.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFuint32.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFuint64.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFpublic.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
 
 $(cobjects): $(OBJDIR)%.o: %.c 
 	@$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)

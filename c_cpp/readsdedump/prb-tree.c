@@ -28,25 +28,33 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <string.h>
+#include <string.h>
 #include "prb-tree.h"
 
 /* Utility functions. */
 
-/* Comparison function for pointers to |int|s.
+/* http://www.stanford.edu/~blp/avl/libavl.html/Answers-for-Chapter-2.html#2-3%232
+   Comparison function for pointers to |int|s.
    |param| is not used. */
-int
-compare_ints (const void *pa, const void *pb, void *param)
+int 
+compare_ints (const void *pa, const void *pb, void *param) 
 {
   const int *a = pa;
   const int *b = pb;
 
-  if (*a < *b)
-    return -1;
-  else if (*a > *b)
-    return +1;
-  else
-    return 0;
+  return (*a > *b) - (*a < *b);
+}
+/* Comparison function for strings. 
+   param is not used. */
+int 
+compare_strings (const void *pa, const void *pb, void *param) 
+{
+  return strcmp (pa, pb);
+}
+int 
+compare_fixed_strings (const void *pa, const void *pb, void *param) 
+{
+  return memcmp (pa, pb, *(size_t *) param);
 }
 
 /* Prints |message| on |stderr|, which is formatted as for |printf()|,
