@@ -74,9 +74,9 @@ pgm_fail (const char *message, ...)
 
   exit (EXIT_FAILURE);
 }
-
-/* Allocates and returns a pointer to |size| bytes of memory.
-   Aborts if allocation fails. */
+/*
+   Allocates and returns a pointer to |size| bytes of memory.
+   Aborts if allocation fails.
 static void *
 xmalloc (size_t size)
 {
@@ -86,6 +86,7 @@ xmalloc (size_t size)
     pgm_fail ("out of memory");
   return block;
 }
+*/
 
 /* Prints the structure of |node|,
    which is |level| levels from the top of the tree. */
