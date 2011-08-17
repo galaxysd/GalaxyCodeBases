@@ -12,6 +12,12 @@
 #include <math.h>
 #include "timer.h"
 
+// 1048576 + 128k
+//#define READSCOUNT_INIT (1048576)
+//#define READSCOUNT_INC  (128*1024)
+#define READSCOUNT_INIT (16)
+#define READSCOUNT_INC  (4)
+
 const char *argp_program_version =
     "readsdedump simple 0.1 @"__TIME__ "," __DATE__;
 const char *argp_program_bug_address =
@@ -33,12 +39,14 @@ static char args_doc[] = "input_files (FASTA or FASTQ)";
 
 /* The options we understand. */
 static struct argp_option options[] = {
-    {"outfile",     'o', "./out.stat",0,  "Output file" },
+    {"maxmismatch", 'm', "10"           ,0, "Max mismatch to be PCR duplicate"},
+    {"outfile",     'o', "./out.stat"   ,0, "Output file" },
     { 0 }
 };
 
 /* Used by main to communicate with parse_opt. */
 struct arguments {
+    uint_fast16_t mismatch;
     char **args;
     char *outfile;
 };
@@ -49,12 +57,20 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Get the input argument from argp_parse, which we
   know is a pointer to our arguments structure. */
     struct arguments *arguments = state->input;
-    
+    int tmpArgValue;
     switch (key) {
         case 'o':
             arguments->outfile = arg;
             break;
-        
+        case 'm':
+            tmpArgValue = atoi(arg);
+            if (tmpArgValue>=0 && tmpArgValue <= UINT16_MAX) {
+               arguments->mismatch = tmpArgValue;
+            } else {
+               errx(2,"-m \"%s\"=%i is not between [0,%d] !",arg,tmpArgValue,UINT16_MAX);
+            }
+            break;
+            
         case ARGP_KEY_ARG:
             arguments->args[state->arg_num] = arg;
             break;
@@ -74,71 +90,161 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+uint_fast16_t compseq(char const* strA, char const* strB, uint_fast16_t maxMismatch) {
+    uint_fast16_t mismatch=0;
+    #ifdef DEBUG
+    printf("[%s]-[%s]:\n",strA,strB);
+    #endif
+    while (*strA && *strB) {
+        #ifdef DEBUG
+        printf(" %.1s,%.1s:",strA,strB);
+        #endif
+        mismatch += (*strA++ != *strB++);
+        #ifdef DEBUG
+        printf("%d ",(int)mismatch);
+        #endif
+        if (mismatch >= maxMismatch) {
+            #ifdef DEBUG
+            puts("");
+            #endif
+            return 0;
+        }
+    }
+    #ifdef DEBUG
+    puts("");
+    #endif
+    return mismatch;
+}
+
 int main (int argc, char **argv) {
     struct arguments arguments;
     arguments.args=calloc(sizeof(size_t),argc);
     
     // Default values.
     arguments.outfile = "./out.stat";
+    arguments.mismatch = 10;
+    char *const*line = arguments.args-1;    // so that we can use *(++line)
     
     // Parse our arguments; every option seen by parse_opt will be reflected in arguments.
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
+
+    fprintf(stderr,"Arguments: max_mismatch=%d, out_file=%s\nInput_files:",
+        (int)arguments.mismatch,arguments.outfile);
+    while ( *(++line) ) {
+        fprintf(stderr, " [%s]", *line);
+    }
+    fputs("\n", stderr);
+    line = arguments.args-1;
     
-    uint64_t allbases=0;
-    uint64_t allreads=0;
-    uint64_t maxReadLen=0;
-
-    double SS=0.0;
-    double SStd;
-
-    char *const*line = arguments.args-1;    // so that we can use *(++line)
+    //uint8_t* pSeqMismatchArray = calloc(READSCOUNT_INIT,sizeof(uint8_t));
+    char** pSeqArray = malloc(READSCOUNT_INIT*sizeof(size_t));
+    size_t SeqArrayLength = READSCOUNT_INIT;
+    uint64_t* pMismatchCount = calloc(arguments.mismatch+1,sizeof(uint64_t));
+    
+    uint64_t BasesCount=0;
+    uint64_t ReadsCount=0;
+    uint64_t MaxReadLength=0;
+    int_fast8_t diffRL=0;
 
     fputs("\nParsing Sequence Files:\n", stderr);
     G_TIMER_START;
 
-	//gzFile fpi;
 	kseq_t *kseq;
-	int_fast8_t read_type;
+	int_fast8_t ReadType;
 
     while ( *(++line) ) {
-        ssize_t readlength;
-        fprintf(stderr, " <%s> ...", *line);
-        //fpi = gzopen(*line, "r");
-        //kseq = kseq_init(fpi);
+        fprintf(stderr, " <%s>", *line);
         kseq = kseq_open(*line);
+        uint64_t RealSize,RealOffset;
+        size_t ReadLength;
         if (kseq) {
-            printf("Realsize: %ld\n",kseq->f->RealSize);
-        	while ( (read_type = kseq_read(kseq)) >= 0 ) {
-            	readlength = kseq->seq.l;
+            RealSize = kseq->f->RealSize;
+            fprintf(stderr," RealSize:%ld ...",RealSize);
+        	while ( (ReadType = kseq_read(kseq)) > 0 ) {
+            	ReadLength = kseq->seq.l;
+            	RealOffset = kseq->f->RealOffset;
             	#ifdef DEBUG
-	            	printf("-ID:[%s,%s] %zu %zu %zd %ld\nSeq:[%s]\nQ:[%s] *%zx,%d\n",
-            			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,readlength,kseq->f->RealOffset,
-				        kseq->seq.s,kseq->qual.s,(size_t)&(kseq->seq.s),read_type);
+	            	printf("\n-ID:[%s,%s] %zu %zu %zd %ld\nSeq:[%s]\nQ:[%s] *%zx,%d    \n",
+            			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,ReadLength,kseq->f->RealOffset,
+				        kseq->seq.s,kseq->qual.s,(size_t)&(kseq->seq.s),ReadType);
 			    #endif
-                    allbases += readlength;
-                    SS += readlength*readlength;
-                    ++allreads;
-
+                if (ReadLength>0) {
+                    if (ReadLength>MaxReadLength) MaxReadLength=ReadLength;
+                    if (ReadsCount+1>SeqArrayLength) {
+                        pSeqArray = realloc(pSeqArray,(SeqArrayLength+READSCOUNT_INC)*sizeof(size_t));
+                        //memset(pSeqSeqArray+SeqMismatchArrayLength,0,READSCOUNT_INC*sizeof(size_t));
+                        SeqArrayLength += READSCOUNT_INC;
+                    }
+                    pSeqArray[ReadsCount]=malloc(ReadLength+1);
+                    strcpy(pSeqArray[ReadsCount],kseq->seq.s);
+                    ++ReadsCount;
+                    BasesCount += ReadLength;
+                    if (MaxReadLength != ReadLength) diffRL=1;
+                }
         	}
-        	printf(" lasttype:%d   lastpos:%ld ------",read_type,kseq->f->RealOffset);
-        } else continue;
+        	//printf(" lasttype:%d   lastpos:%ld ------",ReadType,kseq->f->RealOffset);
+        } else {
+            fputs(": File not found !\n", stderr);
+            continue;
+        }
         fputs("\b\b\b\b, done !\n", stderr);
 	    kseq_destroy(kseq);
-    	//gzclose(fpi);
     }
-    free(arguments.args);
-    fputs("\nCount Done!\n", stderr);
+    uint8_t* pSeqMismatchArray = calloc(ReadsCount,sizeof(uint8_t));
+
+    fprintf(stderr,"[!]Total_Reads: %ld\tMean_Read_Length: %f\n",ReadsCount,(double)BasesCount/(double)ReadsCount);
+
+    //uint64_t CmpCount=0;  // CmpCount == ReadsCount*(ReadsCount-1)/2
+    uint64_t MisCount=0;
+    uint64_t MisChgCount=0;
+    for (size_t i=0;i<ReadsCount;++i) {
+        for (size_t j=i+1;j<ReadsCount;++j) {
+            //++CmpCount;
+            uint_fast16_t miscount=compseq(pSeqArray[i],pSeqArray[j],arguments.mismatch);
+            if (miscount) {
+                ++MisCount;
+                if (pSeqMismatchArray[i]==0 || pSeqMismatchArray[i]>miscount) {
+                    pSeqMismatchArray[i]=miscount;
+                    ++MisChgCount;
+                }
+                if (pSeqMismatchArray[j]==0 || pSeqMismatchArray[j]>miscount) {
+                    pSeqMismatchArray[j]=miscount;
+                    ++MisChgCount;
+                }
+            }
+        }
+    }
+
+    for (size_t i=0;i<ReadsCount;++i) {
+        #ifdef DEBUG
+        printf("%zd/%zd\t[%s] %d\n",i,ReadsCount,pSeqArray[i],(int)pSeqMismatchArray[i]);
+        #endif
+        ++pMismatchCount[pSeqMismatchArray[i]];
+    }
+
+    fprintf(stderr,"[!]CmpTimes:%ld, mismatch_OK:%ld, mismatch_Update:%ld\n",
+        ReadsCount*(ReadsCount-1)/2,MisCount,MisChgCount);
+    fputs("\nCount Done!\n\nMismatch\tReadsCount\n", stderr);
+    if (diffRL) fprintf(stderr,"[!]Different Read Length Found. Mismatch may be in correct.\n");
 
     FILE *fp = fopen(arguments.outfile, "w");
-    fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
-        "#Read_Len_Range: [%lu,%lu]\n"
-        "#Overflow: %lu\n"
-        "\n#Read_Len\tCount\tRatio\n",
-        allbases,allreads,
-        0.05+((double)allbases/(double)allreads), SStd,
-        0,maxReadLen,0);
-
+    fprintf(fp,"#Total_Reads: %ld\n#Mean_Read_Length: %f\n#Max_mismatch: %d\n\n#Mismatch\tReadsCount\n",
+        ReadsCount,(double)BasesCount/(double)ReadsCount,(int)arguments.mismatch);
+    for (uint_fast16_t i=0;i<=arguments.mismatch;++i) {
+        if (pMismatchCount[i]) {
+            fprintf(fp,"%d\t%ld\n",(int)i,pMismatchCount[i]);
+            fprintf(stderr,"%d\t%ld\n",(int)i,pMismatchCount[i]);
+        }
+    }
+    fprintf(fp,"\n# Mismatch=0 means unique.\n");
     fclose(fp);
+
+    for (size_t i=0;i<ReadsCount;++i) {
+        free(pSeqArray[i]);
+    }
+    free(pSeqArray);
+    free(pSeqMismatchArray);
+    free(arguments.args);
 
     G_TIMER_END;
     G_TIMER_PRINT;

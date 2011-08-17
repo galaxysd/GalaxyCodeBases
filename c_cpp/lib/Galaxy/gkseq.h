@@ -171,6 +171,7 @@ static inline kseq_t *kseq_init(__GKSEQ_FILETYPE fd) {
 static kseq_t *kseq_open(char *const filename) {
     unsigned long realsize=0;
 	int ifd = open(filename, O_RDONLY);
+	if (ifd==-1) return NULL;
 	unsigned char buf[4];
 	off_t bytes_in = lseek(ifd, (off_t)(-4), SEEK_END);
         if ( bytes_in != -1L) {
