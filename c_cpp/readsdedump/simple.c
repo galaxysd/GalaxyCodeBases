@@ -90,7 +90,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
-uint_fast16_t compseq(char const* strA, char const* strB, uint_fast16_t maxMismatch) {
+static inline uint_fast16_t compseq(char const* strA, char const* strB, uint_fast16_t maxMismatch) {
     uint_fast16_t mismatch=0;
     #ifdef DEBUG
     printf("[%s]-[%s]:\n",strA,strB);
@@ -103,7 +103,7 @@ uint_fast16_t compseq(char const* strA, char const* strB, uint_fast16_t maxMisma
         #ifdef DEBUG
         printf("%d ",(int)mismatch);
         #endif
-        if (mismatch >= maxMismatch) {
+        if (mismatch > maxMismatch) {
             #ifdef DEBUG
             puts("");
             #endif
