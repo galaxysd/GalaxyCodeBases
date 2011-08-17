@@ -96,32 +96,34 @@ int main (int argc, char **argv) {
     fputs("\nParsing Sequence Files:\n", stderr);
     G_TIMER_START;
 
-	gzFile fpi;
+	//gzFile fpi;
 	kseq_t *kseq;
 	int_fast8_t read_type;
 
     while ( *(++line) ) {
         ssize_t readlength;
         fprintf(stderr, " <%s> ...", *line);
-        fpi = gzopen(*line, "r");
-        kseq = kseq_init(fpi);
+        //fpi = gzopen(*line, "r");
+        //kseq = kseq_init(fpi);
+        kseq = kseq_open(*line);
         if (kseq) {
+            printf("Realsize: %ld\n",kseq->realsize);
         	while ( (read_type = kseq_read(kseq)) >= 0 ) {
-        	readlength = kseq->seq.l;
-        	#ifdef DEBUG
-	        	printf("-ID:[%s,%s] %zu %zu %zd\nSeq:[%s]\nQ:[%s] *%zx,%d\n",
-        			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,readlength,
-				    kseq->seq.s,kseq->qual.s,(size_t)&(kseq->seq.s),read_type);
-			#endif
-                allbases += readlength;
-                SS += readlength*readlength;
-                ++allreads;
+            	readlength = kseq->seq.l;
+            	#ifdef DEBUG
+	            	printf("-ID:[%s,%s] %zu %zu %zd\nSeq:[%s]\nQ:[%s] *%zx,%d\n",
+            			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,readlength,
+				        kseq->seq.s,kseq->qual.s,(size_t)&(kseq->seq.s),read_type);
+			    #endif
+                    allbases += readlength;
+                    SS += readlength*readlength;
+                    ++allreads;
 
         	}
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
 	    kseq_destroy(kseq);
-    	gzclose(fpi);
+    	//gzclose(fpi);
     }
     free(arguments.args);
     fputs("\nCount Done!\n", stderr);

@@ -1,6 +1,14 @@
 /* The MIT License
 	From Heng Li <lh3@sanger.ac.uk>, as in bwa package.
 	Macro translated by Hu Xuesong.
+
+	Changelog:
+	20110817    Add kseq_t *kseq_open(char *const filename);
+	             To open:
+	              kseq_t* kseq = kseq_open("filename");
+	              // gzFile fp=gzopen("filename", "r"); kseq_t* kseq=kseq_init(fp);
+	             To close:
+	              kseq_destroy(kseq); // gzclose(fp);
 */
 
 #ifndef _G_KSEQ_H
@@ -11,9 +19,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <zlib.h>
+//open
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+//lseek
+#include <unistd.h>
 
 #define __GKSEQ_FILETYPE gzFile	// Well, EP enough to use define here.
 #define __GKSEQ_READFUNC gzread	// Maybe "lh3" just want to make debug harder for his code ?
+#define __GKSEQ_OPENFUNC gzopen
+#define __GKSEQ_CLOSEFUNC gzclose
 //#define ks_eof(ks) ((ks)->is_eof && (ks)->begin >= (ks)->end)
 //#define ks_rewind(ks) ((ks)->is_eof = (ks)->begin = (ks)->end = 0)
 #define __GKSEQ_BUFSIZE 4096
@@ -21,6 +37,19 @@
 #ifndef KROUNDUP32
 #define KROUNDUP32(x) (--(x), (x)|=(x)>>1, (x)|=(x)>>2, (x)|=(x)>>4, (x)|=(x)>>8, (x)|=(x)>>16, ++(x))
 #endif
+
+
+
+// from gzip-1.4/gzip.h, added __gkseq_ / __GKSEQ_ prefix.
+typedef unsigned char  __gkseq_uch;
+typedef unsigned short __gkseq_ush;
+typedef unsigned long  __gkseq_ulg;
+/* Macros for getting two-byte and four-byte header values */
+#define __GKSEQ_SH(p) ((__gkseq_ush)(__gkseq_uch)((p)[0]) | ((__gkseq_ush)(__gkseq_uch)((p)[1]) << 8))
+#define __GKSEQ_LG(p) ((__gkseq_ulg)(__GKSEQ_SH(p)) | ((__gkseq_ulg)(__GKSEQ_SH((p)+2)) << 16))
+// from gzip-1.4/gzip.h
+
+
 
 //#74 "t.h"     // append `KSEQ_INIT(gzFile, gzread)` to kseq.h, remove all `#include`, you will get "t.h".
 #ifndef KSTRING_T
@@ -41,6 +70,7 @@ typedef struct __kstream_t {
 typedef struct {
     kstring_t name, comment, seq, qual;
     int last_char;
+    unsigned long realsize;
     kstream_t *f;
 } kseq_t;
 
@@ -54,6 +84,7 @@ static inline kstream_t *ks_init(__GKSEQ_FILETYPE f) {
 static inline void ks_destroy(kstream_t * ks) {
     if (ks) {
         free(ks->buf);
+        __GKSEQ_CLOSEFUNC(ks->f);
         free(ks);
     }
 }
@@ -125,6 +156,24 @@ static inline kseq_t *kseq_init(__GKSEQ_FILETYPE fd) {
     thus, even we `malloc(32)` here and set `s->seq.m`, 
     `s->seq.s` still may be changed later on realloc().
 */
+    return s;
+}
+static kseq_t *kseq_open(char *const filename) {
+    unsigned long realsize=0;
+	int ifd = open(filename, O_RDONLY);
+	unsigned char buf[4];
+	off_t bytes_in = lseek(ifd, (off_t)(-4), SEEK_END);
+        if ( bytes_in != -1L) {
+            bytes_in += 4L;
+            if (read(ifd, (char*)buf, sizeof(buf)) == sizeof(buf)) {
+                realsize = __GKSEQ_LG(buf);
+            }
+        }
+	close(ifd);
+    __GKSEQ_FILETYPE fp;
+    fp = __GKSEQ_OPENFUNC(filename, "r");
+    kseq_t *s = kseq_init(fp);
+    s->realsize = realsize;
     return s;
 }
 
