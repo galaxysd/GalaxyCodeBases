@@ -107,12 +107,12 @@ int main (int argc, char **argv) {
         //kseq = kseq_init(fpi);
         kseq = kseq_open(*line);
         if (kseq) {
-            printf("Realsize: %ld\n",kseq->realsize);
+            printf("Realsize: %ld\n",kseq->f->RealSize);
         	while ( (read_type = kseq_read(kseq)) >= 0 ) {
             	readlength = kseq->seq.l;
             	#ifdef DEBUG
-	            	printf("-ID:[%s,%s] %zu %zu %zd\nSeq:[%s]\nQ:[%s] *%zx,%d\n",
-            			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,readlength,
+	            	printf("-ID:[%s,%s] %zu %zu %zd %ld\nSeq:[%s]\nQ:[%s] *%zx,%d\n",
+            			kseq->name.s,kseq->comment.s,kseq->seq.l,kseq->qual.l,readlength,kseq->f->RealOffset,
 				        kseq->seq.s,kseq->qual.s,(size_t)&(kseq->seq.s),read_type);
 			    #endif
                     allbases += readlength;
@@ -120,6 +120,7 @@ int main (int argc, char **argv) {
                     ++allreads;
 
         	}
+        	printf(" lasttype:%d   lastpos:%ld ------",read_type,kseq->f->RealOffset);
         } else continue;
         fputs("\b\b\b\b, done !\n", stderr);
 	    kseq_destroy(kseq);

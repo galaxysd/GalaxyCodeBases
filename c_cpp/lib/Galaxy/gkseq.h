@@ -3,12 +3,13 @@
 	Macro translated by Hu Xuesong.
 
 	Changelog:
-	20110817    Add kseq_t *kseq_open(char *const filename);
+	20110817  > Add kseq_t *kseq_open(char *const filename);
 	             To open:
 	              kseq_t* kseq = kseq_open("filename");
 	              // gzFile fp=gzopen("filename", "r"); kseq_t* kseq=kseq_init(fp);
 	             To close:
 	              kseq_destroy(kseq); // gzclose(fp);
+	          > Add RealSize,RealOffset as kseq->f->*
 */
 
 #ifndef _G_KSEQ_H
@@ -32,7 +33,7 @@
 #define __GKSEQ_CLOSEFUNC gzclose
 //#define ks_eof(ks) ((ks)->is_eof && (ks)->begin >= (ks)->end)
 //#define ks_rewind(ks) ((ks)->is_eof = (ks)->begin = (ks)->end = 0)
-#define __GKSEQ_BUFSIZE 4096
+#define __GKSEQ_BUFSIZE (4096)
 
 #ifndef KROUNDUP32
 #define KROUNDUP32(x) (--(x), (x)|=(x)>>1, (x)|=(x)>>2, (x)|=(x)>>4, (x)|=(x)>>8, (x)|=(x)>>16, ++(x))
@@ -61,16 +62,22 @@ typedef struct __kstring_t {
 #endif
 
 //#215 "t.h"    // gcc -E t.h > gkseq.h && indent -kr -brf -l120 -nut t.h -o gkseqn.h
+
+/* RealSize: original (uncompressed) size of sequence file
+   RealOffset: file offset in RealSize. Begin from 0, should pointing to '>' or '@'.
+   ReadBuffer: current buffer count. The first buffer is 0. (init value is -1)
+ */
 typedef struct __kstream_t {
     char *buf;
     int begin, end, is_eof;
+    unsigned long RealSize,RealOffset;
+    long ReadBuffer;
     __GKSEQ_FILETYPE f;
 } kstream_t;
 
 typedef struct {
     kstring_t name, comment, seq, qual;
     int last_char;
-    unsigned long realsize;
     kstream_t *f;
 } kseq_t;
 
@@ -78,6 +85,7 @@ static inline kstream_t *ks_init(__GKSEQ_FILETYPE f) {
     kstream_t *ks = (kstream_t *) calloc(1, sizeof(kstream_t));
     ks->f = f;
     ks->buf = (char *) malloc(__GKSEQ_BUFSIZE);
+    ks->ReadBuffer=-1L;
     return ks;
 }
 
@@ -95,6 +103,7 @@ static inline int ks_getc(kstream_t * ks) {
     if (ks->begin >= ks->end) {
         ks->begin = 0;
         ks->end = __GKSEQ_READFUNC(ks->f, ks->buf, __GKSEQ_BUFSIZE);
+        ++ks->ReadBuffer;
         if (ks->end < __GKSEQ_BUFSIZE)
             ks->is_eof = 1;
         if (ks->end == 0)
@@ -115,6 +124,7 @@ static int ks_getuntil(kstream_t * ks, int delimiter, kstring_t * str, int *dret
             if (!ks->is_eof) {
                 ks->begin = 0;
                 ks->end = __GKSEQ_READFUNC(ks->f, ks->buf, __GKSEQ_BUFSIZE);
+                ++ks->ReadBuffer;
                 if (ks->end < __GKSEQ_BUFSIZE)
                     ks->is_eof = 1;
                 if (ks->end == 0)
@@ -173,7 +183,7 @@ static kseq_t *kseq_open(char *const filename) {
     __GKSEQ_FILETYPE fp;
     fp = __GKSEQ_OPENFUNC(filename, "r");
     kseq_t *s = kseq_init(fp);
-    s->realsize = realsize;
+    s->f->RealSize = realsize;
     return s;
 }
 
@@ -198,6 +208,7 @@ static inline void kseq_destroy(kseq_t * ks) {
 */
 static int_fast8_t kseq_read(kseq_t * seq) {	// better to be ssize_t
     int c;
+    //uint_fast8_t with_last_chr = 0;
     kstream_t *ks = seq->f;
     if (seq->last_char == 0) {	// then jump to the next header line
         while ((c = ks_getc(ks)) != -1 && c != '>' && c != '@');
@@ -222,9 +233,11 @@ static int_fast8_t kseq_read(kseq_t * seq) {	// better to be ssize_t
     }
     if (c == '>' || c == '@')
         seq->last_char = c;	// the first header char has been read
+        //with_last_chr = 1;
     seq->seq.s[seq->seq.l] = 0;	// null terminated string
     if (c != '+') {
         //seq->qual.s[0] = 0;	// set Q to "". also bool, 0 for no Q. JUST TEMP, should change back later !!!
+        seq->f->RealOffset = __GKSEQ_BUFSIZE*(seq->f->ReadBuffer) + seq->f->begin - 1;//with_last_chr;
         return 1;	// FASTA, only bases
     }
     if (seq->qual.m < seq->seq.m) {	// allocate enough memory
@@ -239,6 +252,8 @@ static int_fast8_t kseq_read(kseq_t * seq) {	// better to be ssize_t
             seq->qual.s[seq->qual.l++] = (unsigned char) c;
     seq->qual.s[seq->qual.l] = 0;	// null terminated string
     seq->last_char = 0;	// we have not come to the next header line
+    //with_last_chr = 0;
+    seq->f->RealOffset = __GKSEQ_BUFSIZE*(seq->f->ReadBuffer)+seq->f->begin;
     if (seq->seq.l != seq->qual.l)
         return -2;	// qual string is shorter than seq string
     //return seq->seq.l;
