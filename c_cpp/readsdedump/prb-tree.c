@@ -57,36 +57,6 @@ compare_fixed_strings (const void *pa, const void *pb, void *param)
   return memcmp (pa, pb, *(size_t *) param);
 }
 
-/* Prints |message| on |stderr|, which is formatted as for |printf()|,
-   and terminates the program unsuccessfully. */
-void
-pgm_fail (const char *message, ...)
-{
-  va_list args;
-
-  fprintf (stderr, "%s: ", pgm_name);
-
-  va_start (args, message);
-  vfprintf (stderr, message, args);
-  va_end (args);
-
-  fputs("\n", stderr);
-
-  exit (EXIT_FAILURE);
-}
-/*
-   Allocates and returns a pointer to |size| bytes of memory.
-   Aborts if allocation fails.
-static void *
-xmalloc (size_t size)
-{
-  void *block = malloc (size);
-  if (block == NULL && size != 0)
-    pgm_name="prb-tree.c";
-    pgm_fail ("out of memory");
-  return block;
-}
-*/
 
 /* Prints the structure of |node|,
    which is |level| levels from the top of the tree. */
