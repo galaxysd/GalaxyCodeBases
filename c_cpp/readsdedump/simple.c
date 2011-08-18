@@ -12,11 +12,11 @@
 #include <math.h>
 #include "timer.h"
 
-// 1048576 + 128k
-//#define READSCOUNT_INIT (1048576)
-//#define READSCOUNT_INC  (128*1024)
-#define READSCOUNT_INIT (16)
-#define READSCOUNT_INC  (4)
+// 128k + 16k
+#define READSCOUNT_INIT (128*1024)
+#define READSCOUNT_INC  (16*1024)
+//#define READSCOUNT_INIT (16)
+//#define READSCOUNT_INC  (4)
 
 const char *argp_program_version =
     "readsdedump simple 0.1 @"__TIME__ "," __DATE__;
