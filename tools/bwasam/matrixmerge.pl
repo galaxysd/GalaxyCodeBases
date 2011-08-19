@@ -31,7 +31,7 @@ my $start_time = [gettimeofday];
 my $READLEN=0;
 my $Qcount=41;
 my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
-my ($mapBase,$mapReads,$QBbase)=(0,0,0);
+my ($mapBase,$mapReads,$QBbase,$QBmis)=(0,0,0,0);
 my $type='N/A';
 my %Stat;   # $Stat{Ref}{Cycle}{Read-Quality}
 my @BQHeader;
@@ -58,8 +58,9 @@ while (<>) {
     if (/^#Mismatch_base: (\d+)/) {
         $MisBase += $1;
     }
-    if (/^#QB_Bases: (\d+)/) {
+    if (/^#QB_Bases: (\d+), QB_Mismatches: (\d+)/) {
         $QBbase += $1;
+        $QBmis += $2;
     }
     next if /^#/;
     next if /^$/;
@@ -97,7 +98,7 @@ $tmp="#Generate @ $date by ${user}$mail
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
-#QB_Bases: $QBbase (bases with quality <= 2)
+#QB_Bases: $QBbase, QB_Mismatches: $QBmis (bases with quality <= 2)
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort keys %BaseCountTypeRef;  # qw{A T C G};
 for (@BaseOrder) {

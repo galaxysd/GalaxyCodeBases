@@ -100,7 +100,7 @@ my $MaxQ=40;
 my $MisBase=0;
 
 my ($TotalBase,$TotalReads,%BaseCountTypeRef);
-my ($mapBase,$mapReads,$QBbase)=(0,0,0);
+my ($mapBase,$mapReads,$QBbase,$QBmis)=(0,0,0,0);
 my $Qascii=33;  # Sam 33, Soap 64.
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
 sub statRead($$$$$) {
@@ -110,6 +110,7 @@ sub statRead($$$$$) {
         $read =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
     }
     my $PEpos=-1;
+    my $QBflag=0;
     for (my $i=0;$i<$READLEN;$i++) {
         my $refBase=substr $ref,$i,1 or return;
         next unless $refBase =~ /^[ATCG]$/;
@@ -127,9 +128,11 @@ sub statRead($$$$$) {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
-        ++$QBbase if $Qval<=2;
+        $QBflag=1 if $Qval<=2;
+        $QBbase += $QBflag;
         if ($refBase ne $readBase) {
             ++$MisBase;
+            $QBmis += $QBflag;
         }
         ++$BaseCountTypeRef{$refBase};
         ++$TotalBase;
@@ -255,7 +258,7 @@ $tmp="#Generate @ $date by ${user}$mail
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
-#QB_Bases: $QBbase (bases with quality <= 2)
+#QB_Bases: $QBbase, QB_Mismatches: $QBmis (bases with quality <= 2)
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {
