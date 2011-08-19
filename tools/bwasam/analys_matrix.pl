@@ -19,7 +19,7 @@
 =head1 Version
 	
 	Author: Shi Yujian , shiyujian@genomics.org.cn
-	Version: 1.0 , Date:2011-6
+	Version: 1.1 , Date:2011-8
 
 =head1 Usage
 
@@ -28,6 +28,7 @@
 	  -o <str>       output prefix
 	  -m <num>       min quality score[default:0]
 	  -x <num>       max quality score[default:40]
+	  -B             ignore the bases that quality is B or #
 	  -h             help
 
 =cut
@@ -36,17 +37,17 @@ use strict;
 use Getopt::Long;
 
 ##get options from command line into variables and set default values
-my ($len, $in_file, $out, $min_qual, $max_qual, $help);
+my ($len, $in_file, $out, $min_qual, $max_qual, $help, $maskB);
 GetOptions(
 	"i:s"=>\$in_file,
 	"o:s"=>\$out,
 	"m:i"=>\$min_qual,
 	"x:i"=>\$max_qual,
+	"B"=>\$maskB,
 	"help"=>\$help
 );
 
 die `pod2text $0` if($help || !defined $in_file);
-
 $min_qual ||= 0;
 $max_qual ||= 40;
 if($in_file=~/\/([^\/]+)$/)
@@ -75,6 +76,10 @@ while(<IN>)
 		{
 			$matrix[$seq2bit{$line[0]}][$line[1]-1][$i][$j] = $line[$k];
 			$k++;
+		}
+		if($maskB)
+		{
+			$matrix[$seq2bit{$line[0]}][$line[1]-1][$i][2] = 0;
 		}
 	}
 }
