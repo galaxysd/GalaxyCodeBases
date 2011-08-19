@@ -128,8 +128,10 @@ sub statRead($$$$$) {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
-        $QBflag=1 if $Qval<=2;
-        $QBbase += $QBflag;
+        if ($Qval <= 2) {
+            $QBflag = 1;
+            ++$QBbase;
+        }
         if ($refBase ne $readBase) {
             ++$MisBase;
             $QBmis += $QBflag;
