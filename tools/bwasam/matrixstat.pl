@@ -17,7 +17,7 @@ our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 #our $desc='';
 our $help=<<EOH;
 \t-p type of input files {(auto),sam,soap}
-\t-r ref fasta file (./ref/human.fa)
+\t-r ref fasta file (./ref/human.fa) [.{gz,bz2} is OK]
 \t-s trim SNP positions from (<filename>) in format /^ChrID\\tPos/
 \t-l read length of reads (100)
 \t-o output prefix (./matrix).{count,ratio}.matrix
