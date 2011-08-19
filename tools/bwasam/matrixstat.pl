@@ -1,7 +1,7 @@
 #!/bin/env perl
 =pod
 Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
-Version: 0.1.0 @ 20110803
+Version: 0.1.1 @ 20110819
 =cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
 #use lib '/export/data0/gentoo/tmp';
@@ -10,7 +10,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.0;
+$main::VERSION=0.1.1;
 our $opts='r:o:l:p:s:c:b';
 our($opt_o, $opt_r, $opt_l, $opt_p, $opt_s, $opt_c, $opt_b);
 
@@ -100,7 +100,7 @@ my $MaxQ=40;
 my $MisBase=0;
 
 my ($TotalBase,$TotalReads,%BaseCountTypeRef);
-my ($mapBase,$mapReads)=(0,0);
+my ($mapBase,$mapReads,$QBbase)=(0,0,0);
 my $Qascii=33;  # Sam 33, Soap 64.
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
 sub statRead($$$$$) {
@@ -127,6 +127,7 @@ sub statRead($$$$$) {
             $PEpos=$cyclestart+$i;
         }
         ++$Stat{$refBase}{$PEpos}{$readBase}{$Qval};
+        ++$QBbase if $Qval<=2;
         if ($refBase ne $readBase) {
             ++$MisBase;
         }
@@ -254,6 +255,7 @@ $tmp="#Generate @ $date by ${user}$mail
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
+#QB_Bases: $QBbase (bases with quality <= 2)
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort qw{A T C G}; # keys %BaseCountTypeRef;
 for (@BaseOrder) {

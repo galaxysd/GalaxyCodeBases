@@ -1,7 +1,7 @@
 #!/bin/env perl
 =pod
 Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
-Version: 0.1.0 @ 20110803
+Version: 0.1.1 @ 20110819
 =cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
 use strict;
@@ -9,7 +9,7 @@ use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.1.0;
+$main::VERSION=0.1.1;
 our $opts='o:b';
 our($opt_o, $opt_b);
 
@@ -31,7 +31,7 @@ my $start_time = [gettimeofday];
 my $READLEN=0;
 my $Qcount=41;
 my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
-my ($mapBase,$mapReads)=(0,0);
+my ($mapBase,$mapReads,$QBbase)=(0,0,0);
 my $type='N/A';
 my %Stat;   # $Stat{Ref}{Cycle}{Read-Quality}
 my @BQHeader;
@@ -57,6 +57,9 @@ while (<>) {
     }
     if (/^#Mismatch_base: (\d+)/) {
         $MisBase += $1;
+    }
+    if (/^#QB_Bases: (\d+)/) {
+        $QBbase += $1;
     }
     next if /^#/;
     next if /^$/;
@@ -94,6 +97,7 @@ $tmp="#Generate @ $date by ${user}$mail
 #Total statistical Bases: $TotalBase , Reads: $TotalReads of ReadLength $READLEN
 #Dimensions: Ref_base_number 4, Cycle_number $Cycle, Seq_base_number 4, Quality_number $Qcount
 #Mismatch_base: $MisBase, Mismatch_rate: $MisRate %
+#QB_Bases: $QBbase (bases with quality <= 2)
 #Reference Base Ratio in reads: ";
 my @BaseOrder=sort keys %BaseCountTypeRef;  # qw{A T C G};
 for (@BaseOrder) {

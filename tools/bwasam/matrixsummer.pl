@@ -35,7 +35,7 @@ open IN,'<',$input or die "Error: $!\n";
 my $READLEN=0;
 my $Qcount=41;
 my ($TotalReads,$TotalBase,$MisBase,%BaseCountTypeRef)=(0,0,0);
-my ($mapBase,$mapReads)=(0,0);
+my ($mapBase,$mapReads,$QBbase)=(0,0,0);
 my $type='N/A';
 my %Stat;   # $Stat{Ref}{Cycle}{Read}{Quality}
 my %MismatchBYQ;   # $MismatchBYQ{Read:A,T,C,G,All}{$Q}->[mismatch,match]
@@ -66,6 +66,9 @@ while (<IN>) {
     }
     if (/^#Mismatch_base: (\d+)/) {
         $MisBase += $1;
+    }
+    if (/^#QB_Bases: (\d+)/) {
+        $QBbase += $1;
     }
     next if /^#/;
     next if /^$/;
