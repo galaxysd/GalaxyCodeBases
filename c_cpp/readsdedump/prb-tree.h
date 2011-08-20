@@ -12,7 +12,7 @@ typedef struct __prb_kmer_pos_data {
     uint16_t pos;
     uint32_t IDcnt;
     uint32_t* pIDary;
-} kmerpos_t;
+} KmerPosID_t;
 
 int compare_ints (const void *pa, const void *pb, void *param);
 int compare_strings (const void *pa, const void *pb, void *param);

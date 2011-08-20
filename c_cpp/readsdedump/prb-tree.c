@@ -54,7 +54,11 @@ compare_strings (const void *pa, const void *pb, void *param)
 int 
 compare_fixed_strings (const void *pa, const void *pb, void *param) 
 {
-  return memcmp (pa, pb, *(size_t *) param);
+    int ret = memcmp (pa, pb, *(size_t *) param);
+    #ifdef DEBUG
+    printf("[%s]<=>[%s] %d\n", (char *)pa, (char *)pb, ret);
+    #endif
+    return ret;
 }
 
 
@@ -75,7 +79,7 @@ print_tree_structure (const struct prb_node *node, int level)
   if (node == NULL)
     return;
 
-  printf ("%d", *(int *) node->prb_data);
+  printf ("[%s]", (char *) node->prb_data);
   if (node->prb_link[0] != NULL || node->prb_link[1] != NULL)
     {
       putchar ('(');
