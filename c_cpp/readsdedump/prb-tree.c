@@ -31,6 +31,8 @@
 #include <string.h>
 #include "prb-tree.h"
 
+uint16_t currentPos=0;
+
 /* Utility functions. */
 
 /* http://www.stanford.edu/~blp/avl/libavl.html/Answers-for-Chapter-2.html#2-3%232

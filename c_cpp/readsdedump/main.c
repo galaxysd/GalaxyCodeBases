@@ -130,8 +130,20 @@ static inline uint_fast16_t compseq(char const* strA, char const* strB, uint_fas
     return mismatch;
 }
 
-void insertSeeds(char const* seq, struct prb_table * tree, uint_fast16_t SeedLen) {
+struct prb_table *MainKmerPosTree, *KmerCacheTree;
 
+void insertSeeds(char const* seq, struct prb_table * tree, uint_fast16_t SeedLen) {
+    size_t ReadLength = strlen(seq);
+    #ifdef DEBUG
+    if (ReadLength<SeedLen) {
+        fprintf(stderr,"[!]Read_Length(%d) < Seed_Length(%d) !\n",
+            (unsigned int)ReadLength,(unsigned int)SeedLen);
+        exit(1);
+    }
+    #endif
+    for(uint_fast16_t i=0;i<=ReadLength-SeedLen;++i){
+        currentPos=i;
+    }
 }
 
 int main (int argc, char **argv) {
@@ -165,6 +177,7 @@ int main (int argc, char **argv) {
     uint64_t MaxReadLength=0;
     int_fast8_t diffRL=0;
     int ReadsTooLong=0;
+    int ReadsTooShort=0;
 
     fputs("\nParsing Sequence Files:\n", stderr);
     G_TIMER_START;
@@ -192,6 +205,9 @@ int main (int argc, char **argv) {
                     if (ReadLength>UINT16_MAX) {
                         ReadLength=UINT16_MAX;
                         ReadsTooLong = 1;
+                    } else if (ReadLength<arguments.seedLen) {
+                        ReadsTooShort = 1;
+                        continue;
                     }
                     if (ReadLength>MaxReadLength) MaxReadLength=ReadLength;
                     if (ReadsCount+1>SeqArrayLength) {
@@ -218,6 +234,12 @@ int main (int argc, char **argv) {
     uint8_t* pSeqMismatchArray = calloc(ReadsCount,sizeof(uint8_t));
 
     fprintf(stderr,"[!]Total_Reads: %ld\tMean_Read_Length: %f\n",ReadsCount,(double)BasesCount/(double)ReadsCount);
+
+    KmerCacheTree = prb_create(compare_fixed_strings, &arguments.seedLen, NULL);
+    MainKmerPosTree = prb_create(compare_fixed_strings, &arguments.seedLen, NULL);
+    for(uint_fast32_t i=0;i<ReadsCount;++i) {
+        insertSeeds(pSeqArray[i],KmerCacheTree,arguments.seedLen);
+    }
 
     //uint64_t CmpCount=0;  // CmpCount == ReadsCount*(ReadsCount-1)/2
     uint64_t MisCount=0;
@@ -265,6 +287,10 @@ int main (int argc, char **argv) {
     if (ReadsTooLong) {
         fputs("#There are reads longer than "CAT(UINT16_MAX)".\n", fp);
         fputs("[!]There are reads longer than "CAT(UINT16_MAX)".\n", stderr);
+    }
+    if (ReadsTooShort) {
+        fprintf(fp, "#There are reads shorter than Seed_Length:%u.\n", (unsigned int)arguments.seedLen);
+        fprintf(stderr, "#There are reads shorter than Seed_Length:%u.\n", (unsigned int)arguments.seedLen);
     }
     fclose(fp);
 

@@ -14,6 +14,13 @@ typedef struct __prb_kmer_pos_data {
     uint32_t* pIDary;
 } KmerPosID_t;
 
+extern uint16_t currentPos;
+typedef struct __prb_kmer_data {
+    char* pKmer;    // without tailing '\0', for KmerLength == *param
+    uint32_t IDcnt;
+    uint32_t* pIDary;
+} KmerID_t;
+
 int compare_ints (const void *pa, const void *pb, void *param);
 int compare_strings (const void *pa, const void *pb, void *param);
 int compare_fixed_strings (const void *pa, const void *pb, void *param);
