@@ -15,6 +15,8 @@
 #include "prb.h"
 #include "prb-tree.h"
 
+#define CAT0(x) #x
+#define CAT(x) CAT0(x)
 // 1048576 + 128k
 //#define READSCOUNT_INIT (1048576)
 //#define READSCOUNT_INC  (128*1024)
@@ -43,13 +45,14 @@ static char args_doc[] = "input_files (FASTA or FASTQ)";
 /* The options we understand. */
 static struct argp_option options[] = {
     {"maxmismatch", 'm', "10"           ,0, "Max mismatch to be PCR duplicate"},
+    {"seedlength",  's', "7"            ,0, "Seed length"},
     {"outfile",     'o', "./out.stat"   ,0, "Output file" },
     { 0 }
 };
 
 /* Used by main to communicate with parse_opt. */
 struct arguments {
-    uint_fast16_t mismatch;
+    uint_fast16_t mismatch,seedLen;
     char **args;
     char *outfile;
 };
@@ -73,7 +76,15 @@ parse_opt (int key, char *arg, struct argp_state *state) {
                errx(2,"-m \"%s\"=%i is not between [0,%d] !",arg,tmpArgValue,UINT16_MAX);
             }
             break;
-            
+        case 's':
+            tmpArgValue = atoi(arg);
+            if (tmpArgValue>=0 && tmpArgValue <= UINT16_MAX) {
+               arguments->seedLen = tmpArgValue;
+            } else {
+               errx(2,"-s \"%s\"=%i is not between [0,%d] !",arg,tmpArgValue,UINT16_MAX);
+            }
+            break;
+
         case ARGP_KEY_ARG:
             arguments->args[state->arg_num] = arg;
             break;
@@ -119,20 +130,25 @@ static inline uint_fast16_t compseq(char const* strA, char const* strB, uint_fas
     return mismatch;
 }
 
+void insertSeeds(char const* seq, struct prb_table * tree, uint_fast16_t SeedLen) {
+
+}
+
 int main (int argc, char **argv) {
     struct arguments arguments;
     arguments.args=calloc(sizeof(size_t),argc);
     
     // Default values.
-    arguments.outfile = "./out.stat";
+    arguments.outfile  = "./out.stat";
     arguments.mismatch = 10;
+    arguments.seedLen  = 7;
     char *const*line = arguments.args-1;    // so that we can use *(++line)
     
     // Parse our arguments; every option seen by parse_opt will be reflected in arguments.
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
-    fprintf(stderr,"Arguments: max_mismatch=%d, out_file=%s\nInput_files:",
-        (int)arguments.mismatch,arguments.outfile);
+    fprintf(stderr,"Arguments: max_mismatch=%u, seed_length=%u, out_file=%s\nInput_files:",
+        (unsigned int)arguments.mismatch,(unsigned int)arguments.seedLen,arguments.outfile);
     while ( *(++line) ) {
         fprintf(stderr, " [%s]", *line);
     }
@@ -246,6 +262,10 @@ int main (int argc, char **argv) {
         }
     }
     fprintf(fp,"\n# Mismatch=0 means unique.\n");
+    if (ReadsTooLong) {
+        fputs("#There are reads longer than "CAT(UINT16_MAX)".\n", fp);
+        fputs("[!]There are reads longer than "CAT(UINT16_MAX)".\n", stderr);
+    }
     fclose(fp);
 
     for (size_t i=0;i<ReadsCount;++i) {
