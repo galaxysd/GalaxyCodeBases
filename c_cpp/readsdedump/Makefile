@@ -33,9 +33,9 @@ customobjects = $(addprefix $(OBJDIR),)# sdleftTFuint16.o sdleftTFuint32.o sdlef
 c99objects = $(addprefix $(OBJDIR), prb.o)
 noshareobjects = $(addprefix $(OBJDIR), prbtest.o main.o simple.o prb-tree.o prb-test.o)
 objects = $(cobjects) $(c99objects) $(customobjects)
-exefiles = prb-test readsdedump simplededump stat_dup
+exefiles = prb-test readsdedump simplededump
 
-all: clean $(objects) $(exefiles)
+all: clean $(objects) $(exefiles) stat_dup
 	@echo [$(CC) $(CFLAGS) $(OPT) $(LDFLAGS)][$(MAKEARG)].
 
 readsdedump: $(objects) $(noshareobjects)
