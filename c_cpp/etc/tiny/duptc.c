@@ -8,10 +8,14 @@ long double Sqrt2=sqrtl(2);
 
 double InsMean, InsSTD, ReadsDep;
 
-// http://en.wikipedia.org/wiki/Normal_distribution#Numerical_approximations_for_the_normal_CDF
+/* http://en.wikipedia.org/wiki/Normal_distribution#Numerical_approximations_for_the_normal_CDF
+如果用Ncdf(x+1)-Ncdf(x)，则当std<1时，最终结果会减半。
+还原回Ncdf(x+0.5)-Ncdf(x-0.5)，则如同预期地趋近SE的结果。
+ */
 static inline long double NormalCDFdiff(double x, double m, double s) {
 	//return 0.5 + 0.5 * erfl( (x - m) / (s * Sqrt2) );
-	return 0.5 * ( erfl( (x+1 - m) / (s * Sqrt2) ) - erfl( (x - m) / (s * Sqrt2) ) );
+	//return 0.5 * ( erfl( (x+1 - m) / (s * Sqrt2) ) - erfl( (x - m) / (s * Sqrt2) ) );
+	return 0.5 * ( erfcl( (m-x-0.5) / (s * Sqrt2) ) - erfcl( (m-x+0.5) / (s * Sqrt2) ) );
 }
 
 int main (int argc, char *argv[]) {
@@ -30,7 +34,7 @@ int main (int argc, char *argv[]) {
 		ReadsDep,InsMean,InsSTD,1-exp(-ReadsDep));
 	long double sumdup=0;
 	long double thisdup,Ci;
-	long long int ins=0;
+	long long int ins=1;
 	do {
 		Ci = (long double)ReadsDep * NormalCDFdiff(ins,InsMean,InsSTD);
 		thisdup=Ci*(1-exp(-Ci));

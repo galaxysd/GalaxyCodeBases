@@ -15,7 +15,7 @@ SRCDIRS   =
 SRCEXTS = .c# .C .cc .cpp .CPP .c++ .cxx .cp
 
 OLevel= -O3
-CFLAGS  = -pipe -march=core2 -mtune=generic# -std=gnu99
+CFLAGS  = -pipe -march=core2 -mtune=generic -std=gnu99
 WARNFLAGS =  -Wfloat-equal -Wall \
 #-pedantic
 
