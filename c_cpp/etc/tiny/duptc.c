@@ -30,8 +30,9 @@ int main (int argc, char *argv[]) {
 		fputs("[x]Input Error !\n",stderr);
 		exit(EXIT_FAILURE);
 	}
-	printf("ReadsDep=(%.9g) InsMean=(%.12g) InsSTD=(%.12g)\nSE theory dup. rate: %.16e\n",
-		ReadsDep,InsMean,InsSTD,1-exp(-ReadsDep));
+	double SEdup = 1-exp(-ReadsDep);
+	printf("ReadsDep=(%.9g) InsMean=(%.12g) InsSTD=(%.12g)\nSE theory dup. rate: %.20e\n",
+		ReadsDep,InsMean,InsSTD,SEdup);
 	long double sumdup=0;
 	long double thisdup,Ci;
 	long long int ins=1;
@@ -42,7 +43,8 @@ int main (int argc, char *argv[]) {
 		//printf("%d %.16Le %.16Le\n",ins,thisdup,sumdup);
 		++ins;
 	} while (ins<=2*InsMean+6*InsSTD || thisdup>LDBL_MIN);
-	printf("PE theory dup. rate: %.16Le\n",sumdup/ReadsDep);
+	sumdup /= (long double)ReadsDep;
+	printf("PE theory dup. rate: %.20Le (%.6Lf %% of SE)\n",sumdup,100*sumdup/SEdup);
 	exit(EXIT_SUCCESS);
 }
 
