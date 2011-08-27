@@ -4,7 +4,7 @@
 #include <math.h>
 
 //#define SQRT2 1.4142135623730950488016887242097
-long double Sqrt2=sqrtl(2);
+//const long double Sqrt2=sqrtl(2);
 
 double InsMean, InsSTD, ReadsDep;
 
@@ -15,7 +15,7 @@ double InsMean, InsSTD, ReadsDep;
 static inline long double NormalCDFdiff(double x, double m, double s) {
 	//return 0.5 + 0.5 * erfl( (x - m) / (s * Sqrt2) );
 	//return 0.5 * ( erfl( (x+1 - m) / (s * Sqrt2) ) - erfl( (x - m) / (s * Sqrt2) ) );
-	return 0.5 * ( erfcl( (m-x-0.5) / (s * Sqrt2) ) - erfcl( (m-x+0.5) / (s * Sqrt2) ) );
+	return 0.5 * ( erfcl( (m-x-0.5) / (s * sqrtl(2)) ) - erfcl( (m-x+0.5) / (s * sqrtl(2)) ) );
 }
 
 int main (int argc, char *argv[]) {
