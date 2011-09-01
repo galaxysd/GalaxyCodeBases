@@ -15,7 +15,7 @@ SRCDIRS   =
 SRCEXTS = .c# .C .cc .cpp .CPP .c++ .cxx .cp
 
 OLevel= -O3
-CFLAGS  = -pipe -march=core2 -mtune=generic# -std=gnu99
+CFLAGS  = -pipe -march=core2 -mtune=generic -std=gnu99
 WARNFLAGS =  -Wfloat-equal -Wall \
 #-pedantic
 
@@ -29,21 +29,22 @@ SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
 
 .PHONY: all clean
 
-all: $(SOURCES:.c=)
+all: ./depstator
 #$(patsubst $.c,%,$(SOURCES))
 	@echo [@gcc $(CFLAGS) $(OLevel) $(LDFLAGS)]
 #@echo [$(SOURCES)] to [$(SOURCES:.c=)].
 
-%: %.c
+%.o: %.c
 	@mkdir -p asm
 	@echo  [$(OLevel)]:${<} -\> ${@}
-	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) $(LDFLAGS) -o $@ $<
-	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o ./asm/$@.s $<
+	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) -c -o $@ $<
+	@gcc $(CFLAGS) $(OLevel) -c $(ASMFLAGS) -o ./asm/$@.s $<
 	@as -alhnd ./asm/$@.s > ./asm/$@.asm
 #@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
 	@rm ./asm/$@.s
 
-./11locktest: override OLevel += 
+./depstator: $(SOURCES:.c=.o)
+	gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(SOURCES:.c=.o) -o depstator
 
 clean:
 	-rm $(SOURCES:.c=)

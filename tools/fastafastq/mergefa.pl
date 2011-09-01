@@ -7,13 +7,13 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 use Galaxy::ShowHelp;
 
 $main::VERSION=0.0.1;
-our $opts='o:c:b';
+our $opts='o:cb';
 our($opt_o, $opt_c, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
 \t-o output file
-\t-c keep only ChrID ~ /chr\\d+/
+\t-c keep only ChrID ~ /^chr\\d+\$/
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='fa_files{,.gz,.bz2}';
@@ -25,7 +25,7 @@ die "[!]Max 252 files supported.\n" if @ARGV>252;
 die "[x]Need output file !\n" unless $opt_o;
 
 print STDERR "From [@ARGV] to [$opt_o]\n";
-print STDERR "Keep only ChrID ~ /chr\\d+/\n" if $opt_c;
+print STDERR "Keep only ChrID =~ /^chr\\d+\$/\n" if $opt_c;
 unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <STDIN>;}
 
 my $start_time = [gettimeofday];
@@ -52,10 +52,14 @@ sub rwfa($$) {
 		s/^>//;
 		/^(\S+)/ or next;
 		my $seqname = $1;
+		if ($opt_c) {
+			next if $seqname !~ /^chr\d+$/;
+		}
+		print STDERR ">$seqname\n";
 		$/=">";
 		my $genome=<$ifh>;
 		chomp $genome;
-		$genome=~s/[^ATCG]//g;
+		$genome=~s/[^ATCGatcg]//g;
 		$/="\n";
 		print $OutFile $genome;
 		$genome='';
