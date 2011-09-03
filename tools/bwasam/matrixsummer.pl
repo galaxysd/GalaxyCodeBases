@@ -4,6 +4,7 @@ Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
 Version: 0.1.0 @ 20110803
 =cut
 #use lib "/ifs1/ST_ASMB/USER/huxuesong/public/lib";
+#use lib '/export/data0/gentoo/tmp';
 use strict;
 use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
@@ -16,7 +17,7 @@ our($opt_o, $opt_b);
 
 #our $desc='';
 our $help=<<EOH;
-\t-o output prefix (./matrixsum).{count,ratio}.matrix
+\t-o output prefix (./matrixsum).{err2mis}
 \t-b No pause for batch runs
 EOH
 our $ARG_DESC='matrix_count_file';
@@ -96,7 +97,7 @@ while (<IN>) {
 close IN;
 #ddx \%MismatchBYQ;
 open OA,'>',$opt_o.'.err2mis' or die "Error: $!\n";
-print OA "Read\tQ\tErrRate\tMismatchRate\terrbar\n";
+print OA "#Read\tQ\tErrRate\tMismatchRate\terrbar\n";
 for my $read (sort keys %MismatchBYQ) {
     for my $Q (sort {$a<=>$b} keys %{$MismatchBYQ{$read}}) {
         my ($mismatch,$match)=@{$MismatchBYQ{$read}{$Q}};
