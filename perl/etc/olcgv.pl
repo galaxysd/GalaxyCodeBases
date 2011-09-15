@@ -29,9 +29,6 @@ print "Seq: $Seq\nOut: $filename.{gv,png}\n";
 my @U=grep(/^\d+$/,@Seq);
 my @R=grep(/[^\d]/,@Seq);
 my %t;
-++$t{$_} for @U;
-@U=sort keys %t;
-%t=();
 ++$t{$_} for @R;
 @R=sort keys %t;
 my $RepeatCount=(values %t)[0];
@@ -58,16 +55,36 @@ sub getName($) {
 open O,'>',$filename.'.gv' or die "$!";
 print O <<HEAD;
 graph "OLC" {
-\trankdir=LR;
+\trankdir=LR; splines=true; overlap=false;
 \tgraph [ fontname = "Arial", label = "OLC plot of $RepeatCount Repeats with Overlap=$OverlapNodes\\nSeq: $Seq" ];
 HEAD
-print O "\tnode [shape = ellipse]; ";
-print O " @{&getName($_)}" for (@R);
-print O ";\n\tnode [shape = box];\n";
+#print O "\tnode [shape = ellipse]; ";
+#print O " @{&getName($_)}" for (@R);
+#print O ";\n\tnode [shape = box];\n";
 unless ($Collapse) {
 #print O "\t{rank=same; ";
-    print O "\t{rank=same; @{&getName($_)} ;}\n" for (@R);
+    #print O "\t{rank=same; @{&getName($_)} ;}\n" for (@R);
 #print O ";}\n";
+    for my $i (1..$RepeatCount) {
+        print O "\tsubgraph clusterR$i { label=\"\"; style=filled; color=gray95; ";
+        #my @tr;
+        for my $r (@R) {
+            print O " $r$i";
+            #push @tr,"$r$i";
+        }
+        #print O ";}; ",join(' -- ',@tr),";};\n";
+        print O "; };\n";
+    }
+} else {
+    print O "\tsubgraph clusterR { label=\"\"; style=filled; color=gray95; ",join(' ',@R),";};\n";
+}
+print O "\tnode [shape = box];\n";
+my $i=0;
+while (@U) {
+    my @t;
+    ++$i;
+    push @t,shift(@U) for (1..$SecLen);
+    print O "\tsubgraph clusterU$i { label=\"\"; style=filled; color=aliceblue; ",join(' ',@t),"; };\n";
 }
 
 my %Edges;
