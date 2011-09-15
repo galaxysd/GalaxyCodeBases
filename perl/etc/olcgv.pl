@@ -2,11 +2,29 @@
 use strict;
 use warnings;
 
-die "Usage: $0 <output> <nodes_overlap> [collapse_repeats]\n" if @ARGV < 2;
-my ($out,$OverlapNodes,$Collapse)=@ARGV;
+die "Usage: $0 <section_len> <f/r patten> <nodes_overlap> [collapse_repeats] [out_prefix]\n" if @ARGV < 3;
+my ($SecLen,$FRpatten,$OverlapNodes,$Collapse,$out)=@ARGV;
+$out='olc' unless $out;
 
-my @Seq=qw/1 2 3 4 A B C D 5 6 7 8 A B C D 9 10 11 12 D C B A 13 14 15 16/;
+#my @Seq=qw/1 2 3 4 A B C D 5 6 7 8 A B C D 9 10 11 12 D C B A 13 14 15 16/;
 #my @Seq=qw/1 2 3 A B C 4 5 6 A B C 7 8 9 C B A 10 11 12/;
+my @Seq;
+die "[x] section_len is [2,26].\n" if $SecLen<2 or $SecLen>26;
+$FRpatten=lc $FRpatten;
+my $u=0;
+push @Seq,++$u for (1..$SecLen);
+for (split //,$FRpatten) {
+    if ($_ eq 'f') {
+        push @Seq,chr(64+$_) for (1..$SecLen);
+    } elsif ($_ eq 'r') {
+        push @Seq,chr(65+$SecLen-$_) for (1..$SecLen);
+    }
+    push @Seq,++$u for (1..$SecLen);
+}
+my $Seq=join('-',@Seq);
+my $filename="$out.$FRpatten${SecLen}o$OverlapNodes";
+$filename .= 'c' if $Collapse;
+print "Seq: $Seq\nOut: $filename.{gv,png}\n";
 
 my @U=grep(/^\d+$/,@Seq);
 my @R=grep(/[^\d]/,@Seq);
@@ -37,8 +55,7 @@ sub getName($) {
     }
 }
 
-my $Seq=join('-',@Seq);
-open O,'>',$out.'.gv' or die "$!";
+open O,'>',$filename.'.gv' or die "$!";
 print O <<HEAD;
 graph "OLC" {
 \trankdir=LR;
@@ -101,5 +118,5 @@ print O "\t$_ [weight=$str{$_}];\n" for sort keys %str;
 %t=();
 print O "}\n";
 close O;
-system('dot','-Tpng',"-o$out.png","$out.gv");
+system('dot','-Tpng',"-o$filename.png","$filename.gv");
 
