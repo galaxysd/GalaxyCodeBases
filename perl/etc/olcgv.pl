@@ -55,8 +55,9 @@ sub getName($) {
 open O,'>',$filename.'.gv' or die "$!";
 print O <<HEAD;
 graph "OLC" {
-\trankdir=LR; splines=true; overlap=false;
-\tgraph [ fontname = "Arial", label = "OLC plot of $RepeatCount Repeats with Overlap=$OverlapNodes\\nSeq: $Seq" ];
+\trankdir=LR; splines=true; overlap=false; fontname = "Arial"; fontsize=20 dpi=180;
+\tnode [fontname = "Arial", fontsize=22];
+\tgraph [ label = "OLC plot of $RepeatCount Repeats with Overlap=$OverlapNodes\\nSeq: $Seq" ];
 HEAD
 #print O "\tnode [shape = ellipse]; ";
 #print O " @{&getName($_)}" for (@R);
@@ -118,7 +119,7 @@ for my $a (keys %Edges) {
     }
 }
 %t=();
-print O "\t$_ [weight=$str{$_}];\n" for sort keys %str;
+print O "\t$_ [weight=$str{$_}",($str{$_}>=10)?",style=bold":"","];\n" for sort keys %str;
 print O "}\n";
 close O;
 system('dot','-Tpng',"-o$filename.png","$filename.gv");
