@@ -55,7 +55,7 @@ sub getName($) {
 open O,'>',$filename.'.gv' or die "$!";
 print O <<HEAD;
 graph "OLC" {
-\trankdir=LR; splines=true; overlap=false; fontname = "Arial"; fontsize=20 dpi=180;
+\trankdir=LR; splines=true; overlap=false; fontname = "Arial"; fontsize=20; dpi=180;
 \tnode [fontname = "Arial", fontsize=22];
 \tgraph [ label = "OLC plot of $RepeatCount Repeats with Overlap=$OverlapNodes\\nSeq: $Seq" ];
 HEAD
