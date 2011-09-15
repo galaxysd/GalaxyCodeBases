@@ -69,18 +69,7 @@ unless ($Collapse) {
     print O "\t{rank=same; @{&getName($_)} ;}\n" for (@R);
 #print O ";}\n";
 }
-=pod
-for (my $i=0;$i<=$#Seq-$OverlapNodes;$i++) {
-    #print "[$Seq[$i]],",join(",",@{&getName($Seq[$i])}),"\n";
-    for my $a (@{&getName($Seq[$i])}) {
-        my @t;
-        for my $j (1..$OverlapNodes) {
-            push @t,@{&getName($Seq[$i+$j])};
-        }
-        print O "\t$a -> { ",join('; ',@t)," };\n";
-    }
-}
-=cut
+
 my %Edges;
 for (my $i=0;$i<$#Seq;$i++) {
     #print "[$Seq[$i]],",join(",",@{&getName($Seq[$i])}),"\n";
@@ -99,23 +88,20 @@ sub getStr($$) {
     } elsif ($a !~ /^\d+$/ and $b !~ /^\d+$/) {
         $v=1;
     }
-    #print "$a -- $b ,$v\n";
     return ["$a -- $b",$v];
 }
 my %str;
-for my $a (sort keys %Edges) {
+for my $a (keys %Edges) {
     %t=();
     ++$t{$_} for @{$Edges{$a}};
-    #$Edges{$a} = [keys %t];
-    #print O "\t$a -> { ",join('; ',keys %t)," };\n";    # dot
-    #print O "\t$a -- $_ ;\n" for sort keys %t;
     for my $b (keys %t) {
+    #for my $b (@{$Edges{$a}}) {
         my ($tstr,$v)=@{&getStr($a,$b)};
         $str{$tstr} += $v;
     }
 }
-print O "\t$_ [weight=$str{$_}];\n" for sort keys %str;
 %t=();
+print O "\t$_ [weight=$str{$_}];\n" for sort keys %str;
 print O "}\n";
 close O;
 system('dot','-Tpng',"-o$filename.png","$filename.gv");
