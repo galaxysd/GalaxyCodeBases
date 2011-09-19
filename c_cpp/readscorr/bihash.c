@@ -45,6 +45,10 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, size_t ArraySize, uint16_
     unsigned char ArrayBit = ceil(log2(ArraySize));
     unsigned char rBit = ArrayBit + ENCODEDBIT_ENTROPY_PAD;
     int toEncode = kmer*2 - rBit;
+    if (toEncode > ArrayBit) {
+        toEncode = ArrayBit;
+        rBit = kmer*2 - ArrayBit;
+    }
     unsigned char EncodedBit=(toEncode>0)?toEncode:0;
 
 #ifdef TEST    /* Test mode, keep rBit, pad CountBit */
@@ -75,4 +79,32 @@ SDLeftArray_t *dleft_arrayinit(unsigned char CountBit, size_t ArraySize, uint16_
     dleftobj->Hash_rBitMask=(1LLU<<rBit)-1u;
     return dleftobj;
 }
+
+void fprintSDLAnfo(FILE *stream, const SDLeftArray_t * dleftobj){
+    fprintf(stream,"SDLA(%#zx) -> {\n\
+ Size:[r:%uB+cnt:%uB]*Item:%zd(%.3f~%uB[enc:%u])*subArray:%u = %g MiB\n\
+ Hash:%u*%uB   ItemByte:%u   MaxCountSeen:%lu%s\n\
+ Designed Capacity:%lu   ItemCount:%lu, with Overflow:%lu\n\
+ FP:%g, estimated FP item count:%.10g\n\
+ Mem:%zu bytes\n\
+",
+      (size_t)dleftobj,
+      dleftobj->rBit,dleftobj->CountBit,dleftobj->ArraySize,log2(dleftobj->ArraySize),
+        dleftobj->ArrayBit,dleftobj->EncodedBit,dleftobj->SubItemCount,(double)dleftobj->SubItemCount*dleftobj->itemByte*dleftobj->ArraySize/1048576,
+      1,HASH_LENB,dleftobj->itemByte,dleftobj->maxCountSeen,(dleftobj->ItemInsideAll)?"":"(=0, as SDLA is empty)",
+      dleftobj->ArraySize*(dleftobj->SubItemCount*3/4),
+      dleftobj->ItemInsideAll,dleftobj->CellOverflowCount,
+      dleftobj->FalsePositiveRatio,dleftobj->ItemInsideAll*dleftobj->FalsePositiveRatio,
+      dleftobj->SDLAbyte);
+/*
+    fprintf(stream," Item_rBitMask:[%016lX %016lX]\n", (uint64_t)(dleftobj->Item_rBitMask>>64), (uint64_t)dleftobj->Item_rBitMask);
+    fprintf(stream," Item_CountBitMask:[%016lX]\n", dleftobj->Item_CountBitMask);
+    uint128_t check = dleftobj->Item_rBitMask + dleftobj->Item_CountBitMask;
+    fprintf(stream," Sum:[%016lX %016lX]\n", (uint64_t)(check>>64), (uint64_t)check);
+    fprintf(stream," Hash_ArrayBitMask:[%016lX]\n", dleftobj->Hash_ArrayBitMask);
+    fprintf(stream," Hash_rBitMask:[%016lX]\n", dleftobj->Hash_rBitMask);
+*/
+    fputs("}\n", stream);
+}
+
 
