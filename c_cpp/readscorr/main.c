@@ -11,7 +11,7 @@
 #include "getch.h"
 #include "2bitarray.h"
 #include "gFileIO.h"
-#include "sdleft.h"
+#include "bihash.h"
 #include "chrseq.h"
 #include "cfgparser.h"
 #include "timer.h"
@@ -91,10 +91,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'k':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>2 && tmpArgValue <= UINT16_MAX) {
+            if (tmpArgValue>=2 && tmpArgValue <= MAX_KMER_LEN) {
                arguments->kmersize = tmpArgValue;
             } else {
-               errx(2,"-k \"%s\"=%i is not between [3,%d] !",arg,tmpArgValue,UINT16_MAX);
+               errx(2,"-k \"%s\"=%i is not between [2,%d] !",arg,tmpArgValue,MAX_KMER_LEN);
             }
             break;
         case 'c':
@@ -215,7 +215,7 @@ int main (int argc, char **argv) {
     char *line;
     uint64_t insertedCount=0;
 
-    SDLeftArray_t *dleftp = dleft_arrayinit(arguments.CountBit,arguments.ArraySizeK*1024,arguments.SubItemCount); // (9,31,5000000,48);
+    SDLeftArray_t *dleftp = dleft_arrayinit(arguments.CountBit,arguments.ArraySizeK*1024,arguments.SubItemCount,arguments.kmersize); // (9,31,5000000,48);
     fputs("SDLA nfo: ", stderr);
     fprintSDLAnfo(stderr,dleftp);
 
