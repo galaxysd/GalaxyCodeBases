@@ -88,15 +88,20 @@ while (@U) {
     print O "\tsubgraph clusterU$i { label=\"\"; style=filled; color=aliceblue; ",join(' ',@t),"; };\n";
 }
 
-my %Edges;
+my (%Edges,%NodeLabel,%NodeLabelexists);
 for (my $i=0;$i<$#Seq;$i++) {
     #print "[$Seq[$i]],",join(",",@{&getName($Seq[$i])}),"\n";
     for my $a (@{&getName($Seq[$i])}) {
         for my $j (1..$OverlapNodes) {
-            push @{$Edges{$a}},@{&getName($Seq[$i+$j])} if $i+$j<=$#Seq;
+            if ($i+$j<=$#Seq) {
+                push @{$Edges{$a}},@{&getName($Seq[$i+$j])};
+                $NodeLabel{$a} .= '-'.$Seq[$i+$j] unless exists $NodeLabelexists{$a}{$Seq[$i+$j]};
+                ++$NodeLabelexists{$a}->{$Seq[$i+$j]};
+            }
         }
     }
 }
+print O "\t$_ [label=\"${_}$NodeLabel{$_}\"];\n" for sort keys %NodeLabel;
 
 sub getStr($$) {
     my ($a,$b)=sort @_;
