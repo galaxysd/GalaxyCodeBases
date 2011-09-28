@@ -1,0 +1,89 @@
+#!/bin/env perl
+use strict;
+use warnings;
+
+die "Usage: $0 <read1.fq.gz> <out>\n" if @ARGV != 2;
+my ($fq1,$out)=@ARGV;
+
+sub openfile($) {
+    my ($filename)=@_;
+    my $infile;
+    if ($filename=~/.bz2$/) {
+	    open( $infile,"-|","bzip2 -dc $filename") or die "Error opening $filename: $!\n";
+    } elsif ($filename=~/.gz$/) {
+     	open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
+    } else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
+    return $infile;
+}
+sub readfq($) {
+	my $fh=$_[0];
+	defined(my $a=<$fh>) or return [];
+	chomp($a);
+	chomp(my $b=<$fh>) or return [];
+	chomp(my $c=<$fh>) or return [];
+	chomp(my $d=<$fh>) or return [];
+	return [$a,$b,$c,$d];
+}
+sub getQ($) {
+    my @Qstr=split //,$_[0];
+    my @Qvalue=();
+    push @Qvalue,ord($_)-64 for @Qstr;
+    return \@Qvalue;
+}
+sub cal($) {
+    my $Qhashes=$_[0];
+    my ($x,$xx,$n,$cnt)=(0,0,0);
+    my ($max,$min,$common,$maxcnt)=(0,(keys %$Qhashes)[0],0,0);
+    for my $k (keys %$Qhashes) {
+        $cnt = $$Qhashes{$k};
+        $x += $k * $cnt;
+        $xx += $k*$k * $cnt;
+        $n += $cnt;
+        $max = $k if $max < $k;
+        $min = $k if $min > $k;
+        if ($maxcnt<$cnt) {
+            $maxcnt = $cnt;
+            $common = $k;
+        }
+    }
+    if ($n<2) {
+        return [$n,0,0] if $n<1;
+        return [$n,$max,0] if $n==1;
+    }
+    my $mean=$x/$n;
+    my $std=sqrt(($xx-$x*$mean)/$n-1);
+    return [$n,$max,$min,$common,$mean,$std];
+}
+
+my (%statQ,$ret);
+
+sub statQ($) {
+    my $Qvalues=$_[0];
+    my $Qlen=scalar @$Qvalues;
+    die "[x]Read Length must >= 30." if $Qlen<30;
+    for my $p (0..$Qlen-30) {
+        for my $q ($p..$Qlen-1) {
+            ++$statQ{$$Qvalues[$p]}{$$Qvalues[$q]};
+        }
+    }
+}
+my $FQa=openfile($fq1);
+#my $FQb=openfile($fq2);
+
+my $fqitem=&readfq($FQa);
+while (@$fqitem > 0) {
+    my ($id,$Q)=@$fqitem[0,3];
+    my $Qvalues=&getQ($Q);
+    &statQ($Qvalues);
+    $fqitem=&readfq($FQa);
+}
+close $FQa;
+
+open OUT,'>',$out or die "Error opening $out: $!\n";
+for my $k (sort {$a<=>$b} keys %statQ) {
+    $ret=&cal($statQ{$k});
+    print OUT join("\t",$k,@$ret),"\n";
+}
+#print OUT "Y\t$_\t$Yrange{$_}\n" for sort {$a<=>$b} keys %Yrange;
+close OUT;
+

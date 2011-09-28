@@ -33,7 +33,7 @@ sub getQ($) {
 sub statQ($) {
     my $Qvalues=$_[0];
     my $Qlen=scalar @$Qvalues;
-    die "[x]Read Length must > 50." if $Qlen<50;
+    die "[x]Read Length must >= 50." if $Qlen<50;
     my ($Q1,$Q5,$Q10,$Q15,$Qs15,$Q30,$Q50,$Qall);
     $Q1=$$Qvalues[0];
     $Q5+=shift @$Qvalues for (1..5);
