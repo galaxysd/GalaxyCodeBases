@@ -57,12 +57,13 @@ sub cal($) {
 
 my (%statQ,$ret);
 
+my $LENtoStat=10;
 sub statQ($) {
     my $Qvalues=$_[0];
     my $Qlen=scalar @$Qvalues;
-    die "[x]Read Length must >= 30." if $Qlen<30;
-    for my $p (0..$Qlen-30) {
-        for my $q ($p..$Qlen-1) {
+    die "[x]Read Length must >= $LENtoStat." if $Qlen<$LENtoStat;
+    for my $p (0..$Qlen-$LENtoStat) {
+        for my $q ($p..$p+$LENtoStat-1) {
             ++$statQ{$$Qvalues[$p]}{$$Qvalues[$q]};
         }
     }
@@ -83,18 +84,25 @@ open OUT,'>',$out.'.fQout' or die "Error opening $out.fQout: $!\n";
 open OD,'>',$out.'.fQdat' or die "Error opening $out.fQdat: $!\n";
 print OUT "#",join("\t",qw/ Q cnt max min common mean std /),"\n";
 print OD "#Q\toutMean\t",join("\t",(2..40)),"\n";
+my ($above,$below,$at)=(0,0,0);
 for my $k (sort {$a<=>$b} keys %statQ) {
     $ret=&cal($statQ{$k});
     print OUT join("\t",$k,@$ret),"\n";
     print OD "$k\t$$ret[-2]";
     for my $oq (2..40) {
         my $out='-';
-        $out=$statQ{$k}{$oq} if exists $statQ{$k}{$oq};
+        if (exists $statQ{$k}{$oq}){# && $k>2 && $oq>2) {
+            $out=$statQ{$k}{$oq};
+            if ($oq>$k) {$above+=$out;}# if $k>2;}
+             elsif ($oq==$k) {$at+=$out;}
+             else {$below+=$out;}
+        }
         print OD "\t$out";
     }
     print OD "\n";
 }
 #print OUT "Y\t$_\t$Yrange{$_}\n" for sort {$a<=>$b} keys %Yrange;
 close OUT;
+print OD "# Above: $above\n# At: $at\n# Below: $below\n";
 close OD;
 
