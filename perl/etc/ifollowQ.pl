@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-die "Usage: $0 <read1.fq.gz> <out>\n" if @ARGV != 2;
+die "Usage: $0 <read1.fq.gz> <outprefix>.fQ{out,dat}\n" if @ARGV != 2;
 my ($fq1,$out)=@ARGV;
 
 sub openfile($) {
@@ -79,11 +79,22 @@ while (@$fqitem > 0) {
 }
 close $FQa;
 
-open OUT,'>',$out or die "Error opening $out: $!\n";
+open OUT,'>',$out.'.fQout' or die "Error opening $out.fQout: $!\n";
+open OD,'>',$out.'.fQdat' or die "Error opening $out.fQdat: $!\n";
+print OUT "#",join("\t",qw/ Q cnt max min common mean std /),"\n";
+print OD "#Q\toutMean\t",join("\t",(2..40)),"\n";
 for my $k (sort {$a<=>$b} keys %statQ) {
     $ret=&cal($statQ{$k});
     print OUT join("\t",$k,@$ret),"\n";
+    print OD "$k\t$$ret[-2]";
+    for my $oq (2..40) {
+        my $out='-';
+        $out=$statQ{$k}{$oq} if exists $statQ{$k}{$oq};
+        print OD "\t$out";
+    }
+    print OD "\n";
 }
 #print OUT "Y\t$_\t$Yrange{$_}\n" for sort {$a<=>$b} keys %Yrange;
 close OUT;
+close OD;
 
