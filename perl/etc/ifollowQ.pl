@@ -18,11 +18,11 @@ sub openfile($) {
 }
 sub readfq($) {
 	my $fh=$_[0];
-	defined(my $a=<$fh>) or return [];
+	defined(my $a=<$fh>) or return [1];
 	chomp($a);
-	chomp(my $b=<$fh>) or return [];
-	chomp(my $c=<$fh>) or return [];
-	chomp(my $d=<$fh>) or return [];
+	chomp(my $b=<$fh>) or return [2];
+	chomp(my $c=<$fh>) or return [3];
+	chomp(my $d=<$fh>) or return [4];
 	$c=substr($a,0,length($d)) if $d =~ s/B+$//;
 	return [] unless length($d);
 	return [$a,$b,$c,$d];
@@ -71,7 +71,7 @@ my (%statQ,$ret);
 sub statQ($) {
     my $Qvalues=$_[0];
     my $Qlen=scalar @$Qvalues;
-    die "[x]Read Length must >= $LENtoStat." if $Qlen<$LENtoStat;
+    return "[x]Read Length must >= $LENtoStat." if $Qlen<$LENtoStat;
     for my $p (0..$Qlen-$LENtoStat-1) {
         for my $q ($p+1..$p+$LENtoStat) {
             ++$statQ{$$Qvalues[$p]}{$$Qvalues[$q]};
@@ -82,7 +82,8 @@ my $FQa=openfile($fq1);
 #my $FQb=openfile($fq2);
 
 my $fqitem=&readfq($FQa);
-while (@$fqitem > 0) {
+while (@$fqitem != 1) {
+    next if @$fqitem == 0;
     my ($id,$Q)=@$fqitem[0,3];
     my $Qvalues=&getQ($Q);
     &statQ($Qvalues);
