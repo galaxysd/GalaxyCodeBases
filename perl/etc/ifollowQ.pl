@@ -65,7 +65,7 @@ sub cal($) {
     return [$n,$max,$min,$common,$mean,$std];
 }
 
-my (%statQ,$ret);
+my ($ReadCnt,%statQ,$ret)=(0);
 
 #my $LENtoStat=10;
 sub statQ($) {
@@ -83,18 +83,22 @@ my $FQa=openfile($fq1);
 
 my $fqitem=&readfq($FQa);
 while (@$fqitem != 1) {
-    next if @$fqitem == 0;
+    if (@$fqitem == 0) {
+        $fqitem=&readfq($FQa);
+        next;
+    }
     my ($id,$Q)=@$fqitem[0,3];
     my $Qvalues=&getQ($Q);
     &statQ($Qvalues);
     $fqitem=&readfq($FQa);
+    ++$ReadCnt;
 }
 close $FQa;
 
 open OUT,'>',$out.'.fQout' or die "Error opening $out.fQout: $!\n";
 open OD,'>',$out.'.fQdat' or die "Error opening $out.fQdat: $!\n";
-print OUT "#LENtoStat = $LENtoStat\n#",join("\t",qw/ Q cnt max min common mean std /),"\n";
-print OD "#LENtoStat = $LENtoStat\n#Q\toutMean\t",join("\t",(2..40)),"\n";
+print OUT "#ReadsCnt=$ReadCnt LENtoStat=$LENtoStat\n#",join("\t",qw/ Q cnt max min common mean std /),"\n";
+print OD "#ReadsCnt=$ReadCnt LENtoStat=$LENtoStat\n#Q\toutMean\t",join("\t",(2..40)),"\n";
 my ($above,$below,$at)=(0,0,0);
 for my $k (sort {$a<=>$b} keys %statQ) {
     $ret=&cal($statQ{$k});
