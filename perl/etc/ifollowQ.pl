@@ -2,8 +2,9 @@
 use strict;
 use warnings;
 
-die "Usage: $0 <read1.fq.gz> <outprefix>.fQ{out,dat}\n" if @ARGV != 2;
-my ($fq1,$out)=@ARGV;
+die "Usage: $0 <LENtoStat> <read1.fq.gz> <outprefix>.fQ{out,dat}\n" if @ARGV != 3;
+my ($LENtoStat,$fq1,$out)=@ARGV;
+$out .= ".$LENtoStat";
 
 sub openfile($) {
     my ($filename)=@_;
@@ -57,7 +58,7 @@ sub cal($) {
 
 my (%statQ,$ret);
 
-my $LENtoStat=10;
+#my $LENtoStat=10;
 sub statQ($) {
     my $Qvalues=$_[0];
     my $Qlen=scalar @$Qvalues;
@@ -82,8 +83,8 @@ close $FQa;
 
 open OUT,'>',$out.'.fQout' or die "Error opening $out.fQout: $!\n";
 open OD,'>',$out.'.fQdat' or die "Error opening $out.fQdat: $!\n";
-print OUT "#",join("\t",qw/ Q cnt max min common mean std /),"\n";
-print OD "#Q\toutMean\t",join("\t",(2..40)),"\n";
+print OUT "#LENtoStat = $LENtoStat\n#",join("\t",qw/ Q cnt max min common mean std /),"\n";
+print OD "#LENtoStat = $LENtoStat\n#Q\toutMean\t",join("\t",(2..40)),"\n";
 my ($above,$below,$at)=(0,0,0);
 for my $k (sort {$a<=>$b} keys %statQ) {
     $ret=&cal($statQ{$k});
