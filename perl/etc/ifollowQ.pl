@@ -23,6 +23,8 @@ sub readfq($) {
 	chomp(my $b=<$fh>) or return [];
 	chomp(my $c=<$fh>) or return [];
 	chomp(my $d=<$fh>) or return [];
+	$c=substr($a,0,length($d)) if $d =~ s/B+$//;
+	return [] unless length($d);
 	return [$a,$b,$c,$d];
 }
 sub getQ($) {
@@ -52,7 +54,14 @@ sub cal($) {
         return [$n,$max,0] if $n==1;
     }
     my $mean=$x/$n;
-    my $std=sqrt(($xx-$x*$mean)/$n-1);
+    my $std=($xx-$x*$mean)/$n-1;
+    if ($std>0) {
+        $std=sqrt($std);
+    } elsif ($std==-1) {
+        $std='i';
+    } else {
+        $std="sqrt($std)";
+    }
     return [$n,$max,$min,$common,$mean,$std];
 }
 
@@ -63,8 +72,8 @@ sub statQ($) {
     my $Qvalues=$_[0];
     my $Qlen=scalar @$Qvalues;
     die "[x]Read Length must >= $LENtoStat." if $Qlen<$LENtoStat;
-    for my $p (0..$Qlen-$LENtoStat) {
-        for my $q ($p..$p+$LENtoStat-1) {
+    for my $p (0..$Qlen-$LENtoStat-1) {
+        for my $q ($p+1..$p+$LENtoStat) {
             ++$statQ{$$Qvalues[$p]}{$$Qvalues[$q]};
         }
     }
