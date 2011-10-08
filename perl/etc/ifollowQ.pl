@@ -23,7 +23,9 @@ sub readfq($) {
 	chomp(my $b=<$fh>) or return [2];
 	chomp(my $c=<$fh>) or return [3];
 	chomp(my $d=<$fh>) or return [4];
-	$c=substr($a,0,length($d)) if $d =~ s/B+$//;
+#print "$b\n$d\n";
+	$b=substr($b,0,length($d)) if $d =~ s/B+$//;
+#print "$a\n$b\n$c\n$d\n---\n";
 	return [] unless length($d);
 	return [$a,$b,$c,$d];
 }
@@ -73,6 +75,7 @@ sub statQ($) {
     my $Qlen=scalar @$Qvalues;
     return "[x]Read Length must >= $LENtoStat." if $Qlen<$LENtoStat;
     for my $p (0..$Qlen-$LENtoStat-1) {
+#   for my $p (19..$Qlen-$LENtoStat-1) {
         for my $q ($p+1..$p+$LENtoStat) {
             ++$statQ{$$Qvalues[$p]}{$$Qvalues[$q]};
         }

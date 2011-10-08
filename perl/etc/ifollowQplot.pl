@@ -12,7 +12,8 @@ open I,'<',$in or die $!;
 while(<I>){
     next if /^#/;
     chomp;
-    s/\t\-(\t|$)/\t0\1/g;
+    #s/\t\-(\t|$)/\t0\1/g;
+    s/-/0/g;
     my @a=split /\t/;
     my $Qin=shift @a;
     my $Qlen=scalar @a;
