@@ -87,7 +87,7 @@ while(my $bamfile=shift @ARGV) {
         #ddx \%NFO;
 }
 open OA,'>',$statout or die "Error: $!\n";
-print OA "Input Files: $FilesStr\nTotal Reads: $ReadsStat/2 = ",$ReadsStat/2,"\nSE Dup: ",$DupSE/2,"\nPE dup: ",$DupPE/2,"\n";
+print OA "Input Files: $FilesStr\nTotal Reads: $ReadsStat/2 = ",$ReadsStat/2,"\nSE Dup: ",$DupSE/2,"\nPE dup: ",$DupPE/2,"\n",'-'x80,"\nPE dup ratio: ",$DupPE/$ReadsStat,"\nSE dup ratio: ",$DupSE/$ReadsStat,"\n";
 close OA;
 
 __END__
