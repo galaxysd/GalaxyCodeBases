@@ -20,13 +20,28 @@ my $statout = shift @ARGV;
 
 while(my $bamfile=shift @ARGV) {
     next unless -f $bamfile;
-
-        print STDERR "Read [$bamfile]\n";
+        open SAM,'-|',"$SAMTOOLS view $bamfile" or (warn "[!]Error opening $bamfile: $!\n" and next);
+        my ($READLEN,$i)=(0,0);
+        while (defined($_=<SAM>) and $i<2048) {
+            my @read1=split /\t/;
+            next unless $read1[5] =~ /^(\d+)M$/;
+            $READLEN = $1 if $READLEN < $1;
+            ++$i;
+        }
+        close SAM;
+        print STDERR "Read [$bamfile] $READLEN\n";
 
         open SAM,'-|',"$SAMTOOLS view $bamfile" or (warn "[!]Error opening $bamfile: $!\n" and next);
         while (<SAM>) {
-                next if /^(#|$)/;
-                chomp;
+                #next if /^(#|@)/;
+                #chomp;
+                my @read1=split /\t/;
+                next unless $read1[1] & 3;  # paired + mapped in a proper pair
+                next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
+                next unless $read1[5] =~ /^(\d+)M$/;
+                next unless $1 == $READLEN;
+                next if $read1[11] eq 'XT:A:R'; # Type: Unique/Repeat/N/Mate-sw, N not found.
+                #print "$_";
         }
         close SAM;
         #ddx \%NFO;
