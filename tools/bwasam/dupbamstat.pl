@@ -12,12 +12,13 @@ if ($user eq 'galaxy') {
 }
 
 unless (@ARGV){
-        print "perl $0 <outfile> <sorted bam files>\n";        # soaps.nfo can store the file size of soap. Too
+        print "perl $0 <maxPEpairs(0=Inf.)> <outfile> <sorted bam files>\n";        # soaps.nfo can store the file size of soap. Too
         exit;
 }
 
+my $maxpairs = shift @ARGV;
 my $statout = shift @ARGV;
-my ($DupSE,$DupPE,$ReadsStat)=(0,0,0);
+my ($DupSE,$DupPE,$ReadsStat,%SEDup,%PEDup)=(0,0,0);
 my $FilesStr='[' . join('], [',@ARGV) . "]";
 
 while(my $bamfile=shift @ARGV) {
@@ -33,7 +34,7 @@ while(my $bamfile=shift @ARGV) {
         close SAM;
         print STDERR "Read [$bamfile] $READLEN\n";
 
-        my ($lastL,$lastR,$readL,$readR,$isDupSE,$isDupPE)=(0,0,0,0,0,0);
+        my ($lastID,$ReadID,$lastL,$lastR,$readL,$readR,$isDupSE,$isDupPE)=('','',0,0,0,0,0,0);
         open SAM,'-|',"$SAMTOOLS view $bamfile" or (warn "[!]Error opening $bamfile: $!\n" and next);
         while (<SAM>) {
                 #next if /^(#|@)/;
@@ -47,16 +48,24 @@ while(my $bamfile=shift @ARGV) {
                 next if $read1[11] eq 'XT:A:R'; # Type: Unique/Repeat/N/Mate-sw, N not found.
                 #print "$_";
                 if ($lastL!=0) {
-                    ($readL,$readR)=@read1[3,7];
+                    ($ReadID,$readL,$readR)=@read1[0,3,7];
                     if ($readL == $lastL) {
                         $isDupSE=1;
+                        ++$SEDup{$ReadID};
                         if ($readR == $lastR) {
                             $isDupPE=1;
+                            ++$PEDup{$ReadID};
                         }
                     } else {
-                        ($lastL,$lastR)=($readL,$readR);
-                        $DupSE += $isDupSE;
-                        $DupPE += $isDupPE;
+                        if ($isDupSE) {
+                            ++$DupSE;
+                            ++$PEDup{$lastID};
+                        }
+                        if ($isDupPE) {
+                            ++$DupPE;
+                            ++$SEDup{$lastID};
+                        }
+                        ($lastID,$lastL,$lastR)=($ReadID,$readL,$readR);
                         ($isDupSE,$isDupPE)=(0,0);
                     }
                     ++$ReadsStat;
