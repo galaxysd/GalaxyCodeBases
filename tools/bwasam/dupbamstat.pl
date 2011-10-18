@@ -39,6 +39,7 @@ while(my $bamfile=shift @ARGV) {
                 #next if /^(#|@)/;
                 #chomp;
                 my @read1=split /\t/;
+                next if $read1[2] eq '*';   # unmap
                 next unless $read1[1] & 3;  # paired + mapped in a proper pair
                 next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
                 next unless $read1[5] =~ /^(\d+)M$/;
