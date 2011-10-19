@@ -16,6 +16,8 @@ unless (@ARGV){
         exit;
 }
 
+my ($STAGELENGTH,$stageborder)=(2000,2000);
+
 my $maxpairs = shift @ARGV;
 my $statout = shift @ARGV;
 my ($DupSE,$DupPE,$ReadsStat,%SEDup,%PEDup)=(0,0,0);
@@ -35,6 +37,7 @@ while(my $bamfile=shift @ARGV) {
         print STDERR "Read [$bamfile] $READLEN\n";
 
         my ($lastID,$ReadID,$lastL,$lastR,$readL,$readR,$isDupSE,$isDupPE)=('','',0,0,0,0,0,0);
+        my ($MaxIns,$ins)=(0);
         open SAM,'-|',"$SAMTOOLS view $bamfile" or (warn "[!]Error opening $bamfile: $!\n" and next);
         while (<SAM>) {
                 #next if /^(#|@)/;
@@ -47,8 +50,29 @@ while(my $bamfile=shift @ARGV) {
                 next unless $1 == $READLEN;
                 next if $read1[11] eq 'XT:A:R'; # Type: Unique/Repeat/N/Mate-sw, N not found.
                 #print "$_";
-                if ($lastL!=0) {
-                    ($ReadID,$readL,$readR)=@read1[0,3,7];
+                    ($ReadID,$readL,$readR,$ins)=@read1[0,3,7,8];
+                    $MaxIns = $ins if $MaxIns < $ins;
+                    ++$SEDup{$readL}{$ReadID};
+                    my ($reada,$readb) = sort {$a<=>$b} ($readL,$readR);
+                    ++$PEDup{$readb}{$reada}{$ReadID};
+                    if ($reada>$stageborder) {
+                        for (sort {$a<=>$b} keys %SEDup) {
+                            my $dupcnt=scalar keys $SEDup{$_}->{};
+                            $DupSE += $dupcnt if $dupcnt>=2;
+                        }
+                        %SEDup=();
+                        for my $Rb (sort {$a<=>$b} keys %PEDup) {
+                            if ($Rb<=$stageborder) {
+                                for my $Ra (sort {$a<=>$b} keys %{$PEDup{$Rb}}) {
+                                    my $dupcnt=scalar keys $PEDup{$Rb}{$Ra}->{};
+                                    $DupPE += $dupcnt if $dupcnt>=2;
+                                }
+                                delete $PEDup{$Rb};
+                            }
+                        }
+                        $stageborder += $STAGELENGTH;
+                    }
+=pod
                     if ($readL == $lastL) {
                         $isDupSE=1;
                         ++$SEDup{$ReadID};
@@ -70,10 +94,7 @@ while(my $bamfile=shift @ARGV) {
                     }
                     ++$ReadsStat;
                     next;
-                } else {
-                    ($lastL,$lastR)=@read1[3,7];
-                    next;
-                }
+=cut                    
 =pod
                          ┌────┬───────┬──────────────────────────────────────────────────────────┐
                          │Col │ Field │                       Description                        │
