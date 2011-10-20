@@ -37,34 +37,35 @@ while(my $bamfile=shift @ARGV) {
         print STDERR "Read [$bamfile] $READLEN\n";
 
         my ($lastID,$ReadID,$lastL,$lastR,$readL,$readR,$isDupSE,$isDupPE)=('','',0,0,0,0,0,0);
-        my ($MaxIns,$ins)=(0);
         open SAM,'-|',"$SAMTOOLS view $bamfile" or (warn "[!]Error opening $bamfile: $!\n" and next);
         while (<SAM>) {
                 #next if /^(#|@)/;
                 #chomp;
                 my @read1=split /\t/;
                 next if $read1[2] eq '*';   # unmap
+                next if $read1[5] eq '*';   # Single
                 next unless $read1[1] & 3;  # paired + mapped in a proper pair
                 next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
                 next unless $read1[5] =~ /^(\d+)M$/;
                 next unless $1 == $READLEN;
                 next if $read1[11] eq 'XT:A:R'; # Type: Unique/Repeat/N/Mate-sw, N not found.
                 #print "$_";
-                    ($ReadID,$readL,$readR,$ins)=@read1[0,3,7,8];
-                    $MaxIns = $ins if $MaxIns < $ins;
-                    ++$SEDup{$readL}{$ReadID};
+                ++$ReadsStat;
+                    ($ReadID,$readL,$readR)=@read1[0,3,7];
+                    my $dupcnt;
+                    ++$SEDup{$readL}{$ReadID} if $read1[1] & 0x40;  # only Read 1
                     my ($reada,$readb) = sort {$a<=>$b} ($readL,$readR);
                     ++$PEDup{$readb}{$reada}{$ReadID};
                     if ($reada>$stageborder) {
                         for (sort {$a<=>$b} keys %SEDup) {
-                            my $dupcnt=scalar keys $SEDup{$_}->{};
+                            $dupcnt = scalar keys %{$SEDup{$_}};
                             $DupSE += $dupcnt if $dupcnt>=2;
                         }
                         %SEDup=();
                         for my $Rb (sort {$a<=>$b} keys %PEDup) {
                             if ($Rb<=$stageborder) {
                                 for my $Ra (sort {$a<=>$b} keys %{$PEDup{$Rb}}) {
-                                    my $dupcnt=scalar keys $PEDup{$Rb}{$Ra}->{};
+                                    $dupcnt = scalar keys %{$PEDup{$Rb}{$Ra}};
                                     $DupPE += $dupcnt if $dupcnt>=2;
                                 }
                                 delete $PEDup{$Rb};
@@ -92,7 +93,7 @@ while(my $bamfile=shift @ARGV) {
                         ($lastID,$lastL,$lastR)=($ReadID,$readL,$readR);
                         ($isDupSE,$isDupPE)=(0,0);
                     }
-                    ++$ReadsStat;
+                    ++$ReadsStat;436748205075761`
                     next;
 =cut                    
 =pod
@@ -117,8 +118,10 @@ while(my $bamfile=shift @ARGV) {
         close SAM;
         #ddx \%NFO;
 }
+
+$ReadsStat /= 2;
 open OA,'>',$statout or die "Error: $!\n";
-print OA "Input Files: $FilesStr\nTotal Reads: $ReadsStat/2 = ",$ReadsStat/2,"\nSE Dup: ",$DupSE/2,"\nPE dup: ",$DupPE/2,"\n",'-'x80,"\nPE dup ratio: ",$DupPE/$ReadsStat,"\nSE dup ratio: ",$DupSE/$ReadsStat,"\n";
+print OA "Input Files: $FilesStr\nTotal Read Pairs: $ReadsStat\nSE Dup: ",$DupSE,"\nPE dup: ",$DupPE,"\n",'-'x80,"\nPE dup ratio: ",$DupPE/$ReadsStat,"\nSE dup ratio: ",$DupSE/$ReadsStat,"\n";
 close OA;
 
 __END__
