@@ -18,7 +18,7 @@ unless (@ARGV){
 
 my ($STAGELENGTH,$stageborder)=(2000,2000);
 
-my $maxpairs = shift @ARGV;
+my $maxpairs = 2*(shift @ARGV);
 my $statout = shift @ARGV;
 my ($DupSE,$DupPE,$ReadsStat,%SEDup,%PEDup)=(0,0,0);
 my $FilesStr='[' . join('], [',@ARGV) . "]";
@@ -73,6 +73,7 @@ while(my $bamfile=shift @ARGV) {
                         }
                         $stageborder += $STAGELENGTH;
                     }
+                 last if $maxpairs && $ReadsStat>=$maxpairs;
 =pod
                     if ($readL == $lastL) {
                         $isDupSE=1;
