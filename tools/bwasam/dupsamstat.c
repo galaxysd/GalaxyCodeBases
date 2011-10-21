@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "sam.h"
+#include "bam/sam.h"
 
 typedef struct {
 	int beg, end;

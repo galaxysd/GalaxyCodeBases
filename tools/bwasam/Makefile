@@ -44,6 +44,7 @@ all: $(SOURCES:.c=)
 	@rm ./asm/$@.s
 
 ./duptc: override LDLIB += -lm
+./dupsamstat: override LDLIB += -lbam -lm
 
 clean:
 	-rm $(SOURCES:.c=)
