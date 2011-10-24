@@ -1,6 +1,10 @@
+#include <stdlib.h> //EXIT_FAILURE
 #include <stdio.h>
+//#include <float.h>
+#include <math.h>
+#include <search.h> //hsearch
 #include "bam/sam.h"
-
+/*
 typedef struct {
 	int beg, end;
 	samfile_t *in;
@@ -21,22 +25,24 @@ static int pileup_func(uint32_t tid, uint32_t pos, int n, const bam_pileup1_t *p
 		printf("%s\t%d\t%d\n", tmp->in->header->target_name[tid], pos + 1, n);
 	return 0;
 }
-
-int main(int argc, char *argv[])
-{
-	tmpstruct_t tmp;
-	if (argc == 1) {
-		fprintf(stderr, "Usage: calDepth <in.bam> [region]\n");
-		return 1;
+*/
+int main (int argc, char *argv[]) {
+	if (argc!=3+1) {
+		fprintf(stderr,"Usage: %s <in.sam> <snp.lst> <outprefix>\n",argv[0]);
+		exit(EXIT_FAILURE);
 	}
-	tmp.beg = 0; tmp.end = 0x7fffffff;
-	tmp.in = samopen(argv[1], "rb", 0);
-	if (tmp.in == 0) {
-		fprintf(stderr, "Fail to open BAM file %s\n", argv[1]);
-		return 1;
+	samfile_t *samIn = samopen(argv[1], "r", NULL);
+	if (samIn == 0) {
+		fprintf(stderr, "Fail to open SAM file %s\n", argv[1]);
+		exit(EXIT_FAILURE);
 	}
+	bam_header_t *samHeader=samIn->header;
+	for (int32_t i=0;i<samHeader->n_targets;++i) {
+	    printf("[%0*d] %21s -> %9u bp\n",(int)(1+log10(samHeader->n_targets)),1+i,samHeader->target_name[i],samHeader->target_len[i]);
+	}
+/*
 	if (argc == 2) { // if a region is not specified
-		sampileup(tmp.in, -1, pileup_func, &tmp);
+		sampileup(samIn, -1, pileup_func, &tmp);
 	} else {
 		int ref;
 		bam_index_t *idx;
@@ -46,18 +52,19 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "BAM indexing file is not available.\n");
 			return 1;
 		}
-		bam_parse_region(tmp.in->header, argv[2], &ref,
+		bam_parse_region(samIn->header, argv[2], &ref,
 		                 &tmp.beg, &tmp.end); // parse the region
 		if (ref < 0) {
 			fprintf(stderr, "Invalid region %s\n", argv[2]);
 			return 1;
 		}
 		buf = bam_plbuf_init(pileup_func, &tmp); // initialize pileup
-		bam_fetch(tmp.in->x.bam, idx, ref, tmp.beg, tmp.end, buf, fetch_func);
+		bam_fetch(samIn->x.bam, idx, ref, tmp.beg, tmp.end, buf, fetch_func);
 		bam_plbuf_push(0, buf); // finalize pileup
 		bam_index_destroy(idx);
 		bam_plbuf_destroy(buf);
 	}
-	samclose(tmp.in);
+*/
+	samclose(samIn);
 	return 0;
 }
