@@ -16,7 +16,7 @@ SRCEXTS = .c# .C .cc .cpp .CPP .c++ .cxx .cp
 
 OLevel= -O3
 CFLAGS  = -pipe -march=core2 -mtune=generic -std=gnu99
-WARNFLAGS =  -Wfloat-equal -Wall \
+WARNFLAGS =  -Wfloat-equal -Wall\
 #-pedantic
 
 ASMFLAGS = -S -fverbose-asm -g -masm=intel
@@ -27,23 +27,26 @@ endif
 
 SOURCES = $(foreach d,$(SRCDIRS),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
 
-.PHONY: all clean
+.PHONY: all clean debug
 
 all: $(SOURCES:.c=)
 #$(patsubst $.c,%,$(SOURCES))
 	@echo [@gcc $(CFLAGS) $(OLevel) $(LDFLAGS)]
 #@echo [$(SOURCES)] to [$(SOURCES:.c=)].
 
+debug: clean all
+debug: override WARNFLAGS += -D DEBUG -g
+debug: override OLevel = -O1
+
 %: %.c
 	@mkdir -p asm
-	@echo  [$(OLevel)]:${<} -\> ${@}
+	@echo  [$(OLevel) $(WARNFLAGS)]: ${<} -\> ${@}
 	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) $(LDFLAGS) -o $@ $<
 	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o ./asm/$@.s $<
 	@as -alhnd -o /dev/null ./asm/$@.s > ./asm/$@.asm
 #@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
 	@rm ./asm/$@.s
 
-./duptc: override LDLIB += -lm
 ./dupsamstat: override LDLIB += -lbam -lm
 
 clean:
