@@ -4,6 +4,8 @@
 #include <math.h>
 #include <search.h> //hsearch
 #include "bam/sam.h"
+#include "bitarray.h"
+
 /*
 typedef struct {
 	int beg, end;
@@ -26,6 +28,11 @@ static int pileup_func(uint32_t tid, uint32_t pos, int n, const bam_pileup1_t *p
 	return 0;
 }
 */
+typedef struct {
+    void *pBitArray;
+    uint32_t ChrLen;
+} hData_t;
+
 int main (int argc, char *argv[]) {
 	if (argc!=3+1) {
 		fprintf(stderr,"Usage: %s <in.sam> <snp.lst> <outprefix>\n",argv[0]);
@@ -37,8 +44,27 @@ int main (int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	bam_header_t *samHeader=samIn->header;
-	for (int32_t i=0;i<samHeader->n_targets;++i) {
-	    printf("[%0*d] %21s -> %9u bp\n",(int)(1+log10(samHeader->n_targets)),1+i,samHeader->target_name[i],samHeader->target_len[i]);
+	int32_t ChrNum = samHeader->n_targets;
+	hcreate(2*ChrNum);
+	ENTRY hItem, *phItem;
+	for (int32_t i=0;i<ChrNum;++i) {
+	    printf("[%0*d] %21s -> %9u bp\n",(int)(1+log10(ChrNum)),1+i,samHeader->target_name[i],samHeader->target_len[i]);
+	    hItem.key  = samHeader->target_name[i];
+	    hData_t *hData = malloc(ChrNum * sizeof(hData_t));
+        if (hData == NULL) {
+           fprintf(stderr, "[x]malloc failed\n");
+           exit(EXIT_FAILURE);
+        }
+	    hData[i].ChrLen = samHeader->target_len[i];
+	    hData[i].pBitArray = calloc(1, BITNSLOTS(samHeader->target_len[i]) );
+	    hItem.data = &hData[i];
+        phItem = hsearch(hItem, ENTER);
+        /* there should be no failures */
+        if (phItem == NULL) {
+           fprintf(stderr, "[x]hash entry failed\n");
+           exit(EXIT_FAILURE);
+        }
+
 	}
 /*
 	if (argc == 2) { // if a region is not specified
