@@ -33,6 +33,8 @@ typedef struct {
     uint32_t ChrLen;
 } hData_t;
 
+int32_t ChrNum;
+
 int main (int argc, char *argv[]) {
 	if (argc!=3+1) {
 		fprintf(stderr,"Usage: %s <in.sam> <snp.lst> <outprefix>\n",argv[0]);
@@ -44,17 +46,17 @@ int main (int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	bam_header_t *samHeader=samIn->header;
-	int32_t ChrNum = samHeader->n_targets;
+	ChrNum = samHeader->n_targets;
 	hcreate(2*ChrNum);
 	ENTRY hItem, *phItem;
+	hData_t *hData = malloc(ChrNum * sizeof(hData_t));
+    if (hData == NULL) {
+       fprintf(stderr, "[x]malloc failed\n");
+       exit(EXIT_FAILURE);
+    }
 	for (int32_t i=0;i<ChrNum;++i) {
 	    printf("[%0*d] %21s -> %9u bp\n",(int)(1+log10(ChrNum)),1+i,samHeader->target_name[i],samHeader->target_len[i]);
 	    hItem.key  = samHeader->target_name[i];
-	    hData_t *hData = malloc(ChrNum * sizeof(hData_t));
-        if (hData == NULL) {
-           fprintf(stderr, "[x]malloc failed\n");
-           exit(EXIT_FAILURE);
-        }
 	    hData[i].ChrLen = samHeader->target_len[i];
 	    hData[i].pBitArray = calloc(1, BITNSLOTS(samHeader->target_len[i]) );
 	    hItem.data = &hData[i];
@@ -92,5 +94,9 @@ int main (int argc, char *argv[]) {
 	}
 */
 	samclose(samIn);
+	for (int32_t i=0;i<ChrNum;++i) {
+	    free(hData[i].pBitArray);
+	}
+	free(hData);
 	return 0;
 }
