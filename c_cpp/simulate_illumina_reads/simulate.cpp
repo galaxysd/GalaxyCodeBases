@@ -14,6 +14,33 @@ char alphabet[128] =
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
 };
 
+//由ＡＣＧＴ到ASCII码到０１２３，能自动处理大小写
+//256个字母表alphabet数组,用8bit的char型存储,A=a=0,C=c=1,G=g=2,T=t=3,其他的字母都为4
+char alphabet2[128] =
+{
+ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 
+ 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
+ 4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+};
+
+//check whether a sequence contain non base characters, such as "N"
+int check_seq (string &seq)
+{       
+	int is_good = 1;
+	for (int i = 0; i < seq.size(); i++)
+	{   if (alphabet2[seq[i]] == 4)
+			{   is_good = 0;
+				break;
+			}
+	}
+	return is_good;
+}
+
 //from 0 1 2 3 4 to A C G T N
 char Bases[5] ={
 		'A', 'C', 'G', 'T', 'N'
@@ -24,50 +51,13 @@ char c_bases[5] ={
 		'T', 'G', 'C', 'A', 'N'
 };
 
-
-//GC bias relative abundant distribution, GC rate 0%~100%, GC bias relative abundant 0 ~ 100
-double GC_bias_abundant[101]=
-{
-	0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,0.19,
-	0.73,0.73,0.73,0.73,0.73,0.73,0.73,0.73,0.73,0.73,
-	0.94,0.94,0.94,0.94,0.94,0.94,0.94,0.94,0.94,0.94,
-	0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,
-	0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,0.99,
-	0.85,0.85,0.85,0.85,0.85,0.85,0.85,0.85,0.85,0.85,
-	0.63,0.63,0.63,0.63,0.63,0.63,0.63,0.63,0.63,0.63,
-	0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,
-	0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,
-	0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,0.06,
-};
-
-//for split string
-void split(string strLine, vector<string>& tokens, const char* delim)
-{
-  for(;;) {
-  	//erase delimiter
-  	int i = strLine.find_first_not_of(delim);
-  	if(i == -1)
-    	break;
-		strLine.erase(0, i);
-   	i = strLine.find_first_of(delim);
-  	if(i == -1) {
-     	tokens.push_back(strLine);
-    	break;
-   	} 
-   	else {
-    	string token = strLine.substr(0, i);
-    	strLine.erase(0, i);
-     	tokens.push_back(token);
-    }
-  }
-}
-
 //Rrealization of snp
-char get_match(char base){
-	char bases[4][3]={{'T','G','C'},
-			 {'A','G','C'},
-			 {'A','T','G'},
-			 {'A','T','C'}};
+char get_snp_match(char base, double snp_bias[]){
+	char bases[4][3]={{'G','T','C'},  //A->G transition  A->C/T transvertion
+			 {'C','G','A'},  	//T->C transition  T->G/A transvertion
+			 {'T','A','G'},   //C->T transition  C->A/T transvertion
+			 {'A','T','C'}};  //G->A transition  G->T/C transvertion
+			 	
 	int a;
 	char n='N';
 	switch (base)
@@ -78,21 +68,101 @@ char get_match(char base){
 	case 'G': a=3;break;
 	default: return n;
 	}
-	int num=int(rand()%3);
-	return bases[a][num];
+	
+	double num = double(rand())/double(RAND_MAX);
+	int i = 0;
+	for(i=0; i<3; i++)
+	{
+		double p = snp_bias[i];
+		if(num <= p){break;}
+	}
+	return bases[a][i];
+	
 }
 
 //Produce heterozygous SNPs in multiploid
-string Get_snp(string &seq,ofstream &snp,string id, float hetersnp_rate){
-	int seq_len=seq.size();
-	int snp_num=int(seq_len*hetersnp_rate);
-	for (int i=0;i<snp_num;i++)
+string Get_snp(string &seq,ofstream &snp,string id, double hetersnp_rate, double snp_bias[]){
+	map<uint64_t,string> snp_lst;
+	uint64_t seq_len=seq.size();
+	uint64_t N = 1000000000000;//the max random value 
+	uint64_t snp_num = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
 	{
-		int index=int(rand()%seq_len);
-		snp<<id<<"\t"<<index+1<<"\t"<<seq[index]<<"\t";
-		seq[index]=get_match(seq[index]);
-		snp<<seq[index]<<endl;
+		if(seq[seq_index] == 'N'){continue;}
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= hetersnp_rate)
+		{
+			string ss = boost::lexical_cast <std::string>(seq[seq_index]) + "\t";
+			//get snp base
+			seq[seq_index]=get_snp_match(seq[seq_index], snp_bias);
+			ss += boost::lexical_cast <std::string>(seq[seq_index]);
+			//put into list file
+			snp_lst[seq_index+1] = ss;
+			snp_num++;
+		}
 	}
+
+//	snp<<id<<" total SNP number: "<<snp_num<<endl;
+	map<uint64_t, string>::const_iterator map_it = snp_lst.begin();
+	while (map_it != snp_lst.end())
+	{
+		snp<<id<<"\t"<<map_it->first<<"\t"<<map_it->second<<endl;
+		map_it++;
+	}
+	
+	return seq;
+}
+
+string Get_invertion(string &seq, ofstream &invertion_file, string id, double SV_rate)
+{
+	uint64_t N = 1000000000000; //the max random value
+	uint64_t seq_len=seq.size();
+	double invertion_rate =  SV_rate/3;
+//	cerr<< invertion_rate <<endl;
+	int invertion_len[5] = {100, 200, 500, 1000, 2000};
+	double array[5] = {0.70, 0.90, 0.97, 0.99, 1.0};
+	map<uint64_t,int> invertion_lst;
+	uint64_t invertion_num = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
+	{
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= invertion_rate)
+		{
+//			cerr << random_num<<endl;
+			double random_num2 = (double)rand() / double(RAND_MAX);
+//			cerr << random_num2<<endl;
+			int j = 0;
+			for(j=0; j<5; j++)
+			{
+				if(random_num2 <= array[j])
+				{
+					break;
+				}
+			}
+			if(seq_index+invertion_len[j]>seq_len){continue;}
+  		string sub_seq = seq.substr(seq_index,invertion_len[j]);
+  		if(!check_seq(sub_seq)){continue;} //contain 'N' or other nonbases char
+  		string rc_sub_seq = reversecomplementary(sub_seq);
+
+//  		seq = seq.substr(0,seq_index)+rc_sub_seq+seq.substr(seq_index+invertion_len[j]); //substr切割长片段时效率很慢
+			for(int i = 0; i < rc_sub_seq.size(); i++)
+			{
+				seq[seq_index+i] =  rc_sub_seq[i];
+			}
+			
+  		invertion_lst[seq_index] = invertion_len[j];
+  		invertion_num++;
+		}
+	}
+
+//	invertion_file<<id<<" total invertion number: "<<invertion_num<<endl;
+	map<uint64_t, int>::const_iterator map_it = invertion_lst.begin();
+	while (map_it != invertion_lst.end())
+	{
+		invertion_file<<id<<"\t"<<map_it->first<<"\t"<<map_it->second<<endl;
+		map_it++;
+	}
+	
 	return seq;
 }
 
@@ -103,105 +173,214 @@ string get_insertion(int num){
 	for (int a=0;a<num;a++)
 	{
 		int index=int(rand()%4);
-		s+=base[index];
+		s.push_back(base[index]);
 	}
 	return s;
 }
 
 //Produce heterozygous indels in multiploid
-string Get_indel(string &seq,ofstream &indel,string id1,float heterindel_rate){
-	int seq_len=seq.size();
-	int indel_num=int(seq_len*heterindel_rate);
-	int array[3]={2,3,6};
-	int p=1;
-	for (int i=0;i<3;i++)
+string Get_indel(string &seq,ofstream &indel,string id1,double heterindel_rate,double SV_rate){
+	uint64_t seq_len=seq.size();
+	uint64_t N = 1000000000000; //the max random value 
+	
+	double small_insertion_rate = heterindel_rate/2;
+	double samll_deletion_rate = heterindel_rate/2;
+	//参见熊猫small indel个数比例（1~6个）
+	int small_indel_len[6] = {1,2,3,4,5,6};
+//	double array1[6] = {0.6482, 0.1717, 0.0720, 0.0729, 0.0218, 0.0134};
+	double array1[6] = {0.6482, 0.8199, 0.8919, 0.9648, 0.9866, 1};
+	
+	double large_insertion_rate = SV_rate/3;
+	double large_deletion_rate = SV_rate/3;
+	//结构变异：insertion,deletion,inversion各占三分之一
+	//结构变异长度 100,200,500,1000,2000各比例
+	int large_indel_len[5] = {100, 200, 500, 1000, 2000};
+//	double array2[5] = {0.70, 0.20, 0.07, 0.02, 0.01};
+	double array2[5] = {0.70, 0.90, 0.97, 0.99, 1};
+	
+	map<uint64_t,string> indel_lst;
+	//simulate small deletion
+	uint64_t small_deletion_count = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
 	{
-		for (int j=0;j<indel_num/2/array[i];j++)
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= samll_deletion_rate)
 		{
-			int num=int(rand()%seq_len);
-			if (num+p>seq_len)
+			double random_num2 = (double)rand() / double(RAND_MAX);
+			int i = 0;
+			for(i = 0; i < 6; i++)
 			{
-				j--;
-			}else{
-				indel<<id1<<"\t"<<"-"<<"\t"<<num+1<<"\t"<<p<<"\t";
-				for (int k=0;k<p;k++)
+				if(random_num2 <= array1[i])
 				{
-					indel<<seq[num+k];
-					seq[num+k]='N';
+					break;
 				}
-				indel<<endl;
-			}	
+			}
+			if(seq_index+small_indel_len[i]>seq_len){continue;}
+			string sub_str = seq.substr(seq_index, small_indel_len[i]);
+			if(!check_seq(sub_str)){continue;}
+			small_deletion_count++;
+			string ss = "-\t" + boost::lexical_cast <std::string>(small_indel_len[i]) + "\t";
+			
+			for (int k=0;k<small_indel_len[i];k++)
+			{
+				ss += seq[seq_index+k];
+//					indel<<seq[seq_index+k];
+				seq[seq_index+k]='D';
+			}
+			indel_lst[seq_index] = ss;
 		}
-		p++;
 	}
-	p=1;
-	vector<uint8_t> insert(seq_len);
-	string s;
-	for (int i=0;i<3;i++)
+	
+	//simulate large deletion
+	uint64_t large_deletion_count = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
 	{
-		for (int j=0;j<indel_num/2/array[i];j++)
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= large_deletion_rate)
 		{
-			int num=int(rand()%seq_len);
-			insert[num]=p;
+			double random_num2 = (double)rand() / double(RAND_MAX);
+			int i = 0;
+			for(i = 0; i < 5; i++)
+			{
+				if(random_num2 <= array2[i])
+				{
+					break;
+				}
+			}
+			if(seq_index+large_indel_len[i]>seq_len){continue;}
+			string sub_str = seq.substr(seq_index, large_indel_len[i]);
+			if(!check_seq(sub_str)){continue;}
+			large_deletion_count++;
+			string ss = "-\t" + boost::lexical_cast <std::string>(large_indel_len[i]) + "\t";
+			
+			for (int k=0;k<large_indel_len[i];k++)
+			{
+				ss += seq[seq_index+k];
+//					indel<<seq[seq_index+k];
+				seq[seq_index+k]='D';
+			}
+			indel_lst[seq_index] = ss;
 		}
-		p++;
 	}
-	for (int i=0;i<seq_len;i++)
+	
+	vector<short> insert(seq_len);
+	string s;
+	//simulate small insertion
+	uint64_t small_insertion_count = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
+	{
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= small_insertion_rate)
+		{
+			double random_num2 = (double)rand() / double(RAND_MAX);
+			int i = 0;
+			for(i = 0; i < 6; i++)
+			{
+				if(random_num2 <= array1[i]){break;}	
+			}
+			insert[seq_index] = small_indel_len[i];
+			small_insertion_count++;
+		}
+	}
+	//simulate large insertion
+	uint64_t large_insertion_count = 0;
+	for(uint64_t seq_index = 0; seq_index < seq_len; seq_index++)
+	{
+		double random_num = (double)rand() / double(RAND_MAX);
+		if(random_num <= large_insertion_rate)
+		{
+			double random_num2 = (double)rand() / double(RAND_MAX);
+			int i = 0;
+			for(i = 0; i < 5; i++)
+			{
+				if(random_num2 <= array2[i]){break;}	
+			}
+			insert[seq_index] = large_indel_len[i];
+			large_insertion_count++;
+		}
+	}
+	//modify the seq
+	uint64_t total_insertion_count = 0;
+	for (uint64_t i=0;i<seq_len;i++)
 	{
 		if (insert[i]>=1)
 		{
+			total_insertion_count++;
 			string temp;
 			temp=get_insertion(insert[i]);
 			s+=temp;
-			indel<<id1<<"\t+\t"<<i+1<<"\t"<<int(insert[i])<<"\t"<<temp<<endl;
-			if (seq[i]!='N')
+			string ss = "+\t" + boost::lexical_cast <std::string>(int(insert[i])) + "\t" + temp;
+			
+			//判断该位点是否有deletion
+			if(indel_lst[i][0] == 0)
+			{
+				indel_lst[i] = ss;
+			}else{
+				indel_lst[i] += "\n" + id1 + "\t" + boost::lexical_cast <std::string>(i) + "\t" + ss;
+			}
+//			indel<<id1<<"\t"<<i+1<<"\t+\t"<<int(insert[i])<<"\t"<<temp<<endl;
+			if (seq[i]!='D')
 			{
 				s+=seq[i];
 			}
 		}else{
-			if (seq[i]!='N')
+			if (seq[i]!='D')
 			{
 				s+=seq[i];
 			}
 		}
 	}
+
+//	indel <<"#small deletion times: "<<small_deletion_count << "; large deletion times: "<<large_deletion_count<<"; small insertion times: "<<small_insertion_count<<"; large insertion times: "<<large_insertion_count<<endl;
+	map<uint64_t, string>::const_iterator map_it = indel_lst.begin();
+	while (map_it != indel_lst.end())
+	{
+		indel<<id1<<"\t"<<map_it->first<<"\t"<<map_it->second<<endl;
+		map_it++;
+	}
+	
 	return s;
 }
 
-//Rrealization of error sequencing
-char get_error_match(char base)
-{
-	char bases[4][3]={{'C','G','T'},
-			 {'A','G','T'},
-			 {'A','C','T'},
-			 {'A','C','G'}};
-			 	
-	//simulate error bias
-	double error_bias[4][3]={{0.518336873,0.812283803,1},
-		{0.575332872,0.721712965,1},
-		{0.282213738,0.430879522,1},
-		{0.188680942,0.490612013,1}};
-			 	
-	int a;
-	char n='N';
-	switch (base)
-	{
-	case 'A': a=0;break;
-	case 'C': a=1;break;
-	case 'G': a=2;break;
-	case 'T': a=3;break;
-	default: return n;
-	}
-	double num = double(rand())/double(RAND_MAX);
-	int i = 0;
-	for(i=0; i<3; i++)
-	{
-		double p = error_bias[a][i];
-		if(num <= p){break;}
-	}
-	return bases[a][i];
-}
 
+//二分查找法寻找随机数落入的区间
+int search_location(double *Arr, uint64_t ArrNum, double random_num){
+	uint64_t left = 0;
+	uint64_t right = ArrNum;
+	uint64_t middle = (left+right)/2;
+	
+	if(random_num < Arr[0]){return 0;}
+	if(random_num > Arr[ArrNum-1]){return ArrNum-1;}
+	
+	//如果随机数为0，则返回第一个大于0的区间段
+	if(random_num == 0){
+		for(uint64_t i = 0; i < ArrNum; i++)
+		{
+			if(Arr[i] > 0){return i;}
+		}
+	}
+	
+	while(!(random_num > Arr[middle-1] && random_num <= Arr[middle]))
+	{
+		if (left == middle || right == middle){
+			cerr <<"left == middle || right == middle"<<endl;
+			return middle;
+		}
+		if(random_num > Arr[middle]){
+			left = middle;
+		}else if(random_num < Arr[middle-1]){
+			right = middle;
+		}else if(random_num == Arr[middle-1]){  //如果两个数相同，则返回最大值为该数字的第一个区间段
+			for(uint64_t i = middle-1; i>0; i--)
+			{
+				if(Arr[i-1] != Arr[i]){return i;}
+			}
+		}
+		middle = (left+right)/2;
+	}
+
+	return middle;
+}
 
 //get the reverse and complement sequence
 string reversecomplementary (string read)
@@ -213,32 +392,6 @@ string reversecomplementary (string read)
 	}
 	return rc_read;
 }
-
-/*
-//simulate the insertsize distribution with the model of normal distribution function
-//The insertsize range is limited in (μ-5σ，μ+5σ), which covers almost all the data.
-vector <int> insert_distribution(int reads_pair){
-	double pi=3.1415926535;
-	vector <double> insert;
-	vector <int> insert_num;
-	double total,temp1;
-	int temp2=0,total2=0,num=0;
-	for (int i=insertsize_mean-5*insertsize_sd;i<=insertsize_mean+5*insertsize_sd;i++)
-	{
-		temp1=1/sqrt(2*pi)/insertsize_sd/exp(pow((i-insertsize_mean),2)/(2*pow(insertsize_sd,2)));
-		insert.push_back(temp1);
-		total+=temp1;
-	}
-	for (int i=insertsize_mean-5*insertsize_sd;i<=insertsize_mean+5*insertsize_sd;i++){
-		temp2=int(0.5+insert[num++]/total*reads_pair);
-		insert_num.push_back(temp2);
-		total2+=temp2;
-	}
-	insert_num[5*insertsize_sd]+=reads_pair-total2;
-	insert.clear();
-	return insert_num;
-}
-*/
 
 //simulate normal distribution insertsize by Box-muller method
 int simulate_insertsize(int mean, int sd)
@@ -259,67 +412,23 @@ int simulate_insertsize(int mean, int sd)
 	
 	return insertsize;
 }
-/*
-//Simulate illumina error distribution on different cycles,
-//with the model function f(x)=0.00001*x**4
-vector <double> error_distribution(int rd_pair, float error_rate, int read_length){
-	double basic_error_rate=0.001;
-	double total_error=(error_rate-basic_error_rate)*read_length;
-	vector <double> error_dist;
-	double total;
-	for (int i=1;i<=read_length;i++)
-	{
-		double temp=0.00001*pow(i,4);
-		error_dist.push_back(temp);
-		total+=temp;
-	}
-	for (int i=1;i<=read_length;i++)
-	{
-		double temp=(basic_error_rate+error_dist[i-1]/total*total_error)*rd_pair;
-		error_dist[i-1]=temp;
-	}
-	return error_dist;
-}
-*/
-
-//Simulate illumina error distribution on different cycles,
-//with the model function f(x)=0.00001*x**4
-vector <double> error_distribution(float error_rate, int read_length){
-	double basic_error_rate=0.001;
-	double total_error=(error_rate-basic_error_rate)*read_length;
-	vector <double> error_dist;
-	double total;
-	for (int i=1;i<=read_length;i++)
-	{
-		double temp=0.00001*pow(i,4);
-		error_dist.push_back(temp);
-		total+=temp;
-	}
-	for (int i=1;i<=read_length;i++)
-	{
-		double temp=(basic_error_rate+error_dist[i-1]/total*total_error);
-		error_dist[i-1]=temp;
-	}
-	return error_dist;
-}
 
 
 //simulate GC bias
-int simulate_GC_bias(string insert_str){
+int simulate_GC_bias(string insert_str, double *GC_bias_abundance){
 	int is_ignore = 0;
 	int GC_num = 0;
 	int insert_size = insert_str.size();
 	//get GC rate
 	for (int i=0; i<insert_size; i++)
 	{	
-//		if(alphabet[insert_str[i]] == 1 || alphabet[insert_str[i]] == 2){GC_num++;} //auto dealing with upper or lower case.
 		if(insert_str[i] == 'G' || insert_str[i] == 'C'){GC_num++;}
 	}
 	
 	double GC_rate = double(GC_num)/double(insert_size);
 
 	//get relative abundance
-	double bias_abund = GC_bias_abundant[int(GC_rate*100)];
+	double bias_abund = GC_bias_abundance[int(GC_rate*100)];
 	
 	//decide whether ignore this insert string.
 	double num = double(rand())/double(RAND_MAX);
@@ -328,43 +437,3 @@ int simulate_GC_bias(string insert_str){
 	return is_ignore;
 }
 
-
-
-//simulate quality value
-string simulate_quality(vector<int> error_pos, int read_len, double** correct_base_quality, double** error_base_quality)
-{
-	string quality_str;
-	//simulate correct bases quality line
-	for(int i=0; i<read_len; i++)
-	{
-		double num = double(rand())/double(RAND_MAX);
-		for(int j=2; j<41; j++)
-		{
-			if(num<=correct_base_quality[i][j])
-			{
-				int ascii_value=j+64;
-				quality_str.push_back(char(ascii_value));
-				break;
-			}
-		}
-	}
-	//simulate error bases quality value
-	int error_num = error_pos.size();
-	if(error_num > 0){
-  	for(int i=0; i<error_num; i++)
-  	{
-  		double num = double(rand())/double(RAND_MAX);
-  		for(int j=2; j<41; j++)
-  		{
-  			if(num<=error_base_quality[error_pos[i]][j])
-  			{
-  				int ascii_value=j+64;
-  				quality_str[error_pos[i]] = char(ascii_value);
-  				break;
-  			}
-  		}
-  	}
-	}
-	
-	return quality_str;
-}

@@ -9,19 +9,34 @@
 #include <map>
 #include "simulate.h"
 #include "gzstream.h"
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
 
 using namespace std;
 
-//read in quality distribution file and initialize the quality distribution table.
-void get_quality_distr(string exe_path);
+//set and check input and ouput file
+void set_and_check_file(igzstream &infile, igzstream &infile2, ofstream &log, ofstream &insert_log, ofstream &error_log);
 
-//get genome sequence then simulate reads
+//preview error profile, get dimensions of error profile
+void preview_error_profile (string exe_path, ofstream &log);
+
+//load GC depth and translate to GC abundance for simulate GC bias
+void load_GC_depth_profile (string exe_path, ofstream &log);
+
+//load error profile and get the simulate matrix
+void load_error_profile(string exe_path, ofstream &log);
+
+//get genome sequence
 void Get_genome(igzstream &inf,igzstream &inf2,ofstream &log1);
 
-//get fragment from genome sequence and simulate reads 
-long long get_reads(string id_line,string id,string &sequ,string &sequ2,ofstream &log2,long long read_genome);
+//contral the quantity of simulate reads
+uint64_t contral_reads_quantity(string id_line,string id,string &sequ,string &sequ2,ofstream &log2,uint64_t read_genome);
 
-//output simulated reads
-long long output_reads(vector <double> err_dist,string &seq,int seqlen, int rd_pair, string id_seq,ofstream &log3,long long reads_all);
+//simulate fastq reads
+uint64_t simulate_fq_reads(string &seq,uint64_t seqlen, uint64_t rd_pair, string id_seq, ofstream &log3, uint64_t reads_all);
+
+//simulate fasta reads
+uint64_t simulate_fa_reads(string &seq,uint64_t seqlen, uint64_t rd_pair, string id_seq, ofstream &log3, uint64_t reads_all);
 
 #endif
