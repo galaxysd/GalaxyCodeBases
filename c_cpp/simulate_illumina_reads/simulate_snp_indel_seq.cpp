@@ -16,7 +16,7 @@ string input;
 double hetersnp_rate=0.001;
 double heterindel_rate=0.0001;
 double big_SV_rate=0.000001; // structural variation rate
-double snp_transition_by_transvertion_rate = 2; //transition_number £ºtransvertion_rate_number = 2
+double snp_transition_by_transvertion_rate = 2; //transition_number ï¼štransvertion_rate_number = 2	(æ¯”å€¼)
 int output_type = 1;
 ofstream outfile;
 ogzstream gz_outfile;
