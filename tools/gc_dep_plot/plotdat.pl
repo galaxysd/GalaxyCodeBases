@@ -1,7 +1,7 @@
 #!/bin/env perl
 =pod
 Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
-Version: 0.1.0 @ 20110803
+Version: 0.1.1 @ 20111111
 =cut
 use strict;
 use warnings;
@@ -65,25 +65,42 @@ reset
 set xrange [-1:101]
 $yrange
 #set y2range [0:100]
-set border 11
+set border 11 lw 2
 set xtics 0,5 nomirror
-set ytics nomirror
+set ytics nomirror format "% 4.0f"
 set y2tics nomirror
 
+#set term png font "$font" 64 size 4204,3154 truecolor linewidth 3
 set term png font "$font" 16 size 1600,1200
 set output "$name.png"
-set title "GC-dep plot of window_size $WinSize"
+set multiplot layout 2,1
+set title "GC-dep plot of Window_Size=$WinSize"
 set xlabel "GC %"
 set ylabel "Depth"
-set y2label "Ref. Windows Count"
-set boxwidth 0.8
+set y2label "Max Depth"
+set boxwidth 0.75
 set style fill empty
-plot '$name' using 1:6:5:9:8 with candlesticks lt 3 lw 2 title 'depth' whiskerbars 0.5, \\
+set origin 0,0.21
+set size 1,0.79
+set logscale y2
+plot '$name' \\
+     using 1:11 with lines axis x1y2 lt rgb "#006400" lw 2 title 'max depth', \\
+     ''      using 1:6:5:9:8 with candlesticks lt rgb "navy" lw 2 title 'depth box' whiskerbars 0.5, \\
      ''      using 1:7:7:7:7 with candlesticks lt -1 lw 2 notitle, \\
-     ''      using 1:4 lt rgb "red" lw 2 title 'mean depth', \\
-     ''      using 1:3 with points axis x1y2 lt rgb "brown" lw 1 notitle, \\
-     ''      using 1:11 with points lt rgb "royalblue" lw 1 title 'max depth', \\
-     ''      using 1:3 smooth csplines axis x1y2 lt rgb "brown" lw 1 title 'Ref. win. cnt.'
+     ''      using 1:4 with points lt rgb "red" lw 3 title 'mean depth'
+
+set y2label " "
+set y2tics textcolor rgb "#FFFFFF"
+set title ""
+set xtics out nooffset format ''
+set xlabel ""
+set ylabel ""
+set yrange [*:*]
+set logscale y
+set ytics nomirror format "% 4.0f" 1,10,1e5
+set size 1,0.21
+plot '$name' using 1:3 with boxes fs solid 0.62 lt rgb "navy" lw 1.5 title 'window count'
+unset multiplot
 #pause -1 "Hit return to continue"
 CODE
 close P;
