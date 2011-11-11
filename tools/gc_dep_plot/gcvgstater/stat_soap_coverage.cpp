@@ -37,7 +37,7 @@ void stat_soap_coverage::DealReference()
     string line;
     string keyname = "";
     string sequence = "";
-    uint64_t countLine = 0;
+    //uint64_t countLine = 0;
 
 
     while(getline(in, line))
@@ -93,7 +93,7 @@ void stat_soap_coverage::DealSoapCoverage()
         string keyname;
         string strTemp = "";
         vector<unsigned int> chr_soap_coverage;
-        uint64_t countLine = 0;
+        //uint64_t countLine = 0;
         int in_temp;
 
 
@@ -116,7 +116,7 @@ void stat_soap_coverage::DealSoapCoverage()
                     {
                         keyname = line.substr(1);
                     }
-                    for(int i=0; i<map_reference_base[keyname].size(); ++i)
+                    for(unsigned int i=0; i<map_reference_base[keyname].size(); ++i)
                     {
                         
                         in >> in_temp;
@@ -132,8 +132,14 @@ void stat_soap_coverage::DealSoapCoverage()
                     }
                     else
                     {
-                        for(int i=0; i<map_soap_coverage[keyname].size(); ++i)
+                        for(unsigned int i=0; i<map_soap_coverage[keyname].size(); ++i)
                         {
+							if ( map_soap_coverage[keyname][i] + chr_soap_coverage[i]  > UINT32_MAX ) {
+								map_soap_coverage[keyname][i] = UINT32_MAX;
+							} else {
+								map_soap_coverage[keyname][i] += chr_soap_coverage[i];
+							}
+/*
                             uint64_t temp = map_soap_coverage[keyname][i] + chr_soap_coverage[i];
                             if(temp > 65534)
                             {
@@ -143,6 +149,7 @@ void stat_soap_coverage::DealSoapCoverage()
                             {
                                 map_soap_coverage[keyname][i] += chr_soap_coverage[i];
                             }
+*/
                         }
                     }
 
@@ -166,9 +173,9 @@ void stat_soap_coverage::StatGC()
     boost::progress_timer timer;
     boost::progress_display display(vec_width.size());
     bool b_depth = true;
-    for(int i=0; i<vec_width.size(); i++)
+    for(unsigned int i=0; i<vec_width.size(); i++)
     {
-        int width = toInt(vec_width[i]);
+        unsigned int width = toInt(vec_width[i]);
         map<double, vector<double> > map_soap_gc_depth;
         vector<double> gc_keyname;
         map<double, uint64_t> map_temp_wincount;
@@ -204,7 +211,7 @@ void stat_soap_coverage::StatGC()
             int countN = 0;
             uint64_t sumBase = 0;
 
-            for(int j=0; j<it->second.length(); ++j)
+            for(unsigned int j=0; j<it->second.length(); ++j)
             {
                 countPos++;
 
@@ -213,7 +220,7 @@ void stat_soap_coverage::StatGC()
                     if(map_stat_depth.count(map_soap_coverage[keyname][j]) == 0)
                     {
                         map<string, uint64_t> temp_depth;
-                        for(int chr_key = 0; chr_key < vec_chr_keyname.size(); ++chr_key)
+                        for(unsigned int chr_key = 0; chr_key < vec_chr_keyname.size(); ++chr_key)
                         {
                             temp_depth[vec_chr_keyname[chr_key]] = 0;
                         }
@@ -391,7 +398,7 @@ void stat_soap_coverage::StatCoverage()
         uint64_t coverageNum = 0;
         uint64_t sumBase = 0;
 
-        for(int i=0; i<it->second.length(); ++i)
+        for(unsigned int i=0; i<it->second.length(); ++i)
         {
             all_sum++;
             if((it->second[i] == 'N') || (it->second[i] == 'n'))
@@ -469,14 +476,14 @@ void stat_soap_coverage::DealStat()
         sort(gc_keyname.begin(), gc_keyname.end());
         map<double, vector<double> > temp_gc_output;
 
-        for(int i=0; i<gc_keyname.size(); ++i)
+        for(unsigned int i=0; i<gc_keyname.size(); ++i)
         {
             vector<double> temp = map_width_soap_gc_depth[width][gc_keyname[i]];
-            double gc_rate = gc_keyname[i];
+            //double gc_rate = gc_keyname[i];
             uint64_t ref_count =  map_width_soap_gc_depth[width][gc_keyname[i]].size();
             double sum_coverage = 0;
 
-            for(int j=0; j<temp.size(); ++j)
+            for(unsigned int j=0; j<temp.size(); ++j)
             {
                 sum_coverage += temp[j];
             }
@@ -521,7 +528,7 @@ void stat_soap_coverage::DealStat()
             double small_temp_value = Q1-1.5*(Q3-Q1);
             double big_temp_value = Q3+1.5*(Q3-Q1);
 
-            for(int small_i = 0; small_i < temp.size(); small_i++)
+            for(unsigned int small_i = 0; small_i < temp.size(); small_i++)
             {
                 if(small_temp_value < temp[small_i])
                 {
@@ -531,7 +538,7 @@ void stat_soap_coverage::DealStat()
                 small_value = temp[small_i];
             }
 
-            for(int big_i=0; big_i < temp.size();big_i++)
+            for(unsigned int big_i=0; big_i < temp.size();big_i++)
             {
                 if(big_temp_value < temp[big_i])
                 {
@@ -560,7 +567,7 @@ void stat_soap_coverage::DealStat()
 
         double sum_avg = 0;
         double sum_ref_count = 0;
-        for(int i=0; i<gc_keyname.size(); ++i)
+        for(unsigned int i=0; i<gc_keyname.size(); ++i)
         {
             sum_avg += temp_gc_output[gc_keyname[i]][1];
             sum_ref_count += temp_gc_output[gc_keyname[i]][0];
@@ -571,7 +578,7 @@ void stat_soap_coverage::DealStat()
             << "#All-N windows count: " << winCountN[width] << endl
             << "#GC%\tRefCnt\tDepthCnt\tMean\tSmall\tQ1\tMid\tQ3\tBig\tMin\tMax\tRefcntcal"
             << endl;
-        for(int i=0; i<gc_keyname.size(); ++i)
+        for(unsigned int i=0; i<gc_keyname.size(); ++i)
         {
             out << gc_keyname[i] << "\t" << map_wincount[width][gc_keyname[i]] 
                 << "\t" << uint64_t(temp_gc_output[gc_keyname[i]][0])
@@ -629,7 +636,7 @@ void stat_soap_coverage::statDepth()
     ofstream out((str_output_prefix + "_" + "stat.depth").c_str());
 
     out << "#Depth\t_All_";
-    for(int j=0; j<vec_chr_keyname.size(); j++)
+    for(unsigned int j=0; j<vec_chr_keyname.size(); j++)
     {
         out << "\t" << vec_chr_keyname[j];
     }
@@ -641,16 +648,16 @@ void stat_soap_coverage::statDepth()
         temp.push_back(it2->first);
     }
     sort(temp.begin(), temp.end());
-    for(int i=0; i<temp.size(); ++i)
+    for(unsigned int i=0; i<temp.size(); ++i)
     {
         uint64_t sum = 0;
-        for(int j=0; j<vec_chr_keyname.size(); j++)
+        for(unsigned int j=0; j<vec_chr_keyname.size(); j++)
         {
             sum += map_stat_depth[temp[i]][vec_chr_keyname[j]];
         }
 
         out << temp[i] << "\t" << sum << "\t";
-        for(int j=0; j<vec_chr_keyname.size(); j++)
+        for(unsigned int j=0; j<vec_chr_keyname.size(); j++)
         {
             out << "\t" << uint64_t(map_stat_depth[temp[i]][vec_chr_keyname[j]]);
         }

@@ -1,7 +1,7 @@
 OBJ = gzstream.o self_util.o main.o stat_soap_coverage.o
 CC = g++
 LIBRARY = -O3 -lz -pipe -march=core2 -mtune=generic -pedantic -Wfloat-equal \
--Wall
+-Wall -std=c++0x
 
 gc_coverage_bias:${OBJ}
 	${CC} -o gc_coverage_bias ${LIBRARY} ${OBJ}
