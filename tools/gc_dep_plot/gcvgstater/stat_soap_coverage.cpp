@@ -134,7 +134,7 @@ void stat_soap_coverage::DealSoapCoverage()
                     {
                         for(unsigned int i=0; i<map_soap_coverage[keyname].size(); ++i)
                         {
-							if ( map_soap_coverage[keyname][i] + chr_soap_coverage[i]  > UINT32_MAX ) {
+							if ( uint64_t(map_soap_coverage[keyname][i]) + chr_soap_coverage[i] > uint64_t(UINT32_MAX) ) {
 								map_soap_coverage[keyname][i] = UINT32_MAX;
 							} else {
 								map_soap_coverage[keyname][i] += chr_soap_coverage[i];
