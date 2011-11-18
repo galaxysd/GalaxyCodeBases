@@ -192,9 +192,9 @@ if ($type eq 'sam') {
         ++$mapReads if $read1[2] ne '*';
         ++$mapReads if $read2[2] ne '*';
         next unless exists $Genome{$read1[2]};
-        next unless $read1[1] & 3;  # paired + mapped in a proper pair
+        next unless ($read1[1] & 3) == 3;  # paired + mapped in a proper pair
         next if $read1[1] >= 256;   # not primary || QC failure || optical or PCR duplicate
-        next unless $read2[1] & 3;
+        next unless ($read2[1] & 3) == 3;
         next if $read2[1] >= 256;
         #$RL1=length($read1[9]);
         #$RL2=length($read2[9]);
