@@ -77,8 +77,8 @@ while (<VCF>) {
 close VCF;
 $cSNP[4] = $ccSNP - $cSNP[1] - $cSNP[0];
 $cIndel[4] = $ccIndel - $cIndel[1] - $cIndel[0];
-print "SNP   Error,TP,TN,FP,FN = ",join(", ",@cSNP),"\n";
-print "Indel Error,TP,TN,FP,FN = ",join(", ",@cIndel),"\n";
+print "SNP   Error,TP,TN,FP,FN = ",join(", ",@cSNP),"\tTrue: $ccSNP:\n";
+print "Indel Error,TP,TN,FP,FN = ",join(", ",@cIndel),"\tTrue: $ccIndel\n";
 print "---Indel results may be wrong when alt-seq forms direct repeat with terminals---\n";
 close DUP;
 
