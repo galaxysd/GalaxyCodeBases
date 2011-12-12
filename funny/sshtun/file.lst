@@ -1,0 +1,9 @@
+/etc/init.d/sshtun
+/etc/autossh/autossh.sh
+/etc/autossh/tun
+
+ssh-keygen -f tun
+
+-rwxr-xr-x 1 root   root   292 Dec  1 16:16 autossh.sh
+-rwxr-xr-x 1 galaxy root   646 Dec  1 16:55 sshtun
+-rw------- 1 root   root   888 Dec  1 16:14 tun

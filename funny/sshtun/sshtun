@@ -1,0 +1,27 @@
+#!/sbin/runscript
+# Copyright 1999-2009 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: 2011/12/01 16:07:39 $
+
+depend() {
+        use logger dns
+	need net
+}
+
+#SSHTUN_PIDFILE=${SSHTUN_PIDFILE:-/var/run/${SVCNAME}.pid}
+
+start() {
+	ebegin "Starting ${SVCNAME}"
+	start-stop-daemon --start --exec /etc/autossh/autossh.sh
+#	    --pidfile "${SSHTUN_PIDFILE}"
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping ${SVCNAME}"
+	ps -ef|grep -P 'autossh .+ /etc/autossh/tun'|grep -v grep|awk '{print $2}'|xargs kill
+#	start-stop-daemon --stop --exec /etc/autossh/autossh.sh \
+#	    --pidfile "${SSHTUN_PIDFILE}"
+	eend $?
+}
+
