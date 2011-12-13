@@ -80,7 +80,47 @@ sub ReadItems($) {
 	}
 }
 
+sub splitTLine($) {
+	my ($line)=@_;
+	my @lineItem=split /\t/,$line;
+	my $ID=$lineItem[0];	# >FCC01P5ACXX:8:1101:10000:15797#CGATGTAT/ 
+	my $t=@lineItem;
+	if ($t == 19) {	# PE
+		return [$ID,1,\@lineItem];
+	} elsif ($t == 12) {	# SE
+		return [$ID,0,\@lineItem];
+	} else {
+		die "[x]Line format error.\n";
+	}
+}
+sub LoadTItems() {
+	my ($lastID,$id,$line,@Items,@dat)=('','');
 
+	if (defined $lastLine) {
+		$line=$lastLine;
+		$lastLine=undef;
+	} else {
+		$line=<IN>;
+		return [] unless defined $line;
+		chomp $line;
+	}
+	($id,@dat)=@{&splitTLine($line)};
+	$lastID=$id;
+	push @Items,[$id,@dat];
+
+	while ($lastID eq $id) {
+		$line=<IN>;
+		last unless defined $line;
+		chomp $line;
+		($id,@dat)=@{&splitTLine($line)};
+		if ($lastID eq $id) {
+			push @Items,[$id,@dat];
+		} else {
+			$lastLine=$line;
+		}
+	}
+	return \@Items;	# [] of [$ID,$isPE,\@lineItem]
+}
 
 open OUT,'>',$Outfile or die "Error opening $Outfile: $!\n";
 
@@ -97,6 +137,15 @@ sub main_pe() {
 	my @dat;
 	my $count=0;
 	while(@dat=@{&ReadItems(1)}) {
+		++$count;
+		print Dumper(\@dat),'-' x 75,"\n";
+	}
+	warn "\nTotal Groups: $count\n";
+}
+sub main_total() {
+	my @dat;
+	my $count=0;
+	while(@dat=@{&LoadTItems()}) {
 		++$count;
 		print Dumper(\@dat),'-' x 75,"\n";
 	}
