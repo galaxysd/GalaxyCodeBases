@@ -8,7 +8,12 @@ die "Usage: $0 <mode(pe,se,total)> <input> <output>\n" if @ARGV != 3 or $ARGV[0]
 
 my ($Mode,$Infile,$Outfile)=@ARGV;
 warn "Mode=[$Mode], [$Infile]->[$Outfile]\n";
-open IN,'<',$Infile or die "Error opening $Infile: $!\n";
+
+if ($Infile=~/.bz2$/) {
+	open( IN,"-|","bzip2 -dc $Infile") or die "Error opening $Infile: $!\n";
+} elsif ($Infile=~/.gz$/) {
+	open( IN,"-|","gzip -dc $Infile") or die "Error opening $Infile: $!\n";
+} else {open( IN,"<",$Infile) or die "Error opening $Infile: $!\n";}
 
 sub splitLine($$) {
 	my ($line,$isPE)=@_;
