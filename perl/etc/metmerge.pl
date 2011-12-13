@@ -57,15 +57,15 @@ sub ReadItems($) {
 		return [] unless defined $line;
 		chomp $line;
 	}
-	($id,@dat)=splitLine($line,$isPE);
+	($id,@dat)=@{&splitLine($line,$isPE)};
 	$lastID=$id;
 	push @Items,[$id,@dat];
 
 	while ($lastID eq $id) {
 		$line=<IN>;
-		return [] unless defined $line;
+		last unless defined $line;
 		chomp $line;
-		($id,@dat)=splitLine($line,$isPE);
+		($id,@dat)=@{&splitLine($line,$isPE)};
 		if ($lastID eq $id) {
 			push @Items,[$id,@dat];
 		} else {
@@ -87,13 +87,13 @@ open OUT,'>',$Outfile or die "Error opening $Outfile: $!\n";
 sub main_se() {
 	my @dat;
 	while(@dat=@{&ReadItems(0)}) {
-		print Dumper(\@dat);
+		print Dumper(@dat),'-' x 75,"\n";
 	}
 }
 sub main_pe() {
 	my @dat;
 	while(@dat=@{&ReadItems(1)}) {
-		print Dumper(\@dat);
+		print Dumper(@dat),'-' x 75,"\n";
 	}
 }
 
