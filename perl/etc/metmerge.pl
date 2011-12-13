@@ -148,6 +148,16 @@ sub main_total() {
 	while(@dat=@{&LoadTItems()}) {
 		++$count;
 		print Dumper(\@dat),'-' x 75,"$count\n";
+		if (@dat==1) {
+			print OUT join("\t",@{$dat[0]->[2]}),"\n";
+		} else {
+			for (@dat) {
+				if ($$_[1] == 1) {
+					print OUT join("\t",@{$$_[2]}),"\n";
+					last;
+				}
+			}
+		}
 	}
 	warn "\nTotal Groups: $count\n";
 }
