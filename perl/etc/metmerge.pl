@@ -31,7 +31,7 @@ sub splitLine($$) {
 }
 
 sub mergePEitems($) {
-	my @Items=@$_[0];
+	my @Items=@{$_[0]};
 	die "[x]PE lines missing.\n" if scalar @Items % 2;
 	my $Paires = (scalar @Items) / 2;
 	my (@OutItem,@a,@b);
