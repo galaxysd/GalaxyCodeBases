@@ -87,13 +87,13 @@ open OUT,'>',$Outfile or die "Error opening $Outfile: $!\n";
 sub main_se() {
 	my @dat;
 	while(@dat=@{&ReadItems(0)}) {
-		print Dumper(@dat),'-' x 75,"\n";
+		print Dumper(\@dat),'-' x 75,"\n";
 	}
 }
 sub main_pe() {
 	my @dat;
 	while(@dat=@{&ReadItems(1)}) {
-		print Dumper(@dat),'-' x 75,"\n";
+		print Dumper(\@dat),'-' x 75,"\n";
 	}
 }
 
