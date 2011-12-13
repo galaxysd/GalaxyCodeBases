@@ -138,7 +138,7 @@ sub main_pe() {
 	my $count=0;
 	while(@dat=@{&ReadItems(1)}) {
 		++$count;
-		print Dumper(\@dat),'-' x 75,"\n";
+		print Dumper(\@dat),'-' x 75,"$count\n"
 	}
 	warn "\nTotal Groups: $count\n";
 }
@@ -147,7 +147,7 @@ sub main_total() {
 	my $count=0;
 	while(@dat=@{&LoadTItems()}) {
 		++$count;
-		print Dumper(\@dat),'-' x 75,"\n";
+		print Dumper(\@dat),'-' x 75,"$count\n";
 	}
 	warn "\nTotal Groups: $count\n";
 }
