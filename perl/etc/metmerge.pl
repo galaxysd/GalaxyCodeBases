@@ -149,7 +149,9 @@ sub main_total() {
 		++$count;
 		print Dumper(\@dat),'-' x 75,"$count\n";
 		if (@dat==1 or @dat==2) {
-			print OUT join("\t",@{$dat[0]->[2]}),"\n";
+			for (@dat) {
+				print OUT join("\t",@{$$_[2]}),"\n";
+			}
 		} else {
 			for (@dat) {
 				if ($$_[1] == 1) {
