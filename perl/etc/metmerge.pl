@@ -86,15 +86,21 @@ open OUT,'>',$Outfile or die "Error opening $Outfile: $!\n";
 
 sub main_se() {
 	my @dat;
+	my $count=0;
 	while(@dat=@{&ReadItems(0)}) {
-		print Dumper(\@dat),'-' x 75,"\n";
+		++$count;
+		print Dumper(\@dat),'-' x 75,"$count\n";
 	}
+	warn "\nTotal Groups: $count\n";
 }
 sub main_pe() {
 	my @dat;
+	my $count=0;
 	while(@dat=@{&ReadItems(1)}) {
+		++$count;
 		print Dumper(\@dat),'-' x 75,"\n";
 	}
+	warn "\nTotal Groups: $count\n";
 }
 
 if ($Mode eq 'pe') {
