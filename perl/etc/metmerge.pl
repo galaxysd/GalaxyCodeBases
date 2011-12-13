@@ -148,7 +148,7 @@ sub main_total() {
 	while(@dat=@{&LoadTItems()}) {
 		++$count;
 		print Dumper(\@dat),'-' x 75,"$count\n";
-		if (@dat==1) {
+		if (@dat==1 or @dat==2) {
 			print OUT join("\t",@{$dat[0]->[2]}),"\n";
 		} else {
 			for (@dat) {
