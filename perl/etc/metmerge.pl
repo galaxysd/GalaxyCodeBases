@@ -94,7 +94,7 @@ sub splitTLine($) {
 	}
 }
 sub LoadTItems() {
-	my ($lastID,$id,$line,@Items,@dat)=('','');
+	my ($lastID,$id,$hasPE,$line,@Items,@dat,$isPE)=('','',0);
 
 	if (defined $lastLine) {
 		$line=$lastLine;
@@ -104,22 +104,24 @@ sub LoadTItems() {
 		return [] unless defined $line;
 		chomp $line;
 	}
-	($id,@dat)=@{&splitTLine($line)};
+	($id,$isPE,@dat)=@{&splitTLine($line)};
 	$lastID=$id;
-	push @Items,[$id,@dat];
+	$hasPE=1 if $isPE;
+	push @Items,[$id,$isPE,@dat];
 
 	while ($lastID eq $id) {
 		$line=<IN>;
 		last unless defined $line;
 		chomp $line;
-		($id,@dat)=@{&splitTLine($line)};
+		($id,$isPE,@dat)=@{&splitTLine($line)};
 		if ($lastID eq $id) {
-			push @Items,[$id,@dat];
+			$hasPE=1 if $isPE;
+			push @Items,[$id,$isPE,@dat];
 		} else {
 			$lastLine=$line;
 		}
 	}
-	return \@Items;	# [] of [$ID,$isPE,\@lineItem]
+	return [$hasPE,\@Items];	# \@Items => [] of [$ID,$isPE,\@lineItem]
 }
 
 open OUT,'>',$Outfile or die "Error opening $Outfile: $!\n";
@@ -143,12 +145,13 @@ sub main_pe() {
 	warn "\nTotal Groups: $count\n";
 }
 sub main_total() {
-	my @dat;
+	my (@dat,$hasPE,$datref);
 	my $count=0;
-	while(@dat=@{&LoadTItems()}) {
+	while(($hasPE,$datref)=@{&LoadTItems()}) {
 		++$count;
+		@dat=@$datref;
 		print Dumper(\@dat),'-' x 75,"$count\n";
-		if (@dat==1 or @dat==2) {
+		unless ($hasPE) {
 			for (@dat) {
 				print OUT join("\t",@{$$_[2]}),"\n";
 			}
