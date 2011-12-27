@@ -1,10 +1,10 @@
-all: simulate_snp_indel_seq simulate_illumina_reads
+all: simulate_diploid_genome simulate_Illumina_reads
 
-simulate_snp_indel_seq: simulate_snp_indel_seq.cpp simulate.cpp gzstream.cpp
+simulate_diploid_genome: simulate_diploid_genome.cpp simulate.cpp gzstream.cpp
 	g++ -std=c++0x -O3 -static -o $@ $^ -lz
 
-simulate_illumina_reads: simulate_illumina_reads.cpp simulate.cpp gzstream.cpp
+simulate_Illumina_reads: simulate_Illumina_reads.cpp simulate.cpp load_file.cpp  gzstream.cpp
 	g++ -std=c++0x -O3 -static -o $@ $^ -lz
 
 clean:
-	rm simulate_snp_indel_seq simulate_illumina_reads
+	rm simulate_diploid_genome simulate_Illumina_reads

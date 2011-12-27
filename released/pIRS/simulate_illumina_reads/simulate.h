@@ -1,16 +1,6 @@
 #ifndef __SIMULATE_H_
 #define __SIMULATE_H_
 
-#include <iostream>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <math.h>
-#include <map>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
-
 using namespace std;
 
 extern char alphabet[128];

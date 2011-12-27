@@ -1,6 +1,14 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <math.h>
+#include <map>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include "simulate.h"
 
-//from ASCII of A C G T to 0 1 2 3, auto dealing with upper or lower case.
+//from ASCII of A(N) C G T to 0 1 2 3, auto dealing with upper or lower case.
 //8bit char type, A=a=N=n=0, C=c=1, G=g=2, T=t=3, others as 4.
 char alphabet[128] =
 {
@@ -14,8 +22,9 @@ char alphabet[128] =
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
 };
 
-//由ＡＣＧＴ到ASCII码到０１２３，能自动处理大小写
-//256个字母表alphabet数组,用8bit的char型存储,A=a=0,C=c=1,G=g=2,T=t=3,其他的字母都为4
+
+//from ASCII of A C G T to 0 1 2 3, auto dealing with upper or lower case.
+//8bit char type, A=a=0, C=c=1, G=g=2, T=t=3, others as 4.
 char alphabet2[128] =
 {
  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -26,6 +35,16 @@ char alphabet2[128] =
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+};
+
+//from 0 1 2 3 4 to A C G T N
+char Bases[5] ={
+		'A', 'C', 'G', 'T', 'N'
+};
+
+//from 0 1 2 3 4 to T G C A N
+char c_bases[5] ={
+		'T', 'G', 'C', 'A', 'N'
 };
 
 //check whether a sequence contain non base characters, such as "N"
@@ -41,15 +60,6 @@ int check_seq (string &seq)
 	return is_good;
 }
 
-//from 0 1 2 3 4 to A C G T N
-char Bases[5] ={
-		'A', 'C', 'G', 'T', 'N'
-};
-
-//form 0 1 2 3 4 to T G C A N
-char c_bases[5] ={
-		'T', 'G', 'C', 'A', 'N'
-};
 
 //Rrealization of snp
 char get_snp_match(char base, double snp_bias[]){
@@ -144,7 +154,6 @@ string Get_invertion(string &seq, ofstream &invertion_file, string id, double SV
   		if(!check_seq(sub_seq)){continue;} //contain 'N' or other nonbases char
   		string rc_sub_seq = reversecomplementary(sub_seq);
 
-//  		seq = seq.substr(0,seq_index)+rc_sub_seq+seq.substr(seq_index+invertion_len[j]); //substr切割长片段时效率很慢
 			for(int i = 0; i < rc_sub_seq.size(); i++)
 			{
 				seq[seq_index+i] =  rc_sub_seq[i];
@@ -185,15 +194,15 @@ string Get_indel(string &seq,ofstream &indel,string id1,double heterindel_rate,d
 	
 	double small_insertion_rate = heterindel_rate/2;
 	double samll_deletion_rate = heterindel_rate/2;
-	//参见熊猫small indel个数比例（1~6个）
+	//use the empirical distribution(1~6) from panda re-sequencing data
 	int small_indel_len[6] = {1,2,3,4,5,6};
 //	double array1[6] = {0.6482, 0.1717, 0.0720, 0.0729, 0.0218, 0.0134};
 	double array1[6] = {0.6482, 0.8199, 0.8919, 0.9648, 0.9866, 1};
 	
 	double large_insertion_rate = SV_rate/3;
 	double large_deletion_rate = SV_rate/3;
-	//结构变异：insertion,deletion,inversion各占三分之一
-	//结构变异长度 100,200,500,1000,2000各比例
+	//insertion,deletion and inversion share one third of total SV respectively
+	//SV-length 100(70%),200(20%),500(7%),1000(2%),2000(1%)
 	int large_indel_len[5] = {100, 200, 500, 1000, 2000};
 //	double array2[5] = {0.70, 0.20, 0.07, 0.02, 0.01};
 	double array2[5] = {0.70, 0.90, 0.97, 0.99, 1};
@@ -311,7 +320,7 @@ string Get_indel(string &seq,ofstream &indel,string id1,double heterindel_rate,d
 			s+=temp;
 			string ss = "+\t" + boost::lexical_cast <std::string>(int(insert[i])) + "\t" + temp;
 			
-			//判断该位点是否有deletion
+			//鍒ゆ柇璇ヤ綅鐐规槸鍚︽湁deletion
 			if(indel_lst[i][0] == 0)
 			{
 				indel_lst[i] = ss;
@@ -343,16 +352,17 @@ string Get_indel(string &seq,ofstream &indel,string id1,double heterindel_rate,d
 }
 
 
-//二分查找法寻找随机数落入的区间
+//Binary search the random number location
 int search_location(double *Arr, uint64_t ArrNum, double random_num){
+
 	uint64_t left = 0;
 	uint64_t right = ArrNum;
 	uint64_t middle = (left+right)/2;
 	
 	if(random_num < Arr[0]){return 0;}
-	if(random_num > Arr[ArrNum-1]){return ArrNum-1;}
+	if(random_num > Arr[ArrNum-1]){ return ArrNum-1;}
 	
-	//如果随机数为0，则返回第一个大于0的区间段
+	//return the first location of bigger than 0
 	if(random_num == 0){
 		for(uint64_t i = 0; i < ArrNum; i++)
 		{
@@ -370,7 +380,7 @@ int search_location(double *Arr, uint64_t ArrNum, double random_num){
 			left = middle;
 		}else if(random_num < Arr[middle-1]){
 			right = middle;
-		}else if(random_num == Arr[middle-1]){  //如果两个数相同，则返回最大值为该数字的第一个区间段
+		}else if(random_num == Arr[middle-1]){  //return the first region that upper boundary equal to random_num
 			for(uint64_t i = middle-1; i>0; i--)
 			{
 				if(Arr[i-1] != Arr[i]){return i;}
@@ -378,7 +388,7 @@ int search_location(double *Arr, uint64_t ArrNum, double random_num){
 		}
 		middle = (left+right)/2;
 	}
-
+	
 	return middle;
 }
 
