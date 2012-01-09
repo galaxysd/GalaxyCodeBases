@@ -302,6 +302,36 @@ FORCE_INLINE uint64_t querySDLArray(size_t ArrayBits, uint64_t rBits, SDLeftArra
     return Item_CountBits;
 }
 
+
+
+// return 0 for not found
+void travelSDLArray(SDLeftArray_t *dleftobj, FILE *fpdat){
+	size_t ArrayBits;
+	uint64_t rBits;
+    uint64_t Item_rBits;
+    uint64_t Item_CountBits=0;  // set value in case SubItemCount*dleftobj->itemByte == 0 (EP ?)
+    uint128_t theItem;
+	unsigned char* pChunk = (unsigned char*)dleftobj->pDLA;
+	unsigned char* pEndChunk = (unsigned char*)pChunk + dleftobj->SDLAbyte;
+	fputs("ItemNo,rBit\tCount\n",fpdat);
+	while (pChunk < pEndChunk) {
+#if BYTE_ORDER == LITTLE_ENDIAN
+        theItem = *(uint128_t*)pChunk;
+#else
+    #error Faster version is Little Endian, choose OLD or NEW to define !
+#endif
+		Item_CountBits = theItem & dleftobj->Item_CountBitMask;
+		Item_rBits = (theItem & dleftobj->Item_rBitMask) >> dleftobj->CountBit;
+		if (Item_CountBits) {
+			fprintf(fpdat, "%zx,%lX\t%lu\n",pChunk, Item_rBits, Item_CountBits);
+		}
+		pChunk += dleftobj->itemByte;
+	}
+	fputs("\n\4",fpdat);
+}
+
+
+
 FORCE_INLINE int_fast8_t dleft_insert_kmer(const char *const kmer, const size_t len, SDLeftArray_t *dleftobj,
                                            uint64_t **dibskmer,size_t * const uint64cnt) {
     char* revcomkmer = ChrSeqRevComp(kmer,len);
@@ -398,10 +428,13 @@ SDLeftStat_t * dleft_stat(SDLeftArray_t * const dleftobj, FILE *stream) {
     uint64_t ArraySize = dleftobj->ArraySize;
     size_t mainArrayID=0;
     rewind(fpdat);
+	travelSDLArray(dleftobj, fpdat);
+/*
     size_t unitwritten;
     unitwritten=fwrite(&ArraySize,sizeof(uint64_t),1u,fpdat);
     if (unitwritten != 1)
         err(EXIT_FAILURE, "Fail to write dat file ! [%zd]",unitwritten);
+*/
 #endif
     for (size_t i=0;i<totalDLAsize;i+=dleftobj->itemByte) {
         //const unsigned char * pChunk = pDLA + i;
