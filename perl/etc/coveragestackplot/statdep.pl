@@ -1,7 +1,7 @@
 #!/bin/env perl
 use strict;
 use warnings;
-#use Inline 'Info', 'Force', 'Noclean';
+use Inline 'Info', 'Force', 'Noclean';
 use Inline 'C';
 
 use Data::Dump 'ddx';
@@ -11,13 +11,13 @@ my $text = join '', <>;           # slurp input file
 my $vp = vowel_scan($text);       # call our function
 $vp = sprintf("%03.1f", $vp * 100);  # format for printing
 print "The letters in @ARGV are $vp% vowels.\n";
-=cut
+#=cut
 my $a=testm();
 print testp($a);
 print testf($a),"\n";
 my $tt;
 testundef($tt);
-
+=cut
 die "Usage: $0 <chr.info> <list> [output]\n" if @ARGV <2;
 my ($nfo,$in,$out)=@ARGV;
 $out=$in.'.depstat' unless $out;
@@ -60,7 +60,7 @@ while (<LST>) {
 #print "$IFname{$id}\n";
 	next unless $size;
 	$IFH{$id} = &openfile($IFname{$id});
-	$CVGDAT{$id} = memalloc($MaxLen);
+	$CVGDAT{$id} = chrdat_init($MaxLen);
 	#$CVGPOS{$id} = 0;
 	print STDERR "$id:$size, ";
 	++$FileCount;
@@ -92,7 +92,7 @@ while (%IFH) {
 	my $Filechrid = $CurrentChrID;
 	$CurrentChrID = '';
 	my $cnt=1;
-	memrealloc($CVGDAT{$_},$ChrLen{$Filechrid}) for keys %IFH;
+	chrdat_resize($CVGDAT{$_},$ChrLen{$Filechrid}) for keys %IFH;
 	for my $id (sort keys %IFH) {
 		$fh = $IFH{$id};
 		$CVGPOS{$id}=0;
@@ -103,14 +103,20 @@ while (%IFH) {
 			for ( split /\s+/,$tmp ) {	# no need to chomp for /\s+/
 				push @dat,$_ if /^\d+$/;
 			}
+			next unless @dat;
+			$CVGPOS{$id} = chrdat_push($CVGDAT{$id},@dat);
+=pod
 			for my $v (@dat) {
 				#next unless $v =~ /^\d+$/;
 #print STDERR "$id,$CVGPOS{$id},$v\t";
 				pushValue($CVGDAT{$id},$CVGPOS{$id},$v);
 				++$CVGPOS{$id};
 			}
+=cut
 #print STDERR "\n${Filechrid}[$id]$CVGPOS{$id}<$tmp>\n";
 		}
+my @t=chrdat_readzone($CVGDAT{$id},1,$ChrLen{$Filechrid});
+print STDERR "Read:",scalar @t,"[",join(',',@t),"]\n";
 		die "[x]Depth file format error in Chr:$chrid for $CVGPOS{$id} != $ChrLen{$Filechrid}." if $CVGPOS{$id} != $ChrLen{$Filechrid};
 		unless (defined $tmp) {	# file end
 			close $fh;
@@ -127,7 +133,7 @@ while (%IFH) {
 }
 
 for my $id (keys %CVGDAT) {
-	memfree($CVGDAT{$id});
+	chrdat_free($CVGDAT{$id});
 }
 __END__
 
@@ -144,7 +150,7 @@ typedef struct __ChrDat {
 	uint16_t * dat;
 } ChrDat_t;
 
-ChrDat_t *chrdat_init(size_t size) {
+void *chrdat_init(size_t size) {
 	ChrDat_t * pt = malloc(sizeof(ChrDat_t));
 	pt->len = size;
 	pt->position = 0;
@@ -156,11 +162,13 @@ ChrDat_t *chrdat_init(size_t size) {
 	}
 	return pt;
 }
-void chrdat_free(ChrDat_t * pt) {
+void chrdat_free(void * ptr) {
+	ChrDat_t* pt = ptr;
 	free(pt->dat);
 	free(pt);
 }
-int chrdat_resize(ChrDat_t * pt, size_t size) {
+void chrdat_resize(void * ptr, size_t size) {
+	ChrDat_t* pt = ptr;
 	void * newpt = realloc(pt->dat, size * 2);
 	if (newpt == NULL) {
 		fputs("[x]Not enough memory !\n",stderr);
@@ -169,25 +177,35 @@ int chrdat_resize(ChrDat_t * pt, size_t size) {
 	}
 	pt->dat = newpt;
 	pt->len = size;
-	return 0;
+	pt->position = 0;
 }
-
-size_t chrdat_push(ChrDat_t * pt, SV* name1, ...) {
+void chrdat_rewind(void * ptr) {
+	ChrDat_t* pt = ptr;
+	pt->position = 0;
+}
+SV* chrdat_push(void * ptr, SV* name1, ...) {
+	ChrDat_t* pt = ptr;
 	uint16_t * pDat = pt->dat + pt->position;
 	Inline_Stack_Vars;
 	int i;
-	for (i = 0; i < Inline_Stack_Items; i++)
-		//printf("Hello %d!\n", SvIV(Inline_Stack_Item(i)));
+fputs("-[",stderr);
+	for (i = 1; i < Inline_Stack_Items; i++) {
 		*pDat++ = (uint16_t) SvIV(Inline_Stack_Item(i));
 		++pt->position;
-		if (pt->position >= pt->len) {
+fprintf(stderr, "%zd:%d\t", pt->position, *(pDat-1) );
+		if (pt->position > pt->len) {
 			fputs("[x]Array too long !\n",stderr);
 			exit(2); // Is it safe to exit here ?
 		}
-	Inline_Stack_Void;
-	return pt->position + 1;
+	}
+	//Inline_Stack_Void;
+	Inline_Stack_Done;
+fprintf(stderr, "\b]-\n");
+	//pt->position = pDat - pt->dat;
+	return newSViv(pt->position);
 }
-void chrdat_readzone(ChrDat_t * pt, size_t start, size_t end) {
+void chrdat_readzone(void * ptr, size_t start, size_t end) {
+	ChrDat_t* pt = ptr;
 	if (start < 1 || end > pt->len || start > pt->len || end < 1) {
 		fputs("[x]Out Range !\n",stderr);
 		return NULL;
@@ -202,6 +220,7 @@ void chrdat_readzone(ChrDat_t * pt, size_t start, size_t end) {
 	Inline_Stack_Done;
 }
 
+/*
 void* memalloc(size_t size) {
 	void * pt = malloc(size * 2);
 	if (pt == NULL) {
@@ -247,7 +266,7 @@ int testf(void* pt) {
 	free(pt);
 	return 0;
 }
-
+*/
 /*
 // Find percentage of vowels to letters
 double vowel_scan(char* str) {
