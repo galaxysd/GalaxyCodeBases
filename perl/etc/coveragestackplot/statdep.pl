@@ -92,6 +92,7 @@ while (%IFH) {
 	my $Filechrid = $CurrentChrID;
 	$CurrentChrID = '';
 	my $cnt=1;
+	memrealloc($CVGDAT{$_},$ChrLen{$Filechrid}) for keys %IFH;
 	for my $id (sort keys %IFH) {
 		$fh = $IFH{$id};
 		$CVGPOS{$id}=0;
@@ -100,7 +101,9 @@ while (%IFH) {
 			last if $tmp =~ /^>/;
 			my @dat = split /\s+/,$tmp;	# no need to chomp for /\s+/
 			for my $v (@dat) {
-				#pushdepvalue($CVGDAT{$Filechrid},$CVGPOS{$id},$v);
+				next unless $v =~ /^\d+$/;
+#print STDERR "$id,$CVGPOS{$id},$v\t";
+				pushValue($CVGDAT{$id},$CVGPOS{$id},$v);
 				++$CVGPOS{$id};
 			}
 #print STDERR "\n${Filechrid}[$id]$CVGPOS{$id}<$tmp>\n";
@@ -152,9 +155,9 @@ void* memrealloc(void *ptr, size_t size) {
 void memfree(void* pt) {
 	free(pt);
 }
-void pushdepvalue(void* pt, size_t position, uint16_t value) {
-	printf("@%zx:%d\t",position,value);
-	*((uint16_t*)pt + position) = value;
+void pushValue(void* pt, size_t position, unsigned int value) {
+	//printf("@%zx:%d\t",position,value);
+	*((uint16_t*)pt + position) = (uint16_t)value;
 }
 
 
