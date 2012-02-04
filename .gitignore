@@ -12,3 +12,5 @@ blib/
 *.vpw
 *.vpwhist
 *.vtg
+_Inline
+
