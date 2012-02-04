@@ -99,9 +99,12 @@ while (%IFH) {
 		printf STDERR "\b\b\b\b%4d",$cnt;
 		while ( ($tmp = <$fh>) ) {
 			last if $tmp =~ /^>/;
-			my @dat = split /\s+/,$tmp;	# no need to chomp for /\s+/
+			my @dat;
+			for ( split /\s+/,$tmp ) {	# no need to chomp for /\s+/
+				push @dat,$_ if /^\d+$/;
+			}
 			for my $v (@dat) {
-				next unless $v =~ /^\d+$/;
+				#next unless $v =~ /^\d+$/;
 #print STDERR "$id,$CVGPOS{$id},$v\t";
 				pushValue($CVGDAT{$id},$CVGPOS{$id},$v);
 				++$CVGPOS{$id};
@@ -134,6 +137,70 @@ __C__
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
+
+typedef struct __ChrDat {
+	size_t position, len;	// position is [0,len-1]
+	uint16_t * dat;
+} ChrDat_t;
+
+ChrDat_t *chrdat_init(size_t size) {
+	ChrDat_t * pt = malloc(sizeof(ChrDat_t));
+	pt->len = size;
+	pt->position = 0;
+	pt->dat = malloc(size * 2);
+	if (pt->dat == NULL) {
+		fputs("[x]Not enough memory !\n",stderr);
+		free(pt);
+		exit(1); // Is it safe to exit here ?
+	}
+	return pt;
+}
+void chrdat_free(ChrDat_t * pt) {
+	free(pt->dat);
+	free(pt);
+}
+int chrdat_resize(ChrDat_t * pt, size_t size) {
+	void * newpt = realloc(pt->dat, size * 2);
+	if (newpt == NULL) {
+		fputs("[x]Not enough memory !\n",stderr);
+		chrdat_free(pt);
+		exit(1); // Is it safe to exit here ?
+	}
+	pt->dat = newpt;
+	pt->len = size;
+	return 0;
+}
+
+size_t chrdat_push(ChrDat_t * pt, SV* name1, ...) {
+	uint16_t * pDat = pt->dat + pt->position;
+	Inline_Stack_Vars;
+	int i;
+	for (i = 0; i < Inline_Stack_Items; i++)
+		//printf("Hello %d!\n", SvIV(Inline_Stack_Item(i)));
+		*pDat++ = (uint16_t) SvIV(Inline_Stack_Item(i));
+		++pt->position;
+		if (pt->position >= pt->len) {
+			fputs("[x]Array too long !\n",stderr);
+			exit(2); // Is it safe to exit here ?
+		}
+	Inline_Stack_Void;
+	return pt->position + 1;
+}
+void chrdat_readzone(ChrDat_t * pt, size_t start, size_t end) {
+	if (start < 1 || end > pt->len || start > pt->len || end < 1) {
+		fputs("[x]Out Range !\n",stderr);
+		return NULL;
+	}
+	uint16_t * pDat = pt->dat + start -1;
+	Inline_Stack_Vars;
+
+	Inline_Stack_Reset;
+	while (pDat < pt->dat + end) {
+		Inline_Stack_Push(sv_2mortal(newSViv(*pDat++)));
+	}
+	Inline_Stack_Done;
+}
 
 void* memalloc(size_t size) {
 	void * pt = malloc(size * 2);
@@ -165,7 +232,7 @@ void* testundef(void *ptr) {
 	if (ptr == NULL) {
 		fputs("It is NULL.\n",stderr);
 	} else {
-		printf("[%Lx]\n",ptr);
+		printf("[%lx]\n",*(uint64_t*)ptr);
 	}
 }
 void* testm() {
