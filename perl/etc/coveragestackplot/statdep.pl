@@ -15,6 +15,8 @@ print "The letters in @ARGV are $vp% vowels.\n";
 my $a=testm();
 print testp($a);
 print testf($a),"\n";
+my $tt;
+testundef($tt);
 
 die "Usage: $0 <chr.info> <list> [output]\n" if @ARGV <2;
 my ($nfo,$in,$out)=@ARGV;
@@ -36,12 +38,13 @@ sub openfile($) {
     return $infile;
 }
 
-my ($FileCount,%ChrLen,%IFH,%IFname,%CCGDAT)=(0);
+my ($FileCount,$MaxLen,%ChrLen,%IFH,%IFname,%CVGDAT,%CVGPOS)=(0,0);
 open NFO,'<',$nfo or die "Error opening $nfo: $!\n";
 print STDERR "\nLoading Chr Len ...\n[";
 while (<NFO>) {
 	my ($id,$len) = split /\s+/;
 	$ChrLen{$id}=$len;
+	$MaxLen = $len if $MaxLen < $len;
 	print STDERR "$id:$len   ";
 }
 close NFO;
@@ -51,16 +54,75 @@ open LST,'<',$in or die "Error opening $in: $!\n";
 print STDERR "\nLoading Coverage files ...\n[";
 while (<LST>) {
 	my ($id) = split /\s+/;
+	next if exists $IFname{$id};
 	$IFname{$id}="./cvg/$id/cvg_$id.depth.xz";
 	my $size = -s $IFname{$id};
+#print "$IFname{$id}\n";
 	next unless $size;
 	$IFH{$id} = &openfile($IFname{$id});
+	$CVGDAT{$id} = memalloc($MaxLen);
+	#$CVGPOS{$id} = 0;
 	print STDERR "$id:$size, ";
 	++$FileCount;
 }
 close LST;
 warn "\b\b].\n$FileCount file(s) opened.\n";
 
+warn "\nReading Coverage data of $FileCount file(s) ...\n";
+my $CurrentChrID='';
+my ($fh,$chrid,$tmp);
+
+for my $id (sort keys %IFH) {
+	$fh = $IFH{$id};
+	($tmp = <$fh>) =~ /^>(\S+)/;
+	$chrid = $1;
+	#while ( ($tmp = <$fh>) =~ /^>(\S+)/ ) { $chrid = $1; }; # How to push back ?
+	unless (defined $tmp) {	# file end
+		close $fh;
+		delete $IFH{$id};
+	}
+	$CurrentChrID = $chrid if $CurrentChrID eq '';
+	die "[x]ChrID order not match for [$chrid] in [$IFname{$id}] & [$CurrentChrID] !" if $CurrentChrID ne $chrid;
+}
+
+while (%IFH) {
+	my $fhCount = (keys %IFH);
+	die "[x]Depth file not match for $fhCount < $FileCount\n" if ($fhCount != $FileCount);
+	print STDERR ">$CurrentChrID:     ";
+	my $Filechrid = $CurrentChrID;
+	$CurrentChrID = '';
+	my $cnt=1;
+	for my $id (sort keys %IFH) {
+		$fh = $IFH{$id};
+		$CVGPOS{$id}=0;
+		printf STDERR "\b\b\b\b%4d",$cnt;
+		while ( ($tmp = <$fh>) ) {
+			last if $tmp =~ /^>/;
+			my @dat = split /\s+/,$tmp;	# no need to chomp for /\s+/
+			for my $v (@dat) {
+				#pushdepvalue($CVGDAT{$Filechrid},$CVGPOS{$id},$v);
+				++$CVGPOS{$id};
+			}
+#print STDERR "\n${Filechrid}[$id]$CVGPOS{$id}<$tmp>\n";
+		}
+		die "[x]Depth file format error in Chr:$chrid for $CVGPOS{$id} != $ChrLen{$Filechrid}." if $CVGPOS{$id} != $ChrLen{$Filechrid};
+		unless (defined $tmp) {	# file end
+			close $fh;
+			delete $IFH{$id};
+			next;
+		}
+		$tmp =~ /^>(\S+)/;
+		$chrid = $1;
+		$CurrentChrID = $chrid if $CurrentChrID eq '';
+		die "\n[x]ChrID order not match for [$chrid] in [$IFname{$id}] & [$CurrentChrID] !" if $CurrentChrID ne $chrid;
+		++$cnt;
+	}
+	warn "\b\b\b\bdone !\n";
+}
+
+for my $id (keys %CVGDAT) {
+	memfree($CVGDAT{$id});
+}
 __END__
 
 
@@ -68,7 +130,41 @@ __END__
 __C__
 
 #include <stdlib.h>
+#include <stdio.h>
 
+void* memalloc(size_t size) {
+	void * pt = malloc(size * 2);
+	if (pt == NULL) {
+		fputs("[x]Not enough memory !\n",stderr);
+		exit(1); // Is it safe to exit here ?
+	}
+	return pt;
+}
+void* memrealloc(void *ptr, size_t size) {
+	void * pt = realloc(ptr, size * 2);
+	if (pt == NULL) {
+		fputs("[x]Not enough memory !\n",stderr);
+		free(ptr);
+		exit(1); // Is it safe to exit here ?
+	}
+	return pt;
+}
+void memfree(void* pt) {
+	free(pt);
+}
+void pushdepvalue(void* pt, size_t position, uint16_t value) {
+	printf("@%zx:%d\t",position,value);
+	*((uint16_t*)pt + position) = value;
+}
+
+
+void* testundef(void *ptr) {
+	if (ptr == NULL) {
+		fputs("It is NULL.\n",stderr);
+	} else {
+		printf("[%Lx]\n",ptr);
+	}
+}
 void* testm() {
 	void * pt = calloc(1, 65537);
 	sprintf(pt,"[Test Strings:%c%c%c.]",33,9,64);
