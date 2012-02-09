@@ -8,3 +8,22 @@
 [submodule "c_cpp/pspp"]
 	path = c_cpp/pspp
 	url = http://git.savannah.gnu.org/r/pspp.git
+
+To Update:
+
+ First repo:
+	git submodule foreach git pull origin master
+	git add c_cpp/gnulib c_cpp/pspp
+	git commit -m 'Submodule updated'
+	git push
+
+ Other repo:
+	git pull
+	git submodule update
+
+http://stackoverflow.com/questions/1979167/git-submodule-update
+git submodule -q foreach git pull -q origin master
+You can remove the -q option to follow the whole process.
+
+http://josephjiang.com/entry.php?id=342
+
