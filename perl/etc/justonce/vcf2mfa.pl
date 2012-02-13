@@ -11,6 +11,7 @@ my %dat=(
 );
 
 my %SNP; # chr,pos,{GT with ref}
+my %SnpStat; # sample->[All,Hom,Het]
 my @Samples = sort keys %dat;
 
 for my $s (@Samples) {
@@ -26,6 +27,15 @@ for my $s (@Samples) {
 		my @GTs=split /[\/|]/,$GT;
 		if ($s eq 'Drone1') {
 			next if $GTs[0] ne $GTs[1];
+			++${$SnpStat{$s}}[0];
+			++${$SnpStat{$s}}[1];
+		} else {
+			if ($GTs[0] eq $GTs[1]) {
+				++${$SnpStat{$s}}[1];
+			} else {
+				++${$SnpStat{$s}}[2];
+			}
+			++${$SnpStat{$s}}[0];
 		}
 		my @GeneTypes=split /,/,$alt;
 		unshift @GeneTypes,$ref;
@@ -39,7 +49,7 @@ for my $s (@Samples) {
 open O,'>','bees.mfa' or die "Error: $!\n";
 for my $s ('Ref',@Samples) {
 	print O ">$s\n";
-	print "Writing $s\n";
+	print "Writing $s\t",join(',',@{$SnpStat{$s}}),"\n" if $s ne 'Ref';
 	for my $chr (sort keys %SNP) {
 		for my $pos (sort {$a<=>$b} keys %{$SNP{$chr}}) {
 			if (exists $SNP{$chr}{$pos}{$s}) {
