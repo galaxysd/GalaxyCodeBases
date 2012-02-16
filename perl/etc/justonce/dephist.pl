@@ -11,7 +11,8 @@ my %dat=(
 );
 my @id=sort keys %dat;
 
-my $Ncnt= 219629612 - 199723619;
+my $EffLen=199723619;
+my $Ncnt= 219629612 - $EffLen;
 
 sub openfile($) {
     my ($filename)=@_;
@@ -73,9 +74,7 @@ for my $v (sort {$a<=>$b} keys %Hist) {
 	print O getV($v),"\t";
 	for my $id (@id) {
 		if (exists $Hist{$v}{$id}) {
-			print O $Hist{$v}{$id},"\t";
-		} else {
-			print O "0\t";
+			print O $Hist{$v}{$id},', ',$Stack{$v}{$id},',',int(1000*$Stack{$v}{$id}/$EffLen)/1000,"\t";
 		}
 	}
 	print O "\n";
