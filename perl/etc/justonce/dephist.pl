@@ -40,7 +40,7 @@ sub getV($){
 	if ($v<=150) {
 		return $v;
 	} elsif ($v<=340) {
-		return '~'.109 + ($v-200)*10;
+		return '~'.(109 + ($v-200)*10);
 	} else {
 		return '>1500';
 	}
@@ -66,7 +66,6 @@ for my $v (sort {$b<=>$a} keys %Hist) {
 		$Sum{$id} += $Hist{$v}{$id};
 		$Stack{$v}{$id} = $Sum{$id};
 	}
-	print O "\n";
 }
 open O,'>',"depth.hist";
 print O join("\t",'Depth',@id),"\n";
@@ -74,7 +73,7 @@ for my $v (sort {$a<=>$b} keys %Hist) {
 	print O getV($v),"\t";
 	for my $id (@id) {
 		if (exists $Hist{$v}{$id}) {
-			print O $Hist{$v}{$id},', ',$Stack{$v}{$id},',',int(1000*$Stack{$v}{$id}/$EffLen)/1000,"\t";
+			print O $Hist{$v}{$id},', ',$Stack{$v}{$id},',',int(10000*$Stack{$v}{$id}/$EffLen)/10000,"\t";
 		}
 	}
 	print O "\n";
