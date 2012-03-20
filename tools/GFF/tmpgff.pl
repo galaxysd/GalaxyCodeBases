@@ -73,6 +73,21 @@ while (<IN>) {
 }
 close IN;
 
+sub cmpUTR($$) {
+	my ($RefA,$RefB)=@_;
+	my ($StrA,$StrB)=('','');
+	if (defined $RefA) {
+		$StrA .= "$$_[0],$$_[1] " for (@$RefA);
+	}
+	if (defined $RefB) {
+		$StrB .= "$$_[0],$$_[1] " for (@$RefB);
+	}
+	if ($StrA eq $StrB) {
+		return 'Same';
+	} else {
+		return "[$StrA],[$StrB]";
+	}
+}
 open OUT,'>',$out or die "Error: $!\n";
 for my $k (keys %GFF) {
 	my ($IDA,$IDB)=@{$GFF{$k}};
@@ -80,6 +95,9 @@ for my $k (keys %GFF) {
 	my $RefB=$Dat{$IDB};
 	my $Strand = $$RefA{"Strand"};
 	die if $Strand ne $$RefB{"Strand"};
+	my $retStr=cmpUTR($$RefA{"3-UTR"},$$RefB{"3-UTR"});
+	next if $retStr eq 'Same';
+=pod
 	my ($ua,$ub,$uc,$ud);
 	unless (exists $$RefA{"3-UTR"} and exists $$RefB{"3-UTR"}) {
 		#ddx $RefA; ddx $RefB;
@@ -99,6 +117,7 @@ for my $k (keys %GFF) {
 		($uc,$ud)=@{$$RefB{"3-UTR"}->[0]};
 	}
 	next if $ua==$uc and $ub==$ud;
+=cut
 	my ($a,$b,$c,$d);
 	if ($Strand eq '+') {
 		($a,$b)=@{$$RefA{"CDS"}->[-1]};	# sorted
@@ -110,6 +129,6 @@ for my $k (keys %GFF) {
 #print "$a,$b $c,$d\n"; die;
 	} else {die;}
 	next unless $a==$c and $b==$d;
-	print OUT "$k\t$IDA, [$ua,$ub]\t$IDB, [$uc,$ud]\t$Strand\t<$a,$b>\n";
+	print OUT "$k\t[$IDA, $IDB]\t$Strand\t3-UTR:$retStr\tCDS:<$a,$b>\n";
 }
 close OUT;
