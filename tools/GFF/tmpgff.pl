@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-my ($in,$out)=("refGene.filter.gff", "ymy20120320.lst");
+my ($in,$out)=("refGene.filter.gff", "ymy20120321.lst");
 
 my (%GFF,%TransID,%Dat);
 
@@ -78,9 +78,11 @@ sub cmpUTR($$) {
 	my ($StrA,$StrB)=('','');
 	if (defined $RefA) {
 		$StrA .= "$$_[0],$$_[1] " for (@$RefA);
+		return 'Same' if @$RefA != 1;	# filter those with more 3-UTR
 	}
 	if (defined $RefB) {
 		$StrB .= "$$_[0],$$_[1] " for (@$RefB);
+		return 'Same' if @$RefB != 1;
 	}
 	if ($StrA eq $StrB) {
 		return 'Same';
