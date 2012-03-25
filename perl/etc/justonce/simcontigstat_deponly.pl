@@ -56,21 +56,25 @@ sub dostat($$) {
 	my ($chr,$aref)=@_;
 	my ($lastB,$lastE)=(0,0);
 	my ($GapFlag,@Contig)=(0);
-print "\n>$chr\n";
+#print "\n>$chr\n";
 	for my $p (0 .. $#$aref) {
-print " $p:$aref->[$p]";
-		if ($aref->[$p] >= $mindepth) {
-			push @Contig,$p unless $GapFlag;
-print "\nB[$p:$aref->[$p]]";
+#print " $p:$aref->[$p]";
+		if (($GapFlag==0) and ($aref->[$p] >= $mindepth)) {
+			push @Contig,$p;
+#print "\nB[$p:$aref->[$p]]";
 			$GapFlag=1;
 		}
 		if ($GapFlag and $aref->[$p] < $mindepth) {
-			push @Contig,$p;
-print "E\n";
+			push @Contig,$p-1;
+#print "E",$p-1,"\n";
 			$GapFlag=0;
 		}
 	}
-	push @Contig,$#$aref if $GapFlag;
+	if ($GapFlag) {
+		push @Contig,$#$aref;
+		print STDERR '<';
+	}
+#print "[@Contig]\n";
 	my $count=(scalar @Contig)/2;
 	while (@Contig) {
 		my $a=shift @Contig;
