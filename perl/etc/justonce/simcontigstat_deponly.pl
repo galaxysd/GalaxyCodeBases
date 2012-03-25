@@ -50,7 +50,7 @@ sub don5090($$$) {
 		if($n90 == -1 and $s >= $Len * 0.9){ $n90 = $l; last; }
 	}
 	$N5090{$chr}=[$n50,$n90,$count,$Length[0],$Length[-1]];
-	return " [$count,$Length[0],$Length[-1]] $n50,$n90";
+	return " [$count,$Length[0],$Length[-1]] $n50,$n90 ";
 }
 sub dostat($$) {
 	my ($chr,$aref)=@_;
@@ -80,7 +80,7 @@ sub dostat($$) {
 		print O join("\t",$chr,$a+1,$b+1,$contiglen),"\n";
 	}
 	my $n59ret=&don5090($chr,$LENGTH{$chr},$Stat{$chr});
-	return $count.$n59ret;
+	return $count.$n59ret.$LENGTH{$chr};
 }
 
 my $fh=openfile($cvg);
