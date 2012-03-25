@@ -41,13 +41,16 @@ sub don5090($$$) {
 	my $n50 = -1;
 	my $n90 = -1;
 	my $s = 0;
-	for my $l (sort {$b <=> $a} keys %{$href}){
+	my $count=0;
+	my @Length = sort {$b <=> $a} keys %{$href};
+	for my $l (@Length){
 		$s += $l*$$href{$l};
+		$count += $$href{$l};
 		if($n50 == -1 and $s >= $Len * 0.5){ $n50 = $l; }
 		if($n90 == -1 and $s >= $Len * 0.9){ $n90 = $l; last; }
 	}
-	$N5090{$chr}=[$n50,$n90];
-	return "$n50,$n90";
+	$N5090{$chr}=[$n50,$n90,$count,$Length[0],$Length[-1]];
+	return " [$count,$Length[0],$Length[-1]] $n50,$n90";
 }
 sub dostat($$) {
 	my ($chr,$aref)=@_;
@@ -77,7 +80,7 @@ sub dostat($$) {
 		print O join("\t",$chr,$a+1,$b+1,$contiglen),"\n";
 	}
 	my $n59ret=&don5090($chr,$LENGTH{$chr},$Stat{$chr});
-	return "$count $n59ret";
+	return $count.$n59ret;
 }
 
 my $fh=openfile($cvg);
@@ -111,8 +114,8 @@ for my $chr (sort keys %Stat) {
 
 my $chr = '_All_';
 don5090($chr,$LENGTH{$chr},$Stat{$chr});
-print O "\n\n[N50_N90]\n#ChrID\tN50\tN90\n";
+print O "\n\n[N50_N90]\n#ChrID\tN50\tN90\tCount\tMaxLen\tMinLen\tTotal_Length\n";
 for my $chr (sort keys %N5090) {
-	print O join("\t",$chr,@{$N5090{$chr}}),"\n";
+	print O join("\t",$chr,@{$N5090{$chr}},$LENGTH{$chr}),"\n";
 }
 close O;
