@@ -21,7 +21,7 @@ my $mindepth=shift;
 my (%LENGTH,%Stat,%N5090);
 
 open O,'>',"$out.$mindepth.depthcontig" or die "Error: $!\n";
-print O "[Contig]\n#min_depth=$mindepth\n#ChrID\tStart\tEnd\tLen\n";
+print O "[Contig]\n#min_depth=$mindepth\n#Min_Contig_Length=$MINCONTIFLEN\n#ChrID\tStart\tEnd\tLen\n";
 
 sub openfile($) {
     my ($filename)=@_;
@@ -56,13 +56,17 @@ sub dostat($$) {
 	my ($chr,$aref)=@_;
 	my ($lastB,$lastE)=(0,0);
 	my ($GapFlag,@Contig)=(0);
+print "\n>$chr\n";
 	for my $p (0 .. $#$aref) {
+print " $p:$aref->[$p]";
 		if ($aref->[$p] >= $mindepth) {
 			push @Contig,$p unless $GapFlag;
+print "\nB[$p:$aref->[$p]]";
 			$GapFlag=1;
 		}
 		if ($GapFlag and $aref->[$p] < $mindepth) {
 			push @Contig,$p;
+print "E\n";
 			$GapFlag=0;
 		}
 	}
