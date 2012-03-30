@@ -39,12 +39,13 @@ sub deal($) {
 #print '-'x75,"\n";
 	my ($qseqid,$sseqid,$sacc,$qstart,$qend,$sstart,$send,$evalue,$bitscore,$score,$length,$pident,$nident,$mismatch,$positive,$gapopen,$gaps,$btop)=@$Emin;
 	my $annot=$sseqid;
-	$annot = s/^gi//;
+	$annot =~ s/^gi//;
 	if (exists $Anno{$annot}) {
 		$annot = '['.$Anno{$annot}.']';
 		print O join("\t",$qseqid,$sacc,$annot,$length,$evalue,$mismatch,$bitscore,$qstart,$qend,$sstart,$send,$btop,$sseqid),"\n";
 	} else {
 		print STDERR '^';
+warn "$annot\n";
 	}
 	return;
 }
