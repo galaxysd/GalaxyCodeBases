@@ -28,7 +28,7 @@ warn "[!]Load Hearers done.\n";
 
 $|=1;
 open O,'>',$blastf.'.anot' or die "Error opening $blastf.anot : $!\n";
-print O "# qseqid sacc annot length evalue mismatch bitscore qstart qend sstart send btop sseqid\n";
+print O "# qseqid sacc length evalue mismatch annot bitscore qstart qend sstart send btop sseqid\n";
 
 sub deal($) {
 	my $Aref=$_[0];
@@ -42,7 +42,7 @@ sub deal($) {
 	$annot =~ s/^gi//;
 	if (exists $Anno{$annot}) {
 		$annot = '['.$Anno{$annot}.']';
-		print O join("\t",$qseqid,$sacc,$annot,$length,$evalue,$mismatch,$bitscore,$qstart,$qend,$sstart,$send,$btop,$sseqid),"\n";
+		print O join("\t",$qseqid,$sacc,$length,$evalue,$mismatch,$annot,$bitscore,$qstart,$qend,$sstart,$send,$btop,$sseqid),"\n";
 	} else {
 		print STDERR '^';
 warn "$annot\n";
