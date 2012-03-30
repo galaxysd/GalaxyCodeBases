@@ -42,7 +42,7 @@ while (<H>) {
 close H;
 
 open O,'>',$annot.'.stat' or die "Error opening $annot.stat : $!\n";
-print O join("\t",qw/#Sp All_Count PREDICTE/),"\n";
+print O join("\t",split(' ',q/#Sp All_Count PREDICTE_Count/)),"\n";
 for my $k (sort {$Stat{$b}->[0] <=> $Stat{$a}->[0] || $Stat{$a}->[1] <=> $Stat{$b}->[1] || $a cmp $b} keys %Stat) {
 	print O join("\t",$k,@{$Stat{$k}}),"\n";
 }
