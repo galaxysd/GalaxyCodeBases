@@ -10,7 +10,7 @@ use warnings;
 die "Usage: $0 <blast annot file>\n" if @ARGV<1;
 my $annot=shift;
 
-my (%Stat,%StatF);
+my ($Total,%Stat,%StatF)=(0);
 open H,'<',$annot or die "Error opening $annot : $!\n";
 while (<H>) {
 	next if /^#/;
@@ -25,6 +25,7 @@ while (<H>) {
 	}
 	$qseqid=join(' ',(split / /,$annot)[0..1]);
 	$sacc=(split /,/,$annot)[0];
+	++$Total;
 #print "$annot -> $qseqid | $sacc\n";
 	if (exists $Stat{$qseqid}) {
 		++$Stat{$qseqid}->[0];
@@ -42,12 +43,12 @@ while (<H>) {
 close H;
 
 open O,'>',$annot.'.stat' or die "Error opening $annot.stat : $!\n";
-print O join("\t",split(' ',q/#Sp All_Count PREDICTE_Count/)),"\n";
+print O "#Total: $Total\n",join("\t",split(' ',q/#Sp All_Count PREDICTE_Count All_Ratio/)),"\n";
 for my $k (sort {$Stat{$b}->[0] <=> $Stat{$a}->[0] || $Stat{$a}->[1] <=> $Stat{$b}->[1] || $a cmp $b} keys %Stat) {
-	print O join("\t",$k,@{$Stat{$k}}),"\n";
+	print O join("\t",$k,@{$Stat{$k}},$Stat{$k}->[0]/$Total),"\n";
 }
 print O "\n#NEXT",'-' x 72,"\n\n";
 for my $k (sort {$StatF{$b}->[0] <=> $StatF{$a}->[0] || $StatF{$a}->[1] <=> $StatF{$b}->[1] || $a cmp $b} keys %StatF) {
-	print O join("\t",$k,@{$StatF{$k}}),"\n";
+	print O join("\t",$k,@{$StatF{$k}},$StatF{$k}->[0]/$Total),"\n";
 }
 close O;
