@@ -1,11 +1,11 @@
 #!/bin/env perl
 =pod
-Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
-Version: 1.0.0 @ 20110803
+Author: Hu Xuesong @ BIOPIC <galaxy001@gmail.com>
+Version: 1.0.0 @ 20120330
 =cut
 use strict;
 use warnings;
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 
 die "Usage: $0 <nt header> <blast file>\n" if @ARGV<2;
 my $header=shift;
@@ -26,16 +26,17 @@ while (<H>) {
 close H;
 warn "[!]Load Hearers done.\n";
 
+$|=1;
 open O,'>',$blastf.'.anot' or die "Error opening $blastf.anot : $!\n";
 print O "# qseqid sacc annot length evalue mismatch bitscore qstart qend sstart send btop sseqid\n";
 
 sub deal($) {
 	my $Aref=$_[0];
 	my $Emin=(sort {$b->[10] <=> $a->[10] || $a->[7] <=> $b->[7]} @$Aref)[0];	# len Desc, E Asc
-ddx $Aref;
-print '-'x5,"\n";
-ddx $Emin;
-print '-'x75,"\n";
+#ddx $Aref;
+#print '-'x5,"\n";
+#ddx $Emin;
+#print '-'x75,"\n";
 	my ($qseqid,$sseqid,$sacc,$qstart,$qend,$sstart,$send,$evalue,$bitscore,$score,$length,$pident,$nident,$mismatch,$positive,$gapopen,$gaps,$btop)=@$Emin;
 	my $annot=$sseqid;
 	$annot = s/^gi//;
