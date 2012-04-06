@@ -36,12 +36,6 @@ int UT_array_intsort(const void *a,const void*b) {
     int _b = *(int*)b;
     return _a - _b;
 }
-struct myData {
-    int32_t n_targets;
-    char **target_name;
-    uint32_t *target_len;
-    uint8_t **ChrDat;
-} Data;
 //struct ChrData_hash_struct *ChrData = NULL;    /* important! initialize to NULL */
 
 /* A description of the arguments we accept. */
@@ -156,9 +150,14 @@ int ChrDat_init(bam_header_t *samhead) {
     if (Data.n_targets == 0) {
         Data.n_targets = samhead->n_targets;
         Data.ChrDat = malloc( Data.n_targets * sizeof(size_t));
+        Data.target_len = malloc( Data.n_targets * sizeof(size_t));
+        Data.target_name = malloc( Data.n_targets * sizeof(size_t));
         puts("\nChr NFO:");
         for (int32_t i=0; i < Data.n_targets; ++i) {
             Data.ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
+            Data.target_len[i] = *(lpChrLen+i);
+            Data.target_name[i] = malloc(strlen(*(lpChrID+i))+1);
+            strcpy(Data.target_name[i],*(lpChrID+i));
             printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
         }
     } else {
@@ -234,12 +233,12 @@ int main (int argc, char **argv) {
           p!=NULL;
           p=(int*)utarray_next(arguments.deplst,p) ) {
         fprintf(stderr,"minDepth = %i: ",*p);
-        do_contig(*p, Data.ChrDat[0]);
+        do_contig(*p, &Data, arguments.outfile);
         fputs("done !\n", stderr);
     }
 
     FILE *fp = fopen(arguments.outfile, "w");
-    fprintf(fp,"#Total_Bases\n");
+    fprintf(fp,"#Main\n");
     fclose(fp);
 
     G_TIMER_END;
