@@ -36,7 +36,12 @@ int UT_array_intsort(const void *a,const void*b) {
     int _b = *(int*)b;
     return _a - _b;
 }
-uint8_t **ChrDat;
+struct myData {
+    int32_t n_targets;
+    char **target_name;
+    uint32_t *target_len;
+    uint8_t **ChrDat;
+} Data;
 //struct ChrData_hash_struct *ChrData = NULL;    /* important! initialize to NULL */
 
 /* A description of the arguments we accept. */
@@ -145,6 +150,22 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+int ChrDat_init(bam_header_t *samhead) {
+    char **lpChrID = samhead->target_name;
+    uint32_t *lpChrLen = samhead->target_len;
+    if (Data.n_targets == 0) {
+        Data.n_targets = samhead->n_targets;
+        Data.ChrDat = malloc( Data.n_targets * sizeof(size_t));
+        puts("\nChr NFO:");
+        for (int32_t i=0; i < Data.n_targets; ++i) {
+            Data.ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
+            printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
+        }
+    } else {
+    }
+    return 0;
+}
+
 int main (int argc, char **argv) {
     struct arguments arguments;
     arguments.args=calloc(sizeof(size_t),argc);
@@ -187,15 +208,10 @@ int main (int argc, char **argv) {
         if (samfp) {
             bam_header_t *samhead = samfp->header;
             if ( samhead == NULL ) errx(3,"File Header Error.");
-            char **lpChrID = samhead->target_name;
-            uint32_t *lpChrLen = samhead->target_len;
-            ChrDat = malloc( samhead->n_targets * sizeof(size_t));
-            for (int32_t i=0; i < samhead->n_targets; ++i) {
-                ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
-                printf("%i %s %u\n",i,*(lpChrID+i),*(lpChrLen+i));
-            }
+            ChrDat_init(samhead);
+
             bam1_t *balignd = bam_init1();
-            while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, ChrDat);
+            while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, Data.ChrDat);
             bam_destroy1(balignd);
 
             fputs("done !\n", stderr);
@@ -206,7 +222,15 @@ int main (int argc, char **argv) {
         //fputs("failed !\n", stderr);
     }
     free(arguments.args);
-    fputs("\nReading Done!\n", stderr);
+    fputs("\nReading Done!\n\nBegin Stat:\n", stderr);
+
+    for ( int *p=(int*)utarray_front(arguments.deplst);
+          p!=NULL;
+          p=(int*)utarray_next(arguments.deplst,p) ) {
+        fprintf(stderr,"minDepth = %i: ",*p);
+        do_contig(*p, Data.ChrDat[0]);
+        fputs("done !\n", stderr);
+    }
 
     FILE *fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases\n");

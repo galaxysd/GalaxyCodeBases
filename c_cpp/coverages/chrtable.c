@@ -26,7 +26,7 @@ void inc_depth(int32_t left, int32_t right, uint8_t *ThisDat) {
     }
 }
 
-void do_stat(bam1_t *b, uint16_t overlap, uint8_t **ChrDat) {
+void do_stat(bam1_t *b, const uint16_t overlap, uint8_t **ChrDat) {
     uint16_t k = overlap + 1;
     //bam1_t *b = balignd;
     //bam1_core_t *core = &(b->core);
@@ -39,4 +39,6 @@ void do_stat(bam1_t *b, uint16_t overlap, uint8_t **ChrDat) {
     inc_depth(left, right - k+1, ThisDat);
 }
 
-// b->core.pos, bam_calend(&b->core, bam1_cigar(b))
+int do_contig(const uint8_t mindep, uint8_t *ThisDat) {
+    ;
+}
