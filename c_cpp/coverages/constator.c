@@ -162,6 +162,12 @@ int ChrDat_init(bam_header_t *samhead) {
             printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
         }
     } else {
+        if (Data.n_targets == samhead->n_targets) {
+            printf("Same reference count: %i.\n",samhead->n_targets);
+            // more check ?
+        } else {
+            errx(1,"Different reference.");
+        }
     }
     return 0;
 }
