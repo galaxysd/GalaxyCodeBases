@@ -184,12 +184,11 @@ int main (int argc, char **argv) {
         if (samfp) {
             fputs("\b\b\b\b, done !\n", stderr);
             continue;
-        } else {
-            fputs("\b\b\b\b, failed !\n", stderr);
         }
+        fputs("\b\b\b\b, failed !\n", stderr);
     }
     free(arguments.args);
-    fputs("\nCount Done!\n", stderr);
+    fputs("\nReading Done!\n", stderr);
 
     FILE *fp = fopen(arguments.outfile, "w");
     fprintf(fp,"#Total_Bases\n");
