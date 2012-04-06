@@ -8,7 +8,7 @@ OBJDIR = ./objects/
 MAKEARG = $(CFLAGS) $(OPT)
 
 cobjects =
-c99objects = 
+c99objects = ./objects/chrtable.o
 mainobjects = ./objects/constator.o
 objects = $(cobjects) $(c99objects)
 exefiles = constator

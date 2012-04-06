@@ -10,6 +10,7 @@
 #include "uthash/utarray.h"
 #include "getch.h"
 #include "timer.h"
+#include "chrtable.h"
 
 //#define MAXREADLEN (8ul*1024*1024)
 //uint64_t ReadsLenArr[MAXREADLEN];
@@ -35,6 +36,8 @@ int UT_array_intsort(const void *a,const void*b) {
     int _b = *(int*)b;
     return _a - _b;
 }
+uint8_t **ChrDat;
+//struct ChrData_hash_struct *ChrData = NULL;    /* important! initialize to NULL */
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "input_files (SAM or BAM)";
@@ -70,10 +73,10 @@ parse_opt (int key, char *arg, struct argp_state *state) {
     switch (key) {
         case 'l':
             tmpArgValue = atoi(arg);
-            if (tmpArgValue>=1 && tmpArgValue <= UINT16_MAX) {
+            if (tmpArgValue>=1 && tmpArgValue < UINT16_MAX) {   // k=l+1, so not == UINT16_MAX
                arguments->overlap = tmpArgValue;
             } else {
-               errx(2,"-%c \"%s\"=%i is not a integer of [1,%u] !",key,arg,tmpArgValue,UINT16_MAX);
+               errx(2,"-%c \"%s\"=%i is not a integer of [1,%u] !",key,arg,tmpArgValue,UINT16_MAX-1);
             }
             break;
         case 'd':
@@ -175,17 +178,32 @@ int main (int argc, char **argv) {
     samfile_t *samfp;
     fputs("\nParsing SAM/BAM Files:\n", stderr);
     while ( *(++line) ) {
-        fprintf(stderr, " <%s> ...", *line);
+        fprintf(stderr, " <%s> ... ", *line);
         if (arguments.isSAM) {
             samfp = samopen(*line, "r", 0);
         } else {
             samfp = samopen(*line, "rb", 0);
         }
         if (samfp) {
-            fputs("\b\b\b\b, done !\n", stderr);
+            bam_header_t *samhead = samfp->header;
+            if ( samhead == NULL ) errx(3,"File Header Error.");
+            char **lpChrID = samhead->target_name;
+            uint32_t *lpChrLen = samhead->target_len;
+            ChrDat = malloc( samhead->n_targets * sizeof(size_t));
+            for (int32_t i=0; i < samhead->n_targets; ++i) {
+                ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
+                printf("%i %s %u\n",i,*(lpChrID+i),*(lpChrLen+i));
+            }
+            bam1_t *balignd = bam_init1();
+            while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, ChrDat);
+            bam_destroy1(balignd);
+
+            fputs("done !\n", stderr);
+            samclose(samfp);
             continue;
         }
-        fputs("\b\b\b\b, failed !\n", stderr);
+        warn("failed to open file");
+        //fputs("failed !\n", stderr);
     }
     free(arguments.args);
     fputs("\nReading Done!\n", stderr);
