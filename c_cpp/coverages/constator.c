@@ -172,15 +172,21 @@ int main (int argc, char **argv) {
 
     G_TIMER_START;
 
+    samfile_t *samfp;
     fputs("\nParsing SAM/BAM Files:\n", stderr);
     while ( *(++line) ) {
         fprintf(stderr, " <%s> ...", *line);
         if (arguments.isSAM) {
+            samfp = samopen(*line, "r", 0);
+        } else {
+            samfp = samopen(*line, "rb", 0);
         }
-        int *seqobj = NULL;
-        if (seqobj) {
-        } else continue;
-        fputs("\b\b\b\b, done !\n", stderr);
+        if (samfp) {
+            fputs("\b\b\b\b, done !\n", stderr);
+            continue;
+        } else {
+            fputs("\b\b\b\b, failed !\n", stderr);
+        }
     }
     free(arguments.args);
     fputs("\nCount Done!\n", stderr);
