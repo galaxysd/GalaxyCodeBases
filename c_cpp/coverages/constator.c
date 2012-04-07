@@ -219,7 +219,7 @@ int main (int argc, char **argv) {
 
             bam1_t *balignd = bam_init1();
             while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, &Data);
-            //bam_destroy1(balignd);    // Will "munmap_chunk(): invalid pointer" for bee/bam/Sample_LWX-D1.rmdup.bam
+            bam_destroy1(balignd);
 
             fputs("done !\n", stderr);
             samclose(samfp);
