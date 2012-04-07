@@ -18,14 +18,17 @@ all: $(objects) $(exefiles)
 constator: $(objects) $(mainobjects)
 	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o constator $(objects) ./objects/constator.o
 
-$(cobjects): $(OBJDIR)%.o: %.c 
+$(cobjects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) $(MAKEARG) -c $< -o $@
 
-$(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c
+$(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@
 
 debug: override MAKEARG := $(CFLAGS) -O -D DEBUG -g
 debug: all
+
+tmpdir:
+	-mkdir ./objects
 
 .PHONY : clean
 clean:
