@@ -81,6 +81,10 @@ int do_contig(const uint8_t mindep, const struct myData * Data, const char * con
             if (p % 50 == 0) gzprintf(fpd,"\n");
 #endif
         }
+        if (inContig) { // if reaching end
+            gzprintf(fp,"%i\t%i\n",Data->target_len[i],Data->target_len[i] - lastStart);
+            //inContig=0;
+        }
 #ifdef DEBUG
         gzprintf(fpd,"\n");
 #endif

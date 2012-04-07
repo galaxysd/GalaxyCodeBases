@@ -113,7 +113,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
             arguments->deplstStr = tmpStr;
             tmpStr += strlen(tmpStr)-1;
             *tmpStr = '\0';
-            printf("[%s] %s\n",arguments->deplstStr,arg);
+            //printf("[%s] %s\n",arguments->deplstStr,arg);
             break;
         case 'o':
             arguments->outfile = arg;
@@ -158,7 +158,8 @@ int ChrDat_init(bam_header_t *samhead) {
             Data.target_len[i] = *(lpChrLen+i);
             Data.target_name[i] = malloc(strlen(*(lpChrID+i))+1);
             strcpy(Data.target_name[i],*(lpChrID+i));
-            printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
+            //printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
+            printf("%i: %s\t%u\n",i,Data.target_name[i],Data.target_len[i]);
         }
     } else {
         if (Data.n_targets == samhead->n_targets) {
@@ -217,7 +218,7 @@ int main (int argc, char **argv) {
 
             bam1_t *balignd = bam_init1();
             while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, Data.ChrDat);
-            bam_destroy1(balignd);
+            //bam_destroy1(balignd);    // Will "munmap_chunk(): invalid pointer" for bee/bam/Sample_LWX-D1.rmdup.bam
 
             fputs("done !\n", stderr);
             samclose(samfp);
