@@ -25,7 +25,7 @@ struct myData {
     uint8_t **ChrDat;
 } Data;
 
-void do_stat(bam1_t *balignd, const uint16_t overlap, uint8_t **ChrDat);
+void do_stat(bam1_t *balignd, const uint16_t overlap, const struct myData *Data);
 
 int do_contig(const uint8_t mindep, const struct myData *, const char * const outfile);
 

@@ -24,11 +24,15 @@ $(cobjects): $(OBJDIR)%.o: %.c tmpdir
 $(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) -std=gnu99 $(MAKEARG) -c $< -o $@
 
-debug: override MAKEARG := $(CFLAGS) -O -D DEBUG -g
+debug: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
 debug: all
 
 tmpdir:
 	-mkdir ./objects
+
+test: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
+test: constator
+	valgrind --leak-check=yes ./constator t.bam
 
 .PHONY : clean
 clean:

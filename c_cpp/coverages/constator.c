@@ -154,8 +154,9 @@ int ChrDat_init(bam_header_t *samhead) {
         Data.target_name = malloc( Data.n_targets * sizeof(size_t));
         puts("\nChr NFO:");
         for (int32_t i=0; i < Data.n_targets; ++i) {
-            Data.ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
+            //Data.ChrDat[i] = malloc(*(lpChrLen+i) * sizeof(uint8_t));
             Data.target_len[i] = *(lpChrLen+i);
+            Data.ChrDat[i] = calloc(Data.target_len[i], sizeof(uint8_t));
             Data.target_name[i] = malloc(strlen(*(lpChrID+i))+1);
             strcpy(Data.target_name[i],*(lpChrID+i));
             //printf("%i: %s\t%u\n",i,*(lpChrID+i),*(lpChrLen+i));
@@ -217,7 +218,7 @@ int main (int argc, char **argv) {
             ChrDat_init(samhead);
 
             bam1_t *balignd = bam_init1();
-            while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, Data.ChrDat);
+            while (samread(samfp, balignd) >= 0) do_stat(balignd, arguments.overlap, &Data);
             //bam_destroy1(balignd);    // Will "munmap_chunk(): invalid pointer" for bee/bam/Sample_LWX-D1.rmdup.bam
 
             fputs("done !\n", stderr);

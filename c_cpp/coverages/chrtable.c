@@ -34,16 +34,16 @@ void inc_depth(int32_t left, int32_t right, uint8_t *ThisDat) {
     }
 }
 
-void do_stat(bam1_t *b, const uint16_t overlap, uint8_t **ChrDat) {
+void do_stat(bam1_t *b, const uint16_t overlap, const struct myData *Data) {
     uint16_t k = overlap + 1;
     //bam1_t *b = balignd;
     //bam1_core_t *core = &(b->core);
     if (b->core.tid < 0) return;
-    uint8_t *ThisDat = ChrDat[b->core.tid];
+    uint8_t *ThisDat = Data->ChrDat[b->core.tid];
     int32_t left = b->core.pos;
     int32_t right = bam_calend(&b->core, bam1_cigar(b));
     if (left >= right) return;
-//printf("%i %i %i\n",b->core.tid,left,right);
+if (right >= Data->target_len[b->core.tid]) printf("%i %i %i\n",b->core.tid,left,right);
     inc_depth(left, right - k+1, ThisDat);
 }
 
