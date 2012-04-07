@@ -43,7 +43,8 @@ void do_stat(bam1_t *b, const uint16_t overlap, const struct myData *Data) {
     int32_t left = b->core.pos;
     int32_t right = bam_calend(&b->core, bam1_cigar(b));
     if (left >= right) return;
-if (right >= Data->target_len[b->core.tid]) printf("%i %i %i\n",b->core.tid,left,right);
+    if (right >= Data->target_len[b->core.tid]) right = Data->target_len[b->core.tid] - 1;
+    //printf("%i %i %i\n",b->core.tid,left,right);
     inc_depth(left, right - k+1, ThisDat);
 }
 
