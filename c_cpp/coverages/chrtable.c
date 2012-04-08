@@ -17,11 +17,17 @@ void add_chr(char *id, uint32_t len) {
 }
 */
 
-char *strlinker(const char * const main, const char * const suffix) {
-    char *outstr = malloc(strlen(main)+strlen(suffix)+1);
-    strcpy(outstr,main);
-    strcat(outstr,suffix);
-    return outstr;
+char *strlinker(const char * const main, const char * const suffix, char ** outstr) {
+    char *tmp;
+    if ((tmp = realloc(*outstr, strlen(main)+strlen(suffix)+1)) == NULL) {
+        //free(*outstr);
+        fprintf(stderr, "ERROR: realloc failed\n");
+    } else {
+        *outstr = tmp;
+        strcpy(*outstr,main);
+        strcat(*outstr,suffix);
+    }
+    return *outstr;
 }
 
 void inc_depth(int32_t left, int32_t right, uint8_t *ThisDat) {
@@ -50,11 +56,14 @@ void do_stat(bam1_t *b, const uint16_t overlap, const struct myData *Data) {
 
 char tmpChr[255];
 int do_contig(const uint8_t mindep, const struct myData * Data, const char * const outfile) {
+    char *tmpoutchar = NULL;
     sprintf(tmpChr,"_%u.contig.gz",mindep);
-    gzFile *fp = gzopen(strlinker(outfile,tmpChr), "wb9");
+    gzFile *fp = gzopen(strlinker(outfile,tmpChr,&tmpoutchar), "wb9");
+    free(tmpoutchar);
 #ifdef DEBUG
     sprintf(tmpChr,"_%u.kdepth.gz",mindep);
-    gzFile *fpd = gzopen(strlinker(outfile,tmpChr), "wb9");
+    gzFile *fpd = gzopen(strlinker(outfile,tmpChr,&tmpoutchar), "wb9");
+    free(tmpoutchar);
 #endif
     gzprintf(fp,"#minDepth = %u\n",mindep);
     int_fast8_t inContig=0;

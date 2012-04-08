@@ -29,7 +29,7 @@ void do_stat(bam1_t *balignd, const uint16_t overlap, const struct myData *Data)
 
 int do_contig(const uint8_t mindep, const struct myData *, const char * const outfile);
 
-char *strlinker(const char * const main, const char * const suffix);
+char *strlinker(const char * const main, const char * const suffix, char ** outstr);
 
 
 
