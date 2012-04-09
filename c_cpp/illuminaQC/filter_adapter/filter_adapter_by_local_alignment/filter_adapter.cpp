@@ -78,7 +78,7 @@ void local_ungapped_aligning (string &seq_i, string &seq_j, int &max_score, int 
 	{	for (int j=1; j<j_size; j++)
 		{	pre_i = i - 1;
 			pre_j = j - 1;
-			int this_score = DPscore[pre_i * j_size + pre_j] + scoreMatrix[ alphabet[ seq_i[pre_i] ] ][ alphabet[ seq_j[pre_j] ] ];
+			int this_score = DPscore[pre_i * j_size + pre_j] + scoreMatrix[ alphabet[ (unsigned char)seq_i[pre_i] ] ][ alphabet[ (unsigned char)seq_j[pre_j] ] ];
 			if (this_score < 0)
 			{	this_score = 0;
 			}

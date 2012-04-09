@@ -9,7 +9,7 @@ exefiles = filter_adapter
 
 all: $(exefiles)
 
-filter_adapter:
+filter_adapter: filter_adapter.cpp
 	$(CXX) $(CFLAGS) $(OPT) $(LDFLAGS) -o filter_adapter filter_adapter.cpp gzstream.cpp
 
 debug: override MAKEARG := $(CFLAGS) -O -D DEBUG -g
