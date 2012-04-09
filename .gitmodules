@@ -4,3 +4,6 @@
 [submodule "c_cpp/pspp"]
 	path = c_cpp/pspp
 	url = http://git.savannah.gnu.org/r/pspp.git
+[submodule "released/pIRS"]
+	path = released/pIRS
+	url = https://code.google.com/p/pirs/
