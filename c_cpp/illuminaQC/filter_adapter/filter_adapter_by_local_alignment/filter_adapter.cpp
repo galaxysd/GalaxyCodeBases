@@ -15,30 +15,30 @@
 
 using namespace std;
 
-string adapter_type = "gDNA-3"; // default adapter type 
+string adapter_type = "gDNA-3"; // default adapter type
 string adpt_3end="AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG";//pDNA-3+ for read_1
 string adpt_5end="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";//pDNA-5- for read_2
 int Given_read_length = 100;
-int Adapter_align_cutoff = 50;  //minimum alignment score 
+int Adapter_align_cutoff = 50;  //minimum alignment score
 int Stat_only_mode = 0;
 int Is_trimming = 0;
 int Min_read_len = 50;
 int *DPscore;
 
-char alphabet[128] =
+unsigned char alphabet[128] =
 {
  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
- 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4, 
+ 4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 0, 4, 1, 4, 4, 4, 2, 4, 4, 4, 4, 4, 4, 4, 4,
  4, 4, 4, 4, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
 };
 
 //用2-bit表示一个base：A(0), C(1), G(2), T(3), N(4)
-int scoreMatrix[5][5] = 
+int scoreMatrix[5][5] =
 {	{5, -10, -10, -10, -10},
 	{-10, 5, -10, -10, -10},
 	{-10, -10, 5, -10, -10},
@@ -47,7 +47,7 @@ int scoreMatrix[5][5] =
 }; //matrix for DNA alignment with 95% identity
 
 
-void usage() 
+void usage()
 {	cout << "filter_adapter <reads_x.fq>  <reads_x.fq.clean>  <result_stat_file>" << endl;
 	cout << "   -a <str>    set adaper type gDNA-3 or gDNA-5, default=" << adapter_type << endl;
 	cout << "   -r <int>    set the sequencing read length, default=" << Given_read_length << endl;
@@ -62,15 +62,15 @@ void usage()
 
 //外部调用函数
 void local_ungapped_aligning (string &seq_i, string &seq_j, int &max_score, int &align_i_start, int &align_j_start, int &align_i_end, int &align_j_end)
-{	
+{
 //	if (!seq_i.size())
 //	{	return;
 //	}
-	
+
 	int i_size = seq_i.size() + 1;
 	int j_size = seq_j.size() + 1;
 	max_score = 0;
-	
+
 	//i: y-axis; j: x-axis;
 	int pre_i;
 	int pre_j;
@@ -90,7 +90,7 @@ void local_ungapped_aligning (string &seq_i, string &seq_j, int &max_score, int 
 			}
 		}
 	}
-	
+
 	//trace back by looping instead of recursion
 	if (max_score >= Adapter_align_cutoff)
 	{
@@ -98,7 +98,7 @@ void local_ungapped_aligning (string &seq_i, string &seq_j, int &max_score, int 
 		int pos_j = align_j_end;
 		int score = max_score;
 		while (score > 0)
-		{	
+		{
 			//align_i.push_back( seq_i[pos_i - 1] );
 			//align_j.push_back( seq_j[pos_j - 1] );
 			pos_i --;
@@ -116,7 +116,7 @@ void local_ungapped_aligning (string &seq_i, string &seq_j, int &max_score, int 
 
 
 int main(int argc, char *argv[])
-{	
+{
 	//get options from command line
 	int c;
 	while((c=getopt(argc, argv, "a:r:c:m:t:s:h")) !=-1) {
@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
 		}
 	}
 	if (argc < 4) usage();
-	
+
 	string in_reads1_file = argv[optind++]; //optind, argv[optind++]顺序指向非option的参数
 	string out_reads1_file = argv[optind++];
 	string out_stat_file = argv[optind++];
-	
+
 	string adapter;
 	if (adapter_type == "gDNA-3")
 	{	adapter = adpt_3end;
@@ -146,11 +146,11 @@ int main(int argc, char *argv[])
 
 	clock_t time_start, time_end;
 	time_start = clock();
-	
+
 	time_end = clock();
 	cerr << "\nProgram starting\n";
 	cerr << "Run time: " << double(time_end - time_start) / CLOCKS_PER_SEC << endl;
-	
+
 	//assign initial values for adapter alignment
 	int adapter_size = adapter.size();
 	int array_size = (Given_read_length + 1) * (adapter_size + 1);
@@ -158,17 +158,17 @@ int main(int argc, char *argv[])
 	//construct DP matrix
 	DPscore[0] = 0; //stands for score
 	for (int j=1; j<=adapter_size; j++)
-	{	DPscore[j] = 0;  
+	{	DPscore[j] = 0;
 	}
-	
+
 	for (int i=1; i<=Given_read_length; i++)
 	{	DPscore[i * (adapter_size+1)] = 0;
 	}
-	
+
 	igzstream infile1 (in_reads1_file.c_str());
 	ogzstream cleanfile1 (out_reads1_file.c_str());
 	ofstream statfile (out_stat_file.c_str());
-	
+
 	uint64_t total_raw_reads = 0;
 	uint64_t total_raw_bases = 0;
 	uint64_t total_clean_reads = 0;
@@ -184,15 +184,15 @@ int main(int argc, char *argv[])
 			getline(infile1,seq1,'\n');
 			getline(infile1,qid1,'\n');
 			getline(infile1,q1,'\n');
-			
+
 			total_raw_reads += 1;
 			total_raw_bases += seq1.size();
 
 			int align_score1, seq1_start, seq1_end, adapter_start, adapter_end;
 			local_ungapped_aligning (seq1, adapter, align_score1, seq1_start, adapter_start, seq1_end, adapter_end);
-			
+
 			if (align_score1 >= Adapter_align_cutoff)
-			{	
+			{
 				int insert1_size = seq1_start - adapter_start;
 				if ( insert1_size < 0) { insert1_size = 0; }
 				AdptInsert[insert1_size] ++;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	delete []DPscore;
-	
+
 	//output the statistic result
 	statfile << "#total_raw_reads:   " << total_raw_reads << endl;
 	statfile << "#total_raw_bases:   " << total_raw_bases << endl;
