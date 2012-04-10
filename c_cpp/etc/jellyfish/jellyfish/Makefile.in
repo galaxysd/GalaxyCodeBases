@@ -37,37 +37,15 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = jellyfish$(EXEEXT)
-check_PROGRAMS = generate_sequence$(EXEEXT)
+check_PROGRAMS = generate_sequence$(EXEEXT) \
+	test_double_fifo_input$(EXEEXT) test_read_parser$(EXEEXT)
 subdir = jellyfish
 DIST_COMMON = $(library_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
-	$(top_srcdir)/m4/alloca.m4 $(top_srcdir)/m4/argp.m4 \
-	$(top_srcdir)/m4/asm-underscore.m4 $(top_srcdir)/m4/dirname.m4 \
-	$(top_srcdir)/m4/dos.m4 $(top_srcdir)/m4/double-slash-root.m4 \
-	$(top_srcdir)/m4/errno_h.m4 $(top_srcdir)/m4/extensions.m4 \
-	$(top_srcdir)/m4/float_h.m4 $(top_srcdir)/m4/getopt.m4 \
-	$(top_srcdir)/m4/gnulib-common.m4 \
-	$(top_srcdir)/m4/gnulib-comp.m4 \
-	$(top_srcdir)/m4/include_next.m4 $(top_srcdir)/m4/intmax_t.m4 \
-	$(top_srcdir)/m4/inttypes_h.m4 $(top_srcdir)/m4/longlong.m4 \
-	$(top_srcdir)/m4/malloc.m4 $(top_srcdir)/m4/memchr.m4 \
-	$(top_srcdir)/m4/mempcpy.m4 $(top_srcdir)/m4/mmap-anon.m4 \
-	$(top_srcdir)/m4/multiarch.m4 $(top_srcdir)/m4/onceonly.m4 \
-	$(top_srcdir)/m4/printf.m4 $(top_srcdir)/m4/rawmemchr.m4 \
-	$(top_srcdir)/m4/size_max.m4 $(top_srcdir)/m4/sleep.m4 \
-	$(top_srcdir)/m4/stdbool.m4 $(top_srcdir)/m4/stddef_h.m4 \
-	$(top_srcdir)/m4/stdint.m4 $(top_srcdir)/m4/stdint_h.m4 \
-	$(top_srcdir)/m4/stdio_h.m4 $(top_srcdir)/m4/stdlib_h.m4 \
-	$(top_srcdir)/m4/strcase.m4 $(top_srcdir)/m4/strchrnul.m4 \
-	$(top_srcdir)/m4/strerror.m4 $(top_srcdir)/m4/string_h.m4 \
-	$(top_srcdir)/m4/strings_h.m4 $(top_srcdir)/m4/strndup.m4 \
-	$(top_srcdir)/m4/strnlen.m4 $(top_srcdir)/m4/sysexits.m4 \
-	$(top_srcdir)/m4/unistd_h.m4 $(top_srcdir)/m4/vasnprintf.m4 \
-	$(top_srcdir)/m4/vsnprintf.m4 $(top_srcdir)/m4/warn-on-use.m4 \
-	$(top_srcdir)/m4/wchar_h.m4 $(top_srcdir)/m4/wchar_t.m4 \
-	$(top_srcdir)/m4/wint_t.m4 $(top_srcdir)/m4/xsize.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -101,13 +79,17 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libjellyfish_la_LIBADD =
 am_libjellyfish_la_OBJECTS = libjellyfish_la-square_binary_matrix.lo \
-	libjellyfish_la-fasta_parser.lo libjellyfish_la-err.lo \
-	libjellyfish_la-misc.lo libjellyfish_la-storage.lo \
-	libjellyfish_la-thread_exec.lo libjellyfish_la-time.lo \
-	libjellyfish_la-file_parser.lo \
-	libjellyfish_la-fastq_seq_qual_parser.lo \
-	libjellyfish_la-fastq_sequence_parser.lo \
-	libjellyfish_la-fastq_read_parser.lo libjellyfish_la-half.lo
+	libjellyfish_la-err.lo libjellyfish_la-misc.lo \
+	libjellyfish_la-storage.lo libjellyfish_la-thread_exec.lo \
+	libjellyfish_la-time.lo libjellyfish_la-file_parser.lo \
+	libjellyfish_la-read_parser.lo libjellyfish_la-parse_read.lo \
+	libjellyfish_la-half.lo libjellyfish_la-mapped_file.lo \
+	libjellyfish_la-parse_dna.lo libjellyfish_la-parse_quake.lo \
+	libjellyfish_la-parse_qual_dna.lo \
+	libjellyfish_la-sequence_parser.lo \
+	libjellyfish_la-seq_qual_parser.lo \
+	libjellyfish_la-backtrace.lo libjellyfish_la-floats.lo \
+	libjellyfish_la-dbg.lo libjellyfish_la-allocators_mmap.lo
 libjellyfish_la_OBJECTS = $(am_libjellyfish_la_OBJECTS)
 libjellyfish_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -115,7 +97,8 @@ libjellyfish_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 PROGRAMS = $(bin_PROGRAMS)
 am_generate_sequence_OBJECTS = generate_sequence.$(OBJEXT) \
 	generate_sequence_cmdline.$(OBJEXT) misc.$(OBJEXT) \
-	mersenne.$(OBJEXT) square_binary_matrix.$(OBJEXT)
+	mersenne.$(OBJEXT) square_binary_matrix.$(OBJEXT) \
+	backtrace.$(OBJEXT) dbg.$(OBJEXT) time.$(OBJEXT)
 generate_sequence_OBJECTS = $(am_generate_sequence_OBJECTS)
 generate_sequence_LDADD = $(LDADD)
 am_jellyfish_OBJECTS = jellyfish.$(OBJEXT) stats_main.$(OBJEXT) \
@@ -123,20 +106,34 @@ am_jellyfish_OBJECTS = jellyfish.$(OBJEXT) stats_main.$(OBJEXT) \
 	err.$(OBJEXT) mer_counter.$(OBJEXT) histo_main.$(OBJEXT) \
 	dump_main.$(OBJEXT) time.$(OBJEXT) thread_exec.$(OBJEXT) \
 	query_main.$(OBJEXT) square_binary_matrix.$(OBJEXT) \
-	fasta_parser.$(OBJEXT) dump_fastq_main.$(OBJEXT) \
-	histo_fastq_main.$(OBJEXT) cite.$(OBJEXT) parse_dna.$(OBJEXT) \
-	file_parser.$(OBJEXT) fastq_sequence_parser.$(OBJEXT) \
+	dump_fastq_main.$(OBJEXT) histo_fastq_main.$(OBJEXT) \
+	cite.$(OBJEXT) parse_dna.$(OBJEXT) file_parser.$(OBJEXT) \
 	parse_quake.$(OBJEXT) parse_qual_dna.$(OBJEXT) \
-	fastq_seq_qual_parser.$(OBJEXT) half.$(OBJEXT) \
-	hash_fastq_merge.$(OBJEXT) cite_cmdline.$(OBJEXT) \
-	query_cmdline.$(OBJEXT) hash_merge_cmdline.$(OBJEXT) \
-	histo_cmdline.$(OBJEXT) stats_cmdline.$(OBJEXT) \
-	histo_fastq_main_cmdline.$(OBJEXT) \
-	dump_fastq_main_cmdline.$(OBJEXT) \
+	sequence_parser.$(OBJEXT) seq_qual_parser.$(OBJEXT) \
+	half.$(OBJEXT) hash_fastq_merge.$(OBJEXT) \
+	cite_cmdline.$(OBJEXT) query_cmdline.$(OBJEXT) \
+	hash_merge_cmdline.$(OBJEXT) histo_cmdline.$(OBJEXT) \
+	stats_cmdline.$(OBJEXT) histo_fastq_main_cmdline.$(OBJEXT) \
 	mer_counter_cmdline.$(OBJEXT) \
-	hash_fastq_merge_cmdline.$(OBJEXT) dump_cmdline.$(OBJEXT)
+	dump_fastq_main_cmdline.$(OBJEXT) \
+	hash_fastq_merge_cmdline.$(OBJEXT) dump_cmdline.$(OBJEXT) \
+	dbg.$(OBJEXT) mapped_file.$(OBJEXT) backtrace.$(OBJEXT) \
+	floats.$(OBJEXT) allocators_mmap.$(OBJEXT)
 jellyfish_OBJECTS = $(am_jellyfish_OBJECTS)
 jellyfish_LDADD = $(LDADD)
+am_test_double_fifo_input_OBJECTS = test_double_fifo_input.$(OBJEXT) \
+	parse_dna.$(OBJEXT) file_parser.$(OBJEXT) \
+	sequence_parser.$(OBJEXT) backtrace.$(OBJEXT) \
+	thread_exec.$(OBJEXT) dbg.$(OBJEXT) time.$(OBJEXT) \
+	allocators_mmap.$(OBJEXT)
+test_double_fifo_input_OBJECTS = $(am_test_double_fifo_input_OBJECTS)
+test_double_fifo_input_LDADD = $(LDADD)
+am_test_read_parser_OBJECTS = test_read_parser.$(OBJEXT) \
+	file_parser.$(OBJEXT) read_parser.$(OBJEXT) \
+	parse_read.$(OBJEXT) dbg.$(OBJEXT) backtrace.$(OBJEXT) \
+	time.$(OBJEXT)
+test_read_parser_OBJECTS = $(am_test_read_parser_OBJECTS)
+test_read_parser_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -150,30 +147,32 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 SOURCES = $(libjellyfish_la_SOURCES) $(generate_sequence_SOURCES) \
-	$(jellyfish_SOURCES)
+	$(jellyfish_SOURCES) $(test_double_fifo_input_SOURCES) \
+	$(test_read_parser_SOURCES)
 DIST_SOURCES = $(libjellyfish_la_SOURCES) $(generate_sequence_SOURCES) \
-	$(jellyfish_SOURCES)
+	$(jellyfish_SOURCES) $(test_double_fifo_input_SOURCES) \
+	$(test_read_parser_SOURCES)
 HEADERS = $(library_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
-ALLOCA = @ALLOCA@
-ALLOCA_H = @ALLOCA_H@
 AMTAR = @AMTAR@
-APPLE_UNIVERSAL_BUILD = @APPLE_UNIVERSAL_BUILD@
 AR = @AR@
-ASM_SYMBOL_PREFIX = @ASM_SYMBOL_PREFIX@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BITSIZEOF_PTRDIFF_T = @BITSIZEOF_PTRDIFF_T@
-BITSIZEOF_SIG_ATOMIC_T = @BITSIZEOF_SIG_ATOMIC_T@
-BITSIZEOF_SIZE_T = @BITSIZEOF_SIZE_T@
-BITSIZEOF_WCHAR_T = @BITSIZEOF_WCHAR_T@
-BITSIZEOF_WINT_T = @BITSIZEOF_WINT_T@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -192,290 +191,9 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
-EMULTIHOP_HIDDEN = @EMULTIHOP_HIDDEN@
-EMULTIHOP_VALUE = @EMULTIHOP_VALUE@
-ENOLINK_HIDDEN = @ENOLINK_HIDDEN@
-ENOLINK_VALUE = @ENOLINK_VALUE@
-EOVERFLOW_HIDDEN = @EOVERFLOW_HIDDEN@
-EOVERFLOW_VALUE = @EOVERFLOW_VALUE@
-ERRNO_H = @ERRNO_H@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
-FLOAT_H = @FLOAT_H@
-GETOPT_H = @GETOPT_H@
-GNULIB_ATOLL = @GNULIB_ATOLL@
-GNULIB_BTOWC = @GNULIB_BTOWC@
-GNULIB_CALLOC_POSIX = @GNULIB_CALLOC_POSIX@
-GNULIB_CANONICALIZE_FILE_NAME = @GNULIB_CANONICALIZE_FILE_NAME@
-GNULIB_CHOWN = @GNULIB_CHOWN@
-GNULIB_CLOSE = @GNULIB_CLOSE@
-GNULIB_DPRINTF = @GNULIB_DPRINTF@
-GNULIB_DUP2 = @GNULIB_DUP2@
-GNULIB_DUP3 = @GNULIB_DUP3@
-GNULIB_ENVIRON = @GNULIB_ENVIRON@
-GNULIB_EUIDACCESS = @GNULIB_EUIDACCESS@
-GNULIB_FACCESSAT = @GNULIB_FACCESSAT@
-GNULIB_FCHDIR = @GNULIB_FCHDIR@
-GNULIB_FCHOWNAT = @GNULIB_FCHOWNAT@
-GNULIB_FCLOSE = @GNULIB_FCLOSE@
-GNULIB_FFLUSH = @GNULIB_FFLUSH@
-GNULIB_FOPEN = @GNULIB_FOPEN@
-GNULIB_FPRINTF = @GNULIB_FPRINTF@
-GNULIB_FPRINTF_POSIX = @GNULIB_FPRINTF_POSIX@
-GNULIB_FPURGE = @GNULIB_FPURGE@
-GNULIB_FPUTC = @GNULIB_FPUTC@
-GNULIB_FPUTS = @GNULIB_FPUTS@
-GNULIB_FREOPEN = @GNULIB_FREOPEN@
-GNULIB_FSEEK = @GNULIB_FSEEK@
-GNULIB_FSEEKO = @GNULIB_FSEEKO@
-GNULIB_FSYNC = @GNULIB_FSYNC@
-GNULIB_FTELL = @GNULIB_FTELL@
-GNULIB_FTELLO = @GNULIB_FTELLO@
-GNULIB_FTRUNCATE = @GNULIB_FTRUNCATE@
-GNULIB_FWRITE = @GNULIB_FWRITE@
-GNULIB_GETCWD = @GNULIB_GETCWD@
-GNULIB_GETDELIM = @GNULIB_GETDELIM@
-GNULIB_GETDOMAINNAME = @GNULIB_GETDOMAINNAME@
-GNULIB_GETDTABLESIZE = @GNULIB_GETDTABLESIZE@
-GNULIB_GETGROUPS = @GNULIB_GETGROUPS@
-GNULIB_GETHOSTNAME = @GNULIB_GETHOSTNAME@
-GNULIB_GETLINE = @GNULIB_GETLINE@
-GNULIB_GETLOADAVG = @GNULIB_GETLOADAVG@
-GNULIB_GETLOGIN = @GNULIB_GETLOGIN@
-GNULIB_GETLOGIN_R = @GNULIB_GETLOGIN_R@
-GNULIB_GETPAGESIZE = @GNULIB_GETPAGESIZE@
-GNULIB_GETSUBOPT = @GNULIB_GETSUBOPT@
-GNULIB_GETUSERSHELL = @GNULIB_GETUSERSHELL@
-GNULIB_GRANTPT = @GNULIB_GRANTPT@
-GNULIB_LCHOWN = @GNULIB_LCHOWN@
-GNULIB_LINK = @GNULIB_LINK@
-GNULIB_LINKAT = @GNULIB_LINKAT@
-GNULIB_LSEEK = @GNULIB_LSEEK@
-GNULIB_MALLOC_POSIX = @GNULIB_MALLOC_POSIX@
-GNULIB_MBRLEN = @GNULIB_MBRLEN@
-GNULIB_MBRTOWC = @GNULIB_MBRTOWC@
-GNULIB_MBSCASECMP = @GNULIB_MBSCASECMP@
-GNULIB_MBSCASESTR = @GNULIB_MBSCASESTR@
-GNULIB_MBSCHR = @GNULIB_MBSCHR@
-GNULIB_MBSCSPN = @GNULIB_MBSCSPN@
-GNULIB_MBSINIT = @GNULIB_MBSINIT@
-GNULIB_MBSLEN = @GNULIB_MBSLEN@
-GNULIB_MBSNCASECMP = @GNULIB_MBSNCASECMP@
-GNULIB_MBSNLEN = @GNULIB_MBSNLEN@
-GNULIB_MBSNRTOWCS = @GNULIB_MBSNRTOWCS@
-GNULIB_MBSPBRK = @GNULIB_MBSPBRK@
-GNULIB_MBSPCASECMP = @GNULIB_MBSPCASECMP@
-GNULIB_MBSRCHR = @GNULIB_MBSRCHR@
-GNULIB_MBSRTOWCS = @GNULIB_MBSRTOWCS@
-GNULIB_MBSSEP = @GNULIB_MBSSEP@
-GNULIB_MBSSPN = @GNULIB_MBSSPN@
-GNULIB_MBSSTR = @GNULIB_MBSSTR@
-GNULIB_MBSTOK_R = @GNULIB_MBSTOK_R@
-GNULIB_MEMCHR = @GNULIB_MEMCHR@
-GNULIB_MEMMEM = @GNULIB_MEMMEM@
-GNULIB_MEMPCPY = @GNULIB_MEMPCPY@
-GNULIB_MEMRCHR = @GNULIB_MEMRCHR@
-GNULIB_MKDTEMP = @GNULIB_MKDTEMP@
-GNULIB_MKOSTEMP = @GNULIB_MKOSTEMP@
-GNULIB_MKOSTEMPS = @GNULIB_MKOSTEMPS@
-GNULIB_MKSTEMP = @GNULIB_MKSTEMP@
-GNULIB_MKSTEMPS = @GNULIB_MKSTEMPS@
-GNULIB_OBSTACK_PRINTF = @GNULIB_OBSTACK_PRINTF@
-GNULIB_OBSTACK_PRINTF_POSIX = @GNULIB_OBSTACK_PRINTF_POSIX@
-GNULIB_PERROR = @GNULIB_PERROR@
-GNULIB_PIPE2 = @GNULIB_PIPE2@
-GNULIB_POPEN = @GNULIB_POPEN@
-GNULIB_PREAD = @GNULIB_PREAD@
-GNULIB_PRINTF = @GNULIB_PRINTF@
-GNULIB_PRINTF_POSIX = @GNULIB_PRINTF_POSIX@
-GNULIB_PTSNAME = @GNULIB_PTSNAME@
-GNULIB_PUTC = @GNULIB_PUTC@
-GNULIB_PUTCHAR = @GNULIB_PUTCHAR@
-GNULIB_PUTENV = @GNULIB_PUTENV@
-GNULIB_PUTS = @GNULIB_PUTS@
-GNULIB_PWRITE = @GNULIB_PWRITE@
-GNULIB_RANDOM_R = @GNULIB_RANDOM_R@
-GNULIB_RAWMEMCHR = @GNULIB_RAWMEMCHR@
-GNULIB_READLINK = @GNULIB_READLINK@
-GNULIB_READLINKAT = @GNULIB_READLINKAT@
-GNULIB_REALLOC_POSIX = @GNULIB_REALLOC_POSIX@
-GNULIB_REALPATH = @GNULIB_REALPATH@
-GNULIB_REMOVE = @GNULIB_REMOVE@
-GNULIB_RENAME = @GNULIB_RENAME@
-GNULIB_RENAMEAT = @GNULIB_RENAMEAT@
-GNULIB_RMDIR = @GNULIB_RMDIR@
-GNULIB_RPMATCH = @GNULIB_RPMATCH@
-GNULIB_SETENV = @GNULIB_SETENV@
-GNULIB_SLEEP = @GNULIB_SLEEP@
-GNULIB_SNPRINTF = @GNULIB_SNPRINTF@
-GNULIB_SPRINTF_POSIX = @GNULIB_SPRINTF_POSIX@
-GNULIB_STDIO_H_SIGPIPE = @GNULIB_STDIO_H_SIGPIPE@
-GNULIB_STPCPY = @GNULIB_STPCPY@
-GNULIB_STPNCPY = @GNULIB_STPNCPY@
-GNULIB_STRCASESTR = @GNULIB_STRCASESTR@
-GNULIB_STRCHRNUL = @GNULIB_STRCHRNUL@
-GNULIB_STRDUP = @GNULIB_STRDUP@
-GNULIB_STRERROR = @GNULIB_STRERROR@
-GNULIB_STRNCAT = @GNULIB_STRNCAT@
-GNULIB_STRNDUP = @GNULIB_STRNDUP@
-GNULIB_STRNLEN = @GNULIB_STRNLEN@
-GNULIB_STRPBRK = @GNULIB_STRPBRK@
-GNULIB_STRSEP = @GNULIB_STRSEP@
-GNULIB_STRSIGNAL = @GNULIB_STRSIGNAL@
-GNULIB_STRSTR = @GNULIB_STRSTR@
-GNULIB_STRTOD = @GNULIB_STRTOD@
-GNULIB_STRTOK_R = @GNULIB_STRTOK_R@
-GNULIB_STRTOLL = @GNULIB_STRTOLL@
-GNULIB_STRTOULL = @GNULIB_STRTOULL@
-GNULIB_STRVERSCMP = @GNULIB_STRVERSCMP@
-GNULIB_SYMLINK = @GNULIB_SYMLINK@
-GNULIB_SYMLINKAT = @GNULIB_SYMLINKAT@
-GNULIB_TMPFILE = @GNULIB_TMPFILE@
-GNULIB_TTYNAME_R = @GNULIB_TTYNAME_R@
-GNULIB_UNISTD_H_GETOPT = @GNULIB_UNISTD_H_GETOPT@
-GNULIB_UNISTD_H_SIGPIPE = @GNULIB_UNISTD_H_SIGPIPE@
-GNULIB_UNLINK = @GNULIB_UNLINK@
-GNULIB_UNLINKAT = @GNULIB_UNLINKAT@
-GNULIB_UNLOCKPT = @GNULIB_UNLOCKPT@
-GNULIB_UNSETENV = @GNULIB_UNSETENV@
-GNULIB_USLEEP = @GNULIB_USLEEP@
-GNULIB_VASPRINTF = @GNULIB_VASPRINTF@
-GNULIB_VDPRINTF = @GNULIB_VDPRINTF@
-GNULIB_VFPRINTF = @GNULIB_VFPRINTF@
-GNULIB_VFPRINTF_POSIX = @GNULIB_VFPRINTF_POSIX@
-GNULIB_VPRINTF = @GNULIB_VPRINTF@
-GNULIB_VPRINTF_POSIX = @GNULIB_VPRINTF_POSIX@
-GNULIB_VSNPRINTF = @GNULIB_VSNPRINTF@
-GNULIB_VSPRINTF_POSIX = @GNULIB_VSPRINTF_POSIX@
-GNULIB_WCRTOMB = @GNULIB_WCRTOMB@
-GNULIB_WCSNRTOMBS = @GNULIB_WCSNRTOMBS@
-GNULIB_WCSRTOMBS = @GNULIB_WCSRTOMBS@
-GNULIB_WCTOB = @GNULIB_WCTOB@
-GNULIB_WCWIDTH = @GNULIB_WCWIDTH@
-GNULIB_WRITE = @GNULIB_WRITE@
-GNULIB__EXIT = @GNULIB__EXIT@
 GREP = @GREP@
-HAVE_ATOLL = @HAVE_ATOLL@
-HAVE_BTOWC = @HAVE_BTOWC@
-HAVE_CANONICALIZE_FILE_NAME = @HAVE_CANONICALIZE_FILE_NAME@
-HAVE_CHOWN = @HAVE_CHOWN@
-HAVE_DECL_ENVIRON = @HAVE_DECL_ENVIRON@
-HAVE_DECL_FPURGE = @HAVE_DECL_FPURGE@
-HAVE_DECL_GETDELIM = @HAVE_DECL_GETDELIM@
-HAVE_DECL_GETLINE = @HAVE_DECL_GETLINE@
-HAVE_DECL_GETLOADAVG = @HAVE_DECL_GETLOADAVG@
-HAVE_DECL_GETLOGIN_R = @HAVE_DECL_GETLOGIN_R@
-HAVE_DECL_GETPAGESIZE = @HAVE_DECL_GETPAGESIZE@
-HAVE_DECL_GETUSERSHELL = @HAVE_DECL_GETUSERSHELL@
-HAVE_DECL_MEMMEM = @HAVE_DECL_MEMMEM@
-HAVE_DECL_MEMRCHR = @HAVE_DECL_MEMRCHR@
-HAVE_DECL_OBSTACK_PRINTF = @HAVE_DECL_OBSTACK_PRINTF@
-HAVE_DECL_SNPRINTF = @HAVE_DECL_SNPRINTF@
-HAVE_DECL_STRDUP = @HAVE_DECL_STRDUP@
-HAVE_DECL_STRNCASECMP = @HAVE_DECL_STRNCASECMP@
-HAVE_DECL_STRNDUP = @HAVE_DECL_STRNDUP@
-HAVE_DECL_STRNLEN = @HAVE_DECL_STRNLEN@
-HAVE_DECL_STRSIGNAL = @HAVE_DECL_STRSIGNAL@
-HAVE_DECL_STRTOK_R = @HAVE_DECL_STRTOK_R@
-HAVE_DECL_VSNPRINTF = @HAVE_DECL_VSNPRINTF@
-HAVE_DECL_WCTOB = @HAVE_DECL_WCTOB@
-HAVE_DECL_WCWIDTH = @HAVE_DECL_WCWIDTH@
-HAVE_DPRINTF = @HAVE_DPRINTF@
-HAVE_DUP2 = @HAVE_DUP2@
-HAVE_DUP3 = @HAVE_DUP3@
-HAVE_EUIDACCESS = @HAVE_EUIDACCESS@
-HAVE_FACCESSAT = @HAVE_FACCESSAT@
-HAVE_FCHDIR = @HAVE_FCHDIR@
-HAVE_FCHOWNAT = @HAVE_FCHOWNAT@
-HAVE_FSEEKO = @HAVE_FSEEKO@
-HAVE_FSYNC = @HAVE_FSYNC@
-HAVE_FTELLO = @HAVE_FTELLO@
-HAVE_FTRUNCATE = @HAVE_FTRUNCATE@
-HAVE_GETDOMAINNAME = @HAVE_GETDOMAINNAME@
-HAVE_GETDTABLESIZE = @HAVE_GETDTABLESIZE@
-HAVE_GETGROUPS = @HAVE_GETGROUPS@
-HAVE_GETHOSTNAME = @HAVE_GETHOSTNAME@
-HAVE_GETLOGIN = @HAVE_GETLOGIN@
-HAVE_GETOPT_H = @HAVE_GETOPT_H@
-HAVE_GETPAGESIZE = @HAVE_GETPAGESIZE@
-HAVE_GETSUBOPT = @HAVE_GETSUBOPT@
-HAVE_GRANTPT = @HAVE_GRANTPT@
-HAVE_INTTYPES_H = @HAVE_INTTYPES_H@
-HAVE_LCHOWN = @HAVE_LCHOWN@
-HAVE_LINK = @HAVE_LINK@
-HAVE_LINKAT = @HAVE_LINKAT@
-HAVE_LONG_LONG_INT = @HAVE_LONG_LONG_INT@
-HAVE_MBRLEN = @HAVE_MBRLEN@
-HAVE_MBRTOWC = @HAVE_MBRTOWC@
-HAVE_MBSINIT = @HAVE_MBSINIT@
-HAVE_MBSLEN = @HAVE_MBSLEN@
-HAVE_MBSNRTOWCS = @HAVE_MBSNRTOWCS@
-HAVE_MBSRTOWCS = @HAVE_MBSRTOWCS@
-HAVE_MEMCHR = @HAVE_MEMCHR@
-HAVE_MEMPCPY = @HAVE_MEMPCPY@
-HAVE_MKDTEMP = @HAVE_MKDTEMP@
-HAVE_MKOSTEMP = @HAVE_MKOSTEMP@
-HAVE_MKOSTEMPS = @HAVE_MKOSTEMPS@
-HAVE_MKSTEMP = @HAVE_MKSTEMP@
-HAVE_MKSTEMPS = @HAVE_MKSTEMPS@
-HAVE_OS_H = @HAVE_OS_H@
-HAVE_PIPE2 = @HAVE_PIPE2@
-HAVE_PREAD = @HAVE_PREAD@
-HAVE_PTSNAME = @HAVE_PTSNAME@
-HAVE_PWRITE = @HAVE_PWRITE@
-HAVE_RANDOM_H = @HAVE_RANDOM_H@
-HAVE_RANDOM_R = @HAVE_RANDOM_R@
-HAVE_RAWMEMCHR = @HAVE_RAWMEMCHR@
-HAVE_READLINK = @HAVE_READLINK@
-HAVE_READLINKAT = @HAVE_READLINKAT@
-HAVE_REALPATH = @HAVE_REALPATH@
-HAVE_RENAMEAT = @HAVE_RENAMEAT@
-HAVE_RPMATCH = @HAVE_RPMATCH@
-HAVE_SETENV = @HAVE_SETENV@
-HAVE_SIGNED_SIG_ATOMIC_T = @HAVE_SIGNED_SIG_ATOMIC_T@
-HAVE_SIGNED_WCHAR_T = @HAVE_SIGNED_WCHAR_T@
-HAVE_SIGNED_WINT_T = @HAVE_SIGNED_WINT_T@
-HAVE_SLEEP = @HAVE_SLEEP@
-HAVE_STDINT_H = @HAVE_STDINT_H@
-HAVE_STPCPY = @HAVE_STPCPY@
-HAVE_STPNCPY = @HAVE_STPNCPY@
-HAVE_STRCASECMP = @HAVE_STRCASECMP@
-HAVE_STRCASESTR = @HAVE_STRCASESTR@
-HAVE_STRCHRNUL = @HAVE_STRCHRNUL@
-HAVE_STRPBRK = @HAVE_STRPBRK@
-HAVE_STRSEP = @HAVE_STRSEP@
-HAVE_STRTOD = @HAVE_STRTOD@
-HAVE_STRTOLL = @HAVE_STRTOLL@
-HAVE_STRTOULL = @HAVE_STRTOULL@
-HAVE_STRUCT_RANDOM_DATA = @HAVE_STRUCT_RANDOM_DATA@
-HAVE_STRVERSCMP = @HAVE_STRVERSCMP@
-HAVE_SYMLINK = @HAVE_SYMLINK@
-HAVE_SYMLINKAT = @HAVE_SYMLINKAT@
-HAVE_SYSEXITS_H = @HAVE_SYSEXITS_H@
-HAVE_SYS_BITYPES_H = @HAVE_SYS_BITYPES_H@
-HAVE_SYS_INTTYPES_H = @HAVE_SYS_INTTYPES_H@
-HAVE_SYS_LOADAVG_H = @HAVE_SYS_LOADAVG_H@
-HAVE_SYS_PARAM_H = @HAVE_SYS_PARAM_H@
-HAVE_SYS_TYPES_H = @HAVE_SYS_TYPES_H@
-HAVE_TTYNAME_R = @HAVE_TTYNAME_R@
-HAVE_UNISTD_H = @HAVE_UNISTD_H@
-HAVE_UNLINKAT = @HAVE_UNLINKAT@
-HAVE_UNLOCKPT = @HAVE_UNLOCKPT@
-HAVE_UNSETENV = @HAVE_UNSETENV@
-HAVE_UNSIGNED_LONG_LONG_INT = @HAVE_UNSIGNED_LONG_LONG_INT@
-HAVE_USLEEP = @HAVE_USLEEP@
-HAVE_VASPRINTF = @HAVE_VASPRINTF@
-HAVE_VDPRINTF = @HAVE_VDPRINTF@
-HAVE_WCHAR_H = @HAVE_WCHAR_H@
-HAVE_WCHAR_T = @HAVE_WCHAR_T@
-HAVE_WCRTOMB = @HAVE_WCRTOMB@
-HAVE_WCSNRTOMBS = @HAVE_WCSNRTOMBS@
-HAVE_WCSRTOMBS = @HAVE_WCSRTOMBS@
-HAVE_WINT_T = @HAVE_WINT_T@
-HAVE__BOOL = @HAVE__BOOL@
-HAVE__EXIT = @HAVE__EXIT@
-INCLUDE_NEXT = @INCLUDE_NEXT@
-INCLUDE_NEXT_AS_FIRST_DIRECTIVE = @INCLUDE_NEXT_AS_FIRST_DIRECTIVE@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -483,43 +201,15 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBGNU_LIBDEPS = @LIBGNU_LIBDEPS@
-LIBGNU_LTLIBDEPS = @LIBGNU_LTLIBDEPS@
-LIBINTL = @LIBINTL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
-LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MD5 = @MD5@
 MKDIR_P = @MKDIR_P@
-NEXT_AS_FIRST_DIRECTIVE_ERRNO_H = @NEXT_AS_FIRST_DIRECTIVE_ERRNO_H@
-NEXT_AS_FIRST_DIRECTIVE_FLOAT_H = @NEXT_AS_FIRST_DIRECTIVE_FLOAT_H@
-NEXT_AS_FIRST_DIRECTIVE_GETOPT_H = @NEXT_AS_FIRST_DIRECTIVE_GETOPT_H@
-NEXT_AS_FIRST_DIRECTIVE_STDDEF_H = @NEXT_AS_FIRST_DIRECTIVE_STDDEF_H@
-NEXT_AS_FIRST_DIRECTIVE_STDINT_H = @NEXT_AS_FIRST_DIRECTIVE_STDINT_H@
-NEXT_AS_FIRST_DIRECTIVE_STDIO_H = @NEXT_AS_FIRST_DIRECTIVE_STDIO_H@
-NEXT_AS_FIRST_DIRECTIVE_STDLIB_H = @NEXT_AS_FIRST_DIRECTIVE_STDLIB_H@
-NEXT_AS_FIRST_DIRECTIVE_STRINGS_H = @NEXT_AS_FIRST_DIRECTIVE_STRINGS_H@
-NEXT_AS_FIRST_DIRECTIVE_STRING_H = @NEXT_AS_FIRST_DIRECTIVE_STRING_H@
-NEXT_AS_FIRST_DIRECTIVE_SYSEXITS_H = @NEXT_AS_FIRST_DIRECTIVE_SYSEXITS_H@
-NEXT_AS_FIRST_DIRECTIVE_UNISTD_H = @NEXT_AS_FIRST_DIRECTIVE_UNISTD_H@
-NEXT_AS_FIRST_DIRECTIVE_WCHAR_H = @NEXT_AS_FIRST_DIRECTIVE_WCHAR_H@
-NEXT_ERRNO_H = @NEXT_ERRNO_H@
-NEXT_FLOAT_H = @NEXT_FLOAT_H@
-NEXT_GETOPT_H = @NEXT_GETOPT_H@
-NEXT_STDDEF_H = @NEXT_STDDEF_H@
-NEXT_STDINT_H = @NEXT_STDINT_H@
-NEXT_STDIO_H = @NEXT_STDIO_H@
-NEXT_STDLIB_H = @NEXT_STDLIB_H@
-NEXT_STRINGS_H = @NEXT_STRINGS_H@
-NEXT_STRING_H = @NEXT_STRING_H@
-NEXT_SYSEXITS_H = @NEXT_SYSEXITS_H@
-NEXT_UNISTD_H = @NEXT_UNISTD_H@
-NEXT_WCHAR_H = @NEXT_WCHAR_H@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -533,113 +223,12 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PRAGMA_SYSTEM_HEADER = @PRAGMA_SYSTEM_HEADER@
-PTRDIFF_T_SUFFIX = @PTRDIFF_T_SUFFIX@
 RANLIB = @RANLIB@
-REPLACE_BTOWC = @REPLACE_BTOWC@
-REPLACE_CALLOC = @REPLACE_CALLOC@
-REPLACE_CANONICALIZE_FILE_NAME = @REPLACE_CANONICALIZE_FILE_NAME@
-REPLACE_CHOWN = @REPLACE_CHOWN@
-REPLACE_CLOSE = @REPLACE_CLOSE@
-REPLACE_DPRINTF = @REPLACE_DPRINTF@
-REPLACE_DUP = @REPLACE_DUP@
-REPLACE_DUP2 = @REPLACE_DUP2@
-REPLACE_FCHOWNAT = @REPLACE_FCHOWNAT@
-REPLACE_FCLOSE = @REPLACE_FCLOSE@
-REPLACE_FFLUSH = @REPLACE_FFLUSH@
-REPLACE_FOPEN = @REPLACE_FOPEN@
-REPLACE_FPRINTF = @REPLACE_FPRINTF@
-REPLACE_FPURGE = @REPLACE_FPURGE@
-REPLACE_FREOPEN = @REPLACE_FREOPEN@
-REPLACE_FSEEK = @REPLACE_FSEEK@
-REPLACE_FSEEKO = @REPLACE_FSEEKO@
-REPLACE_FTELL = @REPLACE_FTELL@
-REPLACE_FTELLO = @REPLACE_FTELLO@
-REPLACE_GETCWD = @REPLACE_GETCWD@
-REPLACE_GETDELIM = @REPLACE_GETDELIM@
-REPLACE_GETGROUPS = @REPLACE_GETGROUPS@
-REPLACE_GETLINE = @REPLACE_GETLINE@
-REPLACE_GETPAGESIZE = @REPLACE_GETPAGESIZE@
-REPLACE_LCHOWN = @REPLACE_LCHOWN@
-REPLACE_LINK = @REPLACE_LINK@
-REPLACE_LINKAT = @REPLACE_LINKAT@
-REPLACE_LSEEK = @REPLACE_LSEEK@
-REPLACE_MALLOC = @REPLACE_MALLOC@
-REPLACE_MBRLEN = @REPLACE_MBRLEN@
-REPLACE_MBRTOWC = @REPLACE_MBRTOWC@
-REPLACE_MBSINIT = @REPLACE_MBSINIT@
-REPLACE_MBSNRTOWCS = @REPLACE_MBSNRTOWCS@
-REPLACE_MBSRTOWCS = @REPLACE_MBSRTOWCS@
-REPLACE_MBSTATE_T = @REPLACE_MBSTATE_T@
-REPLACE_MEMCHR = @REPLACE_MEMCHR@
-REPLACE_MEMMEM = @REPLACE_MEMMEM@
-REPLACE_MKSTEMP = @REPLACE_MKSTEMP@
-REPLACE_NULL = @REPLACE_NULL@
-REPLACE_OBSTACK_PRINTF = @REPLACE_OBSTACK_PRINTF@
-REPLACE_PERROR = @REPLACE_PERROR@
-REPLACE_POPEN = @REPLACE_POPEN@
-REPLACE_PREAD = @REPLACE_PREAD@
-REPLACE_PRINTF = @REPLACE_PRINTF@
-REPLACE_PUTENV = @REPLACE_PUTENV@
-REPLACE_PWRITE = @REPLACE_PWRITE@
-REPLACE_READLINK = @REPLACE_READLINK@
-REPLACE_REALLOC = @REPLACE_REALLOC@
-REPLACE_REALPATH = @REPLACE_REALPATH@
-REPLACE_REMOVE = @REPLACE_REMOVE@
-REPLACE_RENAME = @REPLACE_RENAME@
-REPLACE_RENAMEAT = @REPLACE_RENAMEAT@
-REPLACE_RMDIR = @REPLACE_RMDIR@
-REPLACE_SETENV = @REPLACE_SETENV@
-REPLACE_SLEEP = @REPLACE_SLEEP@
-REPLACE_SNPRINTF = @REPLACE_SNPRINTF@
-REPLACE_SPRINTF = @REPLACE_SPRINTF@
-REPLACE_STDIO_WRITE_FUNCS = @REPLACE_STDIO_WRITE_FUNCS@
-REPLACE_STPNCPY = @REPLACE_STPNCPY@
-REPLACE_STRCASESTR = @REPLACE_STRCASESTR@
-REPLACE_STRDUP = @REPLACE_STRDUP@
-REPLACE_STRERROR = @REPLACE_STRERROR@
-REPLACE_STRNCAT = @REPLACE_STRNCAT@
-REPLACE_STRNDUP = @REPLACE_STRNDUP@
-REPLACE_STRNLEN = @REPLACE_STRNLEN@
-REPLACE_STRSIGNAL = @REPLACE_STRSIGNAL@
-REPLACE_STRSTR = @REPLACE_STRSTR@
-REPLACE_STRTOD = @REPLACE_STRTOD@
-REPLACE_STRTOK_R = @REPLACE_STRTOK_R@
-REPLACE_SYMLINK = @REPLACE_SYMLINK@
-REPLACE_TMPFILE = @REPLACE_TMPFILE@
-REPLACE_TTYNAME_R = @REPLACE_TTYNAME_R@
-REPLACE_UNLINK = @REPLACE_UNLINK@
-REPLACE_UNLINKAT = @REPLACE_UNLINKAT@
-REPLACE_UNSETENV = @REPLACE_UNSETENV@
-REPLACE_USLEEP = @REPLACE_USLEEP@
-REPLACE_VASPRINTF = @REPLACE_VASPRINTF@
-REPLACE_VDPRINTF = @REPLACE_VDPRINTF@
-REPLACE_VFPRINTF = @REPLACE_VFPRINTF@
-REPLACE_VPRINTF = @REPLACE_VPRINTF@
-REPLACE_VSNPRINTF = @REPLACE_VSNPRINTF@
-REPLACE_VSPRINTF = @REPLACE_VSPRINTF@
-REPLACE_WCRTOMB = @REPLACE_WCRTOMB@
-REPLACE_WCSNRTOMBS = @REPLACE_WCSNRTOMBS@
-REPLACE_WCSRTOMBS = @REPLACE_WCSRTOMBS@
-REPLACE_WCTOB = @REPLACE_WCTOB@
-REPLACE_WCWIDTH = @REPLACE_WCWIDTH@
-REPLACE_WRITE = @REPLACE_WRITE@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SIG_ATOMIC_T_SUFFIX = @SIG_ATOMIC_T_SUFFIX@
-SIZE_T_SUFFIX = @SIZE_T_SUFFIX@
-STDBOOL_H = @STDBOOL_H@
-STDDEF_H = @STDDEF_H@
-STDINT_H = @STDINT_H@
 STRIP = @STRIP@
-SYSEXITS_H = @SYSEXITS_H@
-UNDEFINE_STRTOK_R = @UNDEFINE_STRTOK_R@
-UNISTD_H_HAVE_WINSOCK2_H = @UNISTD_H_HAVE_WINSOCK2_H@
-UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS = @UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS@
 VERSION = @VERSION@
-WCHAR_T_SUFFIX = @WCHAR_T_SUFFIX@
-WINT_T_SUFFIX = @WINT_T_SUFFIX@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -664,11 +253,6 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
-gl_LIBOBJS = @gl_LIBOBJS@
-gl_LTLIBOBJS = @gl_LTLIBOBJS@
-gltests_LIBOBJS = @gltests_LIBOBJS@
-gltests_LTLIBOBJS = @gltests_LTLIBOBJS@
-gltests_WITNESS = @gltests_WITNESS@
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
@@ -699,52 +283,64 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_LDFLAGS = -lpthread
-AM_CPPFLAGS = -Wall -Werror -g -O2 -I$(top_srcdir)
+AM_CPPFLAGS = -Wall -Werror -Wnon-virtual-dtor -I$(top_srcdir)
+AM_CXXFLAGS = -g -O3
 jellyfish_SOURCES = jellyfish.cc stats_main.cc hash_merge.cc		\
 storage.cc misc.cc err.cc mer_counter.cc histo_main.cc dump_main.cc	\
 time.cc thread_exec.cc query_main.cc square_binary_matrix.cc		\
-fasta_parser.cc dump_fastq_main.cc histo_fastq_main.cc cite.cc		\
-parse_dna.cc file_parser.cc fastq_sequence_parser.cc parse_quake.cc	\
-parse_qual_dna.cc fastq_seq_qual_parser.cc half.cpp			\
-hash_fastq_merge.cc cite_cmdline.cc query_cmdline.cc			\
-hash_merge_cmdline.cc histo_cmdline.cc stats_cmdline.cc			\
-histo_fastq_main_cmdline.cc dump_fastq_main_cmdline.cc			\
-mer_counter_cmdline.cc hash_fastq_merge_cmdline.cc dump_cmdline.cc
+dump_fastq_main.cc histo_fastq_main.cc cite.cc parse_dna.cc		\
+file_parser.cc parse_quake.cc parse_qual_dna.cc sequence_parser.cc	\
+seq_qual_parser.cc half.cpp hash_fastq_merge.cc cite_cmdline.cc		\
+query_cmdline.cc hash_merge_cmdline.cc histo_cmdline.cc			\
+stats_cmdline.cc histo_fastq_main_cmdline.cc mer_counter_cmdline.cc	\
+dump_fastq_main_cmdline.cc hash_fastq_merge_cmdline.cc dump_cmdline.cc	\
+dbg.cc mapped_file.cc backtrace.cc floats.cc allocators_mmap.cc
 
-# jellyfish_CPPFLAGS = $(AM_CPPFLAGS)
 EXTRA_DIST = cite_cmdline.hpp query_cmdline.hpp hash_merge_cmdline.hpp \
 	histo_cmdline.hpp stats_cmdline.hpp \
 	histo_fastq_main_cmdline.hpp dump_fastq_main_cmdline.hpp \
 	mer_counter_cmdline.hpp hash_fastq_merge_cmdline.hpp \
-	dump_cmdline.hpp randomc.h generate_sequence_cmdline.hpp
+	dump_cmdline.hpp double_fifo_input.hpp \
+	simple_growing_array.hpp backtrace.hpp noop_dumper.hpp \
+	randomc.h generate_sequence_cmdline.hpp
 lib_LTLIBRARIES = libjellyfish.la
 libjellyfish_la_LDFLAGS = -version-info 1:0:0
-libjellyfish_la_SOURCES = square_binary_matrix.cc fasta_parser.cc	\
-err.cc misc.cc storage.cc thread_exec.cc time.cc file_parser.cc		\
-fastq_seq_qual_parser.cc fastq_sequence_parser.cc fastq_read_parser.cc	\
-half.cpp
+libjellyfish_la_SOURCES = square_binary_matrix.cc err.cc misc.cc	\
+dbg.hpp storage.cc thread_exec.cc time.cc file_parser.cc		\
+read_parser.cc parse_read.cc half.cpp mapped_file.cc parse_dna.cc	\
+parse_quake.cc parse_qual_dna.cc sequence_parser.cc seq_qual_parser.cc	\
+backtrace.cc floats.cc dbg.cc allocators_mmap.cc
 
 libjellyfish_la_CPPFLAGS = $(AM_CPPFLAGS)
 library_includedir = $(includedir)/jellyfish-@PACKAGE_VERSION@/jellyfish
 library_include_HEADERS = allocators_malloc.hpp allocators_mmap.hpp	\
 allocators_shm.hpp atomic_gcc.hpp compacted_dumper.hpp			\
 compacted_hash.hpp concurrent_queues.hpp direct_indexing_array.hpp	\
-direct_sorted_dumper.hpp divisor.hpp dumper.hpp fasta_parser.hpp	\
-hash_function.hpp hash.hpp heap.hpp invertible_hash_array.hpp		\
-locking_hash_counters.hpp locks_pthread.hpp mapped_file.hpp		\
-mer_counting.hpp err.hpp misc.hpp offsets_key_value.hpp			\
-reversible_hash_function.hpp sorted_dumper.hpp				\
+direct_sorted_dumper.hpp divisor.hpp dumper.hpp hash_function.hpp	\
+hash.hpp heap.hpp invertible_hash_array.hpp locking_hash_counters.hpp	\
+locks_pthread.hpp mapped_file.hpp mer_counting.hpp err.hpp misc.hpp	\
+offsets_key_value.hpp reversible_hash_function.hpp sorted_dumper.hpp	\
 square_binary_matrix.hpp storage.hpp thread_exec.hpp time.hpp		\
 token_ring.hpp raw_dumper.hpp capped_integer.hpp			\
 aligned_values_array.hpp fastq_dumper.hpp floats.hpp			\
 circular_buffer.hpp counter.hpp parse_quake.hpp parse_dna.hpp		\
-parse_qual_dna.hpp fastq_sequence_parser.hpp fastq_seq_qual_parser.hpp	\
-file_parser.hpp fasta_parser.hpp fastq_read_parser.hpp half.h		\
-toFloat.h eLut.h
+parse_qual_dna.hpp file_parser.hpp sequence_parser.hpp			\
+seq_qual_parser.hpp double_fifo_input.hpp read_parser.hpp		\
+parse_read.hpp simple_growing_array.hpp toFloat.h eLut.h dbg.hpp	\
+half.h backtrace.hpp
 
 generate_sequence_SOURCES = generate_sequence.cc	\
 generate_sequence_cmdline.cc misc.cc mersenne.cpp	\
-square_binary_matrix.cc
+square_binary_matrix.cc backtrace.cc dbg.cc time.cc
+
+# generate_reads_SOURCES = generate_reads.cc generate_reads_cmdline.cc	\
+# mersenne.cpp dbg.cc
+test_double_fifo_input_SOURCES = test_double_fifo_input.cc	\
+parse_dna.cc file_parser.cc sequence_parser.cc backtrace.cc	\
+thread_exec.cc dbg.cc time.cc allocators_mmap.cc
+
+test_read_parser_SOURCES = test_read_parser.cc file_parser.cc	\
+read_parser.cc parse_read.cc dbg.cc backtrace.cc time.cc
 
 all: all-am
 
@@ -871,6 +467,12 @@ generate_sequence$(EXEEXT): $(generate_sequence_OBJECTS) $(generate_sequence_DEP
 jellyfish$(EXEEXT): $(jellyfish_OBJECTS) $(jellyfish_DEPENDENCIES) 
 	@rm -f jellyfish$(EXEEXT)
 	$(CXXLINK) $(jellyfish_OBJECTS) $(jellyfish_LDADD) $(LIBS)
+test_double_fifo_input$(EXEEXT): $(test_double_fifo_input_OBJECTS) $(test_double_fifo_input_DEPENDENCIES) 
+	@rm -f test_double_fifo_input$(EXEEXT)
+	$(CXXLINK) $(test_double_fifo_input_OBJECTS) $(test_double_fifo_input_LDADD) $(LIBS)
+test_read_parser$(EXEEXT): $(test_read_parser_OBJECTS) $(test_read_parser_DEPENDENCIES) 
+	@rm -f test_read_parser$(EXEEXT)
+	$(CXXLINK) $(test_read_parser_OBJECTS) $(test_read_parser_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -878,17 +480,18 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocators_mmap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backtrace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cite_cmdline.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_fastq_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_fastq_main_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/err.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fasta_parser.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastq_seq_qual_parser.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fastq_sequence_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file_parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/floats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_sequence.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_sequence_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/half.Po@am__quote@
@@ -901,18 +504,27 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/histo_fastq_main_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/histo_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jellyfish.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-allocators_mmap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-backtrace.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-dbg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-err.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-fasta_parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-fastq_read_parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-fastq_seq_qual_parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-fastq_sequence_parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-file_parser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-floats.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-half.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-mapped_file.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-misc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-parse_dna.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-parse_quake.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-parse_qual_dna.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-parse_read.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-read_parser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-seq_qual_parser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-sequence_parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-square_binary_matrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-storage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-thread_exec.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjellyfish_la-time.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapped_file.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mer_counter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mer_counter_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mersenne.Po@am__quote@
@@ -920,12 +532,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_dna.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_quake.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_qual_dna.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_read.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/query_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/read_parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/seq_qual_parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sequence_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/square_binary_matrix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats_cmdline.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stats_main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/storage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_double_fifo_input.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_read_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thread_exec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/time.Po@am__quote@
 
@@ -956,13 +574,6 @@ libjellyfish_la-square_binary_matrix.lo: square_binary_matrix.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='square_binary_matrix.cc' object='libjellyfish_la-square_binary_matrix.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-square_binary_matrix.lo `test -f 'square_binary_matrix.cc' || echo '$(srcdir)/'`square_binary_matrix.cc
-
-libjellyfish_la-fasta_parser.lo: fasta_parser.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-fasta_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-fasta_parser.Tpo -c -o libjellyfish_la-fasta_parser.lo `test -f 'fasta_parser.cc' || echo '$(srcdir)/'`fasta_parser.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-fasta_parser.Tpo $(DEPDIR)/libjellyfish_la-fasta_parser.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fasta_parser.cc' object='libjellyfish_la-fasta_parser.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-fasta_parser.lo `test -f 'fasta_parser.cc' || echo '$(srcdir)/'`fasta_parser.cc
 
 libjellyfish_la-err.lo: err.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-err.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-err.Tpo -c -o libjellyfish_la-err.lo `test -f 'err.cc' || echo '$(srcdir)/'`err.cc
@@ -1006,26 +617,19 @@ libjellyfish_la-file_parser.lo: file_parser.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-file_parser.lo `test -f 'file_parser.cc' || echo '$(srcdir)/'`file_parser.cc
 
-libjellyfish_la-fastq_seq_qual_parser.lo: fastq_seq_qual_parser.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-fastq_seq_qual_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-fastq_seq_qual_parser.Tpo -c -o libjellyfish_la-fastq_seq_qual_parser.lo `test -f 'fastq_seq_qual_parser.cc' || echo '$(srcdir)/'`fastq_seq_qual_parser.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-fastq_seq_qual_parser.Tpo $(DEPDIR)/libjellyfish_la-fastq_seq_qual_parser.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fastq_seq_qual_parser.cc' object='libjellyfish_la-fastq_seq_qual_parser.lo' libtool=yes @AMDEPBACKSLASH@
+libjellyfish_la-read_parser.lo: read_parser.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-read_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-read_parser.Tpo -c -o libjellyfish_la-read_parser.lo `test -f 'read_parser.cc' || echo '$(srcdir)/'`read_parser.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-read_parser.Tpo $(DEPDIR)/libjellyfish_la-read_parser.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='read_parser.cc' object='libjellyfish_la-read_parser.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-fastq_seq_qual_parser.lo `test -f 'fastq_seq_qual_parser.cc' || echo '$(srcdir)/'`fastq_seq_qual_parser.cc
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-read_parser.lo `test -f 'read_parser.cc' || echo '$(srcdir)/'`read_parser.cc
 
-libjellyfish_la-fastq_sequence_parser.lo: fastq_sequence_parser.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-fastq_sequence_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-fastq_sequence_parser.Tpo -c -o libjellyfish_la-fastq_sequence_parser.lo `test -f 'fastq_sequence_parser.cc' || echo '$(srcdir)/'`fastq_sequence_parser.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-fastq_sequence_parser.Tpo $(DEPDIR)/libjellyfish_la-fastq_sequence_parser.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fastq_sequence_parser.cc' object='libjellyfish_la-fastq_sequence_parser.lo' libtool=yes @AMDEPBACKSLASH@
+libjellyfish_la-parse_read.lo: parse_read.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-parse_read.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-parse_read.Tpo -c -o libjellyfish_la-parse_read.lo `test -f 'parse_read.cc' || echo '$(srcdir)/'`parse_read.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-parse_read.Tpo $(DEPDIR)/libjellyfish_la-parse_read.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='parse_read.cc' object='libjellyfish_la-parse_read.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-fastq_sequence_parser.lo `test -f 'fastq_sequence_parser.cc' || echo '$(srcdir)/'`fastq_sequence_parser.cc
-
-libjellyfish_la-fastq_read_parser.lo: fastq_read_parser.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-fastq_read_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-fastq_read_parser.Tpo -c -o libjellyfish_la-fastq_read_parser.lo `test -f 'fastq_read_parser.cc' || echo '$(srcdir)/'`fastq_read_parser.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-fastq_read_parser.Tpo $(DEPDIR)/libjellyfish_la-fastq_read_parser.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='fastq_read_parser.cc' object='libjellyfish_la-fastq_read_parser.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-fastq_read_parser.lo `test -f 'fastq_read_parser.cc' || echo '$(srcdir)/'`fastq_read_parser.cc
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-parse_read.lo `test -f 'parse_read.cc' || echo '$(srcdir)/'`parse_read.cc
 
 libjellyfish_la-half.lo: half.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-half.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-half.Tpo -c -o libjellyfish_la-half.lo `test -f 'half.cpp' || echo '$(srcdir)/'`half.cpp
@@ -1033,6 +637,76 @@ libjellyfish_la-half.lo: half.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='half.cpp' object='libjellyfish_la-half.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-half.lo `test -f 'half.cpp' || echo '$(srcdir)/'`half.cpp
+
+libjellyfish_la-mapped_file.lo: mapped_file.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-mapped_file.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-mapped_file.Tpo -c -o libjellyfish_la-mapped_file.lo `test -f 'mapped_file.cc' || echo '$(srcdir)/'`mapped_file.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-mapped_file.Tpo $(DEPDIR)/libjellyfish_la-mapped_file.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mapped_file.cc' object='libjellyfish_la-mapped_file.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-mapped_file.lo `test -f 'mapped_file.cc' || echo '$(srcdir)/'`mapped_file.cc
+
+libjellyfish_la-parse_dna.lo: parse_dna.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-parse_dna.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-parse_dna.Tpo -c -o libjellyfish_la-parse_dna.lo `test -f 'parse_dna.cc' || echo '$(srcdir)/'`parse_dna.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-parse_dna.Tpo $(DEPDIR)/libjellyfish_la-parse_dna.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='parse_dna.cc' object='libjellyfish_la-parse_dna.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-parse_dna.lo `test -f 'parse_dna.cc' || echo '$(srcdir)/'`parse_dna.cc
+
+libjellyfish_la-parse_quake.lo: parse_quake.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-parse_quake.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-parse_quake.Tpo -c -o libjellyfish_la-parse_quake.lo `test -f 'parse_quake.cc' || echo '$(srcdir)/'`parse_quake.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-parse_quake.Tpo $(DEPDIR)/libjellyfish_la-parse_quake.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='parse_quake.cc' object='libjellyfish_la-parse_quake.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-parse_quake.lo `test -f 'parse_quake.cc' || echo '$(srcdir)/'`parse_quake.cc
+
+libjellyfish_la-parse_qual_dna.lo: parse_qual_dna.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-parse_qual_dna.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-parse_qual_dna.Tpo -c -o libjellyfish_la-parse_qual_dna.lo `test -f 'parse_qual_dna.cc' || echo '$(srcdir)/'`parse_qual_dna.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-parse_qual_dna.Tpo $(DEPDIR)/libjellyfish_la-parse_qual_dna.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='parse_qual_dna.cc' object='libjellyfish_la-parse_qual_dna.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-parse_qual_dna.lo `test -f 'parse_qual_dna.cc' || echo '$(srcdir)/'`parse_qual_dna.cc
+
+libjellyfish_la-sequence_parser.lo: sequence_parser.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-sequence_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-sequence_parser.Tpo -c -o libjellyfish_la-sequence_parser.lo `test -f 'sequence_parser.cc' || echo '$(srcdir)/'`sequence_parser.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-sequence_parser.Tpo $(DEPDIR)/libjellyfish_la-sequence_parser.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sequence_parser.cc' object='libjellyfish_la-sequence_parser.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-sequence_parser.lo `test -f 'sequence_parser.cc' || echo '$(srcdir)/'`sequence_parser.cc
+
+libjellyfish_la-seq_qual_parser.lo: seq_qual_parser.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-seq_qual_parser.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-seq_qual_parser.Tpo -c -o libjellyfish_la-seq_qual_parser.lo `test -f 'seq_qual_parser.cc' || echo '$(srcdir)/'`seq_qual_parser.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-seq_qual_parser.Tpo $(DEPDIR)/libjellyfish_la-seq_qual_parser.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='seq_qual_parser.cc' object='libjellyfish_la-seq_qual_parser.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-seq_qual_parser.lo `test -f 'seq_qual_parser.cc' || echo '$(srcdir)/'`seq_qual_parser.cc
+
+libjellyfish_la-backtrace.lo: backtrace.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-backtrace.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-backtrace.Tpo -c -o libjellyfish_la-backtrace.lo `test -f 'backtrace.cc' || echo '$(srcdir)/'`backtrace.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-backtrace.Tpo $(DEPDIR)/libjellyfish_la-backtrace.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='backtrace.cc' object='libjellyfish_la-backtrace.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-backtrace.lo `test -f 'backtrace.cc' || echo '$(srcdir)/'`backtrace.cc
+
+libjellyfish_la-floats.lo: floats.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-floats.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-floats.Tpo -c -o libjellyfish_la-floats.lo `test -f 'floats.cc' || echo '$(srcdir)/'`floats.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-floats.Tpo $(DEPDIR)/libjellyfish_la-floats.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='floats.cc' object='libjellyfish_la-floats.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-floats.lo `test -f 'floats.cc' || echo '$(srcdir)/'`floats.cc
+
+libjellyfish_la-dbg.lo: dbg.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-dbg.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-dbg.Tpo -c -o libjellyfish_la-dbg.lo `test -f 'dbg.cc' || echo '$(srcdir)/'`dbg.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-dbg.Tpo $(DEPDIR)/libjellyfish_la-dbg.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='dbg.cc' object='libjellyfish_la-dbg.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-dbg.lo `test -f 'dbg.cc' || echo '$(srcdir)/'`dbg.cc
+
+libjellyfish_la-allocators_mmap.lo: allocators_mmap.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libjellyfish_la-allocators_mmap.lo -MD -MP -MF $(DEPDIR)/libjellyfish_la-allocators_mmap.Tpo -c -o libjellyfish_la-allocators_mmap.lo `test -f 'allocators_mmap.cc' || echo '$(srcdir)/'`allocators_mmap.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libjellyfish_la-allocators_mmap.Tpo $(DEPDIR)/libjellyfish_la-allocators_mmap.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='allocators_mmap.cc' object='libjellyfish_la-allocators_mmap.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjellyfish_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libjellyfish_la-allocators_mmap.lo `test -f 'allocators_mmap.cc' || echo '$(srcdir)/'`allocators_mmap.cc
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

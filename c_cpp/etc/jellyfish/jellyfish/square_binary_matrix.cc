@@ -35,7 +35,7 @@ SquareBinaryMatrix SquareBinaryMatrix::init_random_inverse() {
     init_random();
     try {
       return inverse();
-    } catch(SquareBinaryMatrix::SingularMatrix e) { }
+    } catch(SquareBinaryMatrix::SingularMatrix &e) { }
   }
 }
 
@@ -56,9 +56,9 @@ SquareBinaryMatrix SquareBinaryMatrix::operator*(const SquareBinaryMatrix &other
   SquareBinaryMatrix res(size);
 
   if(size != other.get_size()) 
-    raise(MismatchingSize) << "Multiplication operator dimension mismatch:" 
-                           << size << "x" << size << " != " 
-                           << other.get_size() << "x" << other.get_size();
+    eraise(MismatchingSize) << "Multiplication operator dimension mismatch:" 
+                            << size << "x" << size << " != " 
+                            << other.get_size() << "x" << other.get_size();
   
   for(i = 0; i < size; i++) {
     res[i] = this->times(other[i]);
@@ -81,7 +81,7 @@ SquareBinaryMatrix SquareBinaryMatrix::inverse() const {
         if((pivot.columns[j] >> (size - i - 1)) & (uint64_t)0x1)
           break;
       if(j >= size)
-	raise(SingularMatrix) << "Matrix is singular";
+	eraise(SingularMatrix) << "Matrix is singular";
       pivot.columns[i] ^= pivot.columns[j];
       res.columns[i] ^= res.columns[j];
     }
@@ -130,28 +130,19 @@ void SquareBinaryMatrix::dump(std::ostream *os) const {
 }
 
 void SquareBinaryMatrix::load(std::istream *is) {
-  if(columns) {
-    delete[] columns;
-    columns = NULL;
-  }
   is->read((char *)&size, sizeof(size));
-  columns = new uint64_t[size];
+  alloc_columns();
   is->read((char *)columns, sizeof(uint64_t) * size);
 }
 
 size_t SquareBinaryMatrix::read(const char *map) {
   int nsize = 0;
-  if(columns) {
-    delete[] columns;
-    columns = NULL;
-    size = 0;
-  }
   memcpy(&nsize, map, sizeof(nsize));
   if(nsize <= 0 || nsize > 64)
-    raise(MismatchingSize) << "Invalid matrix size '" << nsize << "'. Must be between 1 and 64";
+    eraise(MismatchingSize) << "Invalid matrix size '" << nsize << "'. Must be between 1 and 64";
 
   size = nsize;
-  columns = new uint64_t[size];
+  alloc_columns();
   memcpy(columns, map + sizeof(size), sizeof(uint64_t) * size);
   return sizeof(size) + sizeof(uint64_t) * size;
 }
@@ -215,7 +206,7 @@ uint64_t SquareBinaryMatrix::times(uint64_t v) const {
 
 #else
 
-uint64_t SquareBinaryMatrix::times_sse(uint64_t v) const { }
+uint64_t SquareBinaryMatrix::times_sse(uint64_t v) const { return 0; }
 uint64_t SquareBinaryMatrix::times(uint64_t v) const {
   return times_unrolled(v);
 }

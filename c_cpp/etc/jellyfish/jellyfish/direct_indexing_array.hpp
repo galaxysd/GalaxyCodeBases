@@ -57,17 +57,25 @@ namespace jellyfish {
       void write_raw(std::ostream *out) const {}
 
       template<typename add_t>
-      bool add(key_t key, const add_t &val) {
+      bool add(key_t key, const add_t &val, val_t *_oval = 0) {
         bits_t oval = data[key];
         val_t nval = val_t(oval) + val;
 
         while(true) {
           bits_t noval = atomic.cas(&data[key], oval, nval.bits());
-          if(noval == oval)
+          if(noval == oval) {
+            if(_oval)
+              *_oval = oval;
             return true;
+          }
           oval = noval;
           nval = val_t(oval) + val;
         }
+        return true;
+      }
+
+      bool get_val(key_t key, val_t &val, bool full = true) const {
+        val = data[key];
         return true;
       }
 

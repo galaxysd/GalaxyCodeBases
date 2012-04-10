@@ -15,45 +15,15 @@
 */
 
 #include <jellyfish/parse_dna.hpp>
+#include <jellyfish/time.hpp>
 
 namespace jellyfish {
-  parse_dna::parse_dna(int nb_files, char *argv[], uint_t _mer_len,
-                       unsigned int nb_buffers, size_t _buffer_size) :
-    rq(nb_buffers), wq(nb_buffers), mer_len(_mer_len), 
-    reader(0), buffer_size(_buffer_size), files(argv, argv + nb_files),
-    current_file(files.begin()), have_seam(false)
-  {
-    buffer_data = new char[nb_buffers * buffer_size];
-    buffers     = new seq[nb_buffers];
-    seam        = new char[mer_len];
-    
-    for(unsigned int i = 0; i < nb_buffers; i++) {
-      buffers[i].start = buffer_data + i * _buffer_size;
-      buffers[i].end   = buffers[i].start;
-      wq.enqueue(&buffers[i]);
-    }
+  void parse_dna::fill() {
+    bucket_t *new_seq = 0;
 
-    fparser = jellyfish::file_parser::new_file_parser_sequence(*current_file);
-  }
-
-  bool parse_dna::thread::next_sequence() {
-    if(rq->is_low() && !rq->is_closed()) {
-      parser->read_sequence();
-    }
-    while(!(sequence = rq->dequeue())) {
-      if(rq->is_closed())
-        return false;
-      parser->read_sequence();
-    }
-    return true;
-  }
-
-  void parse_dna::_read_sequence() {
-    seq *new_seq = 0;
-  
     while(true) {
       if(!new_seq) {
-        new_seq = wq.dequeue();
+        new_seq = write_next();
         if(!new_seq)
           break;
       }
@@ -61,26 +31,50 @@ namespace jellyfish {
       char *start = new_seq->start;
       if(have_seam) {
         have_seam = false;
+        //        mem_copy(start, seam, mer_len - 1);
         memcpy(start, seam, mer_len - 1);
         start += mer_len - 1;
       }
+      
       bool input_eof = !fparser->parse(start, &new_seq->end);
+
       if(new_seq->end > new_seq->start + mer_len) {
         have_seam = true;
+        //        mem_copy(seam, new_seq->end - mer_len + 1, mer_len - 1);
         memcpy(seam, new_seq->end - mer_len + 1, mer_len - 1);
-        rq.enqueue(new_seq);
+        write_release(new_seq);
         new_seq = 0;
       }
       if(input_eof) {
         delete fparser;
         have_seam = false;
         if(++current_file == files.end()) {
-          rq.close();
+          close();
           break;
         }
-        fparser = jellyfish::file_parser::new_file_parser_sequence(*current_file);
+        fparser = sequence_parser::new_parser(*current_file);
       }
     }
+  }
+
+  parse_dna::parse_dna(int nb_files, const char *argv[], uint_t _mer_len,
+                       unsigned int nb_buffers, size_t _buffer_size) :
+    double_fifo_input<sequence_parser::sequence_t>(nb_buffers), mer_len(_mer_len), 
+    buffer_size(allocators::mmap::round_to_page(_buffer_size)),
+    files(argv, argv + nb_files), current_file(files.begin()),
+    have_seam(false), buffer_data(buffer_size * nb_buffers), canonical(false)
+  {
+    seam        = new char[mer_len];
+    memset(seam, 'A', mer_len);
+
+    unsigned long i = 0;
+    for(bucket_iterator it = bucket_begin();
+        it != bucket_end(); ++it, ++i) {
+      it->end = it->start = (char *)buffer_data.get_ptr() + i * buffer_size;
+    }
+    assert(i == nb_buffers);
+
+    fparser = sequence_parser::new_parser(*current_file);
   }
 
   const uint_t parse_dna::codes[256] = {

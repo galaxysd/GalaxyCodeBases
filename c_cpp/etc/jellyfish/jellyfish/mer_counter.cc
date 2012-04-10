@@ -30,6 +30,8 @@
 #include <inttypes.h>
 
 #include <jellyfish/err.hpp>
+#include <jellyfish/dbg.hpp>
+#include <jellyfish/backtrace.hpp>
 #include <jellyfish/misc.hpp>
 #include <jellyfish/time.hpp>
 #include <jellyfish/mer_counting.hpp>
@@ -37,19 +39,21 @@
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/square_binary_matrix.hpp>
 #include <jellyfish/mer_counter_cmdline.hpp>
+#include <jellyfish/noop_dumper.hpp>
 
 // Temporary
 //#include <jellyfish/measure_dumper.hpp>
-
 
 // TODO: This mer_counting_base stuff has become wild. Lots of code
 // duplication and slightly different behavior for each (e.g. setup of
 // the hashing matrix). Refactor!
 class mer_counting_base {
 public:
-  virtual void count() = 0;
-  virtual Time get_writing_time() = 0;
   virtual ~mer_counting_base() {}
+  virtual void count() = 0;
+  virtual Time get_writing_time() const = 0;
+  virtual uint64_t get_distinct() const = 0;
+  virtual uint64_t get_total() const = 0;
 };
 
 template <typename parser_t, typename hash_t>
@@ -61,10 +65,12 @@ protected:
   typename hash_t::storage_t *ary;
   hash_t                     *hash;
   jellyfish::dumper_t        *dumper;
+  uint64_t                    distinct, total;
 
 public:
   mer_counting(struct mer_counter_args &_args) :
-    args(&_args), sync_barrier(args->threads_arg) {}
+    args(&_args), sync_barrier(args->threads_arg),
+    distinct(0), total(0) {}
 
   ~mer_counting() { 
     if(dumper)
@@ -79,7 +85,7 @@ public:
   
   void start(int id) {
     sync_barrier.wait();
-    
+
     typename parser_t::thread     mer_stream(parser->new_thread());
     typename hash_t::thread_ptr_t counter(hash->new_thread());
     mer_stream.parse(counter);
@@ -88,18 +94,23 @@ public:
     if(is_serial) {
       hash->dump();
     }
+
+    atomic::gcc::fetch_add(&distinct, mer_stream.get_distinct());
+    atomic::gcc::fetch_add(&total, mer_stream.get_total());
   }
   
   void count() {
     exec_join(args->threads_arg);
   }
 
-  Time get_writing_time() { return hash->get_writing_time(); }
+  virtual Time get_writing_time() const { return hash->get_writing_time(); }
+  virtual uint64_t get_distinct() const { return distinct; }
+  virtual uint64_t get_total() const { return total; }
 };
 
 class mer_counting_fasta_hash : public mer_counting<jellyfish::parse_dna, inv_hash_t> {
 public:
-  mer_counting_fasta_hash(int argc, char *argv[], 
+  mer_counting_fasta_hash(int argc, const char *argv[], 
                           struct mer_counter_args &_args) :
     mer_counting<jellyfish::parse_dna, inv_hash_t>(_args)
   {
@@ -120,7 +131,9 @@ public:
     }
     hash = new inv_hash_t(ary);
 
-    if(!args->no_write_flag) {
+    if(args->no_write_flag) {
+      dumper = new jellyfish::noop_dumper();
+    } else {
       // if(args->measure) {
       //   dumper = new jellyfish::measure_dumper<inv_hash_t::storage_t>(ary);
       // } else
@@ -138,8 +151,8 @@ public:
           _dumper->set_upper_count(args->upper_count_arg);
         dumper = _dumper;
       }
-      hash->set_dumper(dumper);
     }
+    hash->set_dumper(dumper);
     parser->set_canonical(args->both_strands_flag);
   }
 };
@@ -168,7 +181,9 @@ public:
     }
     hash = new inv_hash_t(ary);
 
-    if(!args->no_write_flag) {
+    if(args->no_write_flag) {
+      dumper = new jellyfish::noop_dumper();
+    } else {
       if(args->raw_flag) {
         dumper = new raw_inv_hash_dumper_t((uint_t)4, args->output_arg,
                                            args->out_buffer_size_arg, ary);
@@ -183,8 +198,8 @@ public:
           _dumper->set_upper_count(args->upper_count_arg);
         dumper = _dumper;
       }
-      hash->set_dumper(dumper);
     }
+    hash->set_dumper(dumper);
     parser->set_canonical(args->both_strands_flag);
   }
 };
@@ -192,7 +207,7 @@ public:
 
 class mer_counting_fasta_direct : public mer_counting<jellyfish::parse_dna, direct_index_t> {
 public:
-  mer_counting_fasta_direct(int argc, char *argv[], 
+  mer_counting_fasta_direct(int argc, const char *argv[], 
                             struct mer_counter_args &_args) :
     mer_counting<jellyfish::parse_dna, direct_index_t>(_args)
   {
@@ -201,15 +216,17 @@ public:
                                       args->buffer_size_arg);
     ary = new direct_index_t::storage_t(2 * args->mer_len_arg);
     hash = new direct_index_t(ary);
-    if(!args->no_write_flag) {
+    if(args->no_write_flag) {
+      dumper = new jellyfish::noop_dumper();
+    } else {
       if(args->raw_flag)
         std::cerr << "Switch --raw not (yet) supported with direct indexing. Ignoring." << std::endl;
       dumper = new direct_index_dumper_t(args->threads_arg, args->output_arg,
                                          args->out_buffer_size_arg,
                                          8*args->out_counter_len_arg,
                                          ary);
-      hash->set_dumper(dumper);
     }
+    hash->set_dumper(dumper);
     parser->set_canonical(args->both_strands_flag);
   }
 };
@@ -228,15 +245,47 @@ public:
                                       args->reprobes_arg, 
                                       jellyfish::quadratic_reprobes);
     hash = new fastq_hash_t(ary);
-    if(!args->no_write_flag) {
+    if(args->no_write_flag) {
+      dumper = new jellyfish::noop_dumper();
+    } else {
       dumper = new raw_fastq_dumper_t(args->threads_arg, args->output_arg,
                                       args->out_buffer_size_arg,
                                       ary);
-      hash->set_dumper(dumper);
     }
+    hash->set_dumper(dumper);
     parser->set_canonical(args->both_strands_flag);
   }
 };
+
+
+void display_args(struct mer_counter_args &args) {
+  if(!args.matrix_arg) args.matrix_arg = (char*)"";
+  DBG << V(args.mer_len_given) << V(args.mer_len_arg) << "\n"
+      << V(args.size_given) << V(args.size_arg) << "\n"
+      << V(args.threads_given) << V(args.threads_arg) << "\n"
+      << V(args.output_given) << V(args.output_arg) << "\n"
+      << V(args.counter_len_given) << V(args.counter_len_arg) << "\n"
+      << V(args.out_counter_len_given) << V(args.out_counter_len_arg) << "\n"
+      << V(args.both_strands_flag) << "\n"
+      << V(args.reprobes_given) << V(args.reprobes_arg) << "\n"
+      << V(args.raw_flag) << "\n"
+      << V(args.both_flag) << "\n"
+      << V(args.quake_flag) << "\n"
+      << V(args.quality_start_given) << V(args.quality_start_arg) << "\n"
+      << V(args.min_quality_given) << V(args.min_quality_arg) << "\n"
+      << V(args.lower_count_given) << V(args.lower_count_arg) << "\n"
+      << V(args.upper_count_given) << V(args.upper_count_arg) << "\n"
+      << V(args.matrix_given) << V(args.matrix_arg) << "\n"
+      << V(args.timing_given) << V(args.timing_arg) << "\n"
+      << V(args.stats_given) << V(args.stats_arg) << "\n"
+      << V(args.no_write_flag) << "\n"
+      << V(args.measure_flag) << "\n"
+      << V(args.buffers_given) << V(args.buffers_arg) << "\n"
+      << V(args.buffer_size_given) << V(args.buffer_size_arg) << "\n"
+      << V(args.out_buffer_size_given) << V(args.out_buffer_size_arg) << "\n"
+      << V(args.lock_flag) << "\n"
+      << V(args.stream_flag) << "\n";
+}
 
 int count_main(int argc, char *argv[])
 {
@@ -249,18 +298,26 @@ int count_main(int argc, char *argv[])
     die << "Invalid mer length '" << args.mer_len_arg
         << "'. It must be in [2, 31].";
 
+  if(args.inputs_num == 0)
+    die << "Need at least one input file or stream";
+
   Time start;
   mer_counting_base *counter;
   if(!args.buffers_given)
-    args.buffers_arg = 3 * args.threads_arg;
+    args.buffers_arg = 20 * args.threads_arg;
+
   if(args.quake_flag) {
     counter = new mer_counting_quake(args.inputs_num, args.inputs, args);
   } else if(ceilLog2((unsigned long)args.size_arg) > 2 * (unsigned long)args.mer_len_arg) {
-    counter = new mer_counting_fasta_direct(args.inputs_num, args.inputs, args);
+    counter = new mer_counting_fasta_direct(args.inputs_num, 
+                                            (const char **)args.inputs, args);
   } else if(args.min_quality_given) {
-    counter = new mer_counting_qual_fasta_hash(args.inputs_num, args.inputs, args);
+    counter = new mer_counting_qual_fasta_hash(args.inputs_num, 
+                                               args.inputs,
+                                               args);
   } else {
-    counter = new mer_counting_fasta_hash(args.inputs_num, args.inputs, args);
+    counter = new mer_counting_fasta_hash(args.inputs_num,
+                                          (const char **)args.inputs, args);
   }
   Time after_init;
   counter->count();
@@ -269,7 +326,8 @@ int count_main(int argc, char *argv[])
   if(args.timing_given) {
     std::ofstream timing_fd(args.timing_arg);
     if(!timing_fd.good()) {
-      die << "Can't open timing file '" << args.timing_arg << err::no;
+      std::cerr << "Can't open timing file '" << args.timing_arg << err::no
+                << std::endl;
     } else {
       Time writing = counter->get_writing_time();
       Time counting = (all_done - after_init) - writing;
@@ -277,6 +335,18 @@ int count_main(int argc, char *argv[])
                 << "Counting " << counting.str() << "\n"
                 << "Writing  " << writing.str() << "\n";
       timing_fd.close();
+    }
+  }
+
+  if(args.stats_given) {
+    std::ofstream stats_fd(args.stats_arg);
+    if(!stats_fd.good()) {
+      std::cerr << "Can't open stats file '" << args.stats_arg << err::no
+                << std::endl;
+    } else {
+      stats_fd << "Distinct: " << counter->get_distinct() << "\n"
+               << "Total:    " << counter->get_total() << std::endl;
+      stats_fd.close();
     }
   }
 

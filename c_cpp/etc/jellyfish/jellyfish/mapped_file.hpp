@@ -29,27 +29,29 @@
 #include <jellyfish/err.hpp>
 #include <jellyfish/misc.hpp>
 #include <jellyfish/atomic_gcc.hpp>
+#include <jellyfish/dbg.hpp>
 
 class mapped_file {
 protected:
-  bool    _unmap;
-  char   *_base, *_end;
-  size_t  _length;
+  std::string  _path;
+  bool         _unmap;
+  char        *_base, *_end;
+  size_t       _length;
 
   void map(const char *filename) {
     int fd = open(filename, O_RDONLY);
     struct stat stat;
     
     if(fd < 0)
-      raise(ErrorMMap) << "Can't open file '" << filename << "'" << err::no;
+      eraise(ErrorMMap) << "Can't open file '" << filename << "'" << err::no;
     
     if(fstat(fd, &stat) < 0)
-      raise(ErrorMMap) << "Can't stat file '" << filename << "'" << err::no;
+      eraise(ErrorMMap) << "Can't stat file '" << filename << "'" << err::no;
 
     _length = stat.st_size;
     _base = (char *)mmap(NULL, _length, PROT_READ, MAP_SHARED, fd, 0);
     if(_base == MAP_FAILED)
-      raise(ErrorMMap) << "Can't mmap file '" << filename << "'" << err::no;
+      eraise(ErrorMMap) << "Can't mmap file '" << filename << "'" << err::no;
     close(fd);
     _end = _base + _length;
   }
@@ -59,11 +61,12 @@ public:
   mapped_file(char *__base, size_t __length) :
     _unmap(false), _base(__base), _end(__base + __length), _length(__length) {}
 
-  mapped_file(const char *filename) : _unmap(false) {
+  mapped_file(const char *filename) : _path(filename), _unmap(false) {
     map(filename);
   }
   mapped_file(const mapped_file &mf) : 
-    _unmap(false), _base(mf._base), _end(mf._end), _length(mf._length) {}
+    _path(mf.path()), _unmap(false), _base(mf._base), _end(mf._end),
+    _length(mf._length) {}
 
   ~mapped_file() {
     if(_unmap)
@@ -81,7 +84,9 @@ public:
   char *base() const { return _base; }
   char *end() const { return _end; }
   size_t length() const { return _length; }
+  std::string path() const { return _path; }
 
+  // No error checking here. Should I throw something?
   const mapped_file & will_need() const {
     madvise(_base, _length, MADV_WILLNEED);
     return *this;
@@ -94,6 +99,15 @@ public:
     madvise(_base, _length, MADV_RANDOM);
     return *this;
   }
+  const mapped_file & lock() const {
+    if(mlock(_base, _length) < 0)
+      eraise(ErrorMMap) << "Can't lock map in memory" << err::no;
+    return *this;
+  }
+
+  // Do not optimize. Side effect is that every page is accessed and should now be in cache.
+  // The flagg __attribute__((optimize(0))) does not compile, so return a useless char argument
+  char load() const;
 };
 
 class mapped_files_t : public std::vector<mapped_file> {

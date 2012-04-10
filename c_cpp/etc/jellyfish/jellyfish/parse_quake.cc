@@ -20,41 +20,29 @@ namespace jellyfish {
   parse_quake::parse_quake(int nb_files, char *argv[], uint_t _mer_len,
                            unsigned int nb_buffers, size_t _buffer_size,
                            const char _qs) :
-    rq(nb_buffers), wq(nb_buffers), mer_len(_mer_len), 
-    reader(0), buffer_size(_buffer_size), files(argv, argv + nb_files),
-    current_file(files.begin()), have_seam(false), quality_start(_qs)
+    double_fifo_input<seq_qual_parser::sequence_t>(nb_buffers), mer_len(_mer_len), 
+    buffer_size(allocators::mmap::round_to_page(_buffer_size)),
+    files(argv, argv + nb_files), current_file(files.begin()),
+    have_seam(false), buffer_data(buffer_size * nb_buffers),
+    quality_start(_qs), canonical(false)
   {
-    buffer_data = new char[nb_buffers * buffer_size];
-    buffers     = new seq[nb_buffers];
     seam        = new char[2*mer_len];
-    
-    for(unsigned int i = 0; i < nb_buffers; i++) {
-      buffers[i].start = buffer_data + i * _buffer_size;
-      buffers[i].end   = buffers[i].start;
-      wq.enqueue(&buffers[i]);
+
+    unsigned long i = 0;
+    for(bucket_iterator it = bucket_begin();
+        it != bucket_end(); ++it, ++i) {
+      it->end = it->start = (char*)buffer_data.get_ptr() + i * buffer_size;
     }
 
-    fparser = jellyfish::file_parser::new_file_parser_seq_qual(*current_file);
+    fparser = seq_qual_parser::new_parser(*current_file);
   }
 
-  bool parse_quake::thread::next_sequence() {
-    if(rq->is_low() && !rq->is_closed()) {
-      parser->read_sequence();
-    }
-    while(!(sequence = rq->dequeue())) {
-      if(rq->is_closed())
-        return false;
-      parser->read_sequence();
-    }
-    return true;
-  }
-
-  void parse_quake::_read_sequence() {
-    seq *new_seq = 0;
+  void parse_quake::fill() {
+    bucket_t *new_seq = 0;
   
     while(true) {
       if(!new_seq) {
-        new_seq = wq.dequeue();
+        new_seq = write_next();
         if(!new_seq)
           break;
       }
@@ -69,17 +57,17 @@ namespace jellyfish {
       if(new_seq->end > new_seq->start + 2 * mer_len) {
         have_seam = true;
         memcpy(seam, new_seq->end - 2 * (mer_len - 1), 2 * (mer_len - 1));
-        rq.enqueue(new_seq);
+        write_release(new_seq);
         new_seq = 0;
       }
       if(input_eof) {
         delete fparser;
         have_seam = false;
         if(++current_file == files.end()) {
-          rq.close();
+          close();
           break;
         }
-        fparser = jellyfish::file_parser::new_file_parser_seq_qual(*current_file);
+        fparser = seq_qual_parser::new_parser(*current_file);
       }
     }
   }

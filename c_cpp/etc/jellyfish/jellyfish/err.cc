@@ -21,4 +21,9 @@ namespace err {
     os.write(ss._s, ss._l);
     return os;
   }
+
+  std::ostream &operator<<(std::ostream &os, const err::no_t &x) {
+    x.write(os, errno);
+    return os;
+  }
 }

@@ -19,33 +19,25 @@
 
 #include <iostream>
 #include <vector>
-#include <jellyfish/concurrent_queues.hpp>
+#include <jellyfish/double_fifo_input.hpp>
 #include <jellyfish/atomic_gcc.hpp>
 #include <jellyfish/misc.hpp>
-#include <jellyfish/file_parser.hpp>
+#include <jellyfish/sequence_parser.hpp>
+#include <jellyfish/allocators_mmap.hpp>
 
 namespace jellyfish {
-  class parse_dna {
-    struct seq {
-      char *start;
-      char *end;
-    };
-    typedef concurrent_queue<struct seq> seq_queue;
+  class parse_dna : public double_fifo_input<sequence_parser::sequence_t> {
     typedef std::vector<const char *> fary_t;
 
-    seq_queue               rq, wq;
-    uint_t                  mer_len;
-    uint64_t volatile       reader;
-    size_t                  buffer_size;
-    fary_t                  files;
-    fary_t::const_iterator  current_file;
-    bool                    have_seam;
-    char                   *buffer_data;
-    struct seq             *buffers;
-    char                   *seam;
-    bool                    canonical;
-    std::ifstream           fd;
-    jellyfish::file_parser *fparser;
+    uint_t                      mer_len;
+    size_t                      buffer_size;
+    fary_t                      files;
+    fary_t::const_iterator      current_file;
+    bool                        have_seam;
+    char                       *seam;
+    allocators::mmap            buffer_data;
+    bool                        canonical;
+    sequence_parser            *fparser;
 
   public:
     /* Action to take for a given letter in fasta file:
@@ -90,41 +82,42 @@ namespace jellyfish {
     }
 
 
-    parse_dna(int nb_files, char *argv[], uint_t _mer_len, unsigned int nb_buffers, size_t _buffer_size); 
+    parse_dna(int nb_files, const char *argv[], uint_t _mer_len, 
+              unsigned int nb_buffers, size_t _buffer_size); 
 
     ~parse_dna() {
-      delete [] buffers;
+      delete [] seam;
     }
 
     void set_canonical(bool v = true) { canonical = v; }
+    virtual void fill();
 
     class thread {
       parse_dna      *parser;
-      struct seq     *sequence;
+      bucket_t       *sequence;
       const uint_t    mer_len, lshift;
       uint64_t        kmer, rkmer;
       const uint64_t  masq;
       uint_t          cmlen;
-      seq_queue      *rq;
-      seq_queue      *wq;
       const bool      canonical;
+      uint64_t        distinct, total;
 
     public:
       thread(parse_dna *_parser) :
         parser(_parser), sequence(0),
         mer_len(_parser->mer_len), lshift(2 * (mer_len - 1)),
         kmer(0), rkmer(0), masq((1UL << (2 * mer_len)) - 1),
-        cmlen(0), rq(&parser->rq), wq(&parser->wq),
-        canonical(parser->canonical) { }
+        cmlen(0), canonical(parser->canonical),
+        distinct(0), total(0) {}
+
+      uint64_t get_uniq() const { return 0; }
+      uint64_t get_distinct() const { return distinct; }
+      uint64_t get_total() const { return total; }
 
       template<typename T>
       void parse(T &counter) {
         cmlen = kmer = rkmer = 0;
-        while(true) {
-          while(!sequence) {
-            if(!next_sequence())
-              return;
-          }
+        while((sequence = parser->next())) {
           const char         *start = sequence->start;
           const char * const  end   = sequence->end;
           while(start < end) {
@@ -140,39 +133,25 @@ namespace jellyfish {
               rkmer = (rkmer >> 2) | ((0x3 - c) << lshift);
               if(++cmlen >= mer_len) {
                 cmlen  = mer_len;
+                typename T::val_type oval;
                 if(canonical)
-                  counter->inc(kmer < rkmer ? kmer : rkmer);
+                  counter->add(kmer < rkmer ? kmer : rkmer, 1, &oval);
                 else
-                  counter->inc(kmer);
+                  counter->add(kmer, 1, &oval);
+                distinct += oval == (typename T::val_type)0;
+                ++total;
               }
             }
           }
 
           // Buffer exhausted. Get a new one
           cmlen = kmer = rkmer = 0;
-          wq->enqueue(sequence);
-          sequence = 0;
+          parser->release(sequence);
         }
       }
-
-
-    private:
-      bool next_sequence();
     };
     friend class thread;
     thread new_thread() { return thread(this); }
-
-  private:
-    void _read_sequence();
-    void read_sequence() {
-      static struct timespec time_sleep = { 0, 10000000 };
-      if(!__sync_bool_compare_and_swap(&reader, 0, 1)) {
-        nanosleep(&time_sleep, NULL);
-        return;
-      }
-      _read_sequence();
-      reader = 0;
-    }
   };
 }
 

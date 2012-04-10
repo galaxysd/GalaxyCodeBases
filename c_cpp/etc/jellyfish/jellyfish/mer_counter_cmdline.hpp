@@ -65,6 +65,8 @@ struct mer_counter_args
   const char *reprobes_help; /**< @brief Maximum number of reprobes help description.  */
   int raw_flag;	/**< @brief Write raw database (default=off).  */
   const char *raw_help; /**< @brief Write raw database help description.  */
+  int both_flag;	/**< @brief Write list and raw database (default=off).  */
+  const char *both_help; /**< @brief Write list and raw database help description.  */
   int quake_flag;	/**< @brief Quake compatibility mode (default=off).  */
   const char *quake_help; /**< @brief Quake compatibility mode help description.  */
   int quality_start_arg;	/**< @brief Starting ASCII for quality values (default='64').  */
@@ -85,6 +87,9 @@ struct mer_counter_args
   char * timing_arg;	/**< @brief Print timing information.  */
   char * timing_orig;	/**< @brief Print timing information original value given at command line.  */
   const char *timing_help; /**< @brief Print timing information help description.  */
+  char * stats_arg;	/**< @brief Print stats.  */
+  char * stats_orig;	/**< @brief Print stats original value given at command line.  */
+  const char *stats_help; /**< @brief Print stats help description.  */
   int no_write_flag;	/**< @brief Don't write database (default=off).  */
   const char *no_write_help; /**< @brief Don't write database help description.  */
   int measure_flag;	/**< @brief Write usage statistics (default=off).  */
@@ -98,6 +103,10 @@ struct mer_counter_args
   long out_buffer_size_arg;	/**< @brief Size of output buffer per thread (default='20000000').  */
   char * out_buffer_size_orig;	/**< @brief Size of output buffer per thread original value given at command line.  */
   const char *out_buffer_size_help; /**< @brief Size of output buffer per thread help description.  */
+  int lock_flag;	/**< @brief Lock hash in memory (no swapping) (default=off).  */
+  const char *lock_help; /**< @brief Lock hash in memory (no swapping) help description.  */
+  int stream_flag;	/**< @brief Read from stream, not memory map (default=off).  */
+  const char *stream_help; /**< @brief Read from stream, not memory map help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int full_help_given ;	/**< @brief Whether full-help was given.  */
@@ -111,6 +120,7 @@ struct mer_counter_args
   unsigned int both_strands_given ;	/**< @brief Whether both-strands was given.  */
   unsigned int reprobes_given ;	/**< @brief Whether reprobes was given.  */
   unsigned int raw_given ;	/**< @brief Whether raw was given.  */
+  unsigned int both_given ;	/**< @brief Whether both was given.  */
   unsigned int quake_given ;	/**< @brief Whether quake was given.  */
   unsigned int quality_start_given ;	/**< @brief Whether quality-start was given.  */
   unsigned int min_quality_given ;	/**< @brief Whether min-quality was given.  */
@@ -118,11 +128,14 @@ struct mer_counter_args
   unsigned int upper_count_given ;	/**< @brief Whether upper-count was given.  */
   unsigned int matrix_given ;	/**< @brief Whether matrix was given.  */
   unsigned int timing_given ;	/**< @brief Whether timing was given.  */
+  unsigned int stats_given ;	/**< @brief Whether stats was given.  */
   unsigned int no_write_given ;	/**< @brief Whether no-write was given.  */
   unsigned int measure_given ;	/**< @brief Whether measure was given.  */
   unsigned int buffers_given ;	/**< @brief Whether buffers was given.  */
   unsigned int buffer_size_given ;	/**< @brief Whether buffer-size was given.  */
   unsigned int out_buffer_size_given ;	/**< @brief Whether out-buffer-size was given.  */
+  unsigned int lock_given ;	/**< @brief Whether lock was given.  */
+  unsigned int stream_given ;	/**< @brief Whether stream was given.  */
 
   char **inputs ; /**< @brief unamed options (options without names) */
   unsigned inputs_num ; /**< @brief unamed options number */

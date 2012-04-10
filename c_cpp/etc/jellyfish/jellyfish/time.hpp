@@ -43,33 +43,39 @@ class Time {
     }
     return *this;
   }
-  Time &operator+=(const Time &o) {
-    return *this = *this + o;
-  }
 
-  Time operator-(const Time &o) const {
-    time_t sec = tv.tv_sec - o.tv.tv_sec;
-    suseconds_t usec;
+  Time & operator-=(const Time &o) {
+    tv.tv_sec -= o.tv.tv_sec;
     if(o.tv.tv_usec > tv.tv_usec) {
-      usec = (max_useconds + tv.tv_usec) - o.tv.tv_usec;
-      sec--;
+      tv.tv_usec = (max_useconds + tv.tv_usec) - o.tv.tv_usec;
+      --tv.tv_sec;
     } else {
-      usec = tv.tv_usec - o.tv.tv_usec;
+      tv.tv_usec -= o.tv.tv_usec;
     }
-    return Time(sec, usec);
+    return *this;
+  }
+  const Time operator-(const Time &o) const {
+    return Time(*this) -= o;
   }
 
-  Time operator+(const Time &o) const {
-    time_t sec = tv.tv_sec + o.tv.tv_sec;
-    suseconds_t usec = tv.tv_usec + o.tv.tv_usec;
-    if(usec >= max_useconds) {
-      sec++;
-      usec -= max_useconds;
+  Time & operator+=(const Time &o) {
+    tv.tv_sec  += o.tv.tv_sec;
+    tv.tv_usec += o.tv.tv_usec;
+    if(tv.tv_usec >= max_useconds) {
+      ++tv.tv_sec;
+      tv.tv_usec -= max_useconds;
     }
-    return Time(sec, usec);
+    return *this;
+  }
+  const Time operator+(const Time &o) const {
+    return Time(*this) += o;
   }
 
   void now() { gettimeofday(&tv, NULL); }
+  Time elapsed() const {
+    return Time() - *this;
+  }
+
 
   std::string str() const {
     std::ostringstream res;

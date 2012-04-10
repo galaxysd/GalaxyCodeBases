@@ -90,17 +90,20 @@ namespace jellyfish {
       hash     *my_hash;
     
     public:
+      typedef val_t val_type;
       thread(ary_t *_ary, hash *_my_hash) :
         ary(_ary), hsize_mask(ary->get_size() - 1), status(FREE), my_hash(_my_hash)
       { }
 
+      // Add val to the value associated with key. Returns the old
+      // value in *oval if oval is not NULL
       template<typename add_t>
-      inline void add(key_t key, const add_t &val) {
+      inline void add(key_t key, const add_t &val, val_t *oval = 0) {
         while(true) {
           while(atomic::cas(&status, FREE, INUSE) != FREE)
             my_hash->wait_event_is_done();
 
-          if(ary->add(key, val))
+          if(ary->add(key, val, oval))
             break;
 
           // Improve this. Undefined behavior if dump_to_file throws an error.
@@ -114,14 +117,19 @@ namespace jellyfish {
           my_hash->signal_not_in_use();
       }
 
-      inline void inc(key_t key) { return this->add(key, 1); }
-      inline void operator()(key_t key) { return this->add(key, 1); }
+      // void inc(key_t key, val_t *oval = 0) { return this->add(key, (add_t)1, oval); }
+      // inline void operator()(key_t key) { return this->add(key, (val_t)1); }
 
       friend class hash;
     };
     friend class thread;
     typedef std::list<thread> thread_list_t;
-    typedef typename thread_list_t::iterator thread_ptr_t;
+    class thread_ptr_t : public thread_list_t::iterator {
+    public:
+      thread_ptr_t(const typename thread_list_t::iterator &thl) : thread_list_t::iterator(thl) {}
+      typedef val_t val_type;
+    };
+    //    typedef typename thread_list_t::iterator thread_ptr_t;
 
     thread_ptr_t new_thread() { 
       user_thread_lock.lock();
@@ -141,7 +149,7 @@ namespace jellyfish {
       if(dumper)
         dumper->dump();
       else
-        raise(TableFull) << "No dumper defined";
+        eraise(TableFull) << "No dumper defined";
     }
 
   private:

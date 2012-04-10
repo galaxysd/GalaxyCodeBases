@@ -39,6 +39,22 @@ namespace jellyfish {
     define_error_class(ErrorAllocation);
     define_error_class(InvalidMatrix);
 
+    /* Contains an integer, the reprobe limit. It is capped based on
+     * the reprobe strategy to not be bigger than the size of the hash
+     * array.
+     */
+    class reprobe_limit_t {
+      uint_t limit;
+    public:
+      reprobe_limit_t(uint_t _limit, size_t *_reprobes, size_t _size) :
+        limit(_limit)
+      {
+        while(_reprobes[limit] >= _size && limit >= 1)
+          limit--;
+      }
+      inline uint_t val() const { return limit; }
+    };
+
     /* (key,value) pair bit-packed array.  It implements the logic of the
      * packed hash except for size doubling. Setting or incrementing a key
      * will return false if the hash is full. No memory management is done
@@ -58,8 +74,7 @@ namespace jellyfish {
       typedef typename Offsets<word>::offset_t offset_t;
       uint_t             lsize;    // log of size
       size_t             size, size_mask;
-      uint_t             reprobe_limit;
-      uint_t             lreprobe_limit;
+      reprobe_limit_t    reprobe_limit;
       uint_t             key_len;  // original key len
       word               key_mask; // mask for high bits of hash(key)
       uint_t             key_off;  // offset in key field for reprobe value
@@ -83,19 +98,20 @@ namespace jellyfish {
 
       array(size_t _size, uint_t _key_len, uint_t _val_len,
             uint_t _reprobe_limit, size_t *_reprobes) :
-        lsize(ceilLog2(_size)), size(((size_t)1) << lsize), size_mask(size - 1),
-        reprobe_limit(_reprobe_limit), key_len(_key_len),
+        lsize(ceilLog2(_size)), size(((size_t)1) << lsize),
+        size_mask(size - 1),
+        reprobe_limit(_reprobe_limit, _reprobes, size), key_len(_key_len),
         key_mask(key_len <= lsize ? 0 : (((word)1) << (key_len - lsize)) - 1),
         key_off(key_len <= lsize ? 0 : key_len - lsize),
-        offsets(key_off + bitsize(_reprobe_limit + 1), _val_len,
-                _reprobe_limit + 1),
+        offsets(key_off + bitsize(reprobe_limit.val() + 1), _val_len,
+                reprobe_limit.val() + 1),
         mem_block(div_ceil(size, (size_t)offsets.get_block_len()) * offsets.get_block_word_len() * sizeof(word)),
         data((word *)mem_block.get_ptr()), reprobes(_reprobes),
         hash_matrix(key_len), 
         hash_inverse_matrix(hash_matrix.init_random_inverse())
       {
         if(!data)
-          raise(ErrorAllocation) << "Failed to allocate " 
+          eraise(ErrorAllocation) << "Failed to allocate " 
                                  << (div_ceil(size, (size_t)offsets.get_block_len()) * offsets.get_block_word_len() * sizeof(word))
                                  << " bytes of memory";
       }
@@ -105,17 +121,17 @@ namespace jellyfish {
       // array(char *map, size_t length) :
       //   hash_matrix(0), hash_inverse_matrix(0) {
       //   if(length < sizeof(struct header))
-      //     raise(InvalidMap) << "File truncated";
+      //     eraise(InvalidMap) << "File truncated";
       //   struct header *header = (struct header *)map;
       //   size = header->size;
       //   if(size != (1UL << floorLog2(size)))
-      //     raise(InvalidMap) << "Size '" << size << "' is not a power of 2";
+      //     eraise(InvalidMap) << "Size '" << size << "' is not a power of 2";
       //   lsize = ceilLog2(size);
       //   size_mask = size - 1;
       //   reprobe_limit = header->reprobe_limit;
       //   key_len = header->klen;
       //   if(key_len > 64 || key_len == 0)
-      //     raise(InvalidMap) << "Invalid key length '" << key_len << "'";
+      //     eraise(InvalidMap) << "Invalid key length '" << key_len << "'";
       //   offsets.init(key_len + bitsize(reprobe_limit + 1) - lsize, header->clen,
       //                reprobe_limit);
       //   key_mask = (((word)1) << (key_len - lsize)) - 1;
@@ -128,11 +144,11 @@ namespace jellyfish {
       //   // map += sizeof(size_t) * (header->reprobe_limit + 1);
       //   map += hash_matrix.read(map);
       //   if((uint_t)hash_matrix.get_size() != key_len)
-      //     raise(InvalidMatrix) << "Size of hash matrix '" << hash_matrix.get_size() 
+      //     eraise(InvalidMatrix) << "Size of hash matrix '" << hash_matrix.get_size() 
       //                          << "' not equal to key length '" << key_len << "'";
       //   map += hash_inverse_matrix.read(map);
       //   if((uint_t)hash_inverse_matrix.get_size() != key_len)
-      //     raise(InvalidMatrix) << "Size of inverse hash matrix '" << hash_inverse_matrix.get_size()
+      //     eraise(InvalidMatrix) << "Size of inverse hash matrix '" << hash_inverse_matrix.get_size()
       //                          << "' not equal to key length '" << key_len << "'";
       //   if((size_t)map & 0x7)
       //     map += 0x8 - ((size_t)map & 0x7); // Make sure aligned for 64bits word. TODO: use alignof?
@@ -146,20 +162,25 @@ namespace jellyfish {
             SquareBinaryMatrix &_hash_matrix, 
             SquareBinaryMatrix &_hash_inverse_matrix) :
         lsize(ceilLog2(_size)), size(_size), size_mask(size-1),
-        reprobe_limit(_reprobe_limit), key_len(_key_len),
+        reprobe_limit(_reprobe_limit, _reprobes, size), key_len(_key_len),
         key_mask(key_len <= lsize ? 0 : (((word)1) << (key_len - lsize)) - 1),
         key_off(key_len <= lsize ? 0 : key_len - lsize),
-        offsets(key_off + bitsize(_reprobe_limit + 1), _val_len,
-                _reprobe_limit + 1),
+        offsets(key_off + bitsize(reprobe_limit.val() + 1), _val_len,
+                reprobe_limit.val() + 1),
         data((word *)map), reprobes(_reprobes),
         hash_matrix(_hash_matrix), hash_inverse_matrix(_hash_inverse_matrix)
       { }
 
       ~array() { }
 
+      // Lock in memory
+      int lock() {
+        return mem_block.lock();
+      }
+
       void set_matrix(SquareBinaryMatrix &m) {
         if((uint_t)m.get_size() != key_len)
-          raise(InvalidMatrix) << "Size of matrix '" << m.get_size() 
+          eraise(InvalidMatrix) << "Size of matrix '" << m.get_size() 
                                << "' not equal to key length '" << key_len << "'";
         hash_matrix = m;
         hash_inverse_matrix = m.inverse();
@@ -170,9 +191,9 @@ namespace jellyfish {
       uint_t get_key_len() const { return key_len; }
       uint_t get_val_len() const { return offsets.get_val_len(); }
       
-      uint_t get_max_reprobe() const { return reprobe_limit; }
+      uint_t get_max_reprobe() const { return reprobe_limit.val(); }
       size_t get_max_reprobe_offset() const { 
-        return reprobes[reprobe_limit]; 
+        return reprobes[reprobe_limit.val()]; 
       }
 
       
@@ -459,7 +480,7 @@ namespace jellyfish {
         // Resolve value
         reprobe = 0;
         cid = id = (id + reprobes[0]) & size_mask;
-        while(reprobe <= reprobe_limit) {
+        while(reprobe <= reprobe_limit.val()) {
           if(reprobe)
             cid  = (id + reprobes[reprobe]) & size_mask;
 
@@ -539,7 +560,7 @@ namespace jellyfish {
             if(nkey == akey)
               break;
           }
-          if(++reprobe > reprobe_limit)
+          if(++reprobe > reprobe_limit.val())
             return false;
           cid = (id + reprobes[reprobe]) & size_mask;
           akey = key | ((reprobe + 1) << key_off);
@@ -581,7 +602,7 @@ namespace jellyfish {
             }
 
             cid = (bid + reprobes[++reprobe]) & size_mask;
-          } while(reprobe <= reprobe_limit);
+          } while(reprobe <= reprobe_limit.val());
         }
 
         return true;
@@ -590,25 +611,68 @@ namespace jellyfish {
       /**
        * Use hash values as counters
        */
-      inline bool add(word key, word val) {
+      inline bool add(word key, word val, word *oval = 0) {
         uint64_t hash = hash_matrix.times(key);
         return add_rec(hash & size_mask, (hash >> lsize) & key_mask,
-                       val, false);
+                       val, false, oval);
       }
 
-      bool add_rec(size_t id, word key, word val, bool large) {
+      /**
+       * Use hash as a set.
+       */
+      inline bool add(word _key, bool *is_new) __attribute__((deprecated)) {
+	size_t id;
+        return set(_key, is_new, &id);
+      }
+      inline bool set(word _key, bool *is_new) {
+	size_t id;
+	return set(_key, is_new, &id);
+      }
+      bool add(word _key, bool *is_new, size_t *id)  __attribute__((deprecated)) {
+        return set(_key, is_new, id);
+      }
+      bool set(word _key, bool *is_new, size_t *id) {
+        const offset_t *ao;
+        uint64_t hash = hash_matrix.times(_key);
+        word *w;
+        *id = hash & size_mask;
+        return claim_key((hash >> lsize) & key_mask, is_new, id, false,
+                         &ao, &w);
+      }
+
+      void write_ary_header(std::ostream *out) const {
+        hash_matrix.dump(out);
+        hash_inverse_matrix.dump(out);
+      }
+
+      void write_raw(std::ostream *out) const {
+        if(out->tellp() & 0x7) { // Make sure aligned
+          std::string padding(0x8 - (out->tellp() & 0x7), '\0');
+          out->write(padding.c_str(), padding.size());
+        }
+        out->write((char *)mem_block.get_ptr(), mem_block.get_size());
+      }
+
+    private:
+      /* id is input/output. Equal to hash & size_maks on input. Equal
+       * to actual id where key was set on output. key is already hash
+       * shifted and masked to get higher bits. (>> lsize & key_mask)
+       *
+       * is_new is set on output to true if key did not exists in hash
+       * before. *ao points to the actual offsets object.
+       */
+      bool claim_key(const word &key, bool *is_new, size_t *id, bool large,
+                     const offset_t **_ao, word **_w) {
         uint_t		 reprobe     = 0;
         const offset_t	*o, *lo, *ao;
-        word		*w, *kw, *vw, nkey;
+        word		*w, *kw, nkey;
         bool		 key_claimed = false;
-        size_t		 cid         = id;
-        word		 cary;
-        word		 akey        = large ? 0 : (key | ((word)1 << key_off));
+        size_t		 cid         = *id;
+        word		 akey        = large ? 0 :(key | ((word)1 << key_off));
 
-        // Claim key
         do {
-          w = offsets.get_word_offset(cid, &o, &lo, data);
-          ao = large ? lo : o;
+          *_w  = w = offsets.get_word_offset(cid, &o, &lo, data);
+          *_ao = ao = large ? lo : o;
 
           kw = w + ao->key.woff;
 
@@ -625,19 +689,19 @@ namespace jellyfish {
             key_claimed = set_key(kw, nkey, o->key.mask1, ao->key.mask1);
             if(key_claimed) {
               nkey = ((akey >> ao->key.shift) | ao->key.sb_mask2) & ao->key.mask2;
-              key_claimed = key_claimed && set_key(kw + 1, nkey, o->key.mask2, ao->key.mask2);
+              key_claimed = key_claimed && set_key(kw + 1, nkey, o->key.mask2, ao->key.mask2, is_new);
             }
           } else { // key on one word
             nkey = akey << ao->key.boff;
             if(large)
               nkey |= ao->key.lb_mask;
             nkey &= ao->key.mask1;
-            key_claimed = set_key(kw, nkey, o->key.mask1, ao->key.mask1);
+            key_claimed = set_key(kw, nkey, o->key.mask1, ao->key.mask1, is_new);
           }
           if(!key_claimed) { // reprobe
-            if(++reprobe > reprobe_limit)
+            if(++reprobe > reprobe_limit.val())
               return false;
-            cid = (id + reprobes[reprobe]) & size_mask;
+            cid = (*id + reprobes[reprobe]) & size_mask;
 
             if(large)
               akey = reprobe;
@@ -646,17 +710,31 @@ namespace jellyfish {
           }
         } while(!key_claimed);
 
+        *id = cid;
+        return true;
+      }
+
+      bool add_rec(size_t id, word key, word val, bool large, word *oval) {
+        const offset_t	*ao;
+        word		*w;
+
+        bool is_new = false;
+        if(!claim_key(key, &is_new, &id, large, &ao, &w))
+          return false;
+        if(oval)
+          *oval = !is_new;
+
         // Increment value
-        vw = w + ao->val.woff;
-        cary = add_val(vw, val, ao->val.boff, ao->val.mask1);
+        word *vw = w + ao->val.woff;
+        word cary = add_val(vw, val, ao->val.boff, ao->val.mask1);
         cary >>= ao->val.shift;
         if(cary && ao->val.mask2) { // value split on two words
           cary = add_val(vw + 1, cary, 0, ao->val.mask2);
           cary >>= ao->val.cshift;
         }
         if(cary) {
-          cid = (cid + reprobes[0]) & size_mask;
-          if(add_rec(cid, key, cary, true))
+          id = (id + reprobes[0]) & size_mask;
+          if(add_rec(id, key, cary, true, 0))
             return true;
 
           // Adding failed, table is full. Need to back-track and
@@ -675,79 +753,6 @@ namespace jellyfish {
         return true;
       }
 
-      /**
-       * Use hash as a set.
-       */
-      inline bool add(word _key, bool *is_new) {
-	size_t id;
-	return add(_key, is_new, &id);
-      }
-
-      bool add(word _key, bool *is_new, size_t *id) {
-        uint64_t hash = hash_matrix.times(_key);
-        *id = hash & size_mask;
-        word key = (hash >> lsize) & key_mask;
-
-        // TODO: Lots of copy from other add. Factorize.
-        uint_t		 reprobe     = 0;
-        const offset_t	*o, *lo, *ao;
-        word		*w, *kw, nkey;
-        bool		 key_claimed = false;
-        size_t		 cid         = *id;
-        word		 akey        = key | ((word)1 << key_off);
-
-        // Claim key
-        do {
-          w = offsets.get_word_offset(cid, &o, &lo, data);
-          ao = o;
-
-          kw = w + ao->key.woff;
-
-          if(ao->key.mask2) { // key split on two words
-            nkey = akey << ao->key.boff;
-            nkey |= ao->key.sb_mask1;
-            nkey &= ao->key.mask1;
-
-            // Use o->key.mask1 and not ao->key.mask1 as the first one is
-            // guaranteed to be bigger. The key needs to be free on its
-            // longer mask to claim it!
-            key_claimed = set_key(kw, nkey, o->key.mask1, ao->key.mask1);
-            if(key_claimed) {
-              nkey = ((akey >> ao->key.shift) | ao->key.sb_mask2) & ao->key.mask2;
-              key_claimed = key_claimed && set_key(kw + 1, nkey, o->key.mask2, ao->key.mask2, is_new);
-            }
-          } else { // key on one word
-            nkey = akey << ao->key.boff;
-            nkey &= ao->key.mask1;
-            key_claimed = set_key(kw, nkey, o->key.mask1, ao->key.mask1, is_new);
-          }
-          if(!key_claimed) { // reprobe
-            if(++reprobe > reprobe_limit)
-              return false;
-            cid = (*id + reprobes[reprobe]) & size_mask;
-
-            akey = key | ((reprobe + 1) << key_off);
-          }
-        } while(!key_claimed);
-
-        *id = cid;
-        return true;
-      }
-
-      void write_ary_header(std::ostream *out) const {
-        hash_matrix.dump(out);
-        hash_inverse_matrix.dump(out);
-      }
-
-      void write_raw(std::ostream *out) const {
-        if(out->tellp() & 0x7) { // Make sure aligned
-          std::string padding(0x8 - (out->tellp() & 0x7), '\0');
-          out->write(padding.c_str(), padding.size());
-        }
-        out->write((char *)mem_block.get_ptr(), mem_block.get_size());
-      }
-
-    private:
       inline bool set_key(word *w, word nkey, word free_mask, 
                           word equal_mask) {
         word ow = *w, nw, okey;

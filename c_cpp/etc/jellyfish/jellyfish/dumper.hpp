@@ -33,27 +33,29 @@ namespace jellyfish {
     define_error_class(ErrorWriting);
 
   protected:
-    void open_next_file(const char *prefix, int &index, std::ofstream &out) {
+    void open_next_file(const char *prefix, int *index, std::ofstream &out) {
       static const long file_len = pathconf("/", _PC_PATH_MAX);
 
       char file[file_len + 1];
       file[file_len] = '\0';
       int off = snprintf(file, file_len, "%s", prefix);
       if(off < 0)
-        raise(ErrorWriting) << "Error creating output path" << err::no;
+        eraise(ErrorWriting) << "Error creating output path" << err::no;
       if(off > 0 && off < file_len) {
-        int _off = snprintf(file + off, file_len - off, "_%d", index++);
+        int eindex = atomic::gcc::fetch_add(index, (int)1);
+        int _off = snprintf(file + off, file_len - off, "_%d", eindex);
         if(_off < 0)
-          raise(ErrorWriting) << "Error creating output path" << err::no;
+          eraise(ErrorWriting) << "Error creating output path" << err::no;
         off += _off;
       }
       if(off >= file_len)
-        raise(ErrorWriting) << "Output path is longer than maximum path length (" 
+        eraise(ErrorWriting) << "Output path is longer than maximum path length (" 
                             << off << " > " << file_len << ")";
       
       out.open(file);
       if(out.fail())
-        raise(ErrorWriting) << "Can't open file '" << (char*)file << "' for writing" << err::no;
+        eraise(ErrorWriting) << "'" << (char*)file << "': "
+                             << "Can't open file for writing" << err::no;
     }
 
   public:

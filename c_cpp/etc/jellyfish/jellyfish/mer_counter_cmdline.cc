@@ -44,6 +44,7 @@ const char *mer_counter_args_full_help[] = {
   "  -C, --both-strands            Count both strand, canonical representation  \n                                  (default=off)",
   "  -p, --reprobes=INT            Maximum number of reprobes  (default=`62')",
   "  -r, --raw                     Write raw database  (default=off)",
+  "      --both                    Write list and raw database  (default=off)",
   "  -q, --quake                   Quake compatibility mode  (default=off)",
   "      --quality-start=INT       Starting ASCII for quality values  \n                                  (default=`64')",
   "      --min-quality=INT         Minimum quality. A base with lesser quality \n                                  becomes an N  (default=`0')",
@@ -51,11 +52,14 @@ const char *mer_counter_args_full_help[] = {
   "  -U, --upper-count=LONG        Don't output k-mer with count > upper-count",
   "      --matrix=Matrix file      Hash function binary matrix",
   "      --timing=Timing file      Print timing information",
+  "      --stats=Stats file        Print stats",
   "  -w, --no-write                Don't write database  (default=off)",
   "  -u, --measure                 Write usage statistics  (default=off)",
   "      --buffers=LONG            Number of buffers per thread",
   "      --buffer-size=LONG        Size of buffers  (default=`8192')",
   "      --out-buffer-size=LONG    Size of output buffer per thread  \n                                  (default=`20000000')",
+  "      --lock                    Lock hash in memory (no swapping)  \n                                  (default=off)",
+  "      --stream                  Read from stream, not memory map  (default=off)",
     0
 };
 
@@ -74,18 +78,19 @@ init_help_array(void)
   mer_counter_args_help[9] = mer_counter_args_full_help[9];
   mer_counter_args_help[10] = mer_counter_args_full_help[10];
   mer_counter_args_help[11] = mer_counter_args_full_help[11];
-  mer_counter_args_help[12] = mer_counter_args_full_help[12];
-  mer_counter_args_help[13] = mer_counter_args_full_help[13];
-  mer_counter_args_help[14] = mer_counter_args_full_help[14];
-  mer_counter_args_help[15] = mer_counter_args_full_help[15];
-  mer_counter_args_help[16] = mer_counter_args_full_help[16];
-  mer_counter_args_help[17] = mer_counter_args_full_help[17];
-  mer_counter_args_help[18] = mer_counter_args_full_help[18];
-  mer_counter_args_help[19] = 0; 
+  mer_counter_args_help[12] = mer_counter_args_full_help[13];
+  mer_counter_args_help[13] = mer_counter_args_full_help[14];
+  mer_counter_args_help[14] = mer_counter_args_full_help[15];
+  mer_counter_args_help[15] = mer_counter_args_full_help[16];
+  mer_counter_args_help[16] = mer_counter_args_full_help[17];
+  mer_counter_args_help[17] = mer_counter_args_full_help[18];
+  mer_counter_args_help[18] = mer_counter_args_full_help[19];
+  mer_counter_args_help[19] = mer_counter_args_full_help[20];
+  mer_counter_args_help[20] = 0; 
   
 }
 
-const char *mer_counter_args_help[20];
+const char *mer_counter_args_help[21];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -124,6 +129,7 @@ void clear_given (struct mer_counter_args *args_info)
   args_info->both_strands_given = 0 ;
   args_info->reprobes_given = 0 ;
   args_info->raw_given = 0 ;
+  args_info->both_given = 0 ;
   args_info->quake_given = 0 ;
   args_info->quality_start_given = 0 ;
   args_info->min_quality_given = 0 ;
@@ -131,11 +137,14 @@ void clear_given (struct mer_counter_args *args_info)
   args_info->upper_count_given = 0 ;
   args_info->matrix_given = 0 ;
   args_info->timing_given = 0 ;
+  args_info->stats_given = 0 ;
   args_info->no_write_given = 0 ;
   args_info->measure_given = 0 ;
   args_info->buffers_given = 0 ;
   args_info->buffer_size_given = 0 ;
   args_info->out_buffer_size_given = 0 ;
+  args_info->lock_given = 0 ;
+  args_info->stream_given = 0 ;
 }
 
 static
@@ -156,6 +165,7 @@ void clear_args (struct mer_counter_args *args_info)
   args_info->reprobes_arg = 62;
   args_info->reprobes_orig = NULL;
   args_info->raw_flag = 0;
+  args_info->both_flag = 0;
   args_info->quake_flag = 0;
   args_info->quality_start_arg = 64;
   args_info->quality_start_orig = NULL;
@@ -167,6 +177,8 @@ void clear_args (struct mer_counter_args *args_info)
   args_info->matrix_orig = NULL;
   args_info->timing_arg = NULL;
   args_info->timing_orig = NULL;
+  args_info->stats_arg = NULL;
+  args_info->stats_orig = NULL;
   args_info->no_write_flag = 0;
   args_info->measure_flag = 0;
   args_info->buffers_orig = NULL;
@@ -174,6 +186,8 @@ void clear_args (struct mer_counter_args *args_info)
   args_info->buffer_size_orig = NULL;
   args_info->out_buffer_size_arg = 20000000;
   args_info->out_buffer_size_orig = NULL;
+  args_info->lock_flag = 0;
+  args_info->stream_flag = 0;
   
 }
 
@@ -194,18 +208,22 @@ void init_args_info(struct mer_counter_args *args_info)
   args_info->both_strands_help = mer_counter_args_full_help[9] ;
   args_info->reprobes_help = mer_counter_args_full_help[10] ;
   args_info->raw_help = mer_counter_args_full_help[11] ;
-  args_info->quake_help = mer_counter_args_full_help[12] ;
-  args_info->quality_start_help = mer_counter_args_full_help[13] ;
-  args_info->min_quality_help = mer_counter_args_full_help[14] ;
-  args_info->lower_count_help = mer_counter_args_full_help[15] ;
-  args_info->upper_count_help = mer_counter_args_full_help[16] ;
-  args_info->matrix_help = mer_counter_args_full_help[17] ;
-  args_info->timing_help = mer_counter_args_full_help[18] ;
-  args_info->no_write_help = mer_counter_args_full_help[19] ;
-  args_info->measure_help = mer_counter_args_full_help[20] ;
-  args_info->buffers_help = mer_counter_args_full_help[21] ;
-  args_info->buffer_size_help = mer_counter_args_full_help[22] ;
-  args_info->out_buffer_size_help = mer_counter_args_full_help[23] ;
+  args_info->both_help = mer_counter_args_full_help[12] ;
+  args_info->quake_help = mer_counter_args_full_help[13] ;
+  args_info->quality_start_help = mer_counter_args_full_help[14] ;
+  args_info->min_quality_help = mer_counter_args_full_help[15] ;
+  args_info->lower_count_help = mer_counter_args_full_help[16] ;
+  args_info->upper_count_help = mer_counter_args_full_help[17] ;
+  args_info->matrix_help = mer_counter_args_full_help[18] ;
+  args_info->timing_help = mer_counter_args_full_help[19] ;
+  args_info->stats_help = mer_counter_args_full_help[20] ;
+  args_info->no_write_help = mer_counter_args_full_help[21] ;
+  args_info->measure_help = mer_counter_args_full_help[22] ;
+  args_info->buffers_help = mer_counter_args_full_help[23] ;
+  args_info->buffer_size_help = mer_counter_args_full_help[24] ;
+  args_info->out_buffer_size_help = mer_counter_args_full_help[25] ;
+  args_info->lock_help = mer_counter_args_full_help[26] ;
+  args_info->stream_help = mer_counter_args_full_help[27] ;
   
 }
 
@@ -314,6 +332,8 @@ mer_counter_cmdline_release (struct mer_counter_args *args_info)
   free_string_field (&(args_info->matrix_orig));
   free_string_field (&(args_info->timing_arg));
   free_string_field (&(args_info->timing_orig));
+  free_string_field (&(args_info->stats_arg));
+  free_string_field (&(args_info->stats_orig));
   free_string_field (&(args_info->buffers_orig));
   free_string_field (&(args_info->buffer_size_orig));
   free_string_field (&(args_info->out_buffer_size_orig));
@@ -376,6 +396,8 @@ mer_counter_cmdline_dump(FILE *outfile, struct mer_counter_args *args_info)
     write_into_file(outfile, "reprobes", args_info->reprobes_orig, 0);
   if (args_info->raw_given)
     write_into_file(outfile, "raw", 0, 0 );
+  if (args_info->both_given)
+    write_into_file(outfile, "both", 0, 0 );
   if (args_info->quake_given)
     write_into_file(outfile, "quake", 0, 0 );
   if (args_info->quality_start_given)
@@ -390,6 +412,8 @@ mer_counter_cmdline_dump(FILE *outfile, struct mer_counter_args *args_info)
     write_into_file(outfile, "matrix", args_info->matrix_orig, 0);
   if (args_info->timing_given)
     write_into_file(outfile, "timing", args_info->timing_orig, 0);
+  if (args_info->stats_given)
+    write_into_file(outfile, "stats", args_info->stats_orig, 0);
   if (args_info->no_write_given)
     write_into_file(outfile, "no-write", 0, 0 );
   if (args_info->measure_given)
@@ -400,6 +424,10 @@ mer_counter_cmdline_dump(FILE *outfile, struct mer_counter_args *args_info)
     write_into_file(outfile, "buffer-size", args_info->buffer_size_orig, 0);
   if (args_info->out_buffer_size_given)
     write_into_file(outfile, "out-buffer-size", args_info->out_buffer_size_orig, 0);
+  if (args_info->lock_given)
+    write_into_file(outfile, "lock", 0, 0 );
+  if (args_info->stream_given)
+    write_into_file(outfile, "stream", 0, 0 );
   
 
   i = EXIT_SUCCESS;
@@ -704,6 +732,7 @@ mer_counter_cmdline_internal (
         { "both-strands",	0, NULL, 'C' },
         { "reprobes",	1, NULL, 'p' },
         { "raw",	0, NULL, 'r' },
+        { "both",	0, NULL, 0 },
         { "quake",	0, NULL, 'q' },
         { "quality-start",	1, NULL, 0 },
         { "min-quality",	1, NULL, 0 },
@@ -711,11 +740,14 @@ mer_counter_cmdline_internal (
         { "upper-count",	1, NULL, 'U' },
         { "matrix",	1, NULL, 0 },
         { "timing",	1, NULL, 0 },
+        { "stats",	1, NULL, 0 },
         { "no-write",	0, NULL, 'w' },
         { "measure",	0, NULL, 'u' },
         { "buffers",	1, NULL, 0 },
         { "buffer-size",	1, NULL, 0 },
         { "out-buffer-size",	1, NULL, 0 },
+        { "lock",	0, NULL, 0 },
+        { "stream",	0, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
@@ -903,6 +935,18 @@ mer_counter_cmdline_internal (
               goto failure;
           
           }
+          /* Write list and raw database.  */
+          else if (strcmp (long_options[option_index].name, "both") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->both_flag), 0, &(args_info->both_given),
+                &(local_args_info.both_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "both", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Starting ASCII for quality values.  */
           else if (strcmp (long_options[option_index].name, "quality-start") == 0)
           {
@@ -959,6 +1003,20 @@ mer_counter_cmdline_internal (
               goto failure;
           
           }
+          /* Print stats.  */
+          else if (strcmp (long_options[option_index].name, "stats") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->stats_arg), 
+                 &(args_info->stats_orig), &(args_info->stats_given),
+                &(local_args_info.stats_given), optarg, 0, 0, ARG_STRING,
+                check_ambiguity, override, 0, 0,
+                "stats", '-',
+                additional_error))
+              goto failure;
+          
+          }
           /* Number of buffers per thread.  */
           else if (strcmp (long_options[option_index].name, "buffers") == 0)
           {
@@ -997,6 +1055,30 @@ mer_counter_cmdline_internal (
                 &(local_args_info.out_buffer_size_given), optarg, 0, "20000000", ARG_LONG,
                 check_ambiguity, override, 0, 0,
                 "out-buffer-size", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Lock hash in memory (no swapping).  */
+          else if (strcmp (long_options[option_index].name, "lock") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->lock_flag), 0, &(args_info->lock_given),
+                &(local_args_info.lock_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "lock", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Read from stream, not memory map.  */
+          else if (strcmp (long_options[option_index].name, "stream") == 0)
+          {
+          
+          
+            if (update_arg((void *)&(args_info->stream_flag), 0, &(args_info->stream_given),
+                &(local_args_info.stream_given), optarg, 0, 0, ARG_FLAG,
+                check_ambiguity, override, 1, 0, "stream", '-',
                 additional_error))
               goto failure;
           

@@ -17,7 +17,13 @@
 #ifndef __JELLYFISH_CAPPED_INTEGER_HPP__
 #define __JELLYFISH_CAPPED_INTEGER_HPP__
 
+#include <iostream>
+
 namespace jellyfish {
+  template<typename T> class capped_integer;
+  template<typename T>
+  std::ostream &operator<<(std::ostream &os, const capped_integer<T> &i);
+
   template<typename T>
   class capped_integer {
     T x;
@@ -38,7 +44,17 @@ namespace jellyfish {
 
     bits_t bits() const { return x; }
     float to_float() const { return (float)x; }
+   
+    bool operator==(const capped_integer &o) { return x == o.x; }
+    
+    friend std::ostream &operator<< <> (std::ostream &os, 
+                                        const capped_integer<T> &i);
   };
+
+  template<typename T>
+  std::ostream &operator<<(std::ostream &os, const capped_integer<T> &i) {
+    return os << i.x;
+  }
 }
 
 #endif

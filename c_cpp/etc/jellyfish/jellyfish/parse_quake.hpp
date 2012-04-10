@@ -19,35 +19,28 @@
 
 #include <iostream>
 #include <vector>
-#include <jellyfish/concurrent_queues.hpp>
-#include <jellyfish/atomic_gcc.hpp>
+#include <jellyfish/double_fifo_input.hpp>
 #include <jellyfish/misc.hpp>
-#include <jellyfish/file_parser.hpp>
+#include <jellyfish/seq_qual_parser.hpp>
 #include <jellyfish/circular_buffer.hpp>
+#include <jellyfish/floats.hpp>
+#include <jellyfish/allocators_mmap.hpp>
 
 namespace jellyfish {
-  class parse_quake {
-    struct seq {
-      char *start;
-      char *end;
-    };
-    typedef concurrent_queue<struct seq> seq_queue;
+  class parse_quake : public double_fifo_input<seq_qual_parser::sequence_t> {
     typedef std::vector<const char *> fary_t;
 
-    seq_queue               rq, wq;
     uint_t                  mer_len;
-    uint64_t volatile       reader;
     size_t                  buffer_size;
     fary_t                  files;
     fary_t::const_iterator  current_file;
     bool                    have_seam;
-    const char              quality_start;
-    char                   *buffer_data;
+    allocators::mmap        buffer_data;
     struct seq             *buffers;
     char                   *seam;
+    const char              quality_start;
     bool                    canonical;
-    std::ifstream           fd;
-    jellyfish::file_parser *fparser;
+    seq_qual_parser        *fparser;
 
   public:
     /* Action to take for a given letter in fasta file:
@@ -65,47 +58,42 @@ namespace jellyfish {
                 unsigned int nb_buffers, size_t _buffer_size,
                 const char _qs); 
 
-    ~parse_quake() {
-      delete [] buffers;
-    }
+    ~parse_quake() { }
 
     void set_canonical(bool v = true) { canonical = v; }
-
+    virtual void fill();
+    
     class thread {
       parse_quake            *parser;
-      struct seq             *sequence;
+      bucket_t               *sequence;
       const uint_t            mer_len, lshift;
       uint64_t                kmer, rkmer;
       const uint64_t          masq;
       uint_t                  cmlen;
-      seq_queue              *rq;
-      seq_queue              *wq;
       const bool              canonical;
       circular_buffer<float>  quals;
       const char              quality_start;
+      uint64_t                distinct, total;
 
     public:
       thread(parse_quake *_parser, const char _qs) :
         parser(_parser), sequence(0),
         mer_len(_parser->mer_len), lshift(2 * (mer_len - 1)),
         kmer(0), rkmer(0), masq((1UL << (2 * mer_len)) - 1),
-        cmlen(0), rq(&parser->rq), wq(&parser->wq),
-        canonical(parser->canonical), quals(mer_len),
-        quality_start(_qs) { }
+        cmlen(0), canonical(parser->canonical), quals(mer_len),
+        quality_start(_qs),
+        distinct(0), total(0) { }
+
+      uint64_t get_distinct() const { return distinct; }
+      uint64_t get_total() const { return total; }
 
       template<typename T>
       void parse(T &counter) {
         cmlen = kmer = rkmer = 0;
-        while(true) {
-          while(!sequence) {
-            if(!next_sequence())
-              return;
-          }
+        while((sequence = parser->next())) {
           const char         *start = sequence->start;
           const char * const  end   = sequence->end;
           while(start < end) {
-            // std::cerr << *start << " " << *(start + 1) << " "
-            //           << (void*)start << " " << (void*)end << std::endl;
             const uint_t c = codes[(uint_t)*start++];
             const char   q = *start++;
             switch(c) {
@@ -120,39 +108,25 @@ namespace jellyfish {
               quals.append(one_minus_p);
               if(++cmlen >= mer_len) {
                 cmlen  = mer_len;
+                Float oval;
                 if(canonical)
-                  counter->add(kmer < rkmer ? kmer : rkmer, quals.prod());
+                  counter->add(kmer < rkmer ? kmer : rkmer, quals.prod(), &oval);
                 else
-                  counter->add(kmer, quals.prod());
+                  counter->add(kmer, quals.prod(), &oval);
+                distinct += oval == (Float)0.0f;
+                ++total;
               }
             }
           }
 
           // Buffer exhausted. Get a new one
           cmlen = kmer = rkmer = 0;
-          wq->enqueue(sequence);
-          sequence = 0;
+          parser->release(sequence);
         }
       }
-
-
-    private:
-      bool next_sequence();
     };
     friend class thread;
     thread new_thread() { return thread(this, quality_start); }
-
-  private:
-    void _read_sequence();
-    void read_sequence() {
-      static struct timespec time_sleep = { 0, 10000000 };
-      if(!__sync_bool_compare_and_swap(&reader, 0, 1)) {
-        nanosleep(&time_sleep, NULL);
-        return;
-      }
-      _read_sequence();
-      reader = 0;
-    }
   };
 }
 

@@ -18,6 +18,7 @@
 #define __JELLYFISH_FLOATS_HPP__
 
 #include <stdint.h>
+#include <iostream>
 #ifdef HALF_FLOATS
 #include <jellyfish/half.h>
 #endif
@@ -44,18 +45,23 @@ namespace jellyfish {
 
   public:
     Float() : v(0.0f) {}
+    Float(int _v) : v((bits_t)_v) {}
     Float(float_t _v) : v(_v) {}
     Float(bits_t _v) : v(_v) {}
 
-    static const Float zero;
-    static const Float one;
+    // static const Float zero;
+    // static const Float one;
 
-    const Float operator+(const Float y) const {
+    const Float operator+(const Float &y) const {
       return Float(v.fv + y.v.fv);
     }
 
     bits_t bits() const { return v.iv; };
     float_t to_float() const { return v.fv; };
+
+    // Should we use the floating point ==?
+    bool operator==(Float o) { return v.iv == o.v.iv; }
+    friend std::ostream &operator<<(std::ostream &os, const Float &f);
   };
 }
 

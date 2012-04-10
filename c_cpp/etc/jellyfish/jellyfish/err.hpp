@@ -44,6 +44,7 @@ namespace err {
     }
   };
   static const no_t no;
+  std::ostream &operator<<(std::ostream &os, const err::no_t &x);
 
   class substr {
     const char  *_s;
@@ -58,7 +59,7 @@ namespace err {
     int _errno;
   public:
     die_t() : _code(1), _errno(errno) {}
-    die_t(int c) : _code(c) {}
+    die_t(int c) : _code(c), _errno(errno) {}
     ~die_t() {
       std::cerr << std::endl;
       exit(_code);
@@ -110,7 +111,7 @@ namespace err {
 
 
 #define die if(1) err::die_t()
-#define raise(e) if(1) err::raise_t<e>()
+#define eraise(e) if(1) err::raise_t<e>()
 #define define_error_class(name)                                    \
   class name : public std::runtime_error {                          \
   public: name(const std::string &txt) : std::runtime_error(txt) {} \

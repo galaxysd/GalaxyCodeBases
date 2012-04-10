@@ -87,14 +87,25 @@ namespace jellyfish {
       }
 
       template<typename add_t>
-      bool add(key_t key, const add_t &val) {
+      bool add(key_t key, const add_t &val, val_t *oval = 0) {
         bool   is_new;
         size_t id;
         
-        if(!keys.add(key, &is_new, &id))
+        if(!keys.set(key, &is_new, &id))
           return false;
 
-        vals.add(id, val);
+        vals.add(id, val, oval);
+        return true;
+      }
+
+      bool get_val(key_t key, val_t &val, bool full = true) const {
+        key_t  v_ignore;
+        size_t key_id;
+
+        if(!keys.get_val(key, key_id, v_ignore, false))
+          return false;
+
+        vals.get_val(key_id, val);
         return true;
       }
 
