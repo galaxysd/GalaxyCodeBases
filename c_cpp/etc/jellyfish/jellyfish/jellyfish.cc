@@ -18,11 +18,11 @@
 #include <iostream>
 #include <string>
 #include <string.h>
-#include "misc.hpp"
+#include <jellyfish/misc.hpp>
 
-const char *argp_program_version = "jellyfish 1.0rc1";
+const char *argp_program_version = PACKAGE_STRING;
 const char *argp_program_bug_address = 
-  "<guillaume@marcais.net> <carlk@umiacs.umd.edu>";
+  "<gus@umd.edu> <carlk@umiacs.umd.edu>";
 
 typedef int (main_func_t)(int argc, char *argv[]);
 
@@ -31,6 +31,7 @@ main_func_t stats_main;
 main_func_t merge_main;
 main_func_t histo_main;
 main_func_t query_main;
+main_func_t cite_main;
 main_func_t sos;
 main_func_t version;
 
@@ -44,6 +45,7 @@ cmd_func cmd_list[] = {
   {"merge",             &merge_main},
   {"histo",             &histo_main},
   {"query",             &query_main},
+  {"cite",              &cite_main},
 
   /* help in all its form. Must be first non-command */
   {"help",              &sos},

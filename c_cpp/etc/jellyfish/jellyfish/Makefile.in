@@ -116,7 +116,7 @@ am_jellyfish_OBJECTS = jellyfish.$(OBJEXT) \
 	storage.$(OBJEXT) misc.$(OBJEXT) mer_counter.$(OBJEXT) \
 	histogram.$(OBJEXT) time.$(OBJEXT) thread_exec.$(OBJEXT) \
 	query_main.$(OBJEXT) square_binary_matrix.$(OBJEXT) \
-	fasta_parser.$(OBJEXT)
+	fasta_parser.$(OBJEXT) cite.$(OBJEXT)
 jellyfish_OBJECTS = $(am_jellyfish_OBJECTS)
 jellyfish_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -683,7 +683,7 @@ AM_LDFLAGS = -lpthread
 AM_CPPFLAGS = -Wall -Werror -g -O2 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -I$(top_srcdir)
 jellyfish_SOURCES = jellyfish.cc dump_stats_compacted.cc hash_merge.cc	\
 storage.cc misc.cc mer_counter.cc histogram.cc time.cc thread_exec.cc	\
-query_main.cc square_binary_matrix.cc fasta_parser.cc
+query_main.cc square_binary_matrix.cc fasta_parser.cc cite.cc
 
 # jellyfish_CPPFLAGS = $(AM_CPPFLAGS)
 lib_LTLIBRARIES = libjellyfish-1.0.la
@@ -840,6 +840,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dump_stats_compacted.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fasta_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_sequence.Po@am__quote@

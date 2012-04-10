@@ -18,7 +18,7 @@ bin_PROGRAMS = jellyfish
 
 jellyfish_SOURCES = jellyfish.cc dump_stats_compacted.cc hash_merge.cc	\
 storage.cc misc.cc mer_counter.cc histogram.cc time.cc thread_exec.cc	\
-query_main.cc square_binary_matrix.cc fasta_parser.cc
+query_main.cc square_binary_matrix.cc fasta_parser.cc cite.cc
 # jellyfish_CPPFLAGS = $(AM_CPPFLAGS)
 
 

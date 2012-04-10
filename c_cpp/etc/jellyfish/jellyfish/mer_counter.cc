@@ -162,13 +162,9 @@ public:
   void start(int id) {
     sync_barrier.wait();
     
-    try {
-      typename parser_t::thread     mer_stream(parser->new_thread());
-      typename hash_t::thread_ptr_t counter(hash->new_thread());
-      mer_stream.parse(counter);
-    } catch(exception &e) {
-      std::cerr << "Thread " << id << " error: " << e.what() << std::endl;
-    }
+    typename parser_t::thread     mer_stream(parser->new_thread());
+    typename hash_t::thread_ptr_t counter(hash->new_thread());
+    mer_stream.parse(counter);
     
     bool is_serial = sync_barrier.wait() == PTHREAD_BARRIER_SERIAL_THREAD;
     if(is_serial)
@@ -176,11 +172,7 @@ public:
   }
   
   void count() {
-    try {
-      exec_join(arguments.nb_threads);
-    } catch(exception e) {
-      die(e.what());
-    }
+    exec_join(arguments.nb_threads);
   }
 
   Time get_writing_time() { return hash->get_writing_time(); }
