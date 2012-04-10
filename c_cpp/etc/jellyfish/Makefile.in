@@ -37,7 +37,7 @@ host_triplet = @host@
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
-	$(srcdir)/jellyfish-1.0.pc.in $(top_srcdir)/configure \
+	$(srcdir)/jellyfish-1.1.pc.in $(top_srcdir)/configure \
 	config.guess config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
@@ -73,7 +73,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = jellyfish-1.0.pc
+CONFIG_CLEAN_FILES = jellyfish-1.1.pc
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -490,6 +490,7 @@ LN_S = @LN_S@
 LTLIBINTL = @LTLIBINTL@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
+MD5 = @MD5@
 MKDIR_P = @MKDIR_P@
 NEXT_AS_FIRST_DIRECTIVE_ERRNO_H = @NEXT_AS_FIRST_DIRECTIVE_ERRNO_H@
 NEXT_AS_FIRST_DIRECTIVE_FLOAT_H = @NEXT_AS_FIRST_DIRECTIVE_FLOAT_H@
@@ -694,18 +695,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = m4/gnulib-cache.m4 doc/jellyfish.pdf doc/jellyfish.man README LICENSE
+EXTRA_DIST = m4/gnulib-cache.m4 doc/jellyfish.pdf doc/jellyfish.man README LICENSE HalfLICENSE
 man1_MANS = doc/jellyfish.man
 
 #AM_CPPFLAGS = -I$(top_builddir)/gnulib -I$(top_srcdir)/gnulib 
-
-#if MACOSX
-#SUBDIRS = gnulib jellyfish
-#else
 SUBDIRS = jellyfish tests
-#endif
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = jellyfish-1.0.pc
+pkgconfig_DATA = jellyfish-$(PACKAGE_VERSION).pc
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -761,7 +757,7 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
-jellyfish-1.0.pc: $(top_builddir)/config.status $(srcdir)/jellyfish-1.0.pc.in
+jellyfish-1.1.pc: $(top_builddir)/config.status $(srcdir)/jellyfish-1.1.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:

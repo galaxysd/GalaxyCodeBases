@@ -26,6 +26,7 @@
 #include <sys/mman.h>
 #include <jellyfish/mapped_file.hpp>
 #include <jellyfish/locks_pthread.hpp>
+#include <jellyfish/err.hpp>
 #include <jellyfish/misc.hpp>
 #include <jellyfish/square_binary_matrix.hpp>
 #include <jellyfish/dumper.hpp>
@@ -44,36 +45,23 @@ namespace jellyfish {
     virtual ~hash_t() {}
   };
 
-  template<typename key_t, typename val_t, typename ary_t, typename atomic_t>
+  template<typename key_t, typename val_t, typename ary_t, typename atomic>
   class hash : public hash_t {
   public:
     define_error_class(TableFull);
-    typedef typename std::pair<key_t,val_t> kv_t;
+    //    typedef typename std::pair<key_t,val_t> kv_t;
     typedef ary_t storage_t;
     typedef typename ary_t::iterator iterator;
 
-    hash() : ary(NULL), dumper(NULL) {}
-    hash(ary_t *_ary) : ary(_ary), dumper(NULL) {}
-    hash(char *map, size_t length) : 
-      ary(new ary_t(map, length)),
-      dumper(NULL) { }
-    hash(const char *filename, bool sequential) {
-      dumper = NULL;
-      open(filename, sequential);
-    }
+    hash() : ary(NULL), dumper(NULL), dumping_initiated(false) {}
+    hash(ary_t *_ary) : ary(_ary), dumper(NULL), dumping_initiated(false) {}
 
     virtual ~hash() {}
-
-    void open(const char *filename, bool sequential) {
-      mapped_file mf(filename);
-      if(sequential)
-        mf.sequential();
-      ary = new ary_t(mf.base(), mf.length());
-    }
 
     size_t get_size() const { return ary->get_size(); }
     uint_t get_key_len() const { return ary->get_key_len(); }
     uint_t get_val_len() const { return ary->get_val_len(); }
+    uint_t get_max_reprobe() const { return ary->get_max_reprobe(); }
     size_t get_max_reprobe_offset() const { return ary->get_max_reprobe_offset(); }
     
     void set_dumper(dumper_t *new_dumper) { dumper = new_dumper; }
@@ -85,8 +73,8 @@ namespace jellyfish {
 
     void write_raw(std::ostream &out) { ary->write_raw(out); }
 
-    iterator iterator_all() { return ary->iterator_all(); }
-    iterator iterator_slice(size_t slice_number, size_t number_of_slice) {
+    iterator iterator_all() const { return ary->iterator_all(); }
+    iterator iterator_slice(size_t slice_number, size_t number_of_slice) const {
       return ary->iterator_slice(slice_number, number_of_slice);
     }
 
@@ -95,21 +83,21 @@ namespace jellyfish {
      */
     enum status_t { FREE, INUSE, BLOCKED };
     class thread {
-      ary_t                 *ary;
-      size_t                     hsize_mask;
-      typename atomic_t::type    status;
-      typename atomic_t::type    ostatus;
-      hash                      *my_hash;
-      atomic_t                   atomic;
+      ary_t    *ary;
+      size_t    hsize_mask;
+      status_t  status;
+      status_t  ostatus;
+      hash     *my_hash;
     
     public:
       thread(ary_t *_ary, hash *_my_hash) :
         ary(_ary), hsize_mask(ary->get_size() - 1), status(FREE), my_hash(_my_hash)
       { }
 
-      inline void add(key_t key, val_t val) {
+      template<typename add_t>
+      inline void add(key_t key, const add_t &val) {
         while(true) {
-          while(atomic.cas(&status, FREE, INUSE) != FREE)
+          while(atomic::cas(&status, FREE, INUSE) != FREE)
             my_hash->wait_event_is_done();
 
           if(ary->add(key, val))
@@ -122,12 +110,12 @@ namespace jellyfish {
           }
         }
         
-        if(atomic.cas(&status, INUSE, FREE) != INUSE)
+        if(atomic::cas(&status, INUSE, FREE) != INUSE)
           my_hash->signal_not_in_use();
       }
 
-      inline void inc(key_t key) { return this->add(key, (val_t)1); }
-      inline void operator()(key_t key) { return this->add(key, (val_t)1); }
+      inline void inc(key_t key) { return this->add(key, 1); }
+      inline void operator()(key_t key) { return this->add(key, 1); }
 
       friend class hash;
     };
@@ -153,7 +141,7 @@ namespace jellyfish {
       if(dumper)
         dumper->dump();
       else
-        throw_error<TableFull>("No dumper defined");
+        raise(TableFull) << "No dumper defined";
     }
 
   private:
@@ -169,8 +157,9 @@ namespace jellyfish {
      * is free. This method returns after the signaling and does not
      * wait for the handling of the event to be over.
      **/
-    void signal_not_in_use() {
-      inuse_thread_cond.lock();
+    void signal_not_in_use(bool take_inuse_lock = true) {
+      if(take_inuse_lock)
+        inuse_thread_cond.lock();
       if(--inuse_thread_count == 0)
         inuse_thread_cond.signal();
       inuse_thread_cond.unlock();
@@ -181,9 +170,12 @@ namespace jellyfish {
      * to INUSE. An event management has been initiated. This call
      * waits for the event handling to be over.
      **/
-    void wait_event_is_done() {
-      event_lock.lock();
-      event_lock.unlock();
+    void wait_event_is_done(bool take_event_lock = true) {
+      if(take_event_lock)
+        event_cond.lock();
+      while(dumping_initiated)
+        event_cond.wait();
+      event_cond.unlock();
     }
 
     /**
@@ -194,20 +186,26 @@ namespace jellyfish {
      **/
     bool get_event_locks() {
       inuse_thread_cond.lock();
-      if(!event_lock.try_lock()) {
-        inuse_thread_cond.unlock();
-        signal_not_in_use();
-        wait_event_is_done();
+      event_cond.lock();
+      if(dumping_initiated) {
+        // Another thread is doing the dumping
+        signal_not_in_use(false);
+        wait_event_is_done(false);
         return false;
       }
+
+      // I am the thread doing the dumping
       user_thread_lock.lock();
+      dumping_initiated = true;
+      event_cond.unlock();
+
       inuse_thread_count = 0;
       
       // Block access to hash and wait for threads with INUSE state
       for(thread_ptr_t it = user_thread_list.begin(); 
           it != user_thread_list.end();
           it++) {
-        it->ostatus = atomic.set(&it->status, BLOCKED);
+        it->ostatus = atomic::set(&it->status, BLOCKED);
         if(it->ostatus == INUSE)
           inuse_thread_count++;
       }
@@ -221,24 +219,27 @@ namespace jellyfish {
     }    
 
     void release_event_locks() {
+      event_cond.lock();
       for(thread_ptr_t it = user_thread_list.begin(); 
           it != user_thread_list.end();
           it++) {
-        atomic.set(&it->status, FREE);
+        atomic::set(&it->status, FREE);
       }
       user_thread_lock.unlock();
-      event_lock.unlock();
+      dumping_initiated = false;
+      event_cond.broadcast();
+      event_cond.unlock();
     }
 
   private:
     ary_t                 *ary;
     dumper_t              *dumper;
+    volatile bool          dumping_initiated;
     thread_list_t          user_thread_list;
     locks::pthread::mutex  user_thread_lock;
-    locks::pthread::mutex  event_lock;
+    locks::pthread::cond   event_cond;
     locks::pthread::cond   inuse_thread_cond;
     volatile uint_t        inuse_thread_count;
-    atomic_t               atomic;
   };
 }
 

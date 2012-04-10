@@ -17,13 +17,6 @@
 #ifndef __JELLYFISH_MISC_HPP__
 #define __JELLYFISH_MISC_HPP__
 
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
-#ifndef __STDC_CONSTANT_MACROS
-#define __STDC_CONSTANT_MACROS
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -96,83 +89,7 @@ inline uint64_t reverse_bits(uint64_t v) {
   return v;
 }
 
-/* Like Perl's die function
- */
-void die(const char *msg, ...) __attribute__ ((noreturn, format(printf, 1, 2)));
-
-// String format
-std::string stringf(const char *fmt, va_list _ap);
-std::string stringf(const char *fmt, ...) __attribute__ ((format(printf, 1, 2)));
-
-// Errors
-#define define_error_class(name)                                    \
-  class name : public std::runtime_error {                          \
-  public: name(const std::string &txt) : std::runtime_error(txt) {} \
-  }
-
-template<typename T>
-void throw_error(const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start(ap, fmt);
-  std::string txt = stringf(fmt, ap);
-  va_end(ap);
-  throw T(txt);
-}
-
-std::string strerror_string(int errnum);
-
-template<typename T>
-void throw_perror(const char *fmt, ...)
-{
-  va_list ap;
-  std::string error = strerror_string(errno);
-
-  va_start(ap, fmt);
-  std::string txt = stringf(fmt, ap);
-  va_end(ap);
-
-  txt.append(": ");
-  txt.append(error);
-
-  throw T(txt);
-}
-
-class StandardError : public std::exception {
-  char msg[4096];
-public:
-  // __attribute__ ((format(printf, 1, 2)))
-  StandardError(const char *fmt, ...) {
-    va_list ap;
-    
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg) - 1, fmt, ap);
-    msg[sizeof(msg)-1] = '\0';
-    va_end(ap);
-  }
-
-  // find proper __attribute__ ((format(printf, 1, 2)))
-  StandardError(int errnum, const char *fmt, ...) {
-    va_list ap;
-    int len;
-    
-    va_start(ap, fmt);
-    len = vsnprintf(msg, sizeof(msg) - 1, fmt, ap);
-    if(len < (int)(sizeof(msg)-1))
-      snprintf(msg + len, sizeof(msg) - len - 1,
-               ": %s", strerror(errnum));
-    msg[sizeof(msg)-1] = '\0';
-    va_end(ap);
-  }
-
-  virtual const char* what() const throw() {
-    return msg;
-  }
-};
-
 uint64_t bogus_sum(void *data, size_t len);
-int parse_long(char *arg, std::ostream *err, unsigned long *res);
 
 template <typename T>
 size_t bits_to_bytes(T bits) {
