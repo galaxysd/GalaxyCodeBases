@@ -31,7 +31,7 @@ namespace jellyfish {
 
     uint_t                  mer_len;
     size_t                  buffer_size;
-    fary_t                  files;
+    const fary_t            files;
     fary_t::const_iterator  current_file;
     bool                    have_seam;
     allocators::mmap        buffer_data;
@@ -51,7 +51,7 @@ namespace jellyfish {
     static const uint_t codes[256];
     static const uint_t CODE_RESET = -1;
 
-    parse_qual_dna(int nb_files, char *argv[], uint_t _mer_len, 
+    parse_qual_dna(const fary_t &_files, uint_t _mer_len, 
                    unsigned int nb_buffers, size_t _buffer_size,
                    const char _qs, const char _min_q); 
 
@@ -68,8 +68,7 @@ namespace jellyfish {
       const uint64_t          masq;
       uint_t                  cmlen;
       const bool              canonical;
-      const char              quality_start;
-      const char              min_q;
+      const char              q_thresh;
       uint64_t                distinct, total;
 
     public:
@@ -78,7 +77,7 @@ namespace jellyfish {
         mer_len(_parser->mer_len), lshift(2 * (mer_len - 1)),
         kmer(0), rkmer(0), masq((1UL << (2 * mer_len)) - 1),
         cmlen(0), canonical(parser->canonical),
-        quality_start(_qs), min_q(_min_q),
+        q_thresh(_qs + _min_q),
         distinct(0), total(0) { }
 
       uint64_t get_distinct() const { return distinct; }
@@ -94,8 +93,8 @@ namespace jellyfish {
             // std::cerr << *start << " " << *(start + 1) << " "
             //           << (void*)start << " " << (void*)end << std::endl;
             uint_t     c = codes[(uint_t)*start++];
-            const char q = *start++ - quality_start;
-            if(q < min_q)
+            const char q = *start++;
+            if(q < q_thresh)
               c = CODE_RESET;
 
             switch(c) {

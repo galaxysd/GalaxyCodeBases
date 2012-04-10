@@ -11,17 +11,15 @@ storage.cc misc.cc err.cc mer_counter.cc histo_main.cc dump_main.cc	\
 time.cc thread_exec.cc query_main.cc square_binary_matrix.cc		\
 dump_fastq_main.cc histo_fastq_main.cc cite.cc parse_dna.cc		\
 file_parser.cc parse_quake.cc parse_qual_dna.cc sequence_parser.cc	\
-seq_qual_parser.cc half.cpp hash_fastq_merge.cc cite_cmdline.cc		\
-query_cmdline.cc hash_merge_cmdline.cc histo_cmdline.cc			\
-stats_cmdline.cc histo_fastq_main_cmdline.cc mer_counter_cmdline.cc	\
-dump_fastq_main_cmdline.cc hash_fastq_merge_cmdline.cc dump_cmdline.cc	\
-dbg.cc mapped_file.cc backtrace.cc floats.cc allocators_mmap.cc
+seq_qual_parser.cc half.cpp hash_fastq_merge.cc dbg.cc mapped_file.cc	\
+backtrace.cc floats.cc allocators_mmap.cc yaggo.cpp
 
 EXTRA_DIST = cite_cmdline.hpp query_cmdline.hpp hash_merge_cmdline.hpp	\
-histo_cmdline.hpp stats_cmdline.hpp histo_fastq_main_cmdline.hpp	\
-dump_fastq_main_cmdline.hpp mer_counter_cmdline.hpp			\
-hash_fastq_merge_cmdline.hpp dump_cmdline.hpp double_fifo_input.hpp	\
-simple_growing_array.hpp backtrace.hpp noop_dumper.hpp
+histo_main_cmdline.hpp stats_main_cmdline.hpp				\
+histo_fastq_main_cmdline.hpp dump_fastq_main_cmdline.hpp		\
+count_main_cmdline.hpp hash_fastq_merge_cmdline.hpp			\
+dump_main_cmdline.hpp double_fifo_input.hpp simple_growing_array.hpp	\
+backtrace.hpp noop_dumper.hpp yaggo.hpp
 
 lib_LTLIBRARIES = libjellyfish.la
 libjellyfish_la_LDFLAGS = -version-info 1:0:0
@@ -50,11 +48,10 @@ half.h backtrace.hpp
 
 check_PROGRAMS = generate_sequence test_double_fifo_input	\
 test_read_parser
-generate_sequence_SOURCES = generate_sequence.cc	\
-generate_sequence_cmdline.cc misc.cc mersenne.cpp	\
+generate_sequence_SOURCES = generate_sequence.cc misc.cc mersenne.cpp	\
 square_binary_matrix.cc backtrace.cc dbg.cc time.cc
-# generate_reads_SOURCES = generate_reads.cc generate_reads_cmdline.cc	\
- mersenne.cpp dbg.cc
+# generate_reads_SOURCES = generate_reads.cc generate_reads_cmdline.cc
+# mersenne.cpp dbg.cc
 test_double_fifo_input_SOURCES = test_double_fifo_input.cc	\
 parse_dna.cc file_parser.cc sequence_parser.cc backtrace.cc	\
 thread_exec.cc dbg.cc time.cc allocators_mmap.cc

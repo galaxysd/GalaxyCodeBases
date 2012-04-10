@@ -90,33 +90,26 @@ void *writer_function(void *_info) {
 
 int merge_main(int argc, char *argv[])
 {
-  struct hash_merge_args args;
+  merge_args args(argc, argv);
 
-  if(hash_merge_cmdline(argc, argv, &args) != 0)
-    die << "Command line parser failed";
-
-  int i;
-  unsigned int rklen       = 0;
-  size_t       max_reprobe = 0;
-  size_t       hash_size   = 0;
+  int                i;
+  unsigned int       rklen       = 0;
+  size_t             max_reprobe = 0;
+  size_t             hash_size   = 0;
   SquareBinaryMatrix hash_matrix;
   SquareBinaryMatrix hash_inverse_matrix;
 
   // compute the number of hashes we're going to read
-  int num_hashes = args.inputs_num;
-  if(num_hashes <= 0)
-    die << "No hash files given\n" 
-        << hash_merge_args_usage << "\n" << hash_merge_args_help;
+  int num_hashes = args.input_arg.size();
 
   // this is our row of iterators
   hash_reader_t iters[num_hashes];
  
   // create an iterator for each hash file
   for(i = 0; i < num_hashes; i++) {
-    char *db_file;
-
     // open the hash database
-    db_file = args.inputs[i];
+    const char *db_file = args.input_arg[i];
+
     try {
       iters[i].initialize(db_file, args.out_buffer_size_arg);
     } catch(std::exception *e) {
@@ -138,7 +131,7 @@ int merge_main(int argc, char *argv[])
       die << "Can't merge hash with different size";
     hash_size = size;
 
-    if(hash_matrix.get_size() < 0) {
+    if(hash_matrix.get_size() == 0) {
       hash_matrix = iters[i].get_hash_matrix();
       hash_inverse_matrix = iters[i].get_hash_inverse_matrix();
     } else {
@@ -154,23 +147,30 @@ int merge_main(int argc, char *argv[])
   if(rklen == 0)
     die << "No valid hash tables found";
 
+  typedef jellyfish::heap_t<hash_reader_t> hheap_t;
+  hheap_t heap(num_hashes);
+
   if(args.verbose_flag)
     std::cerr << "mer length  = " << (rklen / 2) << "\n"
               << "hash size   = " << hash_size << "\n"
               << "num hashes  = " << num_hashes << "\n"
               << "max reprobe = " << max_reprobe << "\n"
-              << "heap size = " << num_hashes << "\n";
+              << "heap capa   = " << heap.capacity() << "\n"
+              << "matrix      = " << hash_matrix.xor_sum() << "\n"
+              << "inv_matrix  = " << hash_inverse_matrix.xor_sum() << "\n";
 
   // populate the initial heap
-  typedef jellyfish::heap_t<hash_reader_t> hheap_t;
-  hheap_t heap(num_hashes);
-  heap.fill(iters, iters + num_hashes);
+  for(int h = 0; h < num_hashes; ++h) {
+    if(iters[h].next())
+      heap.push(iters[h]);
+  }
+  assert(heap.size() == heap.capacity());
 
   if(heap.is_empty()) 
     die << "Hashes contain no items.";
 
   // open the output file
-  std::ofstream out(args.output_arg);
+  std::ofstream out(args.output_arg.c_str());
   size_t nb_records = args.out_buffer_size_arg /
     (bits_to_bytes(rklen) + bits_to_bytes(8 * args.out_counter_len_arg));
   if(args.verbose_flag)
