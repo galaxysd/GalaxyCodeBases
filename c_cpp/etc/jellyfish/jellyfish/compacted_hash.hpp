@@ -21,11 +21,10 @@
 #include <fstream>
 #include <string.h>
 #include <pthread.h>
-#include <jellyfish/err.hpp>
 #include <jellyfish/mapped_file.hpp>
 #include <jellyfish/square_binary_matrix.hpp>
+#include <jellyfish/fasta_parser.hpp>
 #include <jellyfish/atomic_gcc.hpp>
-#include <jellyfish/parse_dna.hpp>
 
 namespace jellyfish {
   namespace compacted_hash {
@@ -45,9 +44,10 @@ namespace jellyfish {
 
       header() { }
       header(char *ptr) {
-        if(memcmp(ptr, file_type, sizeof(type)))
-          raise(ErrorReading) << "Bad file type '" << err::substr(ptr, sizeof(type))
-                              << "', expected '" << err::substr(file_type, sizeof(type)) << "'";
+        if(memcmp(ptr, file_type, sizeof(file_type)))
+          throw_error<ErrorReading>("Bad file type '%.*s', expected '%.*s'",
+                                    sizeof(file_type), ptr,
+                                    sizeof(file_type), file_type);
         memcpy((void *)this, ptr, sizeof(struct header));
       }
     };
@@ -111,7 +111,7 @@ namespace jellyfish {
       void write_header(std::ostream *out) const {
         struct header head;
         memset(&head, '\0', sizeof(head));
-        memcpy(&head.type, file_type, sizeof(head.type));
+        memcpy(&head.type, file_type, sizeof(file_type));
         head.key_len = klen;
         head.val_len = val_len;
         head.size = ary->get_size();
@@ -127,7 +127,7 @@ namespace jellyfish {
       void update_stats_with(std::ostream *out, uint64_t _unique, uint64_t _distinct,
                              uint64_t _total, uint64_t _max_count) const {
         struct header head;
-        memcpy(&head.type, file_type, sizeof(head.type));
+        memcpy(&head.type, file_type, sizeof(file_type));
         head.key_len     = klen;
         head.val_len     = val_len;
         head.size        = ary->get_size();
@@ -172,19 +172,18 @@ namespace jellyfish {
       }
 
       void initialize(std::string filename, size_t _buff_len) {
-        io = new std::ifstream(filename.c_str());
+        io = new ifstream(filename.c_str());
         io->read((char *)&header, sizeof(header));
         if(!io->good())
-          raise(ErrorReading) << "File truncated";
-        if(memcmp(header.type, file_type, sizeof(header.type)))
-          raise(ErrorReading) << "Bad file type '" 
-                              << err::substr(header.type, sizeof(header.type)) << "', expected '"
-                              << err::substr(file_type, sizeof(header.type)) << "'";
-
+          throw_error<ErrorReading>("File truncated");
+        if(memcmp(header.type, file_type, sizeof(file_type)))
+          throw_error<ErrorReading>("Bad file type '%.*s', expected '%.*s'",
+                                    sizeof(file_type), header.type,
+                                    sizeof(file_type), file_type);
         if(header.key_len > 64 || header.key_len == 0)
-          raise(ErrorReading) << "Invalid key length '" << header.key_len << "'";
+          throw_error<ErrorReading>("Invalid key length '%ld'", header.key_len);
         if(header.size != (1UL << floorLog2(header.size)))
-          raise(ErrorReading) << "Size '" << header.size << "' is not a power of 2";
+          throw_error<ErrorReading>("Size '%ld' is not a power of 2", header.size);
         key_len  = (header.key_len / 8) + (header.key_len % 8 != 0);
         record_len = key_len + header.val_len;
         buffer_len = record_len * (_buff_len / record_len);
@@ -194,13 +193,6 @@ namespace jellyfish {
 
         hash_matrix.load(io);
         hash_inverse_matrix.load(io);
-        std::streampos cpos = io->tellg();
-        io->seekg(0, std::ios::end);
-        std::streamoff list_size = io->tellg() - cpos;
-        io->seekg(cpos);
-        if(list_size - (header.distinct * record_len) != 0)
-          raise(ErrorReading) << "Bad hash size '" << list_size << "', expected '"
-                              << (header.distinct * record_len) << "' bytes";
         key = val = 0;
         size_mask = header.size - 1;
       }
@@ -230,7 +222,7 @@ namespace jellyfish {
       }
 
       void get_string(char *out) const {
-        parse_dna::mer_binary_to_string(key, get_mer_len(), out);
+        fasta_parser::mer_binary_to_string(key, get_mer_len(), out);
       }
       uint64_t get_hash() const { return hash_matrix.times(key); }
       uint64_t get_pos() const { return hash_matrix.times(key) & size_mask; }
@@ -276,32 +268,6 @@ namespace jellyfish {
       bool                canonical;
 
     public:
-      /* Can't wait for C++0x to be finalized and call constructor
-         from constructor!
-       */
-      query(mapped_file &map) :
-        file(map),
-        header(file.base()), 
-        key_len((header.key_len / 8) + (header.key_len % 8 != 0)),
-        val_len(header.val_len),
-        record_len(key_len + header.val_len),
-        hash_matrix(file.base() + sizeof(header)),
-        hash_inverse_matrix(file.base() + sizeof(header) + hash_matrix.dump_size()),
-        base(file.base() + sizeof(header) + hash_matrix.dump_size() + hash_inverse_matrix.dump_size()),
-        size(header.size),
-        size_mask(header.size - 1),
-        last_id((file.end() - base) / record_len),
-        canonical(false)
-      {
-        if(file.end() - base - header.distinct * record_len != 0)
-          raise(ErrorReading) << "Bad hash size '" << (file.end() - base)
-                              << "', expected '" << header.distinct * record_len << "' bytes";
-          
-        get_key(0, &first_key);
-        first_pos = get_pos(first_key);
-        get_key(last_id - 1, &last_key);
-        last_pos = get_pos(last_key);
-      }
       query(std::string filename) : 
         file(filename.c_str()), 
         header(file.base()), 
@@ -316,10 +282,6 @@ namespace jellyfish {
         last_id((file.end() - base) / record_len),
         canonical(false)
       { 
-        if(file.end() - base - header.distinct * record_len != 0)
-          raise(ErrorReading) << "Bad hash size '" << (file.end() - base)
-                              << "', expected '" << header.distinct * record_len << "' bytes";
-          
         get_key(0, &first_key);
         first_pos = get_pos(first_key);
         get_key(last_id - 1, &last_key);
@@ -344,8 +306,8 @@ namespace jellyfish {
 
       /* No check is made on the validity of the string passed. Should only contained [acgtACGT] to get a valid answer.
        */
-      val_t operator[] (const char *key_s) const {
-        return get_key_val(parse_dna::mer_string_to_binary(key_s, get_mer_len()));
+      val_t operator[] (const char *key_s) {
+        return get_key_val(fasta_parser::mer_string_to_binary(key_s, get_mer_len()));
       }
       val_t operator[] (const key_t key) const { return get_key_val(key); }
 
@@ -374,7 +336,7 @@ namespace jellyfish {
                           uint64_t *id) const {
         key_t key;
         if(canonical) {
-          key = parse_dna::reverse_complement(_key, get_mer_len());
+          key = fasta_parser::reverse_complement(_key, get_mer_len());
           if(key > _key)
             key = _key;
         } else {
@@ -414,45 +376,43 @@ namespace jellyfish {
       }
       
       class iterator {
-        char                  *base, *ptr;
+        char                  *base;
         uint64_t               last_id;
         uint_t                 key_len;
         uint_t                 val_len;
         uint_t                 record_len;
-        uint_t                 mer_len;
         uint64_t               id;
+        atomic::gcc<uint64_t>  atomic;
+
         key_t key;
         val_t val;
 
-        char                   dna_str[33];
-
       public:
-        iterator(char *_base, uint64_t _last_id, uint_t _key_len, uint_t _val_len, uint_t _mer_len) :
-          base(_base), ptr(_base), last_id(_last_id), key_len(_key_len), val_len(_val_len),
-          record_len(key_len + val_len), mer_len(_mer_len), id(0), key(0), val(0)
-        {
-          memset(dna_str, '\0', sizeof(dna_str));
-        }
+        iterator(char *_base, uint64_t _last_id, uint_t _key_len, uint_t _val_len) :
+          base(_base), last_id(_last_id), key_len(_key_len), val_len(_val_len),
+          record_len(key_len + val_len), id(0) {}
 
         key_t get_key() const { return key; }
         val_t get_val() const { return val; }
         uint64_t get_id() const { return id; }
 
         bool next() {
-          if(id >= last_id)
+          if(id >= last_id - 1)
             return false;
           id++;
+          char *ptr = base + id * record_len;
+          key = 0;
           memcpy(&key, ptr, key_len);
           ptr += key_len;
+          val = 0;
           memcpy(&val, ptr, val_len);
-          ptr += val_len;
           return true;
         }
 
         bool next(uint64_t *_id, key_t *_key, val_t *_val) {
-          if(id >= last_id)
+          if(id >= last_id - 1)
             return false;
-          *_id = atomic::gcc::add_fetch(&id, (typeof(id))1) - 1;
+          *_id = atomic.add_fetch(&id, 1) - 1;
           if(*_id >= last_id)
             return false;
           char *ptr = base + (*_id) * record_len;
@@ -468,33 +428,9 @@ namespace jellyfish {
           uint64_t _id;
           return next(&_id, _key, _val);
         }
-
-        char *get_dna_str() {
-          parse_dna::mer_binary_to_string(key, mer_len, dna_str);
-          return dna_str;
-        }
-
-        void get_dna_str(char *out) {
-          parse_dna::mer_binary_to_string(key, mer_len, out);
-        }
       };
 
-      iterator get_iterator() const { return iterator_all(); }
-      iterator iterator_all() const { return iterator(base, last_id, key_len, val_len, get_mer_len()); }
-      iterator iterator_slice(size_t slice_number, size_t number_of_slice) const {
-        size_t  slice_size = get_size() / number_of_slice;
-        size_t  start      = slice_number * slice_size;
-        char   *it_base    = base + start * record_len;
-        size_t  last_id    = slice_size;
-
-        if(it_base >= file.end()) {
-          it_base = base;
-          last_id = 0;
-        } else if(it_base + last_id * record_len > file.end())
-          last_id = (file.end() - it_base) / record_len;
-
-        return iterator(it_base, last_id, key_len, val_len, get_mer_len()); 
-      }
+      iterator get_iterator() { return iterator(base, last_id, key_len, val_len); }
     };
   }
 }

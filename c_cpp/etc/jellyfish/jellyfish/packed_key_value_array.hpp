@@ -14,8 +14,8 @@
     along with Jellyfish.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __JELLYFISH_REVERSIBLE_HASH__
-#define __JELLYFISH_REVERSIBLE_HASH__
+#ifndef __JELLYFISH_PACKED_KEY_VALUE_ARRAY__
+#define __JELLYFISH_PACKED_KEY_VALUE_ARRAY__
 
 #include <stdlib.h>
 #include <string.h>
@@ -24,50 +24,38 @@
 #include <iostream>
 #include <utility>
 #include <exception>
+#include <string>
 #include <assert.h>
-#include <jellyfish/storage.hpp>
-#include <jellyfish/misc.hpp>
-#include <jellyfish/square_binary_matrix.hpp>
+#include <jellyfish/lib/misc.hpp>
+#include <jellyfish/lib/hash_function.hpp>
 #include <jellyfish/storage.hpp>
 #include <jellyfish/offsets_key_value.hpp>
 
 namespace jellyfish {
-  namespace invertible_hash {
-    define_error_class(InvalidMap);
-    define_error_class(ErrorAllocation);
-    define_error_class(InvalidMatrix);
+  namespace packed_key_value {
+    class InvalidMap : public std::exception {
+      virtual const char* what() const throw() {
+        return "Mapped region is invalid";
+      }
+    };
 
     /* (key,value) pair bit-packed array.  It implements the logic of the
      * packed hash except for size doubling. Setting or incrementing a key
      * will return false if the hash is full. No memory management is done
-     * in this class either.
-     *
-     * The hash function is assumed to be invertible. The key is not
-     * directly stored in the hash. Let h = hash(key), size_table =
-     * 2**k and key_len = h+k. In the key field is written
-     *
-     * h high bits of h, reprobe value + 1
-     *
-     * The +1 for the reprobe value is so that the field is guaranteed
-     * not to be zero.
+     * in this class either. A zero key is not valid.
      */
     template <typename word, typename atomic_t, typename mem_block_t>
-    class array : public storage_t {
+    class array {
       typedef typename Offsets<word>::offset_t offset_t;
-      uint_t             lsize;    // log of size
+      static const word  wone = 1;
       size_t             size, size_mask;
       uint_t             reprobe_limit;
-      uint_t             lreprobe_limit;
-      uint_t             key_len;  // original key len
-      word               key_mask; // mask for high bits of hash(key)
-      uint_t             key_off;  // offset in key field for reprobe value
-      Offsets<word>      offsets;  // key len reduced by size of hash array
+      Offsets<word>      offsets;
       mem_block_t        mem_block;
       word              *data;
+      word               zero_count;
       atomic_t           atomic;
       size_t            *reprobes;
-      SquareBinaryMatrix hash_matrix;
-      SquareBinaryMatrix hash_inverse_matrix;
       struct header {
         uint64_t size;
         uint64_t klen;
@@ -76,84 +64,55 @@ namespace jellyfish {
       };
 
     public:
-      typedef word key_t;
-      typedef word val_t;
-
       array(size_t _size, uint_t _key_len, uint_t _val_len,
             uint_t _reprobe_limit, size_t *_reprobes) :
-        lsize(ceilLog2(_size)), size(((size_t)1) << lsize), size_mask(size - 1),
-        reprobe_limit(_reprobe_limit), key_len(_key_len),
-        key_mask(key_len <= lsize ? 0 : (((word)1) << (key_len - lsize)) - 1),
-        key_off(key_len <= lsize ? 0 : key_len - lsize),
-        offsets(key_off + bitsize(_reprobe_limit + 1), _val_len,
-                _reprobe_limit + 1),
+        size(((size_t)1) << ceilLog2(_size)), size_mask(size - 1),
+        reprobe_limit(_reprobe_limit), 
+        offsets(_key_len, _val_len, _reprobe_limit),
         mem_block(div_ceil(size, (size_t)offsets.get_block_len()) * offsets.get_block_word_len() * sizeof(word)),
-        data((word *)mem_block.get_ptr()), reprobes(_reprobes),
-        hash_matrix(key_len), 
-        hash_inverse_matrix(hash_matrix.init_random_inverse())
-      {
-        if(!data)
-          throw_error<ErrorAllocation>("Failed to allocate %ld bytes of memory",
-                                       div_ceil(size, (size_t)offsets.get_block_len()) * offsets.get_block_word_len() * sizeof(word));
+        data((word *)mem_block.get_ptr()), zero_count(0), reprobes(_reprobes) {
+        if(!data) {
+          // TODO: should throw an error
+          std::cerr << "allocation failed";
+        }
       }
       
-      array(char *map, size_t length) :
-        hash_matrix(0), hash_inverse_matrix(0) {
+      array(char *map, size_t length) {
         if(length < sizeof(struct header))
-          throw_error<InvalidMap>("File truncated");
+          throw new InvalidMap();
         struct header *header = (struct header *)map;
+        // TODO: Should make more consistency check on the map...
         size = header->size;
-        if(size != (1UL << floorLog2(size)))
-          throw_error<InvalidMap>("Size '%ld' is not a power of 2", size);
-        lsize = ceilLog2(size);
         size_mask = size - 1;
         reprobe_limit = header->reprobe_limit;
-        key_len = header->klen;
-        if(key_len > 64 || key_len == 0)
-          throw_error<InvalidMap>("Invalid key length '%ld'", key_len);
-        offsets.init(key_len + bitsize(reprobe_limit + 1) - lsize, header->clen,
-                     reprobe_limit);
-        key_mask = (((word)1) << (key_len - lsize)) - 1;
-        key_off = key_len - lsize;
+        offsets.init(header->klen, header->clen, header->reprobe_limit);
         map += sizeof(struct header);
         reprobes = new size_t[header->reprobe_limit + 1];
         memcpy(reprobes, map, sizeof(size_t) * (header->reprobe_limit + 1));
         map += sizeof(size_t) * (header->reprobe_limit + 1);
-        map += hash_matrix.read(map);
-        if(hash_matrix.get_size() != key_len)
-          throw_error<InvalidMatrix>("Size of hash matrix '%ld' not equal to key length '%d'",
-                                     hash_matrix.get_size(), key_len);
-        map += hash_inverse_matrix.read(map);
-        if(hash_inverse_matrix.get_size() != key_len)
-          throw_error<InvalidMatrix>("Size of inverse hash matrix '%ld' not equal to key length '%d'",
-                                     hash_inverse_matrix.get_size(), key_len);
         if((size_t)map & 0x7)
           map += 0x8 - ((size_t)map & 0x7); // Make sure aligned for 64bits word. TODO: use alignof?
+        zero_count = *(uint64_t *)map;
+        map += sizeof(uint64_t);
         data = (word *)map;
       }
 
-      ~array() { }
-
-      void set_matrix(SquareBinaryMatrix &m) {
-        if((uint_t)m.get_size() != key_len)
-          throw_error<InvalidMatrix>("Size of matrix '%ld' not equal to key length '%d'",
-                                     m.get_size(), key_len);
-        hash_matrix = m;
-        hash_inverse_matrix = m.inverse();
+      ~array() {
+        
       }
 
-      size_t get_size() const { return size; }
-      uint_t get_key_len() const { return key_len; }
-      uint_t get_val_len() const { return offsets.get_val_len(); }
+      size_t get_size() { return size; }
+      uint_t get_key_len() { return offsets.get_key_len(); }
+      uint_t get_val_len() { return offsets.get_val_len(); }
       
-      size_t get_max_reprobe_offset() const { 
+      size_t get_max_reprobe_offset() { 
         return reprobes[reprobe_limit]; 
       }
 
       size_t floor_block(size_t entries, size_t &blocks) const {
 	return offsets.floor_block(entries, blocks);
       }
-
+      
       /**
        * Zero out blocks in [start, start+length), where start and
        * length are given in number of blocks.
@@ -165,7 +124,7 @@ namespace jellyfish {
 	if(start_ptr >= end_ptr)
 	  return;
 	length *= offsets.get_block_word_len() * sizeof(word);
-	if(start_ptr + length > end_ptr)
+	if(start_ptr + length >= end_ptr)
 	  length = end_ptr - start_ptr;
 
 	memset(start_ptr, '\0', length);
@@ -173,112 +132,46 @@ namespace jellyfish {
 
       // Iterator
       class iterator {
-      protected:
-        const array  *ary;
-        size_t  start_id, nid, end_id;
-        uint64_t mask;
+        array  *ary;
+        size_t  nid, end_id;
+        bool    do_zero;
       public:
-        word     key;
-        word     val;
-        size_t   id;
-        uint64_t hash;
-
-        iterator(const array *_ary, size_t start, size_t end) :
-          ary(_ary), start_id(start), nid(start), 
-	  end_id(end > ary->get_size() ? ary->get_size() : end),
-          mask(ary->get_size() - 1)
-        {}
+        word    key;
+        word    val;
+        size_t  id;
         
-        void get_string(char *out) const {
-          fasta_parser::mer_binary_to_string(key, ary->get_key_len() / 2, out);
+        iterator(array *_ary, size_t start, size_t end) :
+          ary(_ary), nid(start), end_id(end), do_zero(true) {}
+        
+        inline uint64_t get_hash() {
+          return MurmurHash64A(&key, sizeof(key), 0x818c4070) & ary->size_mask;
         }
-        uint64_t get_hash() const { return hash; }
-        uint64_t get_pos() const { return hash & mask; }
-	uint64_t get_start() const { return start_id; }
-	uint64_t get_end() const { return end_id; }
+        void get_string(char *out) {
+          tostring(key, ary->get_key_len() / 2, out);
+        }
 
         bool next() {
-          bool success;
-          while((id = nid) < end_id) {
-            nid++;
-            success = ary->get_key_val_full(id, key, val);
-            if(success) {
-              hash = (key & ary->key_mask) << ary->lsize;
-              uint_t reprobep = (key >> ary->key_off) - 1;
-              hash |= (id - (reprobep > 0 ? ary->reprobes[reprobep] : 0)) & ary->size_mask;
-              key = ary->hash_inverse_matrix.times(hash);
+          if(do_zero) {
+            do_zero = false;
+            if(ary->zero_count > 0) {
+              key = 0;
+              val = ary->zero_count;
               return true;
             }
+          }
+          while((id = nid++) < end_id) {
+            if(ary->get_key_val_full(id, key, val))
+              return true;
           }
           return false;
         }
       };
       friend class iterator;
-      iterator iterator_all() const { return iterator(this, 0, get_size()); }
-      iterator iterator_slice(size_t slice_number, size_t number_of_slice) const {
+      iterator iterator_all() { return iterator(this, 0, get_size()); }
+      iterator iterator_slice(size_t slice_number, size_t number_of_slice) {
         size_t slice_size = get_size() / number_of_slice;
         return iterator(this, slice_number * slice_size, (slice_number + 1) * slice_size);
       }
-
-      /* Why on earth doesn't inheritance with : public iterator work
-         here? Resort to copying code. Arrrgggg....
-       */
-      class overlap_iterator {
-      protected:
-        const array *ary;
-        uint64_t     mask;
-        size_t       start_id, end_id, start_oid;
-        size_t       moid, oid;
-      public:
-        word     key;
-        word     val;
-        size_t   id;
-        uint64_t hash;
-
-        overlap_iterator(const array *_ary, size_t start, size_t end) :
-          ary(_ary),
-          mask(ary->get_size() - 1),
-          start_id(start),
-          end_id(end > ary->get_size() ? ary->get_size() : end),
-          start_oid(start),
-          moid(end_id - start_id + ary->get_max_reprobe_offset()),
-          oid(0)
-        {
-          // Adjust for very small arrays and it overlaps with itself
-          if(moid > ary->get_size() - start_id) {
-            size_t last_id = (start_id + moid) % mask;
-            if(last_id > start_id)
-              moid -= last_id - start_id - 1;
-          }
-        }
-        
-        void get_string(char *out) const {
-          fasta_parser::mer_binary_to_string(key, ary->get_key_len() / 2, out);
-        }
-        uint64_t get_hash() const { return hash; }
-        uint64_t get_pos() const { return hash & mask; }
-	uint64_t get_start() const { return start_id; }
-	uint64_t get_end() const { return end_id; }
-
-        bool next() {
-          bool success;
-          while(oid < moid) {
-            id = (start_oid + oid++) & mask;
-            success = ary->get_key_val_full(id, key, val);
-            if(success) {
-              hash = (key & ary->key_mask) << ary->lsize;
-              uint_t reprobep = (key >> ary->key_off) - 1;
-              hash |= (id - (reprobep > 0 ? ary->reprobes[reprobep] : 0)) & ary->size_mask;
-              if(get_pos() < start_id || get_pos() >= end_id)
-                continue;
-              key = ary->hash_inverse_matrix.times(hash);
-              return true;
-            }
-          }
-          return false;
-        }
-      };
-      friend class overlap_iterator;
 
       /*
        * Return the key and value at position id. If the slot at id is
@@ -342,15 +235,15 @@ namespace jellyfish {
 
       /*
        * Return the key and value at position id. If the slot at id is
-       * empty or has the large bit set, returns false. Otherwise,
-       * returns the key and the value is the sum of all the entries
-       * in the hash table for that key. I.e., the table is search
-       * forward for entries with large bit set pointing back to the
-       * key at id, and all those values are summed up.
+       * empty or has the large bit set, returns false. Otherwise, returns
+       * the key and the value is the sum of all the entries in the hash
+       * table for that key. I.e., the table is search forward for entries
+       * with large bit set pointing back to the key at id, and all those
+       * values are summed up.
        */
-      bool get_key_val_full(size_t id, word &key, word &val) const {
-        const offset_t	*o, *lo;
+      bool get_key_val_full(size_t id, word &key, word &val) {
         word		*w, *kvw, nkey, nval;
+        const offset_t	*o, *lo;
         uint_t		 reprobe = 0, overflows = 0;
         size_t		 cid;
 
@@ -398,9 +291,10 @@ namespace jellyfish {
               if(lo->val.mask2)
                 nval |= ((*(kvw+1)) & lo->val.mask2) << lo->val.shift;
               nval <<= offsets.get_val_len();
-              nval <<= offsets.get_lval_len() * overflows;
+              if(overflows > 0)
+                nval <<= offsets.get_lval_len() * overflows;
               val += nval;
-
+          
               overflows++;
               reprobe = 0;
               cid = id = (cid + reprobes[0]) & size_mask;
@@ -422,19 +316,12 @@ namespace jellyfish {
         return true;
       }
 
-      inline bool get_val(word key, word &val, bool full = false) const {
-        uint64_t hash = hash_matrix.times(key);
-        return get_val(hash & size_mask, (hash >> lsize) & key_mask, val, full);
-      }
-
-      bool get_val(const size_t id, const word key, word &val, 
-                   const bool full = false) const {
-        word           *w, *kvw, nkey, nval;
-        const offset_t *o, *lo;
-        uint_t          reprobe = 0;
-        size_t          cid     = id;
-        word            akey    = key | ((word)1 << key_off);
-
+      bool get_val(size_t id, word key, word &val, bool full = false) {
+        word     *w, *kvw, nkey, nval;
+        offset_t *o, *lo;
+        uint_t    reprobe = 0;
+        size_t    cid = id;
+    
         // Find key
         while(true) {
           w   = offsets.get_word_offset(cid, &o, &lo, data);
@@ -448,13 +335,12 @@ namespace jellyfish {
             } else {
               nkey = (nkey & o->key.mask1) >> o->key.boff;
             }
-            if(nkey == akey)
+            if(nkey == key)
               break;
           }
           if(++reprobe > reprobe_limit)
             return false;
           cid = (id + reprobes[reprobe]) & size_mask;
-          akey = key | ((reprobe + 1) << key_off);
         }
 
         // Get value
@@ -466,8 +352,7 @@ namespace jellyfish {
 
         // Eventually get large values...
         if(full) {
-          const size_t bid = (cid + reprobes[0]) & size_mask;
-          cid = bid;
+          cid = id = (cid + reprobes[0]) & size_mask;
           reprobe = 0;
           do {
             w   = offsets.get_word_offset(cid, &o, &lo, data);
@@ -491,7 +376,7 @@ namespace jellyfish {
               }
             }
 
-            cid = (bid + reprobes[++reprobe]) & size_mask;
+            cid = (id + reprobes[++reprobe]) & size_mask;
           } while(reprobe <= reprobe_limit);
         }
 
@@ -499,9 +384,8 @@ namespace jellyfish {
       }
   
       inline bool add(word key, word val) {
-        uint64_t hash = hash_matrix.times(key);
-        return add_rec(hash & size_mask, (hash >> lsize) & key_mask,
-                       val, false);
+        return add_rec(MurmurHash64A(&key, sizeof(key), 0x818c4070) & size_mask, 
+                       key, val, false);
       }
 
       bool add_rec(size_t id, word key, word val, bool large) {
@@ -511,7 +395,17 @@ namespace jellyfish {
         bool		 key_claimed = false;
         size_t		 cid         = id;
         word		 cary;
-        word		 akey        = large ? 0 : (key | ((word)1 << key_off));
+        word		 akey        = large ? 0 : key;
+
+        if(key == 0) {
+          word ncount = zero_count, count;
+          do {
+            count = ncount;
+            ncount = atomic.cas(&zero_count, count, count + val);
+          } while(ncount != count);
+
+          return true;
+        }
 
         // Claim key
         do {
@@ -549,8 +443,6 @@ namespace jellyfish {
 
             if(large)
               akey = reprobe;
-            else
-              akey = key | ((reprobe + 1) << key_off);
           }
         } while(!key_claimed);
 
@@ -569,7 +461,7 @@ namespace jellyfish {
 
           // Adding failed, table is full. Need to back-track and
           // substract val.
-          cary = add_val(vw, ((word)1 << offsets.get_val_len()) - val,
+          cary = add_val(vw, (1 << offsets.get_val_len()) - val,
                          ao->val.boff, ao->val.mask1);
           cary >>= ao->val.shift;
           if(cary && ao->val.mask2) {
@@ -584,16 +476,20 @@ namespace jellyfish {
       }
 
       void write_ary_header(std::ostream *out) const {
-        hash_matrix.dump(out);
-        hash_inverse_matrix.dump(out);
+	// noop
       }
 
-      void write_raw(std::ostream *out) const {
-        if(out->tellp() & 0x7) { // Make sure aligned
-          string padding(0x8 - (out->tellp() & 0x7), '\0');
+      void write_raw(std::ostream *out) {
+        struct header header = { size, offsets.get_key_len(), offsets.get_val_len(), reprobe_limit };
+        out->write((char *)&header, sizeof(header));
+        out->write((char *)reprobes, sizeof(size_t) * (reprobe_limit + 1));
+	write_ary_header(out);
+        if(out->tellp() & 0x7) { // Make sure aligned TODO: use alignof?
+          std::string padding(0x8 - (out->tellp() & 0x7), '\0');
           out->write(padding.c_str(), padding.size());
         }
-        out->write((char *)mem_block.get_ptr(), mem_block.get_size());
+        out->write((char *)&zero_count, sizeof(word));
+        out->write((char *)mem_block.get_ptr(), mem_block.get_size());        
       }
 
     private:
@@ -630,4 +526,4 @@ namespace jellyfish {
   }
 }
 
-#endif // __REVERSIBLE_HASH__
+#endif // __PACKED_KEY_VALUE_ARRAY__

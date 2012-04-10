@@ -42,7 +42,6 @@ namespace jellyfish {
     storage_t            *ary;
     int                   file_index;
     token_ring_t          tr;
-    uint64_t              lower_count, upper_count;
     struct thread_info_t *thread_info;
     uint64_t volatile     unique, distinct, total, max_count;
     std::ofstream        *out;
@@ -54,7 +53,7 @@ namespace jellyfish {
                      uint_t _vlen, storage_t *_ary) :
       threads(_threads), file_prefix(_file_prefix), buffer_size(_buffer_size),
       klen(_ary->get_key_len()), vlen(_vlen), ary(_ary), file_index(0),
-      tr(), lower_count(0), upper_count((uint64_t)-1)
+      tr()
     {
       key_len    = bits_to_bytes(klen);
       val_len    = bits_to_bytes(vlen);
@@ -80,9 +79,6 @@ namespace jellyfish {
       }
     }
     
-    void set_lower_count(uint64_t l) { lower_count = l; }
-    void set_upper_count(uint64_t u) { upper_count = u; }
-
     virtual void start(int i) { dump_to_file(i); }
     void dump_to_file(int i);
 
@@ -100,7 +96,9 @@ namespace jellyfish {
     out = &_out;
     unique = distinct = total = max_count = 0;
     tr.reset();
-    thread_info[0].writer.write_header(out);
+    for(uint_t i = 0; i < threads; i++) {
+      thread_info[i].writer.reset_counters();
+    }
     exec_join(threads);
     ary->zero_blocks(0, nb_blocks); // zero out last group of blocks
     update_stats();
@@ -113,7 +111,8 @@ namespace jellyfish {
     struct thread_info_t *my_info = &thread_info[id];
     atomic_t              atomic;
 
-    my_info->writer.reset_counters();
+    if(my_info->token->is_active())
+      my_info->writer.write_header(out);
 
     for(i = id; i * nb_records < ary->get_size(); i += threads) {
       // fill up buffer
@@ -122,16 +121,14 @@ namespace jellyfish {
 
       while(it.next()) {
         typename oheap_t::const_item_t item = my_info->heap.head();
-        if(item->val >= lower_count && item->val <= upper_count)
-          my_info->writer.append(item->key, item->val);
+        my_info->writer.append(item->key, item->val);
         my_info->heap.pop();
         my_info->heap.push(it);
       }
 
       while(my_info->heap.is_not_empty()) {
         typename oheap_t::const_item_t item = my_info->heap.head();
-        if(item->val >= lower_count && item->val <= upper_count)
-          my_info->writer.append(item->key, item->val);
+        my_info->writer.append(item->key, item->val);
         my_info->heap.pop();
       }
 

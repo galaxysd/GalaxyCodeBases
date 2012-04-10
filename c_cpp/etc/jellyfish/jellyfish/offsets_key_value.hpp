@@ -121,11 +121,9 @@ namespace jellyfish {
     }
 
   private:
-    uint_t        key_len, val_len;
-    uint_t        block_len; // Length of a block in number of entries
-    uint_t        block_word_len; // Length of a block in number of words
+    uint_t        key_len, val_len, block_len, block_word_len;
     uint_t        reprobe_limit, reprobe_len, lval_len;
-    divisor64     bld; // Fast divisor by block_len
+    divisor64     bld;
     offset_pair_t offsets[bsizeof(word)];
 
     void compute_offsets();

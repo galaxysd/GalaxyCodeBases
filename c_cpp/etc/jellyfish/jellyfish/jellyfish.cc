@@ -18,7 +18,11 @@
 #include <iostream>
 #include <string>
 #include <string.h>
-#include <jellyfish/misc.hpp>
+#include "misc.hpp"
+
+const char *argp_program_version = "jellyfish 1.0rc1";
+const char *argp_program_bug_address = 
+  "<guillaume@marcais.net> <carlk@umiacs.umd.edu>";
 
 typedef int (main_func_t)(int argc, char *argv[]);
 
@@ -27,11 +31,6 @@ main_func_t stats_main;
 main_func_t merge_main;
 main_func_t histo_main;
 main_func_t query_main;
-main_func_t dump_main;
-main_func_t cite_main;
-main_func_t dump_fastq_main;
-main_func_t histo_fastq_main;
-main_func_t hash_fastq_merge_main;
 main_func_t sos;
 main_func_t version;
 
@@ -42,14 +41,9 @@ struct cmd_func {
 cmd_func cmd_list[] = {
   {"count",             &count_main},
   {"stats",             &stats_main},
-  {"histo",             &histo_main},
-  {"dump",              &dump_main},
   {"merge",             &merge_main},
+  {"histo",             &histo_main},
   {"query",             &query_main},
-  {"cite",              &cite_main},
-  {"qhisto",            &histo_fastq_main},
-  {"qdump",             &dump_fastq_main},
-  {"qmerge",            &hash_fastq_merge_main},
 
   /* help in all its form. Must be first non-command */
   {"help",              &sos},
@@ -85,7 +79,7 @@ int sos(int argc, char *argv[])
 
 int version(int argc, char *argv[])
 {
-  std::cout << PACKAGE_STRING << std::endl;
+  std::cout << argp_program_version << std::endl;
   return 0;
 }
 
