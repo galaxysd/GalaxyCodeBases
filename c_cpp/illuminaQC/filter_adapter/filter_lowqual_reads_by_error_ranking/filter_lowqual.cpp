@@ -19,6 +19,7 @@ double Error_rate_cutoff = 0.03;
 int Min_read_len = 50;
 int Quality_shift = 64;
 int Given_read_length = 100;
+int Cut_len_of_3end = 0;
 int Is_trimming = 0;
 int Stat_only_mode = 0;
 double Qual2Err[128];
@@ -30,7 +31,8 @@ void usage()
 	cout << "   -m <int>    set the minimum trimmed read length, default=" << Min_read_len << endl;
 	cout << "   -q <int>    set the quality shift value, default=" << Quality_shift << endl;
 	cout << "   -r <int>    set the sequencing read length, default=" << Given_read_length << endl;
-	cout << "   -t <int>    whether trim, 0:no; 1:yes; default=" << Is_trimming << endl;
+	cout << "   -c <int>    whether cut at 3-end, 0:no; 1:yes; default=" << Cut_len_of_3end << endl;
+	cout << "   -t <int>    whether trim at 3-end, 0:no; 1:yes; default=" << Is_trimming << endl;
 	cout << "   -s <int>    do statistic only, 1:yes; 0:no; default=" << Stat_only_mode << endl;
 	cout << "   -h        get help information" << endl;
 	exit(0);
@@ -94,12 +96,13 @@ int main(int argc, char *argv[])
 {	
 	//get options from command line
 	int c;
-	while((c=getopt(argc, argv, "e:m:q:r:t:s:h")) !=-1) {
+	while((c=getopt(argc, argv, "e:m:q:r:c:t:s:h")) !=-1) {
 		switch(c) {
 			case 'e': Error_rate_cutoff=atof(optarg); break;
 			case 'm': Min_read_len=atoi(optarg); break;
 			case 'q': Quality_shift=atoi(optarg); break;
 			case 'r': Given_read_length=atoi(optarg); break;
+			case 'c': Cut_len_of_3end=atoi(optarg); break;
 			case 't': Is_trimming=atoi(optarg); break;
 			case 's': Stat_only_mode=atoi(optarg); break;
 			case 'h': usage(); break;
@@ -153,6 +156,12 @@ int main(int argc, char *argv[])
 			total_raw_reads += 1;
 			total_raw_bases += seq_len;
 			
+			if (Cut_len_of_3end)
+			{	seq_len -= Cut_len_of_3end;
+				seq1 = seq1.substr(0,seq_len);
+				q1 = q1.substr(0,seq_len);
+			}
+
 			double err_rate1;
 			int N_count1;
 			get_Ncount_errorRate(seq1,q1, N_count1, err_rate1);
