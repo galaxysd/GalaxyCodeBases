@@ -25,13 +25,13 @@ int Stat_only_mode = 0;
 double Qual2Err[128];
 uint64_t *StatRank;
 
-void usage() 
+void usage()
 {	cout << "filter_lowqual_by_rank <reads_x.fq>  <reads_x.fq.clean>  <result_stat_file>" << endl;
 	cout << "   -e <float>  set the error rate cutoff for trimming, default=" << Error_rate_cutoff << endl;
 	cout << "   -m <int>    set the minimum trimmed read length, default=" << Min_read_len << endl;
 	cout << "   -q <int>    set the quality shift value, default=" << Quality_shift << endl;
 	cout << "   -r <int>    set the sequencing read length, default=" << Given_read_length << endl;
-	cout << "   -c <int>    whether cut at 3-end, 0:no; 1:yes; default=" << Cut_len_of_3end << endl;
+	cout << "   -c <int>    global cut length at 3-end, default=" << Cut_len_of_3end << endl;
 	cout << "   -t <int>    whether trim at 3-end, 0:no; 1:yes; default=" << Is_trimming << endl;
 	cout << "   -s <int>    do statistic only, 1:yes; 0:no; default=" << Stat_only_mode << endl;
 	cout << "   -h        get help information" << endl;
@@ -40,26 +40,26 @@ void usage()
 
 
 void get_Ncount_errorRate(string &seq, string &qual, int &N_count, double &error_rate)
-{	
+{
 	int seq_len = seq.size();
 	N_count = 0;
 	error_rate = 0.0;
-	
+
 	for (int i=0; i<seq_len; i++)
 	{	if (seq[i] == 'N')
 		{	N_count ++;
 			qual[i] = Quality_shift;   // Quality_shift is 64
 		}
 		error_rate += Qual2Err[(unsigned char)qual[i]];
-		
+
 	}
 }
 
 
 //trim的时候,每次trim掉5个bases, 比较reads左边和右边的连续5个bases,哪边错误率高就trim哪边
 void trim_low_quality_reads(string &seq, string &qual, double &error_rate)
-{	
-	
+{
+
 	//trim the qualities of reads from both heads and tails, take 5-bases as one trimming unit
 	int seq_len = seq.size();
 	int left_pos = 0;
@@ -93,7 +93,7 @@ void trim_low_quality_reads(string &seq, string &qual, double &error_rate)
 
 
 int main(int argc, char *argv[])
-{	
+{
 	//get options from command line
 	int c;
 	while((c=getopt(argc, argv, "e:m:q:r:c:t:s:h")) !=-1) {
@@ -110,20 +110,20 @@ int main(int argc, char *argv[])
 		}
 	}
 	if (argc < 4) usage();
-	
+
 	string in_reads1_file = argv[optind++]; //optind, argv[optind++]顺序指向非option的参数
 	string out_reads1_file = argv[optind++];
 	string out_stat_file = argv[optind++];
 
 	clock_t time_start, time_end;
 	time_start = clock();
-	
+
 	time_end = clock();
 	cerr << "\nProgram starting\n";
 	cerr << "Run time: " << double(time_end - time_start) / CLOCKS_PER_SEC << endl;
-	
+
 	uint64_t *Nrate = new uint64_t[Given_read_length+1]; //N number <= read length
-	
+
 	//assign initial values to Qual2Err
 	for(int i=0; i<41; i++)
 	{	Qual2Err[i+Quality_shift] = pow(10.0,-i/10.0);
@@ -133,11 +133,11 @@ int main(int argc, char *argv[])
 	for (int i=0; i<statRankNum; i++)
 	{	StatRank[i] = 0;
 	}
-	
+
 	igzstream infile1 (in_reads1_file.c_str());
 	ogzstream cleanfile1 (out_reads1_file.c_str());
 	ofstream statfile (out_stat_file.c_str());
-	
+
 	uint64_t total_raw_reads = 0;
 	uint64_t total_raw_bases = 0;
 	uint64_t total_clean_reads = 0;
@@ -151,11 +151,11 @@ int main(int argc, char *argv[])
 			getline(infile1,seq1,'\n');
 			getline(infile1,qid1,'\n');
 			getline(infile1,q1,'\n');
-			
+
 			int seq_len = seq1.size();
 			total_raw_reads += 1;
 			total_raw_bases += seq_len;
-			
+
 			if (Cut_len_of_3end)
 			{	seq_len -= Cut_len_of_3end;
 				seq1 = seq1.substr(0,seq_len);
@@ -165,11 +165,11 @@ int main(int argc, char *argv[])
 			double err_rate1;
 			int N_count1;
 			get_Ncount_errorRate(seq1,q1, N_count1, err_rate1);
-			
+
 			Nrate[N_count1] ++;
 			int rank1 = int(err_rate1/seq_len*100)+1;
 			StatRank[rank1] ++;
-			
+
 			if (err_rate1 > Error_rate_cutoff * seq_len )
 			{	if (Is_trimming)
 				{	trim_low_quality_reads(seq1,q1, err_rate1);
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}else
-			{	
+			{
 				total_clean_reads ++;
 				total_clean_bases += seq1.size();
 				if (!Stat_only_mode)
@@ -200,26 +200,26 @@ int main(int argc, char *argv[])
 	statfile << "#total_raw_bases:   " << total_raw_bases << endl;
 	statfile << "#total_clean_reads: " << total_clean_reads << "\t" << total_clean_reads/(double)total_raw_reads*100 << "%" << endl;
 	statfile << "#total_clean_bases: " << total_clean_bases << "\t" << total_clean_bases/(double)total_raw_bases*100 << "%" << endl;
-	
+
 	uint64_t filtered_lowqual_reads = total_raw_reads - total_clean_reads;
 	uint64_t filtered_lowqual_bases = total_raw_bases - total_clean_bases;
 	statfile << "#filtered_lowqual_reads: " << filtered_lowqual_reads << "\t" << (double)filtered_lowqual_reads/total_raw_reads*100 << "%"  << endl;
 	statfile << "#filtered_lowqual_bases: " << filtered_lowqual_bases << "\t" << (double)filtered_lowqual_bases/total_raw_bases*100 << "%"  << endl;
-	
+
 	statfile << "\n#ErrorRank\tNumber_reads\tPercent_of_reads_in_raw_data\n";
 	for (int i=1; i<statRankNum; i++)
 	{	if (StatRank[i] > 0)
 		{	statfile << (double)i << "%\t" << StatRank[i] << "\t" << StatRank[i]/(double)total_raw_reads*100 << "%"  << endl;
 		}
 	}
-	
+
 	statfile << "\n#NsInReads\tNumber_of_reads\tPercent_of_reads_in_raw_data\n";
 	for (int i=0; i<Given_read_length+1; i++)
 	{	if (Nrate[i] > 0)
 		{	statfile << i << "\t" << Nrate[i] << "\t" << Nrate[i]/(double)total_raw_reads*100 << "%" << endl;
 		}
 	}
-	
+
 
 	time_end = clock();
 	cerr << "\nAll jobs finishd done\n";
