@@ -76,15 +76,15 @@ int count_indel_len(const std::string cigar, int &pos) {
 			}
 			case 'I':
 			{
-				//len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); 
-				len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); 
+				len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); 
+				//len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); 
 				begin = end + 1;
 				break;
 			}
 			case 'D':
 			{
-				//len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); 
-				len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); 
+				len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); 
+				//len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); 
 				begin = end + 1;
 				break;
 			}
@@ -173,9 +173,9 @@ std::string alignment_format(const std::string &sam_ali) {
 	format += vec[3] + "\t";  // add location
 	format += myitoa(count_indel_len(vec[5], pos));  // add number of mismatch
 	format += "\t";
-	format += myitoa(pos - clip_num);  // add indel position
-	//format += myitoa(pos) + "\t";  // add indel position. changed at 2010-11-22, to compate to the new version soap.
-	//format += vec[5];
+	//format += myitoa(pos - clip_num);  // add indel position
+	format += myitoa(pos) + "\t";  // add indel position. changed at 2010-11-22, to compate to the new version soap.
+	format += vec[5];
 	return format;
 }
 

@@ -45,16 +45,25 @@ int Chr_info::binarize(std::string & seq) {
 		bin_seq = new ubit64_t [1+len/capacity];
 		memset(bin_seq,0,sizeof(ubit64_t)*(1+len/capacity));
 	}
+	bool is_set_start = false;
 
 	// Add each base, 7 is 0b111
 	for(std::string::size_type i=0;i!=seq.length();i++) {
 		//update 11-26
 		
-		if ((m_start_position == 0) && (seq[i] != 'N'))
+		if (!is_set_start && (seq[i] != 'N'))
 		{
 			//update 11-29
-			m_start_position = i - global_win_size;  //get the position is not N 
-			m_start_position = m_start_position / global_win_size * global_win_size;
+			if (i < 1000)
+			{
+				m_start_position = 0;
+			}
+			else
+			{
+				m_start_position = i - global_win_size;  //get the position is not N 
+				m_start_position = m_start_position / global_win_size * global_win_size;
+			}
+			is_set_start = true;
 		}
 		bin_seq[i/capacity] |= ((((ubit64_t)seq[i]>>1)&7)<<(i%capacity*4));
 	}

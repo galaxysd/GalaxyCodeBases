@@ -467,7 +467,7 @@ void output_format (Parameter *para, FileListManager *fileListManager, Files *fi
 			// Normal SOAPsnp tab-delimited text format
 			files->consensus.clear();
 			// 2010-12-1
-			//para->consensus_name += ".gz";
+			para->consensus_name += ".gz";
 			files->consensus.open(para->consensus_name.c_str(),std::ios::out);
 			if( ! files->consensus ) {
 				cerr<<"Cannot creat file:" <<para->consensus_name<<endl;

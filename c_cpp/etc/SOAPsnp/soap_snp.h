@@ -31,7 +31,7 @@ typedef unsigned char small_int;
 using namespace std;
 typedef ifstream my_ifstream;
 typedef ofstream my_ofstream;
-typedef my_ofstream gzoutstream;
+typedef ogzstream gzoutstream;
 
 const size_t capacity = sizeof(ubit64_t)*8/4;
 const char abbv[17]={'A','M','W','R','M','C','Y','S','W','Y','T','K','R','S','K','G','N'};
@@ -204,62 +204,62 @@ public:
 		alignment>>soap.read_id>>soap.read>>soap.qual>>soap.hit>>soap.ab>>soap.read_len>>soap.strand>>soap.chr_name>>soap.position>>soap.mismatch;
 		//cerr<<soap<<endl;
 		//exit(1);
-		//if (soap.mismatch>200) 
-		//{
-		//	int indel_pos,indel_len;
-		//	alignment>>indel_pos;
-		//	// add by Bill 2010-11-22
-		//	int clip_num = 0, last_clip_num;
-		//	string cigar;
-		//	alignment >> cigar;
-		//	clip_num = count_soft_clip(cigar, last_clip_num);
-		//	indel_pos -= clip_num;
+		if (soap.mismatch>200) 
+		{
+			int indel_pos,indel_len;
+			alignment>>indel_pos;
+			// add by Bill 2010-11-22
+			int clip_num = 0, last_clip_num;
+			string cigar;
+			alignment >> cigar;
+			clip_num = count_soft_clip(cigar, last_clip_num);
+			indel_pos -= clip_num;
 
-		//	indel_len = soap.mismatch-200;
-		//	soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-		//	soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-		//}
-		//else if(soap.mismatch>100) 
-		//{
-		//	int indel_pos,indel_len;
-		//	string temp("");
-		//	alignment>>indel_pos;
-		//	// add by Bill 2010-11-22
-		//	int clip_num = 0, last_clip_num;
-		//	string cigar;
-		//	alignment >> cigar;
-		//	clip_num = count_soft_clip(cigar, last_clip_num);
-		//	indel_pos -= clip_num;
-
-		//	indel_len = soap.mismatch-100;
-		//	for(int i=0; i!=indel_len; i++) 
-		//	{
-		//		temp = temp+'N';
-		//	}
-		//	soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
-		//	soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
-		//}
-		 
-		if(soap.mismatch>200) { //deletion
+			indel_len = soap.mismatch-200;
+			soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+		}
+		else if(soap.mismatch>100) 
+		{
 			int indel_pos,indel_len;
 			string temp("");
 			alignment>>indel_pos;
-			indel_len = soap.mismatch-200;
-			for(int i=0; i!=indel_len; i++) {
+			// add by Bill 2010-11-22
+			int clip_num = 0, last_clip_num;
+			string cigar;
+			alignment >> cigar;
+			clip_num = count_soft_clip(cigar, last_clip_num);
+			indel_pos -= clip_num;
+
+			indel_len = soap.mismatch-100;
+			for(int i=0; i!=indel_len; i++) 
+			{
 				temp = temp+'N';
 			}
 			soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
 			soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
-			//cerr<<soap<<endl;
 		}
-		else if (soap.mismatch>100) { //insertion
-			int indel_pos,indel_len;
-			alignment>>indel_pos;
-			indel_len = soap.mismatch-100;
-			soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-			//cerr<<soap<<endl;
-		}
+		 
+		//if(soap.mismatch>200) { //deletion
+		//	int indel_pos,indel_len;
+		//	string temp("");
+		//	alignment>>indel_pos;
+		//	indel_len = soap.mismatch-200;
+		//	for(int i=0; i!=indel_len; i++) {
+		//		temp = temp+'N';
+		//	}
+		//	soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
+		//	soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
+		//	//cerr<<soap<<endl;
+		//}
+		//else if (soap.mismatch>100) { //insertion
+		//	int indel_pos,indel_len;
+		//	alignment>>indel_pos;
+		//	indel_len = soap.mismatch-100;
+		//	soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+		//	soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+		//	//cerr<<soap<<endl;
+		//}
 
 
 		// add by Bill 2010-10-11

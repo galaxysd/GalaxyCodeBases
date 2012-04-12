@@ -120,7 +120,7 @@ int FileListManager::openCnsFile(const string& path, const string& outdir, const
 		/*find cons name from cns path*/
 		int pos = cns_Path.rfind('/');   
 		
-		cns_name = outdir + cns_Path.substr(pos, string::npos) + ".consus";
+		cns_name = outdir + cns_Path.substr(pos, string::npos) + ".consus.gz";
 		/*put cns in to cns vector*/
 		f_output->open(cns_name.c_str(),std::ios::out);
 		if (!f_output->is_open()) 

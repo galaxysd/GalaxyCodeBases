@@ -588,12 +588,10 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream & consensus, my_ofstream
 		}
 		
 		current_chr = genome->chromosomes.find(soap.get_chr_name());
-		initialize(0);
-		last_start = 0;
-		//last_start = current_chr->second->getStartPos();
-	//cerr << __FUNCTION__ << __LINE__ << endl;
+		//initialize(0);
+		last_start = current_chr->second->getStartPos();
+		initialize((last_start/win_size)*win_size);
 		cerr<<"Processing "<<current_chr->first<<endl;
-	//cerr << __FUNCTION__ << __LINE__ << endl;
 	}
 	else {
 		;
@@ -607,10 +605,11 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream & consensus, my_ofstream
 		return;
 	}
 
-	/*	if(soap.get_pos() < last_start) {
-		cerr<<"Errors in sorting:"<<soap.get_pos()<<"<"<<last_start<<endl;
-		exit(255);
-	}*/
+	if(soap.get_pos() < last_start) {
+		return;
+		/*cerr<<"Errors in sorting:"<<soap.get_pos()<<"<"<<last_start<<endl;
+		exit(255);*/
+	}
 	recycled = false;
 	//some window before the start of this soap  isn't process
 	while (soap.get_pos()/win_size > last_start/win_size ) 
