@@ -136,7 +136,7 @@ int gzstreambuf::sync() {
 
 gzstreambuf& gzstreambuf::operator =(const gzstreambuf &gzs)
 {
-	
+	return *this;
 }
 
 // --------------------------------------

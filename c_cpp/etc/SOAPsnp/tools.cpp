@@ -68,6 +68,7 @@ int count_indel_len(const std::string cigar, int &pos) {
 	int end;
 	int len = 0;
 	pos = 0;
+	int indel_flag = 0;
 	for (end = 0; end < cigar.size(); end ++) {
 		switch (tmp[end]) {
 			case 'M':
@@ -78,16 +79,26 @@ int count_indel_len(const std::string cigar, int &pos) {
 			}
 			case 'I':
 			{
-				len = 200 + atoi(cigar.substr(begin, end - begin).c_str());  //for new soap format
-				//len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); //for old soap format
+				if (indel_flag != 0)
+				{
+					return 300;
+				}
+				//len = 200 + atoi(cigar.substr(begin, end - begin).c_str());  //for new soap format
+				len = 100 + atoi(cigar.substr(begin, end - begin).c_str()); //for old soap format
 				begin = end + 1;
+				indel_flag = 1;
 				break;
 			}
 			case 'D':
 			{
-				len = 100 + atoi(cigar.substr(begin, end - begin).c_str());  //for new soap format
-				//len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); //for old soap format
+				if (indel_flag != 0)
+				{
+					return 300;
+				}
+				//len = 100 + atoi(cigar.substr(begin, end - begin).c_str());  //for new soap format
+				len = 200 + atoi(cigar.substr(begin, end - begin).c_str()); //for old soap format
 				begin = end + 1;
+				indel_flag = 1;
 				break;
 			}
 			case 'N':
@@ -173,11 +184,16 @@ std::string alignment_format(const std::string &sam_ali) {
 	format += "\t";
 	format += vec[2] + "\t";  // add chr
 	format += vec[3] + "\t";  // add location
-	format += myitoa(count_indel_len(vec[5], pos));  // add number of mismatch
+	int mismatch = count_indel_len(vec[5], pos);
+	if (mismatch == 300)
+	{
+		return NOUSE_ALIGNMENT;
+	}
+	format += myitoa(mismatch);  // add number of mismatch
 	format += "\t";						//for old soap format
-	//format += myitoa(pos - clip_num);  // add indel position
-	format += myitoa(pos) + "\t";  // add indel position. changed at 2010-11-22, to compate to the new version soap.
-	format += vec[5];               //for new soap format
+	format += myitoa(pos - clip_num);  // add indel position
+	//format += myitoa(pos) + "\t";  // add indel position. changed at 2010-11-22, to compate to the new version soap.
+	//format += vec[5];               //for new soap format
 	return format;
 }
 

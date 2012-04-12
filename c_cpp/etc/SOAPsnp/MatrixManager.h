@@ -49,7 +49,7 @@ public:
 };
 
 
-void* _matrixManager_addMatrix(void * __args);
+void *_matrixManager_addMatrix(void * __args);
 
 /**
  * DATE: 2010-10-12

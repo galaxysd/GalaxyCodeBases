@@ -88,7 +88,7 @@ public:
 	// get the matrix file handle
 	virtual fstream* getMatrixFile(const int index);
 	//set limit of file number;
-	virtual int setlimit(int filenumber);
+	//virtual int setlimit(int filenumber); //update by zhukai on 2010-12-28
 	
 };
 
@@ -167,4 +167,4 @@ typedef struct _big_read_win_args
 	};
 } BIG_READ_WIN_ARGS;
 
-void * _flieListManager_readWin(void * args);
+void *_flieListManager_readWin(void * args);

@@ -184,6 +184,7 @@ void Prob_matrix::deal_reads(ubit64_t *count_matrix, Genome *genome, Soap_format
 	//cerr<<soap<<endl;
 	// In the overloaded "+" above, soap.position will be substracted by 1 so that coordiates start from 0
 	//current _chr is a new chromose 
+	cerr << __FUNCTION__ << __LINE__ << "\tpos\t" << soap.get_pos() << "\tsoap.get_read_len()\t" << soap.get_read_len() << endl;
 	if (current_chr == genome->chromosomes.end() || current_chr->first != soap.get_chr_name()) {
 		current_chr = genome->chromosomes.find(soap.get_chr_name()); // get the current chromose name
 		if(current_chr == genome->chromosomes.end()) {
@@ -224,7 +225,9 @@ void Prob_matrix::deal_reads(ubit64_t *count_matrix, Genome *genome, Soap_format
 					if(soap.is_fwd()) { //"+"
 						// forward strand, soap.get_qual : quality , coord :position in the reads,ref : reference genotype,  soap.get_base : genotype in the reads
 						//allele type, quality score, coordinates on the read, obeserve genotype. 
+		cerr << __FUNCTION__ << __LINE__ << "\tcoord\t" << coord << endl;
 						count_matrix[(((ubit64_t)soap.get_qual(coord))<<12) | (coord<<4) | ((ref&0x3)<<2) | (soap.get_base(coord)>>1)&3] += 1;
+		cerr << __FUNCTION__ << __LINE__ << endl;
 					}
 					else {//"-"
 						// reverse strand

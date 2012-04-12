@@ -121,15 +121,14 @@ int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
 		// index is over flow.
 		return INDEX_EXCEED;
 	}
-
+	
 	//process the win before new reads outsid the window
 	for (int i = ali_index; i < alignment_vec.size(); ++i)
 	{
 		m_cw_vec[index]->deal_read(alignment_vec[i], consensus, baseinfo, genome, mat, para, sfsMethod, index);
 	}
-
 	// add by guyue 2010-11-25
-	if (!m_cw_vec[index]->done_pro_win)
+	if (!m_cw_vec[index]->done_pro_win && m_cw_vec[index]->last_start > 999)
 	{
 		m_cw_vec[index]->recycled = false;
 		m_cw_vec[index]->pro_win(consensus, baseinfo, genome, mat, para, sfsMethod, index);

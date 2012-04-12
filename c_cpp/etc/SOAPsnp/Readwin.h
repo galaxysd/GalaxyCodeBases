@@ -63,7 +63,7 @@ public:
 	// release the win that was processed, and move it behind anorther win
 	virtual void winChange(void);
 	// return the m_last_count
-	virtual const int getLastCount(void);
+	virtual int getLastCount(void);
 	// reset the Readwin's data
 	virtual int reset(void);
 private:

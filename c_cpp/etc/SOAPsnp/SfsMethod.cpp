@@ -1225,11 +1225,17 @@ int SfsMethod::call_SFS(Parameter* para, Files* files)
 		//update 11-`6
 	sem_t * sem_call_sfs_p = &(sem_call_sfs);
 	sem_t * sem_call_sfs_return_p = &(sem_call_sfs_return);
-	 
+	///////////////////////time //////////////////
+	//static time_t sumtime = 0;
+	//time_t start = 0, end = 0;
+	//
+	////////////////////////////////////////////// 
+
 	//sem_t * sem_map_number_p = &(sem_map_number);
 	while (1)
 	{
 		sem_wait(sem_call_sfs_p);
+		/*time(&start);*/
 		int tmp = getidxProcess();
 		mapChange();
 		if (file_end_flag == 0)
@@ -1256,7 +1262,11 @@ int SfsMethod::call_SFS(Parameter* para, Files* files)
 		}
 		// free the map.
 		delMap(asso[tmp]);
-
+		//////////////////////////////////////////
+		//time(&end);
+		//sumtime += end - start; 
+		//clog << "sfs  tmp sumtime : "<< sumtime <<endl;
+		//////////////////////////////////////////
 		//sem_post(sem_map_number_p);
 		if (file_end_flag == 1)
 			return 0;
@@ -1487,10 +1497,11 @@ void SfsMethod::setidxProcess(void)
  * PARAMETER: __Args the parameter structure.
  * RETURN: 
  */
-void * _sfsMethod_callsfs(void * __Args)
+void *_sfsMethod_callsfs(void * __Args)
 {
 	// get args.
 	BIG_CALL_SFS_ARGS * args = (BIG_CALL_SFS_ARGS*)__Args;
 	// run the function.
 	args->sfsMethod->call_SFS(args->para, args->files);
+	return NULL;
 }

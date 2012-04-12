@@ -519,6 +519,7 @@ int FileListManager::readWin(vector<Readwin>& readwin_vec, Parameter * para)
 		next_cycle:
 		sem_post(sem_call_cns_p);
 	}
+	return 1;
 }
 
 
@@ -823,27 +824,26 @@ fstream* FileListManager::getMatrixFile(const int index)
  * PARAMETER: filenumber : open filenumber now
  * RETURN: return SETLIMIT_ERROR or return SETLIMIT_OK
  */
-int FileListManager::setlimit(int filenumber)
-{
-	struct rlimit r;
-
-	/*if open file number up to limit */
-	if (filenumber >= r.rlim_max)
-	{
-		/*set limit*/ 
-		r.rlim_cur = 2000;        
-		r.rlim_max = 2000;
-
-		/*if set limit error*/
-		if (setrlimit(RLIMIT_NOFILE, &r) < 0)
-		{
-			cerr << "setrlimit error\n";
-			return SETLIMIT_ERROR;
-		}
-	}
-	return SETLIMIT_OK;
-
-}
+//int FileListManager::setlimit(int filenumber)
+//{
+//	struct rlimit r;
+//
+//	/*if open file number up to limit */
+//	if (filenumber >= r.rlim_max)
+//	{
+//		/*set limit*/ 
+//		r.rlim_cur = 2000;        
+//		r.rlim_max = 2000;
+//
+//		/*if set limit error*/
+//		if (setrlimit(RLIMIT_NOFILE, &r) < 0)
+//		{
+//			cerr << "setrlimit error\n";
+//			return SETLIMIT_ERROR;
+//		}
+//	}
+//	return SETLIMIT_OK;
+//}
 
  
   
@@ -875,10 +875,11 @@ int Read_win_Task::Run()
  * PARAMETER: __Args the parameter structure.
  * RETURN: 
  */
-void * _flieListManager_readWin(void * __Args)
+void *_flieListManager_readWin(void * __Args)
 {
 	// get args.
 	BIG_READ_WIN_ARGS * args = (BIG_READ_WIN_ARGS*)__Args;
 	// run the function.
 	args->fileListManager->readWin((*args->readwin_vec), args->para);
+	return NULL;
 }

@@ -75,13 +75,14 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 	ubit64_t o_base, strand;
 	char allele1, allele2, genotype, type, type1/*best genotype*/, type2/*suboptimal genotype*/, base1, base2, base3;
 	int i, q_score, q_adjusted, qual1, qual2, qual3, q_cns, all_count1, all_count2, all_count3;
-	int global_dep_count, *pcr_dep_count;
-	pcr_dep_count = new int [para->read_length*2];
+	//int *pcr_dep_count;
+	//pcr_dep_count = new int [para->read_length*2];
 	double  rank_sum_test_value, binomial_test_value;
 	bool is_out;
-	double * real_p_prior = new double [16];
-	double * likelihoods = new double [10];
-	memset(likelihoods, 0, sizeof(double)*10);
+//	double * real_p_prior = new double [16];
+//	double * likelihoods = new double [10];
+//	memset(likelihoods, 0, sizeof(double)*10);
+	//int n_pcr_dep_count;//update by zhukai on 2010-12-27
 
 	//std::cerr<<"Call length="<<call_length<<endl;
 	for(std::string::size_type j=0; j != call_length; ++j)  //modify the j++ to ++j    update by zhukai on 2010-12-21
@@ -240,14 +241,16 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			}
 			global_dep_count = -1;
 			memset(pcr_dep_count, 0, sizeof(int)*2*para->read_length);
+		
 			for(q_score=para->q_max-para->q_min; q_score != -1; --q_score) 
 			{
 				for(coord=0; coord != para->read_length; ++coord)
 				{
 					for(strand=0; strand!=2; ++strand) 
 					{
-						for(k=0; k!=sites[j].base_info[o_base<<15|strand<<14|q_score<<8|coord]; ++k)
-						{
+						base_i = sites[j].base_info[o_base<<15|strand<<14|q_score<<8|coord]; //update by zhukai on 2010-12-28
+						for(k=0; k != base_i; ++k)
+						{							
 							if(pcr_dep_count[strand*para->read_length+coord]==0)
 							{
 								global_dep_count += 1;
@@ -444,9 +447,9 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		//	exit(1);
 		//}
 	}
-	delete [] real_p_prior;
-	delete [] pcr_dep_count;
-	delete [] likelihoods;
+//	delete [] real_p_prior;
+//	delete [] pcr_dep_count;
+//	delete [] likelihoods;
 	return 1;
 }
 
@@ -511,7 +514,8 @@ int Call_win::soap2cns(SamCtrl &alignment, gzoutstream * consensus, my_ofstream 
  */
 void Call_win::pro_win(gzoutstream * consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter *para, SfsMethod &sfsMethod, const int id)
 {
-	done_pro_win = true;
+	//done_pro_win = true; // 2011-1-20
+	
 	if (current_chr == genome->chromosomes.end())
 	{
 		return;
@@ -528,6 +532,7 @@ void Call_win::pro_win(gzoutstream * consensus, my_ofstream & baseinfo, Genome *
 		last_start = sites[win_size-1].pos;  //last start is the end position of the process window 
 		recycled = false;
 	}
+
 	if (!para->region_only) 
 	{
 		//cerr<<"recycled"<<last_start<<endl;
@@ -584,7 +589,7 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream
 	int coord, sub;
 	//cerr<<"A"<<soap.get_pos()<<endl;
 	//exit(1);
-	if(soap.get_pos() < 0) 
+	if(soap.get_pos() < 0)
 	{
 		return;
 	}	
@@ -611,6 +616,8 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream
 		
 		current_chr = genome->chromosomes.find(soap.get_chr_name());
 		//initialize(0);
+		/*if (last_start < current_chr->second->getStartPos())
+			last_start = current_chr->second->getStartPos();*/
 		last_start = current_chr->second->getStartPos();
 		//initialize((last_start/win_size)*win_size);
 		// use deep_init to make sites to be pure. 2010-12-16 Bill.
@@ -630,8 +637,8 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream
 	if (para->region_only && (current_chr->second->get_region() == NULL || !current_chr->second->is_in_region(soap.get_pos()))) {
 		return;
 	}
-
-	 if(soap.get_pos() < last_start) 
+	
+	if(soap.get_pos() < last_start) 
 	{
 		//cerr << soap.get_pos() << "<" <<last_start<<endl;
 		return;
@@ -647,9 +654,13 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream
 		//cerr << soap.get_pos()/win_size <<" "<<last_start/win_size<<endl;
 		pro_win(consensus, baseinfo, genome, mat, para, sfsMethod, id);  //deal the pre-window
 	}
+	// 2011-1-20
+	done_pro_win = true;
 	//cerr<<"die"<<endl;
 	//exit(1);
 	last_start=soap.get_pos();
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	
 	for(coord=0; coord<soap.get_read_len(); coord++){
 		if( (soap.get_pos()+coord)/win_size == soap.get_pos()/win_size ) {
 			// In the same sliding window
@@ -701,7 +712,6 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream
 			;// Repeats
 		}
 		sites[sub].count_all[(soap.get_base(coord)>>1)&3] += 1;
-
 		
 	}
 }
@@ -729,6 +739,6 @@ void Call_win::deal_tail(gzoutstream * consensus, my_ofstream& baseinfo, Genome*
 	// The last window
 	if(last_start > sites[win_size-1].pos) {
 		initialize((last_start/win_size)*win_size);
-	}
+	}  
 	call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo, sfsMethod, id);
 }

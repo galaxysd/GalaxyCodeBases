@@ -26,7 +26,7 @@
 #include <fstream>
 #include <pthread.h>
 #include <semaphore.h>
-#include <string.h>
+//#include <string.h>
 
 using namespace std;
 
@@ -101,7 +101,7 @@ struct cmp_loci {
 */
 struct cmp_char {
 	bool operator()(const char* first,const  char* second) const {
-		int tmp = strcmp(first, second);
+		int tmp = std::strcmp(first, second);
 		return tmp<0;
 	}
 };
@@ -252,4 +252,4 @@ typedef struct _big_call_sfs_args
 
 }BIG_CALL_SFS_ARGS;
 
-void * _sfsMethod_callsfs(void * args);
+void *_sfsMethod_callsfs(void * args);

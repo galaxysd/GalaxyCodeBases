@@ -197,7 +197,7 @@ void MatrixManager::setMatrixNum(const int number)
  * PARAMETER: __Args is the parameter array.
  * RETURN: 
  */
-void* _matrixManager_addMatrix(void * __Args)
+void *_matrixManager_addMatrix(void * __Args)
 {
 	MATRIX_ARGS * _args = (MATRIX_ARGS*)__Args;
 
@@ -217,5 +217,6 @@ void* _matrixManager_addMatrix(void * __Args)
 			exit(0);
 		}
 	}
+	return NULL;
 }
 

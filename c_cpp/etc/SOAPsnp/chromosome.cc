@@ -28,20 +28,22 @@ Chr_info::Chr_info(const Chr_info & other) {
 
 
 // allocate every sequence memory£¬ load sequence
-int Chr_info::binarize(std::string & seq) {
+int Chr_info::binarize(std::string & seq)
+{
 	len = seq.length();
-	//update 11-26
-	
+	//update 11-26	
 
 	//cerr<<len<<endl;
 	// 4bit for each base
 	// Allocate memory
 	
-	if (len%capacity==0) {
+	if (len%capacity==0) 
+	{
 		bin_seq = new ubit64_t [len/capacity];
 		memset(bin_seq,0,sizeof(ubit64_t)*len/capacity);
 	}
-	else {
+	else 
+	{
 		bin_seq = new ubit64_t [1+len/capacity];
 		memset(bin_seq,0,sizeof(ubit64_t)*(1+len/capacity));
 	}
@@ -70,18 +72,23 @@ int Chr_info::binarize(std::string & seq) {
 	return 1;
 }
 
-int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
+int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) 
+{
 	Snp_info * new_snp = new Snp_info;
 	*new_snp = snp_form;
 	pair<map<ubit64_t, Snp_info*>::iterator, bool> insert_pair;
-	insert_pair = dbsnp.insert(pair<ubit64_t, Snp_info*>(pos,new_snp));
-	if(insert_pair.second) {
+	insert_pair = dbsnp.insert(pair<ubit64_t, Snp_info*>(pos,new_snp));	
+	if(insert_pair.second) 
+	{
 		// Successful insertion
-		// Modify the binary sequence! Mark SNPs
+		// Modify the binary sequence! Mark SNPs	
+		
 		bin_seq[pos/capacity] |= (1ULL<<(pos%capacity*4+3));
+		
 	}
-	else {
-		cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
+	else 
+	{
+		cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;  //this position is a duplication
 		return 0;
 	}
 	return 1;
@@ -215,53 +222,71 @@ int Genome::read_region(my_ifstream & region, Parameter * para)
 	return 1;
 }
 
-Genome::Genome(my_ifstream &fasta,my_ifstream & known_snp) {
+Genome::Genome(my_ifstream &fasta,my_ifstream & known_snp) 
+{
 	std::string seq("");
 	Chr_name current_name("");
 	map<Chr_name, Chr_info*>::iterator chr_iter;
-	for(std::string buff;getline(fasta,buff);) {
-		if('>' == buff[0]) {
-			// Fasta id
+	for(std::string buff;getline(fasta,buff);) 
+	{
+		if('>' == buff[0]) 
+		{	// Fasta id
 			// Deal with previous chromosome
-			if( chromosomes.find(current_name) != chromosomes.end()) {
+			if( chromosomes.find(current_name) != chromosomes.end()) 
+			{
 				chr_iter = chromosomes.find(current_name);
 				chr_iter->second->binarize(seq); // initialize sequence
 			}
 			// Insert new chromosome
 			std::string::size_type i;
-			for(i=1;!isspace(buff[i]) && i != buff.length();i++) {
+			for(i=1;!isspace(buff[i]) && i != buff.length();i++) 
+			{
 				;
 			}
 			Chr_name new_chr_name(buff,1,i-1);
-			if(! add_chr(new_chr_name)) {
+			if(! add_chr(new_chr_name)) 
+			{
 				std::cerr<<"Insert Chromosome "<<new_chr_name<<" Failed!\n";
 			}
 			current_name = new_chr_name;
 			seq = "";
 		}
-		else {
+		else 
+		{
 			seq += buff;
 		}
 	}
-	if(seq.length() != 0 && chromosomes.find(current_name) != chromosomes.end()) {
+	if(seq.length() != 0 && chromosomes.find(current_name) != chromosomes.end()) 
+	{
 		chr_iter = chromosomes.find(current_name);
 		chr_iter->second->binarize(seq);
 	}
 	
 	// initialize known dbSNP
-	if( known_snp ) {
+	if( known_snp ) 
+	{
 		Chr_name current_name;
 		Snp_info snp_form;
 		std::string::size_type pos;
-		for(std::string buff;getline(known_snp, buff);) {
+		for(std::string buff;getline(known_snp, buff);) 
+		{
 			// Format: Chr\tPos\thapmap?\tvalidated?\tis_indel?\tA\tC\tT\tG\trsID\n
 			std::istringstream s(buff);
 			s>>current_name>>pos;
 			s>>snp_form;
-			if( chromosomes.find(current_name) != chromosomes.end()) {
+			if( chromosomes.find(current_name) != chromosomes.end()) 
+			{
 				// The SNP is located on an valid chromosme
 				pos -= 1; // Coordinates starts from 0
-				(chromosomes.find(current_name)->second)->insert_snp(pos, snp_form);
+				if( pos < chromosomes.find(current_name)->second->length())//update by zhukai on 2010-12-28
+				{
+					(chromosomes.find(current_name)->second)->insert_snp(pos, snp_form);
+				}
+				else
+				{
+					cerr<<"Warning :The current position is "<<pos + 1<<" out of the region of the reference sequence "<<endl;//update by zhukai on 2010-12-28
+					
+				}
 			}
 		}
 	}

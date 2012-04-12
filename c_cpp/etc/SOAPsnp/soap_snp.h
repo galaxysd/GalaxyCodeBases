@@ -186,7 +186,7 @@ class Soap_format
 	// Soap alignment result
 	std::string read_id, read, qual, chr_name;
 	int hit, read_len, mismatch;
-	unsigned int position;
+	int position;
 	char ab, strand;
 public:
 	Soap_format()
@@ -204,64 +204,64 @@ public:
 		alignment>>soap.read_id>>soap.read>>soap.qual>>soap.hit>>soap.ab>>soap.read_len>>soap.strand>>soap.chr_name>>soap.position>>soap.mismatch;
 		//cerr<<soap<<endl;
 		//exit(1);
-		if (soap.mismatch>200) 
-		{
-			int indel_pos,indel_len;
-			alignment>>indel_pos;
-			// add by Bill 2010-11-22
-			int clip_num = 0, last_clip_num;
-			string cigar;
-			alignment >> cigar;
-			clip_num = count_soft_clip(cigar, last_clip_num);
-			indel_pos -= clip_num;
+		//if (soap.mismatch>200) 
+		//{
+		//	int indel_pos,indel_len;
+		//	alignment>>indel_pos;
+		//	// add by Bill 2010-11-22
+		//	int clip_num = 0, last_clip_num;
+		//	string cigar;
+		//	alignment >> cigar;
+		//	clip_num = count_soft_clip(cigar, last_clip_num);
+		//	indel_pos -= clip_num;
 
-			indel_len = soap.mismatch-200;
-			soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-		}
-		else if(soap.mismatch>100) 
-		{
+		//	indel_len = soap.mismatch-200;
+		//	soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+		//	soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+		//}
+		//else if(soap.mismatch>100) 
+		//{
+		//	int indel_pos,indel_len;
+		//	string temp("");
+		//	alignment>>indel_pos;
+		//	// add by Bill 2010-11-22
+		//	int clip_num = 0, last_clip_num;
+		//	string cigar;
+		//	alignment >> cigar;
+		//	clip_num = count_soft_clip(cigar, last_clip_num);
+		//	indel_pos -= clip_num;
+
+		//	indel_len = indel_len - 100;
+		//	for(int i = 0; i != indel_len; i++) 
+		//	{
+		//		temp = temp+'N';
+		//	}
+		//	soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
+		//	soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
+		//}
+		if(soap.mismatch>200) 
+		{ //deletion
 			int indel_pos,indel_len;
 			string temp("");
 			alignment>>indel_pos;
-			// add by Bill 2010-11-22
-			int clip_num = 0, last_clip_num;
-			string cigar;
-			alignment >> cigar;
-			clip_num = count_soft_clip(cigar, last_clip_num);
-			indel_pos -= clip_num;
-
-			indel_len = soap.mismatch-100;
+			indel_len = soap.mismatch-200;
 			for(int i=0; i!=indel_len; i++) 
 			{
 				temp = temp+'N';
 			}
-			soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
-			soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
+			soap.read = soap.read.substr(0,indel_pos) + temp + soap.read.substr(indel_pos,soap.read_len-indel_pos);
+			soap.qual = soap.qual.substr(0,indel_pos) + temp + soap.qual.substr(indel_pos,soap.read_len-indel_pos);
+			//cerr<<soap<<endl;
 		}
-		//if(soap.mismatch>200) 
-		//{ //deletion
-		//	int indel_pos,indel_len;
-		//	string temp("");
-		//	alignment>>indel_pos;
-		//	indel_len = soap.mismatch-200;
-		//	for(int i=0; i!=indel_len; i++) 
-		//	{
-		//		temp = temp+'N';
-		//	}
-		//	soap.read = soap.read.substr(0,indel_pos) + temp + soap.read.substr(indel_pos,soap.read_len-indel_pos);
-		//	soap.qual = soap.qual.substr(0,indel_pos) + temp + soap.qual.substr(indel_pos,soap.read_len-indel_pos);
-		//	//cerr<<soap<<endl;
-		//}
-		//else if (soap.mismatch>100) 
-		//{ //insertion
-		//	int indel_pos,indel_len;
-		//	alignment>>indel_pos;
-		//	indel_len = soap.mismatch-100;
-		//	soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-		//	soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
-		//	//cerr<<soap<<endl;
-		//}
+		else if (soap.mismatch>100) 
+		{ //insertion
+			int indel_pos,indel_len;
+			alignment>>indel_pos;
+			indel_len = soap.mismatch-100;
+			soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+			//cerr<<soap<<endl;
+		}
 
 		// add by Bill 2010-10-11
 		if (soap.read.size() != soap.read_len)
@@ -291,13 +291,17 @@ public:
 	int get_read_len(){
 		return read_len;
 	}
-	inline unsigned int get_pos()
+	inline int get_pos()
 	{
 		return position;
 	}
 	std::string get_chr_name()
 	{
 		return chr_name;
+	}
+	std::string get_read_id()
+	{
+		return read_id;
 	}
 	int get_hit()
 	{
@@ -451,7 +455,9 @@ public:
 };
 
 typedef std::string Chr_name;
-class Genome {
+
+class Genome 
+{
 public:
 	map<Chr_name, Chr_info*> chromosomes;
 
@@ -498,7 +504,7 @@ public:
 	// add by bill,update by guyue
 	//int *count_sfs;
 	int count_sfs[4];
-	unsigned int pos;
+	int pos;
 
 	Pos_info()
 	{
@@ -529,7 +535,8 @@ public:
 		//delete [] count_sfs;
 	}
 };
-//update 12-20 by guyue 
+ 
+//update 12-27 bu guyue
 class Call_win 
 {
 public:
@@ -538,13 +545,27 @@ public:
 	Pos_info * sites;
 	//update 12-20
 	int pos_size;
-	unsigned int last_start;
+	int last_start;
 	bool recycled;
 	//update 11-23
 	bool done_pro_win;
 	// update 11-26 judge if the laststart had been set.
 	bool m_is_set_ls;
-	
+	//update 12-27 
+	std::string::size_type coord;
+	small_int k;
+	small_int base_i;
+	ubit64_t o_base, strand;
+	char allele1, allele2, genotype, type, type1/*best genotype*/, type2/*suboptimal genotype*/, base1, base2, base3;
+	int i, q_score, q_adjusted, qual1, qual2, qual3, q_cns, all_count1, all_count2, all_count3;
+	int global_dep_count;
+	int *pcr_dep_count;
+	//pcr_dep_count = new int [para->read_length*2];
+	double  rank_sum_test_value, binomial_test_value;
+	bool is_out;
+	double real_p_prior[16];
+	double likelihoods[10];
+
 	map<Chr_name, Chr_info*>::iterator current_chr;
 	Call_win(ubit64_t read_length, ubit64_t window_size=global_win_size) 
 	{
@@ -561,6 +582,16 @@ public:
 		//update 11-25
 		done_pro_win = false;
 		m_is_set_ls = false;
+		//update 12-27
+		pcr_dep_count = new int [read_length*2];
+		for(int i =0; i<16; i++)
+		{
+			real_p_prior[i] = 0;
+		}
+		for(int i =0; i<10; i++)
+		{
+			likelihoods[i] = 0;
+		}
 
 		win_size = window_size;
 		sites = new Pos_info [win_size+read_length];
@@ -573,6 +604,7 @@ public:
 	~Call_win()
 	{
 		delete [] sites;
+		delete [] pcr_dep_count;
 	}
 
 	int initialize(ubit64_t start);

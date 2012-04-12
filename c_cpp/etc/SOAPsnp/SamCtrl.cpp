@@ -65,10 +65,10 @@ bool SamCtrl::open(const char *path, const char *mode)
 		if ((m_out = samopen(m_out_path.c_str(), m_out_mode.c_str(), m_in->header)) == 0) 
 		{
 			return false;
-		}
-		
+		}		
 		return true;
 	} 
+	return false;
 }
 
 /**

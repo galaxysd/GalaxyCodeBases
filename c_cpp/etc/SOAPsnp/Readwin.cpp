@@ -209,7 +209,7 @@ void Readwin::winChange(void)
  * PARAMETER: void
  * RETURN: m_last_count.
  */
-const int Readwin::getLastCount(void)
+int Readwin::getLastCount(void)
 {
 	return m_last_count;
 }

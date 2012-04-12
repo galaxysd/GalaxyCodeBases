@@ -482,7 +482,7 @@ void output_format (Parameter *para, FileListManager *fileListManager, Files *fi
 
 			files->consensus->clear();			
 			files->consensus->open(para->consensus_name.c_str(),std::ios::out);
-			if( ! files->consensus ) {
+			if( ! files->consensus->is_open() ) {
 				cerr<<"Cannot creat file:" <<para->consensus_name<<endl;
 				exit(1);
 			}
@@ -506,7 +506,7 @@ void output_format (Parameter *para, FileListManager *fileListManager, Files *fi
 		}
 		files->consensus->clear();
 		files->consensus->open(para->consensus_name.c_str(), ios::binary);
-		if(!files->consensus) 
+		if(!files->consensus->is_open()) 
 		{
 			cerr<<"Cannot creat file:" <<para->consensus_name<<endl;
 			exit(1);
@@ -699,7 +699,6 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 		//ret = fileListManager->readWin(readwin_vec, para);
 		sem_wait(sem_call_cns_p);
 		ret = para->ret;		
-
 		if (COUNT_ERROR == ret)
 		{
 			cerr << "ERROR: something wrong with the file number!" << endl;

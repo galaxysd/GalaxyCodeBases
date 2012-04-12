@@ -2,7 +2,7 @@
 
 pthread_mutex_t		mutex_ctrl = PTHREAD_MUTEX_INITIALIZER;
 
-void* __processwork(void* p)                                   
+void *__processwork(void* p)                                   
 {	THRPARAM*	param = (THRPARAM*)p;
 
 	while(param->pMgr->m_nindex < param->pMgr->m_nmaxthread)
@@ -21,6 +21,7 @@ void* __processwork(void* p)
 		pthread_mutex_unlock(&mutex_ctrl);                            
 		param->pMgr->m_vproc[nindex](param->pMgr->m_vparam[nindex]);
 	}
+	return NULL;
 }
 
 ThreadManager::ThreadManager()
