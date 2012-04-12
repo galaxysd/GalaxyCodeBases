@@ -16,7 +16,8 @@
 using namespace std;
 
 string adapter_type = "gDNA-3"; // default adapter type
-string adpt_3end="AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG";//pDNA-3+ for read_1
+string adpt_3end="AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC";//pDNA-3+ for read_1
+// "AGATCGGAAGAGCGGTTCAGCAGGAATGCCGAG"
 string adpt_5end="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";//pDNA-5- for read_2
 int Given_read_length = 100;
 int Adapter_align_cutoff = 50;  //minimum alignment score
