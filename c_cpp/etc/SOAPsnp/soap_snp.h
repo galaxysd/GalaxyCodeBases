@@ -3,13 +3,15 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cstring>
-#include <cstdlib>
+#include <string>
 #include <map>
 #include <vector>
 #include <cmath>
 #include <iomanip>
 #include <cassert>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 typedef unsigned long long ubit64_t;
 typedef unsigned int ubit32_t;
 typedef double rate_t;
@@ -19,23 +21,23 @@ const size_t capacity = sizeof(ubit64_t)*8/4;
 const char abbv[17]={'A','M','W','R','M','C','Y','S','W','Y','T','K','R','S','K','G','N'};
 const ubit64_t glf_base_code[8]={1,2,8,4,15,15,15,15}; // A C T G
 const ubit64_t glf_type_code[10]={0,5,15,10,1,3,2,7,6,11};// AA,CC,GG,TT,AC,AG,AT,CG,CT,GT
-
-
+const int global_win_size = 1000;
 
 // Some global variables
 class Files {
 public:
 	ifstream soap_result, ref_seq, dbsnp, region;
-	ofstream consensus, summary;
+	ofstream consensus, baseinfo, o_region;
 	fstream matrix_file;
 	Files(){
 		soap_result.close();
 		ref_seq.close();
 		dbsnp.close();
 		consensus.close();
-		summary.close();
+		baseinfo.close();
 		matrix_file.close();
 		region.close();
+		o_region.close();
 	};
 };
 
@@ -50,7 +52,7 @@ public:
 	bool rank_sum_mode; // Use rank sum test to refine HET quality
 	bool binom_mode; // Use binomial test to refine HET quality
 	bool transition_dominant; // Consider transition/transversion ratio?
-	int glf_format; // Generate Output in GLF format
+	int glf_format; // Generate Output in GLF format: New File Definitions! Since May 1, 2009
 	bool region_only; // Only report consensus in specified region
 	std::string glf_header; // Header of GLF format
 	rate_t althom_novel_r, het_novel_r; // Expected novel prior
@@ -195,6 +197,7 @@ class Chr_info {
 	ubit32_t len;
 	ubit64_t* bin_seq; // Sequence in binary format
 	ubit64_t* region_mask;
+	ubit64_t* region_win_mask;
 	// 4bits for one base: 1 bit dbSNPstatus, 1bit for N, followed two bit of base A: 00, C: 01, T: 10, G:11,
 	// Every ubit64_t could store 16 bases
 	map<ubit64_t, Snp_info*> dbsnp;
@@ -203,11 +206,13 @@ public:
 		len = 0;
 		bin_seq = NULL;
 		region_mask = NULL;
+		region_win_mask = NULL;
 	};
 	Chr_info(const Chr_info & other);
 	~Chr_info(){
 		delete [] bin_seq;
 		delete [] region_mask;
+		delete [] region_win_mask;
 	}
 	ubit32_t length() {
 		return len;
@@ -219,7 +224,13 @@ public:
 	int insert_snp(std::string::size_type pos, Snp_info & new_snp);
 	int region_mask_ini();
 	bool is_in_region(std::string::size_type pos) {
-		return (region_mask[pos/64]>>(63-pos%64))&1;
+		return ((region_mask[pos/64]>>(63-pos%64))&1);
+	}
+	bool is_in_region_win(std::string::size_type pos) {
+		pos /= global_win_size; // Calculate in which windows the site is
+		//cerr<<pos<<endl;
+		//exit(1);
+		return ((region_win_mask[pos/64]>>(63-pos%64))&1);
 	}
 	int set_region(int start, int end);
 	Snp_info * find_snp(ubit64_t pos) {
@@ -291,7 +302,7 @@ public:
 	ubit64_t win_size;
 	ubit64_t read_len;
 	Pos_info * sites;
-	Call_win(ubit64_t read_length, ubit64_t window_size=1000) {
+	Call_win(ubit64_t read_length, ubit64_t window_size=global_win_size) {
 		sites = new Pos_info [window_size+read_length];
 		win_size = window_size;
 		read_len = read_length;
@@ -301,9 +312,10 @@ public:
 	}
 
 	int initialize(ubit64_t start);
+	int deep_init(ubit64_t start);
 	int recycle();
-	int call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus);
-	int soap2cns(std::ifstream & alignment, std::ofstream & consensus, Genome * genome, Prob_matrix * mat, Parameter * para);
+	int call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus, std::ofstream & baseinfo);
+	int soap2cns(std::ifstream & alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para);
 	int snp_p_prior_gen(double * real_p_prior, Snp_info* snp, Parameter * para, char ref);
 	double rank_test(Pos_info & info, char best_type, double * p_rank, Parameter * para);
 	double normal_value(double z);

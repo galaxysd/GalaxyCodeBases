@@ -81,6 +81,7 @@ int Chr_info::set_region(int start, int end) {
 		cerr<<"Invalid region: "<<start<<"-"<<end<<endl;
 		exit(255);
 	}
+	// Specific mask
 	if(start/64 == end/64) {
 		region_mask[start/64] |= ((~((~(0ULL))<<(end-start+1)))<<(63-end%64));
 	}
@@ -96,10 +97,29 @@ int Chr_info::set_region(int start, int end) {
 			memset(region_mask+start/64+1, 0xFF, sizeof(ubit64_t)*(end/64-start/64-1));
 		}
 	}
+	// Window mask
+	start /= global_win_size; end /= global_win_size;
+	//cerr<<start<<"\t"<<end<<endl;
+	if(start/64 == end/64) {
+		region_win_mask[start/64] |= ((~((~(0ULL))<<(end-start+1)))<<(63-end%64));
+	}
+	else {
+		if(start % 64) {
+			region_win_mask[start/64] |= (~((~(0ULL))<<(64-start%64)));
+		}
+		else {
+			region_win_mask[start/64] = ~(0ULL);
+		}
+		region_win_mask[end/64] |= ((~(0ULL))<<(63-end%64));
+		if(end/64-start/64>1) {
+			memset(region_win_mask+start/64+1, 0xFF, sizeof(ubit64_t)*(end/64-start/64-1));
+		}
+	}
 	return 1;
 }
 
 int Chr_info::region_mask_ini(){
+	//Specific mask
 	if(len%64==0) {
 		region_mask = new ubit64_t [len/64];
 		memset(region_mask, 0, sizeof(ubit64_t)*(len/64));
@@ -107,6 +127,16 @@ int Chr_info::region_mask_ini(){
 	else {
 		region_mask = new ubit64_t [len/64+1];
 		memset(region_mask, 0, sizeof(ubit64_t)*(len/64+1));
+	}
+	//Window mask
+	int win_len = len/global_win_size +1;
+	if(win_len%64==0) {
+		region_win_mask = new ubit64_t [win_len/64];
+		memset(region_win_mask, 0, sizeof(ubit64_t)*(win_len/64));
+	}
+	else {
+		region_win_mask = new ubit64_t [win_len/64+1];
+		memset(region_win_mask, 0, sizeof(ubit64_t)*(win_len/64+1));
 	}
 	return 1;
 }

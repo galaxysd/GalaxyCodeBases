@@ -1,9 +1,26 @@
 #include "soap_snp.h"
+#include <cassert>
 
 int Call_win::initialize(ubit64_t start) {
 	std::string::size_type i;
 	for(i=0; i != read_len + win_size ; i++) {
 		sites[i].pos = i+start;
+	}
+	return 1;
+}
+
+int Call_win::deep_init(ubit64_t start) {
+	int i;
+	for(i=0; i != read_len + win_size ; i++) {
+		sites[i].pos = i+start;
+		sites[i].ori = 0xFF;
+		sites[i].depth = 0;
+		sites[i].repeat_time = 0;
+		sites[i].dep_uni = 0;
+		memset(sites[i].count_uni,0,sizeof(int)*4);
+		memset(sites[i].q_sum,0,sizeof(int)*4);
+		memset(sites[i].base_info,0,sizeof(small_int)*4*2*64*256);
+		memset(sites[i].count_all,0,sizeof(int)*4);
 	}
 	return 1;
 }
@@ -36,7 +53,7 @@ int Call_win::recycle() {
 }
 
 
-int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus) {
+int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus, std::ofstream & baseinfo) {
 	std::string::size_type coord;
 	small_int k;
 	ubit64_t o_base, strand;
@@ -47,10 +64,21 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 	double  rank_sum_test_value, binomial_test_value;
 	bool is_out;
 	double * real_p_prior = new double [16];
+	double * likelihoods = new double [10];
+	memset(likelihoods, 0, sizeof(double)*10);
 	//std::cerr<<"Call length="<<call_length<<endl;
 	for(std::string::size_type j=0; j != call_length; j++){
-		if(para->region_only && !call_chr->is_in_region(sites[j].pos)) {
-			continue;
+		//cerr<<sites[j].pos<<endl;
+		if(para->region_only) {
+		    if (NULL== call_chr->get_region() ) {
+		    	break;
+		    }
+		    else if (! call_chr->is_in_region(sites[j].pos)) {
+				continue;
+		    }
+		    else {
+		    	;
+		    }
 		}
 		sites[j].ori = (call_chr->get_bin_base(sites[j].pos))&0xF;
 		if( ((sites[j].ori&4) !=0)/*an N*/ && sites[j].depth == 0) {
@@ -60,19 +88,14 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 				consensus<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<endl;
 			}
 			else if (para->glf_format) {
-				//if ( sites[j].pos % 10000 ==0) {
-				//	cerr<<sites[j].pos<<endl;
-				//}
-
-				consensus<<(unsigned char)(0xF<<4|0)<<(unsigned char)(0<<4|0xF)<<flush;
-				for(type=0;type!=10;type++) {
-					consensus<<(unsigned char)0;
-				}
+				memset(likelihoods, 0, sizeof(double)*10);
+				consensus.write(reinterpret_cast<char*>(likelihoods), sizeof(double)*10);
 				consensus<<flush;
 				if(!consensus.good()) {
 					cerr<<"Broken ofstream after writting Position "<<(sites[j].pos+1)<<" at "<<call_name<<endl;
 					exit(255);
 				}
+				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<endl;
 			}
 			else {
 				;
@@ -198,49 +221,16 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			}
 		}
 
-		if(1==para->glf_format) {
-			// Generate GLFv2 format
-			int copy_num;
-			if(sites[j].depth == 0) {
-				copy_num = 15;
-			}
-			else {
-				copy_num = int(1.442695041*log(sites[j].repeat_time/sites[j].depth));
-				if(copy_num>15) {
-					copy_num = 15;
-				}
-			}
-			if(sites[j].depth >255) {
-				sites[j].depth = 255;
-			}
-			consensus<<(unsigned char)(glf_base_code[sites[j].ori&7]<<4|((sites[j].depth>>4)&0xF))<<(unsigned char)((sites[j].depth&0xF)<<4|copy_num&0xF)<<flush;
-			type1 = 0;
-			// Find the largest likelihood
-			for (allele1=0; allele1!=4; allele1++) {
-				for (allele2=allele1; allele2!=4; allele2++) {
-					genotype = allele1<<2|allele2;
-					if (mat->type_likely[genotype] > mat->type_likely[type1]) {
-						type1 = genotype;
-					}
-					else {
-						;
-					}
-				}
-			}
-			for(type=0;type!=10;type++) {
-				if(mat->type_likely[type1]-mat->type_likely[glf_type_code[type]]>25.5) {
-					consensus<<(unsigned char)255;
-				}
-				else {
-					consensus<<(unsigned char)(unsigned int)(10*(mat->type_likely[type1]-mat->type_likely[glf_type_code[type]]));
-				}
+		if(para->glf_format) {
+			for(int i=0; i!=10; i++) {
+				consensus.write(reinterpret_cast<char*>(&mat->type_likely[glf_type_code[i]]), sizeof(double));
 			}
 			consensus<<flush;
 			if(!consensus.good()) {
 				cerr<<"Broken ofstream after writting Position "<<(sites[j].pos+1)<<" at "<<call_name<<endl;
 				exit(255);
 			}
-			continue;
+			//continue;
 		}
 		// Calculate Posterior Probability
 		memcpy(real_p_prior, &mat->p_prior[((ubit64_t)sites[j].ori&0x7)<<4], sizeof(double)*16);
@@ -269,50 +259,6 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 					;
 				}
 			}
-		}
-		if(2==para->glf_format) {
-			// Generate GLFv2 format
-			int copy_num;
-			if(sites[j].depth == 0) {
-				copy_num = 15;
-			}
-			else {
-				copy_num = int(1.442695041*log(sites[j].repeat_time/sites[j].depth));
-				if(copy_num>15) {
-					copy_num = 15;
-				}
-			}
-			if(sites[j].depth >255) {
-				sites[j].depth = 255;
-			}
-			consensus<<(unsigned char)(glf_base_code[sites[j].ori&7]<<4|((sites[j].depth>>4)&0xF))<<(unsigned char)((sites[j].depth&0xF)<<4|copy_num&0xF)<<flush;
-			type1 = 0;
-			// Find the largest likelihood
-			for (allele1=0; allele1!=4; allele1++) {
-				for (allele2=allele1; allele2!=4; allele2++) {
-					genotype = allele1<<2|allele2;
-					if (mat->type_prob[genotype] > mat->type_prob[type1]) {
-						type1 = genotype;
-					}
-					else {
-						;
-					}
-				}
-			}
-			for(type=0;type!=10;type++) {
-				if(mat->type_prob[type1]-mat->type_prob[glf_type_code[type]]>25.5) {
-					consensus<<(unsigned char)255;
-				}
-				else {
-					consensus<<(unsigned char)(unsigned int)(10*(mat->type_prob[type1]-mat->type_prob[glf_type_code[type]]));
-				}
-			}
-			consensus<<flush;
-			if(!consensus.good()) {
-				cerr<<"Broken ofstream after writting Position "<<(sites[j].pos+1)<<" at "<<call_name<<endl;
-				exit(255);
-			}
-			continue;
 		}
 		is_out = true; // Check if the position needs to be output, useful in snp-only mode
 
@@ -360,22 +306,41 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		if (q_cns<0) {
 			q_cns = 0;
 		}
-		// ChrID\tPos\tRef\tCns\tQual\tBase1\tAvgQ1\tCountUni1\tCountAll1\tBase2\tAvgQ2\tCountUni2\tCountAll2\tDepth\tRank_sum\tCopyNum\tSNPstauts\n"
-		if(! para->is_snp_only || (abbv[type1] != "ACTGNNNN"[(sites[j].ori&0x7)] && sites[j].depth > 0)) {
+		if(! para->glf_format) {
+			// ChrID\tPos\tRef\tCns\tQual\tBase1\tAvgQ1\tCountUni1\tCountAll1\tBase2\tAvgQ2\tCountUni2\tCountAll2\tDepth\tRank_sum\tCopyNum\tSNPstauts\n"
+			if(! para->is_snp_only || (abbv[type1] != "ACTGNNNN"[(sites[j].ori&0x7)] && sites[j].depth > 0)) {
+				if(base1<4 && base2<4) {
+					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
+					<<("ACTGNNNN"[base2])<<'\t'<<(sites[j].q_sum[base2]==0?0:sites[j].q_sum[base2]/sites[j].count_uni[base2])<<'\t'<<sites[j].count_uni[base2]<<'\t'<<sites[j].count_all[base2]<<'\t'
+					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<endl;
+				}
+				else if(base1<4) {
+					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
+					<<"N\t0\t0\t0\t"
+					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<endl;
+				}
+				else {
+					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<endl;
+				}
+			}
+		}
+		else {
 			if(base1<4 && base2<4) {
-				consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
 					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
 					<<("ACTGNNNN"[base2])<<'\t'<<(sites[j].q_sum[base2]==0?0:sites[j].q_sum[base2]/sites[j].count_uni[base2])<<'\t'<<sites[j].count_uni[base2]<<'\t'<<sites[j].count_all[base2]<<'\t'
 					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<endl;
 			}
 			else if(base1<4) {
-				consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
 					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
 					<<"N\t0\t0\t0\t"
 					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<endl;
 			}
 			else {
-				consensus<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<endl;
+				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<endl;
 			}
 		}
 		//if(sites[j].pos == 250949) {
@@ -384,15 +349,17 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 	}
 	delete [] real_p_prior;
 	delete [] pcr_dep_count;
+	delete [] likelihoods;
 	return 1;
 }
 
-int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, Genome * genome, Prob_matrix * mat, Parameter * para) {
+int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para) {
 	Soap_format soap;
 	map<Chr_name, Chr_info*>::iterator current_chr, prev_chr;
 	current_chr = prev_chr = genome->chromosomes.end();
 	int coord, sub;
 	int last_start(0);
+	bool recycled(false);
 	for(std::string line; getline(alignment, line);) {
 		std::istringstream s(line);
 		if( s>> soap ) {
@@ -403,51 +370,123 @@ int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, Gen
 			}
 			if (current_chr == genome->chromosomes.end() || current_chr->first != soap.get_chr_name()) {
 				if(current_chr != genome->chromosomes.end() ) {
+					recycled = false;
 					while(current_chr->second->length() > sites[win_size-1].pos) {
-						call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus);
-						recycle();
-						last_start = sites[win_size-1].pos;
+						if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+							//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+							if(last_start > sites[win_size-1].pos) {
+								initialize((last_start/win_size)*win_size);
+							}
+							call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+							last_start = sites[win_size-1].pos;
+							recycled = false;
+						}
+						if (!para->region_only) {
+							//cerr<<"recycled"<<last_start<<endl;
+							recycle();
+							recycled = true;
+							last_start = sites[win_size-1].pos;
+						}
+						else if (!recycled) {
+							//cerr<<"recycled"<<" "<<last_start<<endl;
+							if (last_start>(sites[win_size-1].pos)) {
+								cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+								exit(1);
+								if ((last_start+1)%win_size!=0) {
+									cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+									exit(1);
+								}
+								initialize(last_start-win_size+1);
+							}
+							else {
+								if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+									recycle();
+								}
+								else {
+									deep_init(sites[win_size].pos);
+								}
+							}
+							recycled = true;
+							last_start = sites[win_size-1].pos;
+						}
+						else {
+							assert((last_start+1)%win_size==0);
+							last_start += win_size;
+						}
 					}
-					call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus);
-					recycle();
+					// The last window
+					if(last_start > sites[win_size-1].pos) {
+						initialize((last_start/win_size)*win_size);
+					}
+					call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo);
 				}
 				current_chr = genome->chromosomes.find(soap.get_chr_name());
 				initialize(0);
 				last_start = 0;
-				if(para->glf_format) {
-					cerr<<"Processing "<<current_chr->first<<endl;
-					int temp_int(current_chr->first.size()+1);
-					consensus.write(reinterpret_cast<char *> (&temp_int), sizeof(temp_int));
-					consensus.write(current_chr->first.c_str(), current_chr->first.size()+1);
-					temp_int = current_chr->second->length();
-					consensus.write(reinterpret_cast<char *> (&temp_int), sizeof(temp_int));
-					consensus<<flush;
-					if (!consensus.good()) {
-						cerr<<"Broken IO stream after writing chromosome info."<<endl;
-						exit(255);
-					}
-					assert(consensus.good());
-				}
+				cerr<<"Processing "<<current_chr->first<<endl;
 			}
 			else {
 				;
 			}
-			if (para->region_only && !current_chr->second->is_in_region(soap.get_pos())) {
+			if (soap.get_pos()+soap.get_read_len()>=current_chr->second->length()) {
+				continue;
+			}
+			if (para->region_only && (current_chr->second->get_region() == NULL || !current_chr->second->is_in_region(soap.get_pos()))) {
 				continue;
 			}
 			if(soap.get_pos() < last_start) {
 				cerr<<"Errors in sorting:"<<soap.get_pos()<<"<"<<last_start<<endl;
 				exit(255);
 			}
+			recycled = false;
 			while (soap.get_pos()/win_size > last_start/win_size ) {
-				// We should call the base here
-				call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus);
-				recycle();
-				last_start = sites[win_size-1].pos;
-				if ((last_start+1)/win_size==1000) {
-					cerr<<"Called "<<last_start;
+				if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+					//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+					if(last_start > sites[win_size-1].pos) {
+						initialize((last_start/win_size)*win_size);
+					}
+					call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+					last_start = sites[win_size-1].pos;
+					recycled = false;
 				}
+				if (!para->region_only) {
+					//cerr<<"recycled"<<last_start<<endl;
+					recycle();
+					recycled = true;
+					last_start = sites[win_size-1].pos;
+				}
+				else if (!recycled) {
+					//cerr<<"recycled"<<" "<<last_start<<endl;
+					if (last_start>(sites[win_size-1].pos)) {
+						cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+						exit(1);
+						if ((last_start+1)%win_size!=0) {
+							cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+							exit(1);
+						}
+						initialize(last_start-win_size+1);
+					}
+					else {
+						if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+							recycle();
+						}
+						else {
+							deep_init(sites[win_size].pos);
+						}
+					}
+					recycled = true;
+					last_start = sites[win_size-1].pos;
+				}
+				else {
+					assert((last_start+1)%win_size==0);
+					last_start += win_size;
+				}
+				//if ((last_start+1)/win_size==1000) {
+				//	cerr<<"Called "<<last_start;
+				//}
 			}
+			//cerr<<"die"<<endl;
+			//exit(1);
 			last_start=soap.get_pos();
 			for(coord=0; coord<soap.get_read_len(); coord++){
 				if( (soap.get_pos()+coord)/win_size == soap.get_pos()/win_size ) {
@@ -464,6 +503,7 @@ int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, Gen
 					continue;
 				}
 				if(soap.get_hit() == 1) {
+					//exit((fprintf(stderr, "Wo Cao!\n")));
 					sites[sub].dep_uni += 1;
 					// Update the covering info: 4x2x64x64 matrix, base x strand x q_score x read_pos, 2-1-6-6 bits for each
 					if(soap.is_fwd()) {
@@ -484,14 +524,60 @@ int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, Gen
 			}
 		}
 	}
-	//cerr<<"Name = "<<current_chr->first<<endl;
+
+//The unprocessed tail of chromosome
+	recycled = false;
 	while(current_chr->second->length() > sites[win_size-1].pos) {
-		call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus);
-		recycle();
-		last_start = sites[win_size-1].pos;
+		if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+			//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+			if(last_start > sites[win_size-1].pos) {
+				initialize((last_start/win_size)*win_size);
+			}
+			call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+			last_start = sites[win_size-1].pos;
+			recycled = false;
+		}
+		if (!para->region_only) {
+			//cerr<<"recycled"<<last_start<<endl;
+			recycle();
+			recycled = true;
+			last_start = sites[win_size-1].pos;
+		}
+		else if (!recycled) {
+			//cerr<<"recycled"<<" "<<last_start<<endl;
+			if (last_start>(sites[win_size-1].pos)) {
+				cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+				exit(1);
+				if ((last_start+1)%win_size!=0) {
+					cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+					exit(1);
+				}
+				initialize(last_start-win_size+1);
+			}
+			else {
+				if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+					recycle();
+				}
+				else {
+					deep_init(sites[win_size].pos);
+				}
+			}
+			recycled = true;
+			last_start = sites[win_size-1].pos;
+		}
+		else {
+			assert((last_start+1)%win_size==0);
+			last_start += win_size;
+		}
 	}
-	call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus);
+// The last window
+	if(last_start > sites[win_size-1].pos) {
+		initialize((last_start/win_size)*win_size);
+	}
+	call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo);
+
 	alignment.close();
 	consensus.close();
+	baseinfo.close();
 	return 1;
 }

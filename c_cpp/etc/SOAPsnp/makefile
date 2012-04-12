@@ -2,7 +2,7 @@ DEFINE =
 CXX = g++
 CXXFLAGS = -fomit-frame-pointer -O3 -ffast-math -funroll-loops -mmmx -msse -msse2 -msse3 -fmessage-length=0  #-MMD -MP -MF #-g3 -Wall -maccumulate-outgoing-args
 
-LFLAGS =
+LFLAGS = -lz
 
 all: soapsnp
 .PHONY: all

@@ -4,7 +4,7 @@
 using namespace std;
 
 int usage() {
-	cerr<<"SoapSNP version 1.01 "<<endl;
+	cerr<<"SoapSNP"<<endl;
 	cerr<<"Compulsory Parameters:"<<endl;
 	cerr<<"-i <FILE> Input SORTED Soap Result"<<endl;
 	cerr<<"-d <FILE> Reference Sequence in fasta format"<<endl;
@@ -35,11 +35,6 @@ int usage() {
 	cerr<<"-T <FILE> Only call consensus on regions specified in FILE. Format: ChrName\\tStart\\tEnd."<<endl;
 	//cerr<<"-S <FILE> Output summary of consensus"<<endl;
 	cerr<<"-h Display this help"<<endl;
-
-	cerr<<"\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>"<<endl;
-	cerr<<"This is free software: you are free to change and redistribute it."<<endl;
-	cerr<<"There is NO WARRANTY, to the extent permitted by law.\n"<<endl;
-
 	exit(1);
 	return 0;
 }
@@ -51,7 +46,7 @@ int readme() {
 int main ( int argc, char * argv[]) {
 	// This part is the default values of all parameters
 	Parameter * para = new Parameter;
-	std::string alignment_name, consensus_name;
+	std::string alignment_name, consensus_name("");
 	bool is_matrix_in = false; // Generate the matrix or just read it?
 	int c;
 	Files files;
@@ -83,13 +78,6 @@ int main ( int argc, char * argv[]) {
 			}
 			case 'o':
 			{
-				files.consensus.clear();
-				files.consensus.open(optarg);
-				if( ! files.consensus ) {
-					cerr<<"Cannot creat file:" <<optarg <<endl;
-					exit(1);
-				}
-				files.consensus.clear();
 				consensus_name = optarg;
 				break;
 			}
@@ -260,10 +248,49 @@ int main ( int argc, char * argv[]) {
 			default: cerr<<"Unknown error in command line parameters"<<endl;
 		}
 	}
-	if( !files.consensus || !files.ref_seq || !files.soap_result ) {
+	if( consensus_name=="" || !files.ref_seq || !files.soap_result ) {
 		// These are compulsory parameters
 		usage();
 	}
+	if ( ! para->glf_format ) {
+		// Normal SOAPsnp tab-delimited text format
+		files.consensus.clear();
+		files.consensus.open(consensus_name.c_str());
+		if( ! files.consensus ) {
+			cerr<<"Cannot creat file:" <<consensus_name<<endl;
+			exit(1);
+		}
+		files.consensus.clear();
+	}
+	else {
+		// SOAPsnp-defined GLF and baseinfo format
+		files.consensus.clear();
+		files.consensus.open(consensus_name.c_str(), ios::binary);
+		if(!files.consensus) {
+			cerr<<"Cannot creat file:" <<consensus_name<<endl;
+			exit(1);
+		}
+		files.consensus.clear();
+
+		files.baseinfo.clear();
+		string baseinfo_name = consensus_name + ".baseinfo";
+		files.baseinfo.open(baseinfo_name.c_str());
+		if(!files.baseinfo) {
+			cerr<<"Cannot creat file:" <<baseinfo_name<<endl;
+			exit(1);
+		}
+		files.baseinfo.clear();
+
+		files.o_region.clear();
+		string o_region_name = consensus_name + ".index";
+		files.o_region.open(o_region_name.c_str());
+		if(!files.o_region) {
+			cerr<<"Cannot creat file:" <<o_region_name<<endl;
+			exit(1);
+		}
+		files.o_region.clear();
+	}
+
 	//Read the chromosomes into memory
 	Genome * genome = new Genome(files.ref_seq, files.dbsnp);
 	files.ref_seq.close();
@@ -273,61 +300,7 @@ int main ( int argc, char * argv[]) {
 		genome->read_region(files.region, para);
 		clog<<"Read target region done."<<endl;
 	}
-	if(para->glf_format) { // GLF or GPF
-		files.consensus.close();
-		files.consensus.clear();
-		files.consensus.open(consensus_name.c_str(), ios::binary);
-		if(!files.consensus) {
-			cerr<<"Cannot write result ot the specified output file."<<endl;
-			exit(255);
-		}
-		if (1==para->glf_format) {
-			files.consensus<<'g'<<'l'<<'f';
-		}
-		else if (2==para->glf_format) {
-			files.consensus<<'g'<<'p'<<'f';
-		}
-		int major_ver = 0;
-		int minor_ver = 0;
-		files.consensus.write(reinterpret_cast<char*>(&major_ver), sizeof(major_ver));
-		files.consensus.write(reinterpret_cast<char*>(&minor_ver), sizeof(minor_ver));
-		if(!files.consensus.good()) {
-			cerr<<"Broken ofstream after version."<<endl;
-			exit(255);
-		}
-		std::string temp("");
-		for(std::string::iterator iter=para->glf_header.begin();iter!=para->glf_header.end(); iter++) {
-			if (':'==(*iter)) {
-				int type_len(temp.size()+1);
-				files.consensus.write(reinterpret_cast<char*>(&type_len), sizeof(type_len));
-				files.consensus.write(temp.c_str(), temp.size()+1)<<flush;
-				temp = "";
-			}
-			else {
-				temp+=(*iter);
-			}
-		}
-		if(!files.consensus.good()) {
-			cerr<<"Broken ofstream after tags."<<endl;
-			exit(255);
-		}
-		if(temp != "") {
-			int type_len(temp.size()+1);
-			files.consensus.write(reinterpret_cast<char*>(&type_len), sizeof(type_len));
-			files.consensus.write(temp.c_str(), temp.size()+1)<<flush;
-			temp = "";
-		}
-		int temp_int(12);
-		files.consensus.write(reinterpret_cast<char*>(&temp_int), sizeof(temp_int));
-		files.consensus.write("CHROMOSOMES", 12);
-		temp_int = genome->chromosomes.size();
-		files.consensus.write(reinterpret_cast<char*>(&temp_int), sizeof(temp_int));
-		files.consensus<<flush;
-		if(!files.consensus.good()) {
-			cerr<<"Broken ofstream after writting header."<<endl;
-			exit(255);
-		}
-	}
+
 	Prob_matrix * mat = new Prob_matrix;
 	if( ! is_matrix_in) {
 		//Read the soap result and give the calibration matrix
@@ -350,7 +323,7 @@ int main ( int argc, char * argv[]) {
 	files.soap_result.clear();
 	files.soap_result.open(alignment_name.c_str());
 	files.soap_result.clear();
-	info.soap2cns(files.soap_result, files.consensus, genome, mat, para);
+	info.soap2cns(files.soap_result, files.consensus, files.baseinfo, genome, mat, para);
 	files.soap_result.close();
 	files.consensus.close();
 	cerr<<"Consensus Done!"<<endl;

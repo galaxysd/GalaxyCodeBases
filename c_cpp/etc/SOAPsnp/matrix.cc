@@ -68,6 +68,9 @@ int Prob_matrix::matrix_gen(std::ifstream & alignment, Parameter * para, Genome 
 			else {
 				;
 			}
+			if (soap.get_pos()+soap.get_read_len()>=current_chr->second->length()) {
+				continue;
+			}
 			if (soap.is_unique()) {
 				for(coord = 0; coord != soap.get_read_len(); coord++) {
 					if (soap.is_N(coord)) {
