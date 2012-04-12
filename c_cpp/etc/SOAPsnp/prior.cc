@@ -1,5 +1,12 @@
 #include "soap_snp.h"
 
+/**
+ * DATE:  
+ * FUNCTION:     generate the prior matrix 
+ * PARAMETER:    
+ * RETURN :     1
+ */
+
 int Prob_matrix::prior_gen(Parameter * para) {
 	char t_base, allele1, allele2;
 	// Note, the above parameter should be changed to a more reasonable one

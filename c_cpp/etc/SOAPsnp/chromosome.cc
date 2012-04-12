@@ -26,12 +26,17 @@ Chr_info::Chr_info(const Chr_info & other) {
 	}
 }
 
+
 // allocate every sequence memory£¬ load sequence
 int Chr_info::binarize(std::string & seq) {
 	len = seq.length();
+	//update 11-26
+	
+
 	//cerr<<len<<endl;
 	// 4bit for each base
 	// Allocate memory
+	
 	if (len%capacity==0) {
 		bin_seq = new ubit64_t [len/capacity];
 		memset(bin_seq,0,sizeof(ubit64_t)*len/capacity);
@@ -43,6 +48,14 @@ int Chr_info::binarize(std::string & seq) {
 
 	// Add each base, 7 is 0b111
 	for(std::string::size_type i=0;i!=seq.length();i++) {
+		//update 11-26
+		
+		if ((m_start_position == 0) && (seq[i] != 'N'))
+		{
+			//update 11-29
+			m_start_position = i - global_win_size;  //get the position is not N 
+			m_start_position = m_start_position / global_win_size * global_win_size;
+		}
 		bin_seq[i/capacity] |= ((((ubit64_t)seq[i]>>1)&7)<<(i%capacity*4));
 	}
 	return 1;
@@ -64,12 +77,12 @@ int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
 	}
 	return 1;
 }
-
+//set region ,if in the region , the postion in the region mask is 1
 int Chr_info::set_region(int start, int end) {
 	if(start<0) {
 		start = 0;
 	}
-	else if (start >= len) {
+	else if (start >= len) { //start out of the chromose length
 		start = len;
 	}
 
@@ -127,6 +140,12 @@ int Chr_info::set_region(int start, int end) {
 	return 1;
 }
 
+/**
+ * DATE:  
+ * FUNCTION:    initialize region mask and ragion window,new array [chromorese len /64] or [chromorese len /64 +1]
+ * PARAMETER:   
+ * RETURN:   
+ */
 int Chr_info::region_mask_ini(){
 	//Specific mask
 	if(len%64==0) {
@@ -151,7 +170,7 @@ int Chr_info::region_mask_ini(){
 }
 
 // read every reads' starting and ending positions
-int Genome::read_region(std::ifstream & region, Parameter * para) {
+int Genome::read_region(my_ifstream & region, Parameter * para) {
 	Chr_name current_name(""), prev_name("");
 	int start, end;
 	map<Chr_name, Chr_info*>::iterator chr_iter;
@@ -164,6 +183,7 @@ int Genome::read_region(std::ifstream & region, Parameter * para) {
 					cerr<<"Unexpected Chromosome:"<<current_name<<endl;
 					continue;
 				}
+				//initialize the region pointer 
 				if(NULL == chr_iter->second->get_region()) {
 					chr_iter->second->region_mask_ini();
 				}
@@ -179,7 +199,7 @@ int Genome::read_region(std::ifstream & region, Parameter * para) {
 	return 1;
 }
 
-Genome::Genome(std::ifstream &fasta, std::ifstream & known_snp) {
+Genome::Genome(my_ifstream &fasta,my_ifstream & known_snp) {
 	std::string seq("");
 	Chr_name current_name("");
 	map<Chr_name, Chr_info*>::iterator chr_iter;

@@ -18,6 +18,8 @@
 #include "SfsMethod.h"
 #include "soap_snp.h"
 
+#define BE_PROCESSED -1
+
 bool operator <= (const loci& first,const  loci& second) {
 	if(first.chromo==second.chromo)
 		return first.position<=second.position;
@@ -42,6 +44,16 @@ SfsMethod::SfsMethod()
 	binomLookup = NULL;
 	likes = NULL;
 	bayes = NULL;
+	asso[0].clear();
+	asso[1].clear();
+	asso[2].clear();
+	//end of update
+	m_map_idx = 0;
+	m_map_idx_process = BE_PROCESSED;
+	sem_init(&sem_call_sfs, 0, 0);
+	sem_init(&sem_call_sfs_return, 0, 1);
+	//sem_init(&sem_map_number, 0, 2);
+	file_end_flag = 0;
 }
 
 pthread_mutex_t SfsMethod::m_pthreadMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -88,7 +100,7 @@ SfsMethod::SfsMethod(int numInds)
 
 /**
  * DATE: 2010-9-16
- * FUNCTION: initialization.
+ * FUNCTION: initialization :likes , bays, binomLookup matrix
  * PARAMETER:  numInds: the individual number.	
  * RETURN:	 0
  */
@@ -152,7 +164,12 @@ SfsMethod::~SfsMethod(void)
 		bayes = NULL;
 	}
 	//delVector(asso);
-	cleanUpMap(asso);
+	cleanUpMap(asso[0]);
+	cleanUpMap(asso[1]);
+	cleanUpMap(asso[2]);
+	//clear sem
+	sem_destroy(&sem_call_sfs);
+	sem_destroy(&sem_call_sfs_return);
 }
 
 void outMap(aMap::iterator &itr, int numInds)
@@ -197,9 +214,10 @@ void outMap(aMap::iterator &itr, int numInds)
  *				allowPhatZero
  * RETURN: void
  * UPDATE:2010-10-21, add a set phat condition.
+ * UPDATE:2010-11-29, control the sfs file column 
  */
 void SfsMethod::algo(aMap & asso, int numInds, double eps, double pvar, double B, FILE * sfsfile, 
-					 int normalize, int alternative, int singleMinor, double pThres, int allowPhatZero)
+					 int normalize, int alternative, int singleMinor, double pThres, int allowPhatZero, int firstlast)
 {
 	normalize=0;
 
@@ -510,8 +528,20 @@ void SfsMethod::algo(aMap & asso, int numInds, double eps, double pvar, double B
 			fprintf(sfsfile,"%s\t%d\t",it->first.chromo.c_str(),it->first.position);
 			//sfsfile << getChar(it->second.major) << "\t" << getChar(it->second.minor) << "\t";
 			fprintf(sfsfile,"%c\t%c\t",getChar(it->second.major),getChar(it->second.minor));
+		//update 11-29 for control the sfs file column
+			//fprintf(sfsfile,"%f\t",sumMinors[i]);
 			for(int i=0;i<(2*numInds);i++)
-				fprintf(sfsfile,"%f\t",sumMinors[i]);
+			{
+				if ( firstlast == 1 )  //only output the first and last column to the sfs file
+				{
+					fprintf(sfsfile,"%f\t",sumMinors[i]);
+					break; 
+				}
+				else
+				{
+					fprintf(sfsfile,"%f\t",sumMinors[i]);
+				}
+			}
 				//sfsfile << sumMinors[i] << "\t";
 			//sfsfile << sumMinors[2*numInds] << endl;
 			fprintf(sfsfile,"%f\n",sumMinors[2*numInds]);
@@ -816,7 +846,7 @@ double SfsMethod::sum(const double* ary, int len)
 void SfsMethod::generate_likeLookup()
 {
 	for (short int i=0;i<=255;i++)
-		likeLookup[i] =  calcLikeRatio(i);
+		likeLookup[i] =  calcLikeRatio(i); //(pow(10.0,-i/10.0));
 }
 
 
@@ -1193,27 +1223,44 @@ int SfsMethod::call_SFS(Parameter* para, Files* files)
 	{
 		return POINTER_NULL;
 	}
-	SFS_PARA *sfs = para->sfs;
-	calcSumBias(asso, m_numInds);
-	if (sfs->doBay)
+		//update 11-`6
+	sem_t * sem_call_sfs_p = &(sem_call_sfs);
+	sem_t * sem_call_sfs_return_p = &(sem_call_sfs_return);
+	//sem_t * sem_map_number_p = &(sem_map_number);
+	while (1)
 	{
-		// do bay.
-		algo(asso, m_numInds, sfs->eps, sfs->pvar, sfs->bias, files->sfsfile, sfs->under_FP, sfs->alternative, sfs->sigle_MB, sfs->pThres, sfs->allow_PathZ);
+		sem_wait(sem_call_sfs_p);
+		mapChange();
+	
+		if (file_end_flag == 0)
+		{
+			sem_post(sem_call_sfs_return_p);
+		}
+		SFS_PARA *sfs = para->sfs;
+		int tmp = getidxProcess();
+		calcSumBias(asso[tmp], m_numInds);//get major and minor
+		if (sfs->doBay)
+		{
+			// do bay.
+			algo(asso[tmp], m_numInds, sfs->eps, sfs->pvar, sfs->bias, files->sfsfile, sfs->under_FP, sfs->alternative, sfs->sigle_MB, sfs->pThres, sfs->allow_PathZ, sfs->sfs_first_last);
+		}
+		if (sfs->doJoint)
+		{
+			// do joint.
+			algoJoint(asso[tmp], m_numInds, sfs->eps, sfs->pvar, sfs->bias, files->jointSfsfile, sfs->under_FP, sfs->alternative, sfs->sigle_MJ, sfs->jointFold);
+		}
+		if (sfs->writeFr)
+		{
+			// output frequence.
+			writeFreq(files->freqfile, m_numInds, asso[tmp]);
+		}
+		// free the map.
+		delMap(asso[tmp]);
+		 
+		//sem_post(sem_map_number_p);
+		if (file_end_flag == 1)
+			return 0;
 	}
-	if (sfs->doJoint)
-	{
-		// do joint.
-		algoJoint(asso, m_numInds, sfs->eps, sfs->pvar, sfs->bias, files->jointSfsfile, sfs->under_FP, sfs->alternative, sfs->sigle_MJ, sfs->jointFold);
-	}
-	if (sfs->writeFr)
-	{
-		// output frequence.
-		writeFreq(files->freqfile, m_numInds, asso);
-	}
-	// free the map.
-	delMap(asso);
-	//cleanVec();
-	return 0;
 }
 
 
@@ -1234,11 +1281,11 @@ int SfsMethod::getMapData(const Pos_info& site, const Prob_matrix* mat, const st
 	loci tmp = {chr, site.pos + 1};
 	// lock.
 	pthread_mutex_lock(&m_pthreadMutex);
-	aMap::iterator itr = asso.find(tmp);
+	aMap::iterator itr = asso[m_map_idx].find(tmp);
 	int *the_line = NULL;
 	int *lk = NULL;
 	
-	if (itr == asso.end())
+	if (itr == asso[m_map_idx].end())
 	{
 		// new site.
 		datum dats = allocDatum(m_numInds);
@@ -1251,7 +1298,7 @@ int SfsMethod::getMapData(const Pos_info& site, const Prob_matrix* mat, const st
 			dats.ref = site.ori;
 		the_line = dats.locus;
 		lk = dats.lk;
-		asso.insert(std::make_pair(tmp, dats));
+		asso[m_map_idx].insert(std::make_pair(tmp, dats));
 		//	asso[tmp] = dats;
 	}
 	else
@@ -1289,7 +1336,7 @@ int SfsMethod::getMapData(const Pos_info& site, const Prob_matrix* mat, const st
  */
 void SfsMethod::buildMap(const char* fname)
 {
-	std::ifstream pfile;
+	my_ifstream pfile;
 	pfile.open(fname,std::ios::in);
 	char buffer[1024];
 	int id=0;
@@ -1385,4 +1432,63 @@ void SfsMethod::cleanVec(void)
 		memset(asso[i].lk, 0, sizeof(int) * (10 * m_numInds));
 		memset(asso[i].locus, 0, sizeof(int) * (4 * m_numInds + 4));
 	}*/
+}
+/**
+ * DATE: 2010-11-17
+ * FUNCTION:  change to the next map
+ * PARAMETER:  void
+ * RETURN:	 void
+ */
+void SfsMethod::mapChange(void)
+{
+	//sem_t * sem_map_change_p = &(sem_map_change);
+	//sem_wait(sem_map_change_p);
+	// move behind another map
+	m_map_idx = 1 - m_map_idx;
+	
+}
+
+//get the map can be processed
+/**
+ * DATE: 2010-11-16
+ * FUNCTION: get the index can be process
+ * PARAMETER:  void
+ * RETURN: the index of map can be process
+ */
+int SfsMethod::getidxProcess(void)
+{
+	int tmp;
+	m_map_idx_process == BE_PROCESSED ? tmp = 2 : tmp = m_map_idx_process;
+	m_map_idx_process = BE_PROCESSED;
+	return tmp;
+}
+
+//set the map index
+/**
+ * DATE: 2010-11-16
+ * FUNCTION: get the index can be process
+ * PARAMETER:  void
+ * RETURN: the index of map can be process
+ */
+void SfsMethod::setidxProcess(void)
+{
+	while(m_map_idx_process != BE_PROCESSED) //wait the get index .
+	{
+		usleep(1);
+	}
+	m_map_idx_process = m_map_idx ;
+}
+
+/**
+ * DATE: 2010-11-16
+ * FUNCTION: a thread function used to run SfsMethod::call_sfs() function.
+ * PARAMETER: __Args the parameter structure.
+ * RETURN: 
+ */
+void * _sfsMethod_callsfs(void * __Args)
+{
+	// get args.
+	BIG_CALL_SFS_ARGS * args = (BIG_CALL_SFS_ARGS*)__Args;
+	// run the function.
+	args->sfsMethod->call_SFS(args->para, args->files);
 }

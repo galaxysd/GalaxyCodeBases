@@ -26,6 +26,7 @@
 #include <fstream>
 #include <cassert>
 using namespace std;
+typedef ifstream my_ifstream;
 
 #define NOUSE_ALIGNMENT "alignment is no use"
 #define HIT_COUNT_X0		"X0:i:"
@@ -42,7 +43,6 @@ void StringSplit(std::string s, char splitchar, std::vector<std::string>& vec);
 int count_indel_len(const std::string cigar, int &pos);
 /* format the sam text to the soap text*/
 std::string alignment_format(const std::string &sam_ali);
-
 
 /*a struct for sfs parament*/
 typedef struct
@@ -65,6 +65,8 @@ typedef struct
 	int jointFold;	//
 	int qs;	// the quality score threshold.
 	std::string faiPath; // fai file's path.
+	//update 11-29
+	int sfs_first_last; // 0: output h[0]~h[2k] , 1:output h[0] and h[2k] 
 }SFS_PARA ;
 
 /*initialize a sfs_para struct*/

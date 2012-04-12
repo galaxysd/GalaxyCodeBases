@@ -25,7 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <pthread.h>
-
+#include <semaphore.h>
 using namespace std;
 
 class Files;
@@ -115,13 +115,19 @@ public:
 	SfsMethod();
 	SfsMethod(int numInds);
 	virtual ~SfsMethod(void);
-	// the main function for the sfs
-	virtual void algo(aMap & asso, int numInds, double eps, double pvar, double B, FILE * sfsfile, int normalize, int alternative, int singleMinor, double pThres, int allowPhatZero);
+	// the main function for the sfs, update 11-29 add int sfsfirstlast
+	virtual void algo(aMap & asso, int numInds, double eps, double pvar, double B, FILE * sfsfile, int normalize, int alternative, int singleMinor, double pThres, int allowPhatZero, int firstlast);
 	virtual void algoJoint(aMap & asso, int numInds, double eps, double pvar, double B, FILE * sfsfile, int underFlowProtect, int alternative, int singleMinor, int fold);
 	// write the freqfile
 	void writeFreq(FILE * pFile, int numInds, aMap & asso);
 	// allocation functions, this shouldn't look magical for anyone
 	virtual double* allocDoubleArray(int len);
+	//update 11-16
+	sem_t sem_call_sfs;
+	//sem_t sem_map_change;
+	sem_t sem_call_sfs_return ;
+	//sem_t sem_map_number; 
+	int file_end_flag;
 private:
 	// genome likelihood Format look up table
 	int glfLookup[4][4];
@@ -137,7 +143,10 @@ private:
 	double *bayes;
 	double *likes;
 	// aMap pointer.
-	aMap asso;
+	aMap asso[3];
+	//the map index
+	int m_map_idx;
+	int m_map_idx_process; // the index of the process map 
 	// aVector *asso;
 	// individual number
 	int m_numInds;
@@ -209,5 +218,36 @@ public:
 	virtual int getSFSData(const Pos_info & site, const Prob_matrix * mat, const std::string & chr, const int id);
 	// clean up the vector's member.
 	void cleanVec(void);
+	//update 11-16
+	// change map
+	void mapChange(void);
+	//get the map index can be process
+	int getidxProcess(void);
+	//wait the map to be process
+	void setidxProcess(void);
 };
 
+//the call sfs structor 
+typedef struct _big_call_sfs_args
+{
+	SfsMethod * sfsMethod;
+	Files  *files;
+	Parameter * para;
+
+	inline _big_call_sfs_args(SfsMethod * a, Files * b, Parameter * c)
+	{
+		sfsMethod = a;
+		files = b;
+		para = c;
+	};
+
+	inline _big_call_sfs_args()
+	{
+		sfsMethod = NULL;
+		files = NULL;
+		para = NULL;
+	};
+	
+}BIG_CALL_SFS_ARGS;
+
+void * _sfsMethod_callsfs(void * args);

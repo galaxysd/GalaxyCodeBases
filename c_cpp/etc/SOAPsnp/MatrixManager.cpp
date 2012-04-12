@@ -11,6 +11,8 @@
  *FILE NAME : MatrixManager.cpp
  *UPDATE DATE : 2010-8-25
  *UPDATE BY : Bill Tang
+ *UPDATE: 2010-11-2 change the interface which is related to soap file.
+ *UPDATA BY :BIll Tang
  *******************************************************************************
  */
 #include "MatrixManager.h"
@@ -40,7 +42,7 @@ MatrixManager::~MatrixManager(void)
  */
 int MatrixManager::addMatrix(SamCtrl &alignment, Parameter* para, Genome* genome, fstream *outFile, int index)
 {
-	Prob_matrix *prob_matrix = new Prob_matrix();
+	Prob_matrix *prob_matrix = new Prob_matrix(para->rank_sum_mode);
 
 	if (prob_matrix == NULL)
 	{
@@ -50,16 +52,17 @@ int MatrixManager::addMatrix(SamCtrl &alignment, Parameter* para, Genome* genome
 
 	// generate matrix.
 	prob_matrix->matrix_gen(alignment, para, genome);
-
 	// write matrix to file.
 	if (outFile != NULL)
 	{
 		prob_matrix->matrix_write(*outFile, para);
 	}
-
 	// count prior
 	prob_matrix->prior_gen(para);
-	prob_matrix->rank_table_gen();
+	if (para->rank_sum_mode == true)
+	{
+		prob_matrix->rank_table_gen();
+	}
 	m_mat_vec[index] = prob_matrix;
 
 	return m_mat_vec.size();
@@ -73,9 +76,9 @@ int MatrixManager::addMatrix(SamCtrl &alignment, Parameter* para, Genome* genome
  * RETURN: if add failed then return CREATE_MAT_FAILED. successful return m_mat_vec.size().
  * UPDATE: 2010-10-12 add a parameter index
  */
-int MatrixManager::addMatrix(std::ifstream &alignment, Parameter* para, Genome* genome, fstream *outFile, int index)
+int MatrixManager::addMatrix(igzstream &alignment, Parameter* para, Genome* genome, fstream *outFile, int index)
 {
-	Prob_matrix *prob_matrix = new Prob_matrix();
+	Prob_matrix *prob_matrix = new Prob_matrix(para->rank_sum_mode); //initialize array will be used in the prob matrix
 
 	if (prob_matrix == NULL)
 	{
@@ -83,7 +86,7 @@ int MatrixManager::addMatrix(std::ifstream &alignment, Parameter* para, Genome* 
 		return CREATE_MAT_FAILED;
 	}
 
-	// generate matrix.
+	// generate correction matrix.
 	prob_matrix->matrix_gen(alignment, para, genome);
 
 	// write matrix to file.
@@ -92,9 +95,13 @@ int MatrixManager::addMatrix(std::ifstream &alignment, Parameter* para, Genome* 
 		prob_matrix->matrix_write(*outFile, para);
 	}
 
-	// count prior
+	// generate the prior matrix 
 	prob_matrix->prior_gen(para);
-	prob_matrix->rank_table_gen();
+
+	if (para->rank_sum_mode == true)
+	{
+		prob_matrix->rank_table_gen();
+	}
 	m_mat_vec[index] = prob_matrix;
 
 	return m_mat_vec.size();
@@ -142,7 +149,8 @@ Prob_matrix* MatrixManager::getMatrix(int index)
  */
 int MatrixManager::addMatrix(std::fstream& matrix_file, Parameter *para)
 {
-	Prob_matrix *prob_matrix = new Prob_matrix();
+	//update 11-11 for ran_sum_mode flag
+	Prob_matrix *prob_matrix = new Prob_matrix(para->rank_sum_mode);
 
 	if (prob_matrix == NULL)
 	{
@@ -153,7 +161,11 @@ int MatrixManager::addMatrix(std::fstream& matrix_file, Parameter *para)
 	prob_matrix->matrix_read(matrix_file, para);
 	// count prior
 	prob_matrix->prior_gen(para);
-	prob_matrix->rank_table_gen();
+	//2010-11-11
+	if (para->rank_sum_mode == true)
+	{
+		prob_matrix->rank_table_gen();
+	}
 	m_mat_vec.push_back(prob_matrix);
 
 	return m_mat_vec.size();

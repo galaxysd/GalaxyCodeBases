@@ -20,6 +20,7 @@
 Call_winManager::Call_winManager(void)
 {
 	m_cw_vec.clear();
+
 }
 
 /**
@@ -89,10 +90,11 @@ int Call_winManager::addCallwin(ubit64_t read_len)
  * RETURN: CRE_WIN_FAILED when create Call_win failed. INDEX_EXCEED when index exceed
  *			SOAP2CNS_SUCCESS when successful.
  * UPDATE: 2010-10-12, reduce the addCallwin part.
+ * UPDATE : 2010-11-22 process the win before new reads outsid the window
  */
 int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
-							  std::ofstream& consensus,\
-							  std::ofstream& baseinfo, \
+							  gzoutstream & consensus,\
+							  my_ofstream& baseinfo, \
 							  Genome* genome, \
 							  Prob_matrix* mat,\
 							  Parameter* para, \
@@ -120,12 +122,19 @@ int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
 		return INDEX_EXCEED;
 	}
 
-		//cerr << "Call_winManager:alignment_vec.size() " << alignment_vec.size() << "\t" << __LINE__ << endl;
+	//process the win before new reads outsid the window
 	for (int i = ali_index; i < alignment_vec.size(); ++i)
 	{
 		m_cw_vec[index]->deal_read(alignment_vec[i], consensus, baseinfo, genome, mat, para, sfsMethod, index);
 	}
-		//cerr << "Call_winManager:" <<  __LINE__ << endl;
+
+	// add by guyue 2010-11-25
+	if (!m_cw_vec[index]->done_pro_win)
+	{
+		m_cw_vec[index]->recycled = false;
+		m_cw_vec[index]->pro_win(consensus, baseinfo, genome, mat, para, sfsMethod, index);
+	}
+	m_cw_vec[index]->done_pro_win = false;
 	// clear up the alignments.
 	alignment_vec.clear();
 	return SOAP2CNS_SUCCESS;
@@ -143,15 +152,14 @@ int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
  * RETURN:  INDEX_EXCEED when index exceed
  *			SOAP2CNS_SUCCESS when successful.
  */
-int Call_winManager::dealTail(std::ofstream& consensus, std::ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod)
+int Call_winManager::dealTail(gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod)
 {
 	if (index >= m_cw_vec.size())
 	{
 		// index is over flow.
 		return INDEX_EXCEED;
 	}
-
-	bool recycled(false);
+	
 	m_cw_vec[index]->deal_tail(consensus, baseinfo, genome, mat, para, sfsMethod, index);
 
 	return SOAP2CNS_SUCCESS;
@@ -182,8 +190,8 @@ int Call_win_Task::Run()
 	// set all the parameters.
 	Call_winManager & call_winManager = *(call_win_args->call_winManager_p);
 	vector<Soap_format> & alignment_vec_p = *(call_win_args->alignment_vec_p);
-	ofstream & consensus = *(call_win_args->consensus_p);
-	ofstream & baseinfo = *(call_win_args->baseinfo_p);
+	gzoutstream & consensus = *(call_win_args->consensus_p);
+	my_ofstream & baseinfo = *(call_win_args->baseinfo_p);
 	Genome * genome = call_win_args->genome;
 	Prob_matrix * mat = call_win_args->mat;
 	Parameter * para = call_win_args->para;
@@ -194,4 +202,17 @@ int Call_win_Task::Run()
 	// do the soap2cns.
 	call_winManager.soap2cns(alignment_vec_p, consensus, baseinfo, genome, mat, para, index, ali_index, sfsMethod);
 	return 1;
+}
+
+void Call_winManager::setLast_start(int start_pos)
+{
+	if (start_pos <= 0)
+	{
+		return;
+	}
+	for (int i = 0; i < m_cw_vec.size(); ++i)
+	{
+		m_cw_vec[i]->last_start = start_pos;
+		m_cw_vec[i]->m_is_set_ls = true;
+	}
 }

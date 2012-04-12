@@ -31,7 +31,7 @@ typedef unsigned char small_int;
 using namespace std;
 typedef ifstream my_ifstream;
 typedef ofstream my_ofstream;
-typedef my_ofstream gzoutstream;
+typedef ogzstream gzoutstream;
 
 const size_t capacity = sizeof(ubit64_t)*8/4;
 const char abbv[17]={'A','M','W','R','M','C','Y','S','W','Y','T','K','R','S','K','G','N'};

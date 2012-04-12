@@ -127,3 +127,41 @@
 	add class CTask, CThreadPool, and Call_win_Task. but debug failed.
 
 (16)2010.10.14
+	change the destructor for every class.
+
+(17)2010.11.2
+	change the soap file interface. make it can read gz file
+(18)2010.11.12
+	FileListManager.h :
+		virtual int readWin(vector<Readwin>& readwin_vec, CThreadPool& threadpool) function  add ThreadPool& threadpool	
+		add struct _read_win_args
+		add class Read_win_Task
+	FileListManager.cpp:
+		virtual int readWin(vector<Readwin>& readwin_vec, CThreadPool& threadpool) function  add ThreadPool& threadpool, add lock to m_last_count.
+		
+		add function Read_win_Task::Run();
+	soap_snp.h :
+		typedef ifstream my_ifstream;
+			typedef ofstream my_ofstream;
+		matrix.cc :
+		Prob_matrix::Prob_matrix(bool flag), add flag judge whether need to deal rank_sum part and judge in the Prob_matrix::~Prob_matrix()
+	main.cc :
+		para->ret = fileListManager->readWin(readwin_vec,threadpool);
+	matrixManager.cc
+		if (para->rank_sum_mode == true)
+		{
+			prob_matrix->rank_table_gen();
+		}	 
+
+(19)2010.11.15
+	make that reading and processing synchronism.
+
+(20)2010.11.22
+	make a change to adapt soap2 about the indel count. The tools.h, tools.cpp and soap_snp.h have been changed
+(21)2010.11.30 
+	add m_start_position  , change chromosome.cc  . 
+	change sfsMethod.cpp , sfsMethod.h, main.cc for only output h[0] and h[2k], add aMap[3] .
+	change call_genotype.cc, soap_snp.h make the window's the same in the different individuls.
+	
+(22)2010.12.1	zhukai
+    output the consensus with the .gz format.

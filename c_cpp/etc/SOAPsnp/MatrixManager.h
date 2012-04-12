@@ -11,6 +11,8 @@
  *FILE NAME : MatrixManager.h
  *UPDATE DATE : 2010-8-25
  *UPDATE BY : Bill Tang
+ *UPDATE: 2010-11-2 change the interface which is related to soap file.
+ *UPDATA BY :BIll Tang
  *******************************************************************************
  */
 
@@ -35,7 +37,7 @@ public:
 	// add Matrix to the vector
 	virtual int addMatrix(SamCtrl &alignment, Parameter* para, Genome* genome, fstream *outFile, int index);
 	// add a matrix from the prior matrixfile.
-	virtual int addMatrix(std::ifstream &alignment, Parameter* para, Genome* genome, fstream *outFile, int index);
+	virtual int addMatrix(igzstream &alignment, Parameter* para, Genome* genome, fstream *outFile, int index);
 	// change the Prob_matrix with new soap_vec
 	virtual int changeMatrix(vector<Soap_format>& soap_vec, Parameter* para, Genome* genome, int index);
 	// get a Prob_matrix point that point to the m_mat_vec[index]
@@ -61,7 +63,7 @@ typedef struct _matrix_args
 	//FileListManager * fileListManager;
 	Parameter * para;
 	Genome* genome;
-	std::ifstream *soap_alignment;
+	igzstream *soap_alignment;
 	std::fstream *outFile;
 	SamCtrl *sam_alignment;
 	int index;
@@ -73,7 +75,7 @@ typedef struct _matrix_args
 	 * RETURN: 
 	 */
 	inline _matrix_args(MatrixManager * a, Parameter * b, Genome* c,
-			std::ifstream * d, std::fstream * e, SamCtrl * f, int g)
+			igzstream * d, std::fstream * e, SamCtrl * f, int g)
 	{
 		matrixManager = a;
 		para = b;

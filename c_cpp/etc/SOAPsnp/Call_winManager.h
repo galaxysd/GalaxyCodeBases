@@ -27,15 +27,18 @@ class Call_winManager
 	// Call_win objects vector
 	vector<Call_win*> m_cw_vec;
 	Call_winManager(void);
+	
 public:
 	Call_winManager(ubit64_t read_len, int file_num, Genome* genome);
 	virtual ~Call_winManager(void);
 	// add a Call_win object to the Call_win vector
 	virtual int addCallwin(ubit64_t read_len);
 	// soap to consensus
-	virtual int soap2cns(vector<Soap_format>& alignment_vec, std::ofstream& consensus, std::ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, int ali_index, SfsMethod &sfsMethod);
+	virtual int soap2cns(vector<Soap_format>& alignment_vec, gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, int ali_index, SfsMethod &sfsMethod);
 	// deal the tail of sample
-	virtual int dealTail(std::ofstream& consensus, std::ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod);
+	virtual int dealTail(gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod);
+	// set call win's last_start
+	void setLast_start(int start_pos);
 };
 
 /**
@@ -48,8 +51,8 @@ typedef struct _call_win_args
 {
 	Call_winManager * call_winManager_p;
 	vector<Soap_format> * alignment_vec_p;
-	std::ofstream * consensus_p;
-	std::ofstream * baseinfo_p;
+	gzoutstream * consensus_p;
+	my_ofstream * baseinfo_p;
 	Genome * genome;
 	Prob_matrix * mat;
 	Parameter *para;
@@ -58,7 +61,7 @@ typedef struct _call_win_args
 	SfsMethod * sfsMethod_p;
 
 	// initialize
-	inline _call_win_args(Call_winManager* a, vector<Soap_format> * b,std::ofstream* c,std::ofstream* d,Genome* e,Prob_matrix* f,Parameter* g,int h, int i, SfsMethod *j)
+	inline _call_win_args(Call_winManager* a, vector<Soap_format> * b,gzoutstream * c,my_ofstream* d,Genome* e,Prob_matrix* f,Parameter* g,int h, int i, SfsMethod *j)
 	{
 		call_winManager_p = a;
 		alignment_vec_p = b;

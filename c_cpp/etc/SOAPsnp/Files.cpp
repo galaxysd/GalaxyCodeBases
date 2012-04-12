@@ -49,6 +49,7 @@ int Files::OpenSfsfile(const string outfiles, const int writeFr, const int doBay
 		//sfsfile.clear();
 		//sfsfile.open(fSFSall.c_str());
 		sfsfile = getFILE(fSFSall.c_str(),"w");
+		//sfsfile-open(fSFSall.c_str());
 	}
 	if(doJoint)
 	{
