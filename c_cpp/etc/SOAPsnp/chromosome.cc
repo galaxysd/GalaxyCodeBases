@@ -1,5 +1,6 @@
 #include "soap_snp.h"
 
+// add chromosome to varible chromosomes.
 bool Genome::add_chr(Chr_name & name) {
 	Chr_info * new_chr = new Chr_info;
 	pair<map<Chr_name, Chr_info*>::iterator, bool> insert_pair;
@@ -25,6 +26,7 @@ Chr_info::Chr_info(const Chr_info & other) {
 	}
 }
 
+// allocate every sequence memory£¬ load sequence
 int Chr_info::binarize(std::string & seq) {
 	len = seq.length();
 	//cerr<<len<<endl;
@@ -57,7 +59,7 @@ int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
 		bin_seq[pos/capacity] |= (1ULL<<(pos%capacity*4+3));
 	}
 	else {
-		cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
+	//	cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
 		return 0;
 	}
 	return 1;
@@ -141,6 +143,7 @@ int Chr_info::region_mask_ini(){
 	return 1;
 }
 
+// read every reads' starting and ending positions
 int Genome::read_region(std::ifstream & region, Parameter * para) {
 	Chr_name current_name(""), prev_name("");
 	int start, end;
@@ -179,7 +182,7 @@ Genome::Genome(std::ifstream &fasta, std::ifstream & known_snp) {
 			// Deal with previous chromosome
 			if( chromosomes.find(current_name) != chromosomes.end()) {
 				chr_iter = chromosomes.find(current_name);
-				chr_iter->second->binarize(seq);
+				chr_iter->second->binarize(seq); // initialize sequence
 			}
 			// Insert new chromosome
 			std::string::size_type i;
@@ -201,6 +204,8 @@ Genome::Genome(std::ifstream &fasta, std::ifstream & known_snp) {
 		chr_iter = chromosomes.find(current_name);
 		chr_iter->second->binarize(seq);
 	}
+	
+	// initialize known dbSNP
 	if( known_snp ) {
 		Chr_name current_name;
 		Snp_info snp_form;

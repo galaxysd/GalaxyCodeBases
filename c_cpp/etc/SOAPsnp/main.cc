@@ -7,6 +7,8 @@ int usage() {
 	cerr<<"SoapSNP"<<endl;
 	cerr<<"Compulsory Parameters:"<<endl;
 	cerr<<"-i <FILE> Input SORTED Soap Result"<<endl;
+	cerr<<"-S <FILE> Input SORTED SAM Result"<<endl;
+	cerr<<"-B <FILE> Input SORTED BAM Result"<<endl;
 	cerr<<"-d <FILE> Reference Sequence in fasta format"<<endl;
 	cerr<<"-o <FILE> Output consensus file"<<endl;
 	cerr<<"Optional Parameters:(Default in [])"<<endl;
@@ -50,7 +52,9 @@ int main ( int argc, char * argv[]) {
 	bool is_matrix_in = false; // Generate the matrix or just read it?
 	int c;
 	Files files;
-	while((c=getopt(argc,argv,"i:d:o:z:g:p:r:e:ts:2a:b:j:k:unmqM:I:L:Q:S:F:E:T:h")) != -1) {
+	char in_mode[5] = {0};
+	char *fn_list = 0;
+	while((c=getopt(argc,argv,"i:d:o:z:g:p:r:e:ts:2a:b:j:k:unmqM:I:L:Q:S:B:F:E:T:h")) != -1) {
 		switch(c) {
 			case 'i':
 			{
@@ -213,6 +217,15 @@ int main ( int argc, char * argv[]) {
 				//	cerr<<"No such file or directory: "<<optarg<<endl;
 				//	exit(1);
 				//}
+				alignment_name = optarg;
+				in_mode[0] = 'r';
+				break;
+			}
+			case 'B':
+			{
+				alignment_name = optarg;
+				in_mode[0] = 'r';
+				in_mode[1] = 'b';
 				break;
 			}
 			case 'L':
@@ -248,7 +261,9 @@ int main ( int argc, char * argv[]) {
 			default: cerr<<"Unknown error in command line parameters"<<endl;
 		}
 	}
-	if( consensus_name=="" || !files.ref_seq || !files.soap_result ) {
+	if(in_mode[0] == 'r')
+		files.sam_result.open(alignment_name.c_str(), in_mode);
+	if( consensus_name=="" || !files.ref_seq || (!files.sam_result.isOpened() && !files.soap_result) ) {
 		// These are compulsory parameters
 		usage();
 	}
@@ -300,11 +315,14 @@ int main ( int argc, char * argv[]) {
 		genome->read_region(files.region, para);
 		clog<<"Read target region done."<<endl;
 	}
-
 	Prob_matrix * mat = new Prob_matrix;
 	if( ! is_matrix_in) {
 		//Read the soap result and give the calibration matrix
-		mat->matrix_gen(files.soap_result, para, genome);
+		if(in_mode[0] == 'r') {
+			mat->matrix_gen(files.sam_result, para, genome);
+		} else {
+			mat->matrix_gen(files.soap_result, para, genome);
+		}
 		if (files.matrix_file) {
 			mat->matrix_write(files.matrix_file, para);
 		}
@@ -319,13 +337,21 @@ int main ( int argc, char * argv[]) {
 	Call_win info(para->read_length);
 	info.initialize(0);
 	//Call the consensus
-	files.soap_result.close();
-	files.soap_result.clear();
-	files.soap_result.open(alignment_name.c_str());
-	files.soap_result.clear();
-	info.soap2cns(files.soap_result, files.consensus, files.baseinfo, genome, mat, para);
-	files.soap_result.close();
-	files.consensus.close();
+	if(in_mode[0] != 'r') {
+		files.soap_result.close();
+		files.soap_result.clear();
+		files.soap_result.open(alignment_name.c_str());
+		files.soap_result.clear();
+		info.soap2cns(files.soap_result, files.consensus, files.baseinfo, genome, mat, para);
+		files.soap_result.close();
+		files.consensus.close();
+	} else {
+		files.sam_result.close();
+		files.sam_result.open(alignment_name.c_str(), in_mode);
+		info.soap2cns(files.sam_result, files.consensus, files.baseinfo, genome, mat, para);
+		files.sam_result.close();
+		files.consensus.close();
+	}
 	cerr<<"Consensus Done!"<<endl;
 	return 0;
 }

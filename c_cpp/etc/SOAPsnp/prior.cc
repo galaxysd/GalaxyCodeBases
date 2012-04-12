@@ -61,7 +61,7 @@ int Call_win::snp_p_prior_gen(double * real_p_prior, Snp_info* snp, Parameter * 
 		exit(255);
 		return -1;
 	}
-	char t_base = (ref&0x3);
+	char t_base = (ref&0x3); // ????????????????
 	for(allele1=0;allele1!=4;allele1++) {
 		for(allele2=allele1;allele2!=4;allele2++) {
 			if (! snp->is_hapmap()) {

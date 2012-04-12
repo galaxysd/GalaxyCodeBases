@@ -52,6 +52,10 @@ Command line options:
 -i <FILE> Input SORTED SOAPaligner(soap) alignment result
 Note that here we say 'sorted' means alignments of each chromosome are sorted first by chromosome name lexicographically and then by coordinates on each chromosome numerically.
 
+-S <FILE> Input SAM Result(the function added in version 1.04)
+
+-B <FILE> Input BAM Result(the function added in version 1.04)
+
 -d <FILE> Reference DNA sequence in FASTA format
 
 -o <FILE> Output consensus file

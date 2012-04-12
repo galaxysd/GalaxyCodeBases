@@ -12,6 +12,11 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <stdlib.h> 
+#include "tools.h"
+#include "SamCtrl.h"
+
+
 typedef unsigned long long ubit64_t;
 typedef unsigned int ubit32_t;
 typedef double rate_t;
@@ -29,6 +34,7 @@ public:
 	ifstream soap_result, ref_seq, dbsnp, region;
 	ofstream consensus, baseinfo, o_region;
 	fstream matrix_file;
+	SamCtrl sam_result;
 	Files(){
 		soap_result.close();
 		ref_seq.close();
@@ -223,10 +229,21 @@ public:
 	int binarize(std::string & seq);
 	int insert_snp(std::string::size_type pos, Snp_info & new_snp);
 	int region_mask_ini();
+
+	/* 
+		be changed by Bill
+		date : 2010.7.23
+		added the judgement
+	*/
 	bool is_in_region(std::string::size_type pos) {
+		if (pos > len)
+			return 0;
 		return ((region_mask[pos/64]>>(63-pos%64))&1);
 	}
 	bool is_in_region_win(std::string::size_type pos) {
+		if (region_win_mask == NULL) {
+			return 0;
+		}
 		pos /= global_win_size; // Calculate in which windows the site is
 		//cerr<<pos<<endl;
 		//exit(1);
@@ -265,6 +282,9 @@ public:
 	int matrix_write(std::fstream & mat_out, Parameter * para);
 	int prior_gen(Parameter * para);
 	int rank_table_gen();
+
+	// new function. developed by Bill Tang
+	int matrix_gen(SamCtrl &alignment, Parameter * para, Genome * genome);
 
 };
 
@@ -321,6 +341,9 @@ public:
 	double normal_value(double z);
 	double normal_test(int n1, int n2, double T1, double T2);
 	double table_test(double *p_rank, int n1, int n2, double T1, double T2);
+
+	// new function. developed by Bill Tang
+	int soap2cns(SamCtrl &alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para);
 };
 
 #endif /*SOAP_SNP_HH_*/

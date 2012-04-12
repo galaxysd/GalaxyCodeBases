@@ -70,15 +70,15 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 	for(std::string::size_type j=0; j != call_length; j++){
 		//cerr<<sites[j].pos<<endl;
 		if(para->region_only) {
-		    if (NULL== call_chr->get_region() ) {
-		    	break;
-		    }
-		    else if (! call_chr->is_in_region(sites[j].pos)) {
+			if (NULL== call_chr->get_region() ) {
+				break;
+			}
+			else if (! call_chr->is_in_region(sites[j].pos)) {
 				continue;
 		    }
 		    else {
-		    	;
-		    }
+				;
+			}
 		}
 		sites[j].ori = (call_chr->get_bin_base(sites[j].pos))&0xF;
 		if( ((sites[j].ori&4) !=0)/*an N*/ && sites[j].depth == 0) {
@@ -365,11 +365,12 @@ int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, std
 		if( s>> soap ) {
 			//cerr<<"A"<<soap.get_pos()<<endl;
 			//exit(1);
+
 			if(soap.get_pos() < 0) {
 				continue;
 			}
 			if (current_chr == genome->chromosomes.end() || current_chr->first != soap.get_chr_name()) {
-				if(current_chr != genome->chromosomes.end() ) {
+				if(current_chr != genome->chromosomes.end()) {
 					recycled = false;
 					while(current_chr->second->length() > sites[win_size-1].pos) {
 						if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
@@ -577,6 +578,244 @@ int Call_win::soap2cns(std::ifstream & alignment, std::ofstream & consensus, std
 	call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo);
 
 	alignment.close();
+	consensus.close();
+	baseinfo.close();
+	return 1;
+}
+
+/* program by Bill */
+int Call_win::soap2cns(SamCtrl &alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para) {
+	Soap_format soap;
+	map<Chr_name, Chr_info*>::iterator current_chr, prev_chr;
+	current_chr = prev_chr = genome->chromosomes.end();
+	int coord, sub;
+	int last_start(0);
+	bool recycled(false);
+	int r;
+	std::string line;
+	while((r = alignment.readline(line)) >=0) {
+		line = alignment_format(line);
+
+		if (line == NOUSE_ALIGNMENT)
+			continue;
+		std::istringstream ss(line);
+		if( ss >> soap ) {
+			//cerr<<"A"<<soap.get_pos()<<endl;
+			//exit(1);
+
+			if(soap.get_pos() < 0) {
+				continue;
+			}
+			if (current_chr == genome->chromosomes.end() || current_chr->first != soap.get_chr_name()) {
+				if(current_chr != genome->chromosomes.end()) {
+					recycled = false;
+					while(current_chr->second->length() > sites[win_size-1].pos) {
+						if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+							//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+							if(last_start > sites[win_size-1].pos) {
+								initialize((last_start/win_size)*win_size);
+							}
+							call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+							last_start = sites[win_size-1].pos;
+							recycled = false;
+						}
+						if (!para->region_only) {
+							//cerr<<"recycled"<<last_start<<endl;
+							recycle();
+							recycled = true;
+							last_start = sites[win_size-1].pos;
+						}
+						else if (!recycled) {
+							//cerr<<"recycled"<<" "<<last_start<<endl;
+							if (last_start>(sites[win_size-1].pos)) {
+								cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+								exit(1);
+								if ((last_start+1)%win_size!=0) {
+									cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+									exit(1);
+								}
+								initialize(last_start-win_size+1);
+							}
+							else {
+								if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+									recycle();
+								}
+								else {
+									deep_init(sites[win_size].pos);
+								}
+							}
+							recycled = true;
+							last_start = sites[win_size-1].pos;
+						}
+						else {
+							assert((last_start+1)%win_size==0);
+							last_start += win_size;
+						}
+					}
+					// The last window
+					if(last_start > sites[win_size-1].pos) {
+						initialize((last_start/win_size)*win_size);
+					}
+					call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo);
+				}
+				current_chr = genome->chromosomes.find(soap.get_chr_name());
+				initialize(0);
+				last_start = 0;
+				cerr<<"Processing "<<current_chr->first<<endl;
+			}
+			else {
+				;
+			}
+			if (soap.get_pos()+soap.get_read_len()>=current_chr->second->length()) {
+				continue;
+			}
+			if (para->region_only && (current_chr->second->get_region() == NULL || !current_chr->second->is_in_region(soap.get_pos()))) {
+				continue;
+			}
+
+			if(soap.get_pos() < last_start) {
+				cerr<<"Errors in sorting:"<<soap.get_pos()<<"<"<<last_start<<endl;
+				exit(255);
+			}
+			recycled = false;
+			while (soap.get_pos()/win_size > last_start/win_size ) {
+				if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+					//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+					if(last_start > sites[win_size-1].pos) {
+						initialize((last_start/win_size)*win_size);
+					}
+					call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+					last_start = sites[win_size-1].pos;
+					recycled = false;
+				}
+				if (!para->region_only) {
+					//cerr<<"recycled"<<last_start<<endl;
+					recycle();
+					recycled = true;
+					last_start = sites[win_size-1].pos;
+				}
+				else if (!recycled) {
+					//cerr<<"recycled"<<" "<<last_start<<endl;
+					if (last_start>(sites[win_size-1].pos)) {
+						cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+						exit(1);
+						if ((last_start+1)%win_size!=0) {
+							cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+							exit(1);
+						}
+						initialize(last_start-win_size+1);
+					}
+					else {
+						if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+							recycle();
+						}
+						else {
+							deep_init(sites[win_size].pos);
+						}
+					}
+					recycled = true;
+					last_start = sites[win_size-1].pos;
+				}
+				else {
+					assert((last_start+1)%win_size==0);
+					last_start += win_size;
+				}
+				//if ((last_start+1)/win_size==1000) {
+				//	cerr<<"Called "<<last_start;
+				//}
+			}
+			//cerr<<"die"<<endl;
+			//exit(1);
+			last_start=soap.get_pos();
+			for(coord=0; coord<soap.get_read_len(); coord++){
+				if( (soap.get_pos()+coord)/win_size == soap.get_pos()/win_size ) {
+					// In the same sliding window
+					sub = (soap.get_pos()+coord) % win_size;
+				}
+				else {
+					sub = (soap.get_pos()+coord) % win_size + win_size; // Use the tail to store the info so that it won't intervene the uncalled bases
+				}
+				sites[sub].depth += 1;
+				sites[sub].repeat_time += soap.get_hit();
+				if((soap.is_N(coord)) || soap.get_qual(coord)<para->q_min || sites[sub].dep_uni >= 0xFF) {
+					// An N, low quality or meaningless huge depth
+					continue;
+				}
+				if(soap.get_hit() == 1) {
+					//exit((fprintf(stderr, "Wo Cao!\n")));
+					sites[sub].dep_uni += 1;
+					// Update the covering info: 4x2x64x64 matrix, base x strand x q_score x read_pos, 2-1-6-6 bits for each
+					if(soap.is_fwd()) {
+						// Binary strand: 0 for plus and 1 for minus
+						sites[sub].base_info[(((ubit64_t)(soap.get_base(coord)&0x6)|0))<<14 | ((ubit64_t)(soap.get_qual(coord)-para->q_min))<<8 | coord ] += 1;
+					}
+					else {
+						sites[sub].base_info[(((ubit64_t)(soap.get_base(coord)&0x6)|1))<<14 | ((ubit64_t)(soap.get_qual(coord)-para->q_min))<<8 | (soap.get_read_len()-1-coord) ] += 1;
+
+					}
+					sites[sub].count_uni[(soap.get_base(coord)>>1)&3] += 1;
+					sites[sub].q_sum[(soap.get_base(coord)>>1)&3] += (soap.get_qual(coord)-para->q_min);
+
+				}
+				else {
+					;// Repeats
+				}
+				sites[sub].count_all[(soap.get_base(coord)>>1)&3] += 1;
+			}
+		}
+	}
+
+//The unprocessed tail of chromosome
+	recycled = false;
+	while(current_chr->second->length() > sites[win_size-1].pos) {
+		if (!para->region_only || current_chr->second->is_in_region_win(last_start)) {
+			//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
+			if(last_start > sites[win_size-1].pos) {
+				initialize((last_start/win_size)*win_size);
+			}
+			call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo);
+			last_start = sites[win_size-1].pos;
+			recycled = false;
+		}
+		if (!para->region_only) {
+			//cerr<<"recycled"<<last_start<<endl;
+			recycle();
+			recycled = true;
+			last_start = sites[win_size-1].pos;
+		}
+		else if (!recycled) {
+			//cerr<<"recycled"<<" "<<last_start<<endl;
+			if (last_start>(sites[win_size-1].pos)) {
+				cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+				exit(1);
+				if ((last_start+1)%win_size!=0) {
+					cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+					exit(1);
+				}
+				initialize(last_start-win_size+1);
+			}
+			else {
+				if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
+					recycle();
+				}
+				else {
+					deep_init(sites[win_size].pos);
+				}
+			}
+			recycled = true;
+			last_start = sites[win_size-1].pos;
+		}
+		else {
+			assert((last_start+1)%win_size==0);
+			last_start += win_size;
+		}
+	}
+// The last window
+	if(last_start > sites[win_size-1].pos) {
+		initialize((last_start/win_size)*win_size);
+	}
+	call_cns(current_chr->first, current_chr->second, current_chr->second->length()%win_size, mat, para, consensus, baseinfo);
+
 	consensus.close();
 	baseinfo.close();
 	return 1;
