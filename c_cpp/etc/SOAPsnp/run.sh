@@ -1,1 +1,0 @@
-/ifs1/RD/tangzhb/bin/SOAPsnp_src/SOAPsnp-v1.04/soapsnp -i /ifs1/RD/tangzhb/result/sam.sort.soap -d /ifs1/RD/caohongzhi/YH/Pipeline/Reference/human.fa -o result.snp2 -r 0.00005 -e 0.0001 -t -u -L 75 -T //ifs1/RD/tangzhb/result/exome_region.sort

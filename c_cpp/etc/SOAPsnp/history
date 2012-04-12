@@ -1,0 +1,129 @@
+(1)2010.9.7  zhouguyue 
+	tools.h:
+		/*initialize a sfs_para struct*/
+		#define sfs_init()((sfs_para*)calloc(1, sizeof(sfs_para)))
+		/*destroy a sfs_para struct*/
+		#define sfs_destroy(b) do { if (b) { free(b); }	} while (0)	
+		/*sfs help information*/
+		void sfs_info(void);
+		/* initialize sfs parament*/
+		int init_sfs_para( const std::string sfs_path, sfs_para *sfs );
+		/*change string to bool*/
+		bool str_bool(const char* str);
+	tools.cpp
+		the same as tools.h		
+
+(2)2010.9.8   tangzhb
+	tools.cpp:
+		change the best_hit
+		change the strand
+		add function count_soft_clip to count soft clip behind the read.
+		change the read's sequence and quility count method.
+	call_genotype.cc:
+		reduce the judge condition "current_chr->second->get_region() != NULL" in function "deal_read" and "deal_tail"
+
+(3)2010.9.9   zhouguyue
+	main.cc:
+		int usage() function 
+
+(4)2010.9.10  tangzhb
+	tools.cpp:
+		fix the bug "out of range in substr", the indel pos - soft_clip.
+		read length and quility length - soft_clip - last_soft_clip.
+		change function count_soft_clip.
+	FileListManager.cpp:
+		change function readWin, return COME_NEW_CHR when COME_NEW_CHR.
+
+(5)2010.9.12  tangzhb
+	soap_snp.h:
+		change Pos_info::pos from int to unsigned int.
+		change Call_win::last_start from int to unsigned int.
+		change Soap_format::position from int to unsigned int.
+		change Soap_format::get_pos()'s return value from int to unsigned int.
+	call_genotype.cc:
+		Call_win::deal_read, change while(current_chr->second->length() > sites[win_size-1].pos) to while(current_chr->second->length() > sites[win_size-1].pos && current_chr->second->length() > last_start).
+
+(6)2010.9.13 zhouguyue
+	makefile : add SfsMethod.o 
+	SfsMethod.cpp : SfsMethod::SfsMethod(int numInds)
+
+(7)2010.9.15 zhouguyue
+	tools.h :
+		add void soaplk_sfslk(double *type_likely, double *likelihood) function 
+		move soaplk_sfslk function to SfsMethod.h 
+		move cov_Cpy fuction to SfsMethod.h
+	tools.cpp:
+		add void soaplk_sfslk(double *type_likely, double *likelihood) function
+		move soaplk_sfslk function to SfsMethod.cpp
+		move cov_Cpy fuction to SfsMethod.cpp
+	SfsMethod.h:
+		add soaplk_sfslk, cov_Cpy function
+	SfsMethod.cpp:
+		add soaplk_sfslk, cov_Cpy function
+
+(8)2010.9.15 tangzhb
+	SfsMethod.cpp : 
+		add calcSumBias method.
+		add call_SFS method.
+		add delMap method.
+		add allocMap method.
+	call_genotype.cc :
+		change many functions' interface, include call_cns, soap2cns, pro_win, deal_read, deal_tail. make them accept parameters fsMethod &sfsMethod and const int id
+		add "/* it is used to sfs, add by Bill*/
+		if (para->sfs != NULL)
+		{
+			sfsMethod.getMapData(sites[j], mat, id);
+		}" to function call_cns.
+	main.cc :
+		add the sfs part.
+
+(9)2010.9.15 zhouguyue
+	soap_snp.h : 
+		 add OpenSfsfile method
+		 add getFILE method
+	Files.cpp :
+		 add OpenSfsfile method
+                 add getFILE method
+
+(10)2010.9.16 tangzhb
+	tools.h:
+		fix sfs_init function from alloc memery to new.
+		change str_bool function's return type to int.
+
+(11)2010.9.17 tangzhb
+	SfsMethod.cpp:
+		add a judgement to functions algo, algoJoint and writeFreq, like this:
+			if (p.major > 3 || p.minor==p.major){
+				//printf("never here\n");
+				continue;
+			} // in algo and algoJoint
+			if (d.major > 3 || d.minor > 3)
+			{
+				continue;
+			} // in writeFreq.
+
+	soap_snp.h:
+		add member m_region_len to Class Chr_info and change function set_region.
+	call_genotype.cc:
+		change function deal_read and deal_tail.
+			in deal_read: while(current_chr->second->length() > sites[win_size-1].pos && current_chr->second->length() > last_start) to while(current_chr->second->length() > sites[win_size-1].pos && current_chr->second->length() > last_start && (current_chr->second->get_region() != NULL || current_chr->second->m_region_len > last_start))	
+			in deal_tail: while(current_chr->second->length() > sites[win_size-1].pos) to while(current_chr->second->length() > sites[win_size-1].pos && current_chr->second->length() > last_start && (current_chr->second->get_region() != NULL || current_chr->second->m_region_len > last_start)).
+
+(12)2010.9.18
+	SfsMethod.cpp:
+		change structor SfsMethod() and destructor ~SfsMethod().
+	SfsMethod.h:
+		change const int sfs_type[10]={0,1,3,2,5,7,6,15,14,10} to const int sfs_type[10]={0,1,3,2,5,7,6,15,11,10}.
+
+(13)2010.10.8
+	fix the bug which over boundary locus and lk.
+
+(14)2010.10.12
+	change matrix generation to mutli_pthread.
+	add class ThreadManager.
+
+(15)2010.10.13
+	change soap2cns part to mutli_pthread.
+	add class CTask, CThreadPool, and Call_win_Task. but debug failed.
+
+(16)2010.10.14

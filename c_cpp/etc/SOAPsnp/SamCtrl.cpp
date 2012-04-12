@@ -15,6 +15,7 @@
 
 #include "SamCtrl.h"
 
+
 SamCtrl::SamCtrl()
 {
 	m_out_path = "-";
@@ -37,9 +38,10 @@ SamCtrl::~SamCtrl(void)
  * DATE: 2010-7-29
  * FUNCTION: open sam/bam file in pattern mode.
  * PARAMETER: path: the file's path. mode: the pattern.
- * RETURN: successful: 1. failed: 0.
+ * RETURN: successful: true. failed: flase.
  */
-bool SamCtrl::open(const char *path, const char *mode) {
+bool SamCtrl::open(const char *path, const char *mode) 
+{
 	if (mode[0] == 'r') {
 		// judge if opened a file before
 		if (m_in != 0) {
@@ -50,15 +52,18 @@ bool SamCtrl::open(const char *path, const char *mode) {
 		m_in_path = path;
 
 		// open sam/bam file
-		if ((m_in = samopen(m_in_path.c_str(), m_in_mode.c_str(), m_fn_list)) == 0) {
+		if ((m_in = samopen(m_in_path.c_str(), m_in_mode.c_str(), m_fn_list)) == 0) 
+		{
 			return false;		
 		}
 
-		if (m_in->header == 0) {
+		if (m_in->header == 0) 
+		{
 			return false;
 		}
 
-		if ((m_out = samopen(m_out_path.c_str(), m_out_mode.c_str(), m_in->header)) == 0) {
+		if ((m_out = samopen(m_out_path.c_str(), m_out_mode.c_str(), m_in->header)) == 0) 
+		{
 			return false;
 		}
 		
@@ -72,26 +77,28 @@ bool SamCtrl::open(const char *path, const char *mode) {
  * PARAMETER: line: the read data will stored in this varible.
  * RETURN: the line size when read successful. -1 when read failed
  */
-int SamCtrl::readline(std::string &line) {
-	if (m_in == 0) {
+int SamCtrl::readline(std::string &line) 
+{
+	if (m_in == 0) 
+	{
 		return -1;
 	}
-	
+
 	int ret = 0;
 	// begin to read
-	while ((ret = samread(m_in, m_b)) >= 0) {
-		
+	while ((ret = samread(m_in, m_b)) >= 0) 
+	{
 		// when read failed continue
-		if (__g_skip_aln(m_in->header, m_b)) {
+		if (__g_skip_aln(m_in->header, m_b)) 
+		{
 			continue;
         }
-		
+
 		m_s = bam_format1_core(m_out->header, m_b, m_out->type>>2&3); // read the buffer
 		line = m_s; // store into the line
 		free(m_s);
 		return line.size();
 	}
-	
 	return -1; 
 }
 
@@ -101,7 +108,8 @@ int SamCtrl::readline(std::string &line) {
  * PARAMETER: void
  * RETURN: void
  */
-void SamCtrl::close() {
+void SamCtrl::close() 
+{
 	if (m_fn_list != 0)
 		delete m_fn_list;
 	if (m_in != 0)
@@ -119,6 +127,7 @@ void SamCtrl::close() {
  * PARAMETER: void
  * RETURN: true if successful else false if failed
  */
-bool SamCtrl::isOpened() {
+bool SamCtrl::isOpened() 
+{
 	return !(m_in == 0);
 }

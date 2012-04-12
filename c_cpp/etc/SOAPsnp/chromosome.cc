@@ -59,7 +59,7 @@ int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
 		bin_seq[pos/capacity] |= (1ULL<<(pos%capacity*4+3));
 	}
 	else {
-	//	cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
+		cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
 		return 0;
 	}
 	return 1;
@@ -71,6 +71,12 @@ int Chr_info::set_region(int start, int end) {
 	}
 	else if (start >= len) {
 		start = len;
+	}
+
+	// add by Bill.
+	if (end > m_region_len)
+	{
+		m_region_len = end;
 	}
 
 	if(end<0) {
@@ -117,6 +123,7 @@ int Chr_info::set_region(int start, int end) {
 			memset(region_win_mask+start/64+1, 0xFF, sizeof(ubit64_t)*(end/64-start/64-1));
 		}
 	}
+	
 	return 1;
 }
 

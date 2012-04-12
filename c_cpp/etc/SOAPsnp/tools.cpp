@@ -10,11 +10,19 @@
  *FILE NAME : tool.cpp
  *UPDATE DATE : 2010-8-3
  *UPDATE BY : Bill Tang
+ UPDATE DATE : 2010-9-9
+ *UPDATE BY : Bill Tang
+  UPDATE DATE : 2010-9-15
+ *UPDATE BY : Zhou Guyue
  *******************************************************************************
  */
 
 #include "tools.h"
-
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+using namespace std;
 
 /* integer to string*/
 std::string myitoa(int num) {
@@ -122,10 +130,15 @@ std::string alignment_format(const std::string &sam_ali) {
 		return NOUSE_ALIGNMENT;
 	
 	std::string format;
-	char num[10];
 	int pos = 0;
 	int best_hit = 1;
 	int flag = atoi(vec[1].c_str());
+	int last_clip_num;
+	int clip_num = count_soft_clip(vec[5], last_clip_num);
+
+	if (clip_num + last_clip_num > vec[9].size())
+		return NOUSE_ALIGNMENT;
+
 	if (flag & (0x1 << 6)) {
 		format = vec[0] + "/1" + "\t"; // add query name
 	} else if (flag & (0x1 << 7)) {
@@ -133,8 +146,10 @@ std::string alignment_format(const std::string &sam_ali) {
 	} else {
 		format = vec[0] + "\t";  // add query name
 	}
-	format += vec[9] + "\t"; // add sequence
-	format += vec[10] + "\t"; // add quality
+
+	format += vec[9].substr(clip_num, vec[9].size() - last_clip_num - clip_num) + "\t"; // add sequence
+	format += vec[10].substr(clip_num, vec[10].size() - last_clip_num - clip_num) + "\t"; // add quality
+
 	for (int i = 11; i < vec.size(); i++) {
 		if (vec[i].find(HIT_COUNT_H0) != std::string::npos) {
 			best_hit = atoi(vec[i].substr(5).c_str());
@@ -148,7 +163,7 @@ std::string alignment_format(const std::string &sam_ali) {
 
 	format += ((flag & (0x1 << 6)) ? "a" : "b"); // add a/b
 	format += "\t";
-	format += myitoa(vec[9].size()); // add length
+	format += myitoa(vec[9].size() - clip_num - last_clip_num); // add length
 	format += "\t";
 	format += ((flag & (0x1 << 4)) ? "-" : "+");  // add strand
 	format += "\t";
@@ -156,6 +171,247 @@ std::string alignment_format(const std::string &sam_ali) {
 	format += vec[3] + "\t";  // add location
 	format += myitoa(count_indel_len(vec[5], pos));  // add number of mismatch
 	format += "\t";
-	format += myitoa(pos);  // add indel position
+	format += myitoa(pos - clip_num);  // add indel position
 	return format;
+}
+
+/**
+ * DATE: 2010-9-9
+ * FUNCTION: count the soft clip number at the read's beginning.
+ * PARAMETER: cigar: the cigar string. last_S: last soft clip's length.
+ * RETURN:	soft clip number.
+ */
+int count_soft_clip(const std::string cigar, int &last_S)
+{
+	const char *tmp = cigar.c_str();
+	last_S = 0;
+	// count the last soft clip number.
+	if (tmp[cigar.size() - 1] == 'S')
+	{
+		int j = cigar.size() - 2;
+		while (tmp[j] >= '0' && tmp[j] <= '9')
+		{
+			j--;
+		}
+		last_S = atoi(cigar.substr(j + 1, cigar.size() - j - 1).c_str());
+	}
+
+	int i = 0;
+	for (; i < cigar.size(); ++i)
+	{
+		if (tmp[i] >= '0' && tmp[i] <= '9')
+		{
+			// jump to the next position.
+			continue;
+		}
+		else if (tmp[i] == 'S')
+		{
+			// return the soft clip number.
+			int num = atoi(cigar.substr(0, i).c_str());
+			return num;
+		}
+		else
+		{
+			// no soft clip infront of the reads.
+			break;
+		}
+	}
+	return 0;
+}
+
+/**
+ * DATE: 2010-9-7
+ * FUNCTION: change string to bool
+ * PARAMETER: str: a string which will change to bool. len: the str length.
+ * RETURN:	bool type of str
+ */
+int str_bool(const char* str)
+{
+	if ( *str == '0')
+	{
+		 return 0;
+	}	
+	else
+	{ 
+			return 1;
+	}
+}
+
+/**
+ * DATE: 2010-9-20
+ * FUNCTION: intialize sfs parament
+ * PARAMETER: sfs_path: sfs configuration file path. sfs: a sfs_para struct.
+ * RETURN:	 SFS_PARA_ERROR:if sfs parament is wrong ,SFS_PARA_SUCC : if sfs parament is right.
+ * UPDATE: 2010-10-15
+ */
+int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
+{
+	string in;
+	
+	/*set default vaule for sfs_par struct*/
+	sfs->allow_PathZ = 0;
+	
+	sfs->bias = 0.03;
+	sfs->doBay = 0;
+	sfs->doJoint = 0;
+	sfs->eps = 0.005;
+	sfs->outfiles = "";
+	sfs->pThres = 0.01;
+	sfs->pvar = 0.015;
+	sfs->sigle_MB = 0;
+	sfs->sigle_MJ = 0;
+	sfs->start_pos = 0;
+	sfs->stop_pos = 0;
+	sfs->under_FP = 0;
+	sfs->writeFr = 0; 
+	sfs->alternative = 0;
+	sfs->jointFold = 1;
+	sfs->qs = 52;
+	
+	ifstream sfsfile(sfs_path.c_str()); //open sfs configuration file
+	
+	if (!sfsfile.is_open())         //can not open sfsfile
+	{
+		cerr << "Cannot open file:" << sfs_path << endl;
+		return SFS_PARA_ERROR;
+	}
+	
+	stringstream temp_ss;
+	while (sfsfile >> in)
+	{
+		if (in.empty())
+		{
+			continue;
+		}
+		if (in == "doBay")
+		{
+			sfsfile >> in ;
+			sfs->doBay = str_bool(in.c_str());
+			continue;
+		}
+		else if (in == "doJoint")
+		{
+			sfsfile >> in ;
+			sfs->doJoint = str_bool(in.c_str());
+			continue;
+		}
+		else if (in == "writeFr")
+		{
+			sfsfile >> in ;
+			sfs->writeFr = str_bool(in.c_str());
+			continue;
+		}
+		else if (strcmp(in.c_str() , "outfiles") == 0)
+		{
+			sfsfile >> sfs->outfiles;
+			continue;
+		}
+		else if (in == "start")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->start_pos;
+			temp_ss.clear();
+			continue;
+		}
+		else if (in == "stop")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->stop_pos;
+			temp_ss.clear();
+			continue;
+		}
+		else if (in == "underFlowProtect")
+		{
+			sfsfile >> in ;
+			sfs->under_FP = str_bool(in.c_str());
+			continue;
+		}
+		else if (in == "allowPhatZero")
+		{
+			sfsfile >> in ;
+			sfs->allow_PathZ = str_bool(in.c_str());
+			continue;
+		}
+		else if ( in == "bias")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->bias;
+			temp_ss.clear();
+			continue;
+		}
+		else if (in == "pvar")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->pvar;
+			temp_ss.clear();
+			continue;
+		}
+		else if (in == "eps")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->eps;
+			temp_ss.clear();
+			continue;
+		}
+		else if (in == "pThres")
+		{
+			sfsfile >> in ;
+			temp_ss << in;
+			temp_ss >> sfs->pThres;
+			temp_ss.clear();
+			continue;
+		}
+		else  if (in == "sigleMinorJoint")
+		{
+			sfsfile >> in ;
+			sfs->sigle_MJ = str_bool(in.c_str());
+			continue;
+		}
+		else if (in == "sigleMinorBay" )
+		{
+			sfsfile >> in ;
+			sfs->sigle_MB = str_bool(in.c_str());
+			continue;
+		}
+		else if (in == "alt" )
+		{
+			sfsfile >> in ;
+			sfs->alternative = atoi(in.c_str());
+			continue;
+		}
+		else if (in == "qs" )
+		{
+			sfsfile >> sfs->qs;
+			continue;
+		}
+		else
+		{
+			sfsfile.close();
+			return SFS_PARA_ERROR;
+		}
+	}
+	
+	sfsfile.close();
+	return SFS_PARA_SUCC;
+}
+
+/*sfs help information*/
+/**
+ * DATE: 2010-9-7
+ * FUNCTION: return help information
+ * PARAMETER: void
+ * RETURN:	 void
+ */
+void sfs_info()
+{ 
+	cerr << "\t-> (outfiles) -outfiles \n" << endl;
+	cerr << "\t-> (which analysis) -doBay -doJoint\n" << endl;
+	cerr << "\t-> (optional variables)  -eps  -bias  -pThres -underFlowProtect\n" << endl;
+	cerr << "\t-> (optional variables) -start -stop \t(format is chromo:position)\n" << endl;
+	cerr << "\t-> (optional variables) -singleMinor[Joint,Bay] [0 or 1] should we only use a singleminor?\n" << endl;
 }

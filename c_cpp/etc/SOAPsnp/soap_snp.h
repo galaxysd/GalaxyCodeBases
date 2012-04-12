@@ -15,7 +15,12 @@
 #include <stdlib.h> 
 #include "tools.h"
 #include "SamCtrl.h"
+#include "SfsMethod.h"
+#include "ThreadManager.h"
 
+#define OPENSFS_ERROR -1;
+#define OPENSFS_SUCC  1;
+#define POINTER_NULL  -1;
 
 typedef unsigned long long ubit64_t;
 typedef unsigned int ubit32_t;
@@ -35,6 +40,18 @@ public:
 	ofstream consensus, baseinfo, o_region;
 	fstream matrix_file;
 	SamCtrl sam_result;
+
+	FILE *sfsfile; // sfs file handle
+	FILE *jointSfsfile; // joint file handle
+	FILE *freqfile; // freq file handle
+	
+/*	ofstream sfsfile;
+	ofstream jointSfsfile;
+	ofstream freqfile;
+*/
+	string fSFSall;
+	string fFreq;
+	string fJoint;
 	Files(){
 		soap_result.close();
 		ref_seq.close();
@@ -44,14 +61,33 @@ public:
 		matrix_file.close();
 		region.close();
 		o_region.close();
+		sfsfile = NULL;
+		jointSfsfile = NULL;
+		freqfile = NULL;
 	};
+	
+public:
+	virtual ~Files()
+	{
+		if (freqfile != NULL)
+			fclose(freqfile);
+		if (sfsfile != NULL)
+			fclose(sfsfile);
+		if (jointSfsfile != NULL)
+			fclose(jointSfsfile);
+		
+	};
+	/*open sfsfile for output*/
+	int OpenSfsfile(const string outfiles, const int writeFr, const int doBay, const int doJoint);
+	/*get file in mode */
+	FILE* getFILE(const char*fname,const char* mode);
 };
 
 class Parameter {
 public:
 	char q_min; // The char stands for 0 in fastq
 	char q_max; // max quality score
-	small_int read_length; // max read length
+	int read_length; // max read length
 	bool is_monoploid; // Is it an monoploid? chrX,Y,M in man.
 	bool is_snp_only;  // Only output possible SNP sites?
 	bool refine_mode; // Refine prior probability using dbSNP
@@ -65,6 +101,9 @@ public:
 	rate_t althom_val_r, het_val_r; // Expected Validated dbSNP prior
 	rate_t althom_unval_r, het_unval_r; // Expected Unvalidated dbSNP prior
 	rate_t global_dependency, pcr_dependency; // Error dependencies, 1 is NO dependency
+
+	SFS_PARA *sfs; // the parameters for sfs.
+	
 // Default onstruction
 	Parameter(){
 		q_min = 64;
@@ -77,18 +116,36 @@ public:
 		althom_val_r=0.05, het_val_r=0.10;
 		althom_unval_r=0.01, het_unval_r=0.02;
 		global_dependency= log10(0.9), pcr_dependency= log10(0.5); // In Log10 Scale
+		sfs = NULL;
+	};
+	~Parameter()
+	{
+		/*if (sfs != NULL)
+			sfs_destroy(sfs);*/
 	};
 };
 
 class Soap_format {
 	// Soap alignment result
 	std::string read_id, read, qual, chr_name;
-	int hit, read_len, position, mismatch;
+	int hit, read_len, mismatch;
+	unsigned int position;
 	char ab, strand;
 public:
-	Soap_format(){;};
-	friend std::istringstream & operator>>(std::istringstream & alignment, Soap_format & soap) {
+	Soap_format()
+	{
+		hit = 0;
+		position = 0;
+		read_len = 0;
+		mismatch = 0;
+		chr_name = "";
+	}
+
+	// changed by Bill 2010-10-11
+	friend istringstream & operator>>(std::istringstream & alignment, Soap_format & soap) {
 		alignment>>soap.read_id>>soap.read>>soap.qual>>soap.hit>>soap.ab>>soap.read_len>>soap.strand>>soap.chr_name>>soap.position>>soap.mismatch;
+
+
 		//cerr<<soap<<endl;
 		//exit(1);
 		if(soap.mismatch>200) {
@@ -111,6 +168,13 @@ public:
 			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
 			//cerr<<soap<<endl;
 		}
+
+		// add by Bill 2010-10-11
+		if (soap.read.size() != soap.read_len)
+		{
+			soap.read_len = soap.read.size();
+		}
+
 		//cerr<<soap.position<<'\t';
 		soap.position -= 1;
 		//cerr<<soap.position<<endl;
@@ -132,7 +196,7 @@ public:
 	int get_read_len(){
 		return read_len;
 	}
-	inline int get_pos(){
+	inline unsigned int get_pos(){
 		return position;
 	}
 	std::string get_chr_name(){
@@ -208,8 +272,11 @@ class Chr_info {
 	// Every ubit64_t could store 16 bases
 	map<ubit64_t, Snp_info*> dbsnp;
 public:
+	// add by Bill.
+	unsigned m_region_len;
 	Chr_info(){
 		len = 0;
+		m_region_len = 0;
 		bin_seq = NULL;
 		region_mask = NULL;
 		region_win_mask = NULL;
@@ -285,6 +352,8 @@ public:
 
 	// new function. developed by Bill Tang
 	int matrix_gen(SamCtrl &alignment, Parameter * para, Genome * genome);
+	void count_qual(ubit64_t *count_matrix, Parameter *para);
+	void deal_reads(ubit64_t *count_matrix, Genome *genome, Soap_format &soap, map<Chr_name, Chr_info*>::iterator &current_chr);
 
 };
 
@@ -292,7 +361,10 @@ class Pos_info {
 public:
 	unsigned char ori;
 	small_int *base_info;
-	int pos, *count_uni, *q_sum, depth, dep_uni, repeat_time, *count_all;
+	int *count_uni, *q_sum, depth, dep_uni, repeat_time, *count_all;
+	// add by bill
+	int *count_sfs;
+	unsigned int pos;
 
 	Pos_info(){
 		ori = 0xFF;
@@ -308,12 +380,17 @@ public:
 		repeat_time = 0;
 		count_all = new int [4]; // Count of all bases
 		memset(count_all,0,sizeof(int)*4);
+		// add by bill
+		count_sfs = new int [4]; // Count of bases that used to sfs.
+		memset(count_sfs,0,sizeof(int)*4);
 	}
 	~Pos_info(){
 		delete [] base_info;
 		delete [] count_uni;
 		delete [] q_sum;
 		delete [] count_all;
+		// add by bill
+		delete [] count_sfs;
 	}
 };
 
@@ -322,10 +399,23 @@ public:
 	ubit64_t win_size;
 	ubit64_t read_len;
 	Pos_info * sites;
+	unsigned int last_start;
+	bool recycled;
+	map<Chr_name, Chr_info*>::iterator current_chr;
 	Call_win(ubit64_t read_length, ubit64_t window_size=global_win_size) {
-		sites = new Pos_info [window_size+read_length];
+/*		if (win_size < read_length)
+		{
+			win_size = (read_length / win_size + 1) * win_size;
+			global_win_size = win_size;
+		}
+		{
+			win_size = window_size;
+		}*/
 		win_size = window_size;
+		sites = new Pos_info [win_size+read_length];
 		read_len = read_length;
+		last_start = 0;
+		recycled = false;
 	}
 	~Call_win(){
 		delete [] sites;
@@ -334,8 +424,8 @@ public:
 	int initialize(ubit64_t start);
 	int deep_init(ubit64_t start);
 	int recycle();
-	int call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus, std::ofstream & baseinfo);
-	int soap2cns(std::ifstream & alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para);
+	int call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, std::ofstream & consensus, std::ofstream & baseinfo, SfsMethod &sfsMethod, const int id);
+	int soap2cns(std::ifstream & alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id);
 	int snp_p_prior_gen(double * real_p_prior, Snp_info* snp, Parameter * para, char ref);
 	double rank_test(Pos_info & info, char best_type, double * p_rank, Parameter * para);
 	double normal_value(double z);
@@ -343,7 +433,12 @@ public:
 	double table_test(double *p_rank, int n1, int n2, double T1, double T2);
 
 	// new function. developed by Bill Tang
-	int soap2cns(SamCtrl &alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para);
+	int soap2cns(SamCtrl &alignment, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id);
+	void pro_win(std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter *para, SfsMethod &sfsMethod, const int id);
+	void deal_read(Soap_format &soap, std::ofstream & consensus, std::ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id);
+
+	// processed tail of chromosome
+	virtual void deal_tail(std::ofstream& consensus, std::ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, SfsMethod &sfsMethod, const int id);
 };
 
 #endif /*SOAP_SNP_HH_*/

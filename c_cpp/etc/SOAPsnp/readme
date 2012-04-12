@@ -56,6 +56,8 @@ Note that here we say 'sorted' means alignments of each chromosome are sorted fi
 
 -B <FILE> Input BAM Result(the function added in version 1.04)
 
+-l if the Saop is filelist input
+
 -d <FILE> Reference DNA sequence in FASTA format
 
 -o <FILE> Output consensus file
@@ -101,9 +103,9 @@ The parameters are related to using external SNP information to alter prior prob
 
 -q Only output potential SNPs. Useful in Text output mode. [Off]
 
--M <FILE> Output the quality calibration matrix; the matrix can be reused with -I if you rerun the program
+-M <FILE>(<DIR> if set -l parameter) Output the quality calibration matrix; the matrix can be reused with -I if you rerun the program
 
--I <FILE> Input previous quality calibration matrix. It cannot be used simutaneously with -M
+-I <FILE>(<FILELIST> if set -l parameter) Input previous quality calibration matrix. It cannot be used simutaneously with -M
 
 -L <short> maximum length of read [45]
 Please note that once length of some reads exceeds the parameter will probably collapse the program.
