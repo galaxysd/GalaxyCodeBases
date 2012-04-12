@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 #include <cmath>
-#include <string>
+#include <cstring>
 #include "assert.h"
 #include <iostream>
 #include <fstream>

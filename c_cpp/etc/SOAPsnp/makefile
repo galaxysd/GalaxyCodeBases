@@ -10,7 +10,8 @@ DFLAGS= #-static -D_FILE_OFFSET_BITS=64 -D_USE_KNETFILE -D_CURSES_LIB=1
 
 LIBPATH =  -I/ifs2/CD/tangzhb/bin/boost/include/ -L/panfs/CD/tangzhb/lib/SOAPsnpLib # -L/ifs2/CD/tangzhb/bin/zlib-1.2.5/
 
-LFLAGS = -lz -lbam  -lm -lpthread  -liomp5 #-lcurses
+LFLAGS = -lz -lbam  -lm -lpthread #-liomp5 #-lcurses
+# libiomp5 of Intel not used at all. Nor did -lgomp
 
 objects = call_genotype.o chromosome.o matrix.o normal_dis.o prior.o rank_sum.o main.o tools.o SamCtrl.o MatrixManager.o Readwin.o FileListManager.o Call_winManager.o accessControl.o SfsMethod.o Files.o ThreadManager.o CThreadPool.o gzstream.o
 
