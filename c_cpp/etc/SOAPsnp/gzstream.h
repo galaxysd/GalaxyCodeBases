@@ -32,6 +32,7 @@
 // standard C++ with new header file names and std:: namespace
 #include <iostream>
 #include <fstream>
+//#include <ostream>
 #include <zlib.h>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -122,7 +123,8 @@ public:
 		/*gzstreambase::init(&buf);*/
 	}  
     gzstreambuf* rdbuf() { return gzstreambase::rdbuf(); }
-    void open( const char* name, int open_mode = std::ios::in) {
+    void open( const char* name, int open_mode = std::ios::in)
+	{
         gzstreambase::open( name, open_mode);
     }
 };
@@ -150,57 +152,246 @@ public:
 	ogzstream& operator=(const ogzstream& ogzst);
 };
 
-class ogzfstream : public std::ofstream
-{
-	ogzstream ogz;
-public:
 
-	ogzfstream():ogz(){}
-	ogzfstream(const char* name, int mode = std::ios::out):ogz(name, mode){}
-	void open(const char* name, int open_mode = std::ios::out)
-	{
-		ogz.open(name, open_mode);
-	}
-	void close()
-	{
-		ogz.close();
-	}
-	void clear()
-	{
-		ogz.clear();
-	}
-	//const ogzfstream& operator= (const ogzfstream &ogzcon);	
-	
-	ogzfstream & operator<<(const char * value)
-	{
-		ogz << value;
-		return *this;
-	}
-	ogzfstream & operator<<(const char value)
-	{
-		ogz << value;
-		return *this;
-	}
-	ogzfstream & operator<<(const double value)
-	{
-		ogz << value;
-		return *this;
-	}
-	ogzfstream & operator<<(const int value)
-	{
-		ogz << value;
-		return *this;
-	}
-	ogzfstream & operator<<(const float value)
-	{
-		ogz << value;
-		return *this;
-	}
-	ogzfstream & operator<<(const std::string & value)
-	{
-		ogz << value;
-		return *this;
-	}
+class myfstream
+{
+	public:
+		virtual void open(const char* name, int open_mode = std::ios::out) = 0;
+		virtual void close() = 0;
+		virtual void clear() = 0;
+		virtual bool good() =0;
+		virtual std::ostream& flush() =0;
+		virtual std::ostream& endl() =0;
+		virtual void write(const char* name, int streamsizecount) =0;
+		virtual int is_open() = 0;
+		virtual myfstream & operator<<(const double value) = 0;
+		virtual myfstream & operator<<(const char* value) = 0;
+		virtual myfstream & operator<<(const char value) = 0;
+		virtual myfstream & operator<<(const unsigned char value) = 0;
+		virtual myfstream & operator<<(const std::string & value) = 0;
+		virtual myfstream & operator<<(const int value) = 0;
+		virtual myfstream & operator<<(const int* value) = 0;
+		virtual myfstream & operator<<(const unsigned int value) = 0;
+		virtual myfstream & operator<<(const float value) = 0;
+		virtual int set_f(std::ios_base::fmtflags value) = 0;
+		//virtual ostream & operator<<(std::ostream& value) = 0;
+		//virtual myfstream & operator<< (std::ostream& (__cdecl *fun) (ostream& value)) =0;
+
+};
+
+/**
+ * a class to use ofstream.
+ *
+ */
+class myofstream : public myfstream
+{
+	private:
+		std::ofstream ogz;
+	public:
+		myofstream() : ogz(){}
+		myofstream(const char * name, int mode = std::ios::out)
+		       :ogz(name){}
+		virtual inline void open( const char* name, int open_mode = std::ios::out) 
+		{
+			ogz.open(name);
+		}
+		virtual inline void close()
+		{
+			ogz.close();
+		}
+		virtual inline void write(const char* name, int streamsizecount )
+		{			
+			ogz.write(name, streamsizecount);
+		}
+		virtual inline std::ostream& flush()
+		{
+			return ogz.flush();
+		}
+		virtual inline std::ostream& endl()
+		{
+			ogz << "\n";
+			return ogz.flush();
+		}
+		virtual inline void clear()
+		{
+			ogz.clear();
+		}
+		virtual inline bool good()
+		{
+			return ogz.good();
+		}
+		virtual inline int is_open()
+		{
+			return ogz.is_open();
+		}
+		
+		virtual inline myofstream & operator<<(const double value)
+		{
+			ogz << value;			
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const char * value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const int value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const int* value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const unsigned int value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const char value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const unsigned char value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const std::string & value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myofstream & operator<<(const float value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline int set_f(std::ios_base::fmtflags value)
+		{
+			return ogz.setf(value);
+		}
+		/*virtual inline myofstream & operator<<(const std::ios& value)
+		{
+			ogz << value;
+			return *this;
+		}*/
+		/*virtual myofstream& operator<< (std::ostream& (__cdecl *fun)(ostream& value))
+		{
+			(*fun)(*this);
+			return *this;
+		}*/
+
+};
+
+/**
+ * a class to use ogzstream.
+ *
+ */
+class myogzstream : public myfstream
+{
+	private:
+		ogzstream ogz;
+	public:
+		myogzstream() : ogz(){}
+		myogzstream(const char * name, int mode = std::ios::out)
+		       :ogz(name, mode){}
+		virtual inline void open( const char* name, int open_mode = std::ios::out) 
+		{
+			ogz.open(name, open_mode);			
+		}
+		virtual inline void close()
+		{
+			ogz.close();
+		}
+		virtual inline bool good()
+		{
+			return ogz.good();
+		}
+		virtual inline void write(const char* name, int streamsizecount)
+		{			
+			ogz.write(name,streamsizecount);
+		}
+		virtual inline void clear()
+		{
+			ogz.clear();
+		}
+		virtual std::ostream& flush()
+		{
+			return ogz.flush();
+		}
+		virtual std::ostream& endl()
+		{
+			ogz<<"\n";
+			return ogz.flush();
+		}
+		virtual inline int is_open()
+		{
+			return ogz.is_open();
+		}
+		
+		virtual inline myogzstream & operator<<(const double value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const char * value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const int value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const int* value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const unsigned int value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const char value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const unsigned char value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const std::string & value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline myogzstream & operator<<(const float value)
+		{
+			ogz << value;
+			return *this;
+		}
+		virtual inline int set_f(std::ios_base::fmtflags value)
+		{
+			return ogz.setf(value);
+		}
+		/*virtual inline myogzstream & operator<<(const std::ios& value)
+		{
+			ogz << value;
+			return *this;
+		}*/
+		/*virtual myogzstream& operator<< (std::ostream& (__cdecl *fun)(ostream& value))
+		{
+			(*fun)(*this);
+			return *this;
+		}*/
 };
 
 #ifdef GZSTREAM_NAMESPACE
@@ -210,4 +401,5 @@ public:
 #endif // GZSTREAM_H
 // ============================================================================
 // EOF //
+
 

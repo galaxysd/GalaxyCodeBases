@@ -224,7 +224,6 @@ void SfsMethod::algo(aMap & asso, int numInds, double eps, double pvar, double B
 	//algorithm goes on by a site on site basis
 	double *pis = new double[numInds];
 	double *wis = new double[numInds];
-
 	double *cf = new double[numInds];//the bias coefiecients
 	double *sumMinors = allocDoubleArray(2*numInds+1);//hte sum of the 3 different minors
 	double *hj = allocDoubleArray(2*numInds+1);
@@ -232,9 +231,7 @@ void SfsMethod::algo(aMap & asso, int numInds, double eps, double pvar, double B
 	for(aMap::iterator it=asso.begin(); it!=asso.end(); it++) {
 
 		//outMap(it, numInds);
-
 		datum p = it->second;
-		
 		//part one
 		if (p.major > 3 || p.minor==p.major){
 			//printf("never here\n");
@@ -743,6 +740,8 @@ void SfsMethod::writeFreq(FILE * pFile, int numInds, aMap & asso){
 	for(aMap::iterator it=asso.begin(); it!=asso.end(); it++){
 		//loci l = it->first;
 		//datum d = it->second;
+		//outMap(it, numInds);
+
 		datum d = it->second;
 		if (d.major > 3 || d.minor > 3 || it->first.position == 0)
 		{
@@ -1226,18 +1225,19 @@ int SfsMethod::call_SFS(Parameter* para, Files* files)
 		//update 11-`6
 	sem_t * sem_call_sfs_p = &(sem_call_sfs);
 	sem_t * sem_call_sfs_return_p = &(sem_call_sfs_return);
+	 
 	//sem_t * sem_map_number_p = &(sem_map_number);
 	while (1)
 	{
 		sem_wait(sem_call_sfs_p);
+		int tmp = getidxProcess();
 		mapChange();
-	
 		if (file_end_flag == 0)
 		{
 			sem_post(sem_call_sfs_return_p);
 		}
 		SFS_PARA *sfs = para->sfs;
-		int tmp = getidxProcess();
+		//int tmp = getidxProcess();
 		calcSumBias(asso[tmp], m_numInds);//get major and minor
 		if (sfs->doBay)
 		{
@@ -1256,7 +1256,7 @@ int SfsMethod::call_SFS(Parameter* para, Files* files)
 		}
 		// free the map.
 		delMap(asso[tmp]);
-		 
+
 		//sem_post(sem_map_number_p);
 		if (file_end_flag == 1)
 			return 0;
@@ -1441,8 +1441,6 @@ void SfsMethod::cleanVec(void)
  */
 void SfsMethod::mapChange(void)
 {
-	//sem_t * sem_map_change_p = &(sem_map_change);
-	//sem_wait(sem_map_change_p);
 	// move behind another map
 	m_map_idx = 1 - m_map_idx;
 	
@@ -1457,8 +1455,12 @@ void SfsMethod::mapChange(void)
  */
 int SfsMethod::getidxProcess(void)
 {
+	while(m_map_idx_process == BE_PROCESSED) //wait the get index .
+	{
+		usleep(1);
+	}
 	int tmp;
-	m_map_idx_process == BE_PROCESSED ? tmp = 2 : tmp = m_map_idx_process;
+	(m_map_idx_process == BE_PROCESSED) ? (tmp = 2) : (tmp = m_map_idx_process);
 	m_map_idx_process = BE_PROCESSED;
 	return tmp;
 }

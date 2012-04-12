@@ -5,11 +5,11 @@ pthread_mutex_t		mutex_ctrl = PTHREAD_MUTEX_INITIALIZER;
 void* __processwork(void* p)                                   
 {	THRPARAM*	param = (THRPARAM*)p;
 
-	while(param->pMgr->m_nindex<param->pMgr->m_nmaxthread)
+	while(param->pMgr->m_nindex < param->pMgr->m_nmaxthread)
 	{
 		int		nindex = 0;
 		pthread_mutex_lock(&mutex_ctrl);                            
-		if(param->pMgr->m_nindex<param->pMgr->m_nmaxthread)          
+		if(param->pMgr->m_nindex < param->pMgr->m_nmaxthread)          
 		{
 			nindex = param->pMgr->m_nindex++;	
 		}
@@ -37,7 +37,8 @@ ThreadManager::ThreadManager( int cpu ):m_cpu(cpu)
 	m_nmaxthread = 0;
 	m_ftimer = 0.5;
 
-	if(m_cpu <= 0)m_cpu = 1;
+	if(m_cpu <= 0)
+		m_cpu = 1;
 }
 
 ThreadManager::~ThreadManager()
@@ -60,7 +61,8 @@ void ThreadManager::AddThread( pthreadproc pProc, void* param )
 
 void ThreadManager::Run()
 {
-	if(m_cpu >= m_nmaxthread)m_cpu = m_nmaxthread;
+	if(m_cpu >= m_nmaxthread)
+		m_cpu = m_nmaxthread;
 	vector<pthread_t>	vid(m_cpu);
 	vector<THRPARAM>	vparam(m_cpu);
 	for (int i=0; i<m_cpu; i++)

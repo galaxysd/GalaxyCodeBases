@@ -85,7 +85,7 @@ FileListManager::~FileListManager()
  * PARAMETER: path: the output consensus files path. mode: the open mode.
  * RETURN: the number of consensus files that be opened.
  */
-int FileListManager::openCnsFile(const string& path, const string& outdir, const char* mode)
+int FileListManager::openCnsFile(const string& path, const string& outdir, const char* mode, Parameter * para)
 {
 	string cns_Path, cns_name;         //the one consensus file name
 	gzoutstream* f_output;
@@ -95,8 +95,15 @@ int FileListManager::openCnsFile(const string& path, const string& outdir, const
 	{
 		for (int i = 0; i < m_file_number; ++i)
 		{
-			// create new ofstream object.
-			f_output = new gzoutstream();
+			// create new ofstream object.update by zhukai on 2010-12-09
+			if(para->is_cns_gz)
+			{
+				f_output = new myogzstream();
+			}
+			else
+			{
+				f_output = new myofstream();
+			}
 			m_cns_file_vec.push_back(f_output);
 		}
 		return m_cns_file_vec.size();
@@ -115,19 +122,36 @@ int FileListManager::openCnsFile(const string& path, const string& outdir, const
 	/*open each cnsfile and push in cns vector*/
 	while (getline(m_base_file, cns_Path))          
 	{
-		f_output = new gzoutstream();   
+		//f_output = new gzoutstream();   
 
 		/*find cons name from cns path*/
 		int pos = cns_Path.rfind('/');   
 		
-		cns_name = outdir + cns_Path.substr(pos, string::npos) + ".consus.gz";
+		//update by zhukai on 2010-12-09
+		if(para->is_cns_gz)
+		{
+			f_output = new myogzstream();
+			cns_name = outdir + cns_Path.substr(pos, string::npos) + ".consus.gz";
+		}
+		else
+		{
+			f_output = new myofstream();
+			cns_name = outdir + cns_Path.substr(pos, string::npos) + ".consus";
+		}
+
+		
+		
 		/*put cns in to cns vector*/
 		f_output->open(cns_name.c_str(),std::ios::out);
+		
 		if (!f_output->is_open()) 
 		{
 			cerr << "Cannot open file:" << cns_name << endl;
 			return CNSFILE_ERROR;
 		}
+
+		// set the output format. 2010-12-15 Bill
+		f_output->set_f(std::ios::showpoint);
 		m_cns_file_vec.push_back(f_output);
 	}
 
@@ -635,7 +659,8 @@ int FileListManager::readWinFromSam(Readwin& readwin, SamCtrl& samCtrl)
 				// something error with the record's position.
 				cerr << "ERROR : Something wrong with the read's position with line:" << endl;
 				cerr << line << endl;
-				break;
+				//break;
+				continue;
 			}
 			else if (COME_NEW_CHR == ret)
 			{

@@ -187,3 +187,4 @@ gzstreambase& gzstreambase::operator =(const gzstreambase &gzst)
 
 // ============================================================================
 // EOF //
+

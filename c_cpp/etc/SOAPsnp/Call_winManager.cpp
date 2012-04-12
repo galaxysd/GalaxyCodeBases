@@ -93,7 +93,7 @@ int Call_winManager::addCallwin(ubit64_t read_len)
  * UPDATE : 2010-11-22 process the win before new reads outsid the window
  */
 int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
-							  gzoutstream & consensus,\
+							  gzoutstream * consensus,\
 							  my_ofstream& baseinfo, \
 							  Genome* genome, \
 							  Prob_matrix* mat,\
@@ -152,7 +152,7 @@ int Call_winManager::soap2cns(vector<Soap_format>& alignment_vec, \
  * RETURN:  INDEX_EXCEED when index exceed
  *			SOAP2CNS_SUCCESS when successful.
  */
-int Call_winManager::dealTail(gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod)
+int Call_winManager::dealTail(gzoutstream * consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod)
 {
 	if (index >= m_cw_vec.size())
 	{
@@ -190,7 +190,7 @@ int Call_win_Task::Run()
 	// set all the parameters.
 	Call_winManager & call_winManager = *(call_win_args->call_winManager_p);
 	vector<Soap_format> & alignment_vec_p = *(call_win_args->alignment_vec_p);
-	gzoutstream & consensus = *(call_win_args->consensus_p);
+	gzoutstream * consensus = call_win_args->consensus_p;
 	my_ofstream & baseinfo = *(call_win_args->baseinfo_p);
 	Genome * genome = call_win_args->genome;
 	Prob_matrix * mat = call_win_args->mat;

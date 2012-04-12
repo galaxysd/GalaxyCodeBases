@@ -30,6 +30,7 @@ int usage() {
 	cerr<<"		*		         Author : Bill Tang                    *			"<<endl;
 	cerr<<"		*		         E_mail : tangzhoubiao@genomics.org.cn *			"<<endl;
 	cerr<<"		*				  zhouguyue@genomics.org.cn    *			"<<endl;
+	cerr<<"		*				  zhukai@genomics.org.cn       *			"<<endl;
 	cerr<<"		*		      Copyright : BGI. All Rights Reserved.    *			"<<endl;
 	cerr<<"		****************************************************************			"<<endl;
 	cerr<<"`Compulsory Parameters:"<<endl;
@@ -67,14 +68,12 @@ int usage() {
 	      "	           Format is \"TypeName1:DataName1:TypeName2:DataName2\"[""] ."<<endl;
 	cerr<<"		-T <FILE> Only call consensus on regions specified in FILE. Format: ChrName\\tStart\\tEnd."<<endl;
 	cerr <<"		-C <int> The CPU number which you want to set(It only work with -l).[4]" << endl;
-	//cerr <<"		-Z <int> Define if the output consensus is .gz format. 1 for .gz format, 0 for non .gz format.[0]" << endl;
+	cerr <<"		-Z <int> Define if the output consensus is .gz format. 1 for .gz format, 0 for non .gz format.[0]" << endl;
 	cerr << "		-f <FILE> the sfs parameter file. The file format: (must be used with -l parameter)" << endl << endl;
 	cerr << "			doBay	0/1	" << endl;
 	cerr << "			doJoint	0/1		" << endl;
 	cerr << "			writeFr 0/1			" << endl;
 	cerr << "			outfiles	<FILE PATH>	" << endl;
-//	cerr << "			start	position	" << endl;
-//	cerr << "			stop	position	" << endl;
 	cerr << "			underFlowProtect	0/1	" << endl;
 	cerr << "			allowPhatZero	0/1	" << endl;
 	cerr << "			bias	[0,1]	" << endl;
@@ -83,7 +82,9 @@ int usage() {
 	cerr << "			pThres 	[0,1]	" << endl;
 	cerr << "			sigleMinorJoint	0/1" << endl;
 	cerr << "			sigleMinorBay	0/1" << endl ;
-	cerr <<"			lightoutput    0/1" << endl <<endl;  
+	cerr <<"			qs		<int>quality score threshold" << endl ; 
+	cerr <<"			lightoutput    0/1" << endl <<endl; 
+
 	//cerr<<"-S <FILE> Output summary of consensus"<<endl;
 	cerr << "		-h Display this help" << endl;
 	exit(1);
@@ -337,11 +338,12 @@ void get_c ( int argc, char * argv[], Parameter *para, Files *files)
 		usage();
 		exit(1);
 	}
-	if (para->sfs_path != "")
+	// change the order between file_list and sfs_path. 2010-12-14
+	if (para->file_list == true)
 	{
-		if (para->file_list != true)
+		if (para->sfs_path == "" )
 		{
-			cerr << "ERROR: -f must be used with -l" << endl;
+			cerr << "ERROR: -l must be used with -f" << endl;
 			exit(0);
 		}
 	}
@@ -423,7 +425,8 @@ void open_file ( Parameter *para,Files *files, FileListManager *fileListManager,
 			{
 				// Input the calibration matrix , open matrix_file for read 
 				files->matrix_file.open(para->matrix_file.c_str(), fstream::in);
-				if( ! files->matrix_file) {
+				if( ! files->matrix_file) 
+				{
 					cerr<<"No such file or directory:"<<para->matrix_file<<endl;
 					exit(1);
 				}
@@ -433,7 +436,8 @@ void open_file ( Parameter *para,Files *files, FileListManager *fileListManager,
 			{
 				// Output the calibration matrix , open matrix_file for write 
 				files->matrix_file.open(para->matrix_file.c_str(), fstream::out);
-				if( ! files->matrix_file) {
+				if( ! files->matrix_file) 
+				{
 					cerr<<"Cannot creat file :"<<para->matrix_file<<endl;
 					exit(1);
 				}
@@ -455,7 +459,7 @@ void output_format (Parameter *para, FileListManager *fileListManager, Files *fi
 	{   //not out put glf format
 		if(para->file_list == true)
 		{
-			para->ret = fileListManager->openCnsFile(para->alignment_name, para->consensus_name, "");
+			para->ret = fileListManager->openCnsFile(para->alignment_name, para->consensus_name, "", para);
 			if (CNSFILE_ERROR == para->ret)
 			{
 				cerr << "ERROR: cannot create consensus file" << endl;
@@ -465,36 +469,49 @@ void output_format (Parameter *para, FileListManager *fileListManager, Files *fi
 		else
 		{
 			// Normal SOAPsnp tab-delimited text format
-			files->consensus.clear();
-			// 2010-12-1
-			para->consensus_name += ".gz";
-			files->consensus.open(para->consensus_name.c_str(),std::ios::out);
+			//update by zhukai on 2010-12-09
+			if(para->is_cns_gz)
+			{
+				files->consensus = new myogzstream();
+				para->consensus_name += ".gz";
+			}
+			else
+			{
+				files->consensus = new myofstream();
+			}
+
+			files->consensus->clear();			
+			files->consensus->open(para->consensus_name.c_str(),std::ios::out);
 			if( ! files->consensus ) {
 				cerr<<"Cannot creat file:" <<para->consensus_name<<endl;
 				exit(1);
 			}
-			files->consensus.clear();
+			files->consensus->clear();
+			// set the output format. 2010-12-15 Bill
+			files->consensus->set_f(std::ios::showpoint);
 		}
 	}
 	else 
 	{
 		// SOAPsnp-defined GLF and baseinfo format
-		/*if (para->is_cns_gz)
+		//update by zhukai on 2010-12-09
+		if(para->is_cns_gz)
 		{
-			files->consensus = new ogzfstream();
+			files->consensus = new myogzstream();
+			para->consensus_name += ".gz";
 		}
 		else
 		{
-			files->consensus = new ofstream();
-		}*/
-		files->consensus.clear();
-		files->consensus.open(para->consensus_name.c_str(), ios::binary);
+			files->consensus = new myofstream();
+		}
+		files->consensus->clear();
+		files->consensus->open(para->consensus_name.c_str(), ios::binary);
 		if(!files->consensus) 
 		{
 			cerr<<"Cannot creat file:" <<para->consensus_name<<endl;
 			exit(1);
 		}
-		files->consensus.clear();
+		files->consensus->clear();
 
 		/*ouput consensus_name.baseinfo*/
 		files->baseinfo.clear();
@@ -531,7 +548,8 @@ void read_chr (Genome * genome, Files *files, Parameter *para)
 	files -> ref_seq.close();
 	files -> dbsnp.close();
 	clog << "Reading Chromosome and dbSNP information Done."<<endl;
-	if (para->region_only && files->region) {
+	if (para->region_only && files->region) 
+	{
 		genome->read_region(files->region, para);
 		clog<<"Read target region done."<<endl;
 	}
@@ -542,6 +560,7 @@ void read_chr (Genome * genome, Files *files, Parameter *para)
  * FUNCTION:  deal file list 
  * PARAMETER:  para , files, filelistmanager for file list , sfsmethod
  * RETURN:   
+ * UPDATE: 2010-12-14 reduce the judge code if (para->sfs != NULL).
  */
 void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManager, SfsMethod *sfsMethod, Files *files)
 {
@@ -559,7 +578,8 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 		// open matrix files to input.
 		fileListManager->openMatrixFile(para->matrix_file, ios::in);
 		//cerr <<"490" <<endl;
-		for (int i = 0; i < fileListManager->getFileNum(); ++i)
+		for ( int i=0;i<file_num;++i)
+		//for (int i = 0; i < fileListManager->getFileNum(); ++i)   //update by zhukai on 2010-12-09
 		{
 			if (CREATE_MAT_FAILED == matrixManager.addMatrix(*(fileListManager->getMatrixFile(i)), para))
 			{
@@ -581,7 +601,8 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 
 		if (para->in_mode[0] == 'r')      //genorate sam/bam file matrix
 		{
-			for (int i = 0; i < fileListManager->getFileNum(); ++i)
+			for ( int i=0;i<file_num;++i)
+		    //for (int i = 0; i < fileListManager->getFileNum(); ++i)   //update by zhukai on 2010-12-09
 			{
 				//cerr <<"begin sam matrix "<<endl;
 				time(&timep);
@@ -607,7 +628,8 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 		}
 		else              //genorate soap file matrixs
 		{
-			for (int i = 0; i < fileListManager->getFileNum(); ++i)
+			for ( int i=0;i<file_num;++i)
+			//for (int i = 0; i < fileListManager->getFileNum(); ++i)   //update by zhukai on 2010-12-09
 			{
 				MATRIX_ARGS *tmp_args = new MATRIX_ARGS(&matrixManager, para, genome,
 					fileListManager->getSoapFile(i),
@@ -666,22 +688,17 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 	int ret;
 
 	//2010-11-16 
-	if (para->sfs != NULL)
-	{
-		pthread_t call_sfs_pid;
-		BIG_CALL_SFS_ARGS _call_sfs_args(sfsMethod, files, para);
-		pthread_create(&call_sfs_pid, NULL, _sfsMethod_callsfs, (void*)&_call_sfs_args);
-		sem_t *	sem_call_sfs_p = &(sfsMethod->sem_call_sfs);			// single judge call sfs is done, 0 
-		sem_t * sem_call_sfs_return_p = &(sfsMethod->sem_call_sfs_return);
-		//sem_t * sem_map_number_p = &(sfsMethod->sem_map_number);
-	}
+	pthread_t call_sfs_pid;
+	BIG_CALL_SFS_ARGS _call_sfs_args(sfsMethod, files, para);
+	pthread_create(&call_sfs_pid, NULL, _sfsMethod_callsfs, (void*)&_call_sfs_args);
+	sem_t * sem_call_sfs_p = &(sfsMethod->sem_call_sfs);
+	sem_t * sem_call_sfs_return_p = &(sfsMethod->sem_call_sfs_return);
 
 	do
 	{
 		//ret = fileListManager->readWin(readwin_vec, para);
 		sem_wait(sem_call_cns_p);
-		ret = para->ret;
-		sem_post(sem_readwin_return_p);
+		ret = para->ret;		
 
 		if (COUNT_ERROR == ret)
 		{
@@ -695,24 +712,18 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 		}
 		else if (COME_NEW_CHR == ret)
 		{
-			for (int i = 0; i < fileListManager->getFileNum(); ++i)
+			for ( int i = 0; i < file_num; ++i)
 			{
-				call_winManager.soap2cns(readwin_vec[i].getReadwin(), *(fileListManager->getCnsFile(i)), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), *sfsMethod);
+				call_winManager.soap2cns(readwin_vec[i].getReadwin(), fileListManager->getCnsFile(i), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), *sfsMethod);
 				readwin_vec[i].winChange();
-				call_winManager.soap2cns(readwin_vec[i].getReadwin(), *(fileListManager->getCnsFile(i)), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), *sfsMethod);
+				call_winManager.soap2cns(readwin_vec[i].getReadwin(), fileListManager->getCnsFile(i), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), *sfsMethod);
 				readwin_vec[i].reset();
 			}
 		}
-		if (para->sfs != NULL)
-		{
-			sem_t * sem_call_sfs_return_p = &(sfsMethod->sem_call_sfs_return);
-			//sem_t * sem_map_number_p = &(sfsMethod->sem_map_number);
 
-			//sem_wait(sem_map_number_p);
-			sem_wait(sem_call_sfs_return_p);
-		}
+		sem_wait(sem_call_sfs_return_p);
 
-		for (int i = 0; i < fileListManager->getFileNum(); ++i)
+		for ( int i=0;i<file_num;++i)
 		{		
 			call_win_args = new CALL_WIN_ARGS(&call_winManager, &(readwin_vec[i].getReadwin()), fileListManager->getCnsFile(i), &(files->baseinfo), genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), sfsMethod);
 			call_win_args_vec.push_back(call_win_args);
@@ -722,6 +733,8 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 			threadpool.AddTask(cw_Task);
 			//call_winManager.soap2cns(readwin_vec[i].getReadwin(), *(fileListManager.getCnsFile(i)), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, readwin_vec[i].getSoap2cnsIdx(), sfsMethod);
 		}
+		//12-10
+		sem_post(sem_readwin_return_p);
 
 		while (threadpool.getTaskSize() != 0)
 		{
@@ -736,39 +749,35 @@ void deal_list(Genome * genome, Parameter *para, FileListManager *fileListManage
 		call_win_args_vec.clear();
 		cw_Task_vec.clear();
 
-		if (para->sfs != NULL)
-		{
-			sem_t * sem_call_sfs_p = &(sfsMethod->sem_call_sfs);
-			sfsMethod->setidxProcess();
-			if (ret == FILE_END)
-			{
-				sfsMethod->file_end_flag = 1;
-			}
-			sem_post(sem_call_sfs_p);
-		}
-
+		sfsMethod->setidxProcess();
+		sem_post(sem_call_sfs_p);
 		sem_post(sem_read_p);
 
 	} while(ret != FILE_END);// end of do
 
-	time(&timep);
-	clog << "Main:" << "end of call!!!" << ctime(&timep);
+	// wait for the last win that call_sfs is processing. 2010-12-14 Bill
+	sem_wait(sem_call_sfs_return_p);
+	
+	for (int i = 0; i < file_num; ++i)
+	{
+		call_winManager.dealTail(fileListManager->getCnsFile(i), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, *sfsMethod);
+	}
 
-	for (int i = 0; i < fileListManager->getFileNum(); ++i)
-	{
-		call_winManager.dealTail(*(fileListManager->getCnsFile(i)), files->baseinfo, genome, matrixManager.getMatrix(i), para, i, *sfsMethod);
-	}
-	if (para->sfs != NULL)
-	{
-		sem_t * sem_call_sfs_p = &(sfsMethod->sem_call_sfs);
-		sfsMethod->setidxProcess();
-		sem_post(sem_call_sfs_p);
-		// do sfs
-		sfsMethod->call_SFS(para, files);
-	}
+	// send last win to call_sfs. and wait for is's end. 2010-12-14 Bill
+	sfsMethod->setidxProcess();
+	sem_post(sem_call_sfs_p);
+	sem_wait(sem_call_sfs_return_p);
+	sfsMethod->file_end_flag = 1;
+	// make sure that the call_sfs can judge the sfsMethod->file_end_flag and exit. 2010-12-14 Bill
+	sem_post(sem_call_sfs_p);
+	pthread_join(call_sfs_pid, NULL);
+
 	threadpool.StopAll();
 	fileListManager->closeAliFiles();
 	fileListManager->closeCnsFiles(); 
+	
+	time(&timep);
+	clog << "Main:" << "end of call!!!" << ctime(&timep);
 }
 
 /**
@@ -794,11 +803,13 @@ void deal_single(Genome * genome,  Files *files, SfsMethod *sfsMethod, Parameter
 		{                        // generate soap correction matrix
 			mat->matrix_gen(files->soap_result, para, genome);
 		}
-		if (files->matrix_file) {
+		if (files->matrix_file) 
+		{
 			mat->matrix_write(files->matrix_file, para);
 		}
 	}
-	else {                //correction matrix is exist, just read it 
+	else 
+	{                //correction matrix is exist, just read it 
 		mat->matrix_read(files->matrix_file, para);
 	}
 	files->matrix_file.close();
@@ -824,7 +835,7 @@ void deal_single(Genome * genome,  Files *files, SfsMethod *sfsMethod, Parameter
 		files->soap_result.clear();
 		info.soap2cns(files->soap_result, files->consensus, files->baseinfo, genome, mat, para, *sfsMethod, 0);
 		files->soap_result.close();
-		files->consensus.close();
+		files->consensus->close();
 	} 
 	else                             //deal with the bam/sam file
 	{
@@ -832,9 +843,8 @@ void deal_single(Genome * genome,  Files *files, SfsMethod *sfsMethod, Parameter
 		files->sam_result.open(para->alignment_name.c_str(), para->in_mode);
 		info.soap2cns(files->sam_result, files->consensus, files->baseinfo, genome, mat, para, *sfsMethod, 0);
 		files->sam_result.close();
-		files->consensus.close();
+		files->consensus->close();
 	}
-
 }
 
 int main ( int argc, char * argv[])
@@ -862,8 +872,13 @@ int main ( int argc, char * argv[])
 	time(&timep);
     clog << "genome end " << ctime(&timep);
 	
-	//begin to deal list or single
-	if (para->file_list == true)
+	//begin to deal list or single 
+	// change the order between list and single. 2010-12-14
+	if (para->file_list != true)
+	{
+		deal_single(genome, files, &sfsMethod, para);
+	}
+	else if (para->sfs != NULL)
 	{
 		time(&timep);
 		clog << ctime(&timep);
@@ -871,7 +886,8 @@ int main ( int argc, char * argv[])
 	}
 	else
 	{
-		deal_single(genome, files, &sfsMethod, para);
+		cerr << "Please check your parameters." << endl;
+		exit(0);
 	}
 
 	delete files;

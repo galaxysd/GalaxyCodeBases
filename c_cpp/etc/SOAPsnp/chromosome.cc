@@ -179,28 +179,35 @@ int Chr_info::region_mask_ini(){
 }
 
 // read every reads' starting and ending positions
-int Genome::read_region(my_ifstream & region, Parameter * para) {
+int Genome::read_region(my_ifstream & region, Parameter * para) 
+{
 	Chr_name current_name(""), prev_name("");
 	int start, end;
 	map<Chr_name, Chr_info*>::iterator chr_iter;
-	for(std::string buff;getline(region,buff);) {
+	for(std::string buff;getline(region,buff);) 
+	{
 		std::istringstream s(buff);
-		if(s>>current_name>>start>>end) {
-			if(current_name != prev_name) {
+		if(s>>current_name>>start>>end) 
+		{
+			if(current_name != prev_name) 
+			{
 				chr_iter = chromosomes.find(current_name);
-				if(chr_iter == chromosomes.end()) {
+				if(chr_iter == chromosomes.end()) 
+				{
 					cerr<<"Unexpected Chromosome:"<<current_name<<endl;
 					continue;
 				}
 				//initialize the region pointer 
-				if(NULL == chr_iter->second->get_region()) {
+				if(NULL == chr_iter->second->get_region()) 
+				{
 					chr_iter->second->region_mask_ini();
 				}
 			}
 			chr_iter->second->set_region(start-para->read_length, end-1);
 			prev_name = current_name;
 		}
-		else {
+		else 
+		{
 			cerr<<"Wrong format in target region file"<<endl;
 			return 0;
 		}

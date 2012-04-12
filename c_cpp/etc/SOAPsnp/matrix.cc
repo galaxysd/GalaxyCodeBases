@@ -27,16 +27,20 @@ Prob_matrix::Prob_matrix(bool flag){
 	}
 
 	//Initialize  the array .
-	for(i=0;i!=256*256*4*4;i++) {
+	for(i=0;i!=256*256*4*4;i++) 
+	{
 		p_matrix[i] = 1.0;
 	}
-	for(i=0;i!=8*4*4;i++) {
+	for(i=0;i!=8*4*4;i++) 
+	{
 		p_prior[i] = 1.0;
 	}
-	for(i=0;i!=4;i++) {
+	for(i=0;i!=4;i++) 
+	{
 		base_freq[i] = 1.0;
 	}
-	for(i=0;i!=16+1;i++) {
+	for(i=0;i!=16+1;i++)
+	{
 		type_likely[i] = 0.0; // LOG10 Scale
 		type_prob[i] = 0.0; // LOG10 Scale
 	}
@@ -45,10 +49,12 @@ Prob_matrix::Prob_matrix(bool flag){
 	//if ran_sum_mode == false , p_rank and p_binom is NULL ; else initialize .
 	if (ran_sum_mode == true)
 	{
-		for(i=0;i!=64*64*2048;i++) {
+		for(i=0;i!=64*64*2048;i++) 
+		{
 			p_rank[i] = 1.0;
 		}
-		for(i=0;i!=256*256;i++) {
+		for(i=0;i!=256*256;i++) 
+		{
 			p_binom[i] = 1.0;
 		}
 	}
@@ -99,14 +105,15 @@ int Prob_matrix::matrix_gen(igzstream & alignment, Parameter * para, Genome * ge
 	return 1;
 }
 
-int Prob_matrix::matrix_read(std::fstream &mat_in, Parameter * para) {
+int Prob_matrix::matrix_read(std::fstream &mat_in, Parameter * para) 
+{
 	int q_char, type;
 	std::string::size_type coord;
 	for(std::string line; getline(mat_in, line);) 
 	{
 		std::istringstream s(line);
 		s>>q_char>>coord;
-		for(type=0;type!=16;type++)
+		for(type=0;type!=16;++type)
 		{
 			s>>p_matrix [ ((ubit64_t)q_char<<12) | (coord <<4) | type];
 			//cerr<<q_char<<"|"<<coord<<"|"<<p_matrix [ ((ubit64_t)q_char<<12) | (coord <<4) | type]<<endl;
@@ -243,7 +250,8 @@ void Prob_matrix::count_qual(ubit64_t *count_matrix, Parameter *para) {
 	const ubit64_t sta_pow=10; // minimum number to say statistically powerful
 
 	//the q_min default is 64, q_max is 64+40
-	for(q_char=para->q_min; q_char<=para->q_max ;q_char++) {
+	for(q_char=para->q_min; q_char<=para->q_max ;q_char++) 
+	{
 		memset(same_qual_count_by_type, 0, sizeof(ubit64_t)*16);
 		memset(same_qual_count_by_t_base, 0, sizeof(ubit64_t)*4);
 		same_qual_count_total = 0;
@@ -263,7 +271,8 @@ void Prob_matrix::count_qual(ubit64_t *count_matrix, Parameter *para) {
 				}
 			}
 		}
-		for(coord=0; coord != para->read_length ; coord++) {
+		for(coord=0; coord != para->read_length ; coord++) 
+		{
 			//cerr<<(q_char)<<'\t'<<coord;
 			memset(sum, (ubit64_t)0, sizeof(ubit64_t)*4);
 			// Count of all ref base at certain coord and quality

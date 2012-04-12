@@ -34,9 +34,9 @@ public:
 	// add a Call_win object to the Call_win vector
 	virtual int addCallwin(ubit64_t read_len);
 	// soap to consensus
-	virtual int soap2cns(vector<Soap_format>& alignment_vec, gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, int ali_index, SfsMethod &sfsMethod);
+	virtual int soap2cns(vector<Soap_format>& alignment_vec, gzoutstream * consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, int ali_index, SfsMethod &sfsMethod);
 	// deal the tail of sample
-	virtual int dealTail(gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod);
+	virtual int dealTail(gzoutstream * consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, int index, SfsMethod &sfsMethod);
 	// set call win's last_start
 	void setLast_start(int start_pos);
 };

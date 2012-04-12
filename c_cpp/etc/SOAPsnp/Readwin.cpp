@@ -63,7 +63,6 @@ int Readwin::addRead(const std::string& read)
 			// if the new record is not the same with the last record, then set a new win.
 			if (soap.get_chr_name() != m_chr_name && m_chr_name != "")
 			{
-				cerr << __FUNCTION__ << __LINE__ << endl;
 				m_last_pos = m_win_pos + 2 * m_win_size;
 				//pthread_mutex_lock(&m_pthreadMutex);
 				m_last_count++;	// add up the number of the Readwin that reach pre-chromosome's last.
@@ -74,7 +73,6 @@ int Readwin::addRead(const std::string& read)
 				return COME_NEW_CHR;
 			}
 			// the read's position was not sorted when it's position less than first win's position.
-			cerr << __FUNCTION__ << __LINE__ << endl;
 			return READ_POS_ERROR;
 		}
 
@@ -155,7 +153,6 @@ vector<Soap_format> &Readwin::getReadwin(void)
  */
 bool Readwin::isAbleToAdd()
 {
-
 	if (m_last_pos != 0)
 	{
 		if (m_last_record.get_pos() >= m_win_pos && m_last_record.get_pos() < m_win_pos + m_win_size)
@@ -166,7 +163,6 @@ bool Readwin::isAbleToAdd()
 		// because the last record reach the last read of pre-chromosome, so cann't be added.
 		return false;
 	}
-
 
 	if (m_last_record.get_pos() < (m_win_pos + m_win_size))
 	{
@@ -187,7 +183,6 @@ bool Readwin::isAbleToAdd()
 	//	m_ail_vec[1 - m_win_idx].push_back(m_last_record);
 	//	m_soap2cns_idx[1 - m_win_idx] = m_ail_vec[1 - m_win_idx].size() - 1;
 	//}
-
 	return false;
 }
 
@@ -276,3 +271,4 @@ void Readwin::setWin_pos(int start_pos)
 	}
 	m_win_pos = start_pos;
 }
+

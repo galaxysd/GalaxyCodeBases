@@ -8,60 +8,68 @@ int Call_win::initialize(ubit64_t start) {
 	}
 	return 1;
 }
-
+//update 2010-12-20 by guyue
 int Call_win::deep_init(ubit64_t start) {
+	memset(sites, 0, pos_size * (read_len + win_size));
 	int i;
 	for(i=0; i != read_len + win_size ; i++) {
 		sites[i].pos = i+start;
 		sites[i].ori = 0xFF;
-		sites[i].depth = 0;
-		sites[i].repeat_time = 0;
-		sites[i].dep_uni = 0;
-		memset(sites[i].count_uni,0,sizeof(int)*4);
-		memset(sites[i].q_sum,0,sizeof(int)*4);
-		// add by Bill
-		memset(sites[i].count_sfs,0,sizeof(int)*4);
-		memset(sites[i].base_info,0,sizeof(small_int)*4*2*64*256);
-		memset(sites[i].count_all,0,sizeof(int)*4);
+		//sites[i].depth = 0;
+		//sites[i].repeat_time = 0;
+		//sites[i].dep_uni = 0;
+		//memset(sites[i].count_uni,0,sizeof(int)*4);
+		//memset(sites[i].q_sum,0,sizeof(int)*4);
+		//// add by Bill
+		//memset(sites[i].count_sfs,0,sizeof(int)*4);
+		//memset(sites[i].base_info,0,sizeof(small_int)*4*2*64*256);
+		//memset(sites[i].count_all,0,sizeof(int)*4);
 	}
 	return 1;
 }
-
-int Call_win::recycle() {
+//update 2010-12-20 by guyue
+int Call_win::recycle() 
+{
 	std::string::size_type i;
-	for(i=0; i != read_len ; i++) {
-		sites[i].pos = sites[i+win_size].pos;
-		sites[i].ori = sites[i+win_size].ori;
-		sites[i].depth = sites[i+win_size].depth;
-		sites[i].repeat_time = sites[i+win_size].repeat_time;
-		sites[i].dep_uni = sites[i+win_size].dep_uni;
-		memcpy(sites[i].base_info, sites[i+win_size].base_info, sizeof(small_int)*4*2*64*256); // 4 types of bases, 2 strands, max quality score is 64, and max read length 256
-		memcpy(sites[i].count_uni, sites[i+win_size].count_uni, sizeof(int)*4);
-		memcpy(sites[i].q_sum, sites[i+win_size].q_sum, sizeof(int)*4);
-		memcpy(sites[i].count_all, sites[i+win_size].count_all, sizeof(int)*4);
-		// add by Bill
-		memcpy(sites[i].count_sfs, sites[i+win_size].count_sfs, sizeof(int)*4);
-	}
-	for(i=read_len; i != read_len+win_size; i++) {
+	//for(i=0; i != read_len ; i++) 
+	//{
+	//	sites[i].pos = sites[i+win_size].pos;
+	//	sites[i].ori = sites[i+win_size].ori;
+	//	sites[i].depth = sites[i+win_size].depth;
+	//	sites[i].repeat_time = sites[i+win_size].repeat_time;
+	//	sites[i].dep_uni = sites[i+win_size].dep_uni;
+	//	memcpy(sites[i].base_info, sites[i+win_size].base_info, sizeof(small_int)*4*2*64*256); // 4 types of bases, 2 strands, max quality score is 64, and max read length 256
+	//	memcpy(sites[i].count_uni, sites[i+win_size].count_uni, sizeof(int)*4);
+	//	memcpy(sites[i].q_sum, sites[i+win_size].q_sum, sizeof(int)*4);
+	//	memcpy(sites[i].count_all, sites[i+win_size].count_all, sizeof(int)*4);
+	//	// add by Bill
+	//	memcpy(sites[i].count_sfs, sites[i+win_size].count_sfs, sizeof(int)*4);
+	//}
+	 
+	memcpy(&sites[0], &sites[win_size], pos_size*read_len);
+	memset(&sites[read_len], 0, pos_size * (win_size));
+	for(i=read_len; i != read_len+win_size; i++) 
+	{
+		//sites[i].ori = 0xFF;
+		//sites[i].pos = sites[i-1].pos+1;
+		//sites[i].depth = 0;
+		//sites[i].repeat_time = 0;
+		//sites[i].dep_uni = 0;
+		//memset(sites[i].count_uni,0,sizeof(int)*4);
+		//memset(sites[i].q_sum,0,sizeof(int)*4);
+		//memset(sites[i].base_info,0,sizeof(small_int)*4*2*64*256);
+		//memset(sites[i].count_all,0,sizeof(int)*4);
+		//// add by Bill
+		//memset(sites[i].count_sfs,0,sizeof(int)*4);
 		sites[i].ori = 0xFF;
 		sites[i].pos = sites[i-1].pos+1;
-		sites[i].depth = 0;
-		sites[i].repeat_time = 0;
-		sites[i].dep_uni = 0;
-		memset(sites[i].count_uni,0,sizeof(int)*4);
-		memset(sites[i].q_sum,0,sizeof(int)*4);
-		memset(sites[i].base_info,0,sizeof(small_int)*4*2*64*256);
-		memset(sites[i].count_all,0,sizeof(int)*4);
-		// add by Bill
-		memset(sites[i].count_sfs,0,sizeof(int)*4);
 	}
 	return 1;
 }
 
 
-int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, gzoutstream & consensus, my_ofstream & baseinfo, SfsMethod &sfsMethod, const int id) {
-
-
+int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_length, Prob_matrix * mat, Parameter * para, gzoutstream * consensus, my_ofstream & baseinfo, SfsMethod &sfsMethod, const int id) 
+{
 	std::string::size_type coord;
 	small_int k;
 	ubit64_t o_base, strand;
@@ -76,10 +84,9 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 	memset(likelihoods, 0, sizeof(double)*10);
 
 	//std::cerr<<"Call length="<<call_length<<endl;
-	for(std::string::size_type j=0; j != call_length; j++)
+	for(std::string::size_type j=0; j != call_length; ++j)  //modify the j++ to ++j    update by zhukai on 2010-12-21
 	{
-		//cerr<<sites[j].pos<<endl;
-	
+		//cerr<<sites[j].pos<<endl;	
 		if(para->region_only) 
 		{
 			if (NULL== call_chr->get_region() ) 
@@ -97,30 +104,28 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		}
 		sites[j].ori = (call_chr->get_bin_base(sites[j].pos))&0xF;
 		if( ((sites[j].ori&4) !=0)/*an N*/ && sites[j].depth == 0) 
-		{
-			// CNS text format:
+		{			// CNS text format:
 			// ChrID\tPos\tRef\tCns\tQual\tBase1\tAvgQ1\tCountUni1\tCountAll1\tBase2\tAvgQ2\tCountUni2\tCountAll2\tDepth\tRank_sum\tCopyNum\tSNPstauts\n"
 			if(!para->glf_format && ! para->is_snp_only)
 			{
 				// the output file was not opened,
-				if (!consensus.is_open())
+				if (!consensus->is_open())
 				{
 					continue;
 				}
-
-				consensus<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<"\n";
+				(*consensus)<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.00000\t255.00000\t0"<<"\n";
 			}
 			else if (para->glf_format) 
 			{
 				memset(likelihoods, 0, sizeof(double)*10);
-				consensus.write(reinterpret_cast<char*>(likelihoods), sizeof(double)*10);
-				consensus<<flush;
-				if(!consensus.good()) 
+				consensus->write(reinterpret_cast<char*>(likelihoods), sizeof(double)*10);
+				consensus->flush();
+				if(!consensus->good()) 
 				{
 					cerr<<"Broken ofstream after writting Position "<<(sites[j].pos+1)<<" at "<<call_name<<endl;
 					exit(255);
 				}
-				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<"\n";
+				baseinfo<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.00000\t255.00000\t0"<<"\n";
 			}
 			else
 			{
@@ -134,7 +139,7 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		if(sites[j].dep_uni) 
 		{
 			// This position is uniquely covered by at least one nucleotide
-			for(i=0;i!=4;i++) 
+			for(i=0;i!=4; ++i) 
 			{
 				// i is four kind of alleles
 				if(sites[j].q_sum[i] >= qual1) 
@@ -177,9 +182,11 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 				;
 			}
 		}
-		else {
+		else 
+		{
 			// This position is covered by all repeats
-			for(i=0;i!=4;i++) {
+			for(i=0;i!=4; ++i)
+			{
 				if(sites[j].count_all[i] >= all_count1) 
 				{
 					base3 = base2;
@@ -220,11 +227,11 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			}
 		}
 		// Calculate likelihood
-		for(genotype=0;genotype!=16;genotype++)
+		for(genotype=0;genotype!=16; ++genotype)
 		{
 			mat->type_likely[genotype] = 0.0;
 		}
-		for(o_base=0;o_base!=4;o_base++) 
+		for(o_base=0;o_base!=4; ++o_base) 
 		{
 			//cerr<<o_base<<endl;
 			if(sites[j].count_uni[o_base]==0) 
@@ -233,13 +240,13 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			}
 			global_dep_count = -1;
 			memset(pcr_dep_count, 0, sizeof(int)*2*para->read_length);
-			for(q_score=para->q_max-para->q_min; q_score != -1; q_score--) 
+			for(q_score=para->q_max-para->q_min; q_score != -1; --q_score) 
 			{
-				for(coord=0; coord != para->read_length; coord++)
+				for(coord=0; coord != para->read_length; ++coord)
 				{
-					for(strand=0; strand!=2; strand++) 
+					for(strand=0; strand!=2; ++strand) 
 					{
-						for(k=0; k!=sites[j].base_info[o_base<<15|strand<<14|q_score<<8|coord];k++)
+						for(k=0; k!=sites[j].base_info[o_base<<15|strand<<14|q_score<<8|coord]; ++k)
 						{
 							if(pcr_dep_count[strand*para->read_length+coord]==0)
 							{
@@ -251,9 +258,9 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 							{
 								q_adjusted = 1;
 							}
-							for(allele1 = 0;allele1 != 4;allele1++ )
+							for(allele1 = 0;allele1 != 4; ++allele1)
 							{
-								for(allele2 = allele1; allele2 != 4; allele2++)
+								for(allele2 = allele1; allele2 != 4; ++allele2)
 								{
 									mat->type_likely[allele1<<2|allele2] += log10(0.5*mat->p_matrix[ ((ubit64_t)q_adjusted<<12) | (coord <<4) | (allele1<<2) | o_base] +0.5*mat->p_matrix[((ubit64_t)q_adjusted<<12) | (coord <<4) | (allele2<<2) | o_base]);
 								}
@@ -271,19 +278,19 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		}
 
 		// the output file was not opened,
-		if (!consensus.is_open())
+		if (!consensus->is_open())
 		{
 			continue;
 		}
 
 		if(para->glf_format) 
 		{
-			for(int i=0; i!=10; i++) 
+			for(int i=0; i!=10; ++i) 
 			{
-				consensus.write(reinterpret_cast<char*>(&mat->type_likely[glf_type_code[i]]), sizeof(double));
+				consensus->write(reinterpret_cast<char*>(&mat->type_likely[glf_type_code[i]]), sizeof(double));
 			}
-			consensus<<flush;
-			if(!consensus.good())
+			consensus->flush();
+			if(!consensus->good())
 			{
 				cerr<<"Broken ofstream after writting Position "<<(sites[j].pos+1)<<" at "<<call_name<<endl;
 				exit(255);
@@ -292,14 +299,16 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		}
 		// Calculate Posterior Probability
 		memcpy(real_p_prior, &mat->p_prior[((ubit64_t)sites[j].ori&0x7)<<4], sizeof(double)*16);
-		if ( (sites[j].ori & 0x8) && para->refine_mode) {
+		if ( (sites[j].ori & 0x8) && para->refine_mode) 
+		{
 			// a dbSNP
 			snp_p_prior_gen(real_p_prior, call_chr->find_snp(sites[j].pos), para, sites[j].ori);
 		}
 		memset(mat->type_prob,0,sizeof(rate_t)*17);
 		type2=type1=16;
-		for (allele1=0; allele1!=4; allele1++) {
-			for (allele2=allele1; allele2!=4; allele2++) 
+		for (allele1=0; allele1!=4; ++allele1) 
+		{
+			for (allele2=allele1; allele2!=4; ++allele2) 
 			{
 				genotype = allele1<<2|allele2;
 				if (para->is_monoploid && allele1 != allele2) 
@@ -319,7 +328,8 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 					// find the genotype which type_prob is second biggest.
 					type2 = genotype;
 				}
-				else {
+				else
+				{
 					;
 				}
 			}
@@ -330,7 +340,8 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 		{
 			rank_sum_test_value = rank_test(sites[j], type1, mat->p_rank, para);
 		}
-		else {
+		else 
+		{
 			rank_sum_test_value = 1.0;
 		}
 		if(rank_sum_test_value==0.0) 
@@ -338,12 +349,15 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			// avoid double genotype overflow
 			q_cns = 0;
 		}
-		else {
+		else 
+		{
 			q_cns = (int)(10*(mat->type_prob[type1]-mat->type_prob[type2])+10*log10(rank_sum_test_value));
 		}
 
-		if ( (type1&3) == ((type1>>2)&3)) { // Called Homozygous
-			if (qual1>0 && base1 != (type1&3)) {
+		if ( (type1&3) == ((type1>>2)&3)) 
+		{ // Called Homozygous
+			if (qual1>0 && base1 != (type1&3))
+			{
 				//Wired: best base is not the consensus!
 				q_cns = 0;
 			}
@@ -387,21 +401,21 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
 			{
 				if(base1<4 && base2<4)
 				{
-					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+					(*consensus)<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
 					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
 					<<("ACTGNNNN"[base2])<<'\t'<<(sites[j].q_sum[base2]==0?0:sites[j].q_sum[base2]/sites[j].count_uni[base2])<<'\t'<<sites[j].count_uni[base2]<<'\t'<<sites[j].count_all[base2]<<'\t'
-					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<"\n";
+					<<sites[j].depth<<'\t'<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<"\n";
 				}
 				else if(base1<4) 
 				{
-					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
+					(*consensus)<<call_name<<'\t'<<(sites[j].pos+1)<<'\t'<<("ACTGNNNN"[(sites[j].ori&0x7)])<<'\t'<<abbv[type1]<<'\t'<<q_cns<<'\t'
 					<<("ACTGNNNN"[base1])<<'\t'<<(sites[j].q_sum[base1]==0?0:sites[j].q_sum[base1]/sites[j].count_uni[base1])<<'\t'<<sites[j].count_uni[base1]<<'\t'<<sites[j].count_all[base1]<<'\t'
 					<<"N\t0\t0\t0\t"
-					<<sites[j].depth<<'\t'<<showpoint<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<"\n";
+					<<sites[j].depth<<'\t'<<rank_sum_test_value<<'\t'<<(sites[j].depth==0?255:(double)(sites[j].repeat_time)/sites[j].depth)<<'\t'<<((sites[j].ori&8)?1:0)<<"\n";
 				}
 				else
 				{
-					consensus<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<"\n";
+					(*consensus)<<call_name<<'\t'<<(sites[j].pos+1)<<"\tN\tN\t0\tN\t0\t0\t0\tN\t0\t0\t0\t0\t1.000\t255.000\t0"<<"\n";
 				}
 			}
 		}
@@ -443,7 +457,8 @@ int Call_win::call_cns(Chr_name call_name, Chr_info* call_chr, ubit64_t call_len
  * PARAMETER:   
  * RETURN :     
  */
-int Call_win::soap2cns(igzstream & alignment, gzoutstream & consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id) {
+int Call_win::soap2cns(igzstream & alignment, gzoutstream * consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id)
+{
 	Soap_format soap;
 	current_chr = genome->chromosomes.end();
 	for(std::string line; getline(alignment, line);) 
@@ -456,13 +471,13 @@ int Call_win::soap2cns(igzstream & alignment, gzoutstream & consensus, my_ofstre
 	deal_tail(consensus, baseinfo, genome, mat, para, sfsMethod, id);
 
 	alignment.close();
-	consensus.close();
+	consensus->close();
 	baseinfo.close();
 	return 1;
 }
 
 /* program by Bill */
-int Call_win::soap2cns(SamCtrl &alignment, gzoutstream & consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id) {
+int Call_win::soap2cns(SamCtrl &alignment, gzoutstream * consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id) {
 	Soap_format soap;
 	current_chr = genome->chromosomes.end();
 	int r;
@@ -479,7 +494,7 @@ int Call_win::soap2cns(SamCtrl &alignment, gzoutstream & consensus, my_ofstream 
 
 	deal_tail(consensus, baseinfo, genome, mat, para, sfsMethod, id);
 
-	consensus.close();
+	consensus->close();
 	baseinfo.close();
 	return 1;
 }
@@ -494,7 +509,7 @@ int Call_win::soap2cns(SamCtrl &alignment, gzoutstream & consensus, my_ofstream 
  *				id: the individual's id, use to sfs
  * RETURN: void
  */
-void Call_win::pro_win(gzoutstream & consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter *para, SfsMethod &sfsMethod, const int id)
+void Call_win::pro_win(gzoutstream * consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter *para, SfsMethod &sfsMethod, const int id)
 {
 	done_pro_win = true;
 	if (current_chr == genome->chromosomes.end())
@@ -505,43 +520,49 @@ void Call_win::pro_win(gzoutstream & consensus, my_ofstream & baseinfo, Genome *
 	if (!para->region_only || current_chr->second->is_in_region_win(last_start)) 
 	{
 		//cerr<<"at"<<soap.get_pos()<<"Called"<<last_start<<endl;
-		if(last_start > sites[win_size-1].pos) {
+		if(last_start > sites[win_size-1].pos) 
+		{
 			initialize((last_start/win_size)*win_size);
 		}
 		call_cns(current_chr->first, current_chr->second, win_size, mat, para, consensus, baseinfo, sfsMethod, id);
 		last_start = sites[win_size-1].pos;  //last start is the end position of the process window 
 		recycled = false;
 	}
-	if (!para->region_only) {
+	if (!para->region_only) 
+	{
 		//cerr<<"recycled"<<last_start<<endl;
 		recycle();
 		recycled = true;
 		last_start = sites[win_size-1].pos;
 	}
-	else if (!recycled) {
+	else if (!recycled) 
+	{
 		//cerr<<"recycled"<<" "<<last_start<<endl;
-		if (last_start>(sites[win_size-1].pos)) {
-		 	cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
-			exit(1);
-			if ((last_start+1)%win_size!=0) {
-				cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
-				exit(1); 
-			//cerr << last_satrt <<" "<<sites[win_size-1].pos<<endl;
+		/*	if (last_start>(sites[win_size-1].pos)) {
+		cerr<<"Unexpected "<<last_start<<">"<<(sites[win_size-1].pos)<<endl;
+		exit(1);
+		if ((last_start+1)%win_size!=0) {
+		cerr<<"Assertion Error!"<<last_start<<">"<<sites[win_size-1].pos<<endl;
+		exit(1); 
+		//cerr << last_satrt <<" "<<sites[win_size-1].pos<<endl;
 		}
-			initialize(last_start-win_size+1);
+		initialize(last_start-win_size+1);
 		}
-		else {
-			if (current_chr->second->is_in_region_win(sites[win_size].pos)) {
-				recycle();
-			}
-			else {
-				deep_init(sites[win_size].pos);
-			}
+		else {*/
+		if (current_chr->second->is_in_region_win(sites[win_size].pos)) 
+		{
+			recycle();
 		}
+		else
+		{
+			deep_init(sites[win_size].pos);
+		}
+		//}
 		recycled = true;
 		last_start = sites[win_size-1].pos;
 	}
-	else {
+	else 
+	{
 		assert((last_start+1)%win_size==0);
 		last_start += win_size;
 	}
@@ -558,14 +579,15 @@ void Call_win::pro_win(gzoutstream & consensus, my_ofstream & baseinfo, Genome *
  *				id: the individual's id, use to sfs
  * RETURN: void
  */
-void Call_win::deal_read(Soap_format &soap, gzoutstream & consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id) {
+void Call_win::deal_read(Soap_format &soap, gzoutstream * consensus, my_ofstream & baseinfo, Genome * genome, Prob_matrix * mat, Parameter * para, SfsMethod &sfsMethod, const int id) 
+{
 	int coord, sub;
 	//cerr<<"A"<<soap.get_pos()<<endl;
 	//exit(1);
-	if(soap.get_pos() < 0) {
+	if(soap.get_pos() < 0) 
+	{
 		return;
-	}
-	
+	}	
 	// first time deal_read or come to a new chromose
 	if (current_chr == genome->chromosomes.end() || current_chr->first != soap.get_chr_name()) 
 	{
@@ -590,26 +612,33 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream & consensus, my_ofstream
 		current_chr = genome->chromosomes.find(soap.get_chr_name());
 		//initialize(0);
 		last_start = current_chr->second->getStartPos();
-		initialize((last_start/win_size)*win_size);
+		//initialize((last_start/win_size)*win_size);
+		// use deep_init to make sites to be pure. 2010-12-16 Bill.
+		deep_init((last_start/win_size)*win_size);
 		cerr<<"Processing "<<current_chr->first<<endl;
 	}
 	else {
 		;
 	}
+
 	//the end of this read is out of the chromorese 
 	if (soap.get_pos()+soap.get_read_len() >= current_chr->second->length()) {
 		return;
 	}
+	
 	//is out of targ region
 	if (para->region_only && (current_chr->second->get_region() == NULL || !current_chr->second->is_in_region(soap.get_pos()))) {
 		return;
 	}
 
-	if(soap.get_pos() < last_start) {
+	 if(soap.get_pos() < last_start) 
+	{
+		//cerr << soap.get_pos() << "<" <<last_start<<endl;
 		return;
 		/*cerr<<"Errors in sorting:"<<soap.get_pos()<<"<"<<last_start<<endl;
 		exit(255);*/
 	}
+	
 	recycled = false;
 	//some window before the start of this soap  isn't process
 	while (soap.get_pos()/win_size > last_start/win_size ) 
@@ -688,7 +717,7 @@ void Call_win::deal_read(Soap_format &soap, gzoutstream & consensus, my_ofstream
  *				id: the individual's id, use to sfs
  * RETURN: void
  */
-void Call_win::deal_tail(gzoutstream & consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, SfsMethod &sfsMethod, const int id)
+void Call_win::deal_tail(gzoutstream * consensus, my_ofstream& baseinfo, Genome* genome, Prob_matrix* mat, Parameter* para, SfsMethod &sfsMethod, const int id)
 {
 	//The unprocessed tail of chromosome
 	recycled = false;

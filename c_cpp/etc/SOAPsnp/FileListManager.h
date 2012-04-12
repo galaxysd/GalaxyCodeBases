@@ -56,7 +56,7 @@ public:
 	FileListManager();
 	virtual ~FileListManager();
 	// open output file function
-	virtual int openCnsFile(const string& path, const string& outdir, const char* mode);
+	virtual int openCnsFile(const string& path, const string& outdir, const char* mode, Parameter * para);
 	// open all the file in the file list
 	virtual int openAli(const string& listfilename, const char* mode);
 	// open sam/bam file
