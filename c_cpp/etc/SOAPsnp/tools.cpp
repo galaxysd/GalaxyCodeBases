@@ -5,7 +5,7 @@
  *All Rights Reserved
  *ATHUOR : Bill Tang
  *CREATE DATE : 2010-7-14
- *CLASS NAME: 
+ *CLASS NAME:
  *FUNCTION : definition of the useful functions
  *FILE NAME : tool.cpp
  *UPDATE DATE : 2010-8-3
@@ -17,6 +17,8 @@
  *******************************************************************************
  */
 
+#include <string.h>
+#include <stdlib.h>
 #include "tools.h"
 #include <iostream>
 #include <fstream>
@@ -34,7 +36,7 @@ std::string myitoa(int num) {
 // A function to spilt string s into vector vec according to char splitchar
 void StringSplit(std::string s, char splitchar, std::vector<std::string>& vec) {
 	// promise the vec is empty
-	if(vec.size()>0) 
+	if(vec.size()>0)
 		vec.clear();
 	// chomp the string
 	while(s.size() > 0 && s[0] == splitchar)
@@ -130,7 +132,7 @@ std::string alignment_format(const std::string &sam_ali) {
 	StringSplit(sam_ali, '\t', vec);
 	if ((vec.size() < 11) || (vec[5] == "*"))
 		return NOUSE_ALIGNMENT;
-	
+
 	std::string format;
 	int pos = 0;
 	int best_hit = 1;
@@ -234,9 +236,9 @@ int str_bool(const char* str)
 	if ( *str == '0')
 	{
 		 return 0;
-	}	
+	}
 	else
-	{ 
+	{
 			return 1;
 	}
 }
@@ -251,10 +253,10 @@ int str_bool(const char* str)
 int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
 {
 	string in;
-	
+
 	/*set default vaule for sfs_par struct*/
 	sfs->allow_PathZ = 0;
-	
+
 	sfs->bias = 0.03;
 	sfs->doBay = 0;
 	sfs->doJoint = 0;
@@ -267,7 +269,7 @@ int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
 	sfs->start_pos = 0;
 	sfs->stop_pos = 0;
 	sfs->under_FP = 0;
-	sfs->writeFr = 0; 
+	sfs->writeFr = 0;
 	sfs->alternative = 0;
 	sfs->jointFold = 1;
 	sfs->qs = 52;
@@ -275,13 +277,13 @@ int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
 	sfs->sfs_first_last = 0 ;
 
 	my_ifstream sfsfile(sfs_path.c_str()); //open sfs configuration file
-	
+
 	if (!sfsfile.is_open())         //can not open sfsfile
 	{
 		cerr << "Cannot open file:" << sfs_path << endl;
 		return SFS_PARA_ERROR;
 	}
-	
+
 	stringstream temp_ss;
 	while (sfsfile >> in)
 	{
@@ -408,7 +410,7 @@ int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
 			return SFS_PARA_ERROR;
 		}
 	}
-	
+
 	sfsfile.close();
 	return SFS_PARA_SUCC;
 }
@@ -421,7 +423,7 @@ int init_sfs_para(const string sfs_path, SFS_PARA  *sfs )
  * RETURN:	 void
  */
 void sfs_info()
-{ 
+{
 	cerr << "\t-> (outfiles) -outfiles \n" << endl;
 	cerr << "\t-> (which analysis) -doBay -doJoint\n" << endl;
 	cerr << "\t-> (optional variables)  -eps  -bias  -pThres -underFlowProtect\n" << endl;

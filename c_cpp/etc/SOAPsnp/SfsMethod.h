@@ -26,6 +26,8 @@
 #include <fstream>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
+
 using namespace std;
 
 class Files;
@@ -99,7 +101,7 @@ struct cmp_loci {
 */
 struct cmp_char {
 	bool operator()(const char* first,const  char* second) const {
-		int tmp = std::strcmp(first, second);
+		int tmp = strcmp(first, second);
 		return tmp<0;
 	}
 };
@@ -126,7 +128,7 @@ public:
 	sem_t sem_call_sfs;
 	//sem_t sem_map_change;
 	sem_t sem_call_sfs_return ;
-	//sem_t sem_map_number; 
+	//sem_t sem_map_number;
 	int file_end_flag;
 private:
 	// genome likelihood Format look up table
@@ -146,7 +148,7 @@ private:
 	aMap asso[3];
 	//the map index
 	int m_map_idx;
-	int m_map_idx_process; // the index of the process map 
+	int m_map_idx_process; // the index of the process map
 	// aVector *asso;
 	// individual number
 	int m_numInds;
@@ -182,7 +184,7 @@ public:
 	void cleanUpMap(aMap& asso);
 	// get char from int
 	char getChar(int i);
-	// add protect 
+	// add protect
 	double addProtect(double *ary,int len);
 	// add three protect
 	double addProtect3(double a,double b, double c);
@@ -227,7 +229,7 @@ public:
 	void setidxProcess(void);
 };
 
-//the call sfs structor 
+//the call sfs structor
 typedef struct _big_call_sfs_args
 {
 	SfsMethod * sfsMethod;
@@ -247,7 +249,7 @@ typedef struct _big_call_sfs_args
 		files = NULL;
 		para = NULL;
 	};
-	
+
 }BIG_CALL_SFS_ARGS;
 
 void * _sfsMethod_callsfs(void * args);

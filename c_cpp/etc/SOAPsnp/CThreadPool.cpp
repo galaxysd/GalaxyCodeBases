@@ -1,136 +1,137 @@
+#include <stdlib.h>
 #include "CThreadPool.h"
-#include <iostream>   
-  
-void CTask::SetData(void * data)   
-{   
-    m_ptrData = data;   
-}   
-  
+#include <iostream>
+
+void CTask::SetData(void * data)
+{
+    m_ptrData = data;
+}
+
 void CTask::releaseData()
 {
 	if (m_ptrData != NULL)
 		delete m_ptrData;
 	m_ptrData = NULL;
 }
-TaskList CThreadPool::m_TaskList;         //ÈÎÎñÁÐ±í   
-bool CThreadPool::shutdown = false;   
-       
-pthread_mutex_t CThreadPool::m_pthreadMutex = PTHREAD_MUTEX_INITIALIZER;    
-pthread_cond_t CThreadPool::m_pthreadCond = PTHREAD_COND_INITIALIZER;   
+TaskList CThreadPool::m_TaskList;         //ä»»åŠ¡åˆ—è¡¨
+bool CThreadPool::shutdown = false;
+
+pthread_mutex_t CThreadPool::m_pthreadMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t CThreadPool::m_pthreadCond = PTHREAD_COND_INITIALIZER;
 int CThreadPool::m_task_count = 0;
 
-/**  
- * Ïß³Ì³Ø¹ÜÀíÀà¹¹Ôìº¯Êý  
- */  
-CThreadPool::CThreadPool(int threadNum)   
-{   
+/**
+ * çº¿ç¨‹æ± ç®¡ç†ç±»æž„é€ å‡½æ•°
+ */
+CThreadPool::CThreadPool(int threadNum)
+{
     this->m_iThreadNum = threadNum;
-    Create();   
-}   
-  
-/**  
- * Ïß³Ì»Øµ÷º¯Êý  
- */  
-void* CThreadPool::ThreadFunc(void* threadData)   
-{   
-    pthread_t tid = pthread_self();   
-    while (1)   
-    {   
-        pthread_mutex_lock(&m_pthreadMutex);   
-        while (m_TaskList.size() == 0 && !shutdown)   
-        {   
-            pthread_cond_wait(&m_pthreadCond, &m_pthreadMutex);   
-        }   
-           
-        if (shutdown)   
-        {   
+    Create();
+}
+
+/**
+ * çº¿ç¨‹å›žè°ƒå‡½æ•°
+ */
+void* CThreadPool::ThreadFunc(void* threadData)
+{
+    pthread_t tid = pthread_self();
+    while (1)
+    {
+        pthread_mutex_lock(&m_pthreadMutex);
+        while (m_TaskList.size() == 0 && !shutdown)
+        {
+            pthread_cond_wait(&m_pthreadCond, &m_pthreadMutex);
+        }
+
+        if (shutdown)
+        {
             pthread_mutex_unlock(&m_pthreadMutex);
-            pthread_exit(NULL);    
-        }   
-  
-        TaskList::iterator iter = m_TaskList.begin();   
-        
-        /**  
-        * È¡³öÒ»¸öÈÎÎñ²¢´¦ÀíÖ®  
-        */  
-        CTask* task = *iter;   
-        if (iter != m_TaskList.end())   
-        {   
-            task = *iter;   
-			m_TaskList.pop_front();   
-        }   
+            pthread_exit(NULL);
+        }
+
+        TaskList::iterator iter = m_TaskList.begin();
+
+        /**
+        * å–å‡ºä¸€ä¸ªä»»åŠ¡å¹¶å¤„ç†ä¹‹
+        */
+        CTask* task = *iter;
+        if (iter != m_TaskList.end())
+        {
+            task = *iter;
+			m_TaskList.pop_front();
+        }
 
         pthread_mutex_unlock(&m_pthreadMutex);
 
-        task->Run(); /** Ö´ÐÐÈÎÎñ */
-        pthread_mutex_lock(&m_pthreadMutex);   
+        task->Run(); /** æ‰§è¡Œä»»åŠ¡ */
+        pthread_mutex_lock(&m_pthreadMutex);
 		--m_task_count;
         pthread_mutex_unlock(&m_pthreadMutex);
-    }   
-    return (void*)0;   
-}   
-  
-/**  
- * ÍùÈÎÎñ¶ÓÁÐÀï±ßÌí¼ÓÈÎÎñ²¢·¢³öÏß³ÌÍ¬²½ÐÅºÅ  
- */  
-int CThreadPool::AddTask(CTask *task)   
-{   
-    pthread_mutex_lock(&m_pthreadMutex);   
-	this->m_TaskList.push_back(task);   
+    }
+    return (void*)0;
+}
+
+/**
+ * å¾€ä»»åŠ¡é˜Ÿåˆ—é‡Œè¾¹æ·»åŠ ä»»åŠ¡å¹¶å‘å‡ºçº¿ç¨‹åŒæ­¥ä¿¡å·
+ */
+int CThreadPool::AddTask(CTask *task)
+{
+    pthread_mutex_lock(&m_pthreadMutex);
+	this->m_TaskList.push_back(task);
 	++m_task_count;
     pthread_mutex_unlock(&m_pthreadMutex);
     pthread_cond_signal(&m_pthreadCond);
 
-    return 0;   
-}   
-  
-/**  
- * ´´½¨Ïß³Ì  
- */  
-int CThreadPool::Create()   
-{   
-    pthread_id = (pthread_t*)malloc(sizeof(pthread_t) * m_iThreadNum);   
-    for(int i = 0; i < m_iThreadNum; i++)   
-    {   
-        pthread_create(&pthread_id[i], NULL, ThreadFunc, NULL);   
-    }   
-    return 0;   
-}   
-  
-/**  
- * Í£Ö¹ËùÓÐÏß³Ì  
- */  
-int CThreadPool::StopAll()   
-{   
-    /** ±ÜÃâÖØ¸´µ÷ÓÃ */  
-    if (shutdown)   
-    {   
-        return -1;     
+    return 0;
+}
+
+/**
+ * åˆ›å»ºçº¿ç¨‹
+ */
+int CThreadPool::Create()
+{
+    pthread_id = (pthread_t*)malloc(sizeof(pthread_t) * m_iThreadNum);
+    for(int i = 0; i < m_iThreadNum; i++)
+    {
+        pthread_create(&pthread_id[i], NULL, ThreadFunc, NULL);
     }
-    /** »½ÐÑËùÓÐµÈ´ýÏß³Ì£¬Ïß³Ì³ØÒªÏú»ÙÁË */  
-    shutdown = true;   
-    pthread_cond_broadcast(&m_pthreadCond);   
-       
-    /** ×èÈûµÈ´ýÏß³ÌÍË³ö£¬·ñÔò¾Í³É½©Ê¬ÁË */  
-    for (int i = 0; i < m_iThreadNum; i++)   
-    {   
-        pthread_join(pthread_id[i], NULL);     
-    }   
-       
-    free(pthread_id);   
-    pthread_id = NULL;   
-       
-    /** Ïú»ÙÌõ¼þ±äÁ¿ºÍ»¥³âÌå */  
-    pthread_mutex_destroy(&m_pthreadMutex);   
-    pthread_cond_destroy(&m_pthreadCond);   
-       
-    return 0;   
-}   
-  
-/**  
- * »ñÈ¡µ±Ç°¶ÓÁÐÖÐÈÎÎñÊý  
- */  
-int CThreadPool::getTaskSize()   
-{   
-    return m_task_count;       
+    return 0;
+}
+
+/**
+ * åœæ­¢æ‰€æœ‰çº¿ç¨‹
+ */
+int CThreadPool::StopAll()
+{
+    /** é¿å…é‡å¤è°ƒç”¨ */
+    if (shutdown)
+    {
+        return -1;
+    }
+    /** å”¤é†’æ‰€æœ‰ç­‰å¾…çº¿ç¨‹ï¼Œçº¿ç¨‹æ± è¦é”€æ¯äº† */
+    shutdown = true;
+    pthread_cond_broadcast(&m_pthreadCond);
+
+    /** é˜»å¡žç­‰å¾…çº¿ç¨‹é€€å‡ºï¼Œå¦åˆ™å°±æˆåƒµå°¸äº† */
+    for (int i = 0; i < m_iThreadNum; i++)
+    {
+        pthread_join(pthread_id[i], NULL);
+    }
+
+    free(pthread_id);
+    pthread_id = NULL;
+
+    /** é”€æ¯æ¡ä»¶å˜é‡å’Œäº’æ–¥ä½“ */
+    pthread_mutex_destroy(&m_pthreadMutex);
+    pthread_cond_destroy(&m_pthreadCond);
+
+    return 0;
+}
+
+/**
+ * èŽ·å–å½“å‰é˜Ÿåˆ—ä¸­ä»»åŠ¡æ•°
+ */
+int CThreadPool::getTaskSize()
+{
+    return m_task_count;
 }

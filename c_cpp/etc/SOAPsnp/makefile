@@ -6,9 +6,9 @@ DEBUG = -g
 
 CXXFLAGS = -fomit-frame-pointer -O3 -ffast-math -funroll-loops -mmmx -msse -msse2 -msse3 -fmessage-length=0 -pipe -freg-struct-return   -maccumulate-outgoing-args -m64 -ftree-loop-linear -fprefetch-loop-arrays -fno-optional-diags -fno-threadsafe-statics -mfpmath=sse -m128bit-long-double #-MMD -MP -MF #-g3 -Wall -maccumulate-outgoing-args -Wstrict-aliasing=2 -fstack-check
 
-DFLAGS= -static -D_FILE_OFFSET_BITS=64 -D_USE_KNETFILE -D_CURSES_LIB=1
+DFLAGS= -D_FILE_OFFSET_BITS=64 -D_USE_KNETFILE -D_CURSES_LIB=1 #-static
 
-LIBPATH =  -I/ifs2/CD/tangzhb/bin/boost/include/  -L/ifs2/CD/tangzhb/bin/zlib-1.2.5/
+LIBPATH = # -I/ifs2/CD/tangzhb/bin/boost/include/  -L/ifs2/CD/tangzhb/bin/zlib-1.2.5/
 
 LFLAGS = -lz -lbam  -lm -lpthread #-lcurses
 
