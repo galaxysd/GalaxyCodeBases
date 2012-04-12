@@ -1,15 +1,5 @@
-/**
-  *  soap_snp.h
-  *  
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
-  
 #ifndef SOAP_SNP_HH_
 #define SOAP_SNP_HH_
-#include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -90,6 +80,28 @@ public:
 	Soap_format(){;};
 	friend std::istringstream & operator>>(std::istringstream & alignment, Soap_format & soap) {
 		alignment>>soap.read_id>>soap.read>>soap.qual>>soap.hit>>soap.ab>>soap.read_len>>soap.strand>>soap.chr_name>>soap.position>>soap.mismatch;
+		//cerr<<soap<<endl;
+		//exit(1);
+		if(soap.mismatch>200) {
+			int indel_pos,indel_len;
+			string temp("");
+			alignment>>indel_pos;
+			indel_len = soap.mismatch-200;
+			for(int i=0; i!=indel_len; i++) {
+				temp = temp+'N';
+			}
+			soap.read = soap.read.substr(0,indel_pos)+temp+soap.read.substr(indel_pos,soap.read_len-indel_pos);
+			soap.qual = soap.qual.substr(0,indel_pos)+temp+soap.qual.substr(indel_pos,soap.read_len-indel_pos);
+			//cerr<<soap<<endl;
+		}
+		else if (soap.mismatch>100) {
+			int indel_pos,indel_len;
+			alignment>>indel_pos;
+			indel_len = soap.mismatch-100;
+			soap.read = soap.read.substr(0,indel_pos) + soap.read.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+			soap.qual = soap.qual.substr(0,indel_pos) + soap.qual.substr(indel_pos+indel_len, soap.read_len-indel_pos-indel_len);
+			//cerr<<soap<<endl;
+		}
 		//cerr<<soap.position<<'\t';
 		soap.position -= 1;
 		//cerr<<soap.position<<endl;
@@ -208,7 +220,7 @@ public:
 	bool is_in_region(std::string::size_type pos) {
 		return (region_mask[pos/64]>>(63-pos%64))&1;
 	}
-	int set_region(std::string::size_type start, std::string::size_type end);
+	int set_region(int start, int end);
 	Snp_info * find_snp(ubit64_t pos) {
 		return dbsnp.find(pos)->second;
 	}
@@ -226,7 +238,7 @@ public:
 	~Genome();
 
 	bool add_chr(Chr_name &);
-	int read_region(std::ifstream & region);
+	int read_region(std::ifstream & region, Parameter * para);
 };
 
 class Prob_matrix {

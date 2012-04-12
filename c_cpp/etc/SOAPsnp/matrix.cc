@@ -1,10 +1,3 @@
-/**
-  *  matrix.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
 #include "soap_snp.h"
 Prob_matrix::Prob_matrix(){
 	int i;
@@ -83,7 +76,9 @@ int Prob_matrix::matrix_gen(std::ifstream & alignment, Parameter * para, Genome 
 					else {
 						if(! (soap.get_pos()+coord<current_chr->second->length())) {
 							cerr<<soap<<endl;
-							cerr<<soap.get_pos()<<'\t'<<coord<<'\t'<<(soap.get_pos()+coord)<<'\t'<<current_chr->first<<'\t'<<current_chr->second->length()<<endl;
+							cerr<<"The program found the above read has exceed the reference length:\n";
+							cerr<<"The read is aligned to postion: "<<soap.get_pos()<<" with read length: "<<soap.get_read_len()<<endl;
+							cerr<<"Reference: "<<current_chr->first<<" FASTA Length: "<<current_chr->second->length()<<endl;
 							exit(255);
 						}
 						ref = current_chr->second->get_bin_base(soap.get_pos()+coord);

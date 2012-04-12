@@ -1,11 +1,3 @@
-/**
-  *  rank_sum.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
-
 #include "soap_snp.h"
 
 int Prob_matrix::rank_table_gen() {

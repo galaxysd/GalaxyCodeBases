@@ -1,6 +1,6 @@
 DEFINE =
 CXX = g++
-CXXFLAGS = -O3 -ffast-math -funroll-loops -mmmx -msse -msse2 -msse3 -march=nocona -fmessage-length=0  #-MMD -MP -MF #-g3 -Wall -maccumulate-outgoing-args
+CXXFLAGS = -fomit-frame-pointer -O3 -ffast-math -funroll-loops -mmmx -msse -msse2 -msse3 -fmessage-length=0  #-MMD -MP -MF #-g3 -Wall -maccumulate-outgoing-args
 
 LFLAGS =
 

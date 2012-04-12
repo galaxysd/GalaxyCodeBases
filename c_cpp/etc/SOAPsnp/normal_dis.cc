@@ -1,10 +1,3 @@
-/**
-  *  normal_dis.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
 #include "soap_snp.h"
 
 double Call_win::normal_value(double z) {

@@ -1,31 +1,12 @@
-/**
-  *  SOAPsnp (Short Oligonucleotide Analysis Package for Single Nucleotide Polymorphism)
-  *
-  *  main.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
-
 #include "soap_snp.h"
 #include <getopt.h>
 
 using namespace std;
 
-const char *PROGRAM = "SOAPsnp (Short Oligonucleotide Analysis Package for Single Nucleotide Polymorphism)";
-const char *AUTHOR = "BGI Shenzhen";
-const char *VERSION = "1.00";
-const char *CONTACT = "soap@genomics.org.cn";
-
 int usage() {
-	cerr<<"\nProgram: "<<PROGRAM<<endl;
-	cerr<<"Copyright (C) 2008, BGI Shenzhen."<<endl;
-	cerr<<"Author:  BGI Shenzhen"<<endl;
-	cerr<<"Version: "<<VERSION<<endl;
-	cerr<<"Contact: soap@genomics.org.cn\n"<<endl;
+	cerr<<"SoapSNP"<<endl;
 	cerr<<"Compulsory Parameters:"<<endl;
-	cerr<<"-i <FILE> Input SORTED soap Result"<<endl;
+	cerr<<"-i <FILE> Input SORTED Soap Result"<<endl;
 	cerr<<"-d <FILE> Reference Sequence in fasta format"<<endl;
 	cerr<<"-o <FILE> Output consensus file"<<endl;
 	cerr<<"Optional Parameters:(Default in [])"<<endl;
@@ -42,7 +23,7 @@ int usage() {
 	cerr<<"-j <Double> Unvalidated HET prior, if no allele frequency known [0.02]"<<endl;
 	cerr<<"-k <Double> Unvalidated altHOM rate, if no allele frequency known[0.01]"<<endl;
 	cerr<<"-u Enable rank sum test to give HET further penalty for better accuracy. [Off]"<<endl;
-	cerr<<"-n Enable binomial probability calculation to give HET for better accuracy. [Off]"<<endl;
+	//cerr<<"-n Enable binomial probability calculation to give HET for better accuracy. [Off]"<<endl;
 	cerr<<"-m Enable monoploid calling mode, this will ensure all consensus as HOM and you probably should SPECIFY higher altHOM rate. [Off]"<<endl;
 	cerr<<"-q Only output potential SNPs. Useful in Text output mode. [Off]"<<endl;
 	cerr<<"-M <FILE> Output the quality calibration matrix; the matrix can be reused with -I if you rerun the program"<<endl;
@@ -53,7 +34,7 @@ int usage() {
 	cerr<<"-E <String> Extra headers EXCEPT CHROMOSOME FIELD specified in GLFv2 output. Format is \"TypeName1:DataName1:TypeName2:DataName2\"[""]"<<endl;
 	cerr<<"-T <FILE> Only call consensus on regions specified in FILE. Format: ChrName\\tStart\\tEnd."<<endl;
 	//cerr<<"-S <FILE> Output summary of consensus"<<endl;
-	cerr<<"-h Display this help\n"<<endl;
+	cerr<<"-h Display this help"<<endl;
 	exit(1);
 	return 0;
 }
@@ -74,8 +55,8 @@ int main ( int argc, char * argv[]) {
 			case 'i':
 			{
 				// Soap Alignment Result
-				files.soap_result.open(optarg);
 				files.soap_result.clear();
+				files.soap_result.open(optarg);
 				if( ! files.soap_result) {
 					cerr<<"No such file or directory:"<<optarg<<endl;
 					exit(1);
@@ -86,23 +67,24 @@ int main ( int argc, char * argv[]) {
 			case 'd':
 			{
 				// The reference genome in fasta format
-				files.ref_seq.open(optarg);
 				files.ref_seq.clear();
+				files.ref_seq.open(optarg);
 				if( ! files.ref_seq) {
 					cerr<<"No such file or directory:"<<optarg<<endl;
 					exit(1);
 				}
-
+				files.ref_seq.clear();
 				break;
 			}
 			case 'o':
 			{
-				files.consensus.open(optarg);
 				files.consensus.clear();
+				files.consensus.open(optarg);
 				if( ! files.consensus ) {
 					cerr<<"Cannot creat file:" <<optarg <<endl;
 					exit(1);
 				}
+				files.consensus.clear();
 				consensus_name = optarg;
 				break;
 			}
@@ -150,12 +132,13 @@ int main ( int argc, char * argv[]) {
 			case 's':
 			{
 				// Optional: A pre-formated dbSNP table
-				files.dbsnp.open(optarg);
 				files.dbsnp.clear();
+				files.dbsnp.open(optarg);
 				if( ! files.ref_seq) {
 					cerr<<"No such file or directory:"<<optarg<<endl;
 					exit(1);
 				}
+				files.dbsnp.clear();
 				break;
 			}
 			case '2':
@@ -206,32 +189,26 @@ int main ( int argc, char * argv[]) {
 			}
 			case 'M':
 			{
-				if (files.matrix_file) {
-					cerr<<"Plz do not use -M and -I simutaneously"<<endl;
-					exit(1);
-				}
+				files.matrix_file.close(); files.matrix_file.clear();
 				// Output the calibration matrix
 				files.matrix_file.open(optarg, fstream::out);
-				files.matrix_file.clear();
 				if( ! files.matrix_file) {
 					cerr<<"Cannot creat file :"<<optarg<<endl;
 					exit(1);
 				}
+				files.matrix_file.clear();
 				break;
 			}
 			case 'I':
 			{
-				if (files.matrix_file) {
-					cerr<<"Plz do not use -M and -I simutaneously."<<endl;
-					exit(1);
-				}
+				files.matrix_file.close(); files.matrix_file.clear();
 				// Input the calibration matrix
 				files.matrix_file.open(optarg, fstream::in);
-				files.matrix_file.clear();
 				if( ! files.matrix_file) {
 					cerr<<"No such file or directory:"<<optarg<<endl;
 					exit(1);
 				}
+				files.matrix_file.clear();
 				is_matrix_in = true;
 				break;
 			}
@@ -267,6 +244,7 @@ int main ( int argc, char * argv[]) {
 				break;
 			}
 			case 'T': {
+				files.region.clear();
 				files.region.open(optarg);
 				files.region.clear();
 				para->region_only = true;
@@ -287,7 +265,7 @@ int main ( int argc, char * argv[]) {
 	files.dbsnp.close();
 	clog<<"Reading Chromosome and dbSNP information Done."<<endl;
 	if(para->region_only && files.region) {
-		genome->read_region(files.region);
+		genome->read_region(files.region, para);
 		clog<<"Read target region done."<<endl;
 	}
 	if(para->glf_format) { // GLF or GPF

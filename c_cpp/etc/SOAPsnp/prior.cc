@@ -1,11 +1,3 @@
-/**
-  *  prior.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
-
 #include "soap_snp.h"
 
 int Prob_matrix::prior_gen(Parameter * para) {

@@ -1,10 +1,3 @@
-/**
-  *  chromosome.cc
-  *
-  *  Copyright (C) 2008, BGI Shenzhen.
-  *
-  *
-  */
 #include "soap_snp.h"
 
 bool Genome::add_chr(Chr_name & name) {
@@ -70,7 +63,24 @@ int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
 	return 1;
 }
 
-int Chr_info::set_region(std::string::size_type start, std::string::size_type end) {
+int Chr_info::set_region(int start, int end) {
+	if(start<0) {
+		start = 0;
+	}
+	else if (start >= len) {
+		start = len;
+	}
+
+	if(end<0) {
+		end = 0;
+	}
+	else if (end >= len) {
+		end = len;
+	}
+	if (start > end) {
+		cerr<<"Invalid region: "<<start<<"-"<<end<<endl;
+		exit(255);
+	}
 	if(start/64 == end/64) {
 		region_mask[start/64] |= ((~((~(0ULL))<<(end-start+1)))<<(63-end%64));
 	}
@@ -101,9 +111,9 @@ int Chr_info::region_mask_ini(){
 	return 1;
 }
 
-int Genome::read_region(std::ifstream & region) {
+int Genome::read_region(std::ifstream & region, Parameter * para) {
 	Chr_name current_name(""), prev_name("");
-	std::string::size_type start, end;
+	int start, end;
 	map<Chr_name, Chr_info*>::iterator chr_iter;
 	for(std::string buff;getline(region,buff);) {
 		std::istringstream s(buff);
@@ -118,7 +128,7 @@ int Genome::read_region(std::ifstream & region) {
 					chr_iter->second->region_mask_ini();
 				}
 			}
-			chr_iter->second->set_region(start-1, end-1);
+			chr_iter->second->set_region(start-para->read_length, end-1);
 			prev_name = current_name;
 		}
 		else {
