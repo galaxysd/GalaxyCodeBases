@@ -1,0 +1,180 @@
+/**
+  *  chromosome.cc
+  *
+  *  Copyright (C) 2008, BGI Shenzhen.
+  *
+  *
+  */
+#include "soap_snp.h"
+
+bool Genome::add_chr(Chr_name & name) {
+	Chr_info * new_chr = new Chr_info;
+	pair<map<Chr_name, Chr_info*>::iterator, bool> insert_pair;
+	insert_pair=chromosomes.insert(pair<Chr_name, Chr_info*>(name,new_chr));
+	return insert_pair.second;
+}
+
+Genome::~Genome(){
+	for( map<Chr_name, Chr_info*>::iterator iter=chromosomes.begin(); iter!= chromosomes.end(); iter++ ){
+		;
+	}
+}
+Chr_info::Chr_info(const Chr_info & other) {
+	dbsnp = other.dbsnp;
+	len = other.len;
+	if (len%capacity==0) {
+		bin_seq = new ubit64_t [len/capacity];
+		memcpy(bin_seq, other.bin_seq, sizeof(ubit64_t)*len/capacity);
+	}
+	else {
+		bin_seq = new ubit64_t [1+len/capacity];
+		memcpy(bin_seq, other.bin_seq, sizeof(ubit64_t)*len/capacity);
+	}
+}
+
+int Chr_info::binarize(std::string & seq) {
+	len = seq.length();
+	//cerr<<len<<endl;
+	// 4bit for each base
+	// Allocate memory
+	if (len%capacity==0) {
+		bin_seq = new ubit64_t [len/capacity];
+		memset(bin_seq,0,sizeof(ubit64_t)*len/capacity);
+	}
+	else {
+		bin_seq = new ubit64_t [1+len/capacity];
+		memset(bin_seq,0,sizeof(ubit64_t)*(1+len/capacity));
+	}
+
+	// Add each base, 7 is 0b111
+	for(std::string::size_type i=0;i!=seq.length();i++) {
+		bin_seq[i/capacity] |= ((((ubit64_t)seq[i]>>1)&7)<<(i%capacity*4));
+	}
+	return 1;
+}
+
+int Chr_info::insert_snp(std::string::size_type pos, Snp_info & snp_form) {
+	Snp_info * new_snp = new Snp_info;
+	*new_snp = snp_form;
+	pair<map<ubit64_t, Snp_info*>::iterator, bool> insert_pair;
+	insert_pair = dbsnp.insert(pair<ubit64_t, Snp_info*>(pos,new_snp));
+	if(insert_pair.second) {
+		// Successful insertion
+		// Modify the binary sequence! Mark SNPs
+		bin_seq[pos/capacity] |= (1ULL<<(pos%capacity*4+3));
+	}
+	else {
+		cerr<<"Warning: Snp insertion failed\t"<<pos<<endl;
+		return 0;
+	}
+	return 1;
+}
+
+int Chr_info::set_region(std::string::size_type start, std::string::size_type end) {
+	if(start/64 == end/64) {
+		region_mask[start/64] |= ((~((~(0ULL))<<(end-start+1)))<<(63-end%64));
+	}
+	else {
+		if(start % 64) {
+			region_mask[start/64] |= (~((~(0ULL))<<(64-start%64)));
+		}
+		else {
+			region_mask[start/64] = ~(0ULL);
+		}
+		region_mask[end/64] |= ((~(0ULL))<<(63-end%64));
+		if(end/64-start/64>1) {
+			memset(region_mask+start/64+1, 0xFF, sizeof(ubit64_t)*(end/64-start/64-1));
+		}
+	}
+	return 1;
+}
+
+int Chr_info::region_mask_ini(){
+	if(len%64==0) {
+		region_mask = new ubit64_t [len/64];
+		memset(region_mask, 0, sizeof(ubit64_t)*(len/64));
+	}
+	else {
+		region_mask = new ubit64_t [len/64+1];
+		memset(region_mask, 0, sizeof(ubit64_t)*(len/64+1));
+	}
+	return 1;
+}
+
+int Genome::read_region(std::ifstream & region) {
+	Chr_name current_name(""), prev_name("");
+	std::string::size_type start, end;
+	map<Chr_name, Chr_info*>::iterator chr_iter;
+	for(std::string buff;getline(region,buff);) {
+		std::istringstream s(buff);
+		if(s>>current_name>>start>>end) {
+			if(current_name != prev_name) {
+				chr_iter = chromosomes.find(current_name);
+				if(chr_iter == chromosomes.end()) {
+					cerr<<"Unexpected Chromosome:"<<current_name<<endl;
+					continue;
+				}
+				if(NULL == chr_iter->second->get_region()) {
+					chr_iter->second->region_mask_ini();
+				}
+			}
+			chr_iter->second->set_region(start-1, end-1);
+			prev_name = current_name;
+		}
+		else {
+			cerr<<"Wrong format in target region file"<<endl;
+			return 0;
+		}
+	}
+	return 1;
+}
+
+Genome::Genome(std::ifstream &fasta, std::ifstream & known_snp) {
+	std::string seq("");
+	Chr_name current_name("");
+	map<Chr_name, Chr_info*>::iterator chr_iter;
+	for(std::string buff;getline(fasta,buff);) {
+		if('>' == buff[0]) {
+			// Fasta id
+			// Deal with previous chromosome
+			if( chromosomes.find(current_name) != chromosomes.end()) {
+				chr_iter = chromosomes.find(current_name);
+				chr_iter->second->binarize(seq);
+			}
+			// Insert new chromosome
+			std::string::size_type i;
+			for(i=1;!isspace(buff[i]) && i != buff.length();i++) {
+				;
+			}
+			Chr_name new_chr_name(buff,1,i-1);
+			if(! add_chr(new_chr_name)) {
+				std::cerr<<"Insert Chromosome "<<new_chr_name<<" Failed!\n";
+			}
+			current_name = new_chr_name;
+			seq = "";
+		}
+		else {
+			seq += buff;
+		}
+	}
+	if(seq.length() != 0 && chromosomes.find(current_name) != chromosomes.end()) {
+		chr_iter = chromosomes.find(current_name);
+		chr_iter->second->binarize(seq);
+	}
+	if( known_snp ) {
+		Chr_name current_name;
+		Snp_info snp_form;
+		std::string::size_type pos;
+		for(std::string buff;getline(known_snp, buff);) {
+			// Format: Chr\tPos\thapmap?\tvalidated?\tis_indel?\tA\tC\tT\tG\trsID\n
+			std::istringstream s(buff);
+			s>>current_name>>pos;
+			s>>snp_form;
+			if( chromosomes.find(current_name) != chromosomes.end()) {
+				// The SNP is located on an valid chromosme
+				pos -= 1; // Coordinates starts from 0
+				(chromosomes.find(current_name)->second)->insert_snp(pos, snp_form);
+			}
+		}
+	}
+}
