@@ -4,7 +4,7 @@
 using namespace std;
 
 int usage() {
-	cerr<<"SoapSNP"<<endl;
+	cerr<<"SoapSNP version 1.01 "<<endl;
 	cerr<<"Compulsory Parameters:"<<endl;
 	cerr<<"-i <FILE> Input SORTED Soap Result"<<endl;
 	cerr<<"-d <FILE> Reference Sequence in fasta format"<<endl;
@@ -35,6 +35,11 @@ int usage() {
 	cerr<<"-T <FILE> Only call consensus on regions specified in FILE. Format: ChrName\\tStart\\tEnd."<<endl;
 	//cerr<<"-S <FILE> Output summary of consensus"<<endl;
 	cerr<<"-h Display this help"<<endl;
+
+	cerr<<"\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>"<<endl;
+	cerr<<"This is free software: you are free to change and redistribute it."<<endl;
+	cerr<<"There is NO WARRANTY, to the extent permitted by law.\n"<<endl;
+
 	exit(1);
 	return 0;
 }

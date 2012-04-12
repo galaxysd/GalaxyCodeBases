@@ -2,6 +2,10 @@ Program: SOAPsnp (Short Oligonucleotide Analysis Package for Single Nucleotide P
 
 Copyright (C) 2008, BGI Shenzhen.
 
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
 Author:  BGI shenzhen
 Contact: soap@genomics.org.cn
 
@@ -132,3 +136,4 @@ The result of SOAPsnp has 17 columns:
 14)	 Whether the site is a dbSNP. 
 2.	GLFv2 and GPFv2
 GLFv2 (Genome Likelihood Format v2) is a binary file format proposed by Prof. R. Durbin. 
+
