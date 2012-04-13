@@ -17,7 +17,7 @@ my $ChrLen=249250621;
 my $Rate = ($ChrLen/$site/1000000)*$RateCMperMb/100;
 my (@Indi,%S);
 open O,'>',"gt_${indi}_${site}.dat" or die;
-print O "#Rate=$Rate, Distence=",int($ChrLen/$site),"\nrecombRate\tRecombined\tSNP\t\@Genotype_of_${indi}\n";
+print O "#Rate=$Rate, Distence=",int($ChrLen/$site),"\n#recombRate\tRecombined\tSNPid\t\@Genotype_of_${indi}\n";
 push @{$Indi[0]},0 for (0 .. $indi-1);
 my $NewRate = $Rate;
 my $SumRate=0;
@@ -36,7 +36,7 @@ for my $snp (1..$site) {
 	}
 	$SumRate += $sumC/$indi;
 	#$NewRate = ($Rate*($snp+1))-$SumRat;
-	print O join("\t",$NewRate,$sumC,$snp,@t),"\n";
+	print O join("\t",int(.5+$NewRate*100000)/100000,$sumC,$snp,@t),"\n";
 	++$S{$sumC};
 	$Indi[$snp]=\@t;
 }
@@ -62,4 +62,3 @@ for my $snp (1..$site) {
 }
 print O "0: $Sgt{0}, 1: $Sgt{1}.\nRatio: ",$Sgt{0}/$Sgt{1},"\n";
 close O;
-
