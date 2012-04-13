@@ -17,13 +17,16 @@ my $ChrLen=249250621;
 my $Rate = ($ChrLen/$site/1000000)*$RateCMperMb/100;
 my (@Indi,%S);
 open O,'>',"gt_${indi}_${site}.dat" or die;
-print O "#Rate=$Rate, Distence=",int($ChrLen/$site),"\nRecombined\tSNP\t\@Genotype_of_${indi}\n";
+print O "#Rate=$Rate, Distence=",int($ChrLen/$site),"\nrecombRate\tRecombined\tSNP\t\@Genotype_of_${indi}\n";
 push @{$Indi[0]},0 for (0 .. $indi-1);
+my $NewRate = $Rate;
+my $SumRate=0;
 for my $snp (1..$site) {
 	my @t=();
 	my $sumC=0;
+	$NewRate = ($Rate*$snp)-$SumRate;	# a feedback is better, EP(?)
 	for my $i (0 .. $indi-1) {
-		my $x=(rand(1)>$Rate)?0:1;
+		my $x=(rand(1)>$NewRate)?0:1;
 		if ($x) {	# 1:recombine
 			push @t,($Indi[$snp-1][$i])?0:1;
 		} else {
@@ -31,25 +34,32 @@ for my $snp (1..$site) {
 		}
 		$sumC += $x;
 	}
-	print O join("\t",$sumC,$snp,@t),"\n";
+	$SumRate += $sumC/$indi;
+	#$NewRate = ($Rate*($snp+1))-$SumRat;
+	print O join("\t",$NewRate,$sumC,$snp,@t),"\n";
 	++$S{$sumC};
 	$Indi[$snp]=\@t;
 }
 close O;
 
+my $t=0;
+my $cnt=$indi*$site;
 open O,'>',"gt_${indi}_${site}.stat" or die;
-print O "Recombine Times:\n";
+print O "Rate=$Rate, Distence=",int($ChrLen/$site),"\ncM pre Mbp:",$RateCMperMb,"\nRecombine Times and Rate:\n";
 for my $c (sort {$a<=>$b} keys %S) {
-	print O "$c\t$S{$c}\n";
+	print O "$c\t$S{$c}\t",$c/$indi,"\n";
+	$t += $c*$S{$c};
 }
+print O "Average Rate: ",$t/$cnt,"\n";
+print O "Average Recombine Rate: ",100*$t/$indi/($ChrLen/1000000)," (cM pre Mbp)\n\n";
 
 my %Sgt;
-print O "\nGenoTypes:\n";
+print O "GenoTypes:\n";
 for my $snp (1..$site) {
 	for my $i (0 .. $indi-1) {
 		++$Sgt{$Indi[$snp][$i]};
 	}
 }
-print O "0: $Sgt{0}, 1: $Sgt{1}. Ratio: ",$Sgt{0}/$Sgt{1},"\n";
+print O "0: $Sgt{0}, 1: $Sgt{1}.\nRatio: ",$Sgt{0}/$Sgt{1},"\n";
 close O;
 
