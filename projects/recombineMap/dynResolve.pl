@@ -30,14 +30,33 @@ print "Loaded: $site SNP sites * $indi Sperms.\n";
 my @a=split //,('0' x $site);
 my @b=split //,('1' x $site);
 my (@preStats,$preStatsAt);
-push @preStats,[split //,('0' x $site)] for (1..($site-1));
+push @preStats,[split //,('0' x $site)] for (1..($site-1));	# Write here for calloc in C.
 $preStatsAt=0;
 my (@matrix,@path);	# 2D array in perl can be malloced auto.ly
 my ($i,$j,$sc,$mstep);
 my %COLOR=('1'=>'32','2'=>'33','3'=>'36','0'=>'0');
 
-sub scoring($$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
-	my ($a,$b)=@_;
+sub scoring($$$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
+	my ($i,$LR,$lastScore)=@_;
+	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
+	my $RC=0;
+	for my $n (1..$indi) {
+		if ( $Indi[$mstep][$n] != ($LR^$preStats[$i][$n]) ) {	# remember the higher precedence of '!=' to '^'
+			++$RC;
+		}
+	}
+	return $lastScore+$RC;
+}
+sub updatePreStats() {
+	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
+	if ($preStatsAt) {
+		for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
+			for ($i=0;$i<=$mstep;$i++) {
+				;
+			}
+		}
+	}
+	return;
 }
 
 # Initialization
@@ -54,29 +73,41 @@ $path[0][0]=0;
          40, 4, LLLL   (41, 5)       (42, 6)       (43, 7)       (44, 8)
 =cut
 for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
+	updatePreStats();
 	for ($i=0;$i<=$mstep;$i++) {
 		$j = $mstep-$i;	# only half matrix needed.
 		my ($sc1,$sc2)=(0,0);
 		if ($j>0) {	# has Up, can be L
-			$sc1=scoring("L",$mstep);
+			$sc1=scoring($i,0,$matrix[$i][$j-1]);
 		}
 		if ($i>0) {	# has Left, can be R
-			$sc2=scoring("R",$mstep);
+			$sc2=scoring($i,1,$matrix[$i-1][$j]);
 		}
 		if ($sc1) {
 			if ($sc2) {	# both $sc1 and $sc2
 				if ($sc1 < $sc2) {
 					$path[$i][$j]=1;
+					$sc = $sc1;
 				} elsif ($sc1 == $sc2) {
 					$path[$i][$j]=3;	# half L => 0.5, no difference.
+					$sc = $sc1;
 				} else {	# $sc1 > $sc2
 					$path[$i][$j]=2;
+					$sc = $sc2;
 				}
 			} else {	# only $sc1
 				$path[$i][$j]=1;
+				$sc = $sc1;
 			}
 		} elsif ($sc2) {	# only $sc2
 			$path[$i][$j]=2;
-		} else { die "Impossible for $i==$j==0."; }
+			$sc = $sc2;
+		} else {
+			die "Impossible for $i==$j==0.";
+			$path[$i][$j]=0;
+			$sc = 0;
+		}
+		$matrix[$i][$j] = $sc;
+		++$preStatsAt;	# Debug only
 	}
 }
