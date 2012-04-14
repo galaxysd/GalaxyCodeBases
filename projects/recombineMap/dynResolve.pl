@@ -47,14 +47,18 @@ sub scoring($$$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
 	}
 	return $lastScore+$RC;
 }
-sub updatePreStats() {
+sub updatePreStats($$) {
+	my ($i,$LR)=@_;
 	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
-	if ($preStatsAt) {
-		for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
-			for ($i=0;$i<=$mstep;$i++) {
-				;
-			}
-		}
+	if ($LR==3) {	# remain old status on half/half.
+		return;
+	} elsif ($LR == 1) {
+		$LR = 0;
+	} elsif ($LR == 2) {
+		$LR = 1;
+	} else {die "Impossible for \$LR>3.";}
+	for my $n (1..$indi) {
+		$preStats[$i][$n] = ($Indi[$mstep][$n]^$LR);
 	}
 	return;
 }
@@ -73,7 +77,7 @@ $path[0][0]=0;
          40, 4, LLLL   (41, 5)       (42, 6)       (43, 7)       (44, 8)
 =cut
 for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
-	updatePreStats();
+	#updatePreStats();
 	for ($i=0;$i<=$mstep;$i++) {
 		$j = $mstep-$i;	# only half matrix needed.
 		my ($sc1,$sc2)=(0,0);
@@ -108,6 +112,7 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 			$sc = 0;
 		}
 		$matrix[$i][$j] = $sc;
-		++$preStatsAt;	# Debug only
+		updatePreStats($i,$path[$i][$j]);
 	}
+	++$preStatsAt;
 }
