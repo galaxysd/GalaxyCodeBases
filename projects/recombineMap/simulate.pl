@@ -15,15 +15,18 @@ my $RateCMperMb=2.1;
 my $ChrLen=249250621;
 
 my $Rate = ($ChrLen/$site/1000000)*$RateCMperMb/100;
-my (@Indi,%S);
-open O,'>',"gt_${indi}_${site}.dat" or die;
+my (@Indi,%S,@Parent);
+open O,'>',"gt_${indi}_${site}.gt" or die;
+open OR,'>',"gt_${indi}_${site}.dat" or die;
 print O "#Rate=$Rate, Distence=",int($ChrLen/$site),"\n#recombRate\tRecombined\tSNPid\t\@Genotype_of_${indi}\n";
+print OR "#Rate=$Rate, Distence=",int($ChrLen/$site),"\n#Parent\tRecombined\tSNPid\t\@Genotype_of_${indi}\n";
 push @{$Indi[0]},0 for (0 .. $indi-1);
 my $NewRate = $Rate;
 my $SumRate=0;
 for my $snp (1..$site) {
 	my @t=();
 	my $sumC=0;
+	$Parent[$snp]=int(rand(2));
 	$NewRate = ($Rate*$snp)-$SumRate;	# a feedback is better, EP(?)
 	for my $i (0 .. $indi-1) {
 		my $x=(rand(1)>$NewRate)?0:1;
@@ -36,11 +39,13 @@ for my $snp (1..$site) {
 	}
 	$SumRate += $sumC/$indi;
 	#$NewRate = ($Rate*($snp+1))-$SumRat;
-	print O join("\t",int(.5+$NewRate*100000)/100000,$sumC,$snp,@t),"\n";
+	print O join("\t",sprintf("% .6f",$NewRate),$sumC,$snp,@t),"\n";
 	++$S{$sumC};
 	$Indi[$snp]=\@t;
+	print OR join("\t",$Parent[$snp],$sumC,$snp,map {$_^$Parent[$snp]} @t),"\n";
 }
 close O;
+close OR;
 
 my $t=0;
 my $cnt=$indi*$site;
