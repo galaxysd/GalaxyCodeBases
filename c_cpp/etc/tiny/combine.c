@@ -37,7 +37,8 @@ int main (int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
     printf("%d %ld [%s]\n",theStrLen,strlen(theStr),theStr);
-    int in1, in2, out;
+    int in1, in2;
+    FILE *outf;
     struct stat sb1, sb2;
     char *p1, *p2;
     in1 = open(argv[1], O_RDONLY);
@@ -67,8 +68,8 @@ int main (int argc, char *argv[]) {
     if (p2 == MAP_FAILED)
         handle_error("mmap2");
 
-    out = open(argv[3], O_WRONLY|O_CREAT|O_EXCL, S_IRUSR|S_IWUSR|S_IRGRP);
-    if (out == -1)
+    outf = fopen(argv[3],"w+x");
+    if (outf == NULL)
         handle_error("open3");
 
     char *thisp, *lastp;
@@ -76,13 +77,27 @@ int main (int argc, char *argv[]) {
     while ( thisp - p1 < sb1.st_size ) {
         if (*thisp == 'H') {
             if ( memcmp(thisp,theStr,theStrLen) == 0 ) {
-                printf("1(%zx)   %zd\t%zx\n",(size_t)p1,thisp-p1,(size_t)thisp);
-            }
-        }
-        ++thisp;
+                printf("1(%zx)   %zd\t%zx\t",(size_t)p1,thisp-p1,(size_t)thisp);
+                char *p2thisp = thisp - p1 + p2;
+                if ( memcmp(p2thisp,theStr,theStrLen) == 0 ) {
+                    printf("Also 2(%zx) @ %zx ",(size_t)p2,(size_t)p2thisp);
+                }
+                if ( fwrite(p2thisp,theStrLen,1,outf) < 1 ) {
+                    handle_error("write");
+                }
+                thisp += theStrLen;
+                p2thisp += theStrLen;
+                while ( *thisp != *p2thisp ) {
+                    fputc(*p2thisp,outf);
+                    ++thisp;
+                    ++p2thisp;
+                    putchar('.');
+                }
+                putchar('\n');
+            } else { fputc(*thisp,outf);++thisp; }
+        } else { fputc(*thisp,outf);++thisp; }
     }
 
-    if (close(out) == -1)           /* To obtain file size */
-        handle_error("close3");
+    fclose(outf);
     exit(EXIT_SUCCESS);
 }
