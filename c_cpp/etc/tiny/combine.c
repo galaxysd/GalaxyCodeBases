@@ -32,11 +32,11 @@ char theStr[]="HTTP/1.1 404 File Not Found\r\nContent-Type: text/octet\r\nUser-R
 int theStrLen = sizeof(theStr) - 1;
 
 int main (int argc, char *argv[]) {
+    printf("Searching for:\n[%s] %d %zd\n",theStr,theStrLen,strlen(theStr));
 	if (argc!=4) {
 		fprintf(stderr,"Usage: %s <main file> <2nd file> <out file>\n",argv[0]);
 		exit(EXIT_FAILURE);
 	}
-    printf("%d %ld [%s]\n",theStrLen,strlen(theStr),theStr);
     int in1, in2;
     FILE *outf;
     struct stat sb1, sb2;
@@ -77,10 +77,10 @@ int main (int argc, char *argv[]) {
     while ( thisp - p1 < sb1.st_size ) {
         if (*thisp == 'H') {
             if ( memcmp(thisp,theStr,theStrLen) == 0 ) {
-                printf("1(%zx)   %zd\t%zx\t",(size_t)p1,thisp-p1,(size_t)thisp);
+                printf("1 %zd\t(%zx)\t%zx\t",thisp-p1,thisp-p1,(size_t)thisp);
                 char *p2thisp = thisp - p1 + p2;
                 if ( memcmp(p2thisp,theStr,theStrLen) == 0 ) {
-                    printf("Also 2(%zx) @ %zx ",(size_t)p2,(size_t)p2thisp);
+                    printf("Also 2 @ %zx ",(size_t)p2thisp);
                 }
                 if ( fwrite(p2thisp,theStrLen,1,outf) < 1 ) {
                     handle_error("write");
