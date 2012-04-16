@@ -117,4 +117,10 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 	++$preStatsAt;
 }
 
-ddx \@matrix;
+for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
+	for ($i=0;$i<=$mstep;$i++) {
+		$j = $mstep-$i;
+		print $matrix[$i][$j],',',$path[$i][$j],"\t";
+	}
+	print "\n";
+}
