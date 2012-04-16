@@ -5,7 +5,7 @@ Version: 1.0.0 @ 20120412
 =cut
 use strict;
 use warnings;
-#use Data::Dump qw(ddx);
+use Data::Dump qw(ddx);
 
 die "Usage: $0 <in file> <out file>\n" if @ARGV<2;
 my $in=shift;
@@ -66,7 +66,7 @@ sub updatePreStats($$) {
 # Initialization
 $matrix[0][0]=0;
 $path[0][0]=0;
-#for ($i=1;$i<=$#a;$i++) {$matrix[$i][0] = $i*$INDEL;$path[$i][0]=2;}
+for ($i=0;$i<=$site;$i++) {$matrix[$i][0] = $matrix[0][$i] = 0;}
 #for ($j=1;$j<=$#b;$j++) {$matrix[0][$j] = $j*$INDEL;$path[0][$j]=3;}
 =pod
  ij                                    j => R
@@ -116,3 +116,5 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 	}
 	++$preStatsAt;
 }
+
+ddx \@matrix;
