@@ -66,7 +66,11 @@ sub updatePreStats($$) {
 # Initialization
 $matrix[0][0]=0;
 $path[0][0]=0;
-for ($i=0;$i<=$site;$i++) {$matrix[$i][0] = $matrix[0][$i] = 0;}
+for ($i=0;$i<=$site;$i++) {
+	for ($j=0;$j<=$site;$j++) {
+		$matrix[$i][$j] = 0;
+	}
+}
 #for ($j=1;$j<=$#b;$j++) {$matrix[0][$j] = $j*$INDEL;$path[0][$j]=3;}
 =pod
  ij                                    j => R
