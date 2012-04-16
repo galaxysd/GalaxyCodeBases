@@ -40,7 +40,7 @@ sub scoring($$$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
 	my ($i,$LR,$lastScore)=@_;
 	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
 	my $RC=0;
-	for my $n (1..$indi) {
+	for my $n (0..$indi-1) {
 		if ( $Indi[$mstep][$n] != ($LR^$preStats[$i][$n]) ) {	# remember the higher precedence of '!=' to '^'
 			++$RC;
 		}
@@ -57,7 +57,7 @@ sub updatePreStats($$) {
 	} elsif ($LR == 2) {
 		$LR = 1;
 	} else {die "Impossible for \$LR>3.";}
-	for my $n (1..$indi) {
+	for my $n (0..$indi-1) {
 		$preStats[$i][$n] = ($Indi[$mstep][$n]^$LR);
 	}
 	return;
