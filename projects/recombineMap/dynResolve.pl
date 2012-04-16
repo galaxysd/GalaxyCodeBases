@@ -19,20 +19,20 @@ while (<I>) {
 	next if /^#/;
 	chomp;
 	my (undef,undef,$id,@GT)=split /\t/;
-	$Indi[$id] = \@GT;
+	$Indi[$id] = \@GT;	# @Indi[SNP][0..$indi-1]
 	die if $indi && $indi != @GT;
 	$indi = scalar @GT;
 }
-$site = $#Indi;
-push @{$Indi[0]},0 for (0 .. $indi-1);
+$site = $#Indi;	# count of data lines, 1st is 0. @Indi[1..SNP][0..$indi-1]
+push @{$Indi[0]},0 for (0 .. $indi-1);	# also set @Indi[SNP==0][0..$indi-1]
 print "Loaded: $site SNP sites * $indi Sperms.\n";
 
 my @a=split //,('0' x $site);
 my @b=split //,('1' x $site);
-my (@preStats,$preStatsAt);
-push @preStats,[split //,('0' x $site)] for (1..($site-1));	# Write here for calloc in C.
+my (@preStats,$preStatsAt);	# @preStats[0..SNP-1][0..$indi-1]. Only update when $i < $site, so "SNP-1" is enough.
+push @preStats,[split //,('0' x $indi)] for (0..($site-1));	# Write here for calloc in C.
 $preStatsAt=0;
-my (@matrix,@path);	# 2D array in perl can be malloced auto.ly
+my (@matrix,@path);	# 2D array in perl can be malloced auto.ly. @matrix[0..SNP][0..SNP]
 my ($i,$j,$sc,$mstep);
 my %COLOR=('1'=>'32','2'=>'33','3'=>'36','0'=>'0');
 
@@ -116,7 +116,7 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 			$sc = 0;
 		}
 		$matrix[$i][$j] = $sc;
-		updatePreStats($i,$path[$i][$j]);
+		updatePreStats($i,$path[$i][$j]) if $i<$site;
 	}
 	++$preStatsAt;
 }
