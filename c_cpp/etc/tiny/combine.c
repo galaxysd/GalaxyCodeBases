@@ -10,6 +10,8 @@
 #define handle_error(msg) \
    do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
+#define EXTLEN 512
+
 /*
 [HTTP/1.1 404 File Not Found
 Content-Type: text/octet
@@ -73,7 +75,7 @@ int main (int argc, char *argv[]) {
         handle_error("open3");
 
     char *thisp, *lastp;
-    thisp = lastp = p1;
+    thisp = p1;
     while ( thisp - p1 < sb1.st_size ) {
         if (*thisp == 'H') {
             if ( memcmp(thisp,theStr,theStrLen) == 0 ) {
@@ -87,11 +89,14 @@ int main (int argc, char *argv[]) {
                 }
                 thisp += theStrLen;
                 p2thisp += theStrLen;
-                while ( *thisp != *p2thisp ) {
+                lastp = thisp-1;
+                char *extsp = thisp + EXTLEN;
+                while ( (*thisp != *p2thisp) || (thisp < extsp) ) {
                     fputc(*p2thisp,outf);
+                    if (*thisp != *p2thisp)
+                        printf("%zd:%hhX-%hhX,", thisp-lastp, *thisp, *p2thisp);
                     ++thisp;
                     ++p2thisp;
-                    putchar('.');
                 }
                 putchar('\n');
             } else { fputc(*thisp,outf);++thisp; }
