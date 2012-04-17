@@ -10,7 +10,8 @@
 #define handle_error(msg) \
    do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-#define EXTLEN 512
+#define EXTLEN 32
+// 8 should be enough
 
 /*
 [HTTP/1.1 404 File Not Found
@@ -79,10 +80,10 @@ int main (int argc, char *argv[]) {
     while ( thisp - p1 < sb1.st_size ) {
         if (*thisp == 'H') {
             if ( memcmp(thisp,theStr,theStrLen) == 0 ) {
-                printf("1 %zd\t(%zx)\t%zx\t",thisp-p1,thisp-p1,(size_t)thisp);
+                printf("1 %zd\t(%zx)\t",thisp-p1,thisp-p1);
                 char *p2thisp = thisp - p1 + p2;
                 if ( memcmp(p2thisp,theStr,theStrLen) == 0 ) {
-                    printf("Also 2 @ %zx ",(size_t)p2thisp);
+                    printf("Also 2 ");
                 }
                 if ( fwrite(p2thisp,theStrLen,1,outf) < 1 ) {
                     handle_error("write");
@@ -94,7 +95,7 @@ int main (int argc, char *argv[]) {
                 while ( (*thisp != *p2thisp) || (thisp < extsp) ) {
                     fputc(*p2thisp,outf);
                     if (*thisp != *p2thisp)
-                        printf("%zd:%hhX-%hhX,", thisp-lastp, *thisp, *p2thisp);
+                        printf("%zd:%02hhX-%02hhX ", thisp-lastp, *thisp, *p2thisp);
                     ++thisp;
                     ++p2thisp;
                 }
