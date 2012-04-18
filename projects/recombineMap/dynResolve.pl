@@ -24,7 +24,7 @@ while (<I>) {
 	$indi = scalar @GT;
 }
 $site = $#Indi;	# count of data lines, 1st is 0. @Indi[1..SNP][0..$indi-1]
-push @{$Indi[0]},0 for (0 .. $indi-1);	# also set @Indi[SNP==0][0..$indi-1]
+push @{$Indi[0]},0 for (0 .. $indi-1);	# also set @Indi[SNP==0][0..$indi-1]=0
 print "Loaded: $site SNP sites * $indi Sperms.\n";
 
 my @a=split //,('0' x $site);
@@ -37,15 +37,19 @@ my ($i,$j,$sc,$mstep);
 my %COLOR=('1'=>'32','2'=>'33','3'=>'36','0'=>'0');
 
 sub scoring($$$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
-	my ($i,$LR,$lastScore)=@_;
-	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
+	my ($i,$LR,$lastGrid)=@_;
+	my ($lasti,$lastj)=@$lastGrid;
+	my $lastLR;
+	if ($path[$lasti][$lastj] == 1) {
+		$lastLR = 0;
+	} else { $lastLR = 1; }
 	my $RC=0;
 	for my $n (0..$indi-1) {
-		if ( $Indi[$mstep][$n] != ($LR^$preStats[$i][$n]) ) {	# remember the higher precedence of '!=' to '^'
+		if ( ($LR^$Indi[$mstep][$n]) != ($lastLR^$Indi[$mstep-1][$n]) ) {	# remember the higher precedence of '!=' to '^'
 			++$RC;
 		}
 	}
-	return $lastScore+$RC;
+	return $matrix[$lasti][$lastj]+$RC;
 }
 sub updatePreStats($$) {
 	my ($i,$LR)=@_;
@@ -81,15 +85,14 @@ for ($i=0;$i<=$site;$i++) {
          40, 4, LLLL   (41, 5)       (42, 6)       (43, 7)       (44, 8)
 =cut
 for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
-	#updatePreStats();
 	for ($i=0;$i<=$mstep;$i++) {
 		$j = $mstep-$i;	# only half matrix needed.
 		my ($sc1,$sc2)=(0,0);
 		if ($j>0) {	# has Up, can be L
-			$sc1=scoring($i,0,$matrix[$i][$j-1]);
+			$sc1=scoring($i,0,[$i,$j-1]);
 		}
 		if ($i>0) {	# has Left, can be R
-			$sc2=scoring($i,1,$matrix[$i-1][$j]);
+			$sc2=scoring($i,1,[$i-1,$j]);
 		}
 		if ($sc1) {
 			if ($sc2) {	# both $sc1 and $sc2
@@ -116,7 +119,6 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 			$sc = 0;
 		}
 		$matrix[$i][$j] = $sc;
-		updatePreStats($i,$path[$i][$j]) if $i<$site;
 	}
 	++$preStatsAt;
 }
