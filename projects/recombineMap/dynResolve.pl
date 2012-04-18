@@ -70,7 +70,7 @@ for ($i=0;$i<=$site;$i++) {
 for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 	for ($i=0;$i<=$mstep;$i++) {
 		$j = $mstep-$i;	# only half matrix needed.
-		my ($sc1,$sc2)=(0,0);
+		my ($sc1,$sc2)=(0,0);	# better to set NULL as -1.
 		if ($j>0) {	# has Up, can be L
 			$sc1=scoring($i,0,[$i,$j-1]);
 		}
