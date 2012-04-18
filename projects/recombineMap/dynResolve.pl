@@ -29,9 +29,6 @@ print "Loaded: $site SNP sites * $indi Sperms.\n";
 
 my @a=split //,('0' x $site);
 my @b=split //,('1' x $site);
-my (@preStats,$preStatsAt);	# @preStats[0..SNP-1][0..$indi-1]. Only update when $i < $site, so "SNP-1" is enough.
-push @preStats,[split //,('0' x $indi)] for (0..($site-1));	# Write here for calloc in C.
-$preStatsAt=0;
 my (@matrix,@path);	# 2D array in perl can be malloced auto.ly. @matrix[0..SNP][0..SNP]
 my ($i,$j,$sc,$mstep);
 my %COLOR=('1'=>'32','2'=>'33','3'=>'36','0'=>'0');
@@ -50,21 +47,6 @@ sub scoring($$$) {	# Recombin_Count >> 0, so 0 is reserved for NULL.
 		}
 	}
 	return $matrix[$lasti][$lastj]+$RC;
-}
-sub updatePreStats($$) {
-	my ($i,$LR)=@_;
-	die if ($mstep-$preStatsAt > 1);	# @preStats must be the latest one. Debug only.
-	if ($LR==3) {	# remain old status on half/half.
-		return;
-	} elsif ($LR == 1) {
-		$LR = 0;
-	} elsif ($LR == 2) {
-		$LR = 1;
-	} else {die "Impossible for \$LR>3.";}
-	for my $n (0..$indi-1) {
-		$preStats[$i][$n] = ($Indi[$mstep][$n]^$LR);
-	}
-	return;
 }
 
 # Initialization
@@ -120,7 +102,6 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 		}
 		$matrix[$i][$j] = $sc;
 	}
-	++$preStatsAt;
 }
 
 for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
