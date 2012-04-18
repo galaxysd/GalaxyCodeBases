@@ -5,21 +5,22 @@ Version: 1.0.0 @ 20120412
 =cut
 use strict;
 use warnings;
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 
 die "Usage: $0 <in file> <out file>\n" if @ARGV<2;
 my $in=shift;
 my $out=shift;
 
-my @Indi;
+my (@Indi,@Parents);
 my ($indi,$site)=(0,0);
 
 open I,'<',$in or die;
 while (<I>) {
 	next if /^#/;
 	chomp;
-	my (undef,undef,$id,@GT)=split /\t/;
+	my ($parent,undef,$id,@GT)=split /\t/;
 	$Indi[$id] = \@GT;	# @Indi[SNP][0..$indi-1]
+	push @Parents,$parent;
 	die if $indi && $indi != @GT;
 	$indi = scalar @GT;
 }
@@ -104,13 +105,7 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 	}
 }
 
-for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
-	for ($i=0;$i<=$mstep;$i++) {
-		$j = $mstep-$i;
-		print $matrix[$i][$j],',',$path[$i][$j],"\t";
-	}
-	print "\n";
-}
+print "Parents: ",join(',',@Parents),"\n";
 print '-' x 78,"\nColor:";
 for (sort keys %COLOR) {
 	print "\033[",$COLOR{$_},";1m $_";
