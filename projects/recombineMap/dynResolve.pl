@@ -95,9 +95,9 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 		} elsif ($sc2) {	# only $sc2
 			$path[$i][$j]=2;
 			$sc = $sc2;
-		} else {
-			die "Impossible for $i==$j==0.";
-			$path[$i][$j]=0;
+		} else {	# $sc1==$sc2==0
+			#die "Impossible for $i==$j==0. $sc1,$sc2.";
+			$path[$i][$j]=0;	# for path, 00 <=> 11
 			$sc = 0;
 		}
 		$matrix[$i][$j] = $sc;
@@ -110,4 +110,18 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 		print $matrix[$i][$j],',',$path[$i][$j],"\t";
 	}
 	print "\n";
+}
+print '-' x 78,"\nColor:";
+for (sort keys %COLOR) {
+	print "\033[",$COLOR{$_},";1m $_";
+}
+print "\033[0;0m\n";
+
+for ($i=0;$i<=$site;$i++) {
+	for ($j=0;$j<=$site-$i;$j++) {
+		print "\033[",$COLOR{$path[$i][$j]},";1m";
+		printf("%4d ",$matrix[$i][$j]);
+		#print $matrix[$i][$j],',',$path[$i][$j],"\t";
+	}
+	print "\033[0;0m\n";
 }

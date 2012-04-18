@@ -13,6 +13,7 @@ my $site=shift;
 
 my $RateCMperMb=2.1;
 my $ChrLen=249250621;
+$ChrLen=24925062;
 
 my $Rate = ($ChrLen/$site/1000000)*$RateCMperMb/100;
 my (@Indi,%S,@Parent);
