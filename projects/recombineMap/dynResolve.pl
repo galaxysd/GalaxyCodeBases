@@ -126,20 +126,31 @@ for (0..$#resultP) {
 	push @xorP,$t;
 	$sumxorP += $t;
 }
+
 print "Parents: ",join(',',@Parents),"\n";
 print "Results: ",join(',',@resultP),"\n";
-print "bitXORs: ",join(',',@xorP),"\nSumbXOR: $sumxorP\n",;
+print "bitXORs: ",join(',',@xorP),"\nSumbXOR: $sumxorP\n";
 print '-' x 78,"\nColor:";
 for (sort keys %COLOR) {
 	print "\033[",$COLOR{$_},";1m $_";
 }
 print "\033[0;0m\n";
 
+open O,'>',$out or die;
+print O "Loaded: $site SNP sites * $indi Sperms.\n";
+
 for ($i=0;$i<=$site;$i++) {
 	for ($j=0;$j<=$site-$i;$j++) {
 		print "\033[",$COLOR{$path[$i][$j]},";1m";
 		printf("%4d ",$matrix[$i][$j]);
-		#print $matrix[$i][$j],',',$path[$i][$j],"\t";
+		print O $matrix[$i][$j],',',$path[$i][$j],"\t";
 	}
 	print "\033[0;0m\n";
+	print O "\n";
 }
+
+print O '-' x 78,"\n";
+print O "Parents: ",join(',',@Parents),"\n";
+print O "Results: ",join(',',@resultP),"\n";
+print O "bitXORs: ",join(',',@xorP),"\nSumbXOR: $sumxorP\n";
+close O;
