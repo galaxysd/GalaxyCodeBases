@@ -104,8 +104,31 @@ for ($mstep=1;$mstep<=$site;$mstep++) {	# starts from 01 & 10.
 		$matrix[$i][$j] = $sc;
 	}
 }
-
+my ($min,$mini,$minj)=($matrix[0][$site],0,$site);
+for ($i=1;$i<=$site;$i++) {	# init value is from $i==0
+	$j = $site-$i;
+	if ($min > $matrix[$i][$j]) {
+		$min=$matrix[$i][$j];
+		($mini,$minj)=($i,$j);
+	}
+}
+# Traceback
+my ($sumxorP,@resultP,@xorP)=(0);
+while ($mini>=0 and $minj>=0 and $mini+$minj) {
+	push @resultP,$path[$mini][$minj];
+	if ($path[$mini][$minj] & 1) {
+		--$minj;
+	} else { --$mini; }
+}
+@resultP = reverse @resultP;
+for (0..$#resultP) {
+	my $t = ($resultP[$_]^$Parents[$_])&1;
+	push @xorP,$t;
+	$sumxorP += $t;
+}
 print "Parents: ",join(',',@Parents),"\n";
+print "Results: ",join(',',@resultP),"\n";
+print "bitXORs: ",join(',',@xorP),"\nSumbXOR: $sumxorP\n",;
 print '-' x 78,"\nColor:";
 for (sort keys %COLOR) {
 	print "\033[",$COLOR{$_},";1m $_";
