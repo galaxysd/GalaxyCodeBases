@@ -15,7 +15,7 @@ my $Eseq="CTGCAG";
 my $EcutAt=5;
 
 open O,'>',$out or die "Error opening $out : $!\n";
-print O "# Ref: [$fa]\n#Enzyme: [$Eseq], Cut after $EcutAt\n\n#ChrID\tCut\tbegin\tend\n";
+print O "# Ref: [$fa]\n#Enzyme: [$Eseq], Cut after $EcutAt\n\n#ChrID\tCut\n";
 my ($CountAll,%Count);
 
 open I,'<',$fa or die "Error opening $fa : $!\n";
@@ -33,7 +33,7 @@ while (<I>) {
 
 	while ( $genome =~ m/$Eseq/g ) {
 		# push @ret, [ $-[0], $+[0] ];
-		print O join("\t",$seqname,$-[0]+$EcutAt,$-[0], $+[0]),"\n";
+		print O join("\t",$seqname,$-[0]+$EcutAt),"\n";	# starts from 1, so OK to use directly for "cut after".
 		++$CountAll;
 		++$Count{$seqname};
 	}
@@ -42,5 +42,9 @@ while (<I>) {
 }
 close I;
 
-print O "\n#";
+print O "\nCut stat:\n";
+for (sort keys %Count) {
+	print O "# $_\t$Count{$_}\n"
+}
+print O "\n#Total: $CountAll";
 close O;
