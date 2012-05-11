@@ -42,9 +42,9 @@ while (<I>) {
 }
 close I;
 
-print O "\nCut stat:\n";
+print O "\n#Cut stat:\n";
 for (sort keys %Count) {
 	print O "# $_\t$Count{$_}\n"
 }
-print O "\n#Total: $CountAll";
+print O "#Total: $CountAll";
 close O;
