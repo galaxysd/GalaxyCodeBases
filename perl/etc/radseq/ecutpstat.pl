@@ -33,7 +33,7 @@ while (<I>) {
 
 	while ( $genome =~ m/$Eseq/g ) {
 		# push @ret, [ $-[0], $+[0] ];
-		print O join("\t",$seqname,$-[0]+$EcutAt),"\n";	# starts from 1, so OK to use directly for "cut after".
+		print O join("\t",$seqname,$-[0]+$EcutAt),"\n";	# starts from 0, so OK to use directly with $EcutAt for "cut after".
 		++$CountAll;
 		++$Count{$seqname};
 	}
