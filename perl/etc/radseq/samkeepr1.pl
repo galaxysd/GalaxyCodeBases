@@ -28,6 +28,8 @@ open L,'>',$outp.'.log' or die "Error opening $outp.log: $!\n";
 select(L);
 $|=1;
 print L "From [$in] to [$outp.sam.gz]\n";
+my ($Total,$Out,$notOut)=(0,0,0);
+
 while (<$samin>) {
 	if (/^@\w\w\t\w\w:/) {
 		print O $_;
@@ -36,9 +38,14 @@ while (<$samin>) {
 	my @read1=split /\t/;
 	if (($read1[1] & 64) == 64) {
 		print O $_;
+		++$Out;
+	} elsif (($read1[1] & 128) == 128) {
+		++$notOut;
 	}
+	++$Total;
 }
 
 close $samin;
 close O;
+print L "Read_1: $Out , ",$Out/$Total,"\nRead_2: $notOut , ",$notOut/$Total,"\nTotal: $Total\nRemain: ",$Total-$Out-$notOut,"\n";
 close L;
