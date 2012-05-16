@@ -12,6 +12,11 @@ my $inec=shift;
 my $insam=shift;
 my $outp=shift;
 
+my $Eseq="CTGCAG";
+my $EcutAt=5;
+my $EfwdTerm=1-$EcutAt;
+my $ErevTerm=0;
+
 sub openfile($) {
     my ($filename)=@_;
     my $infile;
@@ -26,7 +31,7 @@ sub opensam($) {
     my ($filename)=@_;
     my $infile;
     if ($filename=~/.bam$/) {
-	    open( $infile,"-|","samtools view -h -F 128 $filename") or die "Error opening $filename: $!\n";
+	    open( $infile,"-|","samtools view -h -F 132 $filename") or die "Error opening $filename: $!\n";
     } elsif ($filename=~/.sam.gz$/) {
      	open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
     } elsif ($filename=~/.sam$/) {
@@ -43,20 +48,33 @@ select(L);
 $|=1;
 print L "From [$samin],[$ecin] to [$outp.edep.gz]\n";
 
-my %eCut;
+my (%eCut,%eDat,@ChrOrder);
 while (<$ecin>) {
-	next if /^#/;
+	next if /^(#|$)/;
 	my ($chr,$pos) = split /\t/;
 	push @{$eCut{$chr}},$pos;
+	push @ChrOrder,$chr unless exists $eCut{$chr};
+	$eDat{$chr.'\t'.$pos}=[0,0,0,0,0,0,0,0];	# [SumF,CountF, SumR,CountR] for average depth
+	# first 4, Unique(XT:A:U); second 4, Repeat(XT:A:R).
+	# XT:A:N is fragmental like "61S12M2D3M2D10M14S".
+	# Mate-sw(XT:A:M) is either short or with many(like 7) mismatches(including 'N' on reads)
 }
 close $ecin;
 
 my ($Total,$Out,$notOut)=(0,0,0);
 
-my (@ChrID,%ChrLen);
+my (%ChrLen);
 while (<$samin>) {
 	if (/^@\w\w\t\w\w:/) {
 		print O $_;
+		if (/^\@SQ\tSN:(\S+)\tLN:(\d+)$/) {
+			if (exists $eCut{$1}) {
+				$ChrLen{$1} = $2;
+				print STDERR "Chr:[$1]\tLen:[$2], Cut:[",scalar @{$eCut{$1}},"]\n";
+			} else {
+				warn "Chr:[$1], Len:[$2] not cut.\n";
+			}
+		}
 		next;
 	}
 	my @read1=split /\t/;
