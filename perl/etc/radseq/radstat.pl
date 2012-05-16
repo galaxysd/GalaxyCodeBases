@@ -59,14 +59,15 @@ select(L);
 $|=1;
 print L "From [$samin],[$ecin] to [$outp.edep.gz]\n";
 
-my (%eCut,%eDat,@ChrOrder);
+my (%nDat,%eDat,@ChrOrder);
 while (<$ecin>) {
 	next if /^(#|$)/;
 	my ($chr,$pos) = split /\t/;
-	#push @{$eCut{$chr}},$pos;
-	++$eCut{$chr}{$pos};
-	push @ChrOrder,$chr unless exists $eCut{$chr};
-	$eDat{$chr.'\t'.$pos}=[0,0,0,0,0,0,0,0];	# [SumF,CountF, SumR,CountR] for average depth
+	unless (exists $eDat{$chr}) {
+		push @ChrOrder,$chr;
+		$nDat{$chr} = {};
+	}
+	$eDat{$chr}{$pos}=[0,0,0,0,0,0,0,0];	# [SumF,CountF, SumR,CountR] for average read length (len on ref)
 	# first 4, Unique(XT:A:U); second 4, Repeat(XT:A:R).
 	# XT:A:N is fragmental like "61S12M2D3M2D10M14S".
 	# Mate-sw(XT:A:M) is either short or with many(like 7) mismatches(including 'N' on reads)
@@ -89,14 +90,14 @@ sub cigar2reflen($) {
 	return [$reflen,$maxM];
 }
 
-my (%ChrLen);
+my ($ReadsSkipped,%ChrLen)=(0);
 while (<$samin>) {
 	if (/^@\w\w\t\w\w:/) {
 		print O $_;
 		if (/^\@SQ\tSN:(\S+)\tLN:(\d+)$/) {
-			if (exists $eCut{$1}) {
+			if (exists $eDat{$1}) {
 				$ChrLen{$1} = $2;
-				print STDERR "Chr:[$1]\tLen:[$2], Cut:[",scalar @{$eCut{$1}},"]\n";
+				print STDERR "Chr:[$1]\tLen:[$2], Cut:[",scalar keys %{$eDat{$1}},"]\n";
 			} else {
 				warn "Chr:[$1], Len:[$2] not cut.\n";
 			}
@@ -104,16 +105,29 @@ while (<$samin>) {
 		next;
 	}
 	my @read1=split /\t/,$_,12;
-	next if $read1[11] =~ /\bXT:A:[RN]\b/;
+	my $AmbShift=0;
+	if ($read1[11] =~ /\bXT:A:[RN]\b/) {
+		$AmbShift = 4;
+	}
 	my ($reflen,$maxM)=@{cigar2reflen($read1[5])};
 	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {
+		++$ReadsSkipped;
 		next;
 	}
-	my $thePos;
+	my ($strandShift,$thePos)=(0);
 	if ($read1[1] & 16) {	# reverse
 		$thePos = $read1[3] + $reflen-1 + $Rrev2Ec;
+		$strandShift = 2;
 	} else {
 		$thePos = $read1[3] + $Rfwd2Ec;
+	}
+	if (exists $eDat{$read1[2]}{$thePos}) {
+		$eDat{$read1[2]}{$thePos}->[0+$strandShift+$AmbShift] += $reflen;
+		++$eDat{$read1[2]}{$thePos}->[1+$strandShift+$AmbShift];
+	} else {
+		$nDat{$read1[2]}{$thePos} = [0,0,0,0,0,0,0,0] unless (exists $nDat{$read1[2]}{$thePos});
+		$nDat{$read1[2]}{$thePos}->[0+$strandShift+$AmbShift] += $reflen;
+		++$nDat{$read1[2]}{$thePos}->[1+$strandShift+$AmbShift];
 	}
 }
 
