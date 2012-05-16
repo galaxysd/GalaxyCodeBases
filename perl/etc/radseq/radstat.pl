@@ -14,9 +14,9 @@ my $outp=shift;
 
 my $ReadLen = 100-5;	# 95
 my $minOKalnLen = 30;
-my $minAlignLen = int($ReadLen * 0.75);
-$minAlignLen = 33 if $minAlignLen < 33;
-die if $ReadLen < 33;
+my $minAlignLen = int($ReadLen * 0.6);
+$minAlignLen = $minOKalnLen if $minAlignLen < $minOKalnLen;
+die if $ReadLen < $minOKalnLen;
 
 my $Eseq="CTGCAG";
 my $EcutAt=5;
@@ -53,15 +53,24 @@ sub opensam($) {
 
 my $ecin = openfile($inec);
 my $samin = opensam($insam);
-open O,'|-',"gzip -9c >$outp.edep.gz" or die "Error opening $outp.edep.gz with gzip: $!\n";
+my ($O,$N);
+open $O,'|-',"gzip -9c >$outp.elen.gz" or die "Error opening $outp.edep.gz with gzip: $!\n";
+open $N,'|-',"gzip -9c >$outp.nlen.gz" or die "Error opening $outp.ndep.gz with gzip: $!\n";
 open L,'>',$outp.'.edep.log' or die "Error opening $outp.edep.log: $!\n";
 select(L);
 $|=1;
-print L "From [$samin],[$ecin] to [$outp.edep.gz]\n";
+select(STDOUT);
+my $tmpstr="From [$insam],[$inec] to [$outp.{e,n}dep.gz]\n";
+print L $tmpstr;
+warn $tmpstr;
+$tmpstr = "#".join("\t",qw/ChrID eCut_pos Reads_Count Reads_Len_mean Reads_Cnt(fwd_U,rev_U,fwd_R,rev_R) Reads_Len_mean(same)/)."\n";
+print $O $tmpstr;
+print $N $tmpstr;
 
 my (%nDat,%eDat,@ChrOrder);
 while (<$ecin>) {
 	next if /^(#|$)/;
+	chomp;
 	my ($chr,$pos) = split /\t/;
 	unless (exists $eDat{$chr}) {
 		push @ChrOrder,$chr;
@@ -76,10 +85,10 @@ close $ecin;
 
 sub cigar2reflen($) {
 	my $cigar = $_[0];
-	my @cigar = $cigar =~ /(\w)(\d+)/g;
+	my @cigar = $cigar =~ /(\d+)(\w)/g;
 	my ($reflen,$maxM)=(0,0);
 	while (@cigar) {
-		my ($op,$len) = splice(@cigar,0,2);
+		my ($len,$op) = splice(@cigar,0,2);
 		if ($op eq 'M') {
 			$reflen += $len;
 			$maxM = $len if $maxM < $len;
@@ -93,7 +102,6 @@ sub cigar2reflen($) {
 my ($ReadsSkipped,%ChrLen)=(0);
 while (<$samin>) {
 	if (/^@\w\w\t\w\w:/) {
-		print O $_;
 		if (/^\@SQ\tSN:(\S+)\tLN:(\d+)$/) {
 			if (exists $eDat{$1}) {
 				$ChrLen{$1} = $2;
@@ -112,6 +120,9 @@ while (<$samin>) {
 	my ($reflen,$maxM)=@{cigar2reflen($read1[5])};
 	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {
 		++$ReadsSkipped;
+#########
+		#print join("\t",@read1[0..8]),"\n**>\t$reflen,$maxM\n";
+#########
 		next;
 	}
 	my ($strandShift,$thePos)=(0);
@@ -129,9 +140,39 @@ while (<$samin>) {
 		$nDat{$read1[2]}{$thePos}->[0+$strandShift+$AmbShift] += $reflen;
 		++$nDat{$read1[2]}{$thePos}->[1+$strandShift+$AmbShift];
 	}
+#########
+	#print join("\t",@read1[0..8]),"\n-->$thePos\t$reflen,$maxM\t$strandShift+$AmbShift\n";
+#########
+}
+
+sub printDat($$$) {
+	my ($chr,$theDatHp,$fh)=@_;
+	for my $pos (sort {$a<=>$b} keys %{$theDatHp}) {
+		my ($sA,$sB,@tA,@tB)=(0,0);
+		for my $id (1,3,5,7) {
+			my $tmp = $theDatHp->{$pos}->[$id];
+			push @tA,$tmp;	# n
+			$sA += $tmp;
+			if ($tmp) {
+				my $tmpval = $theDatHp->{$pos}->[$id-1];
+				push @tB,int(0.5+100*$tmpval/$tmp)/100;	# avgLen
+				$sB += $tmpval;
+			} else {
+				push @tB,'.';
+			}
+		}
+		$sB = int(0.5+100*$sB/$sA)/100 if $sA;
+		print $fh join("\t",$chr,$pos,$sA,$sB,join(",",@tA),join(",",@tB)),"\n";
+	}
+}
+
+for my $chr (@ChrOrder) {
+	&printDat($chr,$eDat{$chr},$O) if exists $eDat{$chr};
+	&printDat($chr,$nDat{$chr},$N) if exists $nDat{$chr};
 }
 
 close $samin;
-close O;
+close $O;
+close $N;
 print L "\n";
 close L;
