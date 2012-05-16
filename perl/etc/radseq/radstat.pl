@@ -12,10 +12,21 @@ my $inec=shift;
 my $insam=shift;
 my $outp=shift;
 
+my $ReadLen = 100-5;	# 95
+my $minOKalnLen = 30;
+my $minAlignLen = int($ReadLen * 0.75);
+$minAlignLen = 33 if $minAlignLen < 33;
+die if $ReadLen < 33;
+
 my $Eseq="CTGCAG";
 my $EcutAt=5;
-my $EfwdTerm=1-$EcutAt;
-my $ErevTerm=0;
+my $EfwdTerm5=1-$EcutAt+1;	# -3
+my $EfwdTerm3=1-$EcutAt+$ReadLen;	# 91
+my $ErevTerm3=0;	# 0
+my $ErevTerm5=$ErevTerm3-$ReadLen+1;	# -94
+# 12008 -> [12005,12099],[11914,12008]
+my $Rfwd2Ec = -$EfwdTerm5;	# 3
+my $Rrev2Ec = -$ErevTerm3;	# 0
 
 sub openfile($) {
     my ($filename)=@_;
@@ -52,7 +63,8 @@ my (%eCut,%eDat,@ChrOrder);
 while (<$ecin>) {
 	next if /^(#|$)/;
 	my ($chr,$pos) = split /\t/;
-	push @{$eCut{$chr}},$pos;
+	#push @{$eCut{$chr}},$pos;
+	++$eCut{$chr}{$pos};
 	push @ChrOrder,$chr unless exists $eCut{$chr};
 	$eDat{$chr.'\t'.$pos}=[0,0,0,0,0,0,0,0];	# [SumF,CountF, SumR,CountR] for average depth
 	# first 4, Unique(XT:A:U); second 4, Repeat(XT:A:R).
@@ -61,7 +73,21 @@ while (<$ecin>) {
 }
 close $ecin;
 
-my ($Total,$Out,$notOut)=(0,0,0);
+sub cigar2reflen($) {
+	my $cigar = $_[0];
+	my @cigar = $cigar =~ /(\w)(\d+)/g;
+	my ($reflen,$maxM)=(0,0);
+	while (@cigar) {
+		my ($op,$len) = splice(@cigar,0,2);
+		if ($op eq 'M') {
+			$reflen += $len;
+			$maxM = $len if $maxM < $len;
+			next;
+		}
+		$reflen += $len if $op eq 'D';
+	}
+	return [$reflen,$maxM];
+}
 
 my (%ChrLen);
 while (<$samin>) {
@@ -77,17 +103,21 @@ while (<$samin>) {
 		}
 		next;
 	}
-	my @read1=split /\t/;
-	if (($read1[1] & 64) == 64) {
-		print O $_;
-		++$Out;
-	} elsif (($read1[1] & 128) == 128) {
-		++$notOut;
+	my @read1=split /\t/,$_,12;
+	next if $read1[11] =~ /\bXT:A:[RN]\b/;
+	my ($reflen,$maxM)=@{cigar2reflen($read1[5])};
+	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {
+		next;
 	}
-	++$Total;
+	my $thePos;
+	if ($read1[1] & 16) {	# reverse
+		$thePos = $read1[3] + $reflen-1 + $Rrev2Ec;
+	} else {
+		$thePos = $read1[3] + $Rfwd2Ec;
+	}
 }
 
 close $samin;
 close O;
-print L "Read_1: $Out , ",$Out/$Total,"\nRead_2: $notOut , ",$notOut/$Total,"Total: $Total\nRemain: ",$Total-$Out-$notOut,"\n";
+print L "\n";
 close L;
