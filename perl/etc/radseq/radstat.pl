@@ -174,5 +174,5 @@ for my $chr (@ChrOrder) {
 close $samin;
 close $O;
 close $N;
-print L "\n";
+print L "Skipped: $ReadsSkipped\n";
 close L;
