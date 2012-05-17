@@ -59,7 +59,7 @@ my $samin = opensam($insam);
 my ($O,$N);
 open $O,'|-',"gzip -9c >$outp.elen.gz" or die "Error opening $outp.edep.gz with gzip: $!\n";
 open $N,'|-',"gzip -9c >$outp.nlen.gz" or die "Error opening $outp.ndep.gz with gzip: $!\n";
-open L,'>',$outp.'.edep.log' or die "Error opening $outp.edep.log: $!\n";
+open L,'>',$outp.'.eclog' or die "Error opening $outp.edep.log: $!\n";
 select(L);
 $|=1;
 select(STDOUT);
