@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+PASS="atluolab"
+
+if [ x"$1" = x"" ]; then
+	echo "Usage: $0 <new user id>"
+	exit 1
+else
+	echo "Adding [$1] ..."
+fi
+
+useradd -N -p atluolab $1
+echo $PASS | passwd --stdin $1
+
+mkdir /share/users/$1
+
+chown $1:users /share/users/$1
+
+printf "${PASS}\n${PASS}\n" | smbpasswd -a -s $1
+
