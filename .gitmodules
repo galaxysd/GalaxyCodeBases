@@ -7,3 +7,6 @@
 [submodule "released/pIRS"]
 	path = released/pIRS
 	url = https://code.google.com/p/pirs/
+[submodule "etc/overlay"]
+	path = etc/overlay
+	url = git@github.com:galaxy001/gentooxy.git
