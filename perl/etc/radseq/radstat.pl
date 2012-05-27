@@ -188,18 +188,17 @@ sub printDat($$$$) {
 					++$eCutSiteCnt{"TP_Mut_p"};
 					$theDatHp->{$pos}->[8] = 2;
 				}
+				++$FPsites;	# Well, it WAS FP ...
 			} else {
 				++$eCutSiteCnt{"${isEcutSite}P"};
+				++$FPsites if ${isEcutSite} eq 'F';
 			}
-			++$FPsites if ${isEcutSite} eq 'F';
 		} elsif (${isEcutSite} eq 'T') {
 			++$eCutSiteCnt{"FN"};
 		}
 		print $fh join("\t",$chr,$pos,$theDatHp->{$pos}->[8],$sA,$sB,join(",",@tA),join(",",@tB)),"\n";
 	}
-	if (${isEcutSite} eq 'F') {
-		$eCutSiteCnt{"TN"} += $ChrLen{$chr} - $eCnt{$chr} - $FPsites;
-	}
+	$eCutSiteCnt{"TN"} -= $FPsites;
 }
 
 print L "TABLE\n\n";
@@ -207,6 +206,7 @@ print L "TABLE\n\n";
 for my $chr (@ChrOrder) {
 	&printDat($chr,$eDat{$chr},$O,'T') if exists $eDat{$chr};
 	&printDat($chr,$nDat{$chr},$N,'F') if exists $nDat{$chr};
+	$eCutSiteCnt{"TN"} += $ChrLen{$chr} - $eCnt{$chr};
 }
 
 close $samin;
