@@ -1,12 +1,13 @@
 [submodule "c_cpp/gnulib"]
 	path = c_cpp/gnulib
-	url = http://git.savannah.gnu.org/r/gnulib.git
+	url = git://git.savannah.gnu.org/gnulib.git
 [submodule "c_cpp/pspp"]
 	path = c_cpp/pspp
-	url = http://git.savannah.gnu.org/r/pspp.git
+	url = git://git.savannah.gnu.org/pspp.git
 [submodule "released/pIRS"]
 	path = released/pIRS
-	url = https://code.google.com/p/pirs/
+#	url = https://code.google.com/p/pirs/
+	url = ssh://galaxy001@git.code.sf.net/p/pirsim/code
 [submodule "etc/overlay"]
 	path = etc/overlay
 	url = git@github.com:galaxy001/gentooxy.git
