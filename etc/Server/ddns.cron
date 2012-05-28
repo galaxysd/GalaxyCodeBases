@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# copy to /etc/cron.hourly and chmod +x
+
+IP=`wget -q -O - checkip.dyndns.org|sed -e 's/.*Current IP Address: //' -e 's/<.*$//'`
+wget --http-user=xxxxxx --http-password='xxxxxx' "http://www.pubyun.com/dyndns/update?system=dyndns&hostname=xxxxxx.3322.org&wildcard=ON&myip=${IP}" -O /var/log/3322DNS -o /var/log/3322DNS.log
+
+cat /var/log/3322DNS >> /var/log/3322DNS.log
+rm -f /var/log/3322DNS
+echo >> dns.log
+#date >> /var/log/3322DNS.log
+uptime >> /var/log/3322DNS.log
+
+# http://www.go2linux.org/what-is-my-public-ip-address-with-linux
+# curl -s checkip.dyndns.org|sed -e 's/.*Current IP Address: //' -e 's/<.*$//'
+
+# http://www.linuxquestions.org/questions/linux-networking-3/how-can-i-get-my-external-ip-address-from-behind-a-nat-333878/
+# wget -O - -q icanhazip.com
+
