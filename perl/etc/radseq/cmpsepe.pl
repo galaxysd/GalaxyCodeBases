@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 =pod
-Author: Hu Xuesong @ BIOPIC <galaxy001@gmail.com>
-Version: 1.0.0 @ 20120330
+Author: Hu Xuesong @ PKU <galaxy001@gmail.com>
+Version: 1.0.0 @ 20120530
 =cut
 use strict;
 use warnings;
 #use Data::Dump qw(ddx);
 
-die "Usage: $0 <PE sam> <SE sam> <out prefix>\n" if @ARGV<2;
+die "Usage: $0 <sam1> <sam2> <out prefix>\n" if @ARGV<2;
 my $in1=shift;
 my $in2=shift;
 my $outp=shift;
@@ -47,19 +47,26 @@ my ($Total,$Out,$notOut)=(0,0,0);
 
 sub getNextRead($) {
 	my $FHa=$_[0];
-	if (defined $FHa->[1]) {
-		$FHa->[1] = undef;
-		return $FHa->[1];
-	} else {
-		my $line=<$$FHa[0]>;
+	my $t=$FHa->[1];
+	$FHa->[1] = [];
+	my $line;
+	while (defined($line = readline($$FHa[0]))) {
+		chomp $line;
 		my @items = split /\t/,$line;
-		if ($items[1]) {
-			die;
+		if ($items[1] & 16) {	# reverse
+			next;
 		}
+		$FHa->[1] = \@items;
+		return $t;
 	}
 }
 
-
+my ($arr1,$arr2);
+do {
+	$arr1 = getNextRead($samin1);
+	$arr2 = getNextRead($samin2);
+	;
+} while ( $#$arr1 + $#$arr1 > 22 );
 
 close $samin1->[0];
 close $samin2->[0];
