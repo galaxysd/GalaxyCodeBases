@@ -12,7 +12,7 @@ my $in1=shift;
 my $in2=shift;
 my $outp=shift;
 
-sub openfile($$) {
+sub openfile($) {
     my ($filename)=@_;
     my ($infile,$lastline);
     if ($filename=~/.bz2$/) {
@@ -20,14 +20,20 @@ sub openfile($$) {
     } elsif ($filename=~/.gz$/) {
      	open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
     } else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
-	while (<$infile>) {
-	if (/^@\w\w\t\w\w:/) {
-		next;
-	}
-	chomp;
-	my @items = split /\t/,$_;
+	my $line;
+	while (defined($line=<$infile>)) {
+		if ($line =~ /^@\w\w\t\w\w:/) {
+			next;
+		}
+		chomp $line;
+		my @items = split /\t/,$line;
 warn "[",join(" | ",@items),"]\n";
-    return [$infile,\@items];
+		if ($items[1] & 16) {	# reverse
+			next;
+		}
+		return [$infile,\@items];
+	}
+	die "File Error.";
 }
 
 my $samin1 = openfile($in1);
@@ -45,16 +51,18 @@ sub getNextRead($) {
 		$FHa->[1] = undef;
 		return $FHa->[1];
 	} else {
-		my $line=<$FHa[0]>;
+		my $line=<$$FHa[0]>;
 		my @items = split /\t/,$line;
 		if ($items[1]) {
+			die;
 		}
 	}
 }
 
 
 
-close $samin;
+close $samin1->[0];
+close $samin2->[0];
 close O;
-print L "Read_1: $Out , ",$Out/$Total,"\nRead_2: $notOut , ",$notOut/$Total,"\nTotal: $Total\nRemain: ",$Total-$Out-$notOut,"\n";
+print L "\n";
 close L;
