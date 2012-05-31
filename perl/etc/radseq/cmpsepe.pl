@@ -108,7 +108,7 @@ close $samin1->[0];
 close $samin2->[0];
 close O;
 
-print L "Stat:\n";
+print L "Stat of [$StatSum] Read_1s:\n";
 for (sort {$Stat{$b}<=>$Stat{$a}} keys %Stat) {
 	print L "$_\t$Stat{$_}\t";
 	printf L "%.6f\t%#x\t%#014b\n",$Stat{$_}/$StatSum,($_) x 2;

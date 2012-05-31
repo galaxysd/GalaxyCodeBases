@@ -7,7 +7,7 @@ use strict;
 use warnings;
 #use Data::Dump qw(ddx);
 
-die "Usage: $0 <Cut sites> <sorted bam> <out prefix>\n" if @ARGV<2;
+die "Usage: $0 <Cut sites> <sorted bam> <out prefix>\n" if @ARGV<3;
 my $inec=shift;
 my $insam=shift;
 my $outp=shift;
@@ -114,7 +114,7 @@ while (<$samin>) {
 		if (/^\@SQ\tSN:(\S+)\tLN:(\d+)$/) {
 			if (exists $eDat{$1}) {
 				$ChrLen{$1} = $2;
-				print STDERR "Chr:[$1]\tLen:[$2], Cut:[",scalar keys %{$eDat{$1}},"]\n";
+				#print STDERR "Chr:[$1]\tLen:[$2], Cut:[",scalar keys %{$eDat{$1}},"]\n";
 				print L "$1\t$2\t",$eCnt{$1},"\n";
 			} else {
 				warn "Chr:[$1], Len:[$2] not cut.\n";
