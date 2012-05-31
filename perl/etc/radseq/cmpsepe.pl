@@ -42,18 +42,19 @@ open O,'|-',"gzip -9c >$outp.cmpsam.gz" or die "Error opening $outp.cmpsam.gz wi
 open L,'>',$outp.'.log' or die "Error opening $outp.log: $!\n";
 select(L);
 $|=1;
+select(STDOUT);
 print L "From [$in1,$in2] to [$outp.cmpsam.gz]\n";
 my ($Total,$Out,$notOut)=(0,0,0);
 
 sub getNextRead($) {
 	my $FHa=$_[0];
 	my $t=$FHa->[1];
-	$FHa->[1] = [];
+	$FHa->[1] = undef;
 	my $line;
 	while (defined($line = readline($$FHa[0]))) {
 		chomp $line;
 		my @items = split /\t/,$line;
-		if ($items[1] & 16) {	# reverse
+		if ($items[1] & 128) {	# second read
 			next;
 		}
 		$FHa->[1] = \@items;
@@ -62,11 +63,12 @@ sub getNextRead($) {
 }
 
 my ($arr1,$arr2);
-do {
-	$arr1 = getNextRead($samin1);
-	$arr2 = getNextRead($samin2);
-	;
-} while ( $#$arr1 + $#$arr1 > 22 );
+while (1) {
+	$arr1 = getNextRead($samin1) or last;
+	$arr2 = getNextRead($samin2) or last;
+	die "$$arr1[0] ne $$arr2[0]" if $$arr1[0] ne $$arr2[0];
+	print "[$#$arr1] [$#$arr2] $$arr1[0]\n";
+}
 
 close $samin1->[0];
 close $samin2->[0];
