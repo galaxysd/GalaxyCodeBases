@@ -27,7 +27,7 @@ sub openfile($) {
 		}
 		chomp $line;
 		my @items = split /\t/,$line;
-warn "[",join(" | ",@items),"]\n";
+#warn "[",join(" | ",@items),"]\n";
 		if ($items[1] & 16) {	# reverse
 			next;
 		}
@@ -62,7 +62,7 @@ sub getNextRead($) {
 	}
 }
 
-my ($arr1,$arr2,%Stat,$XT1,$XT2);
+my ($StatSum,$arr1,$arr2,%Stat,$XT1,$XT2)=(0);
 while (1) {
 	$arr1 = getNextRead($samin1) or last;
 	$arr2 = getNextRead($samin2) or last;
@@ -74,7 +74,7 @@ while (1) {
 	$diff |= 8 if (($$arr1[4]>0) != ($$arr2[4]>0));	# MAPQ == 0 or not.
 	$diff |= 16 if ($$arr1[5] ne $$arr2[5]);	# CIAGR
 	$XT1 = $XT2 = '*';
-	if ($$arr1[5] eq '*') {
+	if ($$arr1[2] eq '*') {
 		$diff |= 256;
 	} else {
 		$XT1 = (grep(/^XT:/,@$arr1))[0];
@@ -82,11 +82,11 @@ while (1) {
 			$XT1 = (split(':',$XT1))[2];
 			$diff |= 64 if $XT1 eq 'U';
 		} else {
-			warn "---[",join(" | ",@$arr1),"]\n";
+			#warn "---[",join(" | ",@$arr1),"]\n";
 			$diff |= 1024;
 		}
 	}
-	if ($$arr2[5] eq '*') {
+	if ($$arr2[2] eq '*') {
 		$diff |= 512;
 	} else {
 		$XT2 = (grep(/^XT:/,@$arr2))[0];
@@ -94,17 +94,24 @@ while (1) {
 			$XT2 = (split(':',$XT2))[2];
 			$diff |= 128 if $XT2 eq 'U';
 		} else {
-			warn "---[",join(" | ",@$arr2),"]\n";
+			#warn "---[",join(" | ",@$arr2),"]\n";
 			$diff |= 2048;
 		}
 	}
 	$diff |= 32 if ( $XT1 and $XT2 and ($XT1 ne $XT2) );
-	print "[$#$arr1] [$#$arr2] $$arr1[0] - $diff\n";
+	print O "[$#$arr1] [$#$arr2] $$arr1[0] - $diff\n";
 	++$Stat{$diff};
+	++$StatSum;
 }
-
+print L '# ',join(',',reverse qw/Strand Ref Pos MapQ>0 CIAGR XT 1=U 2=U 1unmap 2unmap 1noXT 2noXT/),"\n";
 close $samin1->[0];
 close $samin2->[0];
 close O;
+
+print L "Stat:\n";
+for (sort {$Stat{$b}<=>$Stat{$a}} keys %Stat) {
+	print L "$_\t$Stat{$_}\t";
+	printf L "%.6f\t%#x\t%#014b\n",$Stat{$_}/$StatSum,($_) x 2;
+}
 print L "\n";
 close L;
