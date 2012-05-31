@@ -28,7 +28,7 @@ sub openfile($) {
 		chomp $line;
 		my @items = split /\t/,$line;
 #warn "[",join(" | ",@items),"]\n";
-		if ($items[1] & 16) {	# reverse
+		if ($items[1] & 128) {	# second read
 			next;
 		}
 		return [$infile,\@items];

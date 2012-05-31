@@ -66,7 +66,9 @@ select(STDOUT);
 my $tmpstr="From [$insam],[$inec] to [$outp.{e,n}dep.gz]\n";
 print L $tmpstr;
 warn $tmpstr;
+no warnings;
 $tmpstr = "#".join("\t",qw/ChrID eCut_pos isMutSite Reads_Count Reads_Len_mean Reads_Cnt(fwd_U,rev_U,fwd_R,rev_R) Reads_Len_mean(same)/)."\n";
+use warnings;
 print $O $tmpstr;
 print $N $tmpstr;
 
