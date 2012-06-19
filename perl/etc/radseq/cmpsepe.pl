@@ -115,3 +115,6 @@ for (sort {$Stat{$b}<=>$Stat{$a}} keys %Stat) {
 }
 print L "\n";
 close L;
+
+__END__
+grep -P '0b[01]{5}1[01]{6}' PD2M-LSJ-BHX011.log|awk 'BEGIN{sum=0}{sum+=$2}END{print sum}'
