@@ -20,7 +20,7 @@ while (<HEAD>) {
 		push @Heads,$_;
 	}
 }
-$ChrLen{'*'} = 0;
+$ChrLen{'*'} = -1;
 close HEAD;
 
 open LOG,'>',"$out.log" or die "Error opening $out.log: $!\n";
@@ -56,8 +56,8 @@ while (<IN>) {
 }
 close IN;
 close OUT;
-print LOG "ChrID\tLen\tLenRatio\tCount\tRatio\n";
+print LOG "ChrID\tLen\tLenRatio\tCount\tRatio\tReletiveRatio\n";
 for my $chr (@ChrID,'*') {
-	print LOG join("\t",$chr,$ChrLen{$chr},$ChrLen{$chr}/$LenT,$ChrStat{$chr},$ChrStat{$chr}/$ChrStat{"\t"}),"\n";
+	print LOG join("\t",$chr,$ChrLen{$chr},$ChrLen{$chr}/$LenT,$ChrStat{$chr},$ChrStat{$chr}/$ChrStat{"\t"},($ChrStat{$chr}/$ChrStat{"\t"})/($ChrLen{$chr}/$LenT)),"\n";
 }
 close LOG;
