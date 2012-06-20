@@ -49,7 +49,7 @@ if ($jaBegin) {
 }
 
 for my $ajobid ($jaBegin .. $jaEnd) {
-	open OUT,'>',".$qsh/${ajobid}_$qsh" or die "$!";
+	open OUT,'>',".$qsh/j${ajobid}_$qsh" or die "$!"; # a valid object name (cannot start with a digit).
 	print OUT join("\n",@Heads);
 	print OUT "\n\nSGE_TASK_ID=$ajobid\n\n";
 	print OUT join("\n",@Lines),"\n";
