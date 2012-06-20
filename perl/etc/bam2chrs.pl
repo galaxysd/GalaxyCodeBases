@@ -40,7 +40,7 @@ while (<IN>) {
 	++$ChrStat{"\t"};
 	if ($chr eq '*') {
 		++$ChrStat{$chr};
-		last;
+		next;	# unmap are skipped outputing
 	}
 	if ($chr eq $outChr) {
 		print OUT $_;
