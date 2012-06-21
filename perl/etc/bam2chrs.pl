@@ -20,7 +20,7 @@ while (<HEAD>) {
 		push @Heads,$_;
 	}
 }
-$ChrLen{'*'} = -1;
+$ChrLen{'*'} = -$LenT;
 close HEAD;
 
 open LOG,'>',"$out.log" or die "Error opening $out.log: $!\n";
