@@ -26,15 +26,15 @@ BEGIN {
     use Exporter();
     use vars qw (@ISA @EXPORT @EXPORT_OK);
     @ISA    = qw(Exporter);
-    @EXPORT = qw();
+    @EXPORT = qw(maskQvalsByEamss);
     @EXPORT_OK = qw(&maskQvalsByEamss);
 }
 
 my $lowScore = 1;
 my $mediumScore = 0;
 my $highScore = -2;
-my $mediumThreshold = ord('O');
-my $highThreshold = ord('^');
+my $mediumThreshold = ord('0');
+my $highThreshold = ord('?');
 my $minScore = 1;
 my @motifList = ();
 
@@ -78,7 +78,7 @@ sub maskQvalsByEamss($$) #(std::string &qValues, const std::string &baseCalls) c
     $position = $maskStart if ($maskPolyG);
     for (my $idx = $position; scalar(@$qValues) > $idx; $idx++)
     {
-        $qValues->[$idx] = 'B';
+        $qValues->[$idx] = '#';
     }
 }
 
@@ -121,3 +121,16 @@ sub findStr($$$$)
 
 1;
 __END__
+
+CASAVA_v1.8.2/src/perl/lib/Casava/Common/Bcl.pm :
+push @bases, $baseLiterals[$v & 3];
+push @qualities, chr(64 + ($v >> 2));
+maskQvalsByEamss(\@qualities, \@bases);
+
+my $mediumThreshold = ord('O');
+my $highThreshold = ord('^');
+
+$ perl -lae '$char="O";$a=ord($char);print join(",",$char,$a-64,chr($a-64+33))'
+O,15,0
+^,30,?
+B,2,#
