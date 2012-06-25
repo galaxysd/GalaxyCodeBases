@@ -26,8 +26,8 @@ BEGIN {
     use Exporter();
     use vars qw (@ISA @EXPORT @EXPORT_OK);
     @ISA    = qw(Exporter);
-    @EXPORT = qw(maskQvalsByEamss);
-    @EXPORT_OK = qw(&maskQvalsByEamss);
+    @EXPORT = qw();
+    @EXPORT_OK = qw(&maskQvalsByEamss doEamss);
 }
 
 my $lowScore = 1;
@@ -117,6 +117,14 @@ sub findStr($$$$)
     my ($targetString, $queryString, $start, $stop) = @_;
     my $substring = substr($targetString, $start, $stop - $start + 1);
     return index($substring, $queryString);
+}
+
+sub doEamss($$) {
+	my ($seq,$qstr) = @_;
+	my @seqA = split //,$seq;
+	my @qA = split //,$qstr;
+	maskQvalsByEamss(\@qA,\@seqA);
+	return join('',@qA);
 }
 
 1;
