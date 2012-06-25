@@ -5,12 +5,12 @@ require Exporter;
 our @ISA   =qw(Exporter);
 our @EXPORT    =qw(readfq);
 our @EXPORT_OK   =qw();
-our $VERSION   = v1.0.1;
+our $VERSION   = v1.1.0;
 
 sub readfq($$) {
 	my ($fh, $aux) = @_;
-	@$aux = [undef, 0] if (!defined(@$aux));
-	return if ($aux->[1]);
+	$aux = [undef, 0] unless (@$aux);
+	return 0 if ($aux->[1]);
 	if (!defined($aux->[0])) {
 		while (<$fh>) {
 			chomp;
@@ -21,7 +21,7 @@ sub readfq($$) {
 		}
 		if (!defined($aux->[0])) {
 			$aux->[1] = 1;
-			return;
+			return 0;
 		}
 	}
 	#my $name = /^.(\S+)/? $1 : '';
@@ -41,18 +41,18 @@ sub readfq($$) {
 	}
 	$aux->[0] = $_;
 	$aux->[1] = 1 if (!defined($aux->[0]));
-	return ($name, $comment, $seq) if ($c ne '+');
+	return [$name, $comment, $seq] if ($c ne '+');
 	my $qual = '';
 	while (<$fh>) {
 		chomp;
 		$qual .= $_;
 		if (length($qual) >= length($seq)) {
 			$aux->[0] = undef;
-			return ($name, $comment, $seq, $qual);
+			return [$name, $comment, $seq, $qual];
 		}
 	}
 	$aux->[1] = 1;
-	return ($name, $comment, $seq);
+	return [$name, $comment, $seq];
 }
 
 1;
@@ -64,7 +64,7 @@ https://github.com/lh3/readfq/blob/master/readfq.pl
 my @aux = undef;
 my ($name, $comment, $seq, $qual);
 my ($n, $slen, $qlen) = (0, 0, 0);
-while (($name, $comment, $seq, $qual) = readfq(\*STDIN, \@aux)) {
+while (($name, $comment, $seq, $qual) = @&readfq(\*STDIN, \@aux)) {
 	++$n;
 	$slen += length($seq);
 	$qlen += length($qual) if ($qual);
