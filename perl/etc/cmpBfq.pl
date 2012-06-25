@@ -5,7 +5,7 @@ use Galaxy::IO::FASTAQ;
 use Galaxy::IO;
 use Galaxy::Casava::Eamss qw(doEamss);
 
-die "Usage: $0 <ori-fq> <B-masked-fq> <outprefix>.(log|stat)\n" if @ARGV <2;
+die "Usage: $0 <ori-fq> <B-masked-fq> [outprefix].(log|stat)\n" if @ARGV <2;
 my ($inA,$inB,$out)=@ARGV;
 $out=$inA unless $out;
 warn "From [$inA]&[$inB] to [$out].(log|stat)\n";
@@ -21,15 +21,16 @@ my ($Count1,$Count2,$CountPairs)=(0,0,0);
 sub doCMP($$$);
 
 my ($dat1,$dat2);
-my ($maskedQ,$ret,%Count);
+my ($maskedQ,$mlen,$ret,%Count,%MaskLen);
 while (1) {
 	$dat1 = readfq($fha, \@aux1);	# [$name, $comment, $seq, $qual]
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
-		$maskedQ = doEamss($$dat1[2],$$dat1[3]);
-		#print "3-",join('|',$$dat1[0],$$dat1[1]),"\n$$dat1[2]\n$$dat1[3]\n$maskedQ\n";
+		($maskedQ,$mlen) = @{doEamss($$dat1[2],$$dat1[3])};
+		#print "3-",join('|',$$dat1[0],$$dat1[1],$mlen),"\n$$dat1[2]\n$$dat1[3]\n$maskedQ\n";
 		$ret = doCMP($dat1,$dat2,$maskedQ);
 		++$Count{$ret};
+		++$MaskLen{$mlen};
 		++$CountPairs;
 	} elsif ($dat1) {
 		++$Count1;
@@ -45,20 +46,27 @@ close $fha;
 close $fhb;
 
 open LOG,'>',"${out}.log" or die "Error opening $out.log:$!\n";
+open STAT,'>',"${out}.stat" or die "Error opening $out.stat:$!\n";
 my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang:$Count2\n";
 print $str;
 print LOG "From [$inA]&[$inB] to [$out.stat]\n$str";
+
 $str="\nStat (0 or 8 are OK):\n";
-print $str;
-print LOG $str;
-$str='';
 for my $k (sort {$a <=> $b} keys %Count) {
 	$str .= sprintf("%#06b,%#x\t%d\n",$k,$k,$Count{$k});
 }
 print $str;
 print LOG $str;
-close LOG;
 
+$str="\n[Masked_Length]\n";
+for my $k (sort {$a <=> $b} keys %MaskLen) {
+	$str .= sprintf("%d\t%d\n",$k,$MaskLen{$k});
+}
+print $str;
+print STAT $str;
+
+close LOG;
+close STAT;
 
 
 sub doCMP($$$) {

@@ -45,7 +45,7 @@ sub maskQvalsByEamss($$) #(std::string &qValues, const std::string &baseCalls) c
 {
     my ($qValues, $baseCalls) = @_;
     my ($score, $position) = eamss($qValues);
-    return if ($score < $minScore);
+    return 0 if ($score < $minScore);
     # look for troublemaker motifs
     my $extendedPosition = $position;
     foreach my $motif (@motifList)
@@ -80,6 +80,7 @@ sub maskQvalsByEamss($$) #(std::string &qValues, const std::string &baseCalls) c
     {
         $qValues->[$idx] = '#';
     }
+	return scalar(@$qValues) - $position;
 }
 
 sub eamss($)
@@ -123,8 +124,9 @@ sub doEamss($$) {
 	my ($seq,$qstr) = @_;
 	my @seqA = split //,$seq;
 	my @qA = split //,$qstr;
-	maskQvalsByEamss(\@qA,\@seqA);
-	return join('',@qA);
+	my $mlen = maskQvalsByEamss(\@qA,\@seqA);
+	my $qstr = join('',@qA);
+	return [$qstr,$mlen];
 }
 
 1;
