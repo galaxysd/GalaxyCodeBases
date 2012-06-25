@@ -24,7 +24,12 @@ sub readfq($$) {
 			return;
 		}
 	}
-	my $name = /^.(\S+)/? $1 : '';
+	#my $name = /^.(\S+)/? $1 : '';
+	my ($name,$comment);
+	if (/^.(\S+)( (.+)$)?/) {
+		$name = $1;
+	} else { $name = ''; }
+	$comment = $3? $3 : '';
 	my $seq = '';
 	my $c;
 	$aux->[0] = undef;
@@ -36,18 +41,18 @@ sub readfq($$) {
 	}
 	$aux->[0] = $_;
 	$aux->[1] = 1 if (!defined($aux->[0]));
-	return ($name, $seq) if ($c ne '+');
+	return ($name, $comment, $seq) if ($c ne '+');
 	my $qual = '';
 	while (<$fh>) {
 		chomp;
 		$qual .= $_;
 		if (length($qual) >= length($seq)) {
 			$aux->[0] = undef;
-			return ($name, $seq, $qual);
+			return ($name, $comment, $seq, $qual);
 		}
 	}
 	$aux->[1] = 1;
-	return ($name, $seq);
+	return ($name, $comment, $seq);
 }
 
 1;
@@ -57,9 +62,9 @@ __END__
 https://github.com/lh3/readfq/blob/master/readfq.pl
 
 my @aux = undef;
-my ($name, $seq, $qual);
+my ($name, $comment, $seq, $qual);
 my ($n, $slen, $qlen) = (0, 0, 0);
-while (($name, $seq, $qual) = readfq(\*STDIN, \@aux)) {
+while (($name, $comment, $seq, $qual) = readfq(\*STDIN, \@aux)) {
 	++$n;
 	$slen += length($seq);
 	$qlen += length($qual) if ($qual);
