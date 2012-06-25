@@ -5,7 +5,7 @@ require Exporter;
 our @ISA   =qw(Exporter);
 our @EXPORT    =qw(readfq);
 our @EXPORT_OK   =qw();
-our $VERSION   = v1.0.0;
+our $VERSION   = v1.0.1;
 
 sub readfq($$) {
 	my ($fh, $aux) = @_;
