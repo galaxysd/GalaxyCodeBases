@@ -21,7 +21,8 @@ my ($Count1,$Count2,$CountPairs)=(0,0,0);
 sub doCMP($$$);
 
 my ($dat1,$dat2);
-my ($maskedQ,$mlen,$ret,%Count,%MaskLen);
+my ($maskedQ,$mlen,$rlen,$ret,%Count,%MaskLen,%Readlen);
+my ($totBase,$totMaskedBP,$totMaskedReads)=(0,0,0);
 while (1) {
 	$dat1 = readfq($fha, \@aux1);	# [$name, $comment, $seq, $qual]
 	$dat2 = readfq($fhb, \@aux2);
@@ -31,7 +32,14 @@ while (1) {
 		$ret = doCMP($dat1,$dat2,$maskedQ);
 		++$Count{$ret};
 		++$MaskLen{$mlen};
+		$rlen = length $$dat1[2];
+		++$Readlen{$rlen};
 		++$CountPairs;
+		$totBase += $rlen;
+		if ($mlen) {
+			++$totMaskedReads;
+			$totMaskedBP += $mlen;
+		}
 	} elsif ($dat1) {
 		++$Count1;
 		print "1-",join('|',@$dat1),"\n";
@@ -47,16 +55,28 @@ close $fhb;
 
 open LOG,'>',"${out}.log" or die "Error opening $out.log:$!\n";
 open STAT,'>',"${out}.stat" or die "Error opening $out.stat:$!\n";
-my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang:$Count2\n";
+my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n";
 print $str;
 print LOG "From [$inA]&[$inB] to [$out.stat]\n$str";
 
-$str="\nStat (0 or 8 are OK):\n";
+my $t = int(0.5+10*$totMaskedBP/$totMaskedReads)/10;
+$str = "\nTotal Reads, Base: $CountPairs, $totBase\nMasked Reads, Base: $totMaskedBP, $totMaskedReads\nAvg Masked Length: $t\n\n";
+print $str;
+print LOG $str,"@ $totBase\t$totMaskedBP\t$inA\n";
+
+$str="[Compared] (0 or 8 is OK)\n";
 for my $k (sort {$a <=> $b} keys %Count) {
-	$str .= sprintf("%#06b,%#x\t%d\n",$k,$k,$Count{$k});
+	$str .= sprintf("%#06b\t(%#x)\t%d\n",$k,$k,$Count{$k});
 }
 print $str;
-print LOG $str;
+print STAT $str;
+
+$str="\n[Read_Length]\n";
+for my $k (sort {$a <=> $b} keys %Readlen) {
+	$str .= sprintf("%d\t%d\n",$k,$Readlen{$k});
+}
+print $str;
+print STAT $str;
 
 $str="\n[Masked_Length]\n";
 for my $k (sort {$a <=> $b} keys %MaskLen) {

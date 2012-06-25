@@ -125,8 +125,8 @@ sub doEamss($$) {
 	my @seqA = split //,$seq;
 	my @qA = split //,$qstr;
 	my $mlen = maskQvalsByEamss(\@qA,\@seqA);
-	my $qstr = join('',@qA);
-	return [$qstr,$mlen];
+	my $mqstr = join('',@qA);
+	return [$mqstr,$mlen];
 }
 
 1;
