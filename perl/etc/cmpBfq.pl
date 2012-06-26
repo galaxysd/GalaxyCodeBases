@@ -33,7 +33,7 @@ while (1) {
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
 		($maskedQ,$mlen) = @{doEamss($$dat1[2],$$dat1[3])};
-		if ($$dat1[1] =~ /(\d):([YN]):\d+:([ATCG]+)?/) {	# 1:N:0:TGACCA
+		if ($$dat2[1] =~ /(\d):([YN]):\d+:([ATCG]+)?/) {	# 1:N:0:TGACCA
 			$t = ($1 eq '2')? 1 : 0;
 			$t |= 2 if ($2 eq 'Y');
 			$t |= 4 if $3;
@@ -58,7 +58,7 @@ if ($ret & 1) {
 		if ($mlen) {
 			++$totMaskedReads;
 			$totMaskedBP += $mlen;
-			unless ($t | 2) {
+			unless ($t & 2) {
 				$totMaskedBPC += $mlen;
 				++$totMaskedReadsC;
 			}
