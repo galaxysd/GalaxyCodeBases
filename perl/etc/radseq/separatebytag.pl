@@ -109,7 +109,7 @@ close $fha;
 close $fhb;
 
 my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n
-BarSeq\tID\tName\tRead_Pairs\tPE_Bases\n";
+BarSeq\tID\tName\tRead_Pairs\tPE_Bases\tRatio\n";
 print $str;
 print LOG $str;
 
@@ -118,7 +118,7 @@ for my $k (sort
 	} keys %BarSeq2idn) {
 	close $BarSeq2idn{$k}->[2];
 	close $BarSeq2idn{$k}->[3];
-	$str = join("\t",$k,@{$BarSeq2idn{$k}}[0,1,4,5])."\n";
+	$str = join("\t",$k,@{$BarSeq2idn{$k}}[0,1,4,5],$BarSeq2idn{$k}->[4]/$CountPairs)."\n";
 	print STDOUT $str;
 	print LOG $str;
 }
