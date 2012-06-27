@@ -25,9 +25,9 @@ while (<L>) {
 	$seq = uc $seq;
 	push @BarSeq,$seq;
 	push @BarSeqs,[split //,$seq];
-	$BarSeq2idn{$seq} = [$id,$name,0,0];
+	$BarSeq2idn{$seq} = [$id,$name,0,0,0,0];	# [id name outfh1 outfh2 PairsCnt PE_BaseCnt]
 }
-$BarSeq2idn{'N'} = ['NA','Unknown',0,0];
+$BarSeq2idn{'N'} = ['NA','Unknown',0,0,0,0];
 my $BARLEN = length $BarSeq[0];
 #ddx \@BarSeq;
 #ddx \%BarSeq2idn;
@@ -87,11 +87,13 @@ while (1) {
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
 		print $fha join("\n",
-			join(' ',$$dat1[0],$$dat1[1],$kret->[0],$themark,$kret->[1]),
+			join(' ',@$dat1[0,1],$kret->[0],$themark,$kret->[1]),
 			$$dat1[2],'+',$$dat1[3]),"\n";
 		print $fhb join("\n",
-			join(' ',$$dat2[0],$$dat2[1],$kret->[0],$themark,$kret->[1]),
+			join(' ',@$dat2[0,1],$kret->[0],$themark,$kret->[1]),
 			$$dat2[2],'+',$$dat2[3]),"\n";
+		++$kret->[4];
+		$kret->[5] += length($$dat2[1]) + length($$dat2[2]);
 		++$CountPairs;
 	} elsif ($dat1) {
 		++$Count1;
@@ -106,12 +108,19 @@ while (1) {
 close $fha;
 close $fhb;
 
-my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n";
+my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n
+BarSeq\tID\tName\tRead_Pairs\tPE_Bases\n";
 print $str;
 print LOG $str;
-close LOG;
 
-for my $k (keys %BarSeq2idn) {
+for my $k (sort 
+	{ if ($a eq 'N') { return 1; } elsif ($b eq 'N') { return -1; } else { return $BarSeq2idn{$a}[0] cmp $BarSeq2idn{$b}[0]; } 
+	} keys %BarSeq2idn) {
 	close $BarSeq2idn{$k}->[2];
 	close $BarSeq2idn{$k}->[3];
+	$str = join("\t",$k,@{$BarSeq2idn{$k}}[0,1,4,5])."\n";
+	print STDOUT $str;
+	print LOG $str;
 }
+
+close LOG;
