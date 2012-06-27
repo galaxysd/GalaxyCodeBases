@@ -14,12 +14,13 @@ my $tagf=shift;
 my $fq1f=shift;
 my $fq2f=shift;
 my $outp=shift;
-my $maxmismark = 1.02;
+my $maxmismark = 1.8;
+my $RatioEc = 0.4;
 =pod
 N in Bar	1
-N in Ecut	0.01
+N in Ecut	0.4
 X in Bar	10000
-X in Ecut	100
+X in Ecut	4000
 =cut
 my $EseqR="TGCAG";
 my $EseqLen = length $EseqR;
@@ -44,7 +45,7 @@ die if $BARLEN != length $BarSeq[-1];
 my $EseqAfter = $BARLEN - $EseqLen -1;	# starts from 0
 
 open LOG,'>',"${outp}.log" or die "Error opening $outp.log:$!\n";
-print LOG "From [$fq1f]&[$fq2f] with [$tagf][$maxmismark] to [$outp.*]\n";
+print LOG "From [$fq1f]&[$fq2f] with [$tagf][$maxmismark,$RatioEc] to [$outp.*]\n";
 
 for my $k (keys %BarSeq2idn) {
 	my $fname = join('.',$outp,$BarSeq2idn{$k}->[0],$BarSeq2idn{$k}->[1],'1.fq.gz');
@@ -66,7 +67,7 @@ sub CmpBarSeq($$) {
 		$mismark = 0;
 		$ratio = 1;
 		for (my $j=0; $j <= $#seqss; ++$j) {
-			$ratio = 0.01 if $j > $EseqAfter;
+			$ratio = $RatioEc if $j > $EseqAfter;
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
