@@ -32,6 +32,10 @@ my $BARLEN = length $BarSeq[0];
 #ddx \@BarSeq;
 #ddx \%BarSeq2idn;
 die if $BARLEN != length $BarSeq[-1];
+
+open LOG,'>',"${outp}.log" or die "Error opening $outp.log:$!\n";
+print LOG "From [$fq1f]&[$fq2f] with [$tagf] to [$outp.*]\n";
+
 for my $k (keys %BarSeq2idn) {
 	my $fname = join('.',$outp,$BarSeq2idn{$k}->[0],$BarSeq2idn{$k}->[1],'1.fq.gz');
 	my ($fha,$fhb);
@@ -101,6 +105,11 @@ while (1) {
 }
 close $fha;
 close $fhb;
+
+my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n";
+print $str;
+print LOG $str;
+close LOG;
 
 for my $k (keys %BarSeq2idn) {
 	close $BarSeq2idn{$k}->[2];
