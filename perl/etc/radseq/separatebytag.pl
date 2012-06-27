@@ -14,7 +14,15 @@ my $tagf=shift;
 my $fq1f=shift;
 my $fq2f=shift;
 my $outp=shift;
-my $maxmismark = 1;
+my $maxmismark = 1.02;
+=pod
+N in Bar	1
+N in Ecut	0.01
+X in Bar	10000
+X in Ecut	100
+=cut
+my $EseqR="TGCAG";
+my $EseqLen = length $EseqR;
 
 my (%BarSeq2idn,@BarSeq,@BarSeqs);
 open L,'<',$tagf or die "Error opening $tagf:$!\n";
@@ -23,6 +31,7 @@ while (<L>) {
 	my ($seq,$id,$name)=split /\t/;
 	next unless $name;
 	$seq = uc $seq;
+	$seq .= $EseqR;
 	push @BarSeq,$seq;
 	push @BarSeqs,[split //,$seq];
 	$BarSeq2idn{$seq} = [$id,$name,0,0,0,0];	# [id name outfh1 outfh2 PairsCnt PE_BaseCnt]
@@ -32,9 +41,10 @@ my $BARLEN = length $BarSeq[0];
 #ddx \@BarSeq;
 #ddx \%BarSeq2idn;
 die if $BARLEN != length $BarSeq[-1];
+my $EseqAfter = $BARLEN - $EseqLen -1;	# starts from 0
 
 open LOG,'>',"${outp}.log" or die "Error opening $outp.log:$!\n";
-print LOG "From [$fq1f]&[$fq2f] with [$tagf] to [$outp.*]\n";
+print LOG "From [$fq1f]&[$fq2f] with [$tagf][$maxmismark] to [$outp.*]\n";
 
 for my $k (keys %BarSeq2idn) {
 	my $fname = join('.',$outp,$BarSeq2idn{$k}->[0],$BarSeq2idn{$k}->[1],'1.fq.gz');
@@ -51,16 +61,18 @@ sub CmpBarSeq($$) {
 	return [$BarSeq2idn{$barseq},0] if (exists $BarSeq2idn{$barseq});
 	my $ret = [$BarSeq2idn{'N'},-1];
 	my @seqss = split //,$barseq;
-	my ($minmark,$mismark,$i,%mark2i,%marks)=(999999);
+	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
+		$ratio = 1;
 		for (my $j=0; $j <= $#seqss; ++$j) {
+			$ratio = 0.01 if $j > $EseqAfter;
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
-				$mismark += 1;
+				$mismark += $ratio;
 			} else {
-				$mismark += 100;
+				$mismark += 10000 * $ratio;
 			}
 		}
 		$mark2i{$mismark} = $i;
@@ -69,7 +81,7 @@ sub CmpBarSeq($$) {
 	}
 	if ($marks{$minmark} == 1 and $minmark <= $maxmark) {
 		$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},$minmark];
-	} else { $ret->[1] = "$minmark.$marks{$minmark}"; }
+	} else { $ret->[1] = "$minmark;$marks{$minmark}"; }	# Well, it is string now.
 	return $ret;
 }
 
