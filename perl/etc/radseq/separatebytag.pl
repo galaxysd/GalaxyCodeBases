@@ -5,7 +5,7 @@ Version: 1.0.0 @ 20120627
 =cut
 use strict;
 use warnings;
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 use Galaxy::IO::FASTAQ;
 use Galaxy::IO;
 
@@ -29,8 +29,8 @@ while (<L>) {
 }
 $BarSeq2idn{'N'} = ['NA','Unknown',0,0];
 my $BARLEN = length $BarSeq[0];
-ddx \@BarSeq;
-ddx \%BarSeq2idn;
+#ddx \@BarSeq;
+#ddx \%BarSeq2idn;
 die if $BARLEN != length $BarSeq[-1];
 for my $k (keys %BarSeq2idn) {
 	my $fname = join('.',$outp,$BarSeq2idn{$k}->[0],$BarSeq2idn{$k}->[1],'1.fq.gz');
@@ -44,8 +44,8 @@ for my $k (keys %BarSeq2idn) {
 
 sub CmpBarSeq($$) {
 	my ($barseq,$maxmark)=@_;
-	return $BarSeq2idn{$barseq} if (exists $BarSeq2idn{$barseq});
-	my $ret = $BarSeq2idn{'N'};
+	return [$BarSeq2idn{$barseq},0] if (exists $BarSeq2idn{$barseq});
+	my $ret = [$BarSeq2idn{'N'},-1];
 	my @seqss = split //,$barseq;
 	my ($minmark,$mismark,$i,%mark2i,%marks)=(999999);
 	for ($i=0; $i <= $#BarSeq; ++$i) {
@@ -63,9 +63,9 @@ sub CmpBarSeq($$) {
 		++$marks{$mismark};
 		$minmark = $mismark if $minmark > $mismark;
 	}
-	if ($marks{$minmark} == 1 and $minmark < $maxmark) {
-		$ret = $BarSeq2idn{$BarSeq[$mark2i{$minmark}]};
-	}
+	if ($marks{$minmark} == 1 and $minmark <= $maxmark) {
+		$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},$minmark];
+	} else { $ret->[1] = "$minmark.$marks{$minmark}"; }
 	return $ret;
 }
 
@@ -79,14 +79,14 @@ while (1) {
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
 		my $bar = substr $$dat1[2],0,$BARLEN;
-		my $kret = CmpBarSeq($bar,$maxmismark);
+		my ($kret,$themark) = @{CmpBarSeq($bar,$maxmismark)};
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
 		print $fha join("\n",
-			join(' ',$$dat1[0],$$dat1[1],$kret->[0],$kret->[1]),
+			join(' ',$$dat1[0],$$dat1[1],$kret->[0],$themark,$kret->[1]),
 			$$dat1[2],'+',$$dat1[3]),"\n";
 		print $fhb join("\n",
-			join(' ',$$dat2[0],$$dat2[1],$kret->[0],$kret->[1]),
+			join(' ',$$dat2[0],$$dat2[1],$kret->[0],$themark,$kret->[1]),
 			$$dat2[2],'+',$$dat2[3]),"\n";
 		++$CountPairs;
 	} elsif ($dat1) {
