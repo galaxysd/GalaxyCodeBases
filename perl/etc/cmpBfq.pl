@@ -33,10 +33,11 @@ while (1) {
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
 		($maskedQ,$mlen) = @{doEamss($$dat1[2],$$dat1[3])};
-		if ($$dat2[1] =~ /(\d):([YN]):\d+:([ATCG]+)?/) {	# 1:N:0:TGACCA
+		if ($$dat2[1] =~ /(\d):([YN]):\d+:([ATCGN]+)?/) {	# 1:N:0:TGACCA
 			$t = ($1 eq '2')? 1 : 0;
 			$t |= 2 if ($2 eq 'Y');
 			$t |= 4 if $3;
+			$t |= 8 if $3 =~ /N/;
 			#++$ReadType{$t};	# 1:Read2, 2:Casava-filtered, 3:with-index
 		}
 		#print "3-",join('|',$$dat1[0],$$dat1[1],$mlen,$t),"\n$$dat1[2]\n$$dat1[3]\n$maskedQ\n";
@@ -101,7 +102,7 @@ for my $k (sort {$a <=> $b} keys %Count) {
 print $str;
 print STAT $str;
 
-$str="\n[Read_Type] (1:Read2, 2:Casava-filtered, 4:with-index)\n";
+$str="\n[Read_Type] (1:Read2, 2:Casava-filtered, 3:with-index, 4:index-have-N, 5:masked-with-more-reads)\n";
 for my $k (sort {$a <=> $b} keys %ReadType) {
 	$str .= sprintf("%#06b\t(%#x)\t%d\n",$k,$k,$ReadType{$k});
 }
