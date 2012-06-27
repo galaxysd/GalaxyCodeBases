@@ -14,13 +14,14 @@ my $tagf=shift;
 my $fq1f=shift;
 my $fq2f=shift;
 my $outp=shift;
-my $maxmismark = 1.8;
-my $RatioEc = 0.4;
+# 1.6,0.6 => [Bar,Ecut] = [0,1],[0,2] or [1,1]
+my $maxmismark = 1.6;
+my $RatioEc = 0.6;
 =pod
 N in Bar	1
-N in Ecut	0.4
+N in Ecut	$RatioEc
 X in Bar	10000
-X in Ecut	4000
+X in Ecut	10000 * $RatioEc
 =cut
 my $EseqR="TGCAG";
 my $EseqLen = length $EseqR;
