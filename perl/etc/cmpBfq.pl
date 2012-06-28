@@ -13,6 +13,7 @@ $out=$inA unless $out;
 warn "From [$inA]&[$inB] to [$out].(log|stat)\n";
 
 open LOG,'>',"${out}.log" or die "Error opening $out.log:$!\n";
+open STAT,'>',"${out}.stat" or die "Error opening $out.stat:$!\n";
 
 my $fha=openfile($inA);
 my $fhb=openfile($inB);
@@ -49,6 +50,9 @@ if ($ret & 1) {
 	goto RECMP;
 }
 # due to a mistake upstream in the masked FASTQ file ...
+		if ( $t&3 == 2 ) {
+			print STAT "1-",join('|',@$dat1),"\n2-",join('|',@$dat2),"\n";
+		}
 		++$ReadType{$t};
 		++$Count{$ret};
 		++$MaskLen{$mlen}->[0];
@@ -81,7 +85,6 @@ if ($ret & 1) {
 close $fha;
 close $fhb;
 
-open STAT,'>',"${out}.stat" or die "Error opening $out.stat:$!\n";
 my $str = "Out Pairs: $CountPairs\nFQ1 over hang: $Count1\nFQ2 over hang: $Count2\n";
 print $str;
 print LOG "From [$inA]&[$inB] to [$out.stat]\n$str";
@@ -100,21 +103,21 @@ for my $k (sort {$a <=> $b} keys %Count) {
 	$str .= sprintf("%#06b\t(%#x)\t%d\n",$k,$k,$Count{$k});
 }
 print $str;
-print STAT $str;
+print LOG $str;
 
 $str="\n[Read_Type] (1:Read2, 2:Casava-filtered, 3:with-index, 4:index-have-N, 5:masked-with-more-reads)\n";
 for my $k (sort {$a <=> $b} keys %ReadType) {
 	$str .= sprintf("%#06b\t(%#x)\t%d\n",$k,$k,$ReadType{$k});
 }
 print $str;
-print STAT $str;
+print LOG $str;
 
 $str="\n[Read_Length]\n";
 for my $k (sort {$a <=> $b} keys %Readlen) {
 	$str .= sprintf("%d\t%d\n",$k,$Readlen{$k});
 }
 #print $str;
-print STAT $str;
+print LOG $str;
 
 $str="\n[Masked_Length] (all, After_Casava-filter)\n";
 for my $k (sort {$a <=> $b} keys %MaskLen) {
