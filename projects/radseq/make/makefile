@@ -5,4 +5,4 @@ MAKEOPTS := -j${N_PROCESSORS} -l${MAXLOAD}
 
 .PHONY: all
 all:
-	$(MAKE) $(MAKEOPTS) -f make/cutadapter.mk
+	$(MAKE) $(MAKEOPTS) -f make/cutadapter.mk |tee mk.cutadapter.log
