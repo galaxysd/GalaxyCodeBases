@@ -19,10 +19,12 @@ while (<IN>) {
 	my @path = split /\//;
 	my $name = pop @path;
 #warn "$_\n[$name][@path]\n";
+	my $isRADSEQ = 'N';
+	$isRADSEQ = 'Y' if $name =~ /_NoIndex_/;
 	my $id = (split /[_-]/,$name)[2];
 	$name =~ /(_R|\.)([12])(_|.)([A-Za-z0-9])*?$/ or die "[$name]";
 #warn "$2\n";
-	print OUT join("\t",join('_',$id,($i-$2)/2).".$2",$name,$full),"\n";
+	print OUT join("\t",join('_',$id,($i-$2)/2).".$2",$isRADSEQ,$full),"\n";
 }
 close IN;
 close OUT;

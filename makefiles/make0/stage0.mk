@@ -14,6 +14,7 @@ tmp/_stage0-Samplelst:
 	touch $@
 
 tmp/_stage0-cutadapter:
+	$(foreach item,SAMPLELIST,echo $item)
 	touch $@
 
 
