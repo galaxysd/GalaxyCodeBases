@@ -7,3 +7,4 @@ mkdir work/radseq work/parents
 ./src/rawfq2list.pl ./lst/rawfq0.lst ./lst/rawfq.lst
 
 make -f make/makefile
+#ps -ef|grep cutadapt|sort -rnk4|les -N

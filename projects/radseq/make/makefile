@@ -11,6 +11,15 @@ endif # $(OS)
 MAXLOAD:=$(shell echo ${N_PROCESSORS}-0.5 | bc)
 MAKEOPTS := -j$(N_PROCESSORS) -l$(MAXLOAD)
 
-.PHONY: all
-all:
+.PHONY: all clean prepare
+all: prepare
 	$(MAKE) $(MAKEOPTS) -f make/cutadapter.mk > mk.cutadapter.log
+
+clean:
+	rm -vfr work
+
+prepare:
+	-mkdir lst work
+	find /share/users/huxs/work/tiger/fq.p /share/users/huxs/work/tiger/fq.f -name '*.gz'|sort > ./lst/rawfq0.lst
+	-mkdir work/radseq work/parents
+	./src/rawfq2list.pl ./lst/rawfq0.lst ./lst/rawfq.lst
