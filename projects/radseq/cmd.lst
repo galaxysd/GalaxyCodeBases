@@ -6,4 +6,4 @@ find /share/users/huxs/work/tiger/fq.p /share/users/huxs/work/tiger/fq.f -name '
 mkdir work/radseq work/parents
 ./src/rawfq2list.pl ./lst/rawfq0.lst ./lst/rawfq.lst
 
-make -f make/cutadapter.mk
+make -f make/makefile
