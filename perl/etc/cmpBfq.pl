@@ -50,7 +50,7 @@ if ($ret & 1) {
 	goto RECMP;
 }
 # due to a mistake upstream in the masked FASTQ file ...
-		if ( $t&3 == 2 ) {
+		if ( ($ret&3) == 2 ) {
 			print STAT "1-",join('|',@$dat1),"\n2-",join('|',@$dat2),"\n";
 		}
 		++$ReadType{$t};
