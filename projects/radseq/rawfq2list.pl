@@ -16,6 +16,7 @@ while (<IN>) {
 	chomp;
 	my $full = $_;
 	s/\.(fastq|fq)(\.gz)?$// or die "[$_]";
+	my $extra = $2;
 	my @path = split /\//;
 	my $name = pop @path;
 #warn "$_\n[$name][@path]\n";
@@ -24,7 +25,14 @@ while (<IN>) {
 	my $id = (split /[_-]/,$name)[2];
 	$name =~ /(_R|\.)([12])(_|.)([A-Za-z0-9])*?$/ or die "[$name]";
 #warn "$2\n";
-	print OUT join("\t",join('_',$id,($i-$2)/2).".$2",$isRADSEQ,$full),"\n";
+	my $tmpstr = join('_',$id,($i-$2)/2).".$2";
+	#$full = `readlink -nf $full`;
+	print OUT join("\t",$tmpstr,$isRADSEQ,$full),"\n";
+	if ($isRADSEQ eq 'Y') {
+		symlink $full,"work/radseq/$tmpstr.fq$extra";
+	} else {
+		symlink $full,"work/parents/$tmpstr.fq$extra";
+	}
 }
 close IN;
 close OUT;

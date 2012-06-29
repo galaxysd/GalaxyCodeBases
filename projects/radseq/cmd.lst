@@ -1,0 +1,7 @@
+rm -fr work
+mkdir lst work
+#find ./fq.p -name '*.gz'|sort > ./lst/rawfqp.lst
+#find ./fq.f -name '*.gz'|sort > ./lst/rawfqf.lst
+find /share/users/huxs/work/tiger/fq.p /share/users/huxs/work/tiger/fq.f -name '*.gz'|sort > ./lst/rawfq0.lst
+mkdir work/radseq work/parents
+./src/rawfq2list.pl ./lst/rawfq0.lst ./lst/rawfq.lst
