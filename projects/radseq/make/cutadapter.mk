@@ -12,6 +12,8 @@ CUTADRADARG:=-e 0.08 -n 1 -m 0 -O 5
 FQEXTS:=.fq.gz
 CUTADAPTCMD:=cutadapt
 
+include make/init.mk
+
 RADSEQFQS1 = $(foreach d,$(RADSEQFQPATH),$(wildcard $(addprefix $(d)/*,.1$(FQEXTS))))
 RADSEQFQS2 = $(foreach d,$(RADSEQFQPATH),$(wildcard $(addprefix $(d)/*,.2$(FQEXTS))))
 WGSFQS1 = $(foreach d,$(WGSFQPATH),$(wildcard $(addprefix $(d)/*,.1$(FQEXTS))))
@@ -21,7 +23,7 @@ COMMONFQS := $(RADSEQFQS2) $(WGSFQS1) $(WGSFQS2)
 .PHONY: all clean
 
 all: $(RADSEQFQS1:.1.fq.gz=.rad) $(COMMONFQS:.fq.gz=)
-	@echo all [$@] [$<]
+	@echo all [$@] [$<] [${MAKEOPTS}]
 
 %.1: %.1.fq.gz
 	@echo "1 $(CUTADAPTCMD) -a $(ADAPTER13) -g $(ADAPTER15) $(CUTADAPTARG) -o $@.cut.gz -r $@.rest.gz $< > $@.cut.log"
