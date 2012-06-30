@@ -9,20 +9,13 @@ use warnings;
 use Galaxy::IO::FASTAQ;
 use Galaxy::IO;
 
-die "Usage: $0 <tag list> <fq1> <fq2> <out prefix>\n" if @ARGV<4;
+die "Usage: $0 <tag list> <barN,ecN,barMis,ecMis> <fq1> <fq2> <out prefix>\n" if @ARGV<4;
 my $tagf=shift;
+my @maxMis=split /,/,shift;
 my $fq1f=shift;
 my $fq2f=shift;
 my $outp=shift;
-# 1.6,0.6 => [Bar,Ecut] = [0,1],[0,2] or [1,1]
-my $maxmismark = 1.6;
-my $RatioEc = 0.6;
-=pod
-N in Bar	1
-N in Ecut	$RatioEc
-X in Bar	10000
-X in Ecut	10000 * $RatioEc
-=cut
+
 my $EseqR="TGCAG";
 my $EseqLen = length $EseqR;
 
@@ -46,7 +39,7 @@ die if $BARLEN != length $BarSeq[-1];
 my $EseqAfter = $BARLEN - $EseqLen -1;	# starts from 0
 
 open LOG,'>',"${outp}.log" or die "Error opening $outp.log:$!\n";
-print LOG "From [$fq1f]&[$fq2f] with [$tagf][$maxmismark,$RatioEc] to [$outp.*]\n";
+print LOG "From [$fq1f]&[$fq2f] with [$tagf][",join(',',@maxMis),"] to [$outp.*]\n";
 
 for my $k (keys %BarSeq2idn) {
 	my $fname = join('.',$outp,$BarSeq2idn{$k}->[0],$BarSeq2idn{$k}->[1],'1.fq.gz');
@@ -64,17 +57,29 @@ sub CmpBarSeq($$) {
 	my $ret = [$BarSeq2idn{'N'},-1];
 	my @seqss = split //,$barseq;
 	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
+	my @thisMarks=(0,0,0,0);
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
-		$ratio = 1;
-		for (my $j=0; $j <= $#seqss; ++$j) {
-			$ratio = $RatioEc if $j > $EseqAfter;
+		for (my $j=0; $j <= $EseqAfter; ++$j) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
-				$mismark += $ratio;
+				++$mismark;
+				++$thisMarks[0];
 			} else {
-				$mismark += 10000 * $ratio;
+				$mismark += 100;
+				++$thisMarks[2];
+			}
+		}
+		for (my $j=$EseqAfter+1; $j <= $#seqss; ++$j) {
+			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
+				next;
+			} elsif ($seqss[$j] eq 'N') {
+				$mismark += 0.0001;
+				++$thisMarks[1];
+			} else {
+				$mismark += 0.01;
+				++$thisMarks[3];
 			}
 		}
 		$mark2i{$mismark} = $i;
