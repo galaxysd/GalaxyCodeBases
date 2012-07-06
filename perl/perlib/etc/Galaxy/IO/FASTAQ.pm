@@ -4,7 +4,7 @@ use warnings;
 require Exporter;
 our @ISA   =qw(Exporter);
 our @EXPORT    =qw(readfq);
-our @EXPORT_OK   =qw();
+our @EXPORT_OK   =qw(readfq getQvaluesFQ);
 our $VERSION   = v1.1.0;
 
 sub readfq($$) {
@@ -55,18 +55,32 @@ sub readfq($$) {
 	return [$name, $comment, $seq];
 }
 
+sub getQvaluesFQ(@) {
+	my @Qstr=split //,$_[0];
+	my $qbase = $_[1]?$_[1]:33;
+	my @Qvalue=();
+	push @Qvalue,ord($_)-$qbase for @Qstr;
+	return \@Qvalue;
+}
+
 1;
 
 __END__
 
 https://github.com/lh3/readfq/blob/master/readfq.pl
 
+use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
+
 my @aux = undef;
-my ($name, $comment, $seq, $qual);
+my ($name, $comment, $seq, $qual, @QV);
 my ($n, $slen, $qlen) = (0, 0, 0);
-while (($name, $comment, $seq, $qual) = @&readfq(\*STDIN, \@aux)) {
+while (($name, $comment, $seq, $qual) = @{&readfq(\*STDIN, \@aux)}) {
 	++$n;
 	$slen += length($seq);
-	$qlen += length($qual) if ($qual);
+	if ($qual) {
+		$qlen += length($qual);
+		@QV = @{getQvaluesFQ($qual)};
+	}
+	print join("\t", $name, $comment, $seq, $qual, join(',',@QV)), "|\n";
 }
 print join("\t", $n, $slen, $qlen), "\n";

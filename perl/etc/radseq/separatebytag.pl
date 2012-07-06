@@ -6,7 +6,7 @@ Version: 1.0.0 @ 20120627
 use strict;
 use warnings;
 #use Data::Dump qw(ddx);
-use Galaxy::IO::FASTAQ;
+use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
 use Galaxy::IO;
 
 die "Usage: $0 <tag list> <barN,ecN,barMis,ecMis> <fq1> <fq2> <out prefix>\n" if @ARGV<4;
@@ -51,11 +51,12 @@ for my $k (keys %BarSeq2idn) {
 }
 #open $UNKNOWN,'|-',"gzip -9c >$outp.NA.Unknown.fq.gz" or die "Error opening output file:$!\n";
 
-sub CmpBarSeq($$) {
-	my ($barseq,$maxmark)=@_;
+sub CmpBarSeq($$$) {
+	my ($barseq,$maxmark,$barQ)=@_;
 	return [$BarSeq2idn{$barseq},0] if (exists $BarSeq2idn{$barseq});
 	my $ret = [$BarSeq2idn{'N'},-1];
 	my @seqss = split //,$barseq;
+	my @seqQ = @{getQvaluesFQ($barQ)};
 	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
 	my @thisMarks=(0,0,0,0);
 	for ($i=0; $i <= $#BarSeq; ++$i) {
@@ -67,7 +68,8 @@ sub CmpBarSeq($$) {
 				++$mismark;
 				++$thisMarks[0];
 			} else {
-				$mismark += 100;
+				my $rateT = 10^($seqQ[$i]/10);
+				$mismark += $rateT;
 				++$thisMarks[2];
 			}
 		}
@@ -75,10 +77,11 @@ sub CmpBarSeq($$) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
-				$mismark += 0.0001;
+				$mismark += 0.01;
 				++$thisMarks[1];
 			} else {
-				$mismark += 0.01;
+				my $rateTp = 10^(($seqQ[$i]/10)-2);
+				$mismark += $rateTp;
 				++$thisMarks[3];
 			}
 		}
@@ -102,7 +105,8 @@ while (1) {
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
 		my $bar = substr $$dat1[2],0,$BARLEN;
-		my ($kret,$themark) = @{CmpBarSeq($bar,$maxmismark)};
+		my $qbar = substr $$dat1[3],0,$BARLEN;
+		my ($kret,$themark) = @{CmpBarSeq($bar,\@maxMis,$qbar)};
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
 		print $fha join("\n",

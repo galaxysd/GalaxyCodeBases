@@ -17,10 +17,11 @@ RADSEQFQS2 = $(foreach d,$(RADSEQFQPATH),$(wildcard $(addprefix $(d)/*,.2$(FQEXT
 WGSFQS1 = $(foreach d,$(WGSFQPATH),$(wildcard $(addprefix $(d)/*,.1$(FQEXTS))))
 WGSFQS2 = $(foreach d,$(WGSFQPATH),$(wildcard $(addprefix $(d)/*,.2$(FQEXTS))))
 COMMONFQS := $(RADSEQFQS2) $(WGSFQS1) $(WGSFQS2)
+ALLITEMS := $(RADSEQFQS1:.1.fq.gz=.rad) $(COMMONFQS:.fq.gz=)
 
 .PHONY: all clean
 
-all: $(RADSEQFQS1:.1.fq.gz=.rad) $(COMMONFQS:.fq.gz=)
+all: $(ALLITEMS)
 #all: $(COMMONFQS:.fq.gz=)
 	@echo all [$@] [$<] [${MAKEOPTS}]
 
@@ -42,5 +43,5 @@ all: $(RADSEQFQS1:.1.fq.gz=.rad) $(COMMONFQS:.fq.gz=)
 	touch $@
 
 clean:
-	-rm $(COMMONFQS:.fq.gz=) $(COMMONFQS:.fq.gz=.rest.gz) $(COMMONFQS:.fq.gz=.cut.log)
+	-rm $(ALLITEMS) $(COMMONFQS:.fq.gz=.rest.gz) $(COMMONFQS:.fq.gz=.cut.log)
 	-rm $(COMMONFQS:.fq.gz=.cut.gz)
