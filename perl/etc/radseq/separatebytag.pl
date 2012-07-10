@@ -59,6 +59,10 @@ sub CmpBarSeq($$$) {
 	#my @seqQ = @{getQvaluesFQ($barQ)};
 	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
 	my %thisMarkC;
+	if ( scalar @seqss < $BARLEN ) {
+		$ret->[1] = scalar @seqss;
+		return $ret;
+	}
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
 		my @thisMarks=(0,0,0,0);	# (Nmid,Nec,Mmid,Mec)
@@ -118,16 +122,18 @@ while (1) {
 	$dat1 = readfq($fha, \@aux1);	# [$name, $comment, $seq, $qual]
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
+		$$dat1[1] = (split / \|/,$$dat1[1])[0];
+		$$dat2[1] = (split / \|/,$$dat2[1])[0];
 		my $bar = substr $$dat1[2],0,$BARLEN;
 		#$qbar = substr $$dat1[3],0,$BARLEN;
 		my ($kret,$themark) = @{CmpBarSeq($bar,\@maxMis,$qbar)};
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
-		print $fha join("\n",
-			join(' ',@$dat1[0,1],$kret->[0],$themark,$kret->[1]),
+		print $fha '@',join("\n",
+			join(' ',@$dat1[0,1],"|",$kret->[0],$themark,$kret->[1]),
 			$$dat1[2],'+',$$dat1[3]),"\n";
-		print $fhb join("\n",
-			join(' ',@$dat2[0,1],$kret->[0],$kret->[1]),
+		print $fhb '@',join("\n",
+			join(' ',@$dat2[0,1],"|",$kret->[0],$kret->[1]),
 			$$dat2[2],'+',$$dat2[3]),"\n";
 		++$kret->[4];
 		$kret->[5] += length($$dat2[2]) + length($$dat2[2]);
