@@ -56,20 +56,21 @@ sub CmpBarSeq($$$) {
 	return [$BarSeq2idn{$barseq},0] if (exists $BarSeq2idn{$barseq});
 	my $ret = [$BarSeq2idn{'N'},-1];
 	my @seqss = split //,$barseq;
-	my @seqQ = @{getQvaluesFQ($barQ)};
+	#my @seqQ = @{getQvaluesFQ($barQ)};
 	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
-	my @thisMarks=(0,0,0,0);
+	my %thisMarkC;
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
+		my @thisMarks=(0,0,0,0);	# (Nmid,Nec,Mmid,Mec)
 		for (my $j=0; $j <= $EseqAfter; ++$j) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
-				next;
+				next;	# [1-err]
 			} elsif ($seqss[$j] eq 'N') {
-				++$mismark;
+				++$mismark;	# [1/4]
 				++$thisMarks[0];
 			} else {
-				my $rateT = 10^($seqQ[$i]/10);
-				$mismark += $rateT;
+				#my $rateT = 10^($seqQ[$i]/10);	# 1/err   Q=-10*lg(err), err = 10^(-Q/10)      [err*1/3]
+				$mismark += 100;
 				++$thisMarks[2];
 			}
 		}
@@ -77,21 +78,34 @@ sub CmpBarSeq($$$) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
-				$mismark += 0.01;
+				$mismark += 0.0001;
 				++$thisMarks[1];
 			} else {
-				my $rateTp = 10^(($seqQ[$i]/10)-2);
-				$mismark += $rateTp;
+				#my $rateTp = 10^(($seqQ[$i]/10)-2);
+				$mismark += 0.01;
 				++$thisMarks[3];
 			}
 		}
 		$mark2i{$mismark} = $i;
+		$thisMarkC{$mismark} = \@thisMarks;
 		++$marks{$mismark};
 		$minmark = $mismark if $minmark > $mismark;
 	}
-	if ($marks{$minmark} == 1 and $minmark <= $maxmark) {
-		$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},$minmark];
-	} else { $ret->[1] = "$minmark;$marks{$minmark}"; }	# Well, it is string now.
+	my @thisMarks = @{$thisMarkC{$minmark}};
+	my $misStr = join('',@thisMarks);
+	$ret->[1] = "$minmark;$misStr;$marks{$minmark}";	# Well, string is also scalar to print.
+	if ($marks{$minmark} == 1) {
+		my $flag = 0;
+		for my $i (0..3) {
+			if ($thisMarks[$i] > $$maxmark[$i]) {
+				$flag = 1;
+				last;
+			}
+		}
+		unless ($flag) {	# $flag == 0
+			$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},"$minmark;$misStr"];
+		}
+	}
 	return $ret;
 }
 
@@ -99,13 +113,13 @@ my $fha=openfile($fq1f);
 my $fhb=openfile($fq2f);
 my (@aux1,@aux2);
 my ($Count1,$Count2,$CountPairs)=(0,0,0);
-my ($dat1,$dat2);
+my ($dat1,$dat2,$qbar);
 while (1) {
 	$dat1 = readfq($fha, \@aux1);	# [$name, $comment, $seq, $qual]
 	$dat2 = readfq($fhb, \@aux2);
 	if ($dat1 && $dat2) {
 		my $bar = substr $$dat1[2],0,$BARLEN;
-		my $qbar = substr $$dat1[3],0,$BARLEN;
+		#$qbar = substr $$dat1[3],0,$BARLEN;
 		my ($kret,$themark) = @{CmpBarSeq($bar,\@maxMis,$qbar)};
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
@@ -113,10 +127,10 @@ while (1) {
 			join(' ',@$dat1[0,1],$kret->[0],$themark,$kret->[1]),
 			$$dat1[2],'+',$$dat1[3]),"\n";
 		print $fhb join("\n",
-			join(' ',@$dat2[0,1],$kret->[0],$themark,$kret->[1]),
+			join(' ',@$dat2[0,1],$kret->[0],$kret->[1]),
 			$$dat2[2],'+',$$dat2[3]),"\n";
 		++$kret->[4];
-		$kret->[5] += length($$dat2[1]) + length($$dat2[2]);
+		$kret->[5] += length($$dat2[2]) + length($$dat2[2]);
 		++$CountPairs;
 	} elsif ($dat1) {
 		++$Count1;
