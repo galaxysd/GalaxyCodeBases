@@ -118,6 +118,7 @@ my $fhb=openfile($fq2f);
 my (@aux1,@aux2);
 my ($Count1,$Count2,$CountPairs)=(0,0,0);
 my ($dat1,$dat2,$qbar);
+my %Ret1Stat;
 while (1) {
 	$dat1 = readfq($fha, \@aux1);	# [$name, $comment, $seq, $qual]
 	$dat2 = readfq($fhb, \@aux2);
@@ -127,6 +128,7 @@ while (1) {
 		my $bar = substr $$dat1[2],0,$BARLEN;
 		#$qbar = substr $$dat1[3],0,$BARLEN;
 		my ($kret,$themark) = @{CmpBarSeq($bar,\@maxMis,$qbar)};
+		++$Ret1Stat{$themark};
 		my $fha = $kret->[2];
 		my $fhb = $kret->[3];
 		print $fha '@',join("\n",
@@ -164,6 +166,11 @@ for my $k (sort
 	$str = join("\t",$k,@{$BarSeq2idn{$k}}[0,1,4,5],$BarSeq2idn{$k}->[4]/$CountPairs)."\n";
 	print STDOUT $str;
 	print LOG $str;
+}
+
+print LOG "\nTypes\n";
+for my $k (sort { $Ret1Stat{$b} <=> $Ret1Stat{$a}} keys %Ret1Stat) {
+	print LOG "$k\t$Ret1Stat{$k}\n";
 }
 
 close LOG;
