@@ -9,7 +9,7 @@ use warnings;
 use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
 use Galaxy::IO;
 
-die "Usage: $0 <tag list> <barN,ecN,barMis,ecMis> <fq1> <fq2> <out prefix>\n" if @ARGV<4;
+die "Usage: $0 <tag list> <barN,ecN,barMis,ecMis> <fq1> <fq2> <out prefix>\n" if @ARGV<5;
 my $tagf=shift;
 my @maxMis=split /,/,shift;
 my $fq1f=shift;
@@ -169,8 +169,11 @@ for my $k (sort
 }
 
 print LOG "\nTypes\n";
-for my $k (sort { $Ret1Stat{$b} <=> $Ret1Stat{$a}} keys %Ret1Stat) {
-	print LOG "$k\t$Ret1Stat{$k}\n";
+my @order = sort { $Ret1Stat{$b} <=> $Ret1Stat{$a}} keys %Ret1Stat;
+my $Sum = 0;
+$Sum += $Ret1Stat{$_} for @order;
+for my $k (@order) {
+	print LOG join("\t",$k,$Ret1Stat{$k},$Ret1Stat{$k}/$Sum),"\n";
 }
 
 close LOG;
