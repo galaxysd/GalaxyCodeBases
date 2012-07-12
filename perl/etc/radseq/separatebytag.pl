@@ -9,9 +9,9 @@ use warnings;
 use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
 use Galaxy::IO;
 
-die "Usage: $0 <tag list> <barN,ecN,barMis,ecMis> <fq1> <fq2> <out prefix>\n" if @ARGV<5;
+die "Usage: $0 <tag list> <6 num for (N,Cross,nonCross) by (bar,ec)> <fq1> <fq2> <out prefix>\n" if @ARGV<5;
 my $tagf=shift;
-my @maxMis=split /,/,shift;
+my @maxMis=split //,shift;
 my $fq1f=shift;
 my $fq2f=shift;
 my $outp=shift;
@@ -38,6 +38,8 @@ my $BARLEN = length $BarSeq[0];
 die if $BARLEN != length $BarSeq[-1];
 my $EseqAfter = $BARLEN - $EseqLen -1;	# starts from 0
 
+die "Max Barcode or EC length are 9 !\n" if $BARLEN > 18 or $EseqLen > 9;
+
 open LOG,'>',"${outp}.log" or die "Error opening $outp.log:$!\n";
 print LOG "From [$fq1f]&[$fq2f] with [$tagf][",join(',',@maxMis),"] to [$outp.*]\n";
 
@@ -53,25 +55,28 @@ for my $k (keys %BarSeq2idn) {
 
 sub CmpBarSeq($$$) {
 	my ($barseq,$maxmark,$barQ)=@_;
-	return [$BarSeq2idn{$barseq},0] if (exists $BarSeq2idn{$barseq});
-	my $ret = [$BarSeq2idn{'N'},-1];
+	return [$BarSeq2idn{$barseq},'1;000000,0'] if (exists $BarSeq2idn{$barseq});
+	my $ret = [$BarSeq2idn{'N'},''];
 	my @seqss = split //,$barseq;
 	#my @seqQ = @{getQvaluesFQ($barQ)};
 	my ($minmark,$mismark,$i,%mark2i,%marks,$ratio)=(999999);
 	my %thisMarkC;
 	if ( scalar @seqss < $BARLEN ) {
-		$ret->[1] = scalar @seqss;
+		$ret->[1] = -1 * scalar @seqss;
 		return $ret;
 	}
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
-		my @thisMarks=(0,0,0,0);	# (Nmid,Nec,Mmid,Mec)
+		my @thisMarks=(0,0,0,0,0,0);	# (N,Cross[AC,GT],nonCross) by (bar,ec)
 		for (my $j=0; $j <= $EseqAfter; ++$j) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;	# [1-err]
 			} elsif ($seqss[$j] eq 'N') {
 				++$mismark;	# [1/4]
 				++$thisMarks[0];
+			} elsif ( ($seqss[$j] =~ /[AC]/ and $BarSeqs[$i][$j] =~/[AC]/) or ($seqss[$j] =~ /[GT]/ and $BarSeqs[$i][$j] =~/[GT]/) ) {
+				$mismark += 10;
+				++$thisMarks[1];
 			} else {
 				#my $rateT = 10^($seqQ[$i]/10);	# 1/err   Q=-10*lg(err), err = 10^(-Q/10)      [err*1/3]
 				$mismark += 100;
@@ -82,12 +87,15 @@ sub CmpBarSeq($$$) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;
 			} elsif ($seqss[$j] eq 'N') {
-				$mismark += 0.0001;
-				++$thisMarks[1];
+				$mismark += 0.001;
+				++$thisMarks[3];
+			} elsif ( ($seqss[$j] =~ /[AC]/ and $BarSeqs[$i][$j] =~/[AC]/) or ($seqss[$j] =~ /[GT]/ and $BarSeqs[$i][$j] =~/[GT]/) ) {
+				$mismark += 0.01;
+				++$thisMarks[4];
 			} else {
 				#my $rateTp = 10^(($seqQ[$i]/10)-2);
-				$mismark += 0.01;
-				++$thisMarks[3];
+				$mismark += 0.1;
+				++$thisMarks[5];
 			}
 		}
 		$mark2i{$mismark} = $i;
@@ -97,17 +105,17 @@ sub CmpBarSeq($$$) {
 	}
 	my @thisMarks = @{$thisMarkC{$minmark}};
 	my $misStr = join('',@thisMarks);
-	$ret->[1] = "$minmark;$misStr;$marks{$minmark}";	# Well, string is also scalar to print.
+	$ret->[1] = "$marks{$minmark};$misStr,$minmark";	# Well, string is also scalar to print.
 	if ($marks{$minmark} == 1) {
 		my $flag = 0;
-		for my $i (0..3) {
+		for my $i (0 .. $#thisMarks) {
 			if ($thisMarks[$i] > $$maxmark[$i]) {
 				$flag = 1;
 				last;
 			}
 		}
 		unless ($flag) {	# $flag == 0
-			$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},"$minmark;$misStr"];
+			$ret = [$BarSeq2idn{$BarSeq[$mark2i{$minmark}]},"1;$misStr,$minmark"];
 		}
 	}
 	return $ret;
@@ -169,11 +177,17 @@ for my $k (sort
 }
 
 print LOG "\nTypes\n";
-my @order = sort { $Ret1Stat{$b} <=> $Ret1Stat{$a}} keys %Ret1Stat;
+my @order = sort {
+(split /;/,$a)[0] <=> (split /;/,$b)[0]
+	||
+$Ret1Stat{$b} <=> $Ret1Stat{$a}
+} keys %Ret1Stat;
 my $Sum = 0;
-$Sum += $Ret1Stat{$_} for @order;
 for my $k (@order) {
-	print LOG join("\t",$k,$Ret1Stat{$k},$Ret1Stat{$k}/$Sum),"\n";
+	print LOG join("\t",$k,$Ret1Stat{$k},$Ret1Stat{$k}/$CountPairs),"\n";
+	$Sum += $Ret1Stat{$k} if (split /;/,$k)[0] eq '1';
 }
-
+my $t = join('',"\nUnique_Ratio: $Sum / $CountPairs = ",$Sum/$CountPairs,"\n");
+print $t;
+print LOG $t;
 close LOG;

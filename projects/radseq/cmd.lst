@@ -5,13 +5,24 @@ mkdir lst work
 find /share/users/huxs/work/tiger/fq.p /share/users/huxs/work/tiger/fq.f -name '*.gz'|sort > ./lst/rawfq0.lst
 mkdir work/radseq work/parents
 ./src/rawfq2list.pl ./lst/rawfq0.lst ./lst/rawfq.lst
-./src/separatebytag.pl tigrad.lst 0,0,0,0 work/radseq/A1_1.1.cut.gz work/radseq/A1_1.2.cut.gz work/f1/A1_1_0000
-./src/separatebytag.pl tigrad.lst 1,1,0,0 work/f1/A1_1_0000.NA.Unknown.1.fq.gz work/f1/A1_1_0000.NA.Unknown.2.fq.gz work/f1/A1_1_1100
-./src/separatebytag.pl tigrad.lst 2,3,0,0 work/f1/A1_1_1100.NA.Unknown.1.fq.gz work/f1/A1_1_1100.NA.Unknown.2.fq.gz work/f1/A1_1_2300
 
+make -f make/makefile
+#ps -ef|grep cutadapt|sort -rnk4|les -N
+
+====================================
+
+./src/separatebytag.pl tigrad.lst 0,0,0,0 work/radseq/A1_1.1.cut.gz work/radseq/A1_1.2.cut.gz work/f1/A1_1_0000
 ./src/separatebytag.pl tigrad.lst 0,0,0,0 work/radseq/B1_2.1.cut.gz work/radseq/B1_2.2.cut.gz work/f1/B1_2_0000 &
 ./src/separatebytag.pl tigrad.lst 0,0,0,0 work/radseq/C1_3.1.cut.gz work/radseq/C1_3.2.cut.gz work/f1/C1_3_0000 &
 ./src/separatebytag.pl tigrad.lst 0,0,0,0 work/radseq/d1_4.1.cut.gz work/radseq/d1_4.2.cut.gz work/f1/d1_4_0000 &
 
-make -f make/makefile
-#ps -ef|grep cutadapt|sort -rnk4|les -N
+./src/separatebytag.pl tigrad.lst 210210 work/f1/A1_1_0000.NA.Unknown.1.fq.gz work/f1/A1_1_0000.NA.Unknown.2.fq.gz work/f1/A1_1_210210 &
+./src/separatebytag.pl tigrad.lst 210210 work/f1/B1_2_0000.NA.Unknown.1.fq.gz work/f1/B1_2_0000.NA.Unknown.2.fq.gz work/f1/B1_2_210210 &
+./src/separatebytag.pl tigrad.lst 210210 work/f1/C1_3_0000.NA.Unknown.1.fq.gz work/f1/C1_3_0000.NA.Unknown.2.fq.gz work/f1/C1_3_210210 &
+./src/separatebytag.pl tigrad.lst 210210 work/f1/d1_4_0000.NA.Unknown.1.fq.gz work/f1/d1_4_0000.NA.Unknown.2.fq.gz work/f1/d1_4_210210 &
+
+Parents WGS:
+bwa aln -l 17 -q 10
+
+RADseq:
+bwa aln -l 17
