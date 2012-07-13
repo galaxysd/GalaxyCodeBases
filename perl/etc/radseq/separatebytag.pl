@@ -68,13 +68,14 @@ sub CmpBarSeq($$$) {
 	for ($i=0; $i <= $#BarSeq; ++$i) {
 		$mismark = 0;
 		my @thisMarks=(0,0,0,0,0,0);	# (N,Cross[AC,GT],nonCross) by (bar,ec)
+		my $tmp;
 		for (my $j=0; $j <= $EseqAfter; ++$j) {
 			if ($seqss[$j] eq $BarSeqs[$i][$j]) {
 				next;	# [1-err]
 			} elsif ($seqss[$j] eq 'N') {
 				++$mismark;	# [1/4]
 				++$thisMarks[0];
-			} elsif ( ($seqss[$j] =~ /[AC]/ and $BarSeqs[$i][$j] =~/[AC]/) or ($seqss[$j] =~ /[GT]/ and $BarSeqs[$i][$j] =~/[GT]/) ) {
+			} elsif ( $tmp = $seqss[$j].$BarSeqs[$i][$j] and ($tmp eq 'AC' or $tmp eq 'CA' or $tmp eq 'GT' or $tmp eq 'TG') ) {
 				$mismark += 10;
 				++$thisMarks[1];
 			} else {
@@ -89,7 +90,7 @@ sub CmpBarSeq($$$) {
 			} elsif ($seqss[$j] eq 'N') {
 				$mismark += 0.001;
 				++$thisMarks[3];
-			} elsif ( ($seqss[$j] =~ /[AC]/ and $BarSeqs[$i][$j] =~/[AC]/) or ($seqss[$j] =~ /[GT]/ and $BarSeqs[$i][$j] =~/[GT]/) ) {
+			} elsif ( $tmp = $seqss[$j].$BarSeqs[$i][$j] and ($tmp eq 'AC' or $tmp eq 'CA' or $tmp eq 'GT' or $tmp eq 'TG') ) {
 				$mismark += 0.01;
 				++$thisMarks[4];
 			} else {
