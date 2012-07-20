@@ -21,8 +21,51 @@ make -f make/makefile
 ./src/separatebytag.pl tigrad.lst 210210 work/f1/C1_3_0000.NA.Unknown.1.fq.gz work/f1/C1_3_0000.NA.Unknown.2.fq.gz work/f1/C1_3_210210 &
 ./src/separatebytag.pl tigrad.lst 210210 work/f1/d1_4_0000.NA.Unknown.1.fq.gz work/f1/d1_4_0000.NA.Unknown.2.fq.gz work/f1/d1_4_210210 &
 
+./src/separatebytag.pl tigrad.lst 221210 work/f1/A1_1_210210.NA.Unknown.1.fq.gz work/f1/A1_1_210210.NA.Unknown.2.fq.gz work/f1/A1_1_221210 &
+./src/separatebytag.pl tigrad.lst 221210 work/f1/B1_2_210210.NA.Unknown.1.fq.gz work/f1/B1_2_210210.NA.Unknown.2.fq.gz work/f1/B1_2_221210 &
+./src/separatebytag.pl tigrad.lst 221210 work/f1/C1_3_210210.NA.Unknown.1.fq.gz work/f1/C1_3_210210.NA.Unknown.2.fq.gz work/f1/C1_3_221210 &
+./src/separatebytag.pl tigrad.lst 221210 work/f1/d1_4_210210.NA.Unknown.1.fq.gz work/f1/d1_4_210210.NA.Unknown.2.fq.gz work/f1/d1_4_221210 &
+
+
 Parents WGS:
 bwa aln -l 17 -q 10
 
 RADseq:
-bwa aln -l 17
+bwa aln -l 17 -B 5
+【only read1. read2 still with -q 10】
+
+__BIOPIC__
+cd /home/huxuesong/analysis/tiger/20120712
+find ./fq/parents/ -name '*.1.cut.gz'|perl -lane 's/\.1\.cut\.gz$//;print' > parents.lst
+ls -1 ./fq/f1/*.1.fq.gz|perl -lane 's/\.1\.fq\.gz$//;print'|sort > f1.lst
+
+soapsnp -u -t -L 101 -z '!' -Q 41 -d ref/tigris.fa
+
+./fq/parents/BHX011_11
+./fq/parents/BHX011_11.1.cut.gz
+./fq/parents/BHX011_11.2.cut.gz
+
+
+__SH__
+#!/bin/bash
+#$ -v PERL5LIB,PATH,PYTHONPATH,LD_LIBRARY_PATH
+#$ -cwd -r y -l vf=7.5g,p=2
+#$ -o /dev/null -e /dev/null
+#$ -S /bin/bash -t 1-2
+
+SEEDFILE=parents.lst
+SEED=$(sed -n -e "${SGE_TASK_ID} p" $SEEDFILE)
+MAIN=`basename "$SEED"`
+
+bwa aln -Y -l 17 -q 10 -t 6 tigris ${SEED}.1.cut.gz >./sai/${PPID}_${JOB_ID}_${MAIN}_1.sai 2>./sai/${PPID}_${JOB_ID}_${MAIN}_1.log
+bwa aln -Y -l 17 -q 10 -t 6 tigris ${SEED}.2.cut.gz >./sai/${PPID}_${JOB_ID}_${MAIN}_2.sai 2>./sai/${PPID}_${JOB_ID}_${MAIN}_2.log
+
+bwa sampe -a 800 tigris ./sai/${PPID}_${JOB_ID}_${MAIN}_1.sai ./sai/${PPID}_${JOB_ID}_${MAIN}_2.sai ${SEED}.1.cut.gz ${SEED}.2.cut.gz 2>./bwatg/${MAIN}.samlog | gzip -9c >./bwatg/${MAIN}.sam.gz
+date >> ./bwatg/${MAIN}.samlog
+echo "sai: ${PPID}_${JOB_ID}_${MAIN}" >> ./bwatg/${MAIN}.samlog
+
+samtools view -bS ./bwatg/${MAIN}.sam.gz > ./bwatg/${MAIN}.bam 2>./bwatg/${MAIN}.bamlog
+
+samtools sort ./bwatg/${MAIN}.bam ./bwatg/${MAIN}.sort
+
+samtools index ./bwatg/${MAIN}.sort.bam &
