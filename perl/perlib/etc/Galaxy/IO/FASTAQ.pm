@@ -72,9 +72,10 @@ https://github.com/lh3/readfq/blob/master/readfq.pl
 use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
 
 my @aux = undef;
-my ($name, $comment, $seq, $qual, @QV);
+my ($name, $comment, $seq, $qual, $ret, @QV);
 my ($n, $slen, $qlen) = (0, 0, 0);
-while (($name, $comment, $seq, $qual) = @{&readfq(\*STDIN, \@aux)}) {
+while ( $ret = &readfq(\*STDIN, \@aux) ) {
+	($name, $comment, $seq, $qual) = @$ret;
 	++$n;
 	$slen += length($seq);
 	if ($qual) {

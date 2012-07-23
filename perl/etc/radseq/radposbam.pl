@@ -7,6 +7,7 @@ use strict;
 use warnings;
 #use Data::Dump qw(ddx);
 use Galaxy::IO;
+use Galaxy::IO::FASTAQ;
 
 die "Usage: $0 <reference> <out> <bam files>\n" if @ARGV<2;
 my $fa=shift;
@@ -23,5 +24,14 @@ print O $t;
 print $t;
 
 my $FHref = openfile($fa);
-
-
+my @aux = undef;
+my ($name, $comment, $seq, %RefSeq, $ret);
+my ($n, $slen) = (0, 0);
+while ($ret = &readfq($FHref, \@aux)) {
+	($name, $comment, $seq) = @$ret;
+	++$n;
+	$slen += length($seq);
+	$RefSeq{$name} = $seq;
+	#warn "$name, $comment, $seq\n";
+}
+warn "Ref: $n seq of $slen bp.\n";
