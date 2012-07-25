@@ -1,0 +1,12 @@
+[user]
+	name = Yuuki Galaxy
+	email = galaxy001@gmail.com
+[alias]
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	lc = log ORIG_HEAD.. --stat --no-merges
+	changes = diff --name-status -r
+	diffstat = diff --stat -r
+	new = !sh -c 'git log $1@{1}..$1@{0} "$@"'
+	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
+	sortdiff = !sh -c 'git diff "$@" | grep "^[+-]" | sort -k 1.2 | uniq -u -s1'
+
