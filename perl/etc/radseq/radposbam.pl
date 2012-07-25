@@ -35,3 +35,9 @@ while ($ret = &readfq($FHref, \@aux)) {
 	#warn "$name, $comment, $seq\n";
 }
 warn "Ref: $n seq of $slen bp.\n";
+
+my %bamFH;
+for my $name (@bamfs) {
+	$bamFH{$name} = openpipe('samtools view -f64 -F1796',$name);	# +0x40 -0x704
+}
+

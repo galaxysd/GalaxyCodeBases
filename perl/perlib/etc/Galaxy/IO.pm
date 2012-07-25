@@ -3,8 +3,8 @@ package Galaxy::IO;
 use strict;
 require Exporter;
 our @ISA   =qw(Exporter);
-our @EXPORT    =qw(openfile);
-our @EXPORT_OK   =qw();
+our @EXPORT    =qw(openfile openpipe);
+our @EXPORT_OK   =qw(openfile openpipe);
 our $VERSION   = v1.0.0;
 
 sub openfile($) {
