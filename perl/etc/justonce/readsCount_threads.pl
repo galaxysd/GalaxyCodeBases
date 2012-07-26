@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use threads;
 
+my $maxthreads = 8;
+
 my %file;
 while (<>) {
   chomp;
@@ -16,8 +18,18 @@ while (<>) {
 }
 print STDERR "Read file list complete!\n";
 
-my %thread;
+my (%thread,%count);
+my $t = 0;
 foreach (sort keys %file) {
+  ++$t;
+  if ($t > $maxthreads ) {
+	for (sort keys %thread) {
+		$count{$_} = $thread{$_}->join;
+		print STDERR "$t: Count $_ complete!\n";
+		delete $thread{$_};
+	}
+	$t = 0;
+  }
   if (/sam.gz$/) {
     $thread{$_} = threads->new(\&countsam, $file{$_});
   } elsif (/fq.gz$/) {
@@ -25,7 +37,6 @@ foreach (sort keys %file) {
   }
 }
 
-my %count;
 foreach (sort keys %thread) {
   $count{$_} = $thread{$_}->join;
   print STDERR "Count $_ complete!\n";
