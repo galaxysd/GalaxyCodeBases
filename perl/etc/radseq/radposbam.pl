@@ -89,13 +89,13 @@ sub deal_cluster($$$) {
 	my $mark = 0;
 	if ( (not exists $RefSeq{$lastChr}) or $lastPos<2 or $lastPos+$EcutAt>$RefLen{$name} ) {
 		++$Stat{'Cluster_err'} if $lastChr ne '';
-		return $mark;
+		return [$mark,''];
 	}
 	++$Stat{'Cluster_cnt'};
 	my $ref = substr $RefSeq{$lastChr},$lastPos-2,$EseqLen;
 	my $refmatches = ($ref ^ $Eseq) =~ tr/\0//;	# http://perlmonks.org/?node_id=840593
 	++$Stat{'Cluster_RefFullECcnt'}{$refmatches};
-warn ">$lastChr,$lastPos,$ref,$refmatches\n";
+#warn ">$lastChr,$lastPos,$ref,$refmatches\n";
 	my %strand;
 	for (@$itemsA) {
 		my ($Strand,$readSeq,$readQ) = @$_;
@@ -112,10 +112,16 @@ warn ">$lastChr,$lastPos,$ref,$refmatches\n";
 #warn "   $strandShift,$readSeq,$readQ [@Qvals] $mark\n";
 	}
 	my @strands = sort { $strand{$b} <=> $strand{$a} } keys %strand;
+	my $flag;
 	if (@strands>1 and $strand{$strands[1]} > 1) {
 		$mark += 100000;
+		$flag = 'A';
+	} else {
+		$flag = $strands[0];
 	}
-warn "$mark <\n";
+#warn "$mark <\n";
+	++$Stat{'Cluster_mark'}{$mark};
+	return [$mark,$flag];
 }
 
 $th = openpipe('samtools view -f64 -F1796',$bamfs);	# +0x40 -0x704
@@ -126,18 +132,25 @@ while (<$th>) {
 	#my @ta = split /\t/,$t;
 	++$Stat{'Total_reads'};
 	next unless grep /^XT:A:U$/,@opt;
+	my @Samples = grep /^RG:Z:/,@opt;
+	my $sample = '';
+	if (@Samples == 1) {
+		$sample = substr $Samples[0],5;
+warn "$sample";
+	}
 
 	my ($strand,$thePos,$readSeq,$readQ,$radM)=('+');
 	my ($reflen,$maxM,$firstM,$lastM)=@{cigar2reflen($cigar)};
 	if ($flag & 16) {
 		$strand = '-';
-		$radM = $lastM;
-	} else {
-		$radM = $firstM;
+#		$radM = $lastM;
+#	} else {
+#		$radM = $firstM;
 	}
-	if ($radM<$EcutAt or $maxM<$minOKalnLen or $reflen<$minAlignLen) {
+#	if ($radM<$EcutAt or $maxM<$minOKalnLen or $reflen<$minAlignLen) {
+	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {	# no need to check $radM after cutfq_withEC
 		++$Stat{'CIAGR_skipped'}{$strand.$cigar};
-warn "$strand.$cigar $radM\n";
+#warn "$strand.$cigar $radM\n";
 		next;
 	}
 	if ($flag & 16) {	# reverse
@@ -158,13 +171,18 @@ warn "$strand.$cigar $radM\n";
 	if ($ref eq $lastChr and $thePos == $lastPos) {
 		#push @items,[$strandShift,$readSeq,$readQ];
 	} else {
-		&deal_cluster($lastChr,$lastPos,\@items);
+		my ($mark,$flag) = @{&deal_cluster($lastChr,$lastPos,\@items)};
+		if ($mark) {
+			print O join("\t",$lastChr,$lastPos,$flag,$mark,scalar @items),"\n";
+#warn join("\t",$lastChr,$lastPos,$flag,$mark,scalar @items,@{$items[0]},@{$items[-1]}),"\n";
+		}
 		$lastChr = $ref;
 		$lastPos = $thePos;
 		@items = ();
 		#push @items,[$strandShift,$readSeq,$readQ];
 		#ddx \%Stat;
 	}
-	push @items,[$strand,$readSeq,$readQ];
+	push @items,[$strand,$readSeq,$readQ,$sample];
 }
 ddx \%Stat;
+close O;
