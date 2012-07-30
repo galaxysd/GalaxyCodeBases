@@ -5,14 +5,16 @@ Version: 1.0.0 @ 20120720
 =cut
 use strict;
 use warnings;
-#use Data::Dump qw(ddx);
+use Data::Dump qw(ddx);
 use Galaxy::IO;
-use Galaxy::IO::FASTAQ;
+use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
+use Galaxy::SeqTools;
 
-die "Usage: $0 <reference> <out> <sorted bam files>\n" if @ARGV<2;
-my $fa=shift;
-my $out=shift;
-my @bamfs = @ARGV;
+die "Usage: $0 <reference> <merged bam> <out>\n" if @ARGV<2;
+# no more "<sorted bam files>", use `samtools merge -r <out.bam> <in1.bam> <in2.bam> [...]` first !
+my $fafs=shift;
+my $bamfs=shift;
+my $outfs=shift;
 
 my $ReadLen = 101-5;
 my $minOKalnLen = 30;
@@ -21,6 +23,7 @@ $minAlignLen = $minOKalnLen if $minAlignLen < $minOKalnLen;
 die if $ReadLen < $minOKalnLen;
 
 my $Eseq="CTGCAG";
+my $EseqLen = length $Eseq;
 my $EcutAt=5;
 my $EseqL="CTGCA";#substr $Eseq,0,$EcutAt;
 my $EseqR="TGCAG";
@@ -33,13 +36,14 @@ my $ErevTerm5=$ErevTerm3-$ReadLen+1;	# -94
 my $Rfwd2Ec = -$EfwdTerm5;	# 3
 my $Rrev2Ec = -$ErevTerm3;	# 0
 
+my %Stat;
 my $t;
-open O,'>',$out or die "Error opening $out : $!\n";
-$t = "# Ref: [$fa], Enzyme: [$Eseq], Cut after $EcutAt\n# Bams: [@bamfs]\n\n";
+open O,'>',$outfs or die "Error opening $outfs : $!\n";
+$t = "# Ref: [$fafs], Enzyme: [$Eseq], Cut after $EcutAt\n# Bams: [$bamfs]\n\n";
 print O $t;
 print $t;
 
-my $FHref = openfile($fa);
+my $FHref = openfile($fafs);
 my @aux = undef;
 my ($name, $comment, $seq, %RefSeq, %RefLen, $ret);
 my ($n, $slen) = (0, 0);
@@ -52,13 +56,15 @@ while ($ret = &readfq($FHref, \@aux)) {
 	#warn "$name, $comment, $seq\n";
 }
 warn "Ref: $n seq of $slen bp.\n";
-my $th = openpipe('samtools view -H',$bamfs[0]);
+my $th = openpipe('samtools view -H',$bamfs);
 my @RefOrder;
 while (<$th>) {
 	/^\@SQ\tSN:([^ ]+) LN:(\d+)$/ or next;
 	push @RefOrder,$1;
 	die "[x]Chr:$1 Len:$2 != $RefLen{$name}.\n" if $2 != $RefLen{$name};
 }
+close $th;
+warn "Input files match.\n";
 
 sub cigar2reflen($) {
 	my $cigar = $_[0];
@@ -75,18 +81,84 @@ sub cigar2reflen($) {
 	}
 	return [$reflen,$maxM];
 }
-
-my (@bamData,@ta);
-my $fhflag = 0;
-for my $name (@bamfs) {
-	$th = openpipe('samtools view -f64 -F1796',$name);	# +0x40 -0x704
-	my $t = readline $th;
-	#my ($id,$flag,$ref,$pos,$mapq,$cigar,$MRNM,$MPOS,$ISIZE,$seq,$qual,@opt) = split /\t/,$t;
-	@ta = split /\t/,$t;
-	push @bamData,[$th,1,$ta[2],$ta[3],\@ta];
-	++$fhflag;
+sub deal_cluster($$$) {
+	my ($lastChr,$lastPos,$itemsA) = @_;
+	my $mark = 0;
+	unless ( (exists $RefSeq{$lastChr}) or $lastPos<2 or $lastPos+$EcutAt>$RefLen{$name} ) {
+		++$Stat{'Cluster_err'};;
+		return $mark;
+	}
+	++$Stat{'Cluster_cnt'};
+	my $ref = substr $RefSeq{$lastChr},$lastPos-2,$EseqLen;
+	my $refmatches = ($ref ^ $Eseq) =~ tr/\0//;	# http://perlmonks.org/?node_id=840593
+	++$Stat{'Cluster_RefFullECcnt'}{$refmatches};
+warn ">$lastChr,$lastPos,$ref,$refmatches\n";
+	my %strand;
+	for (@$itemsA) {
+		my ($Strand,$readSeq,$readQ) = @$_;
+		my @Qvals = @{getQvaluesFQ($readQ)};
+		++$strand{$Strand};
+		my $mask = $readSeq ^ $EseqR;	# http://stackoverflow.com/questions/4709537/fast-way-to-find-difference-between-two-strings-of-equal-length-in-perl
+		my $seqmatches = $mask =~ tr/\0//;
+		while ($mask =~ /[^\0]/g) {
+			my $qvar = $Qvals[$-[0]];
+#warn substr($readSeq,$-[0],1), ' ', substr($EseqR,$-[0],1), ' ', $-[0], " $qvar\n";
+			$mark += (10**($qvar/(-10)))/(3*$EcutAt);
+		}
+		$mark += $seqmatches/$EcutAt;
+#warn "   $strandShift,$readSeq,$readQ [@Qvals] $mark\n";
+	}
+	my @strands = sort { $strand{$b} <=> $strand{$a} } keys %strand;
+	if (@strands>1 and $strand{$strands[1]} > 1) {
+		$mark += 100000;
+	}
+warn "$mark <\n";
 }
 
-while ($fhflag > 0) {
-	@bamData = sort { $a->[2] <=> $b->[2] } @bamData;
+$th = openpipe('samtools view -f64 -F1796',$bamfs);	# +0x40 -0x704
+my ($lastChr,$lastPos) = ('',0);
+my @items;
+while (<$th>) {
+	my ($id,$flag,$ref,$pos,$mapq,$cigar,$MRNM,$MPOS,$ISIZE,$seq,$qual,@opt) = split /\t/;
+	#my @ta = split /\t/,$t;
+	++$Stat{'Total_reads'};
+	next unless grep /^XT:A:U$/,@opt;
+
+	my ($strand,$thePos,$readSeq,$readQ)=('+');
+	$strand = '-' if ($flag & 16);
+	my ($reflen,$maxM)=@{cigar2reflen($cigar)};
+	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {
+#########
+		#print join("\t",@read1[0..8]),"\n**>\t$reflen,$maxM\n";
+#########
+		++$Stat{'CIAGR_skipped'}{$strand.$cigar};
+		next;
+	}
+	if ($flag & 16) {	# reverse
+		$thePos = $pos + $reflen-1 + $Rrev2Ec;
+		#$strand = '-';
+		$readSeq = substr $seq,-$EcutAt;
+		$readSeq = revcom($readSeq);
+		$readQ = substr $qual,-$EcutAt;
+		$readQ = reverse $readQ;
+	} else {
+		$thePos = $pos + $Rfwd2Ec;
+		$readSeq = substr $seq,0,$EcutAt;
+		$readQ = substr $qual,0,$EcutAt;
+	}
+	++$Stat{'CIAGR_used'}{$strand.$cigar};
+	++$Stat{'Used_reads'};
+
+	if ($ref eq $lastChr and $thePos == $lastPos) {
+		#push @items,[$strandShift,$readSeq,$readQ];
+	} else {
+		&deal_cluster($lastChr,$lastPos,\@items);
+		$lastChr = $ref;
+		$lastPos = $thePos;
+		@items = ();
+		#push @items,[$strandShift,$readSeq,$readQ];
+		ddx \%Stat;
+	}
+	push @items,[$strand,$readSeq,$readQ];
 }
+
