@@ -70,6 +70,9 @@ sub cigar2reflen($) {
 	my $cigar = $_[0];
 	my @cigar = $cigar =~ /(\d+)(\w)/g;
 	my ($reflen,$maxM)=(0,0);
+	my ($firstM,$lastM)=(0,0);
+	$firstM = $cigar[0] if ($cigar[1] eq 'M');
+	$lastM = $cigar[-2] if ($cigar[-1] eq 'M');
 	while (@cigar) {
 		my ($len,$op) = splice(@cigar,0,2);
 		if ($op eq 'M') {
@@ -79,13 +82,13 @@ sub cigar2reflen($) {
 		}
 		$reflen += $len if $op eq 'D';
 	}
-	return [$reflen,$maxM];
+	return [$reflen,$maxM,$firstM,$lastM];
 }
 sub deal_cluster($$$) {
 	my ($lastChr,$lastPos,$itemsA) = @_;
 	my $mark = 0;
-	unless ( (exists $RefSeq{$lastChr}) or $lastPos<2 or $lastPos+$EcutAt>$RefLen{$name} ) {
-		++$Stat{'Cluster_err'};;
+	if ( (not exists $RefSeq{$lastChr}) or $lastPos<2 or $lastPos+$EcutAt>$RefLen{$name} ) {
+		++$Stat{'Cluster_err'} if $lastChr ne '';
 		return $mark;
 	}
 	++$Stat{'Cluster_cnt'};
@@ -124,14 +127,17 @@ while (<$th>) {
 	++$Stat{'Total_reads'};
 	next unless grep /^XT:A:U$/,@opt;
 
-	my ($strand,$thePos,$readSeq,$readQ)=('+');
-	$strand = '-' if ($flag & 16);
-	my ($reflen,$maxM)=@{cigar2reflen($cigar)};
-	if ($maxM<$minOKalnLen or $reflen<$minAlignLen) {
-#########
-		#print join("\t",@read1[0..8]),"\n**>\t$reflen,$maxM\n";
-#########
+	my ($strand,$thePos,$readSeq,$readQ,$radM)=('+');
+	my ($reflen,$maxM,$firstM,$lastM)=@{cigar2reflen($cigar)};
+	if ($flag & 16) {
+		$strand = '-';
+		$radM = $lastM;
+	} else {
+		$radM = $firstM;
+	}
+	if ($radM<$EcutAt or $maxM<$minOKalnLen or $reflen<$minAlignLen) {
 		++$Stat{'CIAGR_skipped'}{$strand.$cigar};
+warn "$strand.$cigar $radM\n";
 		next;
 	}
 	if ($flag & 16) {	# reverse
@@ -157,8 +163,8 @@ while (<$th>) {
 		$lastPos = $thePos;
 		@items = ();
 		#push @items,[$strandShift,$readSeq,$readQ];
-		ddx \%Stat;
+		#ddx \%Stat;
 	}
 	push @items,[$strand,$readSeq,$readQ];
 }
-
+ddx \%Stat;
