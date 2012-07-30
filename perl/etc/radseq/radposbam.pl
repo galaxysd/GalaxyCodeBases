@@ -123,6 +123,7 @@ sub deal_cluster($$$) {
 	}
 #warn "$mark <\n";
 	++$Stat{'Cluster_mark'}{$mark};
+	++$Stat{'Cluster_sample_cnt'}{scalar @sampleA};
 	return [$mark,$flag,\@sampleA];
 }
 
