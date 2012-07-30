@@ -89,18 +89,19 @@ sub deal_cluster($$$) {
 	my $mark = 0;
 	if ( (not exists $RefSeq{$lastChr}) or $lastPos<2 or $lastPos+$EcutAt>$RefLen{$name} ) {
 		++$Stat{'Cluster_err'} if $lastChr ne '';
-		return [$mark,''];
+		return [$mark,'',[]];
 	}
 	++$Stat{'Cluster_cnt'};
 	my $ref = substr $RefSeq{$lastChr},$lastPos-2,$EseqLen;
 	my $refmatches = ($ref ^ $Eseq) =~ tr/\0//;	# http://perlmonks.org/?node_id=840593
 	++$Stat{'Cluster_RefFullECcnt'}{$refmatches};
 #warn ">$lastChr,$lastPos,$ref,$refmatches\n";
-	my %strand;
+	my (%strand,%samples);
 	for (@$itemsA) {
-		my ($Strand,$readSeq,$readQ) = @$_;
+		my ($Strand,$readSeq,$readQ,$sample) = @$_;
 		my @Qvals = @{getQvaluesFQ($readQ)};
 		++$strand{$Strand};
+		++$samples{$sample};
 		my $mask = $readSeq ^ $EseqR;	# http://stackoverflow.com/questions/4709537/fast-way-to-find-difference-between-two-strings-of-equal-length-in-perl
 		my $seqmatches = $mask =~ tr/\0//;
 		while ($mask =~ /[^\0]/g) {
@@ -111,6 +112,7 @@ sub deal_cluster($$$) {
 		$mark += $seqmatches/$EcutAt;
 #warn "   $strandShift,$readSeq,$readQ [@Qvals] $mark\n";
 	}
+	my @sampleA = sort {$b<=>$a} values %samples;
 	my @strands = sort { $strand{$b} <=> $strand{$a} } keys %strand;
 	my $flag;
 	if (@strands>1 and $strand{$strands[1]} > 1) {
@@ -121,7 +123,7 @@ sub deal_cluster($$$) {
 	}
 #warn "$mark <\n";
 	++$Stat{'Cluster_mark'}{$mark};
-	return [$mark,$flag];
+	return [$mark,$flag,\@sampleA];
 }
 
 $th = openpipe('samtools view -f64 -F1796',$bamfs);	# +0x40 -0x704
@@ -136,7 +138,7 @@ while (<$th>) {
 	my $sample = '';
 	if (@Samples == 1) {
 		$sample = substr $Samples[0],5;
-warn "$sample";
+#warn "$sample";
 	}
 
 	my ($strand,$thePos,$readSeq,$readQ,$radM)=('+');
@@ -171,9 +173,9 @@ warn "$sample";
 	if ($ref eq $lastChr and $thePos == $lastPos) {
 		#push @items,[$strandShift,$readSeq,$readQ];
 	} else {
-		my ($mark,$flag) = @{&deal_cluster($lastChr,$lastPos,\@items)};
+		my ($mark,$flag,$sampleA) = @{&deal_cluster($lastChr,$lastPos,\@items)};
 		if ($mark) {
-			print O join("\t",$lastChr,$lastPos,$flag,$mark,scalar @items),"\n";
+			print O join("\t",$lastChr,$lastPos,$flag,$mark,scalar @items,scalar @$sampleA,join(',',@$sampleA)),"\n";
 #warn join("\t",$lastChr,$lastPos,$flag,$mark,scalar @items,@{$items[0]},@{$items[-1]}),"\n";
 		}
 		$lastChr = $ref;
