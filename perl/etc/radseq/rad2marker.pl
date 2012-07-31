@@ -65,6 +65,7 @@ my $th = openpipe('bcftools view',$bcfs);
 my (@Samples,@Parents);
 while (<$th>) {
 	next if /^##/;
+	chomp;
 	my @data = split /\t/;
 	if ($data[0] eq '#CHROM') {
 		@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;
@@ -100,6 +101,7 @@ my ($lastChr) = ('');
 my @items;
 while (<$th>) {
 	next if /^#/;
+	chomp;
 	my ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data) = split /\t/;
 	++$Stat{'VCF_In'};
 	my @groups = split(/\s*;\s*/, $INFO);
@@ -129,7 +131,9 @@ while (<$th>) {
 			$GT{$s}{$i} = shift @dat;
 		}
 	}
-	++$GTcnt{$GT{$_}{'GT'}} for @Samples;
+	for (@Samples) {
+		++$GTcnt{$GT{$_}{'GT'}} if $GT{$_}{'DP'} > 0;
+	}
 =pod
 ++$Stat{'GTcnt'}{$INFO{'FQ'} <=> 0}{scalar(keys %GTcnt)};
 ddx $Stat{'GTcnt'};
@@ -144,7 +148,7 @@ ddx $Stat{'GTcnt'};
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
-ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT;
+#ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT;
 	unless ($CHROM eq $lastChr) {
 		my ($mark,$flag,$sampleA) = @{&deal_cluster($CHROM,\@items)};
 		@items = ();
@@ -163,7 +167,7 @@ sub deal_cluster() {
 		++$Stat{'Cluster_err'} if $Chr ne '';
 		return [$mark,'',[]];
 	}
-	for (@{$Markers{$chr}}) {
+	for (@{$Markers{$Chr}}) {
 		my ($pos,$strand) = @$_;
 		my ($left,$right);
 		if ($strand eq '+') {
@@ -173,8 +177,12 @@ sub deal_cluster() {
 		} else {
 			($left,$right)=($pos-$PosLeft,$pos+$PosRight);
 		}
+print "$pos,$strand [$left,$right]\n";
+		;
 	}
 	++$Stat{'Cluster_cnt'};
-	return [$mark,$flag,\@sampleA];
+ddx $itemsA;
+	;
+	return [$mark,1,[]];
 }
 
