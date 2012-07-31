@@ -131,12 +131,21 @@ while (<$th>) {
 		}
 	}
 	++$GTcnt{$GT{$_}{'GT'}} for @Samples;
+=pod
+++$Stat{'GTcnt'}{$INFO{'FQ'} <=> 0}{scalar(keys %GTcnt)};
+ddx $Stat{'GTcnt'};
+# rad2marker.pl:135: {
+#   -1 => { 1 => 2850, 2 => 526, 3 => 37 },
+#   1  => { 1 => 8, 2 => 2507, 3 => 1792 },
+# }
+=cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
-ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
-	if ($QUAL<20 or $INFO{'FQ'}<0 or $INFO{'DP'}<6) {
+#ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
+	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)<2 or $INFO{'DP'}<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
+ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT;
 	unless ($CHROM eq $lastChr) {
 		;
 		@items = ();
@@ -144,3 +153,5 @@ ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
 	}
 	push @items,[$POS, $REF, $ALT, $QUAL];
 }
+
+ddx \%Stat;
