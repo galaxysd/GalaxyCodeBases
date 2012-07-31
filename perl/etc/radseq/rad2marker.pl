@@ -11,7 +11,6 @@ use Galaxy::IO::FASTAQ qw(readfq getQvaluesFQ);
 use Galaxy::SeqTools;
 
 die "Usage: $0 <ec list> <bcgv bcf> <out>\n" if @ARGV<2;
-# no more "<sorted bam files>", use `samtools merge -r <out.bam> <in1.bam> <in2.bam> [...]` first !
 my $eclst=shift;
 my $bcfs=shift;
 my $outfs=shift;
