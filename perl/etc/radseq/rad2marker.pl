@@ -58,7 +58,7 @@ while (<L>) {
 	my ($chr,$pos,$strand,$mark,$count,$samples) = split /\t/;
 #warn "$chr,$pos,$strand,$samples,$mark\n";
 	next if $samples < 2;
-	push @{$Markers{$chr}},[$pos,$strand]
+	push @{$Markers{$chr}},[$pos,$strand];
 }
 close L;
 
@@ -147,11 +147,35 @@ ddx $Stat{'GTcnt'};
 	}
 ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT;
 	unless ($CHROM eq $lastChr) {
-		;
+		my ($mark,$flag,$sampleA) = @{&deal_cluster($CHROM,\@items)};
 		@items = ();
 		$lastChr = $CHROM;
 	}
-	push @items,[$POS, $REF, $ALT, $QUAL];
+	push @items,[$POS, $REF, $ALT, \%INFO,\%GT];
 }
 
 ddx \%Stat;
+close O;
+
+sub deal_cluster() {
+	my ($Chr,$itemsA) = @_;
+	my $mark = 0;
+	if ( (not exists $Markers{$Chr}) ) {
+		++$Stat{'Cluster_err'} if $Chr ne '';
+		return [$mark,'',[]];
+	}
+	for (@{$Markers{$chr}}) {
+		my ($pos,$strand) = @$_;
+		my ($left,$right);
+		if ($strand eq '+') {
+			($left,$right)=($pos,$pos+$PosRight);
+		} elsif ($strand eq '-') {
+			($left,$right)=($pos-$PosLeft,$pos+$PosECsft);
+		} else {
+			($left,$right)=($pos-$PosLeft,$pos+$PosRight);
+		}
+	}
+	++$Stat{'Cluster_cnt'};
+	return [$mark,$flag,\@sampleA];
+}
+
