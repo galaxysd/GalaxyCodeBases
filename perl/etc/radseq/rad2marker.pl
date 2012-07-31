@@ -131,12 +131,20 @@ while (<$th>) {
 			$GT{$s}{$i} = shift @dat;
 		}
 	}
+	my $SPcnt = 0;
 	for (@Samples) {
-		++$GTcnt{$GT{$_}{'GT'}} if $GT{$_}{'DP'} > 0;
+		if ($GT{$_}{'DP'} > 0 and $GT{$_}{'GQ'} > 17) {
+			++$GTcnt{$GT{$_}{'GT'}};
+			++$SPcnt;
+			$GT{$_}{'O_K'} = 1;
+		} else {
+			$GT{$_}{'O_K'} = 0;
+		}
 	}
 =pod
 ++$Stat{'GTcnt'}{$INFO{'FQ'} <=> 0}{scalar(keys %GTcnt)};
 ddx $Stat{'GTcnt'};
+ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(keys %GTcnt) > 1 and $INFO{'FQ'} < 0 and $SPcnt>2;
 # rad2marker.pl:135: {
 #   -1 => { 1 => 2850, 2 => 526, 3 => 37 },
 #   1  => { 1 => 8, 2 => 2507, 3 => 1792 },
@@ -144,7 +152,7 @@ ddx $Stat{'GTcnt'};
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
-	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)<2 or $INFO{'DP'}<6) {
+	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)<2 or $SPcnt<3 or $INFO{'DP'}<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
@@ -154,7 +162,7 @@ ddx $Stat{'GTcnt'};
 		@items = ();
 		$lastChr = $CHROM;
 	}
-	push @items,[$POS, $REF, $ALT, \%INFO,\%GT];
+	push @items,[$POS, $REF, $ALT, $SPcnt, \%INFO,\%GT];
 }
 
 ddx \%Stat;
@@ -177,11 +185,15 @@ sub deal_cluster() {
 		} else {
 			($left,$right)=($pos-$PosLeft,$pos+$PosRight);
 		}
-print "$pos,$strand [$left,$right]\n";
-		;
+#print "$pos,$strand [$left,$right]\n";
+		for (@$itemsA) {
+			my ($POS, $REF, $ALT, $SPcnt, $pINFO,$pGT) = @$_;
+			next if $POS < $left;
+			last if $POS > $right;
+		}
 	}
 	++$Stat{'Cluster_cnt'};
-ddx $itemsA;
+#ddx $itemsA;
 	;
 	return [$mark,1,[]];
 }
