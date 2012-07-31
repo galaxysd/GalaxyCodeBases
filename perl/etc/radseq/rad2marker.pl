@@ -63,18 +63,19 @@ while (<L>) {
 close L;
 
 my $th = openpipe('bcftools view',$bcfs);
-my @Samples;
+my (@Samples,@Parents);
 while (<$th>) {
 	next if /^##/;
 	my @data = split /\t/;
 	if ($data[0] eq '#CHROM') {
 		@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;
 		# ../5.bam_0000210210_merged/d1_4_merged.D4.JHH001.XTU.sort.rmdup.bam
+		@Parents = grep(!/^GZXJ/,@Samples);
 		last;
 	}
 }
-print O "# Samples: [",join('],[',@Samples),"]\n";
-warn "Samples:\n[",join("]\n[",@Samples),"]\n";
+print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
+warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
 =pod
 Samples:
 [JHH001_D4]
@@ -104,8 +105,15 @@ while (<$th>) {
 	++$Stat{'VCF_In'};
 	my @groups = split(/\s*;\s*/, $INFO);
 	my (%INFO,$name);
+	if ($groups[0] eq 'INDEL') {
+		$INFO{'Type'} = 'INDEL';
+		shift @groups;
+	} else {
+		$INFO{'Type'} = 'SNP';
+	}
 	for my $group (@groups) {
 		my ($tag,$value) = split /=/,$group;
+#warn "- $group -> $tag,$value\n";
 		my @values = split /,/,$value;
 		if (@values == 1) {
 			$INFO{$tag}=$values[0];
@@ -122,7 +130,7 @@ while (<$th>) {
 			$GT{$s}{$i} = shift @dat;
 		}
 	}
-warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER\n";
+warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 ddx \%INFO;
 ddx \%GT;
 	if ($QUAL<20 or $INFO{'FQ'}<0 or $INFO{'DP'}<6) {
