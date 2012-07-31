@@ -121,7 +121,7 @@ while (<$th>) {
 			$INFO{$tag}=\@values;
 		}
 	}
-	my %GT;
+	my (%GT,%GTcnt);
 	my @FMT = split /:/,$FORMAT;
 	for my $s (@Samples) {
 		my $dat = shift @data or die "Bam file error.";
@@ -130,9 +130,9 @@ while (<$th>) {
 			$GT{$s}{$i} = shift @dat;
 		}
 	}
-warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
-ddx \%INFO;
-ddx \%GT;
+	++$GTcnt{$GT{$_}{'GT'}} for @Samples;
+#warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
+ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
 	if ($QUAL<20 or $INFO{'FQ'}<0 or $INFO{'DP'}<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
