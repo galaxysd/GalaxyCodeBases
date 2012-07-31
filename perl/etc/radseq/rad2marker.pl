@@ -47,7 +47,7 @@ my $PosECsft = $Rfwd2Ec;	# 3;
 my %Stat;
 my $t;
 open O,'>',$outfs or die "Error opening $outfs : $!\n";
-$t = "# EClst: [$eclst], Enzyme: [$Eseq], Cut after $EcutAt\n# Bams: [$bcfs]\n\n";
+$t = "# EClst: [$eclst], Enzyme: [$Eseq], Cut after $EcutAt\n# Bams: [$bcfs]\n";
 print O $t;
 print $t;
 
@@ -73,10 +73,66 @@ while (<$th>) {
 		last;
 	}
 }
-
-__END__
-my %VCF;
+print O "# Samples: [",join('],[',@Samples),"]\n";
+warn "Samples:\n[",join("]\n[",@Samples),"]\n";
+=pod
+Samples:
+[JHH001_D4]
+[GZXJ03_A1]
+[GZXJ05_A3]
+[GZXJ26_B1]
+[GZXJ27_B2]
+[GZXJ28_B3]
+[GZXJ29_B4]
+[GZXJ30_C1]
+[GZXJ33_C4]
+[BHX011_LSJ]
+[BHX019_LSJ]
+[GZXJ04_A2]
+[GZXJ06_A4]
+[GZXJ31_C2]
+[GZXJ32_C3]
+[GZXJ36_D1]
+[GZXJ37_D2]
+[GZXJ38_D3]
+=cut
+my ($lastChr) = ('');
+my @items;
 while (<$th>) {
 	next if /^#/;
-	my @data = split /\t/;
+	my ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data) = split /\t/;
+	++$Stat{'VCF_In'};
+	my @groups = split(/\s*;\s*/, $INFO);
+	my (%INFO,$name);
+	for my $group (@groups) {
+		my ($tag,$value) = split /=/,$group;
+		my @values = split /,/,$value;
+		if (@values == 1) {
+			$INFO{$tag}=$values[0];
+		} else {
+			$INFO{$tag}=\@values;
+		}
+	}
+	my %GT;
+	my @FMT = split /:/,$FORMAT;
+	for my $s (@Samples) {
+		my $dat = shift @data or die "Bam file error.";
+		my @dat = split /:/,$dat;
+		for my $i (@FMT) {
+			$GT{$s}{$i} = shift @dat;
+		}
+	}
+warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER\n";
+ddx \%INFO;
+ddx \%GT;
+	if ($QUAL<20 or $INFO{'FQ'}<0 or $INFO{'DP'}<6) {
+		++$Stat{'VCF_Skipped'};
+		next;
+	}
+	unless ($CHROM eq $lastChr) {
+		;
+		@items = ();
+		$lastChr = $CHROM;
+	}
+	push @items,[$POS, $REF, $ALT, $QUAL];
 }
