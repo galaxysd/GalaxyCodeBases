@@ -71,6 +71,8 @@ while (<$th>) {
 }
 close $th;
 warn "bcf done.\n";
+
+print O '# ChrID Count: ',scalar(keys %ChrPn),"\n",'# SNP Count: ',scalar(keys %Plink),"\n";
 for (keys %ChrPn) {
 	$ChrPs{$_} /= $ChrPn{$_};
 }
