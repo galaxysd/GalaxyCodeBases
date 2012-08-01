@@ -21,13 +21,14 @@ $t = "# In: [$bcfs], Out: [$outfs]\n";
 print O $t;
 print $t;
 
-my %Pheno;
+my (%Pheno,@tfamSamples);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff, 2=aff, 0=miss)
+	push @tfamSamples,$ind;
 }
 close L;
 
@@ -44,14 +45,19 @@ while (<$th>) {
 		last;
 	}
 }
-print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
+print OP "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
+die "Samples in tfam and bcf not match !\n" if @tfamSamples != @Samples;
+for (my $i = 0; $i < @Samples; $i++) {
+	die "Samples in tfam and bcf not match !\n" if $tfamSamples[$i] ne $Samples[$i];
+}	# http://stackoverflow.com/questions/2591747/how-can-i-compare-arrays-in-perl
 
 while (<$th>) {
 	next if /^#/;
 	chomp;
 	my ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data) = split /\t/;
-	++$Stat{'VCF_In'};
+	++$Stat{'VCF_In'};	# also as rs#
+	my @Bases = split /\s*,\s*/,"$REF, $ALT";
 	my @groups = split(/\s*;\s*/, $INFO);
 	my (%INFO,$name);
 #	if ($groups[0] eq 'INDEL') {
@@ -80,7 +86,7 @@ while (<$th>) {
 		}
 	}
 	my $SPcnt = 0;
-	my %GTitemCnt;
+	my (%GTitemCnt,$Mut,@plinkGT);
 	for (@Samples) {
 		if ($GT{$_}{'DP'} > 0 and $GT{$_}{'GQ'} > 17) {
 			my $gt = $GT{$_}{'GT'};
@@ -90,12 +96,20 @@ while (<$th>) {
 			if ($Pheno{$_} == 2) {
 				++$GTitemCnt{$_} for @GT;
 			}
+			$GT{$_}{'GTp'} = join ' ',map($Bases[$_], @GT);
 			#$GT{$_}{'O_K'} = 1;
 		} else {
 			$GT{$_}{'GTp'} = '0 0';
 			#$GT{$_}{'O_K'} = 0;
 		}
+		push @plinkGT,$GT{$_}{'GTp'};
 	}
+	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt;
+	unless ($Mut) {
+		++$Stat{'VCF_noMUT_Skip'};
+		next;
+	}
+	$Mut = $Bases[$Mut];
 =pod
 ++$Stat{'GTcnt'}{$INFO{'FQ'} <=> 0}{scalar(keys %GTcnt)};
 ddx $Stat{'GTcnt'};
@@ -106,19 +120,24 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 # }
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
-ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT;
-	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)<2 or $SPcnt<3 or $INFO{'DP'}<6) {
+#ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
+	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)!=2 or $SPcnt<3 or $INFO{'DP'}<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
+	my $SNPid = "r".$Stat{'VCF_In'};
+	$CHROM =~ /(\d+)/;
+	print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
+	print OM join("\t",$SNPid,$Mut),"\n";
 }
-
-
-
 
 close OP;
 close OM;
 
-print "Prepare $outfs.tfam [and $outfs.phe]. And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out $outfs.p --pheno $outfs.phe --all-pheno --model --cell 0\n\n";
+ddx \%Stat;
+
+print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out $outfs.p --pheno $outfs.phe --all-pheno --model --cell 0\n\n";
 __END__
 grep -hv \# radseq.gt > radseq.tfam
+
+./bcf2bed.pl radseq.tfam radseq.bcgv.bcf radseq 2>&1 | tee radseq.pedlog
