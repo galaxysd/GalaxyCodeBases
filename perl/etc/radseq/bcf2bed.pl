@@ -17,6 +17,7 @@ my $outfs=shift;
 my (%Stat,$t);
 open OP,'>',$outfs.'.tped' or die "Error opening $outfs.tped : $!\n";
 open OM,'>',$outfs.'.MinorAllele' or die "Error opening $outfs.MinorAllele : $!\n";
+open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
 $t = "# In: [$bcfs], Out: [$outfs]\n";
 print O $t;
 print $t;
@@ -45,7 +46,7 @@ while (<$th>) {
 		last;
 	}
 }
-print OP "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
+print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
 die "Samples in tfam and bcf not match !\n" if @tfamSamples != @Samples;
 for (my $i = 0; $i < @Samples; $i++) {
