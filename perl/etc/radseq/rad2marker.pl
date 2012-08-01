@@ -208,6 +208,29 @@ ddx \@thisDat;
 
 __END__
 zcat radseq.bcgv.vcf.gz|perl -ne 'if (/^#CHROM/) {my @data = split /\t/;@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;splice @data,9,$#data,@Samples;print join("\t",@data),"\n"} else {print $_;}' > radseqA.vcf &
-zcat radseq.bcgv.vcf.gz|perl -lane 'next if /^#/;print "$F[0]\t0\t$F[1]"' > radseqA.map &
+zcat radseq.bcgv.vcf.gz|perl -lane 'BEGIN {my $i;} next if /^#/;++$i;$F[0]=~s/^\D+//;print "$F[0]\trs$i\t0\t$F[1]"' > radseqA.map &
 
 zcat radseq.bcgv.vcf.gz | perl -ne 'my @data = split /\t/;if (/^#CHROM/) {@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;splice @data,9,$#data,@Samples;print join("\t",@data),"\n"} elsif (/^#/) {print $_;} else {print $_;}' > radseqA.vcf
+
+p-link --tfile test --reference-allele test.refallele --pheno test.pheno --all-pheno --model --cell 0 --fisher
+
+$ head test.tfam
+B19	JHH001_D4	0	0	2	1
+B19	GZXJ03_A1	BHX019_LSJ	JHH001_D4	2	1
+$ head test.tped
+1001	rs1	0	5188	A T	A T	A T	A T	A T	A T	A T	A T	A T	T T	T T	T T	T T	T T	T T	T T	T T	T T
+1001	rs2	0	5193	A A	A A	A A	A A	A A	A A	A A	A A	A A	A C	A C	A C	A C	0 0	A C	A C	A C	0 0
+$ head -2 test.refallele
+rs1	T
+rs2	T
+$ head -2 test.pheno
+FID	IID	snow	sex
+B19	JHH001_D4	1	2
+
+p-link --tfile test --reference-allele test.refallele --pheno test.pheno --all-pheno --model --cell 0 --fisher --out testO
+$ ll testO*
+-rw-r--r-- 1 huxs users 2526 Aug  1 18:41 testO.log
+-rw-r--r-- 1 huxs users 3672 Aug  1 18:41 testO.sex.model
+-rw-r--r-- 1 huxs users 3672 Aug  1 18:41 testO.snow.model
+
+#--freq --missing --tdt
