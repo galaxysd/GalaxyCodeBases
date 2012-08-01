@@ -168,6 +168,9 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 ddx \%Stat;
 close O;
 
+sub getGT() {
+	my ($REF, $ALT, $GT) = @_;
+}
 sub deal_cluster() {
 	my ($Chr,$itemsA) = @_;
 	my $mark = 0;
@@ -185,12 +188,17 @@ sub deal_cluster() {
 		} else {
 			($left,$right)=($pos-$PosLeft,$pos+$PosRight);
 		}
-#print "$pos,$strand [$left,$right]\n";
+print "$pos,$strand [$left,$right] ";
+		my @thisDat;
 		for (@$itemsA) {
 			my ($POS, $REF, $ALT, $SPcnt, $pINFO,$pGT) = @$_;
 			next if $POS < $left;
 			last if $POS > $right;
+			push @thisDat,$_
 		}
+		next if @thisDat == 0;
+print "\n$pos,$strand [$left,$right]\n";
+ddx \@thisDat;
 	}
 	++$Stat{'Cluster_cnt'};
 #ddx $itemsA;
@@ -198,3 +206,8 @@ sub deal_cluster() {
 	return [$mark,1,[]];
 }
 
+__END__
+zcat radseq.bcgv.vcf.gz|perl -ne 'if (/^#CHROM/) {my @data = split /\t/;@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;splice @data,9,$#data,@Samples;print join("\t",@data),"\n"} else {print $_;}' > radseqA.vcf &
+zcat radseq.bcgv.vcf.gz|perl -lane 'next if /^#/;print "$F[0]\t0\t$F[1]"' > radseqA.map &
+
+zcat radseq.bcgv.vcf.gz | perl -ne 'my @data = split /\t/;if (/^#CHROM/) {@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;splice @data,9,$#data,@Samples;print join("\t",@data),"\n"} elsif (/^#/) {print $_;} else {print $_;}' > radseqA.vcf
