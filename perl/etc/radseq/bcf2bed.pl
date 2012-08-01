@@ -131,6 +131,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
 }
+close $th;
 
 close OP;
 close OM;
@@ -142,3 +143,9 @@ __END__
 grep -hv \# radseq.gt > radseq.tfam
 
 ./bcf2bed.pl radseq.tfam radseq.bcgv.bcf radseq 2>&1 | tee radseq.pedlog
+
+grep REC radseq.p.snow.model > radseq.p.snow.model.REC
+grep DOM radseq.p.snow.model > radseq.p.snow.model.DOM
+sort -nk8 radseq.p.snow.model.REC > radseq.p.snow.model.REC.sortnk8 &
+sort -nk8 radseq.p.snow.model.DOM > radseq.p.snow.model.DOM.sortnk8 &
+bcftools view -I radseq.bcgv.bcf |grep -v \# |cat -n > radseq.bcgv.bcf.rs &
