@@ -39,7 +39,6 @@ while (<L>) {
 	$Plink{$Dat[1]} = \@Dat;
 }
 close L;
-@PlinkS = sort { $Plink{$a}->[$t] <=> $Plink{$b}->[$t] } keys %Plink;
 
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
@@ -57,15 +56,28 @@ while (<$th>) {
 print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
 
-my $VCF_In;
+my ($VCF_In,%ChrPn,%ChrPs);
 while (<$th>) {
 	next if /^#/;
 	chomp;
 	#my ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data) = split /\t/;
+	my @data = split /\t/;
 	++$VCF_In;	# also as rs#
 	if (exists $Plink{$VCF_In}) {
-		$Vcf{$VCF_In} = $_;
+		$Vcf{$VCF_In} = \@data;
+		++$ChrPn{$data[0]};
+		$ChrPs{$data[0]} += $Plink{$VCF_In}->[$SortI];
 	}
 }
 close $th;
+warn "bcf done.\n";
+for (keys %ChrPn) {
+	$ChrPs{$_} /= $ChrPn{$_};
+}
+
+@PlinkS = sort { $ChrPs{$Vcf{$a}->[0]} cmp $ChrPs{$Vcf{$b}->[0]} || $Plink{$a}->[$SortI] <=> $Plink{$b}->[$SortI] } keys %Plink;
+for (@PlinkS) {
+	print O join("\t",@{$Plink{$_}},@{$Vcf{$_}}),"\n";
+}
+
 close O;
