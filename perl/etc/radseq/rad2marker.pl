@@ -151,7 +151,6 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 # }
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
-#ddx ($CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO),\%GTcnt,\%INFO,\%GT;
 	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)<2 or $SPcnt<3 or $INFO{'DP'}<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
