@@ -41,8 +41,7 @@ while (<L>) {
 	++$Types{$TypeI};
 }
 close L;
-ddx \%Plink;
-die;
+#ddx \%Plink;
 
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
@@ -61,9 +60,9 @@ print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parent
 warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
 
 my ($VCF_In,%ChrPn,%ChrPs,%TypePsum);
-for (keys %Types) {
-	$ChrPs{$_} = ();
-}
+#for (keys %Types) {
+#	$ChrPs{$_} = ();
+#}
 while (<$th>) {
 	next if /^#/;
 	chomp;
@@ -72,7 +71,7 @@ while (<$th>) {
 	++$VCF_In;	# also as rs#
 	if (exists $Plink{$VCF_In}) {
 		$Vcf{$VCF_In} = \@data;
-		for (keys %{$Plink{$VCF_In}{$_}}) {
+		for (keys %{$Plink{$VCF_In}}) {
 			$t = $Plink{$VCF_In}{$_}->[$SortI];
 			$ChrPs{$_}{$data[0]} += $t;
 			$TypePsum{$_} += $t;
@@ -86,6 +85,10 @@ warn "bcf done.\n";
 
 print O '# ChrID Count: ',scalar(keys %ChrPn),"\n",'# SNP Count: ',scalar(keys %Plink),"\n";
 
+ddx \%TypePsum;
+ddx \%Plink;
+ddx \%ChrPs;
+
 for my $type (sort { $TypePsum{$a} <=> $TypePsum{$b} } keys %Types) {
 	for my $chr (keys %ChrPn) {
 		$ChrPs{$type}{$chr} /= $ChrPn{$chr};
@@ -93,6 +96,7 @@ for my $type (sort { $TypePsum{$a} <=> $TypePsum{$b} } keys %Types) {
 	@PlinkS = sort { $ChrPs{$type}{$Vcf{$a}->[0]} cmp $ChrPs{$type}{$Vcf{$b}->[0]} || $Plink{$a}{$type}->[$SortI] <=> $Plink{$b}{$type}->[$SortI] } keys %Plink;
 	for (@PlinkS) {
 		print O join("\t",@{$Plink{$_}{$type}},@{$Vcf{$_}}),"\n";
+print "{$_}{$type},@{$Plink{$_}{$type}}\n";
 	}
 }
 close O;
