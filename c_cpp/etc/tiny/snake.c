@@ -15,6 +15,9 @@ sco unix下：cc -o snake snake.c
 #include <sys/select.h>
 #include <termio.h>
 #include <fcntl.h>
+#include <unistd.h> // ttyname
+#include <stdlib.h> // rand, srand
+#include <string.h> // strlen
 
 #define SNAKE_INITX 5
 #define SNAKE_INITY 5
@@ -265,7 +268,7 @@ int iIsValid(int x,int y)
 
 int iEat(int x,int y)
 {
-		int i,j;
+		int i;
 
 		for(i=0;i<giRich;i++)
 		{
@@ -282,7 +285,7 @@ int iEat(int x,int y)
 		}
 		return(0);
 }
-main()
+int main()
 {
 		int iDir=2,iNextX,iNextY;
 		struct stNode *pstNew;
@@ -299,7 +302,7 @@ main()
 				iNextY=gpstHead->y-(!(iDir>>1))*(1-(iDir<<1));
 				if(!iIsValid(iNextX,iNextY))
 				{
-						printf("\033[%d;%dH\033[1m\033[40;34m%s\033[0m",
+						printf("\033[%d;%zdH\033[1m\033[40;34m%s\033[0m",
 								WIN_Y2-1,(WIN_X1+WIN_X2)/2-strlen(OVER)/2,OVER);
 						break;
 				}
@@ -320,7 +323,7 @@ main()
 						free(pstNew);
 				}
 				sprintf(sPrompt,"Score:%7d Level:%2d",giScore,giLevel);
-				printf("\033[%d;%dH\033[1m\033[40;34m%s\033[0m",
+				printf("\033[%d;%zdH\033[1m\033[40;34m%s\033[0m",
 						WIN_Y2,(WIN_X1+WIN_X2)/2-strlen(sPrompt)/2,sPrompt);
 		}
 		vKillSnake();
