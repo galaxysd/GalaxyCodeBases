@@ -2,6 +2,8 @@
 use strict;
 ###############################################################################
 # GTF
+# http://mblab.wustl.edu/svn/mblab/trunk/eval/GTF.pm
+# Well, not so easy to learn without doc, ...
 ###############################################################################
 # The GTF object parses and stores all data from a gtf file.
 package GTF;
