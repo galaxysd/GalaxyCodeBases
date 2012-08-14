@@ -172,15 +172,14 @@ while (my $x=$vcf->next_data_hash()) {
 		} else { next; }
 	} else { next; }
 #print "B:$GT2, b:$GT1 [$sampleCNT]\n";
-	my @gids = @{ChechRange( $$x{CHROM},$$x{POS} )};
-	next unless @gids;
+	my ($theGID,$theS,$theE) = @{ChechRange( $$x{CHROM},$$x{POS} )};
+	next unless $theGID;
 	die if exists $$x{INFO}{INDEL};	# No need to do INDEL as there is none.
 	for my $sample (keys %GTok) {
 		$GTok{$sample} = $vcf->decode_genotype($$x{REF},$$x{ALT},$GTok{$sample});	#('G',['A','C'],'0/0'); # returns 'G/G'
 	}
-	for (@gids) {
-		print "$_: ",$GeneDat{$$x{CHROM}}{$_}->[0],"\n";
-	}
+	print join(",",$$x{CHROM},$$x{POS},$GeneDat{$$x{CHROM}}{$theGID}->[0]." \t",
+		$theGID,$GeneDat{$$x{CHROM}}{$theGID}->[1],$theS,$theE),"\n";
 #	for my $gt (keys %GTs) {
 #		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
 #		if ($a3 or ($a1 != $a2)) {
@@ -221,7 +220,7 @@ $vcf->close;
 
 sub ChechRange($$) {
 	my ($chr,$pos) = @_;
-	my %ret;
+	my (%gidcnt,%gidat);
 	if (exists $Annoted{$chr}) {
 		my $datA = $Annoted{$chr};
 		if ($pos > $$datA[-1][2] or $pos < $$datA[0][1]) {
@@ -231,20 +230,39 @@ sub ChechRange($$) {
 			my ($gid,$s,$t) = @$_;
 			next if $pos > $t;
 			last if $pos < $s;
-			++$ret{$gid};
+			++$gidcnt{$gid};
+			push @{$gidat{$gid}},[$s,$t];
 		}
-		return [keys %ret];
-	} else {
-		return [];
+		if ( (keys %gidcnt) == 1 ) {
+			my $id=(keys %gidcnt)[0];
+			return [$id,@{$gidat{$id}->[0]}];
+		}
+		die "$chr,$pos" if (keys %gidcnt) > 1;
 	}
+	return [];
 	#push @{$Annoted{$data[0]}},[$feature{gene_id},$data[3],$data[4]];
 }
 
 sub mutpoint() {
-	my ($chr,$pos,$gid) = @_;
+	my ($chr,$pos,$gid,$gt,$ref) = @_;
 	# $GeneDat{$chr}{$gene_id}=[$gene_name,$strand,[[s1,e1],[s2,e2]],$start];
+	# $cDNA{$gid} = $seq;
+	# $Protein{$gid} = $AA;
 	my ($gname,$strand,$cdsA) = @{$GeneDat{$chr}{$gid}};
+	my ($met,$len,$tmp,$seq) = (0,0);
+	$seq = $cDNA{$gid};
+	$seq = revcom($seq) if $strand eq '-';	# ref order now.
 	for (@{$cdsA}) {
-		my ($s,$t) = @$_;
+		last if $met;
+		my ($s,$e) = @$_;
+		if ($pos >= $s and $pos <= $e) {
+			$met = 1;
+			$len += $pos - $s +1;
+			$seq = $cDNA{$gid};
+			substr($seq,$len,1) = $gt;
+			#$seq = substr($cDNA{$gid},0,$len) . $gt . substr($cDNA{$gid},$len+1)
+		} else {
+			$len += $e -$s + 1;
+		}
 	}
 }
