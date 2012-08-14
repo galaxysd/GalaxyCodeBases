@@ -47,7 +47,7 @@ for (@{$t{AAs}}) {
 #ddx [\@t,\%gen_code,\%start_codes];
 print "Codon Table:\n$code\n";
 
-my %GeneDat;
+my (%GeneDat,%Annoted);
 open GTF,'<',$gtfs or dir $!;
 while(my $in_line = <GTF>){
 	next if ($in_line =~ /^\s*\#/);
@@ -71,10 +71,12 @@ while(my $in_line = <GTF>){
 		$GeneDat{$data[0]}{$feature{gene_id}}=[$feature{gene_name},$data[6],[],$data[3]];
 	} elsif ($data[2] eq 'CDS' or $data[2] eq 'stop_codon') {
 		push @{$GeneDat{$data[0]}{$feature{gene_id}}->[2]},[$data[3],$data[4]];
+		push @{$Annoted{$data[0]}},[$feature{gene_id},$data[3],$data[4]];
 	}
 }
 close GTF;
 for my $chr (keys %GeneDat) {
+	$Annoted{$chr} = [ sort { $a->[1] <=> $b->[1] } @{$Annoted{$chr}} ];
 	for my $id (keys %{$GeneDat{$chr}}) {
 		my ($gene,$strand,$cdsA) = @{$GeneDat{$chr}{$id}};
 		if ($strand eq '+') {
@@ -138,13 +140,22 @@ ddx \@samples;
 
 while (my $x=$vcf->next_data_hash()) { 
 	next if $$x{QUAL} < 20;
-	my ($flag,%GTs,$gtREC)=(0);
-	for my $gt (keys %GTs) {
-		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
-		if ($a3 or ($a1 != $a2)) {
-			$flag = 1;
-		}
+	my %GTok;
+	my %GTs = %{$$x{gtypes}};
+	for my $sample (keys %GTs) {
+		next if $GTs{$sample}{DP}<=0 or $GTs{$sample}{GQ}<20;
+		$GTok{$sample} = $GTs{$sample}{GT};
 	}
-	ddx [\%GTs,$x] if $flag;
+	next unless keys %GTok;
+#	for my $gt (keys %GTs) {
+#		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
+#		if ($a3 or ($a1 != $a2)) {
+#			$flag = 1;
+#		}
+#	}
+	ddx \%GTs;
+	ddx $x;
 	#print $vcf->format_line($x);
 }
+#ddx $vcf;
+$vcf->close;
