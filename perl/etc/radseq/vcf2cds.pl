@@ -88,7 +88,8 @@ for my $chr (keys %GeneDat) {
 	}
 }
 warn "GTF loaded.\n";
-ddx \%GeneDat;
+#ddx \%GeneDat;
+ddx \%Annoted;
 
 my $fafh;
 my %RefSeq;
@@ -138,24 +139,53 @@ $vcf->parse_header();
 my (@samples) = $vcf->get_samples();
 ddx \@samples;
 
-while (my $x=$vcf->next_data_hash()) { 
+while (my $x=$vcf->next_data_hash()) {
+	die unless exists $Annoted{$$x{CHROM}};
 	next if $$x{QUAL} < 20;
-	my %GTok;
+	my (%GTok,%GTcnt);
 	my %GTs = %{$$x{gtypes}};
 	for my $sample (keys %GTs) {
 		next if $GTs{$sample}{DP}<=0 or $GTs{$sample}{GQ}<20;
 		$GTok{$sample} = $GTs{$sample}{GT};
+		++$GTcnt{ $GTs{$sample}{GT} };
 	}
 	next unless keys %GTok;
+	next if (keys %GTcnt) != 2;
+	my @gids = @{ChechRange( $$x{CHROM},$$x{POS} )};
+	next unless @gids;
+	for (@gids) {
+		print "$_: ",$GeneDat{$$x{CHROM}}{$_}->[0],"\n";
+	}
 #	for my $gt (keys %GTs) {
 #		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
 #		if ($a3 or ($a1 != $a2)) {
 #			$flag = 1;
 #		}
 #	}
-	ddx \%GTs;
-	ddx $x;
+	#ddx \%GTs;
+	#ddx $x;
 	#print $vcf->format_line($x);
 }
 #ddx $vcf;
 $vcf->close;
+
+sub ChechRange($$) {
+	my ($chr,$pos) = @_;
+	my %ret;
+	if (exists $Annoted{$chr}) {
+		my $datA = $Annoted{$chr};
+		if ($pos > $$datA[-1][2] or $pos < $$datA[0][1]) {
+			return [];
+		}
+		for (@{$datA}) {
+			my ($gid,$s,$t) = @$_;
+			next if $pos > $t;
+			last if $pos < $s;
+			++$ret{$gid};
+		}
+		return [keys %ret];
+	} else {
+		return [];
+	}
+	#push @{$Annoted{$data[0]}},[$feature{gene_id},$data[3],$data[4]];
+}
