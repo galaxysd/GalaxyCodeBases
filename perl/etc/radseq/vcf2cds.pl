@@ -186,7 +186,32 @@ while (my $x=$vcf->next_data_hash()) {
 #		}
 #	}
 	#ddx \%GTs;
-	ddx $x;
+	#ddx $x;
+# vcf2cds.pl:189: {
+#   ALT    => ["A"],
+#   CHROM  => "scaffold75",
+#   FILTER => ["."],
+#   FORMAT => ["GT", "PL", "DP", "SP", "GQ"],
+#   gtypes => {
+#               "BHX011.bam" => { DP => 19, GQ => 61, GT => "0/0", PL => "0,57,255", SP => 0 },
+#               "BHX019.bam" => { DP => 26, GQ => 82, GT => "0/0", PL => "0,78,255", SP => 0 },
+#               "JHH001.bam" => { DP => 28, GQ => 99, GT => "0/1", PL => "244,0,255", SP => 9 },
+#             },
+#   ID     => ".",
+#   INFO   => {
+#               AC1 => 1,
+#               AF1 => 0.1667,
+#               DP  => 74,
+#               DP4 => "34,26,4,9",
+#               FQ  => 999,
+#               MQ  => 59,
+#               PV4 => "0.13,1,0.12,1",
+#               VDB => 0.0365,
+#             },
+#   POS    => 3572768,
+#   QUAL   => 999,
+#   REF    => "G",
+# }
 	#print $vcf->format_line($x);
 }
 #ddx $vcf;
@@ -211,4 +236,10 @@ sub ChechRange($$) {
 		return [];
 	}
 	#push @{$Annoted{$data[0]}},[$feature{gene_id},$data[3],$data[4]];
+}
+
+sub mutpoint() {
+	my () = @_;
+	# $GeneDat{$chr}{$gene_id}=[$gene_name,$strand,[[s1,e1],[s2,e2]],$start];
+	;
 }
