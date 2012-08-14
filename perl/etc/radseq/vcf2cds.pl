@@ -89,7 +89,7 @@ for my $chr (keys %GeneDat) {
 }
 warn "GTF loaded.\n";
 #ddx \%GeneDat;
-ddx \%Annoted;
+#ddx \%Annoted;
 
 my $fafh;
 my %RefSeq;
@@ -141,6 +141,7 @@ ddx \@samples;
 
 while (my $x=$vcf->next_data_hash()) {
 	die unless exists $Annoted{$$x{CHROM}};
+	#ddx $x if exists $$x{INFO}{INDEL};
 	next if $$x{QUAL} < 20;
 	my (%GTok,%GTcnt,%GTp1,%GTp2);
 	my %GTs = %{$$x{gtypes}};
@@ -173,6 +174,7 @@ while (my $x=$vcf->next_data_hash()) {
 #print "B:$GT2, b:$GT1 [$sampleCNT]\n";
 	my @gids = @{ChechRange( $$x{CHROM},$$x{POS} )};
 	next unless @gids;
+	die if exists $$x{INFO}{INDEL};	# No need to do INDEL as there is none.
 	for my $sample (keys %GTok) {
 		$GTok{$sample} = $vcf->decode_genotype($$x{REF},$$x{ALT},$GTok{$sample});	#('G',['A','C'],'0/0'); # returns 'G/G'
 	}
@@ -239,7 +241,10 @@ sub ChechRange($$) {
 }
 
 sub mutpoint() {
-	my () = @_;
+	my ($chr,$pos,$gid) = @_;
 	# $GeneDat{$chr}{$gene_id}=[$gene_name,$strand,[[s1,e1],[s2,e2]],$start];
-	;
+	my ($gname,$strand,$cdsA) = @{$GeneDat{$chr}{$gid}};
+	for (@{$cdsA}) {
+		my ($s,$t) = @$_;
+	}
 }
