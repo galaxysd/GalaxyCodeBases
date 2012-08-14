@@ -142,17 +142,40 @@ ddx \@samples;
 while (my $x=$vcf->next_data_hash()) {
 	die unless exists $Annoted{$$x{CHROM}};
 	next if $$x{QUAL} < 20;
-	my (%GTok,%GTcnt);
+	my (%GTok,%GTcnt,%GTp1,%GTp2);
 	my %GTs = %{$$x{gtypes}};
+	my $sampleCNT=0;
 	for my $sample (keys %GTs) {
 		next if $GTs{$sample}{DP}<=0 or $GTs{$sample}{GQ}<20;
+		++$sampleCNT;
 		$GTok{$sample} = $GTs{$sample}{GT};
 		++$GTcnt{ $GTs{$sample}{GT} };
+		++$GTp1{ $GTs{$sample}{GT} } if $sample =~ /^BHX01/;	# bb
+		++$GTp2{ $GTs{$sample}{GT} } if $sample =~ /^JHH001/;	# Bb
 	}
 	next unless keys %GTok;
 	next if (keys %GTcnt) != 2;
+	next unless keys(%GTp1)==1 and keys(%GTp2)==1;
+	my $GT1 = (keys %GTp1)[0];
+	my $GT2 = (keys %GTp2)[0];
+	my ($a1,$a2,$a3) = $vcf->split_gt($GT1);
+	if ($a1 eq $a2) {
+		$GT1 = $a1;
+	} else { next; }
+	($a1,$a2,$a3) = $vcf->split_gt($GT2);
+	if ($a1 ne $a2) {
+		if ($a1 eq $GT1) {
+			$GT2 = $a2;
+		} elsif ($a2 eq $GT1) {
+			$GT2 = $a1;
+		} else { next; }
+	} else { next; }
+#print "B:$GT2, b:$GT1 [$sampleCNT]\n";
 	my @gids = @{ChechRange( $$x{CHROM},$$x{POS} )};
 	next unless @gids;
+	for my $sample (keys %GTok) {
+		$GTok{$sample} = $vcf->decode_genotype($$x{REF},$$x{ALT},$GTok{$sample});	#('G',['A','C'],'0/0'); # returns 'G/G'
+	}
 	for (@gids) {
 		print "$_: ",$GeneDat{$$x{CHROM}}{$_}->[0],"\n";
 	}
@@ -163,7 +186,7 @@ while (my $x=$vcf->next_data_hash()) {
 #		}
 #	}
 	#ddx \%GTs;
-	#ddx $x;
+	ddx $x;
 	#print $vcf->format_line($x);
 }
 #ddx $vcf;
