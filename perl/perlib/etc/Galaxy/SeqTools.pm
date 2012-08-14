@@ -3,8 +3,8 @@ package Galaxy::SeqTools;
 use strict;
 require Exporter;
 our @ISA   =qw(Exporter);
-our @EXPORT    =qw(com revcom);
-our @EXPORT_OK   =qw();
+our @EXPORT    =qw(revcom);
+our @EXPORT_OK   =qw(com translate);
 our $VERSION   = v1.0.0;
 
 =head1 Purpose
@@ -26,4 +26,24 @@ sub com($) {
     # tr/acgtACGT/tgcaTGCA/
 #print "$str\n";
     return $str;
+}
+
+sub translate($$) {
+	my ($seq,$codonH) = @_;
+	$seq =~ s/\s//g;
+	my $len = length $seq;
+	# get a list of codon start locations
+	my @codon_starts =
+	  map { 3 * $_ } ( 0 .. ( int($len / 3) - 1 ) );
+	my $peptide;
+	for (@codon_starts) {
+		my $code = substr $seq,$_,3;
+		if (exists $codonH->{$code}) {
+			$peptide .= $codonH->{$code};
+		} else {
+			$peptide .= 'x';
+			#print "[$code $_]\n";
+		}
+	}
+	return $peptide;
 }
