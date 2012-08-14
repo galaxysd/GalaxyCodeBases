@@ -9,7 +9,7 @@ use Vcf;
 #use GTF;
 use Data::Dump qw(ddx);
 use Galaxy::IO::FASTAQ;
-use Galaxy::SeqTools;
+use Galaxy::SeqTools qw(translate revcom);
 
 die "Usage: $0 <vcf.gz with tabix indexed> <out> <regions> (eg.: scaffold75:924209-5441687)\n" if @ARGV<2;
 my $fafs='/bak/seqdata/2012/tiger/120512_TigerRefGenome/bychr/scaffold75.fa';
@@ -64,11 +64,11 @@ while(my $in_line = <GTF>){
 	my @data = split /\s+/,$in_line;
 	#verify line is correct length
 	next if ($#data < 8);
-	my %feature = map {s/\s*;$//;$_;} splice @data,8;
+	my %feature = map {s/\s*;$//; s/\"//g; $_;} splice @data,8;
 #ddx [\@data,\%feature];
 	if ($data[2] eq 'transcript') {
-		die "[$feature{gene_type}]" if $feature{gene_type} ne '"protein_coding"';
-		$GeneDat{$data[0]}{$feature{gene_id}}=[$feature{gene_name},$data[6],[]];
+		die "[$feature{gene_type}]" if $feature{gene_type} ne 'protein_coding';
+		$GeneDat{$data[0]}{$feature{gene_id}}=[$feature{gene_name},$data[6],[],$data[3]];
 	} elsif ($data[2] eq 'CDS' or $data[2] eq 'stop_codon') {
 		push @{$GeneDat{$data[0]}{$feature{gene_id}}->[2]},[$data[3],$data[4]];
 	}
@@ -82,6 +82,7 @@ for my $chr (keys %GeneDat) {
 		} elsif ($strand eq '-') {
 			$cdsA = [ sort {$b->[0] <=> $a->[0]} @$cdsA ];
 		} else { die; }
+		$GeneDat{$chr}{$id}->[2] = $cdsA;
 	}
 }
 warn "GTF loaded.\n";
@@ -101,6 +102,34 @@ while ( $ret = &readfq($fafh, \@aux) ) {
 	$RefSeq{$name} = $seq;
 }
 close $fafh;
+
+my (%cDNA,%Protein);
+open OUTCDNA,'>',"$outfs.cDNA.fa" or die $!;
+open OUTPT,'>',"$outfs.protein.fa" or die $!;
+for my $chr (sort keys %GeneDat) {
+	for my $id (sort { $GeneDat{$chr}{$a}->[3] <=> $GeneDat{$chr}{$b}->[3] } keys %{$GeneDat{$chr}}) {
+		my ($gene,$strand,$cdsA,$st) = @{$GeneDat{$chr}{$id}};
+		print OUTCDNA ">${gene}_$id $chr:$strand:$st";
+		print OUTPT ">${gene}_$id $chr:$strand:$st";
+		my ($len,$seq,$tmpseq,$AA)=(0);
+		for (@$cdsA) {
+			my ($s,$e) = @$_;
+			print OUTCDNA ",$s-$e";
+			$len += $e-$s+1;
+			$tmpseq = substr $RefSeq{$chr},$s-1,$e-$s+1;
+			$tmpseq = revcom($tmpseq) if $strand eq '-';
+			$seq .= $tmpseq."\n";
+		}
+		print OUTCDNA " =$len ",int($len*10/3)/10,"\n$seq\n";
+		$seq =~ s/\s//g;
+		$AA = translate($seq,\%gen_code);
+		print OUTPT " $len ",int($len*10/3)/10,"\n$AA\n";
+		$cDNA{$id} = $seq;
+		$Protein{$id} = $AA;
+	}
+}
+close OUTCDNA;
+close OUTPT;
 
 my $vcf = Vcf->new(file=>$vcfs,region=>$regions);
 $vcf->parse_header();
