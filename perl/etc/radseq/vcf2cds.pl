@@ -8,8 +8,8 @@ use warnings;
 use Vcf;
 #use GTF;
 use Data::Dump qw(ddx);
-#use Galaxy::IO;
-#use Galaxy::SeqTools;
+use Galaxy::IO::FASTAQ;
+use Galaxy::SeqTools;
 
 die "Usage: $0 <vcf.gz with tabix indexed> <out> <regions> (eg.: scaffold75:924209-5441687)\n" if @ARGV<2;
 my $fafs='/bak/seqdata/2012/tiger/120512_TigerRefGenome/bychr/scaffold75.fa';
@@ -47,27 +47,60 @@ for (@{$t{AAs}}) {
 #ddx [\@t,\%gen_code,\%start_codes];
 print "Codon Table:\n$code\n";
 
-my %GeneDat:
+my %GeneDat;
 open GTF,'<',$gtfs or dir $!;
 while(my $in_line = <GTF>){
 	next if ($in_line =~ /^\s*\#/);
-	chomp;
-      #remove leading whitespace and get comments
-      my $comments = "";	  
-      while($in_line =~ /^(.*)\#(.*)$/){
-        $in_line = $1;
-        $comments = $2.$comments;
-      }
-      if($in_line =~ /^\s+(.*)$/){
-        $in_line = $1;
-      }
-      my @data = split /\s+/,$in_line;
-      #verify line is correct length
-      next if ($#data < 8);
+	chomp $in_line;
+	#remove leading whitespace and get comments
+	my $comments = "";	  
+	while($in_line =~ /^(.*)\#(.*)$/){
+	$in_line = $1;
+	$comments = $2.$comments;
+	}
+	if($in_line =~ /^\s+(.*)$/){
+	$in_line = $1;
+	}
+	my @data = split /\s+/,$in_line;
+	#verify line is correct length
+	next if ($#data < 8);
+	my %feature = map {s/\s*;$//;$_;} splice @data,8;
+#ddx [\@data,\%feature];
+	if ($data[2] eq 'transcript') {
+		die "[$feature{gene_type}]" if $feature{gene_type} ne '"protein_coding"';
+		$GeneDat{$data[0]}{$feature{gene_id}}=[$feature{gene_name},$data[6],[]];
+	} elsif ($data[2] eq 'CDS' or $data[2] eq 'stop_codon') {
+		push @{$GeneDat{$data[0]}{$feature{gene_id}}->[2]},[$data[3],$data[4]];
+	}
 }
-close GTG;
+close GTF;
+for my $chr (keys %GeneDat) {
+	for my $id (keys %{$GeneDat{$chr}}) {
+		my ($gene,$strand,$cdsA) = @{$GeneDat{$chr}{$id}};
+		if ($strand eq '+') {
+			$cdsA = [ sort {$a->[0] <=> $b->[0]} @$cdsA ];
+		} elsif ($strand eq '-') {
+			$cdsA = [ sort {$b->[0] <=> $a->[0]} @$cdsA ];
+		} else { die; }
+	}
+}
 warn "GTF loaded.\n";
 ddx \%GeneDat;
+
+my $fafh;
+my %RefSeq;
+open $fafh,'<',$fafs or die "$!";
+my @aux = undef;
+my ($name, $comment, $seq, $ret);
+my ($n, $len) = (0, 0);
+while ( $ret = &readfq($fafh, \@aux) ) {
+	($name, $comment, $seq) = @$ret;
+	++$n;
+	$len = length($seq);
+	print "$n: ",join("\t", $name, $comment, $len), "\n";
+	$RefSeq{$name} = $seq;
+}
+close $fafh;
 
 my $vcf = Vcf->new(file=>$vcfs,region=>$regions);
 $vcf->parse_header();
@@ -86,6 +119,3 @@ while (my $x=$vcf->next_data_hash()) {
 	ddx [\%GTs,$x] if $flag;
 	#print $vcf->format_line($x);
 }
-
-close GTFERR;
-close TX;
