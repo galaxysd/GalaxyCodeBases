@@ -139,6 +139,7 @@ $vcf->parse_header();
 my (@samples) = $vcf->get_samples();
 ddx \@samples;
 
+my (%mutGenes,%mutSNPs);
 while (my $x=$vcf->next_data_hash()) {
 	die unless exists $Annoted{$$x{CHROM}};
 	#ddx $x if exists $$x{INFO}{INDEL};
@@ -161,24 +162,35 @@ while (my $x=$vcf->next_data_hash()) {
 	my $GT2 = (keys %GTp2)[0];
 	my ($a1,$a2,$a3) = $vcf->split_gt($GT1);
 	if ($a1 eq $a2) {
-		$GT1 = $a1;
+		$GT1 = $a1;	# b
 	} else { next; }
 	($a1,$a2,$a3) = $vcf->split_gt($GT2);
 	if ($a1 ne $a2) {
 		if ($a1 eq $GT1) {
-			$GT2 = $a2;
+			$GT2 = $a2;	# B
 		} elsif ($a2 eq $GT1) {
 			$GT2 = $a1;
 		} else { next; }
 	} else { next; }
 #print "B:$GT2, b:$GT1 [$sampleCNT]\n";
+	my @Bases = ($$x{REF},@{$$x{ALT}});
+	my $GT2Base = $Bases[$GT2];
+	my $GT1Base = $Bases[$GT1];
 	my ($theGID,$theS,$theE) = @{ChechRange( $$x{CHROM},$$x{POS} )};
 	next unless $theGID;
 	die if exists $$x{INFO}{INDEL};	# No need to do INDEL as there is none.
-	for my $sample (keys %GTok) {
-		$GTok{$sample} = $vcf->decode_genotype($$x{REF},$$x{ALT},$GTok{$sample});	#('G',['A','C'],'0/0'); # returns 'G/G'
+
+	unless (exists $mutGenes{$$x{CHROM}}{$theGID}) {
+		if ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '+') {
+			$mutGenes{$$x{CHROM}}{$theGID} = [$cDNA{$theGID},$cDNA{$theGID}];
+		} elsif ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '-') {
+			my $tmpstr = revcom( $cDNA{$theGID} );
+			$mutGenes{$$x{CHROM}}{$theGID} = [$tmpstr,$tmpstr];
+		} else {die;}
 	}
-	print join(",",$$x{CHROM},$$x{POS},$GeneDat{$$x{CHROM}}{$theGID}->[0]." \t",
+	push @{ $mutSNPs{$$x{CHROM}}{$theGID} },[$$x{POS}, $$x{REF}, $$x{REF}];
+
+	print join(",",$$x{CHROM},$$x{POS},$GeneDat{$$x{CHROM}}{$theGID}->[0]." \tB:$GT2,$GT2Base b:$GT1,$GT1Base [$sampleCNT] ",
 		$theGID,$GeneDat{$$x{CHROM}}{$theGID}->[1],$theS,$theE),"\n";
 #	for my $gt (keys %GTs) {
 #		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
