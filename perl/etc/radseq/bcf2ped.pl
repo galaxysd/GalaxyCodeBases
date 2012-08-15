@@ -17,6 +17,10 @@ my $outfs=shift;
 my (%Stat,$t);
 open OP,'>',$outfs.'.tped' or die "Error opening $outfs.tped : $!\n";
 open OM,'>',$outfs.'.MinorAllele' or die "Error opening $outfs.MinorAllele : $!\n";
+open OD,'>',$outfs.'.dict' or die "Error opening $outfs.dict : $!\n";
+if ($tfamfs ne $outfs.'.tfam') {
+	open OF,'>',$outfs.'.tfam' or die "Error opening $outfs.tfam : $!\n";
+}
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
 $t = "# In: [$bcfs], Out: [$outfs]\n";
 print O $t;
@@ -26,12 +30,14 @@ my (%Pheno,@tfamSamples);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
+	print OF $_;
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff, 2=aff, 0=miss)
 	push @tfamSamples,$ind;
 }
 close L;
+close OF;
 
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
@@ -89,7 +95,7 @@ while (<$th>) {
 	my $SPcnt = 0;
 	my (%GTitemCnt,$Mut,@plinkGT);
 	for (@Samples) {
-		if ($GT{$_}{'DP'} > 0 and $GT{$_}{'GQ'} > 17) {
+		if ($GT{$_}{'DP'} > 0 and $GT{$_}{'GQ'} >= 20) {
 			my $gt = $GT{$_}{'GT'};
 			++$GTcnt{$gt};
 			my @GT = split /[\/|]/,$gt;
@@ -122,7 +128,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($QUAL<20 or $INFO{'FQ'}<0 or scalar(keys %GTcnt)!=2 or $SPcnt<3 or $INFO{'DP'}<6) {
+	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt<6) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
@@ -130,11 +136,13 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	$CHROM =~ /(\d+)/;
 	print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
+	print OD join("\t",${CHROM},${POS},$SNPid),"\n";
 }
 close $th;
 
 close OP;
 close OM;
+close OD;
 
 ddx \%Stat;
 
