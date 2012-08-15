@@ -235,7 +235,7 @@ open OUTDNA,'>',"$outfs.candidateDNA.fa" or die $!;
 open OUTAA,'>',"$outfs.candidateAA.fa" or die $!;
 #ddx \%mutSNPs;
 for my $chr (keys %mutSNPs) {
-	for my $gid (keys %{$mutSNPs{$chr}}) {
+	for my $gid (sort keys %{$mutSNPs{$chr}}) {
 		for ( @{$mutSNPs{$chr}{$gid}} ) {
 			my ($pos, $ref, $GT2Base, $GT1base) = @$_;
 			$mutGenes{$chr}{$gid}->[0] = mutpoint($chr,$pos,$ref,$GT2Base,$gid,$mutGenes{$chr}{$gid}->[0]);
@@ -245,7 +245,7 @@ for my $chr (keys %mutSNPs) {
 		my @diff = cmpstr($mutGenes{$chr}{$gid}->[0],$mutGenes{$chr}{$gid}->[1]);
 #ddx \@diff;
 		my $AA0 = translate($mutGenes{$chr}{$gid}->[0],\%gen_code);
-		my $AA1 = translate($mutGenes{$chr}{$gid}->[0],\%gen_code);
+		my $AA1 = translate($mutGenes{$chr}{$gid}->[1],\%gen_code);
 		my @diffAA = cmpstr($AA0,$AA1);
 
 		for (@diff,@diffAA) {

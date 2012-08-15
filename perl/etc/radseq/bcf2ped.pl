@@ -165,3 +165,21 @@ sort -nk8 radseq.p.snow.model.DOM > radseq.p.snow.model.DOM.sortnk8 &
 bcftools view -I radseq.bcgv.bcf |grep -v \# |cat -n > radseq.bcgv.bcf.rs &
 
 bcftools view tigers.bcgv.bcf|grep -v \## > tigers.bcgv.vcf &
+
+join -1 3 -2 2 <(sort -k3 radall.dict) <(sort -k2 radallP.model) > tmp &
+#sed -n '75,380 p' tmp.s.REC.nk3.scaffold75
+
+cat tmp.s.REC|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];$theta=($a[1]+$a[2])/$sum;
+$p=((1-$theta)**($a[0]+$a[3]))*($theta**($a[1]+$a[2]))/(0.5**$sum);
+$LOD=int(0.5+log($p)*1000/log(10))/1000;
+print join("\t",@F,$sum,int(0.5+$theta*1000/$sum)/1000,int($LOD),$LOD)' > rec.pa
+
+sort -nk13 -k2 -nk3  rec.pa > rec.pas
+
+grep -P "scaffold75\t" rec.pas > scaffold75.pas
+sort -nk3 scaffold75.pas > scaffold75.pas.nk3
+perl -lane 'print if $F[10]>16' scaffold75.pas.nk3 > scaffold75.pas.nk3.16
+
+grep -P "scaffold1458\t" rec.pas > scaffold1458.pas
+sort -nk3 scaffold1458.pas > scaffold1458.pas.nk3
+perl -lane 'print if $F[10]>16' scaffold1458.pas.nk3 > scaffold1458.pas.nk3.16
