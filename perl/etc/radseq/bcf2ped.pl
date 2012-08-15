@@ -46,7 +46,13 @@ while (<$th>) {
 	chomp;
 	my @data = split /\t/;
 	if ($data[0] eq '#CHROM') {
-		@Samples = map {my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);} splice @data,9;
+		@Samples = map {
+			if (/^(\w+)_all\.bam$/) {
+				$_ = $1;
+			} else {
+				my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);
+			}
+		} splice @data,9;
 		# ../5.bam_0000210210_merged/d1_4_merged.D4.JHH001.XTU.sort.rmdup.bam
 		@Parents = grep(!/^GZXJ/,@Samples);
 		last;
@@ -146,7 +152,7 @@ close OD;
 
 ddx \%Stat;
 
-print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out $outfs.p --pheno $outfs.phe --all-pheno --model --cell 0\n\n";
+print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0 >${outfs}.log \n--pheno $outfs.phe --all-pheno\n";
 __END__
 grep -hv \# radseq.gt > radseq.tfam
 

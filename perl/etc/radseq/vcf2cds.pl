@@ -240,8 +240,14 @@ for my $chr (keys %mutSNPs) {
 			$mutGenes{$chr}{$gid}->[0] = mutpoint($chr,$pos,$ref,$GT2Base,$gid,$mutGenes{$chr}{$gid}->[0]);
 			$mutGenes{$chr}{$gid}->[1] = mutpoint($chr,$pos,$ref,$GT1base,$gid,$mutGenes{$chr}{$gid}->[1]);
 		}
-		my $id = $gid.'_'.$GeneDat{$chr}{$gid}->[0].$GeneDat{$chr}{$gid}->[1];
-		print OUTDNA ">${id}B $chr\n",$mutGenes{$chr}{$gid}->[0],"\n",">${id}b $chr\n",$mutGenes{$chr}{$gid}->[1],"\n\n";
+		my $id = $gid.$GeneDat{$chr}{$gid}->[1].$GeneDat{$chr}{$gid}->[0];
+		my @diff = cmpstr($mutGenes{$chr}{$gid}->[0],$mutGenes{$chr}{$gid}->[1]);
+#ddx \@diff;
+		for (@diff) {
+			$_ = join('',@$_[1,0,2]);
+		}
+		print OUTDNA ">${id}_B $chr\n",$mutGenes{$chr}{$gid}->[0],"\n",
+			">${id}_b $chr ",join(',',@diff),"\n",$mutGenes{$chr}{$gid}->[1],"\n\n";
 	}
 }
 close OUTDNA;
@@ -277,7 +283,7 @@ sub mutpoint($$$$$$) {
 	# $cDNA{$gid} = $seq;
 	# $Protein{$gid} = $AA;
 	my ($gname,$strand,$cdsA) = @{$GeneDat{$chr}{$gid}};
-	my ($met,$len,$tmp,$seq) = (0,0);
+	my ($met,$len,$tmp) = (0,0);
 
 	my $REFseq = $cDNA{$gid};
 
@@ -287,7 +293,7 @@ sub mutpoint($$$$$$) {
 		if ($pos >= $s and $pos <= $e) {
 			$met = 1;
 			#$len += $pos - $s +1;
-			$seq = $cDNA{$gid};
+			#$seq = $cDNA{$gid};
 			if ($strand eq '+') {
 				$len += $pos - $s +1 -1;
 			} elsif ($strand eq '-') {
@@ -303,4 +309,14 @@ sub mutpoint($$$$$$) {
 		}
 	}
 	return $seq;
+}
+sub cmpstr {
+	my ($a, $b) = @_;
+	my $c = $a ^ $b;
+	my @ret;
+	while ($c =~ /[^\0]/g) {
+		my $p = pos($c);
+		push @ret,[$p,substr($a,$p-1,1),substr($b,$p-1,1)];
+	}
+	@ret;
 }
