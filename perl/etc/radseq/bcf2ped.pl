@@ -152,7 +152,7 @@ close OD;
 
 ddx \%Stat;
 
-print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0 >${outfs}.log \n--pheno $outfs.phe --all-pheno\n";
+print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0\n--pheno $outfs.phe --all-pheno [screen log will be saved by p-link itselt]\n";
 __END__
 grep -hv \# radseq.gt > radseq.tfam
 
