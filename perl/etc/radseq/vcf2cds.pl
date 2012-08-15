@@ -181,14 +181,15 @@ while (my $x=$vcf->next_data_hash()) {
 	die if exists $$x{INFO}{INDEL};	# No need to do INDEL as there is none.
 
 	unless (exists $mutGenes{$$x{CHROM}}{$theGID}) {
-		if ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '+') {
-			$mutGenes{$$x{CHROM}}{$theGID} = [$cDNA{$theGID},$cDNA{$theGID}];
-		} elsif ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '-') {
-			my $tmpstr = revcom( $cDNA{$theGID} );
-			$mutGenes{$$x{CHROM}}{$theGID} = [$tmpstr,$tmpstr];
-		} else {die;}
+#		if ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '+') {
+#			$mutGenes{$$x{CHROM}}{$theGID} = [$cDNA{$theGID},$cDNA{$theGID}];
+#		} elsif ($GeneDat{$$x{CHROM}}{$theGID}->[1] eq '-') {
+#			my $tmpstr = revcom( $cDNA{$theGID} );
+#			$mutGenes{$$x{CHROM}}{$theGID} = [$tmpstr,$tmpstr];
+#		} else {die;}
+		$mutGenes{$$x{CHROM}}{$theGID} = [$cDNA{$theGID},$cDNA{$theGID}];
 	}
-	push @{ $mutSNPs{$$x{CHROM}}{$theGID} },[$$x{POS}, $$x{REF}, $$x{REF}];
+	push @{ $mutSNPs{$$x{CHROM}}{$theGID} },[$$x{POS}, $$x{REF}, $GT2Base, $GT1Base];
 
 	print join(",",$$x{CHROM},$$x{POS},$GeneDat{$$x{CHROM}}{$theGID}->[0]." \tB:$GT2,$GT2Base b:$GT1,$GT1Base [$sampleCNT] ",
 		$theGID,$GeneDat{$$x{CHROM}}{$theGID}->[1],$theS,$theE),"\n";
@@ -230,6 +231,21 @@ while (my $x=$vcf->next_data_hash()) {
 #ddx $vcf;
 $vcf->close;
 
+open OUTDNA,'>',"$outfs.candidateDNA.fa" or die $!;
+#ddx \%mutSNPs;
+for my $chr (keys %mutSNPs) {
+	for my $gid (keys %{$mutSNPs{$chr}}) {
+		for ( @{$mutSNPs{$chr}{$gid}} ) {
+			my ($pos, $ref, $GT2Base, $GT1base) = @$_;
+			$mutGenes{$chr}{$gid}->[0] = mutpoint($chr,$pos,$ref,$GT2Base,$gid,$mutGenes{$chr}{$gid}->[0]);
+			$mutGenes{$chr}{$gid}->[1] = mutpoint($chr,$pos,$ref,$GT1base,$gid,$mutGenes{$chr}{$gid}->[1]);
+		}
+		my $id = $gid.'_'.$GeneDat{$chr}{$gid}->[0].$GeneDat{$chr}{$gid}->[1];
+		print OUTDNA ">${id}B $chr\n",$mutGenes{$chr}{$gid}->[0],"\n",">${id}b $chr\n",$mutGenes{$chr}{$gid}->[1],"\n\n";
+	}
+}
+close OUTDNA;
+
 sub ChechRange($$) {
 	my ($chr,$pos) = @_;
 	my (%gidcnt,%gidat);
@@ -255,26 +271,36 @@ sub ChechRange($$) {
 	#push @{$Annoted{$data[0]}},[$feature{gene_id},$data[3],$data[4]];
 }
 
-sub mutpoint() {
-	my ($chr,$pos,$gid,$gt,$ref) = @_;
+sub mutpoint($$$$$$) {
+	my ($chr,$pos,$ref,$gt,$gid,$seq) = @_;
 	# $GeneDat{$chr}{$gene_id}=[$gene_name,$strand,[[s1,e1],[s2,e2]],$start];
 	# $cDNA{$gid} = $seq;
 	# $Protein{$gid} = $AA;
 	my ($gname,$strand,$cdsA) = @{$GeneDat{$chr}{$gid}};
 	my ($met,$len,$tmp,$seq) = (0,0);
-	$seq = $cDNA{$gid};
-	$seq = revcom($seq) if $strand eq '-';	# ref order now.
+
+	my $REFseq = $cDNA{$gid};
+
 	for (@{$cdsA}) {
 		last if $met;
 		my ($s,$e) = @$_;
 		if ($pos >= $s and $pos <= $e) {
 			$met = 1;
-			$len += $pos - $s +1;
+			#$len += $pos - $s +1;
 			$seq = $cDNA{$gid};
+			if ($strand eq '+') {
+				$len += $pos - $s +1 -1;
+			} elsif ($strand eq '-') {
+				$len += $e - $pos +1 -1;
+			} else {die;}
 			substr($seq,$len,1) = $gt;
 			#$seq = substr($cDNA{$gid},0,$len) . $gt . substr($cDNA{$gid},$len+1)
+			my $test = substr($REFseq,$len,1);
+			$test =~ tr/ATCG/TAGC/ if $strand eq '-';
+			warn "$gid($gname),$strand: $test ne $ref" if $test ne $ref;
 		} else {
 			$len += $e -$s + 1;
 		}
 	}
+	return $seq;
 }
