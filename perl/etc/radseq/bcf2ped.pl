@@ -163,3 +163,5 @@ grep DOM radseq.p.snow.model > radseq.p.snow.model.DOM
 sort -nk8 radseq.p.snow.model.REC > radseq.p.snow.model.REC.sortnk8 &
 sort -nk8 radseq.p.snow.model.DOM > radseq.p.snow.model.DOM.sortnk8 &
 bcftools view -I radseq.bcgv.bcf |grep -v \# |cat -n > radseq.bcgv.bcf.rs &
+
+bcftools view tigers.bcgv.bcf|grep -v \## > tigers.bcgv.vcf &

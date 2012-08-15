@@ -12,8 +12,8 @@ use Galaxy::IO::FASTAQ;
 use Galaxy::SeqTools qw(translate revcom);
 
 die "Usage: $0 <vcf.gz with tabix indexed> <out> <regions> (eg.: scaffold75:924209-5441687)\n" if @ARGV<2;
-my $fafs='/bak/seqdata/2012/tiger/120512_TigerRefGenome/bychr/scaffold75.fa';
-my $gtfs = 'scaffold75.gtf';
+my $fafs='/share/users/huxs/work/tiger/paper/parents75n1458.fa';
+my $gtfs = '/share/users/huxs/work/tiger/paper/parents75n1458.gtf';
 my $vcfs = shift;
 my $outfs = shift;
 my $regions = shift;
@@ -152,7 +152,7 @@ while (my $x=$vcf->next_data_hash()) {
 		++$sampleCNT;
 		$GTok{$sample} = $GTs{$sample}{GT};
 		++$GTcnt{ $GTs{$sample}{GT} };
-		++$GTp1{ $GTs{$sample}{GT} } if $sample =~ /^BHX01/;	# bb
+		++$GTp1{ $GTs{$sample}{GT} } if $sample =~ /^B(HX|XH)01/;	# bb
 		++$GTp2{ $GTs{$sample}{GT} } if $sample =~ /^JHH001/;	# Bb
 	}
 	next unless keys %GTok;
