@@ -232,6 +232,7 @@ while (my $x=$vcf->next_data_hash()) {
 $vcf->close;
 
 open OUTDNA,'>',"$outfs.candidateDNA.fa" or die $!;
+open OUTAA,'>',"$outfs.candidateAA.fa" or die $!;
 #ddx \%mutSNPs;
 for my $chr (keys %mutSNPs) {
 	for my $gid (keys %{$mutSNPs{$chr}}) {
@@ -243,14 +244,21 @@ for my $chr (keys %mutSNPs) {
 		my $id = $gid.$GeneDat{$chr}{$gid}->[1].$GeneDat{$chr}{$gid}->[0];
 		my @diff = cmpstr($mutGenes{$chr}{$gid}->[0],$mutGenes{$chr}{$gid}->[1]);
 #ddx \@diff;
-		for (@diff) {
+		my $AA0 = translate($mutGenes{$chr}{$gid}->[0],\%gen_code);
+		my $AA1 = translate($mutGenes{$chr}{$gid}->[0],\%gen_code);
+		my @diffAA = cmpstr($AA0,$AA1);
+
+		for (@diff,@diffAA) {
 			$_ = join('',@$_[1,0,2]);
 		}
 		print OUTDNA ">${id}_B $chr\n",$mutGenes{$chr}{$gid}->[0],"\n",
-			">${id}_b $chr ",join(',',@diff),"\n",$mutGenes{$chr}{$gid}->[1],"\n\n";
+			">${id}_b $chr ",join(',',scalar(@diff),@diff),"\n",$mutGenes{$chr}{$gid}->[1],"\n\n";
+		print OUTAA ">${id}_B $chr\n",$AA0,"\n",
+			">${id}_b $chr ",join(',',scalar(@diffAA),@diffAA),"\n",$AA1,"\n\n";
 	}
 }
 close OUTDNA;
+close OUTAA;
 
 sub ChechRange($$) {
 	my ($chr,$pos) = @_;
