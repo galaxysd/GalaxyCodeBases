@@ -169,10 +169,11 @@ bcftools view tigers.bcgv.bcf|grep -v \## > tigers.bcgv.vcf &
 join -1 3 -2 2 <(sort -k3 radall.dict) <(sort -k2 radallP.model) > tmp &
 #sed -n '75,380 p' tmp.s.REC.nk3.scaffold75
 
-cat tmp.s.REC|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];$theta=($a[1]+$a[2])/$sum;
-$p=((1-$theta)**($a[0]+$a[3]))*($theta**($a[1]+$a[2]))/(0.5**$sum);
+cat tmp.s.REC|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];
+$theta=($a[1]+$a[2])/($sum*2);
+$p=((1-$theta)**(2*$sum-($a[1]+$a[2])))*($theta**($a[1]+$a[2]))/(0.5**(2*$sum));
 $LOD=int(0.5+log($p)*1000/log(10))/1000;
-print join("\t",@F,$sum,int(0.5+$theta*1000/$sum)/1000,int($LOD),$LOD)' > rec.pa
+print join("\t",@F,$sum,int(0.5+$theta*100000/$sum)/100000,int($LOD),$LOD)' > rec.pa
 
 sort -nk13 -k2 -nk3  rec.pa > rec.pas
 
