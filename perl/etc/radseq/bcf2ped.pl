@@ -118,11 +118,15 @@ while (<$th>) {
 		push @plinkGT,$GT{$_}{'GTp'};
 	}
 	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt;
-	unless ($Mut) {
-		++$Stat{'VCF_noMUT_Skip'};
+	unless (defined $Mut) {
+		++$Stat{'VCF_noAffInd_Skipped'};
 		next;
 	}
-	$Mut = $Bases[$Mut];
+	unless ($Mut) {
+		++$Stat{'VCF_noMUT_Count'};
+		#next;
+	}
+	#$Mut = $Bases[$Mut];
 =pod
 ++$Stat{'GTcnt'}{$INFO{'FQ'} <=> 0}{scalar(keys %GTcnt)};
 ddx $Stat{'GTcnt'};
@@ -138,6 +142,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
+	$Mut = $Bases[$Mut];
 	my $SNPid = "r".$Stat{'VCF_In'};
 	$CHROM =~ /(\d+)/;
 	print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";

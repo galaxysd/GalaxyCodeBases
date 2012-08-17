@@ -294,6 +294,7 @@ sub mutpoint($$$$$$) {
 	my ($met,$len,$tmp) = (0,0);
 
 	my $REFseq = $cDNA{$gid};
+	$gt =~ tr/ATCG/TAGC/ if $strand eq '-';
 
 	for (@{$cdsA}) {
 		last if $met;
