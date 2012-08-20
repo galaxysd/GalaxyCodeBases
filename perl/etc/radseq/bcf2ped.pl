@@ -178,7 +178,7 @@ cat tmp.s.REC|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[
 $theta=($a[1]+$a[2])/($sum*2);
 $p=((1-$theta)**(2*$sum-($a[1]+$a[2])))*($theta**($a[1]+$a[2]))/(0.5**(2*$sum));
 $LOD=int(0.5+log($p)*1000/log(10))/1000;
-print join("\t",@F,$sum,int(0.5+$theta*100000/$sum)/100000,int($LOD),$LOD)' > rec.pa
+print join("\t",@F,$sum,int(0.5+$theta*100000)/100000,int($LOD),$LOD)' > rec.pa
 
 sort -nk13 -k2 -nk3  rec.pa > rec.pas
 
