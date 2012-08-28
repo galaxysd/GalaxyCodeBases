@@ -60,3 +60,13 @@ grep -v UNKNOWN P_tigris.lst > tigris.lst
 
 awk '{print $2}' felCat4.lst|uniq|wc
 awk '{print $2}' <(sort -k2 tigris2cat.out) |uniq|wc
+
+sort -k2 tigris2cat.out > tigris2cat.sort
+
+awk '{print $2,$3,$4,$7,$8,$13,$14,$15}' hg19.ucsc |grep -v chrUn|grep -v _random|grep -v _hap > hg19.lst
+./dojoin.pl hg19.lst 6 tigris.lst 5 tigris2hum
+sort -k2 tigris2hum.out > tigris2hum.sort
+
+awk '{print $2,$3,$4,$7,$8,$13,$14,$15}' canfam3.ucsc |grep -v chrUn > canfam3.lst
+./dojoin.pl canfam3.lst 6 tigris.lst 5 tigris2dog
+sort -k2 tigris2dog.out > tigris2dog.sort
