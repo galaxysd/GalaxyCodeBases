@@ -27,6 +27,7 @@ while (<IA>) {
 }
 close IA;
 
+my %used;
 open O,'>',"$outp.out" or die $!;
 open IB,'<',$file2 or die $!;
 while (<IB>) {
@@ -34,6 +35,7 @@ while (<IB>) {
 	my @t = split /\s+/;
 	if (exists $dat{$t[$col2]}) {
 		print O join("\t",@{$dat{$t[$col2]}},@t),"\n";
+		++$used{$t[$col2]};
 	} else {
 		push @remain,\@t;
 	}
@@ -43,7 +45,7 @@ close O;
 open OA,'>',"$outp.1" or die $!;
 open OB,'>',"$outp.2" or die $!;
 for (keys %dat) {
-	print OA join("\t",@{$dat{$_}}),"\n";
+	print OA join("\t",@{$dat{$_}}),"\n" unless exists $used{$_};
 }
 for (@remain) {
 	print OB join("\t",@{$_}),"\n";
@@ -70,3 +72,8 @@ sort -k2 tigris2hum.out > tigris2hum.sort
 awk '{print $2,$3,$4,$7,$8,$13,$14,$15}' canfam3.ucsc |grep -v chrUn > canfam3.lst
 ./dojoin.pl canfam3.lst 6 tigris.lst 5 tigris2dog
 sort -k2 tigris2dog.out > tigris2dog.sort
+
+sort -nk10 ../rec.pas > rec.pas.nk10
+
+perl -lane 'BEGIN {my ($cnt,%a)=(0);} ++$cnt;$l=log($F[9])/log(10);$l=int($l*5)/5;++$a{$l}; END { $t=0;print "-" x 75; for (sort {$a<=>$b} keys %a) { $t += $a{$_}; print "$_\t$a{$_}\t$t\t",int(100000*$t/$cnt)/1000; } }' rec.pas.nk10 > rec.pas.nk10.ratio
+
