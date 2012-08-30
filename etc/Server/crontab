@@ -14,5 +14,5 @@ HOME=/
 # |  |  |  |  |
 # *  *  *  *  * user-name command to be executed
 55 * * * *	root sync
-2 1 * * *	macserver rsync -vrpo --delete -u --ignore-existing admin@10.0.0.3:/Library/FileMaker\\\ Server/Data/Backups/ /bak/archive/FileMakerBak
+2 1 * * *	macserver rsync -vrpo --delete -u --ignore-existing admin@10.0.0.3:/Library/FileMaker\\\ Server/Data/Backups/ /bak/archive/FileMakerBak/automatic
 
