@@ -24,17 +24,17 @@ while (<I>) {
 	} else {
 		$t = 1;
 	}
-	push @{$dat{$items[1]}{$items[8]}}, [$t,$items[5],$items[3],$items[4],$items[9],$items[10]];
+	push @{$dat{$items[8]}{$items[1]}}, [$t,$items[5],$items[3],$items[4],$items[9],$items[10]];
 }
 close I;
 #ddx \%dat;
 
-for my $chr (keys %dat) {
-	for my $scafd (keys %{$dat{$chr}}) {
-		my $alignmtsA = $dat{$chr}{$scafd};
+for my $scafd (keys %dat) {
+	for my $chr (keys %{$dat{$scafd}}) {
+		my $alignmtsA = $dat{$scafd}{$chr};
 		my ($scoreSame,%cntStrand)=(0);
 		for my $item (@$alignmtsA) {
-print join("\t",$chr,$scafd,@$item);
+print join("\t",$scafd,$chr,@$item);
 			++$cntStrand{$$item[0]};
 			my $lenChr = $$item[3] - $$item[2];
 			my $lenScafd = $$item[5] - $$item[4];
@@ -45,7 +45,7 @@ print join("\t",$chr,$scafd,@$item);
 				next;
 				$t = 0;
 			}
-print join("\t",'',$lenChr,$lenScafd,$t),"\n";
+print join("\t",'',$lenScafd,$lenChr,$t),"\n";
 			if ($$item[0]) {
 				$scoreSame += $t;
 			} else {
