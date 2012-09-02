@@ -31,14 +31,17 @@ while (<I>) {
 close I;
 #ddx \%dat;
 
-for my $scafd (keys %dat) {
+open O,'>',$outf.'.plst' or  die $!;
+print O join("\t",'#ChrID','Pos','isDiffStrand','scaffold','r^2','sigma','slope(k)'),"\n";
+open OL,'>',$outf.'.plog' or  die $!;
+for my $scafd (sort keys %dat) {
 	my (%scoreSame,%scoreAbs,%thePos);
 	for my $chr (keys %{$dat{$scafd}}) {
 		my $alignmtsA = $dat{$scafd}{$chr};
 		my (%cntStrand);
 		@$alignmtsA = sort {$a->[2] <=> $b->[2]} @$alignmtsA;
 		for my $item (@$alignmtsA) {
-print join("\t",$scafd,$chr,@$item);
+print OL join("\t",$scafd,$chr,@$item);
 			++$cntStrand{$$item[0]};
 			my $lenChr = $$item[3] - $$item[2];
 			my $lenScafd = $$item[5] - $$item[4];
@@ -51,7 +54,7 @@ print join("\t",$scafd,$chr,@$item);
 				$t = 0.1;
 			}
 			push @{$thePos{$chr}},[$$item[0],$$item[2]+$lenChr/2,$$item[4]+$lenScafd/2];
-print join("\t",'',$lenScafd,$lenChr,$t),"\n";
+print OL join("\t",'',$lenScafd,$lenChr,$t),"\n";
 			if ($$item[0]) {
 				$scoreSame{$chr} -= $t;
 			} else {
@@ -59,7 +62,7 @@ print join("\t",'',$lenScafd,$lenChr,$t),"\n";
 			}
 			$scoreAbs{$chr} += $t;
 		}
-		print join(",",$scoreAbs{$chr},$scoreSame{$chr},%cntStrand),"\t-----\n";
+		print OL join(",",$scoreAbs{$chr},$scoreSame{$chr},%cntStrand),"\t-----\n";
 	}
 	my ($theChr) = sort { $scoreAbs{$b} <=> $scoreAbs{$a} } keys %scoreAbs;
 	my $diffStrand;
@@ -75,27 +78,29 @@ print join("\t",'',$lenScafd,$lenChr,$t),"\n";
 		push @x,$item->[2];	# ScaffPos
 	}
 	my $scaffOnChr;
-	my ($intercept, $slope, $r2) = (0,0,-1);
+	my ($intercept, $slope, $r2,$sigma,@residuals) = (0,0,-1,-1);
 	if (@x > 1) {
 		$lineFit->setData(\@x, \@y) or die "Invalid regression data\n";
 		($intercept, $slope) = $lineFit->coefficients();
 		defined $intercept or die "Can't fit line if x values are all equal";
 		$r2 = $lineFit->rSquared();
 		$scaffOnChr = $intercept + $slope;
+		$sigma = $lineFit->sigma();
+		@residuals = $lineFit->residuals();
 	} elsif (@x == 1) {
 		$scaffOnChr = 1 + $y[0] - $x[0];
 	} else {
 		die;
 	}
 	$scaffOnChr = int($scaffOnChr);
-	print '-' x 10, join(',',
-	$theChr,$scaffOnChr,'r2',$r2, 's',$lineFit->sigma(),'k',$slope,'b',$intercept, 'dy',(map {int($_)} $lineFit->residuals()),
+	print OL '-' x 10, join(',',
+	$theChr,$scaffOnChr,'r2',$r2, 's',$sigma,'k',$slope,'b',$intercept, 'dy',(map {int($_)} @residuals),
 	"\n",'-' x 10,
 	'x',(map {int($_)} @x),'y',(map {int($_)} @y) ),"\n";
+	print O join("\t",$theChr,$scaffOnChr,$diffStrand,$scafd,$r2,$sigma,$slope),"\n";
 }
 
-open O,'>',$outf.'.plst' or die $!;
-
+close OL;
 close O;
 
 __END__
