@@ -6,6 +6,7 @@ Version: 1.0.0 @ 20120720
 use strict;
 use warnings;
 use Data::Dump qw(ddx);
+use Statistics::LineFit;
 use Galaxy::IO;
 use Galaxy::SeqTools;
 
@@ -30,10 +31,11 @@ close I;
 #ddx \%dat;
 
 for my $scafd (keys %dat) {
-	my %scoreSame;
+	my (%scoreSame,%scoreAbs,%thePos);
 	for my $chr (keys %{$dat{$scafd}}) {
 		my $alignmtsA = $dat{$scafd}{$chr};
 		my (%cntStrand);
+		@$alignmtsA = sort {$a->[2] <=> $b->[2]} @$alignmtsA;
 		for my $item (@$alignmtsA) {
 print join("\t",$scafd,$chr,@$item);
 			++$cntStrand{$$item[0]};
@@ -43,20 +45,30 @@ print join("\t",$scafd,$chr,@$item);
 			if ($a) {
 				$t = $a / $b;
 			} else {
-print "\t***\n";
-				next;
-				$t = 0;
+#print "\t***\n";
+				#next;
+				$t = 0.1;
 			}
+			push @{$thePos{$chr}},[$$item[0],$$item[2]+$lenChr/2,$$item[4]+$lenScafd/2];
 print join("\t",'',$lenScafd,$lenChr,$t),"\n";
 			if ($$item[0]) {
-				$scoreSame{$chr} += $t;
-			} else {
 				$scoreSame{$chr} -= $t;
+			} else {
+				$scoreSame{$chr} += $t;
 			}
+			$scoreAbs{$chr} += $t;
 		}
-		print join(",",$scoreSame{$chr},%cntStrand),"\t-----\n";
+		print join(",",$scoreAbs{$chr},$scoreSame{$chr},%cntStrand),"\t-----\n";
 	}
-	print '-'x75,"\n";
+	my ($theChr) = sort { $scoreAbs{$b} <=> $scoreAbs{$a} } keys %scoreAbs;
+	my $lineFit = Statistics::LineFit->new();
+	my $diffStrand;
+	if ($scoreSame{$theChr} > 0) {
+		$diffStrand = 0;
+	} else {
+		$diffStrand = 1;
+	}
+	print $theChr,'-' x 70,"\n";
 }
 
 open O,'>',$outf.'.plst' or die $!;
