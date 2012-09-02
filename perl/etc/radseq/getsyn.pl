@@ -96,13 +96,13 @@ print OL join("\t",'',$lenScafd,$lenChr,$t),"\n";
 	$theChr,$scaffOnChr,'r2',$r2, 's',$sigma,'k',$slope,'b',$intercept, 'dy',(map {int($_)} @residuals),
 	"\n",'-' x 10,
 	'x',(map {int($_)} @x),'y',(map {int($_)} @y) ),"\n";
-	push @{$OutDat{$theChr}},[$scaffOnChr,$diffStrand,$scafd,$r2,$sigma,$slope];
-	#print O join("\t",$theChr,$scaffOnChr,$diffStrand,$scafd,$r2,$sigma,$slope),"\n";
+	push @{$OutDat{$theChr}},[$scaffOnChr,$diffStrand,$scafd,$r2,$slope,$sigma];
+	#print O join("\t",$theChr,$scaffOnChr,$diffStrand,$scafd,$r2,$slope,$sigma),"\n";
 }
 close OL;
 
 open O,'>',$outf.'.plst' or  die $!;
-print O join("\t",'#ChrID','Pos','isDiffStrand','scaffold','r^2','sigma','slope(k)'),"\n";
+print O join("\t",'#ChrID','Pos','isDiffStrand','scaffold','r^2','slope(k)','sigma'),"\n";
 for my $chr (sort keys %OutDat) {
 	for my $item (sort { $a->[0] <=> $b->[0] || $a->[1] <=> $b->[1] } @{$OutDat{$chr}}) {
 		print O join("\t",$chr,@$item),"\n";
