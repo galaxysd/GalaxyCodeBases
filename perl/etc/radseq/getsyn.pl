@@ -112,3 +112,18 @@ close O;
 
 __END__
 
+perl ./getsyn.pl tigris2cat.out tigris2cat
+perl ./getsyn.pl tigris2dog.out tigris2dog
+perl ./getsyn.pl tigris2hum.out tigris2hum
+
+join -1 4 -2 2 <(sort -k4 tigris2cat.plst) <(sort -k2 rec.pas) -o "1.1 1.2 1.3 1.4 2.3 2.7 2.8 2.9 2.10" -t $'\t' >plot2cat.lst
+join -1 4 -2 2 <(sort -k4 tigris2dog.plst) <(sort -k2 rec.pas) -o "1.1 1.2 1.3 1.4 2.3 2.7 2.8 2.9 2.10" -t $'\t' >plot2dog.lst
+join -1 4 -2 2 <(sort -k4 tigris2hum.plst) <(sort -k2 rec.pas) -o "1.1 1.2 1.3 1.4 2.3 2.7 2.8 2.9 2.10" -t $'\t' >plot2hum.lst
+
+./dojoin.pl tigris2cat.plst 4 rec.npa 2 plot2cat
+./dojoin.pl tigris2dog.plst 4 rec.npa 2 plot2dog
+./dojoin.pl tigris2hum.plst 4 rec.npa 2 plot2hum
+
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2cat.out |sort -k1.1 -k2.2n >plot2cat.nlst
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2dog.out |sort -k1.1 -k2.2n >plot2dog.nlst
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2hum.out |sort -k1.1 -k2.2n >plot2hum.nlst

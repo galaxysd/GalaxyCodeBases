@@ -189,3 +189,17 @@ perl -lane 'print if $F[10]>16' scaffold75.pas.nk3 > scaffold75.pas.nk3.16
 grep -P "scaffold1458\t" rec.pas > scaffold1458.pas
 sort -nk3 scaffold1458.pas > scaffold1458.pas.nk3
 perl -lane 'print if $F[10]>16' scaffold1458.pas.nk3 > scaffold1458.pas.nk3.16
+
+-------------------
+
+./cat/dojoin.pl radall.dict 3 radallP.model.REC 3 tmp.REC
+
+awk '{print $3" "$1" "$2" "$4" "$6" "$7" "$8" "$9" "$10" "$11}' tmp.REC.out > tmp.REC.out.j
+
+cat tmp.REC.out.j|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];
+$theta=($a[1]+$a[2])/($sum*2);
+$p=((1-$theta)**(2*$sum-($a[1]+$a[2])))*($theta**($a[1]+$a[2]))/(0.5**(2*$sum));
+$LOD=int(0.5+log($p)*1000/log(10))/1000;
+print join("\t",@F,$sum,int(0.5+$theta*100000)/100000,int($LOD),$LOD)' |sort -k2,2 -k3,3n > rec.npa
+
+sort -k13,13n -k2,2 -k3,3n  rec.npa > rec.npas
