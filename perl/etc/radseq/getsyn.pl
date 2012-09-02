@@ -30,9 +30,10 @@ close I;
 #ddx \%dat;
 
 for my $scafd (keys %dat) {
+	my %scoreSame;
 	for my $chr (keys %{$dat{$scafd}}) {
 		my $alignmtsA = $dat{$scafd}{$chr};
-		my ($scoreSame,%cntStrand)=(0);
+		my (%cntStrand);
 		for my $item (@$alignmtsA) {
 print join("\t",$scafd,$chr,@$item);
 			++$cntStrand{$$item[0]};
@@ -42,18 +43,20 @@ print join("\t",$scafd,$chr,@$item);
 			if ($a) {
 				$t = $a / $b;
 			} else {
+print "\t***\n";
 				next;
 				$t = 0;
 			}
 print join("\t",'',$lenScafd,$lenChr,$t),"\n";
 			if ($$item[0]) {
-				$scoreSame += $t;
+				$scoreSame{$chr} += $t;
 			} else {
-				$scoreSame -= $t;
+				$scoreSame{$chr} -= $t;
 			}
 		}
-print join(",",$scoreSame,%cntStrand),"\n",'-'x75,"\n";
+		print join(",",$scoreSame{$chr},%cntStrand),"\t-----\n";
 	}
+	print '-'x75,"\n";
 }
 
 open O,'>',$outf.'.plst' or die $!;
