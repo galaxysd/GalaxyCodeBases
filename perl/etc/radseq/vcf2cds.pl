@@ -329,3 +329,13 @@ sub cmpstr {
 	}
 	@ret;
 }
+
+__END__
+
+./vcf2cdsN.pl parents.vcf.gz n3f > n3f.lg
+
+diff ./vcf2cds.pl ./vcf2cdsN.pl
+16c16
+< my $gtfs = '/share/users/huxs/work/tiger/paper/parents75n1458.gtf';
+---
+> my $gtfs = '/share/users/huxs/work/tiger/paper/new.tcs.gtf';
