@@ -60,10 +60,13 @@ while (<I>) {
 close I;
 print "\n",scalar keys(%ScaffoldLen)," scaffold(s) Load.\n";
 
-open I,'<',$scaffnfo or die $!;
+my (%RawDat);
+open I,'<',$inf.'.nlst' or die $!;
 while (<I>) {
 	chomp;
 	my @items = split /\t/;
+	$RawDat{$items[0]}{$items[1]} = [ @items[2..5],int(0.5-100*log($items[9])/log(10))/100 ];
+print join(',',@{$RawDat{$items[0]}{$items[1]}}),"\n";	# isDiffStrand, slope(k), scaffold, pos, lg(p)
 }
 close I;
 
