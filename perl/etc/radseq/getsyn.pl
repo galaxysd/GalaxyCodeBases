@@ -87,7 +87,7 @@ print OL join("\t",'',$lenScafd,$lenChr,$t),"\n";
 		$sigma = $lineFit->sigma();
 		@residuals = $lineFit->residuals();
 	} elsif (@x == 1) {
-		$scaffOnChr = 1 + $y[0] - $x[0];
+		$scaffOnChr = 1 + $y[0] + ($diffStrand?1:-1)*$x[0];
 	} else {
 		die;
 	}

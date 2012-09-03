@@ -65,8 +65,15 @@ open I,'<',$inf.'.nlst' or die $!;
 while (<I>) {
 	chomp;
 	my @items = split /\t/;
-	$RawDat{$items[0]}{$items[1]} = [ @items[2..5],int(0.5-100*log($items[9])/log(10))/100 ];
-print join(',',@{$RawDat{$items[0]}{$items[1]}}),"\n";	# isDiffStrand, slope(k), scaffold, pos, lg(p)
+	die unless exists $ScaffoldLen{$items[4]};
+	my $end;
+	if ($items[3]) {	# k
+		$end = int( $items[1]-1 + $items[3]*($ScaffoldLen{$items[4]}->[0]) );
+	} else {
+		$end = int( $items[1]-1 + ($items[2]?-1:1)*($ScaffoldLen{$items[4]}->[0]) );
+	}
+	push @{$RawDat{$items[0]}},[ $items[1],$end,@items[2..5],int(0.5-100*log($items[9])/log(10))/100 ];
+#print join(',',@{$RawDat{$items[0]}{$items[1]}}),"\n";	# chrEnd,isDiffStrand, slope(k), scaffold, pos, lg(p)
 }
 close I;
 
