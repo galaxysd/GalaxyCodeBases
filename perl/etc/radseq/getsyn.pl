@@ -124,8 +124,8 @@ join -1 4 -2 2 <(sort -k4 tigris2hum.plst) <(sort -k2 rec.pas) -o "1.1 1.2 1.3 1
 ./dojoin.pl tigris2dog.plst 4 rec.npa 2 plot2dog
 ./dojoin.pl tigris2hum.plst 4 rec.npa 2 plot2hum
 
-awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2cat.out |sort -k1.1 -k2.2n >plot2cat.nlst
-awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2dog.out |sort -k1.1 -k2.2n >plot2dog.nlst
-awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$4,$10,$14,$15,$16,$17}' plot2hum.out |sort -k1.1 -k2.2n >plot2hum.nlst
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$6,$4,$10,$14,$15,$16,$17}' plot2cat.out |sort -k1.1 -k2.2n >plot2cat.nlst
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$6,$4,$10,$14,$15,$16,$17}' plot2dog.out |sort -k1.1 -k2.2n >plot2dog.nlst
+awk -F "\t" 'BEGIN {OFS="\t"} {print $1,$2,$3,$6,$4,$10,$14,$15,$16,$17}' plot2hum.out |sort -k1.1 -k2.2n >plot2hum.nlst
 
 perl -lane 'BEGIN {my %a} @x=split /\|/; $a{$x[-1]}=$_; END {print $a{$_} for sort keys %a}' plot2dog.chrorder > plot2dog.chrorder1

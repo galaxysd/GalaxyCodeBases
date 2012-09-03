@@ -20,7 +20,7 @@ if ($outf) {
 my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
-my (@ChrOrder,%ChrIDLen,%SacffoldLen,%ChrExists);
+my (@ChrOrder,%ChrIDLen,%ScaffoldLen,%ChrExists);
 open I,'<',$inf.'.chrorder' or die $!;
 while (<I>) {
 	next if /^#/;
@@ -31,6 +31,7 @@ while (<I>) {
 close I;
 open I,'<',$inf.'.chrnfo' or die $!;
 while (<I>) {
+	next if /^#/;
 	chomp;
 	my @items = split /\t/;
 	next unless exists $ChrExists{$items[0]};
@@ -49,3 +50,21 @@ while (<I>) {
 close I;
 print join("\t",$_,@{$ChrIDLen{$_}}),"\n" for (@ChrOrder);
 
+open I,'<',$scaffnfo or die $!;
+while (<I>) {
+	next if /^#/;
+	chomp;
+	my @items = split /\t/;
+	$ScaffoldLen{$items[0]} = [$items[1],$items[2]];
+}
+close I;
+print "\n",scalar keys(%ScaffoldLen)," scaffold(s) Load.\n";
+
+open I,'<',$scaffnfo or die $!;
+while (<I>) {
+	chomp;
+	my @items = split /\t/;
+}
+close I;
+
+__END__
