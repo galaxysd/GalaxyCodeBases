@@ -25,12 +25,14 @@ my %Stat;
 
 sub getVal($) {
 	my %dat = %{$_[0]};
-	my ($sum,$cnt)=(0,0);
+	my ($sum,$cnt,$max)=(0,0,0);
 	for my $k (keys %dat) {
 		$sum += $k * $dat{$k};
 		$cnt += $dat{$k};
+		$max = $k if $max < $k;
 	}
 	if ($cnt) {
+		return $max;
 		return $sum/$cnt;
 	} else {
 		return -1;
@@ -125,7 +127,7 @@ for my $chr (keys %Chr2Scaff) {
 #print join(',',@{$Chr2Scaff{$chr}->[$i]}),",$pR\n";
 #$arr->[6] = '-'.$arr->[1];
 #$arr->[7] = $arr->[4];
-					$arr->[1] = $pR + 1;
+					#$arr->[1] = $pR + 1;	# <--- disable altering
 					$arr->[4] = (1 + $arr->[1] - $arr->[0])/($ScaffoldLen{$arr->[3]}->[0]);
 					if (abs($arr->[4])<0.5) {
 						$arr->[1] = $arr->[2];
@@ -146,7 +148,7 @@ for my $chr (keys %Chr2Scaff) {
 #print join(',',@{$Chr2Scaff{$chr}->[$i]}),",$pL\n";
 #$arr->[6] = '+'.$arr->[1];
 #$arr->[7] = $arr->[4];
-					$arr->[1] = $pL - 1;
+					#$arr->[1] = $pL - 1;	# <--- disable altering
 					$arr->[4] = (1 + $arr->[1] - $arr->[0])/($ScaffoldLen{$arr->[3]}->[0]);
 					if (abs($arr->[4])<0.5) {
 						$arr->[1] = $arr->[2];
@@ -181,7 +183,8 @@ close I;
 #ddx \%MarkerDat;
 
 # ------ BEGIN PLOT --------
-my $Xrange = 2000;
+my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
+my $Xrange = 1600;
 my $Yrange = 100;
 my $YmaxVal = 4;
 my $ArrowLen = 20;	# 16+4
@@ -204,7 +207,6 @@ my $BasepPx = 10*$unit/$Xrange;
 
 my %PlotDat;
 for my $chr (keys %Chr2Scaff) {
-	my $chrEndPx = $ChrNameLen{$chr}/$BasepPx;
 	for my $items (@{$Chr2Scaff{$chr}}) {	# start,end,endmin,scaff,k,isDiffStrand
 		my ($start,$end,undef,$scaff,$k) = @$items;
 		unless (exists $MarkerDat{$scaff}) {
@@ -237,8 +239,10 @@ print O <<HEAD;
 <?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny"
  width="${Xtotal}px" height="${Ytotal}px">
-<title>Plot</title>
+<title>Plot $inf</title>
+<!--
   <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="red" stroke-width="2" />
+-->
 HEAD
 
 print O <<'DEF1';
@@ -280,35 +284,42 @@ DEF2
 my $thisChrNo=0;
 for my $chr (@ChrNameOrder) {
 	next unless exists $PlotDat{$chr};
+	my $chrEndPx = $ChrNameLen{$chr}/$BasepPx;
 	my $topY = $ArrowLen + $Yitem*$thisChrNo;
 	print O <<TXT2;
-    <g transform="translate(0,$topY)">
-      <use x="0" y="0" xlink:href="#axis" />
+    <g transform="translate(0,$topY)" stroke-width="1">
+      <use x="0" y="0" xlink:href="#axis" stroke-width="2"/>
       <text x="5" y="-6" stroke-width="0">$chr</text>
 TXT2
+	my $scaffcnt=0;
 	for my $scaff (sort keys %{$PlotDat{$chr}}) {
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$chr}{$scaff}};
-		print O '      <polyline fill="none" stroke="blue" points="',$Poses[0],',100 ';
+		my $thiscolor = $color[$scaffcnt%scalar(@color)];
+		print O '      <polyline fill="none" stroke="',$thiscolor,'" points="',$Poses[0],',100 ';
 		for my $pos (@Poses) {
 			my $val = getVal($PlotDat{$chr}{$scaff}{$pos});
 			my $ypos = int(10*$Yrange*(1-$val/$YmaxVal))/10;
 			print O $pos,',',$ypos,' ';
 		}
-		print O $Poses[-1],',100" />';
+		print O $Poses[-1],',100" />',"\n$chrEndPx";
+		++$scaffcnt;
 	}
 	print O <<TXT3;
+      <line x1="$chrEndPx" y1="0" x2="$chrEndPx" y2="$Yrange" stroke="black" stroke-width="2" stroke-opacity="0.9"/>
     </g>
 TXT3
-		++$thisChrNo;
+	++$thisChrNo;
 }
 
+print O "  </g>\n</svg>\n";
+=pod
 print O "
   </g>
-
   <rect x=\"$OutBorder\" y=\"$OutBorder\" width=\"",$Xrange+$ArrowLen,"\" height=\"",$Ytotal-2*$OutBorder,"\" fill=\"none\" stroke=\"blue\" stroke-width=\"1\" />
   <line x1=\"",$Xrange+$OutBorder,"\" y1=\"$OutBorder\" x2=\"",$Xrange+$OutBorder,"\" y2=\"",$Ytotal-$OutBorder,"\" stroke=\"blue\" stroke-width=\"1\"/>
 </svg>
 ";
+=cut
 close O;
 
 ddx \%Stat;
