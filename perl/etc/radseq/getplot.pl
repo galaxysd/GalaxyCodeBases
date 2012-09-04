@@ -169,9 +169,12 @@ close I;
 # ------ BEGIN PLOT --------
 my $Xrange = 2000;
 my $Yrange = 100;
-my $ArrowLen = 20;
+my $ArrowLen = 20;	# 16+4
+my $axisTick = 4;
 my $OutBorder = 24;
 my $InBorder = 36;
+my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
+my $Yitem = $Yrange + $ArrowLen + $InBorder;
 
 my $perUnit = int($MaxChrLen/10);	# 279.330936 M /10 = 27.933093 M
 my $numlevel = int(log($perUnit)/log(10));	# 7
@@ -208,8 +211,79 @@ for my $chr (keys %Chr2Scaff) {
 		}
 	}
 }
-
 ddx \%PlotDat;
+
+my $ChrCount = keys %PlotDat;
+my $Ytotal = $Yitem*$ChrCount + 2*$OutBorder;
+#print $ChrCount,"\n";
+
+open O,'>',$inf.$outf.'.svg' or die $!;
+print O <<HEAD;
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny"
+ width="${Xtotal}px" height="${Ytotal}px">
+<title>Plot</title>
+  <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="red" stroke-width="2" />
+HEAD
+
+print O <<'DEF1';
+  <defs>
+    <g id="axis" stroke="black" font-size="16" font-family="Arial" stroke-width="0" text-anchor="middle">
+      <polyline fill="none" points="-2,-4 0,-20 2,-4 0,-20 
+        0,0 -4,0 0,0 
+        0,25 -4,25 0,25 
+        0,50 -4,50 0,50 
+        0,75 -4,75 0,75 
+        0,100
+DEF1
+# $Yrange fixed to 100 here.
+for my $i (1 .. 10) {
+	my $x = $i*$Xrange/10;
+	print O ' ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange
+}
+print O "\n        ",$Xrange+$ArrowLen,',',$Yrange,' ',
+	$Xrange+$axisTick,',',$Yrange-2,' ',$Xrange+$axisTick,',',$Yrange+2,' ',
+	$Xrange+$ArrowLen,',',$Yrange,'" stroke-width="2"/>',"\n";
+
+print O <<'DEF2';
+      <text x="0" y="0" dx="-20" dy="5" text-anchor="middle">4</text>
+      <text x="0" y="25" dx="-20" dy="5" text-anchor="middle">3</text>
+      <text x="0" y="50" dx="-20" dy="5" text-anchor="middle">2</text>
+      <text x="0" y="75" dx="-20" dy="5" text-anchor="middle">1</text>
+      <text x="0" y="100" dy="20" text-anchor="middle">0</text>
+      <text x="200" y="100" dy="20" text-anchor="middle">10%</text>
+      <text x="400" y="100" dy="20" text-anchor="middle">20%</text>
+      <text x="1000" y="100" dy="20" text-anchor="middle">50%</text>
+      <text x="2000" y="100" dy="20" text-anchor="middle">100%</text>
+    </g>
+  </defs>
+
+  <g transform="translate(24,24)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
+    <g transform="translate(0,24)">
+      <use x="0" y="0" xlink:href="#axis" />
+      <text x="5" y="-6" stroke-width="0">Chr1</text>
+      <polyline fill="none" stroke="blue" 
+        points="0,100 0,75 5,10 10,30 15,55 20,75 25,22 30,33 35,11 40,66 55,60 60,100 65,80 70,20 75,30 80,60 80,100" />
+      <text x="5" y="-6" stroke-width="0">Chr1</text>
+    </g>
+    <g transform="translate(0,185)">
+      <use x="0" y="0" xlink:href="#axis" />
+      <text x="5" y="-6" stroke-width="0">Chr2</text>
+      <polyline fill="none" stroke="blue" 
+        points="0,100 0,75 55,60 60,100 65,80 70,20 75,30 80,60" />
+    </g>
+  </g>
+
+
+DEF2
+
+print O "
+  <rect x=\"$OutBorder\" y=\"$OutBorder\" width=\"",$Xrange+$ArrowLen,"\" height=\"",$Yitem*$ChrCount,"\" fill=\"none\" stroke=\"blue\" stroke-width=\"1\" />
+  <line x1=\"",$Xrange+$OutBorder,"\" y1=\"$OutBorder\" x2=\"",$Xrange+$OutBorder,"\" y2=\"",$Yitem*$ChrCount+$OutBorder,"\" stroke=\"blue\" stroke-width=\"1\"/>
+</svg>
+";
+close O;
+
 ddx \%Stat;
 
 __END__
