@@ -21,7 +21,7 @@ my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
 my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
-my (@ChrOrder,%ChrIDLen,%ScaffoldLen,%ChrExists);
+my (@ChrOrder,%ChrIDLen,%ScaffoldLen,%ChrExists,%ChrNameLen,@ChrNameOrder);
 open I,'<',$inf.'.chrorder' or die $!;
 while (<I>) {
 	next if /^#/;
@@ -46,10 +46,16 @@ while (<I>) {
 	} else {
 		$chrid = $items[0];
 	}
-	$ChrIDLen{$items[0]} = [$items[1],$chrid];
+	$chrid = 'chr'.$chrid;
+	$ChrIDLen{$items[0]} = [$chrid,$items[1]];
+	$ChrNameLen{$chrid} = $items[1];
 }
 close I;
-print join("\t",$_,@{$ChrIDLen{$_}}),"\n" for (@ChrOrder);
+for (@ChrOrder) {
+	print join("\t",$_,@{$ChrIDLen{$_}}),"\n";
+	push @ChrNameOrder,$ChrIDLen{$_}->[0];
+}
+ddx \@ChrNameOrder,\%ChrNameLen;
 
 open I,'<',$scaffnfo or die $!;
 while (<I>) {
@@ -67,7 +73,10 @@ while (<I>) {
 	next if /^#/;
 	chomp;
 	my @items = split /\t/;
-	die unless exists $ScaffoldLen{$items[3]};
+	unless (exists $ScaffoldLen{$items[3]} and exists $ChrNameLen{$items[0]}) {
+		warn "[!plst]$_\n";
+		next;
+	}
 	$Scaff2ChrID{$items[3]} = $items[0];
 	my ($end,$endmin);
 	if ($items[5]) {	# k
@@ -154,6 +163,21 @@ while (<I>) {
 close I;
 ddx \%MarkerDat;
 
+# ------ BEGIN PLOT --------
+my $Xrange = 2000;
+my $Yrange = 100;
+my $ArrowLen = 20;
+my $OutBorder = 24;
+my $InBorder = 36;
+
+my %PlotDat;
+for my $chr (keys %Chr2Scaff) {
+	for my $items (@{$Chr2Scaff{$chr}}) {	# start,end,endmin,scaff,k,isDiffStrand
+		die unless exists $MarkerDat{$$items[3]};
+		my $x;
+		push $PlotDat{$chr}{$$items[3]},[];
+	}
+}
 ddx \%Stat;
 
 __END__
