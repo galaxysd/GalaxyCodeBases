@@ -23,6 +23,20 @@ print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %Stat;
 
+sub getVal($) {
+	my %dat = %{$_[0]};
+	my ($sum,$cnt)=(0,0);
+	for my $k (keys %dat) {
+		$sum += $k * $dat{$k};
+		$cnt += $dat{$k};
+	}
+	if ($cnt) {
+		return $sum/$cnt;
+	} else {
+		return -1;
+	}
+}
+
 my ($MaxChrLen,@ChrOrder,%ChrIDLen,%ScaffoldLen,%ChrExists,%ChrNameLen,@ChrNameOrder)=(1);
 open I,'<',$inf.'.chrorder' or die $!;
 while (<I>) {
@@ -169,10 +183,11 @@ close I;
 # ------ BEGIN PLOT --------
 my $Xrange = 2000;
 my $Yrange = 100;
+my $YmaxVal = 4;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
-my $InBorder = 36;
+my $InBorder = 40;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder;
 
@@ -214,7 +229,7 @@ for my $chr (keys %Chr2Scaff) {
 ddx \%PlotDat;
 
 my $ChrCount = keys %PlotDat;
-my $Ytotal = $Yitem*$ChrCount + 2*$OutBorder;
+my $Ytotal = $Yitem*$ChrCount - $InBorder + $ArrowLen + 2*$OutBorder;
 #print $ChrCount,"\n";
 
 open O,'>',$inf.$outf.'.svg' or die $!;
@@ -244,42 +259,54 @@ for my $i (1 .. 10) {
 print O "\n        ",$Xrange+$ArrowLen,',',$Yrange,' ',
 	$Xrange+$axisTick,',',$Yrange-2,' ',$Xrange+$axisTick,',',$Yrange+2,' ',
 	$Xrange+$ArrowLen,',',$Yrange,'" stroke-width="2"/>',"\n";
-
-print O <<'DEF2';
+for my $i (0 .. 10) {
+	my $x = $i*$Xrange/10;
+	my $l = $unit*$i/$numSuflevel;
+	$l .= " $numSuf" if $l;
+	print O <<TXT1;
+      <text x="$x" y="$Yrange" dy="20" text-anchor="middle">$l</text>
+TXT1
+}
+print O <<DEF2;
       <text x="0" y="0" dx="-20" dy="5" text-anchor="middle">4</text>
       <text x="0" y="25" dx="-20" dy="5" text-anchor="middle">3</text>
       <text x="0" y="50" dx="-20" dy="5" text-anchor="middle">2</text>
       <text x="0" y="75" dx="-20" dy="5" text-anchor="middle">1</text>
-      <text x="0" y="100" dy="20" text-anchor="middle">0</text>
-      <text x="200" y="100" dy="20" text-anchor="middle">10%</text>
-      <text x="400" y="100" dy="20" text-anchor="middle">20%</text>
-      <text x="1000" y="100" dy="20" text-anchor="middle">50%</text>
-      <text x="2000" y="100" dy="20" text-anchor="middle">100%</text>
     </g>
   </defs>
-
-  <g transform="translate(24,24)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
-    <g transform="translate(0,24)">
-      <use x="0" y="0" xlink:href="#axis" />
-      <text x="5" y="-6" stroke-width="0">Chr1</text>
-      <polyline fill="none" stroke="blue" 
-        points="0,100 0,75 5,10 10,30 15,55 20,75 25,22 30,33 35,11 40,66 55,60 60,100 65,80 70,20 75,30 80,60 80,100" />
-      <text x="5" y="-6" stroke-width="0">Chr1</text>
-    </g>
-    <g transform="translate(0,185)">
-      <use x="0" y="0" xlink:href="#axis" />
-      <text x="5" y="-6" stroke-width="0">Chr2</text>
-      <polyline fill="none" stroke="blue" 
-        points="0,100 0,75 55,60 60,100 65,80 70,20 75,30 80,60" />
-    </g>
-  </g>
-
-
+  <g transform="translate($OutBorder,$OutBorder)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
 DEF2
 
+my $thisChrNo=0;
+for my $chr (@ChrNameOrder) {
+	next unless exists $PlotDat{$chr};
+	my $topY = $ArrowLen + $Yitem*$thisChrNo;
+	print O <<TXT2;
+    <g transform="translate(0,$topY)">
+      <use x="0" y="0" xlink:href="#axis" />
+      <text x="5" y="-6" stroke-width="0">$chr</text>
+TXT2
+	for my $scaff (sort keys %{$PlotDat{$chr}}) {
+		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$chr}{$scaff}};
+		print O '      <polyline fill="none" stroke="blue" points="',$Poses[0],',100 ';
+		for my $pos (@Poses) {
+			my $val = getVal($PlotDat{$chr}{$scaff}{$pos});
+			my $ypos = int(10*$Yrange*(1-$val/$YmaxVal))/10;
+			print O $pos,',',$ypos,' ';
+		}
+		print O $Poses[-1],',100" />';
+	}
+	print O <<TXT3;
+    </g>
+TXT3
+		++$thisChrNo;
+}
+
 print O "
-  <rect x=\"$OutBorder\" y=\"$OutBorder\" width=\"",$Xrange+$ArrowLen,"\" height=\"",$Yitem*$ChrCount,"\" fill=\"none\" stroke=\"blue\" stroke-width=\"1\" />
-  <line x1=\"",$Xrange+$OutBorder,"\" y1=\"$OutBorder\" x2=\"",$Xrange+$OutBorder,"\" y2=\"",$Yitem*$ChrCount+$OutBorder,"\" stroke=\"blue\" stroke-width=\"1\"/>
+  </g>
+
+  <rect x=\"$OutBorder\" y=\"$OutBorder\" width=\"",$Xrange+$ArrowLen,"\" height=\"",$Ytotal-2*$OutBorder,"\" fill=\"none\" stroke=\"blue\" stroke-width=\"1\" />
+  <line x1=\"",$Xrange+$OutBorder,"\" y1=\"$OutBorder\" x2=\"",$Xrange+$OutBorder,"\" y2=\"",$Ytotal-$OutBorder,"\" stroke=\"blue\" stroke-width=\"1\"/>
 </svg>
 ";
 close O;
