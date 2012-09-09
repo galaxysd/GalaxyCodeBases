@@ -6,6 +6,7 @@ Version: 1.0.0 @ 20120720
 use strict;
 use warnings;
 use Data::Dump qw(ddx);
+use Galaxy;
 
 die "Usage: $0 <prefix> [out midfix]\n" if @ARGV<1;
 my $inf=shift;
@@ -94,6 +95,7 @@ if ($Stat{Scaffold_Ordered}) {
 }
 
 ddx \%Stat;
+print commify($TotalLen),"\n";
 
 __END__
 # ------ BEGIN PLOT --------
