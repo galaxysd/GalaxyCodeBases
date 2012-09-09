@@ -94,10 +94,6 @@ if ($Stat{Scaffold_Ordered}) {
 	$Stat{AvgLen_Ordered} = $Stat{Len_Ordered} / $Stat{Scaffold_Ordered};
 }
 
-ddx \%Stat;
-print commify($TotalLen),"\n";
-
-__END__
 # ------ BEGIN PLOT --------
 my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
 my $Xrange = 1600;
@@ -110,41 +106,44 @@ my $InBorder = 40;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder;
 
-my $perUnit = int($MaxChrLen/10);	# 279.330936 M /10 = 27.933093 M
+my $perUnit = int($TotalLen/10);	# 279.330936 M /10 = 27.933093 M
 my $numlevel = int(log($perUnit)/log(10));	# 7
 my $numSuflevel = int($numlevel/3);	# 2
 my $numSuf=( '', qw( K M G T P E Z Y ) )[$numSuflevel];	# M <---
 $numSuflevel = 10 ** (3*$numSuflevel);	# 1,000,000 <---
 my $roundTo = 5 * (10 ** ($numlevel-1));	# 5e6
 my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
-my $countMax = int($MaxChrLen/$unit) + (($MaxChrLen%$unit)?1:0);
-#print join(",",$MaxChrLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
+my $countMax = int($TotalLen/$unit) + (($TotalLen%$unit)?1:0);
+#print join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
 
 my %PlotDat;
-for my $chr (keys %Chr2Scaff) {
-	for my $items (@{$Chr2Scaff{$chr}}) {	# start,end,endmin,scaff,k,isDiffStrand
-		my ($start,$end,undef,$scaff,$k) = @$items;
-		unless (exists $MarkerDat{$scaff}) {
-			warn "[!marker]",join(',',@$items),"\n";
-			++$Stat{'Marker_Not_found'};
-			next;
-		}
-		for my $mditem (@{$MarkerDat{$scaff}}) {
-			my ($pos,$p,$lgp) = @$mditem;
-			my $posOchr = $start + $pos*$k;
-			if ($posOchr < 0) {
-				$posOchr = 0;
-				++$Stat{'Marker_Pos_Minus'};
-			} elsif ($posOchr > $ChrNameLen{$chr}) {
-				$posOchr = $ChrNameLen{$chr};
-				++$Stat{'Marker_Pos_Overflow'};
-			}
-			++$PlotDat{$chr}{$scaff}{int(0.5+$posOchr/$BasepPx)}{$lgp};
-		}
+my $start = 0;
+for my $scaff (@DirectOrder,@notOrdered) {
+	unless (exists $MarkerDat{$scaff}) {
+		warn "[!marker]$scaff\n";
+		++$Stat{'Marker_Not_found'};
+		next;
 	}
+	for my $mditem (@{$MarkerDat{$scaff}}) {
+		my ($pos,$p,$lgp) = @$mditem;
+		my $posOchr = $start + $pos;
+		if ($posOchr < 0) {
+			$posOchr = 0;
+			++$Stat{'Marker_Pos_Minus'};
+		} elsif ($pos > $ScaffoldLen{$scaff}) {
+			$posOchr = $start + $ScaffoldLen{$scaff};
+			++$Stat{'Marker_Pos_Overflow'};
+		}
+		++$PlotDat{$scaff}{int(0.5+$posOchr/$BasepPx)}{$lgp};
+	}
+	$start += $ScaffoldLen{$scaff};
 }
+
+ddx \%Stat;
+print commify($TotalLen),"\n";
 ddx \%PlotDat;
+__END__
 
 my $ChrCount = keys %PlotDat;
 my $Ytotal = $Yitem*$ChrCount - $InBorder + $ArrowLen + 2*$OutBorder;
