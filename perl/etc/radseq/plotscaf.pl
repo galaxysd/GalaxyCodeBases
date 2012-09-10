@@ -72,7 +72,7 @@ open I,'<',$inf.'.order' or die $!;
 while (<I>) {
 	next if /^#/;
 	chomp;
-	my ($scaff,$chr) = split /\t/;
+	my ($scaff,$chr) = split /\t/ or next;	# skip blank lines
 	next if exists $OrderedOnce{$scaff};
 	push @{$OrderbyChr{$chr}},$scaff;
 	push @DirectOrder,$scaff;
@@ -102,7 +102,7 @@ if ($Stat{Scaffold_Ordered}) {
 
 # ------ BEGIN PLOT --------
 my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
-my $Xrange = 2000;
+my $Xrange = 1000;
 my $Yrange = 500;
 my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
@@ -129,14 +129,15 @@ for my $i (1 .. $YmaxVal) {	# 0 will be shared with X-axie
 	push @Yticks,$pY;
 }
 
-my %PlotDat;
+my (%PlotDat,%PlotScaffRange);
 my $start = 0;
-for my $scaff (@DirectOrder,@notOrdered) {
+for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away from X-axie.
 	unless (exists $MarkerDat{$scaff}) {
 		warn "[!marker]$scaff\n";
 		++$Stat{'Marker_Not_found'};
 		next;
 	}
+	my $maxlgp = 0;
 	for my $mditem (@{$MarkerDat{$scaff}}) {
 		my ($pos,$p,$lgp) = @$mditem;
 		my $posOchr = $start + $pos;
@@ -148,7 +149,9 @@ for my $scaff (@DirectOrder,@notOrdered) {
 			++$Stat{'Marker_Pos_Overflow'};
 		}
 		++$PlotDat{$scaff}{int(0.5+10*$posOchr/$BasepPx)/10}{$lgp};
+		$maxlgp = $lgp if $maxlgp < $lgp;
 	}
+	$PlotScaffRange{$scaff} = [ ( map {int(0.5+10*$_/$BasepPx)/10} ($start+1,$start+$ScaffoldLen{$scaff}) ),$maxlgp ];
 	$start += $ScaffoldLen{$scaff};
 }
 
@@ -177,7 +180,6 @@ for (@Yticks) {
 }
 print O "        0,$Yrange\n";
 
-# $Yrange fixed to 100 here.
 for my $i (1 .. 10) {
 	my $x = $i*$Xrange/10;
 	print O '        ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange,"\n";
@@ -189,6 +191,7 @@ for my $i (1 .. $YmaxVal) {
 	my $y = $Yticks[$i-1];
 	print O <<TXTAX;
       <text x="0" y="$y" dx="-20" dy="5" text-anchor="middle">$i</text>
+      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="1" stroke-dasharray="1,9"/>
 TXTAX
 }
 for my $i (0 .. 10) {
@@ -218,7 +221,8 @@ TXT2
 		next unless exists $MarkerDat{$scaff};
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
-		print O '      <g stroke="',$thiscolor,'">',"\n        <title>$scaff</title>\n";
+		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
+		print O '      <g stroke="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		for my $pos (@Poses) {
 			my ($major,$max) = getVal($PlotDat{$scaff}{$pos});
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
@@ -226,7 +230,11 @@ TXT2
         <line x1="$pos" y1="$pYmajor" x2="$pos" y2="$pYmax"/>
 TXTL
 		}
-		print O "      </g>\n";
+		#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
+		print O <<TXTLB;
+        <line x1="$pa" y1="$Yrange" x2="$pb" y2="$Yrange" stroke-width="2"/>
+      </g>
+TXTLB
 		++$scaffcnt;
 	}
 	print O "    </g>\n";
