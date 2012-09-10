@@ -140,14 +140,9 @@ for my $scaff (@DirectOrder,@notOrdered) {
 	$start += $ScaffoldLen{$scaff};
 }
 
-ddx \%Stat;
-print commify($TotalLen),"\n";
-ddx \%PlotDat;
-__END__
-
 my $ChrCount = keys %PlotDat;
+$ChrCount = 1;
 my $Ytotal = $Yitem*$ChrCount - $InBorder + $ArrowLen + 2*$OutBorder;
-#print $ChrCount,"\n";
 
 open O,'>',$inf.$outf.'.svg' or die $!;
 print O <<HEAD;
@@ -197,9 +192,7 @@ print O <<DEF2;
 DEF2
 
 my $thisChrNo=0;
-for my $chr (@ChrNameOrder) {
-	next unless exists $PlotDat{$chr};
-	my $chrEndPx = $ChrNameLen{$chr}/$BasepPx;
+for my $chr ('Tiger') {
 	my $topY = $ArrowLen + $Yitem*$thisChrNo;
 	print O <<TXT2;
     <g transform="translate(0,$topY)" stroke-width="1">
@@ -207,20 +200,21 @@ for my $chr (@ChrNameOrder) {
       <text x="5" y="-6" stroke-width="0">$chr</text>
 TXT2
 	my $scaffcnt=0;
-	for my $scaff (sort keys %{$PlotDat{$chr}}) {
-		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$chr}{$scaff}};
+	for my $scaff (@DirectOrder,@notOrdered) {
+		next unless (exists $MarkerDat{$scaff});
+		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
 		print O '      <polyline fill="none" stroke="',$thiscolor,'" points="',$Poses[0],',100 ';
 		for my $pos (@Poses) {
-			my $val = getVal($PlotDat{$chr}{$scaff}{$pos});
+			my $val = getVal($PlotDat{$scaff}{$pos});
 			my $ypos = int(10*$Yrange*(1-$val/$YmaxVal))/10;
 			print O $pos,',',$ypos,' ';
 		}
-		print O $Poses[-1],',100" />',"\n$chrEndPx";
+		print O $Poses[-1],',100" />',"\n";
 		++$scaffcnt;
 	}
 	print O <<TXT3;
-      <line x1="$chrEndPx" y1="0" x2="$chrEndPx" y2="$Yrange" stroke="black" stroke-width="2" stroke-opacity="0.9"/>
+      <line x1="$TotalLen" y1="0" x2="$TotalLen" y2="$Yrange" stroke="black" stroke-width="2" stroke-opacity="0.9"/>
     </g>
 TXT3
 	++$thisChrNo;
@@ -238,7 +232,7 @@ print O "
 close O;
 
 ddx \%Stat;
-
+print commify($TotalLen),"\n";
 __END__
 
 perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" ./tig2cat.csv > ./tig2cat.tsv
