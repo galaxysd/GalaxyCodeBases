@@ -103,8 +103,8 @@ if ($Stat{Scaffold_Ordered}) {
 # ------ BEGIN PLOT --------
 my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
 my $Xrange = 2000;
-my $Yrange = 100;
-my $YmaxVal = 4;
+my $Yrange = 500;
+my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
@@ -122,6 +122,12 @@ my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
 my $countMax = int($TotalLen/$unit) + (($TotalLen%$unit)?1:0);
 #print join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
+
+my @Yticks;
+for my $i (1 .. $YmaxVal) {	# 0 will be shared with X-axie
+	my $pY = $Yrange - $i * ($Yrange/$YmaxVal);
+	push @Yticks,$pY;
+}
 
 my %PlotDat;
 my $start = 0;
@@ -141,7 +147,7 @@ for my $scaff (@DirectOrder,@notOrdered) {
 			$posOchr = $start + $ScaffoldLen{$scaff};
 			++$Stat{'Marker_Pos_Overflow'};
 		}
-		++$PlotDat{$scaff}{int(0.5+$posOchr/$BasepPx)}{$lgp};
+		++$PlotDat{$scaff}{int(0.5+10*$posOchr/$BasepPx)/10}{$lgp};
 	}
 	$start += $ScaffoldLen{$scaff};
 }
@@ -165,20 +171,26 @@ print O <<'DEF1';
   <defs>
     <g id="axis" stroke="black" font-size="16" font-family="Arial" stroke-width="0" text-anchor="middle">
       <polyline fill="none" points="-2,-4 0,-20 2,-4 0,-20 
-        0,0 -4,0 0,0 
-        0,25 -4,25 0,25 
-        0,50 -4,50 0,50 
-        0,75 -4,75 0,75 
-        0,100
 DEF1
+for (@Yticks) {
+	print O "        0,$_ -$axisTick,$_ 0,$_ \n"
+}
+print O "        0,$Yrange\n";
+
 # $Yrange fixed to 100 here.
 for my $i (1 .. 10) {
 	my $x = $i*$Xrange/10;
-	print O ' ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange
+	print O '        ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange,"\n";
 }
-print O "\n        ",$Xrange+$ArrowLen,',',$Yrange,' ',
+print O '        ',$Xrange+$ArrowLen,',',$Yrange,' ',
 	$Xrange+$axisTick,',',$Yrange-2,' ',$Xrange+$axisTick,',',$Yrange+2,' ',
 	$Xrange+$ArrowLen,',',$Yrange,'" stroke-width="2"/>',"\n";
+for my $i (1 .. $YmaxVal) {
+	my $y = $Yticks[$i-1];
+	print O <<TXTAX;
+      <text x="0" y="$y" dx="-20" dy="5" text-anchor="middle">$i</text>
+TXTAX
+}
 for my $i (0 .. 10) {
 	my $x = $i*$Xrange/10;
 	my $l = $unit*$i/$numSuflevel;
@@ -188,10 +200,6 @@ for my $i (0 .. 10) {
 TXT1
 }
 print O <<DEF2;
-      <text x="0" y="0" dx="-20" dy="5" text-anchor="middle">4</text>
-      <text x="0" y="25" dx="-20" dy="5" text-anchor="middle">3</text>
-      <text x="0" y="50" dx="-20" dy="5" text-anchor="middle">2</text>
-      <text x="0" y="75" dx="-20" dy="5" text-anchor="middle">1</text>
     </g>
   </defs>
   <g transform="translate($OutBorder,$OutBorder)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
