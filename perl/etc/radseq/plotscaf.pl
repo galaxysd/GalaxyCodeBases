@@ -26,14 +26,19 @@ my %Stat;
 
 sub getVal($) {
 	my %dat = %{$_[0]};
-	my ($sum,$cnt,$max)=(0,0,0);
+	my ($sum,$cnt,$max,$major)=(0,0,0,0);
+	my $mjcnt=0;
 	for my $k (keys %dat) {
 		$sum += $k * $dat{$k};
 		$cnt += $dat{$k};
 		$max = $k if $max < $k;
+		if ($k and $mjcnt<$dat{$k}) {
+			$major = $k;
+			$mjcnt = $dat{$k};
+		}
 	}
 	if ($cnt) {
-		return $max;
+		return ($major,$max);
 		return $sum/$cnt;
 	} else {
 		return -1;
@@ -77,6 +82,7 @@ close I;
 my $TotalLen=0;
 my @order = map {$_='scaffold'.$_} sort {$a<=>$b} map {s/^scaffold//;$_;} keys %MarkerDat;
 for my $scaff (@order) {
+	next unless exists $MarkerDat{$scaff};
 	if (exists $OrderedOnce{$scaff}) {
 		$Stat{Len_Ordered} += $ScaffoldLen{$scaff} or die;
 		++$Stat{Scaffold_Ordered};
@@ -96,7 +102,7 @@ if ($Stat{Scaffold_Ordered}) {
 
 # ------ BEGIN PLOT --------
 my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
-my $Xrange = 1600;
+my $Xrange = 2000;
 my $Yrange = 100;
 my $YmaxVal = 4;
 my $ArrowLen = 20;	# 16+4
@@ -201,23 +207,22 @@ for my $chr ('Tiger') {
 TXT2
 	my $scaffcnt=0;
 	for my $scaff (@DirectOrder,@notOrdered) {
-		next unless (exists $MarkerDat{$scaff});
+		next unless exists $MarkerDat{$scaff};
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
-		print O '      <polyline fill="none" stroke="',$thiscolor,'" points="',$Poses[0],',100 ';
+		print O '      <g stroke="',$thiscolor,'">',"\n        <title>$scaff</title>\n";
 		for my $pos (@Poses) {
-			my $val = getVal($PlotDat{$scaff}{$pos});
-			my $ypos = int(10*$Yrange*(1-$val/$YmaxVal))/10;
-			print O $pos,',',$ypos,' ';
+			my ($major,$max) = getVal($PlotDat{$scaff}{$pos});
+			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
+			print O <<TXTL;
+        <line x1="$pos" y1="$pYmajor" x2="$pos" y2="$pYmax"/>
+TXTL
 		}
-		print O $Poses[-1],',100" />',"\n";
+		print O "      </g>\n";
 		++$scaffcnt;
 	}
-	print O <<TXT3;
-      <line x1="$TotalLen" y1="0" x2="$TotalLen" y2="$Yrange" stroke="black" stroke-width="2" stroke-opacity="0.9"/>
-    </g>
-TXT3
-	++$thisChrNo;
+	print O "    </g>\n";
+#	++$thisChrNo;
 }
 
 print O "  </g>\n</svg>\n";
