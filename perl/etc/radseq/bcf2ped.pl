@@ -2,6 +2,8 @@
 =pod
 Author: Hu Xuesong @ BIOPIC <galaxy001@gmail.com>
 Version: 1.0.0 @ 20120720
+Purpose: Read bcf, get tped for p-link
+Notes: rad2marker is deprecated.
 =cut
 use strict;
 use warnings;
@@ -20,24 +22,46 @@ open OM,'>',$outfs.'.MinorAllele' or die "Error opening $outfs.MinorAllele : $!\
 open OD,'>',$outfs.'.dict' or die "Error opening $outfs.dict : $!\n";
 if ($tfamfs ne $outfs.'.tfam') {
 	open OF,'>',$outfs.'.tfam' or die "Error opening $outfs.tfam : $!\n";
+	open OFA,'>',$outfs.'.case.tfam' or die $!;
+	open OFO,'>',$outfs.'.control.tfam' or die $!;
 }
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
 $t = "# In: [$bcfs], Out: [$outfs]\n";
 print O $t;
 print $t;
 
-my (%Pheno,@tfamSamples);
+my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
-	print OF $_;
+	#print OF $_;
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
-	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff, 2=aff, 0=miss)
+	$tfamDat{$ind} = $_."\n";
+	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
+	if ($ind =~ s/^~//) {
+		$tfamSampleFlag{$ind} = 0;
+	} elsif ($pho == 1 or $pho == 2) {
+		$tfamSampleFlag{$ind} = $pho;
+	} else { die; }	# $pho can only be 1 or 2
 	push @tfamSamples,$ind;
+}
+for my $ind (@tfamSamples) {
+	if ($tfamSampleFlag{$ind} == 0) {
+		next;
+	} elsif ($tfamSampleFlag{$ind} == 1) {
+		print OFO $tfamDat{$ind};
+	} elsif ($tfamSampleFlag{$ind} == 2) {
+		print OFA $tfamDat{$ind};
+	} else { die; }
+	print OF $tfamDat{$ind};
 }
 close L;
 close OF;
+close OFA;
+close OFO;
+
+__END__
 
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
