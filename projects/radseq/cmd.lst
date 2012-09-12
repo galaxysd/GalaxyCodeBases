@@ -69,3 +69,22 @@ samtools view -bS ./bwatg/${MAIN}.sam.gz > ./bwatg/${MAIN}.bam 2>./bwatg/${MAIN}
 samtools sort ./bwatg/${MAIN}.bam ./bwatg/${MAIN}.sort
 
 samtools index ./bwatg/${MAIN}.sort.bam &
+
+
+__END__
+
+$ git push
+Counting objects: 11, done.
+Delta compression using up to 24 threads.
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 938 bytes, done.
+Total 6 (delta 4), reused 2 (delta 0)
+error: file write error (No space left on device)
+fatal: unable to write sha1 file
+error: unpack failed: unpacker exited with error code
+To ssh://galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git
+ ! [remote rejected] master -> master (n/a (unpacker error))
+error: failed to push some refs to 'ssh://galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git'
+
+这是远端故障……
+@ 10:23:26 Tue Sep 11 2012
