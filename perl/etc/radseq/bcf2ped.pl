@@ -10,6 +10,7 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy::IO;
 use Galaxy::SeqTools;
+use Data::Dumper;
 
 die "Usage: $0 <tfam file> <bcgv bcf> <out>\n" if @ARGV<3;
 my $tfamfs=shift;
@@ -166,7 +167,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt<6) {
+	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt<16) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
@@ -201,6 +202,9 @@ close OPA;
 close OPO;
 close OM;
 close OD;
+
+print O Dumper(%Stat);
+close O;
 
 ddx \%Stat;
 
