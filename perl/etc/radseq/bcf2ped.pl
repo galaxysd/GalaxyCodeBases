@@ -18,13 +18,16 @@ my $outfs=shift;
 
 my (%Stat,$t);
 open OP,'>',$outfs.'.tped' or die "Error opening $outfs.tped : $!\n";
+open OPA,'>',$outfs.'.case.tped' or die $!;
+open OPO,'>',$outfs.'.control.tped' or die $!;
+
 open OM,'>',$outfs.'.MinorAllele' or die "Error opening $outfs.MinorAllele : $!\n";
 open OD,'>',$outfs.'.dict' or die "Error opening $outfs.dict : $!\n";
 if ($tfamfs ne $outfs.'.tfam') {
 	open OF,'>',$outfs.'.tfam' or die "Error opening $outfs.tfam : $!\n";
 	open OFA,'>',$outfs.'.case.tfam' or die $!;
 	open OFO,'>',$outfs.'.control.tfam' or die $!;
-}
+} else {die;}
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
 $t = "# In: [$bcfs], Out: [$outfs]\n";
 print O $t;
@@ -38,13 +41,13 @@ while (<L>) {
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
 	$tfamDat{$ind} = $_."\n";
-	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 	if ($ind =~ s/^~//) {
 		$tfamSampleFlag{$ind} = 0;
 	} elsif ($pho == 1 or $pho == 2) {
 		$tfamSampleFlag{$ind} = $pho;
 	} else { die; }	# $pho can only be 1 or 2
 	push @tfamSamples,$ind;
+	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 }
 for my $ind (@tfamSamples) {
 	if ($tfamSampleFlag{$ind} == 0) {
@@ -60,8 +63,6 @@ close L;
 close OF;
 close OFA;
 close OFO;
-
-__END__
 
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
@@ -82,12 +83,15 @@ while (<$th>) {
 		last;
 	}
 }
-print O "# Samples: [",join('],[',@Samples),"]\n# Parents: [",join('],[',@Parents),"]\n";
-warn "Samples:\n[",join("]\n[",@Samples),"]\nParents: [",join('],[',@Parents),"]\n";
-die "Samples in tfam and bcf not match !\n" if @tfamSamples != @Samples;
+
+die "Sample Count in tfam and bcf not match !\n" if @tfamSamples != @Samples;
+my @res;
 for (my $i = 0; $i < @Samples; $i++) {
+	push @res,join(',',$tfamSamples[$i],$tfamSampleFlag{$Samples[$i]});
 	die "Samples in tfam and bcf not match !\n" if $tfamSamples[$i] ne $Samples[$i];
 }	# http://stackoverflow.com/questions/2591747/how-can-i-compare-arrays-in-perl
+print O "# Samples: [",join('],[',@res),"]\t# 1=control, 2=case, 0=drop\n# Parents: [",join('],[',@Parents),"]\n";
+warn "Samples: (1=control, 2=case, 0=drop)\n[",join("]\n[",@res),"]\nParents: [",join('],[',@Parents),"]\n";
 
 while (<$th>) {
 	next if /^#/;
@@ -169,13 +173,32 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	$Mut = $Bases[$Mut];
 	my $SNPid = "r".$Stat{'VCF_In'};
 	$CHROM =~ /(\d+)/;
-	print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
+	#print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
 	print OD join("\t",${CHROM},${POS},$SNPid),"\n";
+	my (@GTall,@GTcase,@GTcontrol);
+	for my $i (0 .. $#tfamSamples) {
+		my $ind = $tfamSamples[$i];
+		if ($tfamSampleFlag{$ind} == 0) {
+			next;
+		} else {
+			push @GTall,$plinkGT[$i];
+			if ($tfamSampleFlag{$ind} == 1) {
+				push @GTcontrol,$plinkGT[$i];
+			} elsif ($tfamSampleFlag{$ind} == 2) {
+				push @GTcase,$plinkGT[$i];
+			} else { die; }
+		}
+	}
+	print OP join("\t",$1,$SNPid,0,$POS,@GTall),"\n";
+	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
+	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
 }
 close $th;
 
 close OP;
+close OPA;
+close OPO;
 close OM;
 close OD;
 
