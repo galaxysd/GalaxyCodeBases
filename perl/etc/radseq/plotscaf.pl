@@ -24,7 +24,7 @@ print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %Stat;
 
-sub getVal($) {
+sub getVal($) {	# deprecated
 	my %dat = %{$_[0]};
 	my ($sum,$cnt,$max,$major)=(0,0,0,0);
 	my $mjcnt=0;
@@ -43,6 +43,16 @@ sub getVal($) {
 	} else {
 		return -1;
 	}
+}
+sub getCircles($) {
+	my %dat = %{$_[0]};
+	my @ret;
+	for my $k (keys %dat) {
+		next unless $k;
+		my $r = int( 50 * sqrt($dat{$k}) ) / 100;
+		push @ret,[$k,$r];
+	}
+	return @ret;
 }
 
 my %ScaffoldLen;
@@ -68,7 +78,7 @@ while (<I>) {
 close I;
 #ddx \%MarkerDat;
 my (%OrderbyChr,%OrderedOnce,@DirectOrder,@notOrdered);
-open I,'<',$inf.'.order' or die $!;
+open I,'<',$inf.'.order' or warn $! and goto NULLORDERFILE;
 while (<I>) {
 	next if /^#/;
 	chomp;
@@ -79,6 +89,7 @@ while (<I>) {
 	++$OrderedOnce{$scaff};
 }
 close I;
+NULLORDERFILE:
 my $TotalLen=0;
 my @order = map {$_='scaffold'.$_} sort {$a<=>$b} map {s/^scaffold//;$_;} keys %MarkerDat;
 for my $scaff (@order) {
@@ -224,12 +235,19 @@ TXT2
 		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
 		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		for my $pos (@Poses) {
-			my ($major,$max) = getVal($PlotDat{$scaff}{$pos});
+			my @Circles = getCircles($PlotDat{$scaff}{$pos});
+			for (@Circles) {
+				my ($y,$r) = @$_;
+				$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+				print O "        <circle cx=\"$pos\" cy=\"$y\" r=\"$r\" />\n";
+			}
+=pod
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
 			print O <<TXTL;
         <circle cx="$pos" cy="$pYmajor" r="1" />
         <circle cx="$pos" cy="$pYmax" r="0.5" />
 TXTL
+=cut
 		}
 		#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
 		print O <<TXTLB;
