@@ -246,7 +246,7 @@ TXT2
 		for my $pos (@Poses) {
 			my @Circles = getCircles($PlotDat{$scaff}{$pos});
 			my $t = shift @Circles;
-			my $p = int(2*$pos)/2;
+			my $p = int($pos);
 			unless (exists $maxCircles{$p}) {
 				$maxCircles{$p} = $t;
 			} else {
@@ -277,7 +277,14 @@ TXTL
 TXTLB
 		++$scaffcnt;
 	}
-	print O "    </g>\n";
+	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
+	for my $x (sort {$a<=>$b} keys %maxCircles) {
+		my ($y,$s) = @{$maxCircles{$x}};
+		next unless $y;
+		$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+		print O "$x,$y ";
+	}
+	print O "\" />\n    </g>\n";
 #	++$thisChrNo;
 }
 
