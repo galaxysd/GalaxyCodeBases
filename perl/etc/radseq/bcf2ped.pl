@@ -150,6 +150,7 @@ while (<$th>) {
 	unless (defined $Mut) {
 		++$Stat{'VCF_noAffInd_Skipped'};
 		next;
+		#$Mut = -1;
 	}
 	unless ($Mut) {
 		++$Stat{'VCF_noMUT_Count'};
@@ -194,6 +195,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	print OP join("\t",$1,$SNPid,0,$POS,@GTall),"\n";
 	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
 	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
+	++$Stat{'Marker_Out'}
 }
 close $th;
 
@@ -203,7 +205,7 @@ close OPO;
 close OM;
 close OD;
 
-print O Dumper(%Stat);
+print O Dumper(\%Stat);
 close O;
 
 ddx \%Stat;

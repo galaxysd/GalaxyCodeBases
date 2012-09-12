@@ -8,7 +8,8 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy;
 
-die "Usage: $0 <prefix> [out midfix]\n" if @ARGV<1;
+die "Usage: $0 <marker dat> <prefix> [out midfix]\n" if @ARGV<2;
+my $markf=shift;
 my $inf=shift;
 my $outf=shift;
 
@@ -20,6 +21,7 @@ if ($outf) {
 
 my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
 my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
+$markerdat = $markf;
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %Stat;
@@ -47,11 +49,17 @@ sub getVal($) {	# deprecated
 sub getCircles($) {
 	my %dat = %{$_[0]};
 	my @ret;
+	my ($max,$maxR) = (0,0);
 	for my $k (keys %dat) {
 		next unless $k;
 		my $r = int( 50 * sqrt($dat{$k}) ) / 100;
 		push @ret,[$k,$r];
+		if ($max < $k) {
+			$max = $k;
+			$maxR = $dat{$k};
+		}
 	}
+	unshift @ret,[$max,$maxR];
 	return @ret;
 }
 
@@ -219,6 +227,7 @@ print O <<DEF2;
   <g transform="translate($OutBorder,$OutBorder)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
 DEF2
 
+my %maxCircles;
 my $thisChrNo=0;
 for my $chr ('Tiger') {
 	my $topY = $ArrowLen + $Yitem*$thisChrNo;
@@ -236,6 +245,18 @@ TXT2
 		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		for my $pos (@Poses) {
 			my @Circles = getCircles($PlotDat{$scaff}{$pos});
+			my $t = shift @Circles;
+			my $p = int(2*$pos)/2;
+			unless (exists $maxCircles{$p}) {
+				$maxCircles{$p} = $t;
+			} else {
+				if ($maxCircles{$p}->[0] < $t->[0]) {
+					$maxCircles{$p} = $t;
+				} elsif ($maxCircles{$p}->[0] == $t->[0] and $maxCircles{$p}->[1] < $t->[1]) {
+					$t->[1] += $maxCircles{$p}->[1];
+					$maxCircles{$p} = $t;
+				}
+			}
 			for (@Circles) {
 				my ($y,$r) = @$_;
 				$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
