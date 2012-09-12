@@ -222,12 +222,13 @@ TXT2
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
 		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
-		print O '      <g stroke="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
+		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		for my $pos (@Poses) {
 			my ($major,$max) = getVal($PlotDat{$scaff}{$pos});
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
 			print O <<TXTL;
-        <line x1="$pos" y1="$pYmajor" x2="$pos" y2="$pYmax"/>
+        <circle cx="$pos" cy="$pYmajor" r="1" />
+        <circle cx="$pos" cy="$pYmax" r="0.5" />
 TXTL
 		}
 		#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
