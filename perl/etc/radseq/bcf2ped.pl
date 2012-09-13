@@ -47,16 +47,20 @@ while (<L>) {
 	} elsif ($pho == 1 or $pho == 2) {
 		$tfamSampleFlag{$ind} = $pho;
 	} else { die; }	# $pho can only be 1 or 2
+	$tfamSampleFlag{$ind} = 3 if $ind !~ /^GZXJ/;
 	push @tfamSamples,$ind;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 }
 for my $ind (@tfamSamples) {
 	if ($tfamSampleFlag{$ind} == 0) {
 		next;
-	} elsif ($tfamSampleFlag{$ind} == 1) {
-		print OFO $tfamDat{$ind};
-	} elsif ($tfamSampleFlag{$ind} == 2) {
-		print OFA $tfamDat{$ind};
+	} elsif ($tfamSampleFlag{$ind}) {
+		if ($tfamSampleFlag{$ind} & 1) {
+			print OFO $tfamDat{$ind};
+		} 
+		if ($tfamSampleFlag{$ind} & 2) {
+			print OFA $tfamDat{$ind};
+		}
 	} else { die; }
 	print OF $tfamDat{$ind};
 }
@@ -185,10 +189,13 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 			next;
 		} else {
 			push @GTall,$plinkGT[$i];
-			if ($tfamSampleFlag{$ind} == 1) {
-				push @GTcontrol,$plinkGT[$i];
-			} elsif ($tfamSampleFlag{$ind} == 2) {
-				push @GTcase,$plinkGT[$i];
+			if ($tfamSampleFlag{$ind}) {
+				if ($tfamSampleFlag{$ind} & 1) {
+					push @GTcontrol,$plinkGT[$i];
+				}
+				if ($tfamSampleFlag{$ind} & 2) {
+					push @GTcase,$plinkGT[$i];
+				}
 			} else { die; }
 		}
 	}
