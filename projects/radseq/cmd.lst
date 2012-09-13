@@ -76,15 +76,18 @@ samtools index ./bwatg/${MAIN}.sort.bam &
 
 p-link --tfile radseq17 --reference-allele radseq17.MinorAllele --fisher --out Pradseq17 --model --cell 0
 
-grep REC Pradseq17.model > Pradseq17.model.REC
+grep REC Pradseq17.model > Pradseq17.model.REC.0
 
-sort -k 8.8n -k 1.1 Pradseq17.model.REC > Pradseq17.model.REC.nk8
-./dojoin.pl radseq17.dict 3 Pradseq17.model.REC.nk8 3 tmp.REC
+# p-link output may lack A2
+perl -lane 'if (@F<8) {splice @F,3,0,".";} die if @F<8; print join("\t",@F)' Pradseq17.model.REC.0 > Pradseq17.model.REC
+
+sort -k 8,8n -k 1,1 Pradseq17.model.REC > Pradseq17.model.REC.nk8
+./dojoin.pl radseq17.dict 3 Pradseq17.model.REC.nk8 2 tmp.REC
 
 #awk '{print $3" "$1" "$2" "$4" "$6" "$7" "$8" "$9" "$10" "$11}' tmp.REC.out > tmp.REC.out.j
 awk 'BEGIN {OFS="\t"} {print $3,$1,$2,$4,$6,$7,$8,$9,$10,$11}' tmp.REC.out > tmp.REC.out.j
 
-sort -k 10.10n -k 1.1 tmp.REC.out.j > tmp.REC.out.s
+sort -k 10,10n -k 1,1 tmp.REC.out.j > tmp.REC.out.s
 
 cat tmp.REC.out.j|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];
 $theta=($a[1]+$a[2])/($sum*2);

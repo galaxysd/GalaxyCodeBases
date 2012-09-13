@@ -260,8 +260,9 @@ TXT2
 			}
 			for (@Circles) {
 				my ($y,$r) = @$_;
-				$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
-				print O "        <circle cx=\"$pos\" cy=\"$y\" r=\"$r\" />\n";
+				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+#print "$y,$Py,$Yrange,$YmaxVal\n";
+				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
 			}
 =pod
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
