@@ -52,7 +52,8 @@ sub getCircles($) {
 	my ($max,$maxR) = (0,0);
 	for my $k (keys %dat) {
 		next unless $k;
-		my $r = int( 50 * sqrt($dat{$k}) ) / 100;
+		my $r = int( 50 * sqrt($dat{$k}) ) / 50;
+		$r = 1.5 if $r > 1.5;
 		push @ret,[$k,$r];
 		if ($max < $k) {
 			$max = $k;
@@ -120,8 +121,8 @@ if ($Stat{Scaffold_Ordered}) {
 }
 
 # ------ BEGIN PLOT --------
-my @color = qw(Red Brown Navy Green Maroon Blue Purple Orange Lime Teal);
-my $Xrange = 1000;
+my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
+my $Xrange = 1200;
 my $Yrange = 500;
 my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
@@ -210,7 +211,7 @@ for my $i (1 .. $YmaxVal) {
 	my $y = $Yticks[$i-1];
 	print O <<TXTAX;
       <text x="0" y="$y" dx="-20" dy="5" text-anchor="middle">$i</text>
-      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="1" stroke-dasharray="1,9"/>
+      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9"/>
 TXTAX
 }
 for my $i (0 .. 10) {
@@ -277,14 +278,15 @@ TXTL
 TXTLB
 		++$scaffcnt;
 	}
-	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
-	for my $x (sort {$a<=>$b} keys %maxCircles) {
-		my ($y,$s) = @{$maxCircles{$x}};
-		next unless $y;
-		$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
-		print O "$x,$y ";
-	}
-	print O "\" />\n    </g>\n";
+#	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
+#	for my $x (sort {$a<=>$b} keys %maxCircles) {
+#		my ($y,$s) = @{$maxCircles{$x}};
+#		next unless $y;
+#		$y = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+#		print O "$x,$y ";
+#	}
+#	print O "\" />\n    </g>\n";
+	print O "    </g>\n";
 #	++$thisChrNo;
 }
 
