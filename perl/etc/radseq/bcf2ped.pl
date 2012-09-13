@@ -190,6 +190,9 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 		} else {
 			push @GTall,$plinkGT[$i];
 			if ($tfamSampleFlag{$ind}) {
+				if ($tfamSampleFlag{$ind} == 3) {
+					$plinkGT[$i] = '0 0';
+				}
 				if ($tfamSampleFlag{$ind} & 1) {
 					push @GTcontrol,$plinkGT[$i];
 				}
