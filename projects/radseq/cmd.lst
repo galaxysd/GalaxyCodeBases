@@ -81,7 +81,7 @@ grep REC Pradseq17.model > Pradseq17.model.REC.0
 # p-link output may lack A2
 perl -lane 'if (@F<8) {splice @F,3,0,".";} die if @F<8; print join("\t",@F)' Pradseq17.model.REC.0 > Pradseq17.model.REC
 
-sort -k 8,8n -k 1,1 Pradseq17.model.REC > Pradseq17.model.REC.nk8
+sort -k 8,8n -k 2,2 Pradseq17.model.REC > Pradseq17.model.REC.nk8
 ./dojoin.pl radseq17.dict 3 Pradseq17.model.REC.nk8 2 tmp.REC
 
 #awk '{print $3" "$1" "$2" "$4" "$6" "$7" "$8" "$9" "$10" "$11}' tmp.REC.out > tmp.REC.out.j
@@ -97,6 +97,10 @@ print join("\t",@F,$sum,int(0.5+$theta*100000)/100000,int($LOD),$LOD)' |sort -k2
 
 sort -k13,13n -k2,2 -k3,3n  rec.npa > rec.npas
 
+./plotscaf.pl rec.npa tig2cat
+./plotscaf.pl rec.npa tig2cats
+
+./ped2hap.pl tighap.lst radseq17 dohap17
 
 
 
