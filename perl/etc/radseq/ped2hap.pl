@@ -56,8 +56,13 @@ for my $type (qw[case control]) {
 	}
 	close C;
 	close O;
+	my $cmd = "p-link --tfile $outfs.case --out ${outfs}case --recode";
+	print "Running [$cmd].\n";
+	system($cmd);
 }
 
 __END__
 
 ./ped2hap.pl tighap.lst radseq17 dohap17
+
+p-link --tfile dohap17.case --out dohap17case --recode
