@@ -47,7 +47,7 @@ while (<L>) {
 	} elsif ($pho == 1 or $pho == 2) {
 		$tfamSampleFlag{$ind} = $pho;
 	} else { die; }	# $pho can only be 1 or 2
-	$tfamSampleFlag{$ind} = 3 if $ind !~ /^GZXJ/;
+#	$tfamSampleFlag{$ind} = 3 if $ind !~ /^GZXJ/;
 	push @tfamSamples,$ind;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 }
@@ -190,9 +190,9 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 		} else {
 			push @GTall,$plinkGT[$i];
 			if ($tfamSampleFlag{$ind}) {
-				if ($tfamSampleFlag{$ind} == 3) {
-					$plinkGT[$i] = '0 0';
-				}
+#				if ($tfamSampleFlag{$ind} == 3) {
+#					$plinkGT[$i] = '0 0';
+#				}
 				if ($tfamSampleFlag{$ind} & 1) {
 					push @GTcontrol,$plinkGT[$i];
 				}
