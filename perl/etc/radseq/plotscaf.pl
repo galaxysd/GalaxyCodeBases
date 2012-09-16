@@ -52,8 +52,8 @@ sub getCircles($) {
 	my ($max,$maxR) = (0,0);
 	for my $k (keys %dat) {
 		next unless $k;
-		my $r = int( 50 * sqrt($dat{$k}) ) / 50;
-		$r = 1.5 if $r > 1.5;
+		my $r = int( 100 * sqrt($dat{$k}) ) / 100;
+		$r = 1.6 if $r > 1.6;
 		push @ret,[$k,$r];
 		if ($max < $k) {
 			$max = $k;
@@ -122,7 +122,7 @@ if ($Stat{Scaffold_Ordered}) {
 
 # ------ BEGIN PLOT --------
 my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
-my $Xrange = 1200;
+my $Xrange = 960;
 my $Yrange = 500;
 my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
