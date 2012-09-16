@@ -121,9 +121,10 @@ if ($Stat{Scaffold_Ordered}) {
 }
 
 # ------ BEGIN PLOT --------
+# 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
 my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
-my $Xrange = 960;
-my $Yrange = 500;
+my $Xrange = 500;
+my $Yrange = 320;
 my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
@@ -131,6 +132,8 @@ my $OutBorder = 24;
 my $InBorder = 40;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder;
+my $FontSize = int($Xrange/40);
+my $FontFamily = 'Arial';
 
 my $perUnit = int($TotalLen/10);	# 279.330936 M /10 = 27.933093 M
 my $numlevel = int(log($perUnit)/log(10));	# 7
@@ -168,7 +171,7 @@ for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away f
 			$posOchr = $start + $ScaffoldLen{$scaff};
 			++$Stat{'Marker_Pos_Overflow'};
 		}
-		++$PlotDat{$scaff}{int(0.5+10*$posOchr/$BasepPx)/10}{$lgp};
+		++$PlotDat{$scaff}{int(0.5+10*$posOchr/$BasepPx)/10}{$lgp};	# 10 => 720 dpi for pt unit system, enough.
 		$maxlgp = $lgp if $maxlgp < $lgp;
 	}
 	$PlotScaffRange{$scaff} = [ ( map {int(0.5+10*$_/$BasepPx)/10} ($start+1,$start+$ScaffoldLen{$scaff}) ),$maxlgp ];
@@ -183,16 +186,16 @@ open O,'>',$inf.$outf.'.svg' or die $!;
 print O <<HEAD;
 <?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny"
- width="${Xtotal}px" height="${Ytotal}px">
+ width="${Xtotal}pt" height="${Ytotal}pt" viewBox="0 0 $Xtotal $Ytotal">
 <title>Plot $inf</title>
 <!--
   <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="red" stroke-width="2" />
 -->
 HEAD
 
-print O <<'DEF1';
+print O <<DEF1;
   <defs>
-    <g id="axis" stroke="black" font-size="16" font-family="Arial" stroke-width="0" text-anchor="middle">
+    <g id="axis" stroke="black" font-size="$FontSize" font-family="$FontFamily" stroke-width="0" text-anchor="middle">
       <polyline fill="none" points="-2,-4 0,-20 2,-4 0,-20 
 DEF1
 for (@Yticks) {
@@ -225,7 +228,7 @@ TXT1
 print O <<DEF2;
     </g>
   </defs>
-  <g transform="translate($OutBorder,$OutBorder)" stroke-width="2" stroke="black" font-size="16" font-family="Arial">
+  <g transform="translate($OutBorder,$OutBorder)" stroke-width="2" stroke="black" font-size="$FontSize" font-family="$FontFamily">
 DEF2
 
 my %maxCircles;
