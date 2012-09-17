@@ -75,7 +75,7 @@ while (<I>) {
 #ddx \%LD;
 
 my $Xrange = 500;
-my $Yrange = 320;
+my $Yrange = int($Xrange*sqrt(2)) + 120;
 my $YmaxVal = 5;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
@@ -94,9 +94,40 @@ $numSuflevel = 10 ** (3*$numSuflevel);	# 1,000,000 <---
 my $roundTo = 5 * (10 ** ($numlevel-1));	# 5e6
 my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
 my $countMax = int($maxLen/$unit) + (($maxLen%$unit)?1:0);
-print join(",",$maxLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
+#print join(",",$BasepPx,$maxLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 
+sub getVal($) {
+	my %dat = %{$_[0]};
+	my ($sum,$cnt,$max,$major)=(0,0,0,0);
+	for my $k (keys %dat) {
+		$sum += $k * $dat{$k};
+		$cnt += $dat{$k};
+	}
+	if ($cnt) {
+		return $sum/$cnt;
+	} else {
+		return -1;
+	}
+}
+
+my %PlotLD;
+for (@Scaffolds) {
+	for my $scaff (@$_) {
+		my $locus1 = $scaffolds{$scaff};
+		for my $pos1 (sort {$a<=>$b} keys %{$LD{$locus1}}) {
+			for my $locus2 (keys %{$LD{$locus1}{$pos1}}) {
+				for my $pos2 (sort {$a<=>$b} keys %{$LD{$locus1}{$pos1}{$locus2}}) {
+					#print join(',',$scaff,$locus1,$pos1,$locus2,$pos2),"\n";
+					my ($p1,$p2) = map { int(10*$_/$BasepPx)/10 } ($pos1,$pos2);
+					my $val = $LD{$locus1}{$pos1}{$locus2}{$pos2}->[1];
+					push @{$PlotLD{$locus1}{$p1}{$locus2}{$p2}},$val;
+				}
+			}
+		}
+	}
+}
+ddx \%PlotLD;
 
 __END__
 
