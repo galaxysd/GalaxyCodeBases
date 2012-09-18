@@ -107,11 +107,11 @@ my $ChrCount = @Scaffolds;
 my $Ytotal = $Yitem*$ChrCount - $InBorder + 2*$OutBorder;
 
 sub getVal($) {
-	my %dat = %{$_[0]};
-	my ($sum,$cnt,$max,$major)=(0,0,0,0);
-	for my $k (keys %dat) {
-		$sum += $k * $dat{$k};
-		$cnt += $dat{$k};
+	my @dat = @{$_[0]};
+	my ($sum,$cnt,$max)=(0,0,0);
+	for my $k (@dat) {
+		$sum += $k;
+		++$cnt;
 	}
 	if ($cnt) {
 		return $sum/$cnt;
@@ -170,8 +170,9 @@ $t=0;
 my $theY=$OutBorder;
 for (@LineLen) {
 	my $len = $_ / $BasepPx;
-	my $Ylen = $len/2 + 50;
-	my $halflen = $len / 2;
+	my $intlen = int(0.999 + $len);
+	my $halflen = $intlen/2;
+	my $Ylen = $halflen + 50;
 	print O <<DEF2;
   <g transform="translate($OutBorder,$theY)" stroke-width="2" stroke="black" font-size="$FontSize" font-family="$FontFamily">
   <rect x="0" y="0" width="$Xrange" height="$Ylen" fill="none" stroke="navy" stroke-width="2" />
@@ -181,10 +182,11 @@ DEF2
 	;
 	for my $scaff (@{$Scaffolds[$t]}) {
 		my $locus1 = $scaffolds{$scaff};
-		for my $pos1 (sort {$a<=>$b} keys %{$LD{$locus1}}) {
-			for my $locus2 (keys %{$LD{$locus1}{$pos1}}) {
-				for my $pos2 (sort {$a<=>$b} keys %{$LD{$locus1}{$pos1}{$locus2}}) {
-				}
+		for my $pos1 (sort {$a<=>$b} keys %{$PlotLD{$locus1}}) {
+			for my $pos2 (sort {$a<=>$b} keys %{$PlotLD{$locus1}{$pos1}}) {
+				my $val = getVal($PlotLD{$locus1}{$pos1}{$pos2});
+print join(',',$locus1,$pos1,$pos2,$val),"\n";
+				;
 			}
 		}
 	}
