@@ -60,7 +60,7 @@ for (@Scaffolds) {
 }
 print "MaxLen: $maxLen\n";
 #ddx \@LineLen;
-ddx \%ScaffoldsOffect;
+ddx [\%ScaffoldsOffect,\%ScaffoldLen];
 # plothap.pl:65: [[0, 5658748, 12958355], [0, 19124984]]
 # plothap.pl:63: { scaffold1458 => 5658748, scaffold188 => 0, scaffold75 => 0 }
 
@@ -178,7 +178,7 @@ for (@LineLen) {
   <g transform="translate($OutBorder,$theY)" stroke-width="2" stroke="black" font-size="$FontSize" font-family="$FontFamily">
   <rect x="0" y="0" width="$Xrange" height="$Ylen" fill="none" stroke="navy" stroke-width="2" />
     <g transform="matrix(0.5,0.5,-0.5,0.5,$halflen,0)" clip-path="url(#curveClip$t)" stroke-width="0">
-      <rect x="0" y="0" width="$Xrange" height="$len" fill="grey" stroke="green" stroke-width="1" />
+      <rect x="0" y="0" width="$len" height="$len" fill="grey" stroke="green" stroke-width="1" />
 DEF2
 	;
 	for my $scaff (@{$Scaffolds[$t]}) {
@@ -189,7 +189,7 @@ DEF2
 				next if $val == -1;
 				my $color = colormap($val);
 #print join(',',$locus1,$pos1,$pos2,$val),"\n";
-				my $py = $intlen - $pos2;
+				my $py = $intlen - $pos2 - $GRIDsize;
 				print O <<GRID;
       <rect x="$pos1" y="$py" width="$GRIDsize" height="$GRIDsize" fill="$color"/>
 GRID
@@ -201,7 +201,10 @@ GRID
       <g transform="translate(0,',5 + $len/2,')">
       <line x1="0" y1="0" x2="',$len,'" y2="0" stroke-width="3"/>
 ';
-	;
+	unless ($t) {
+		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="green" stroke-width="3"/>
+';
+	}
 	print O "      </g>\n  </g>\n";
 	++$t;
 	$theY += $Ylen + $InBorder;
