@@ -120,6 +120,7 @@ sub getVal($) {
 	}
 }
 
+my $GRIDsize = 5;
 my %PlotLD;
 for (@Scaffolds) {
 	my %locushere = map { $scaffolds{$_} => 1 } @$_;
@@ -133,7 +134,7 @@ for (@Scaffolds) {
 #print join(',',$scaff,$locus1,$pos1,$locus2,$pos2,@Offects),"\n";
 					my $bp1 = $pos1 + $Offects[0];
 					my $bp2 = $pos2 + $Offects[1];
-					my ($p1,$p2) = map { int(0.5*$_/$BasepPx)*2 } ($bp1,$bp2);
+					my ($p1,$p2) = map { int($_/($BasepPx*$GRIDsize))*$GRIDsize } ($bp1,$bp2);
 #print join(',',$scaff,$bp1,$bp2,$p1,$p2),"\n";
 					my $val = $LD{$locus1}{$pos1}{$locus2}{$pos2}->[1];	# r^2
 					next if $val eq "NaN";
@@ -177,7 +178,7 @@ for (@LineLen) {
   <g transform="translate($OutBorder,$theY)" stroke-width="2" stroke="black" font-size="$FontSize" font-family="$FontFamily">
   <rect x="0" y="0" width="$Xrange" height="$Ylen" fill="none" stroke="navy" stroke-width="2" />
     <g transform="matrix(0.5,0.5,-0.5,0.5,$halflen,0)" clip-path="url(#curveClip$t)" stroke-width="0">
-      <rect x="0" y="0" width="$Xrange" height="$len" fill="none" stroke="green" stroke-width="1" />
+      <rect x="0" y="0" width="$Xrange" height="$len" fill="grey" stroke="green" stroke-width="1" />
 DEF2
 	;
 	for my $scaff (@{$Scaffolds[$t]}) {
@@ -185,8 +186,13 @@ DEF2
 		for my $pos1 (sort {$a<=>$b} keys %{$PlotLD{$locus1}}) {
 			for my $pos2 (sort {$a<=>$b} keys %{$PlotLD{$locus1}{$pos1}}) {
 				my $val = getVal($PlotLD{$locus1}{$pos1}{$pos2});
-print join(',',$locus1,$pos1,$pos2,$val),"\n";
-				;
+				next if $val == -1;
+				my $color = colormap($val);
+#print join(',',$locus1,$pos1,$pos2,$val),"\n";
+				my $py = $intlen - $pos2;
+				print O <<GRID;
+      <rect x="$pos1" y="$py" width="$GRIDsize" height="$GRIDsize" fill="$color"/>
+GRID
 			}
 		}
 	}
