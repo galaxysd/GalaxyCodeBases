@@ -13,6 +13,8 @@ my $markf=shift;
 my $inf=shift;
 my $outf=shift;
 
+my $GRIDsize = 5;
+
 if ($outf) {
 	$outf = ".$outf";
 } else {
@@ -80,6 +82,7 @@ while (<I>) {
 	$LD{$$x[0]}{$$x[1]}{$$y[0]}{$$y[1]} = [$dist,$rsq,$dp,$p,$N];
 }
 #ddx \%LD;
+close I;
 
 my $Xrange = 500;
 my $Yrange = $Xrange/2 + 50;
@@ -120,7 +123,6 @@ sub getVal($) {
 	}
 }
 
-my $GRIDsize = 5;
 my %PlotLD;
 for (@Scaffolds) {
 	my %locushere = map { $scaffolds{$_} => 1 } @$_;
@@ -145,6 +147,14 @@ for (@Scaffolds) {
 	}
 }
 #ddx \%PlotLD;
+open I,'<',$markf or die $!;
+while (<I>) {
+	chomp;
+	my @items = split /\t/;
+	next unless exists $scaffolds{$items[1]};
+	my $pos = int($items[2]/($BasepPx*$GRIDsize))*$GRIDsize;
+}
+close I;
 
 open O,'>',$inf.$outf.'.svg' or die $!;
 print O <<HEAD;
