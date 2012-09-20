@@ -24,6 +24,8 @@ my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 $markerdat = $markf;
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
+my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458 scaffold188);
+
 my %Stat;
 
 sub getVal($) {	# deprecated
@@ -53,7 +55,7 @@ sub getCircles($) {
 	for my $k (keys %dat) {
 		next unless $k;
 		my $r = int( 100 * sqrt($dat{$k}) ) / 100;
-		$r = 1.6 if $r > 1.6;
+		$r = 1.35 if $r > 1.35;
 		push @ret,[$k,$r];
 		if ($max < $k) {
 			$max = $k;
@@ -233,12 +235,12 @@ DEF2
 
 my %maxCircles;
 my $thisChrNo=0;
-for my $chr ('Tiger') {
+for my $chr ('-lg(p)') {
 	my $topY = $ArrowLen + $Yitem*$thisChrNo;
 	print O <<TXT2;
     <g transform="translate(0,$topY)" stroke-width="1">
       <use x="0" y="0" xlink:href="#axis" stroke-width="2"/>
-      <text x="5" y="-6" stroke-width="0">$chr</text>
+      <text x="8" y="-10" stroke-width="0">$chr</text>
 TXT2
 	my $scaffcnt=0;
 	for my $scaff (@DirectOrder,@notOrdered) {
@@ -246,7 +248,13 @@ TXT2
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
 		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
+		if (exists $MVScaffolds{$scaff}) {
+			$thiscolor = 'red';
+		} else {
+			$thiscolor = 'navy';
+		}
 		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
+		my $topestY = $Ytotal;
 		for my $pos (@Poses) {
 			my @Circles = getCircles($PlotDat{$scaff}{$pos});
 			my $t = shift @Circles;
@@ -264,6 +272,7 @@ TXT2
 			for (@Circles) {
 				my ($y,$r) = @$_;
 				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+				$topestY = $Py if $topestY > $Py;
 #print "$y,$Py,$Yrange,$YmaxVal\n";
 				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
 			}
@@ -280,6 +289,7 @@ TXTL
         <line x1="$pa" y1="$Yrange" x2="$pb" y2="$Yrange" stroke-width="2"/>
       </g>
 TXTLB
+		print O "      <text x=\"$Poses[0]\" y=\"",$topestY-12,"\" dy=\"5\" text-anchor=\"middle\" fill=\"black\" stroke-width=\"0\">$scaff</text>\n" if $thiscolor eq 'red';
 		++$scaffcnt;
 	}
 #	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
