@@ -147,14 +147,22 @@ for (@Scaffolds) {
 	}
 }
 #ddx \%PlotLD;
+my %PlotPlink;
 open I,'<',$markf or die $!;
 while (<I>) {
 	chomp;
 	my @items = split /\t/;
 	next unless exists $scaffolds{$items[1]};
-	my $pos = int($items[2]/($BasepPx*$GRIDsize))*$GRIDsize;
+	my $locus = $scaffolds{$items[1]};
+	my $offects = $ScaffoldsOffect{$scaff2chr{$locus}};
+	my $pos = int(($items[2]+$offects)/($BasepPx*$GRIDsize))*$GRIDsize;
+	my @array = split /\//,$items[7].'/'.$items[8];
+	my $mid = $array[1]+$array[2];
+	my $sum = $array[0]+$mid+$array[3];
+	push @{$PlotPlink{$locus}{$pos}},$mid/$sum;
 }
 close I;
+ddx \%PlotPlink;
 
 open O,'>',$inf.$outf.'.svg' or die $!;
 print O <<HEAD;
