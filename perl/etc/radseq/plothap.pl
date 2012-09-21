@@ -147,7 +147,7 @@ for (@Scaffolds) {
 	}
 }
 #ddx \%PlotLD;
-my %PlotPlink;
+my ($MaxSampleCnt,%PlotPlink)=(0);
 open I,'<',$markf or die $!;
 while (<I>) {
 	chomp;
@@ -159,10 +159,17 @@ while (<I>) {
 	my @array = split /\//,$items[7].'/'.$items[8];
 	my $mid = $array[1]+$array[2];
 	my $sum = $array[0]+$mid+$array[3];
-	push @{$PlotPlink{$locus}{$pos}},$mid/$sum;
+	$MaxSampleCnt = $sum if $MaxSampleCnt < $sum;
+	my $value;
+	if ($mid==0) {
+		$value = -$sum;
+	} else {
+		$value = $mid/$sum;
+	}
+	push @{$PlotPlink{$locus}{$pos}},$value;
 }
 close I;
-ddx \%PlotPlink;
+#ddx [\%PlotPlink,$MaxSampleCnt];
 
 open O,'>',$inf.$outf.'.svg' or die $!;
 print O <<HEAD;
@@ -198,7 +205,7 @@ for (@LineLen) {
     <g transform="matrix(0.5,0.5,-0.5,0.5,$halflen,0)" clip-path="url(#curveClip$t)" stroke-width="0">
       <rect x="0" y="0" width="$len" height="$len" fill="grey" stroke="green" stroke-width="1" />
 DEF2
-	;
+# LD
 	for my $scaff (@{$Scaffolds[$t]}) {
 		my $locus1 = $scaffolds{$scaff};
 		for my $pos1 (sort {$a<=>$b} keys %{$PlotLD{$locus1}}) {
@@ -214,14 +221,38 @@ GRID
 			}
 		}
 	}
-
 	print O '    </g>
-      <g transform="translate(0,',5 + $len/2,')">
-      <line x1="0" y1="0" x2="',$len,'" y2="0" stroke-width="3"/>
+      <g transform="translate(0,',5 + $len/2,')" stroke-width="0">
+        <line x1="0" y1="0" x2="',$len,'" y2="0" stroke-width="3"/>
 ';
 	unless ($t) {
-		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="green" stroke-width="3"/>
-';
+		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="green" stroke-width="3"/>',"\n";
+	}
+# plink
+	my $heigh = 36;
+	my $HalfGRIDsize = $GRIDsize/2;
+	print O '      <rect x="-',$GRIDsize,'" y="2" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n",
+		    '      <rect x="',$len,'" y="2" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n";
+	for my $scaff (@{$Scaffolds[$t]}) {
+		my $locus = $scaffolds{$scaff};
+		my $pldat = $PlotPlink{$locus};
+		for my $pos (sort {$a<=>$b} keys %{$pldat}) {
+			my $px = $pos;
+			my ($P,$U) = getPLval($pldat->{$pos});
+			if ($P) {
+				my $h = $P*$heigh;
+				print O <<BARP;
+        <rect x="$px" y="2" width="$HalfGRIDsize" height="$h" fill="green" title="$scaff,$pos"/>
+BARP
+			}
+			if ($U) {
+				my $h = $U*$heigh;
+				$px += $HalfGRIDsize;
+				print O <<BARU;
+        <rect x="$px" y="2" width="$HalfGRIDsize" height="$h" fill="red" title="$scaff,$pos"/>
+BARU
+			}
+		}
 	}
 	print O "      </g>\n  </g>\n";
 	++$t;
@@ -231,6 +262,27 @@ print O "</svg>\n";
 close O;
 
 ddx \%Stat;
+
+sub getPLval {
+	my $arr = $_[0];
+	my ($sumP,$cntP,$sumU,$cntU,$P,$U)=(0,0,0,0,0,0);
+	for my $v (@$arr) {
+		if ($v < 0) {
+			$sumP += -$v;
+			++$cntP;
+		} else {
+			$sumU += $v;
+			++$cntU;
+		}
+	}
+	if ($cntP) {
+		$P = $sumP/($cntP*$MaxSampleCnt);
+	}
+	if ($cntU) {
+		$U = $sumU/$cntU;
+	}
+	return ($P,$U);
+}
 
 __END__
 
