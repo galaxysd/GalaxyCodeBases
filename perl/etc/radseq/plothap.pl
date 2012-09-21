@@ -226,13 +226,16 @@ GRID
         <line x1="0" y1="0" x2="',$len,'" y2="0" stroke-width="3"/>
 ';
 	unless ($t) {
-		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="green" stroke-width="3"/>',"\n";
+		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="blue" stroke-width="3"/>',"\n";
+		# scaffold75,1522816,SLC45A2      B:0,C b:1,T [3]
+		my $pSLC45A2 = 1522816/$BasepPx;
+		print O '      <circle cx="',$pSLC45A2,'" cy="0" fill="gold" r="3.6"/>',"\n";
 	}
 # plink
 	my $heigh = 36;
 	my $HalfGRIDsize = $GRIDsize/2;
-	print O '      <rect x="-',$GRIDsize,'" y="2" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n",
-		    '      <rect x="',$len,'" y="2" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n";
+	print O '      <rect x="-',$GRIDsize,'" y="1" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n",
+		    '      <rect x="',$len,'" y="1" width="',$GRIDsize,'" height="',$heigh,'" fill="grey"/>',"\n";
 	for my $scaff (@{$Scaffolds[$t]}) {
 		my $locus = $scaffolds{$scaff};
 		my $pldat = $PlotPlink{$locus};
@@ -242,14 +245,14 @@ GRID
 			if ($P) {
 				my $h = $P*$heigh;
 				print O <<BARP;
-        <rect x="$px" y="2" width="$HalfGRIDsize" height="$h" fill="green" title="$scaff,$pos"/>
+        <rect x="$px" y="1" width="$HalfGRIDsize" height="$h" fill="green" title="$scaff,$pos"/>
 BARP
 			}
 			if ($U) {
 				my $h = $U*$heigh;
 				$px += $HalfGRIDsize;
 				print O <<BARU;
-        <rect x="$px" y="2" width="$HalfGRIDsize" height="$h" fill="red" title="$scaff,$pos"/>
+        <rect x="$px" y="1" width="$HalfGRIDsize" height="$h" fill="red" title="$scaff,$pos"/>
 BARU
 			}
 		}
