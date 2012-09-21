@@ -90,7 +90,7 @@ my $YmaxVal = 2;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
-my $InBorder = 40;
+my $InBorder = 20;
 my $Xtotal = $Xrange + 2*$OutBorder;
 my $Yitem = $Yrange + $InBorder;
 my $FontSize = int($Xrange/40);
@@ -177,7 +177,7 @@ print O <<HEAD;
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny"
  width="${Xtotal}pt" height="${Ytotal}pt" viewBox="0 0 $Xtotal $Ytotal">
 <title>Plot $inf</title>
-  <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="red" stroke-width="2" />
+  <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="none" stroke-width="2" />
   <defs>
 HEAD
 
@@ -201,7 +201,7 @@ for (@LineLen) {
 	my $Ylen = $halflen + 50;
 	print O <<DEF2;
   <g transform="translate($OutBorder,$theY)" stroke-width="2" stroke="black" font-size="$FontSize" font-family="$FontFamily">
-  <rect x="0" y="0" width="$Xrange" height="$Ylen" fill="none" stroke="navy" stroke-width="2" />
+  <rect x="0" y="0" width="$Xrange" height="$Ylen" fill="none" stroke="none" stroke-width="2" />
     <g transform="matrix(0.5,0.5,-0.5,0.5,$halflen,0)" clip-path="url(#curveClip$t)" stroke-width="0">
       <rect x="0" y="0" width="$len" height="$len" fill="grey" stroke="green" stroke-width="1" />
 DEF2
@@ -229,7 +229,7 @@ GRID
 		print O '      <line x1="0" y1="0" x2="',$ScaffoldLen{'scaffold75'}/$BasepPx,'" y2="0" stroke="blue" stroke-width="3"/>',"\n";
 		# scaffold75,1522816,SLC45A2      B:0,C b:1,T [3]
 		my $pSLC45A2 = 1522816/$BasepPx;
-		print O '      <circle cx="',$pSLC45A2,'" cy="0" fill="gold" r="3.6"/>',"\n";
+		print O '      <circle cx="',$pSLC45A2,'" cy="0" fill="gold" r="2"/>',"\n";
 	}
 # plink
 	my $heigh = 36;
@@ -261,6 +261,27 @@ BARU
 	++$t;
 	$theY += $Ylen + $InBorder;
 }
+#bar
+print O <<THEBAR;
+  <g transform="translate(450,24)" stroke="black" font-size="12" font-family="Arial" stroke-width="0">
+  <defs>
+    <linearGradient id="ColorMap" x1="0" y1="100%" x2="0" y2="0">
+      <stop offset="0%" stop-color="#000"/>
+	  <stop offset="2%" stop-color="#4d0000"/>
+	  <stop offset="30%" stop-color="#F00"/>
+	  <stop offset="70%" stop-color="#FF0"/>
+      <stop offset="100%" stop-color="#FFF"/>
+    </linearGradient>
+  </defs>
+  <rect fill="url(#ColorMap)" stroke-width="1" x="0" y="0" width="10" height="200"/>
+  <text x="10" y="0" dx="3" dy="5">1</text>
+  <text x="10" y="50" dx="3" dy="5">0.75</text>
+  <text x="10" y="100" dx="3" dy="5">0.5</text>
+  <text x="10" y="150" dx="3" dy="5">0.25</text>
+  <text x="10" y="200" dx="3" dy="5">0</text>
+  </g>
+THEBAR
+
 print O "</svg>\n";
 close O;
 
