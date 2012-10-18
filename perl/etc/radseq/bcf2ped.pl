@@ -93,7 +93,7 @@ die "Sample Count in tfam and bcf not match !\n" if @tfamSamples != @Samples;
 my @res;
 for (my $i = 0; $i < @Samples; $i++) {
 	push @res,join(',',$tfamSamples[$i],$tfamSampleFlag{$Samples[$i]});
-	die "Samples in tfam and bcf not match !\n" if $tfamSamples[$i] ne $Samples[$i];
+	die "Samples in tfam and bcf not match ! [$tfamSamples[$i] <> $Samples[$i]]\n" if $tfamSamples[$i] ne $Samples[$i];
 }	# http://stackoverflow.com/questions/2591747/how-can-i-compare-arrays-in-perl
 print O "# Samples: [",join('],[',@res),"]\t# 1=control, 2=case, 0=drop\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples: (1=control, 2=case, 0=drop)\n[",join("]\n[",@res),"]\nParents: [",join('],[',@Parents),"]\n";

@@ -102,7 +102,7 @@ sort -k13,13n -k2,2 -k3,3n  rec.npa > rec.npas
 
 ./ped2hap.pl tighap.lst radseq17 dohap17
 
-
+grep -P 'scaffold(75|1458|188)\t' rec.npa > rec.npa.sss
 
 __END__
 
