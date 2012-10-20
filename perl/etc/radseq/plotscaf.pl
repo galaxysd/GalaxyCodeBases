@@ -24,7 +24,7 @@ my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 $markerdat = $markf;
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
-my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458 scaffold188);
+my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458);
 
 my %Stat;
 
@@ -84,7 +84,8 @@ while (<I>) {
 	chomp;
 	my @items = split /\t/;
 	die unless exists $ScaffoldLen{$items[1]};
-	push @{$MarkerDat{$items[1]}},[ $items[2],$items[9],int(0.5-1000*log($items[9])/log(10))/1000 ];	# pos,p,lg(p) round to 0.001
+    my @tmp = split /[\/|]/,$items[7].'/'.$items[8];    # Aff,UnAff
+	push @{$MarkerDat{$items[1]}},[ $items[2],$items[9],int(0.5-1000*log($items[9])/log(10))/1000,$tmp[1]+$tmp[2] ];	# pos,p,lg(p) round to 0.001,SumMid(0 is red)
 }
 close I;
 #ddx \%MarkerDat;
@@ -154,7 +155,7 @@ for my $i (1 .. $YmaxVal) {	# 0 will be shared with X-axie
 	push @Yticks,$pY;
 }
 
-my (%PlotDat,%PlotScaffRange);
+my (%PlotDat,%PlotScaffRange,%PlotCandiDat);
 my $start = 0;
 for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away from X-axie.
 	unless (exists $MarkerDat{$scaff}) {
@@ -164,7 +165,7 @@ for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away f
 	}
 	my $maxlgp = 0;
 	for my $mditem (@{$MarkerDat{$scaff}}) {
-		my ($pos,$p,$lgp) = @$mditem;
+		my ($pos,$p,$lgp,$isFalse) = @$mditem;
 		my $posOchr = $start + $pos;
 		if ($posOchr < 0) {
 			$posOchr = 0;
@@ -173,7 +174,9 @@ for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away f
 			$posOchr = $start + $ScaffoldLen{$scaff};
 			++$Stat{'Marker_Pos_Overflow'};
 		}
-		++$PlotDat{$scaff}{int(0.5+10*$posOchr/$BasepPx)/10}{$lgp};	# 10 => 720 dpi for pt unit system, enough.
+        my $value = int(0.5+10*$posOchr/$BasepPx)/10;	# 10 => 720 dpi for pt unit system, enough.
+		++$PlotDat{$scaff}{$value}{$lgp};
+        ++$PlotCandiDat{$scaff}{$value}{$lgp} unless $isFalse;
 		$maxlgp = $lgp if $maxlgp < $lgp;
 	}
 	$PlotScaffRange{$scaff} = [ ( map {int(0.5+10*$_/$BasepPx)/10} ($start+1,$start+$ScaffoldLen{$scaff}) ),$maxlgp ];
@@ -253,11 +256,14 @@ TXT2
 		} else {
 			$thiscolor = 'navy';
 		}
+        $thiscolor = 'black';
 		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		my $topestY = $Ytotal;
 		for my $pos (@Poses) {
 			my @Circles = getCircles($PlotDat{$scaff}{$pos});
+            my @CandiCircles = getCircles($PlotCandiDat{$scaff}{$pos}) if exists $PlotCandiDat{$scaff}{$pos};
 			my $t = shift @Circles;
+            shift @CandiCircles;
 			my $p = int($pos);
 			unless (exists $maxCircles{$p}) {
 				$maxCircles{$p} = $t;
@@ -276,6 +282,13 @@ TXT2
 #print "$y,$Py,$Yrange,$YmaxVal\n";
 				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
 			}
+			for (@CandiCircles) {
+				my ($y,$r) = @$_;
+				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+				$topestY = $Py if $topestY > $Py;
+                #print "$y,$Py,$Yrange,$YmaxVal\n";
+				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"red\" fill=\"red\" />\n";
+			}
 =pod
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
 			print O <<TXTL;
@@ -289,7 +302,7 @@ TXTL
         <line x1="$pa" y1="$Yrange" x2="$pb" y2="$Yrange" stroke-width="2"/>
       </g>
 TXTLB
-		print O "      <text x=\"$Poses[0]\" y=\"",$topestY-12,"\" dy=\"5\" text-anchor=\"middle\" fill=\"black\" stroke-width=\"0\">$scaff</text>\n" if $thiscolor eq 'red';
+		print O "      <text x=\"$Poses[0]\" y=\"",$topestY-12,"\" dy=\"5\" text-anchor=\"middle\" fill=\"navy\" stroke-width=\"0\">$scaff</text>\n" if exists $MVScaffolds{$scaff};
 		++$scaffcnt;
 	}
 #	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
@@ -322,3 +335,5 @@ __END__
 perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" ./tig2cat.csv > ./tig2cat.tsv
 sort -t $'\t' -k 1,1 -k 2,2n -k 3,3n ./tig2cat.tsv > ./tig2cat.tsv.s
 awk '{print "scaffold"$4"\tchr"$1}' tig2cat.tsv.s|uniq > tig2cat.order
+
+./plotscaf.pl rec16q20.npa15 tig2cats16q20s15
