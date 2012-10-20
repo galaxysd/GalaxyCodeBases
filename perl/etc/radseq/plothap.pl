@@ -212,7 +212,11 @@ DEF2
 			for my $pos2 (sort {$a<=>$b} keys %{$PlotLD{$locus1}{$pos1}}) {
 				my $val = getVal($PlotLD{$locus1}{$pos1}{$pos2});
 				next if $val == -1;
-				my $color = colormap($val);
+				my $color = colormap($val,
+                    [[0,1],                   [1,1]],
+                    [[0,1],[0.75,1],[0.9,0.3],[1,0]],
+                    [[0,1],[0.75,0],          [1,0]]);
+                #$color = colormap($val);
 #print join(',',$locus1,$pos1,$pos2,$val),"\n";
 				my $py = $intlen - $pos2 - $GRIDsize;
 				print O <<GRID;
@@ -266,11 +270,10 @@ print O <<THEBAR;
   <g transform="translate(450,24)" stroke="black" font-size="12" font-family="Arial" stroke-width="0">
   <defs>
     <linearGradient id="ColorMap" x1="0" y1="100%" x2="0" y2="0">
-      <stop offset="0%" stop-color="#000"/>
-	  <stop offset="2%" stop-color="#4d0000"/>
-	  <stop offset="30%" stop-color="#F00"/>
-	  <stop offset="70%" stop-color="#FF0"/>
-      <stop offset="100%" stop-color="#FFF"/>
+      <stop offset="0%" stop-color="#FFF"/>
+	  <stop offset="75%" stop-color="#FF0"/>
+      <stop offset="90%" stop-color="#FF4d00"/>
+      <stop offset="100%" stop-color="#F00"/>
     </linearGradient>
   </defs>
   <rect fill="url(#ColorMap)" stroke-width="1" x="0" y="0" width="10" height="200"/>

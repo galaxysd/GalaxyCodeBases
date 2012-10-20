@@ -1,5 +1,6 @@
 package Galaxy;
 use strict;
+use 5.010;
 require Exporter;
 our @ISA   =qw(Exporter);
 our @EXPORT    =qw(commify colormap);
@@ -15,13 +16,14 @@ sub commify {	# http://www.perlmonks.org/?node_id=653
 }
 
 sub colormap {	# http://cresspahl.blogspot.com/2012/03/expanded-control-of-octaves-colormap.html
-	my ($value) = @_;
-	my @MR = ([0,0],[0.02,0.3],[0.3,1],[1,1]);
-	my @MG = ([0,0],[0.3,0],[0.7,1],[1,1]);
-	my @MB = ([0,0],[0.7,0],[1,1]);
-	my $r = int( 0.5 + 255*_getColorMap($value,\@MR) );
-	my $g = int( 0.5 + 255*_getColorMap($value,\@MG) );
-	my $b = int( 0.5 + 255*_getColorMap($value,\@MB) );
+	my ($value,$MR,$MG,$MB) = @_;
+	$MR //= [[0,0],[0.02,0.3],[0.3,1],[1,1]];
+	$MG //= [[0,0],[0.3,0],[0.7,1],[1,1]];
+	$MB //= [[0,0],[0.7,0],[1,1]];
+    # http://www.effectiveperlprogramming.com/blog/704
+	my $r = int( 0.5 + 255*_getColorMap($value,$MR) );
+	my $g = int( 0.5 + 255*_getColorMap($value,$MG) );
+	my $b = int( 0.5 + 255*_getColorMap($value,$MB) );
 	my @color = map { sprintf "%02x",$_; } ($r,$g,$b);
 	return '#'.join('',@color);
 }
