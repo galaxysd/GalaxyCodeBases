@@ -26,6 +26,7 @@ my $scaf2locuslst = '/share/users/huxs/work/tiger/20120910/tighap.lst';
 print "From [$markf][$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %Stat;
+$Stat{GRIDsize} = $GRIDsize;
 
 my @Scaffolds = ([qw(scaffold75 scaffold1458)], ['scaffold188']);
 my $t=0;
@@ -109,14 +110,20 @@ my $BasepPx = 10*$unit/$Xrange;
 my $ChrCount = @Scaffolds;
 my $Ytotal = $Yitem*$ChrCount - $InBorder + 2*$OutBorder;
 
+$Stat{'Base/px'} = $BasepPx;
+
 sub getVal($) {
 	my @dat = @{$_[0]};
 	my ($sum,$cnt,$max)=(0,0,0);
+        my %dat;
 	for my $k (@dat) {
 		$sum += $k;
 		++$cnt;
+                ++$dat{$k};
 	}
+        #my @v = sort { $dat{$b} <=> $dat{$a} } keys %dat;
 	if ($cnt) {
+                #return $v[0];
 		return $sum/$cnt;
 	} else {
 		return -1;
@@ -234,6 +241,9 @@ GRID
 		# scaffold75,1522816,SLC45A2      B:0,C b:1,T [3]
 		my $pSLC45A2 = 1522816/$BasepPx;
 		print O '      <circle cx="',$pSLC45A2,'" cy="0" fill="gold" r="2"/>',"\n";
+                print O '      <line x1="',871133/$BasepPx,'" y1="0" x2="',924457/$BasepPx,'" y2="0" stroke="red" stroke-width="3"/>',"\n";
+                print O '      <circle cx="',924457/$BasepPx,'" cy="-3" fill="gold" r="2"/>',"\n";
+                print O '      <line x1="',4078553/$BasepPx,'" y1="0" x2="',4192353/$BasepPx,'" y2="0" stroke="red" stroke-width="3"/>',"\n";
 	}
 # plink
 	my $heigh = 36;
@@ -289,6 +299,7 @@ print O "</svg>\n";
 close O;
 
 ddx \%Stat;
+# plothap.pl:301: { "Base/px" => 40000, "GRIDsize" => 5 }
 
 sub getPLval {
 	my $arr = $_[0];
@@ -314,4 +325,5 @@ sub getPLval {
 __END__
 
 ./plothap.pl ../rec.npa 17all75.txt
+perl ./plothap.pl ../rec16q20.npa 16-75n1458j15.txt out16n2
 

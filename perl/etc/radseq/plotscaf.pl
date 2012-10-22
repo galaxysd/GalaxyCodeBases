@@ -24,7 +24,7 @@ my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 $markerdat = $markf;
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
-my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458);
+my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458 scaffold188);
 
 my %Stat;
 
