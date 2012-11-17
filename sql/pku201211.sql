@@ -22,6 +22,7 @@ CREATE  TABLE IF NOT EXISTS `pkudb`.`Samples` (
   `TissueReal` VARCHAR(45) NULL ,
   `AnimalID` VARCHAR(45) NULL COMMENT 'Def = SourceID . SourceCnt' ,
   `OldID` VARCHAR(45) NULL ,
+  `LabelPrintedCnt` INT NOT NULL DEFAULT 0 ,
   `ivFreezer` VARCHAR(45) NULL ,
   `ivShelf` VARCHAR(45) NULL ,
   `ivRack` VARCHAR(45) NULL ,
@@ -238,6 +239,18 @@ END; $$
 
 SHOW WARNINGS$$
 
+CREATE TRIGGER Animals_Date1stSampling AFTER INSERT ON Samples
+FOR EACH ROW
+BEGIN
+	DECLARE Oldata DATETIME;
+	IF NEW.DateCollected IS NOT NULL THEN
+		SELECT Date1stSampling FROM Animals WHERE AnimalID=NEW.AnimalID INTO Oldata;
+		IF Oldata > NEW.DateCollected THEN
+			UPDATE IGNORE Animals SET Date1stSampling=NEW.DateCollected WHERE AnimalID=NEW.AnimalID;
+		END IF;
+	END IF;
+END; $$
+
 DELIMITER ;
 
 
@@ -249,6 +262,13 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- Test Data
 -- -----------------------------------------------------
 USE `pkudb`;
-INSERT INTO Samples (SampleID) VALUES ('gdxj0000bo00');
+INSERT INTO Samples (SampleID) VALUES ('gdxj0000bl00');
 INSERT INTO Samples (SampleID) VALUES ('gdxj9999ms99');
-INSERT INTO Samples (SampleID) VALUES ('gdxj0001bo01');
+INSERT INTO Samples (SampleID) VALUES ('gdxj0001bl01');
+INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl02','2012-07-05 18:11:12');
+SELECT AnimalID,Date1stSampling FROM Animals;
+INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl12','2012-06-05');
+SELECT AnimalID,Date1stSampling FROM Animals;
+INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl32','2012-08-05 17:11:12');
+SELECT AnimalID,Date1stSampling FROM Animals;
+SELECT SampleID,SourceID,SourceCnt,TissueID,TissueCnt,AnimalID,DateCollected,LabelPrinted FROM Samples;
