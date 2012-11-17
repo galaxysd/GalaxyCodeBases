@@ -2,6 +2,8 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
+DROP DATABASE `pkudb`;
+
 CREATE SCHEMA IF NOT EXISTS `pkudb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci ;
 SHOW WARNINGS;
 USE `pkudb` ;
@@ -245,7 +247,7 @@ BEGIN
 	DECLARE Oldata DATETIME;
 	IF NEW.DateCollected IS NOT NULL THEN
 		SELECT Date1stSampling FROM Animals WHERE AnimalID=NEW.AnimalID INTO Oldata;
-		IF Oldata > NEW.DateCollected THEN
+		IF Oldata IS NULL OR Oldata > NEW.DateCollected THEN
 			UPDATE IGNORE Animals SET Date1stSampling=NEW.DateCollected WHERE AnimalID=NEW.AnimalID;
 		END IF;
 	END IF;
@@ -271,4 +273,4 @@ INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl12','2012-06-05'
 SELECT AnimalID,Date1stSampling FROM Animals;
 INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl32','2012-08-05 17:11:12');
 SELECT AnimalID,Date1stSampling FROM Animals;
-SELECT SampleID,SourceID,SourceCnt,TissueID,TissueCnt,AnimalID,DateCollected,LabelPrinted FROM Samples;
+SELECT SampleID,SourceID,SourceCnt,TissueID,TissueCnt,AnimalID,DateCollected,LabelPrintedCnt FROM Samples;
