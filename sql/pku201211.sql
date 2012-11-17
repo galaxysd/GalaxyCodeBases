@@ -232,6 +232,8 @@ BEGIN
 	IF NEW.AnimalID IS NULL OR NEW.AnimalID='' THEN
 		SET NEW.AnimalID=CONCAT(NEW.SourceID,LPAD(NEW.SourceCnt,4,'0'));
 	END IF;
+	INSERT IGNORE INTO Animals SET AnimalID=NEW.AnimalID;
+	INSERT IGNORE INTO TissueCode SET TissueID=NEW.TissueID;
 END; $$
 
 SHOW WARNINGS$$
@@ -242,3 +244,11 @@ DELIMITER ;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Test Data
+-- -----------------------------------------------------
+USE `pkudb`;
+INSERT INTO Samples (SampleID) VALUES ('gdxj0000bo00');
+INSERT INTO Samples (SampleID) VALUES ('gdxj9999ms99');
+INSERT INTO Samples (SampleID) VALUES ('gdxj0001bo01');
