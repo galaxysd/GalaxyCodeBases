@@ -273,4 +273,5 @@ INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl12','2012-06-05'
 SELECT AnimalID,Date1stSampling FROM Animals;
 INSERT INTO Samples (SampleID,DateCollected) VALUES ('gdxj0001bl32','2012-08-05 17:11:12');
 SELECT AnimalID,Date1stSampling FROM Animals;
+UPDATE Samples SET LabelPrintedCnt=LabelPrintedCnt+1 WHERE SampleID='gdxj0001bl12';
 SELECT SampleID,SourceID,SourceCnt,TissueID,TissueCnt,AnimalID,DateCollected,LabelPrintedCnt FROM Samples;
