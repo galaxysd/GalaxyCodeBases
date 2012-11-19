@@ -104,6 +104,8 @@ sort -k13,13n -k2,2 -k3,3n  rec.npa > rec.npas
 
 grep -P 'scaffold(75|1458|188)\t' rec.npa > rec.npa.sss
 
+perl -lane 'print $_ if $F[-4]>15' rec16q20.npa.sss > rec16q20.npa.sss16
+
 __END__
 
 $ git push

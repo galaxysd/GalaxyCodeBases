@@ -244,6 +244,11 @@ GRID
                 print O '      <line x1="',871133/$BasepPx,'" y1="0" x2="',924457/$BasepPx,'" y2="0" stroke="red" stroke-width="3"/>',"\n";
                 print O '      <circle cx="',924457/$BasepPx,'" cy="-3" fill="gold" r="2"/>',"\n";
                 print O '      <line x1="',4078553/$BasepPx,'" y1="0" x2="',4192353/$BasepPx,'" y2="0" stroke="red" stroke-width="3"/>',"\n";
+                my $tmpShift = 0;
+                my $OneMega = $tmpShift + (1000000 / $BasepPx);
+                print O <<BART;
+      <polyline fill="none" stroke-width="1" points="$tmpShift,-10 $tmpShift,0 $OneMega,0 $OneMega,-10" />
+BART
 	}
 # plink
 	my $heigh = 36;
