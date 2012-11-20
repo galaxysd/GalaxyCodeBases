@@ -21,8 +21,8 @@ all: $(ALLITEMS)
 	$(BWACMD) $(ALNARG) $(REF) $< > $@ 2>$@.log
 
 %.sam: %.1.sai %.2.sai
-	@echo "2 $(BWACMD) $(SAMPEARG) $(REF) $(@:.sam=).1.sai $(@:.sam=).2.sai $(@:.sam=).1.fq.gz $(@:.sam=).2.fq.fz 2>$@.log |gzip -9c >$@.gz"
-	$(BWACMD) $(SAMPEARG) $(REF) $(@:.sam=).1.sai $(@:.sam=).2.sai $(@:.sam=).1.fq.gz $(@:.sam=).2.fq.fz 2>$@.log |gzip -9c >$@.gz
+	@echo "2 $(BWACMD) $(SAMPEARG) $(REF) $(@:.sam=).1.sai $(@:.sam=).2.sai $(@:.sam=).1.fq.gz $(@:.sam=).2.fq.gz 2>$@.log |gzip -9c >$@.gz"
+	$(BWACMD) $(SAMPEARG) $(REF) $(@:.sam=).1.sai $(@:.sam=).2.sai $(@:.sam=).1.fq.gz $(@:.sam=).2.fq.gz 2>$@.log |gzip -9c >$@.gz
 	touch $@
 
 
