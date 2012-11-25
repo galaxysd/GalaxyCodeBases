@@ -1,0 +1,8 @@
+find -L ./fq/p0 ./fq/wgs ./fq/f1 -name '*.1.fq.gz'|perl -lane '@a=split /\//;$n=pop @a;$p=join "/",@a;$m=$n;$m=~s/.1.fq.gz$//;;print "$p\t$m\t$_"' > ng/fqm.lst
+mkdir out out/p out/f1
+
+
+
+
+qconf -sq tiger.q|grep slots
+
