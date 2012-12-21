@@ -12,9 +12,10 @@ use Galaxy::IO;
 use Galaxy::SeqTools;
 use Data::Dumper;
 
-die "Usage: $0 <tfam file> <bcgv bcf> <out>\n" if @ARGV<3;
+die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <out>\n" if @ARGV<4;
 my $tfamfs=shift;
 my $bcfs=shift;
+my $minSampleCnt=shift;	# 16 for 16 samples in paper
 my $outfs=shift;
 
 my (%Stat,$t);
@@ -172,7 +173,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt<16) {
+	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt < $minSampleCnt) {
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
