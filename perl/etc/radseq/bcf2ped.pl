@@ -31,7 +31,7 @@ if ($tfamfs ne $outfs.'.tfam') {
 	open OFO,'>',$outfs.'.control.tfam' or die $!;
 } else {die;}
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
-$t = "# In: [$bcfs], Out: [$outfs]\n";
+$t = "# In: [$bcfs], Out: [$outfs]. minSampleCnt=$minSampleCnt\n";
 print O $t;
 print $t;
 
