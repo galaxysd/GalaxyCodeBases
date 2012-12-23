@@ -80,6 +80,8 @@ while (<$th>) {
 		@Samples = map {
 			if (/^(\w+)_all\.bam$/) {
 				$_ = $1;
+			} elsif (/\.\/bam0\//) {
+				my $t=(split /_/)[-1]; $t=(split /\./,$t)[0]; $_=$t;
 			} else {
 				my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);
 			}
