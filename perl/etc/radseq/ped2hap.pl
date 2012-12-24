@@ -69,7 +69,7 @@ for my $type (qw[case control all]) {
 		}
 		close C;
 		close O;
-		my $cmd = "p-link --tped $outfs.$type.$scaffid.tped --tfam $inprefix.tfam --out ${outfs}$type.$scaffid --recode";
+		my $cmd = "p-link --tped \'$outfs.$type.$scaffid.tped\' --tfam $inprefix.tfam --out \'${outfs}$type.$scaffid\' --recode";
 		print "Running [$cmd].\n";
 		print LOG "$cmd\n";
 		system($cmd);

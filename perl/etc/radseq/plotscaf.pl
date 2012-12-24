@@ -20,6 +20,7 @@ if ($outf) {
 }
 
 my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
+$scaffnfo = '/bak/seqdata/genomes/Felis_catus-6.2/chr.nfo';
 my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 $markerdat = $markf;
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
@@ -66,13 +67,14 @@ sub getCircles($) {
 	return @ret;
 }
 
-my %ScaffoldLen;
+my (%ScaffoldLen,@ChrOrder0);
 open I,'<',$scaffnfo or die $!;
 while (<I>) {
 	next if /^#/;
 	chomp;
 	my @items = split /\t/;
 	$ScaffoldLen{$items[0]} = $items[1];
+	push @ChrOrder0,$items[0];
 }
 close I;
 print "\n",scalar keys(%ScaffoldLen)," scaffold(s) Load.\n";
@@ -104,6 +106,7 @@ close I;
 NULLORDERFILE:
 my $TotalLen=0;
 my @order = map {$_='scaffold'.$_} sort {$a<=>$b} map {s/^scaffold//;$_;} keys %MarkerDat;
+@order = @ChrOrder0;
 for my $scaff (@order) {
 	next unless exists $MarkerDat{$scaff};
 	if (exists $OrderedOnce{$scaff}) {
