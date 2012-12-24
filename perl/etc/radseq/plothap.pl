@@ -8,6 +8,8 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy;
 
+my ($borderL,$borderR) = (206000000,220000000);
+
 die "Usage: $0 <marker dat> <tassel dump> [out midfix]\n" if @ARGV<2;
 my $markf=shift;
 my $inf=shift;
@@ -22,13 +24,15 @@ if ($outf) {
 }
 
 my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
-my $scaf2locuslst = '/share/users/huxs/work/tiger/20120910/tighap.lst';
+$scaffnfo = 'chr.nfo';
+#my $scaf2locuslst = '/share/users/huxs/work/tiger/20120910/tighap.lst';
 print "From [$markf][$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %Stat;
 $Stat{GRIDsize} = $GRIDsize;
 
 my @Scaffolds = ([qw(scaffold75 scaffold1458)], ['scaffold188']);
+@Scaffolds = (['gi|362110686|gb|CM001378.1|']);
 my $t=0;
 my %scaffolds = map {map {$_ => ++$t} @$_} @Scaffolds;
 my %scaff2chr = map { $scaffolds{$_} => $_ } keys %scaffolds;
@@ -47,6 +51,7 @@ while (<I>) {
 	my @items = split /\t/;
 	next unless exists $scaffolds{$items[0]};
 	$ScaffoldLen{$items[0]} = $items[1];
+	$ScaffoldLen{$items[0]} = $borderR - $borderL;
 }
 close I;
 print "\n",scalar keys(%ScaffoldLen)," scaffold(s) Load.\nLength:\n";
@@ -75,6 +80,7 @@ while (<I>) {
 	my @items = split /\t/;
 	die scalar @items if @items != 17;
 	my ($chr1,$pos1,$id1,undef,undef,undef,$chr2,$pos2,$id2,undef,undef,undef,$dist,$rsq,$dp,$p,$N) = @items;
+	$pos1 -= $borderL; $pos2 -= $borderL;
 	my $x = [$chr1,$pos1];
 	my $y = [$chr2,$pos2];
 #ddx [$x,$y];
@@ -160,6 +166,8 @@ while (<I>) {
 	chomp;
 	my @items = split /\t/;
 	next unless exists $scaffolds{$items[1]};
+	next if $items[2] <= $borderL or $items[2] >= $borderR;
+	$items[2] -= $borderL;
 	my $locus = $scaffolds{$items[1]};
 	my $offects = $ScaffoldsOffect{$scaff2chr{$locus}};
 	my $pos = int(($items[2]+$offects)/($BasepPx*$GRIDsize))*$GRIDsize;
@@ -282,7 +290,7 @@ BARU
 }
 #bar
 print O <<THEBAR;
-  <g transform="translate(450,24)" stroke="black" font-size="12" font-family="Arial" stroke-width="0">
+  <g transform="translate(480,24)" stroke="black" font-size="12" font-family="Arial" stroke-width="0">
   <defs>
     <linearGradient id="ColorMap" x1="0" y1="100%" x2="0" y2="0">
       <stop offset="0%" stop-color="#FFF"/>

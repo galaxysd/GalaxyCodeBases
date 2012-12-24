@@ -10,6 +10,16 @@ use warnings;
 use Data::Dump qw(ddx);
 use Data::Dumper;
 
+=pod
+206000000
+208386088
+211361701
+214812903
+216154106
+220000000
+=cut
+my ($borderL,$borderR) = (206000000,220000000);
+
 die "Usage: $0 <hap scaffold list> <tped sets prefix> <out>\n" if @ARGV<3;
 my $lstfs=shift;
 my $infs=shift;
@@ -42,7 +52,8 @@ my %Rid;
 while (<D>) {
 	chomp;
 	my ($scaffid,$pos,$rid) = split /\t/;
-	if (exists $Scaff{$scaffid}) {
+	#if (exists $Scaff{$scaffid}) {
+	if (exists $Scaff{$scaffid} and $pos>=$borderL and $pos<=$borderR) {
 		$Rid{$rid} = $scaffid;
 	}
 }
