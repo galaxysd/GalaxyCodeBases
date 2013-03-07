@@ -137,8 +137,9 @@ my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
 my $InBorder = 40;
+my $Yextra = 200;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
-my $Yitem = $Yrange + $ArrowLen + $InBorder;
+my $Yitem = $Yrange + $ArrowLen + $InBorder + $Yextra;
 my $FontSize = int($Xrange/40);
 my $FontFamily = 'Arial';
 
@@ -255,12 +256,12 @@ TXT2
 		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
 		my $thiscolor = $color[$scaffcnt%scalar(@color)];
 		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
-		if (exists $MVScaffolds{$scaff}) {
-			$thiscolor = 'red';
-		} else {
-			$thiscolor = 'navy';
-		}
-        $thiscolor = 'black';
+# 		if (exists $MVScaffolds{$scaff}) {
+# 			$thiscolor = 'red';
+# 		} else {
+# 			$thiscolor = 'navy';
+# 		}
+		$thiscolor = '#'.$ChrColor{$scaff};
 		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 		my $topestY = $Ytotal;
 		for my $pos (@Poses) {
@@ -284,7 +285,7 @@ TXT2
 				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
 				$topestY = $Py if $topestY > $Py;
 #print "$y,$Py,$Yrange,$YmaxVal\n";
-				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"\#$ChrColor{$scaff}\" fill=\"\#$ChrColor{$scaff}\" />\n";
+				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
 			}
 			for (@CandiCircles) {
 				my ($y,$r) = @$_;
@@ -317,6 +318,22 @@ TXTLB
 #		print O "$x,$y ";
 #	}
 #	print O "\" />\n    </g>\n";
+	my ($xx,$yy)=(0,$Yrange + 30);
+	for my $id (@ChrOrder0) {
+		my $name = $ChrID{$id};
+		my $color = '#'.$ChrColor{$id};
+		my $tx = $xx + 17;
+		print O <<CHRBOX;
+	<rect x="$xx" y="$yy" rx="5" ry="5" width="15" height="15" style="fill:$color;stroke:black;stroke-width:1"/>
+	<text x="$tx" y="$yy" dy="12">Chr$name</text>
+CHRBOX
+	$xx += 56;
+	if ($xx > $Xtotal - 70) {
+		$yy += 24;
+		$xx = 0;
+	}
+	}
+
 	print O "    </g>\n";
 #	++$thisChrNo;
 }
