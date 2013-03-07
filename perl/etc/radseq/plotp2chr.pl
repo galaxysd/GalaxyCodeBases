@@ -325,7 +325,7 @@ TXTLB
 		my $tx = $xx + 17;
 		print O <<CHRBOX;
 	<rect x="$xx" y="$yy" rx="5" ry="5" width="15" height="15" style="fill:$color;stroke:black;stroke-width:1"/>
-	<text x="$tx" y="$yy" dy="12">Chr$name</text>
+	<text x="$tx" y="$yy" dy="12" stroke-width="0">Chr$name</text>
 CHRBOX
 	$xx += 56;
 	if ($xx > $Xtotal - 70) {
