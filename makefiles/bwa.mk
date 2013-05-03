@@ -17,12 +17,11 @@ BAMS := $(addsuffix .bam,$(OUTF))
 BAMSORT := $(addsuffix .sort.bam,$(OUTF))
 BAMRMDUP := $(addsuffix .rmdup.bam,$(OUTF))
 
-
 PATHS := $(addprefix $(OUTPUTPREFIX)/,$(MDAPATH) $(MLBACPATH))
 
 NUMPROC := $(shell grep -c ^processor /proc/cpuinfo)
-SAICOUNT := $(words $(SAI1))
-SAITHREADS := $(shell echo $(NUMPROC)/$(SAICOUNT)/2 |bc)
+SAMCOUNT := $(words $(SAI1))
+SAITHREADS := $(shell echo 1.5*$(NUMPROC)/$(SAMCOUNT) |bc)
 ifneq ($(SAITHREADS),)
 	ifneq ($(SAITHREADS),0)
 		ifneq ($(SAITHREADS),1)
@@ -31,7 +30,7 @@ ifneq ($(SAITHREADS),)
 	endif
 endif
 FREEMEM := $(shell free -m|grep -e '-/+ buffers/cache'|awk '{print $$NF}')
-SAMMEM := $(shell echo $(FREEMEM)/$(SAICOUNT) |bc)
+SAMMEM := $(shell echo $(FREEMEM)/$(SAMCOUNT) |bc)
 ifeq ($(SAMMEM),)
 	SAMMEM := 768
 endif
@@ -83,7 +82,10 @@ $(BAMRMDUP): $(BAMSORT)
 	@echo "done (bam rmdup)">>$(LOG)
 
 help:
-	@echo "Usage: make -j |tee make.log"
+	@if [ "$(NUMPROC)" -gt "$(SAMCOUNT)"  ]; then \
+		JOBCNT="$(SAMCOUNT)";\
+	fi;\
+	echo -e "Usage: make -j $(SAMCOUNT) |tee make.log\nBWA will run sai with [$(ALNARG)] for your [$(SAMCOUNT)] bam file(s).\nSAMTOOLS sort with [-m $(SAMMEM)]."
 
 clean:
 	rm -fr out/*
