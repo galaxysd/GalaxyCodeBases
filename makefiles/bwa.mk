@@ -35,11 +35,25 @@ ifeq ($(SAMMEM),)
 	SAMMEM := 768
 endif
 
+NEEDED_COMMANDS := bc bwa samtools grep mkdir free gzip
+
 all: $(OUTF)
 	@echo "[$(OUTF)]" "[$(INF)]" "[$@]" "[$(SAMMEM) $(FREEMEM)]"
 	date > $(OUTPUTPREFIX)/_alldone.log
 
-$(PATHS):
+check:
+	for thecmd in $(NEEDED_COMMANDS); do \
+	if ! command -v "$${thecmd%% *}" >/dev/null 2>&1; then \
+			checkok="0"; \
+			echo "[x]'$${thecmd%% *}' not found."; \
+		fi; \
+	done; \
+	if [ "$${checkok}" == "0" ]; then \
+		echo "[!]Please install missing cmd(s) above."; \
+		exit -1; \
+	fi;
+
+$(PATHS): check
 	mkdir -p $@
 
 $(OUTF): $(PATHS) $(BAMRMDUP)
@@ -90,4 +104,4 @@ help:
 clean:
 	rm -fr out/*
 
-.PHONY: help clean
+.PHONY: help clean check
