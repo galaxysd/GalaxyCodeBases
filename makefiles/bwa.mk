@@ -57,23 +57,23 @@ $(OUTF): $(PATHS) $(BAMRMDUP)
 	echo "$@" "$<" "$(IN)"
 	touch $@
 
-$(SAI1) $(SAI2): $(PATHS)
+$(SAI1) $(SAI2): | $(PATHS)
 	$(eval IN := $(patsubst $(OUTPUTPREFIX)/%,%,$(@:%.sai=%)))
-	bwa $(ALNARG) $(REF) $(IN).fastq.gz >$@ 2>$@.log
-	@date >>$@.log
-	@echo done. >>$@.log
+	bwa $(ALNARG) $(REF) $(IN).fastq.gz >$@ 2>$@.log && \
+	date >>$@.log && \
+	echo done. >>$@.log
 
 $(SAMS): $(SAI1) $(SAI2)
 	$(eval IN := $(@:%.sam.gz=%))
 	$(eval FQ := $(patsubst $(OUTPUTPREFIX)/%,%,$(IN)))
-	bwa $(SAMPEARG) $(REF) $(IN)_1.sai $(IN)_2.sai $(FQ)_1.fastq.gz $(FQ)_2.fastq.gz·2>$(IN).sam.log |gzip -9c >$@
-	@date >>$(IN).sam.log
-	@echo done. >>$(IN).sam.log
+	bwa $(SAMPEARG) $(REF) $(IN)_1.sai $(IN)_2.sai $(FQ)_1.fastq.gz $(FQ)_2.fastq.gz 2>$(IN).sam.log |gzip -9c >$@ && \
+	date >>$(IN).sam.log && \
+	echo done. >>$(IN).sam.log
 
 $(BAMS): $(SAMS)
-	samtools view -bS $< >$@ 2>$@.log
-	@date >>$@.log
-	@echo "done (sam.gz to bam)">>$@.log
+	samtools view -bS $< >$@ 2>$@.log && \
+	date >>$@.log && \
+	echo "done (sam.gz to bam)">>$@.log
 
 $(BAMSORT): $(BAMS)
 	if [ "$(SAMMEM)" -gt "768" ]; then \
@@ -81,15 +81,15 @@ $(BAMSORT): $(BAMS)
 	else \
 		SAMSORTMEM=;\
 	fi;\
-	samtools $(SAMSORTARG) $$SAMSORTMEM $< $(@:%.bam=%) >>$<.log
-	@date >>$<.log
-	@echo "done (bam sort)">>$<.log
+	samtools $(SAMSORTARG) $$SAMSORTMEM $< $(@:%.bam=%) >>$<.log && \
+	date >>$<.log && \
+	echo "done (bam sort)">>$<.log
 
 $(BAMRMDUP): $(BAMSORT)
 	$(eval LOG := $(@:%.rmdup.bam=%.bam.log))
-	samtools rmdup $< $@ >>$(LOG)
-	@date >>$(LOG)
-	@echo "done (bam rmdup)">>$(LOG)
+	samtools rmdup $< $@ >>$(LOG) && \
+	date >>$(LOG) && \
+	echo "done (bam rmdup)">>$(LOG)
 
 help: check
 	@if [ "$(NUMPROC)" -gt "$(SAMCOUNT)"  ]; then \
