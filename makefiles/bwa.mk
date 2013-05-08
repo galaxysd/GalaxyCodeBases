@@ -1,5 +1,4 @@
-MDAPATH := mda
-MLBACPATH := mlbac
+INPUTPATH := mda mlbac
 OUTPUTPREFIX := out
 
 ALNARG:=aln -l 17 -q 10
@@ -7,7 +6,7 @@ SAMPEARG:=sampe -a 800
 SAMSORTARG:=sort -l 9
 REF:=ref/hg19p10XYM
 
-INF := $(patsubst %_1.fastq.gz,%,$(wildcard $(MDAPATH)/*_1.fastq.gz $(MLBACPATH)/*_1.fastq.gz))
+INF := $(patsubst %_1.fastq.gz,%,$(foreach ONEINPUTPATH,$(INPUTPATH),$(wildcard $(ONEINPUTPATH)/*_1.fastq.gz)))
 
 OUTF := $(addprefix $(OUTPUTPREFIX)/,$(INF))
 SAI1 := $(addsuffix _1.sai,$(OUTF))
@@ -30,10 +29,7 @@ ifneq ($(SAITHREADS),)
 	endif
 endif
 FREEMEM := $(shell free -m|grep -e '-/+ buffers/cache'|awk '{print $$NF}')
-SAMMEM := $(shell echo $(FREEMEM)/$(SAMCOUNT) |bc)
-ifeq ($(SAMMEM),)
-	SAMMEM := 768
-endif
+SAMMEM := $(shell echo $(FREEMEM)/$(SAMCOUNT)/$(SAITHREADS) |bc)
 
 NEEDED_COMMANDS := bc bwa samtools grep mkdir free gzip
 
@@ -42,7 +38,7 @@ all: $(OUTF)
 	date > $(OUTPUTPREFIX)/_alldone.log
 
 check:
-	for thecmd in $(NEEDED_COMMANDS); do \
+	@for thecmd in $(NEEDED_COMMANDS); do \
 	if ! command -v "$${thecmd%% *}" >/dev/null 2>&1; then \
 			checkok="0"; \
 			echo "[x]'$${thecmd%% *}' not found."; \
@@ -81,7 +77,7 @@ $(BAMS): $(SAMS)
 
 $(BAMSORT): $(BAMS)
 	if [ "$(SAMMEM)" -gt "768" ]; then \
-		SAMSORTMEM="-m $(SAMMEM)";\
+		SAMSORTMEM="-@ $(SAITHREADS) -m $(SAMMEM)M";\
 	else \
 		SAMSORTMEM=;\
 	fi;\
@@ -95,11 +91,14 @@ $(BAMRMDUP): $(BAMSORT)
 	@date >>$(LOG)
 	@echo "done (bam rmdup)">>$(LOG)
 
-help:
+help: check
 	@if [ "$(NUMPROC)" -gt "$(SAMCOUNT)"  ]; then \
 		JOBCNT="$(SAMCOUNT)";\
 	fi;\
-	echo -e "Usage: make -j $(SAMCOUNT) |tee make.log\nBWA will run sai with [$(ALNARG)] for your [$(SAMCOUNT)] bam file(s).\nSAMTOOLS sort with [-m $(SAMMEM)]."
+	echo -e "Usage: make -j $(SAMCOUNT) |tee make.log\n\n$(NUMPROC) core(s) & $(FREEMEM) mb free memory found now.\nBWA will run sai with [$(ALNARG)] for your $(SAMCOUNT) bam file(s)."
+	@if [ "$(SAMMEM)" -gt "768" ]; then \
+		echo -e "SAMTOOLS will sort with [-@ $(SAITHREADS) -m $(SAMMEM)M], if free memory remains same when you type make."; \
+	fi
 
 clean:
 	rm -fr out/*
