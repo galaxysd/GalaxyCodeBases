@@ -29,7 +29,7 @@ ifneq ($(SAITHREADS),)
 	endif
 endif
 FREEMEM := $(shell free -m|grep -e '-/+ buffers/cache'|awk '{print $$NF}')
-SAMMEM := $(shell echo $(FREEMEM)/$(SAMCOUNT)/$(SAITHREADS) |bc)
+SAMMEM := $(shell echo 0.8*$(FREEMEM)/$(SAMCOUNT)/$(SAITHREADS) |bc)
 
 NEEDED_COMMANDS := bc bwa samtools grep mkdir free gzip
 
