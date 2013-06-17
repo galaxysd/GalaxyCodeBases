@@ -16,7 +16,7 @@ my $alnObj = $in->next_aln(); # get entire alignment data
 
 my (%Seq,$cns,$combined,@CNS,$t,@ids);
 foreach my $seqObj ($alnObj->each_seq) {
-	print join(',',$seqObj->display_id,$seqObj->seq), "\n";
+	print join(',',$seqObj->display_id), "\n";
 	push @ids,$seqObj->display_id;
 	my $seq = $seqObj->seq;
 	$Seq{$seqObj->display_id}=[-1,0,$seq];
