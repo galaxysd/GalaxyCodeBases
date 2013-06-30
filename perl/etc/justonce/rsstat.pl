@@ -74,8 +74,7 @@ my $FileName = 'xtubam/depths.xz';
 $FileName = 'tmpdep.xz';
 open I,'-|',"xz -dc $FileName" or die;
 my $posPoint;	# 1-based coordinate
-#$posPoint{$_} = 0 for values %ChrGI2ID; 
-my (%Dat,$t,%LastmPos);	# [Covered,Empty] x [result, sum, count] => [cov-avg,emptRatio,covsum,covbp,emptbp,lasts]
+my (%Dat,$t,%LastmPos);	# [cov-avg,emptRatio,covsum,covbp,emptbp,lasts]
 while (<I>) {
 	chomp;
 	my ($chrname,$pos,@depthDat) = split /\t/;
@@ -92,10 +91,7 @@ while (<I>) {
 		dosetvalue($t->[5],0);
 		$posPoint = $mPos*$ZONE_LENGTH -1;
 	}
-	#if ($posPoint{$chrid} < $pos) {
-		doinc($Dat{$chrid}->[$mPos]->[4], $pos - $posPoint - 1);
-		#warn "$mPos $pos, $posPoint ",$pos - $posPoint - 1,"\tDep: @depthDat\n";
-	#}
+	doinc($Dat{$chrid}->[$mPos]->[4], $pos - $posPoint - 1);
 	$posPoint = $pos;
 	doaddup($Dat{$chrid}->[$mPos]->[2], \@depthDat);
 	doaddifone($Dat{$chrid}->[$mPos]->[3], \@depthDat);
@@ -108,16 +104,42 @@ close I;
 for my $chrid (keys %Dat) {
 	for my $ZoneID (0 .. $#{$Dat{$chrid}}) {
 		$t = $Dat{$chrid}->[$ZoneID];
+		unless (defined $t) {
+			$Dat{$chrid}->[$ZoneID] = [[],[],[],[],[],[]];
+			$t = $Dat{$chrid}->[$ZoneID];
+			dosetvalue($t->[0],0);
+			dosetvalue($t->[1],1);
+			dosetvalue($t->[2],0);
+			dosetvalue($t->[3],0);
+			dosetvalue($t->[4],$ZONE_LENGTH);
+			dosetvalue($t->[5],-1);	# Well, just mark it.
+			next;
+		}
 		for my $i (0 .. $#IDs) {
-			$t->[0][$i] = $t->[3][$i] + $t->[4][$i];
+			my $sum = $t->[3][$i] + $t->[4][$i];
 			unless ($ZoneID == $LastmPos{$chrid}) {
-				$t->[0][$i] +=  $t->[5][$i];
+				$sum +=  $t->[5][$i];
 			}
+			$t->[0][$i] = $t->[3][$i] ? ($t->[2][$i] / $t->[3][$i]) : 0;
+			$t->[1][$i] = $t->[4][$i] / $sum;
 		}
 	}
 }
-
 ddx \%Dat;
 
+open OUT,'>',$outf or die "Error opening $outf: $!\n";
+print OUT "# ZONE_LENGTH: $ZONE_LENGTH\n# Order: ",join(' ',@IDs),"\n#",
+	join("\t",'ChrID','zPos','unCovBases','unCovRatio','CovSum','avgDepth','isNUL'),"\n";
+for my $chrid (keys %Dat) {
+	for my $ZoneID (0 .. $#{$Dat{$chrid}}) {
+		$t = $Dat{$chrid}->[$ZoneID];
+		print OUT join( "\t",$chrid,$ZoneID,
+			join(' ',@{$t->[4]}),join(' ',map { int(.5+1000*$_)/1000 } @{$t->[1]}),
+			join(' ',@{$t->[2]}),join(' ',map { int(.5+1000*$_)/1000 } @{$t->[0]}),
+			join('',map {($_==-1)?1:0} @{$t->[5]}) ),"\n";
+	}
+}
+
+
 __END__
-perl rsstat.pl
+perl rsstat.pl rss.tsv
