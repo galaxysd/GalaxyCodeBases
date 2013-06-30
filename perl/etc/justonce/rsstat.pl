@@ -5,7 +5,7 @@ use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
 my $ZONE_LENGTH = 200000;
-$ZONE_LENGTH = 20000;
+#$ZONE_LENGTH = 20000;
 
 die "Usage: $0 <output>\n" if @ARGV < 1;
 my ($outf)=@ARGV;
@@ -71,7 +71,7 @@ sub dosetvalue($$) {
 }
 
 my $FileName = 'xtubam/depths.xz';
-$FileName = 'tmpdep.xz';
+#$FileName = 'tmpdep.xz';
 open I,'-|',"xz -dc $FileName" or die;
 my $posPoint;	# 1-based coordinate
 my (%Dat,$t,%LastmPos);	# [cov-avg,emptRatio,covsum,covbp,emptbp,lasts]
