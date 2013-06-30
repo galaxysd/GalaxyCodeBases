@@ -4,11 +4,12 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-my $ZONE_LENGTH = 200000;
+#my $ZONE_LENGTH = 200000;
 #$ZONE_LENGTH = 20000;
 
-die "Usage: $0 <output>\n" if @ARGV < 1;
-my ($outf)=@ARGV;
+die "Usage: $0 <ZONE_LENGTH> <output>\n" if @ARGV < 2;
+my ($ZONE_LENGTH,$outf)=@ARGV;
+warn "ZONE_LENGTH: $ZONE_LENGTH\n";
 
 open CHR,'<','chr.lst' or die;
 my %ChrGI2ID;
@@ -18,7 +19,7 @@ while (<CHR>) {
 }
 close CHR;
 $ChrGI2ID{'='}='=';
-ddx \%ChrGI2ID;
+#ddx \%ChrGI2ID;
 
 open I,'<','xtubam/depth.sh' or die;
 our @IDs;
@@ -142,4 +143,6 @@ for my $chrid (keys %Dat) {
 
 
 __END__
-perl rsstat.pl rss.tsv
+perl rsstat.pl 200000 rss.tsv
+perl rsstat.pl 500000 rss5k.tsv
+perl rsstat.pl 1000000 rss1m.tsv
