@@ -42,7 +42,7 @@ while ($line = <$FH>) {
 		#}
 		my $outseq = substr $seq,$_->[0],$_->[1];
 		my $outqual = substr $qual,$_->[0],$_->[1];
-		print OUT join("\n",'@'."$id.$t $flag $CIAGR",$outseq,'+',$outqual),"\n";
+		print OUT join("\n",'@'."$id.$flag.$t $CIAGR",$outseq,'+',$outqual),"\n";
 	}
 }
 
