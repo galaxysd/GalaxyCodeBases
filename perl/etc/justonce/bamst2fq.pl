@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-our $MINLENGTH = 5;
+our $MINLENGTH = 15;
+$MINLENGTH = 17;	# lg(3G)/lg4 = 15.74
 
 die "Usage: $0 <input sam.gz/bam> <output(gzipped)>\n" if @ARGV < 2;
 my ($inf,$outf)=@ARGV;
