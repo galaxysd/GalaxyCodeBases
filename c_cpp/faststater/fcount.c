@@ -10,13 +10,13 @@
 #include "chrseq.h"
 #include "timer.h"
 
-#define MAXREADLEN (8ul*1024*1024)
-uint64_t ReadsLenArr[MAXREADLEN];
+#define MAXREADLEN (64ul*1024*1024 - 1)
+uint64_t ReadsLenArr[MAXREADLEN + 1];
 
 const char *argp_program_version =
-    "fcounter 0.1 @"__TIME__ "," __DATE__;
+    "fcounter 0.2 @"__TIME__ "," __DATE__;
 const char *argp_program_bug_address =
-    "<huxuesong@genomics.org.cn>";
+    "<galaxy001@gmail.com>";
 
 /* Program documentation. */
 static char doc[] =
@@ -116,7 +116,7 @@ int main (int argc, char **argv) {
                 if (readlength < MAXREADLEN) {
                     ++ReadsLenArr[readlength];
                 } else {
-                    ++ReadsLenArr[0];
+                    ++ReadsLenArr[MAXREADLEN];
                 }
         	}
         } else continue;
@@ -140,8 +140,8 @@ int main (int argc, char **argv) {
         if (ReadsLenArr[i])
             fprintf(fp,"%lu\t%lu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
     }
-    if (ReadsLenArr[0]) {
-        fprintf(fp,"#>=%lu\t%lu\t%g\n",MAXREADLEN,ReadsLenArr[0],(double)ReadsLenArr[0]/(double)allreads);
+    if (ReadsLenArr[MAXREADLEN]) {
+        fprintf(fp,"#>=%lu\t%lu\t%g\n",MAXREADLEN,ReadsLenArr[MAXREADLEN],(double)ReadsLenArr[MAXREADLEN]/(double)allreads);
     }
     fclose(fp);
 
