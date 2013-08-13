@@ -83,7 +83,9 @@ while (<$th>) {
 			} elsif (/\.\/bam0\//) {
 				my $t=(split /_/)[-1]; $t=(split /\./,$t)[0]; $_=$t;
 			} else {
-				my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);
+				#my $t=(split /\//)[-1];$t=~s/_cut//g;$t=~s/-/./g; $_=join('_',(split /\./,$t)[-5,-6]);
+				s/_2$//;
+				my $t = $_;
 			}
 		} splice @data,9;
 		# ../5.bam_0000210210_merged/d1_4_merged.D4.JHH001.XTU.sort.rmdup.bam
@@ -223,7 +225,7 @@ close O;
 
 ddx \%Stat;
 
-print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0\n--pheno $outfs.phe --all-pheno [screen log will be saved by p-link itselt]\n";
+print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0 --allow-no-sex\n--pheno $outfs.phe --all-pheno [screen log will be saved by p-link itselt]\n";
 __END__
 grep -hv \# radseq.gt > radseq.tfam
 
@@ -269,3 +271,12 @@ $LOD=int(0.5+log($p)*1000/log(10))/1000;
 print join("\t",@F,$sum,int(0.5+$theta*100000)/100000,int($LOD),$LOD)' |sort -k2,2 -k3,3n > rec.npa
 
 sort -k13,13n -k2,2 -k3,3n  rec.npa > rec.npas
+
+Tue Aug 13 14:44:52 CST 2013
+
+find *.model|while read a;do grep REC $a > $a.REC.0;done
+find *.model|while read a;do perl -lane 'if (@F<8) {splice @F,3,0,".";} die if @F<8; print join("\t",@F)' $a.REC.0 > $a.REC;done
+find *.model|while read a;do sort -k 8,8n -k 2,2 $a.REC > $a.REC.nk8;done
+find *.dict|perl -lane 's/\.dict//;system "./dojoin.pl $_.dict 3 ${_}P.model.REC.nk8 2 ${_}R.REC"'
+find *.dict|perl -lane 's/\.dict//;print "awk ",chr(39),"BEGIN {OFS=\"\\t\"} {print \$3,\$1,\$2,\$4,\$6,\$7,\$8,\$9,\$10,\$11}",chr(39)," ${_}R.REC.out > ${_}R.REC.out.j" '
+
