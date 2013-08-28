@@ -1,0 +1,146 @@
+Landon Curt Noll (chongo was here) /\../\
+http://www.isthe.com/chongo/index.html
+
+@(#) $Revision: 13.1 $
+@(#) $Id: README,v 13.1 2006/08/14 03:16:33 chongo Exp $
+@(#) $Source: /usr/local/src/cmd/hash/RCS/README,v $
+
+Lanndon Curt Noll (chongo was here) /\oo/\
+http://www.isthe.com/chongo/index.html
+
+Share and enjoy! :-)
+
+This is an implementation of the Secure Hash Standard-1 (SHS1)
+as well as implementation of the RSA Data Security, Inc.
+		MD5 Message-Digest Algorithm
+
+The digests produced from strings (-s string), files or stdin are
+identical to the original programs.  The command line and output
+interface are upward compatible as well.  Users of the original shs
+program may replace it with this version has their existing use
+and digests will be preserved.
+
+To build:
+
+    <<Edit the Makefile as needed>>
+    make all
+    make test
+
+To install:
+
+    make install
+
+This implementation has been improved over the original posting in
+a number of ways:
+
+  * performance
+
+    On some platforms, the characters per second processed have been
+    increased by a factor of almost 3.5 times the original postings.
+
+  * inode digests
+
+    This flag allows one to include the filename and various inode
+    information in the digest.  This option is useful in detecting
+    file tampering where the contents of the file was later restored.
+
+  * version string
+
+    The -v flag prints the version.
+
+  * test suites
+
+    The standard test suite (-x) been changed.  The initial string
+    for shs now says 'shs test suite results' instead of 'SHA test
+    suite results'.  While it is true that it we testing the
+    algorithm the program is called shs.  The initial string for
+    md5 now says 'md5 test suite results' instead of 'MD5 test
+    suite results'.  These changes also helps distinguish this
+    version from much older versions which did not have the -v
+    (print version) flag.
+
+    The original test file "foo" which contained the string "abc" (with
+    no newline) was renamed file1.
+
+    To avoid filename conflicts, the shs and md5 verify.data files
+    were renamed shs.data and md5.data respectively.
+
+    A new file, "file2" was added to the standard test suite.  This
+    file is larger than an internal read and thus helps test file
+    processing.  The contents of this file are two highly munged
+    copies of the original README.  The munging to prevent people
+    from using this file as documentation.
+
+    The test suite will first look in the current directory for
+    "file1".  If it is not found, it will look in ${DESTDIR}
+    (usually /usr/local/lib/{shs,md5}) as defined in the makefile.
+    It is assumes that "file2" is in the same location as "file1".
+
+    With the exception of the initial title line and the addition
+    of file2, the md5.data and shs.data file is identical to the
+    respective originals.
+
+  * prepend data
+
+    By using '-p string' one may prepend any set of data with a
+    string.  The digest produced is equivalent to digest that is
+    produced with the string pretended to the data.  By use of the
+    '-P file' interface, one may prepend using up to the 32k of a
+    file.  This interface allows one to prepend using binary data.
+
+  * performance test suite
+
+    The -t performance test has been changed to compute user cpu
+    time.  Older tests looked at wall clock time.  Variations in
+    system load produced variations in the reported performance.
+
+    The test length was increased to 16 megabytes.  One may change
+    the number of megabytes processed by changing the value of
+    TEST_MEG in the file shsdrvr.c or md5drvr.c.
+
+    On some systems with certain virtual memory characteristics,
+    you may need to run the performance test 3 times, ignoring the
+    first result.
+
+  * quiet mode
+
+    When -q is given, only digests are printed.
+
+  * C-type hex values.
+
+    When -c is given, digests are prepended by 0x so that they
+    may be directly used by programs such as calc:
+
+		ftp://ftp.uu.net/pub/calc
+
+    that want C-style hex values.
+
+  * multiple digests
+
+    When -m num is given, num multiple digests are computed in parallel.
+    The prepend data (if any) and the input data are divided so that
+    each num-th byte is digested by a separate hash.  The result is
+    a hash value that is num times as long as a single digest.
+
+    The -d is a historic (pre version 3) shorthand for -m 2.
+
+    When -C is given, the digests are cancatinated together to form
+    one large hex value.
+
+  * use by other programs
+
+    External programs may use the hash and I/O modules without all of
+    the other structure.
+
+	To use SHS grab:    shs.c,  shs.h and if I/O is needed shsio.c.
+	To use SHS1 grab:  shs1.c, shs1.h and if I/O is needed shs1io.c.
+	To use MD5 grab:    md5.c,  md5.h and if I/I is needed md5io.c.
+
+    One will need to declare:
+
+	char *program;		/* program = argv[0] */
+	int debug = 0;		/* 1 => enable debugging */
+
+See shs1drvr.c (and shsdrvr.c) and md5drvr.c for version information.  See
+the man pages shs.1 and md5.1 for other details.  Also see README.shs and
+README.md5.  Happy hashing!
