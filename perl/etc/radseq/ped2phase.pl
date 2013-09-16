@@ -90,3 +90,6 @@ for my $chrid (keys %GTdata) {
 	close O;
 }
 __END__
+perl ped2phase.pl sw000-18
+./hp/phase.2.1.1.source/PHASE sw000-18.scaffold1457.inp p18s1457 >p18s1457.log 2>p18s1457.err &
+./hp/phase.2.1.1.source/PHASE sw000-18.scaffold1457.inp p18s97 >p18s97.log 2>p18s97.err &
