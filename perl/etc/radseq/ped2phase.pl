@@ -28,9 +28,9 @@ my @tTarget = map { s/\s//g;$Targets{$_}=1;$_ } split /\,/,$Target;
 #die;
 
 my %mid2pos;
-open ID,'<',$prefix.'.dict' or die "Error opening $outfs.dict : $!\n";
-open IP,'<',$prefix.'.tped' or die "Error opening $outfs.tped : $!\n";
-open IF,'<',$prefix.'.tfam' or die "Error opening $outfs.tfam : $!\n";
+open ID,'<',$prefix.'.dict' or die "Error opening $prefix.dict : $!\n";
+open IP,'<',$prefix.'.tped' or die "Error opening $prefix.tped : $!\n";
+open IF,'<',$prefix.'.tfam' or die "Error opening $prefix.tfam : $!\n";
 
 my %GTdata;
 while (<ID>) {
@@ -92,4 +92,4 @@ for my $chrid (keys %GTdata) {
 __END__
 perl ped2phase.pl sw000-18
 ./hp/phase.2.1.1.source/PHASE sw000-18.scaffold1457.inp p18s1457 >p18s1457.log 2>p18s1457.err &
-./hp/phase.2.1.1.source/PHASE sw000-18.scaffold1457.inp p18s97 >p18s97.log 2>p18s97.err &
+./hp/phase.2.1.1.source/PHASE sw000-18.scaffold97.inp p18s97 >p18s97.log 2>p18s97.err &
