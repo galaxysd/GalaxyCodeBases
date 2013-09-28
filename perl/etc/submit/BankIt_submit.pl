@@ -110,3 +110,10 @@ foreach my $a (sort keys %STS) {
 	close O;
 }
 #close O;
+
+system("cat submit_*.fa > submitall.fa");
+system('find submit*.fa|sed \'s/\.fa$//\'|xargs -n1 perl BankIt_Feature.pl');
+print '-' x 75,"\n";
+system('ls -l *.val');
+
+print "To clean, run:[ rm submit* ]\n";
