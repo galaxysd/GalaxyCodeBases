@@ -68,11 +68,11 @@ while (<I>) {
 <1	>$len	gene
 			gene	SMCY
 			tallele	$b[1]
-54	>$len	intron
+<1	>$len	intron
 			gene	SMCY
 			number	4
 ";
-	} elsif ( $b[0] eq 'SMCY7_STR_downstream' ) {
+	} elsif ( $b[0] =~ /^SMCY7_STR/ ) {
 		print O ">Feature $a[0]
 <1	>$len	gene
 			gene	SMCY7
@@ -93,13 +93,12 @@ while (<I>) {
 <1	$b	intron
 			gene	DBY
 ";
-	} elsif ( $b[0] eq 'DBY7' ) {
+	} elsif ( $b[0] eq 'UTY11' ) {
 		print O ">Feature $a[0]
 <1	>$len	gene
 			gene	UTY
-<99	>$len	intron
+<1	>$len	intron
 			gene	UTY
-			number	18
 ";
 	} else {
 		print O ">Feature $a[0]\n<1\t>$len\tgene\n\t\t\tgene\t$b[0]\n\t\t\tallele\t$b[1]\n";
