@@ -1,0 +1,159 @@
+Submit-block ::= {
+  contact {
+    contact {
+      name
+        name {
+          last "HU" ,
+          first "Xuesong" ,
+          initials "X." } ,
+      affil
+        std {
+          affil "Peking University" ,
+          div "College of Life Sciences" ,
+          city "Beijing" ,
+          sub "Beijing" ,
+          country "China" ,
+          street "No. 5 Yiheyuan Road, Haidian District" ,
+          email "galaxy001@gmail.com" ,
+          fax "+8601062752307" ,
+          phone "+8601062752307" ,
+          postal-code "100871" } } } ,
+  cit {
+    authors {
+      names
+        std {
+          {
+            name
+              name {
+                last "Luo" ,
+                first "Shu-Jin" ,
+                initials "S.-J." } } ,
+          {
+            name
+              name {
+                last "Zhang" ,
+                first "Yue" ,
+                initials "Y." } } ,
+          {
+            name
+              name {
+                last "Johnson" ,
+                first "Warren" ,
+                initials "W.E." } } ,
+          {
+            name
+              name {
+                last "Miao" ,
+                first "Lin" ,
+                initials "L." } } ,
+          {
+            name
+              name {
+                last "Martelli" ,
+                first "Paolo" ,
+                initials "P." } } ,
+          {
+            name
+              name {
+                last "Antunes" ,
+                first "Agostinho" ,
+                initials "A." } } ,
+          {
+            name
+              name {
+                last "Smith" ,
+                first "James" ,
+                initials "J.L.D." } } ,
+          {
+            name
+              name {
+                last "OBrien" ,
+                first "Stephen" ,
+                initials "S.J." } } } ,
+      affil
+        std {
+          affil "Peking University" ,
+          div "College of Life Sciences" ,
+          city "Beijing" ,
+          sub "Beijing" ,
+          country "China" ,
+          street "No. 5 Yiheyuan Road, Haidian District" ,
+          postal-code "100871" } } ,
+    date
+      std {
+        year 2013 ,
+        month 9 ,
+        day 28 } } ,
+  hup TRUE ,
+  reldate
+    std {
+      year 2014 ,
+      month 9 ,
+      day 30 } ,
+  subtype new }
+Seqdesc ::= pub {
+  pub {
+    gen {
+      cit "unpublished" ,
+      authors {
+        names
+          std {
+            {
+              name
+                name {
+                  last "Luo" ,
+                  first "Shu-Jin" ,
+                  initials "S.-J." } } ,
+            {
+              name
+                name {
+                  last "Zhang" ,
+                  first "Yue" ,
+                  initials "Y." } } ,
+            {
+              name
+                name {
+                  last "Johnson" ,
+                  first "Warren" ,
+                  initials "W.E." } } ,
+            {
+              name
+                name {
+                  last "Miao" ,
+                  first "Lin" ,
+                  initials "L." } } ,
+            {
+              name
+                name {
+                  last "Martelli" ,
+                  first "Paolo" ,
+                  initials "P." } } ,
+            {
+              name
+                name {
+                  last "Antunes" ,
+                  first "Agostinho" ,
+                  initials "A." } } ,
+            {
+              name
+                name {
+                  last "Smith" ,
+                  first "James" ,
+                  initials "J.L.D." } } ,
+            {
+              name
+                name {
+                  last "OBrien" ,
+                  first "Stephen" ,
+                  initials "S.J." } } } ,
+        affil
+          std {
+            affil "Peking University" ,
+            div "College of Life Sciences" ,
+            city "Beijing" ,
+            sub "Beijing" ,
+            country "China" ,
+            street "No. 5 Yiheyuan Road, Haidian District" ,
+            postal-code "100871" } } ,
+      title "Sympatric Asian Felid Phylogeography Reveals a Major
+ Indochinese-Sundaic Divergence" } } }
