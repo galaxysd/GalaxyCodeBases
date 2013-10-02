@@ -37,46 +37,60 @@ if ($klen1 != $klen2) {
 	die "$klen1,$klen2";
 }
 print "Kmer Length = $klen1,$klen2\n";
+open T,'<',"$inf1.hist" or die $!;
+
+
+
 my %TMP;
 
-my ($flag,@RawArray,$la,$lb,$kmer1,$kmer2,$count1,$count2)=(3);
+my ($flag,$lastunread,@RawArray,$la,$lb,$kmer1,$kmer2,$count1,$count2)=(3,0);
 while ($flag) {
 	unless ( defined($la=<$IN1>) ) {
 		$flag &=2;
 		$la = "@\t0";
 	}
-CYCLEb:
+	last unless $flag;
 	unless ( defined($lb=<$IN2>) ) {
 		$flag &=1;
 		$lb = "@\t0";
 	}
-CYCLE:
-	chomp($la,$lb);
+	#chomp($la,$lb);
 	($kmer1,$count1) = split /\t/,$la;
 	($kmer2,$count2) = split /\t/,$lb;
+	chomp($count1,$count2);
 	if ( $kmer1 lt $kmer2 ) {
 		if ( $kmer1 ne '@' ) {
 			++$RawArray[$count1][0];	# $kmer2 is bigger thus cannot be '@'
 ++$TMP{"$count1."}{"$kmer1.\@x"};
-			unless ( defined($la=<$IN1>) ) {
-				$flag &=2;
-				$la = "@\t0";
-			}
 			print STDERR "$kmer1 < $kmer2 $count1,$count2\n";
-			goto CYCLE;
+			if ($lastunread == 2) {
+				last;
+			}
+			unread $IN2,$lb;
+			$lastunread = 2;
 		}
 	} elsif ( $kmer1 gt $kmer2 ) {
-		++$RawArray[0][$count2];
+		if ( $kmer2 ne '@' ) {
+			++$RawArray[0][$count2];
 ++$TMP{".$count2"}{"x\@.$kmer2"};
-		print STDERR "$kmer1 > $kmer2 $count1,$count2\n";
-		goto CYCLEb;
+			print STDERR "$flag $kmer1 > $kmer2 $count1,$count2\n";
+			if ($lastunread == 1) {
+				last;
+			}
+			unread $IN1,$la;
+			$lastunread = 1;
+		}
 	} elsif ( $count1 + $count2 ) {
 		++$RawArray[$count1][$count2];
 ++$TMP{"$count1.$count2"}{"$kmer1"};
-		print STDERR "$kmer1 = $kmer2 $count1,$count2\n";
+		print STDERR "$flag $kmer1 = $kmer2 $count1,$count2\n";
 	}
 }
-die if defined <$IN2>;
+#my $t=<$IN2>;
+#die "[$t][$la][$lb]" if defined $t;
+##############################
+# The last lines will be missing !!!
+##############################
 print STDERR "\n";
 
 close $IN1;
