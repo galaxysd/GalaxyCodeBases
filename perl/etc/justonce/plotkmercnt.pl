@@ -37,9 +37,6 @@ if ($klen1 != $klen2) {
 	die "$klen1,$klen2";
 }
 print "Kmer Length = $klen1,$klen2\n";
-open T,'<',"$inf1.hist" or die $!;
-
-
 
 my %TMP;
 
