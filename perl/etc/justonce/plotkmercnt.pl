@@ -4,8 +4,15 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-die "Usage: $0 <input1> <input2> <output>\n" if @ARGV < 3;
-my ($inf1,$inf2,$outf)=@ARGV;
+my $GRID = 20;
+my $GRIDp1 = $GRID - 1;
+my $minGRIDstep = 2;
+
+die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
+my ($max,$inf1,$inf2,$outf)=@ARGV;
+
+die if $max < $GRID * $minGRIDstep;
+my $oneGrid = int(1 + $max/$GRID/$minGRIDstep) * $minGRIDstep;
 
 sub openfile($) {
     my ($filename)=@_;
@@ -36,11 +43,17 @@ my ($klen1,$klen2) = ( getKsize($IN1),getKsize($IN2) );
 if ($klen1 != $klen2) {
 	die "$klen1,$klen2";
 }
-print "Kmer Length = $klen1,$klen2\n";
+print "Kmer_Length: $klen1,$klen2\nGrid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
 
 my %TMP;
 
 my ($flag,$lastunread,@RawArray,$la,$lb,$kmer1,$kmer2,$count1,$count2)=(3,0);
+for my $i (0 .. $GRIDp1) {
+	for my $j (0 .. $GRIDp1) {
+		$RawArray[$i][$j] = 0;
+	}
+}
+
 while ($flag) {
 	unless ( defined($la=<$IN1>) ) {
 		$flag &=2;
@@ -55,6 +68,11 @@ while ($flag) {
 	($kmer1,$count1) = split /\t/,$la;
 	($kmer2,$count2) = split /\t/,$lb;
 	chomp($count1,$count2);
+	$count1 = int($count1 / $oneGrid);
+	$count2 = int($count2 / $oneGrid);
+	if ( $count1 > $GRIDp1 or $count2 > $GRIDp1 ) {
+		warn "[!] $count1,$count2 vs $GRIDp1\n";
+	}
 	if ( $kmer1 lt $kmer2 ) {
 		if ( $kmer1 ne '@' ) {
 			++$RawArray[$count1][0];	# $kmer2 is bigger thus cannot be '@'
@@ -94,8 +112,21 @@ close $IN1;
 close $IN2;
 
 ddx \%TMP;
+ddx \@RawArray;
+
+open OUT,'>',$outf or die;
+print OUT "# Input: [$inf1],[$inf2]\n";
+print OUT "# Kmer_Length: $klen1,$klen2\n# Grid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
+print OUT "# Horizontal:[$inf2], Vertical: [$inf1]\n";
+print OUT join(',','.',( 0 .. $GRIDp1 )),"\n";
+for my $i ( 0 .. $GRIDp1 ) {
+	print OUT join(', ',$i,@{$RawArray[$i]}),"\n";
+}
+close OUT;
+
+
 
 __END__
 find sss2/ -name *.?z* > kmerfreq.lst
 
-perl plotkmercnt.pl a.gz b.gz t >tt1 2>tt2
+perl plotkmercnt.pl 9376518 a.gz b.gz t >tt1 2>tt2
