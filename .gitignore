@@ -13,4 +13,6 @@ blib/
 *.vpwhist
 *.vtg
 _Inline
+._.DS_Store
+.DS_Store
 

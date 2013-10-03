@@ -4,15 +4,14 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-my $GRID = 20;
-my $GRIDp1 = $GRID - 1;
-my $minGRIDstep = 2;
+my $GRID = 40;	# 0 .. $GRID-1, but $GRID for bigger numbers.
+my $minGRIDstep = 1;
 
 die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
 my ($max,$inf1,$inf2,$outf)=@ARGV;
 
 die if $max < $GRID * $minGRIDstep;
-my $oneGrid = int(1 + $max/$GRID/$minGRIDstep) * $minGRIDstep;
+my $oneGrid = int($max/$GRID/$minGRIDstep) * $minGRIDstep;	# no need to +1 as max is for main parts of data only, 不包括极端值。
 
 sub openfile($) {
     my ($filename)=@_;
@@ -48,8 +47,8 @@ print "Kmer_Length: $klen1,$klen2\nGrid: $oneGrid x $GRID = ",$oneGrid * $GRID,"
 my %TMP;
 
 my ($flag,$lastunread,@RawArray,$la,$lb,$kmer1,$kmer2,$count1,$count2)=(3,0);
-for my $i (0 .. $GRIDp1) {
-	for my $j (0 .. $GRIDp1) {
+for my $i (0 .. $GRID) {
+	for my $j (0 .. $GRID) {
 		$RawArray[$i][$j] = 0;
 	}
 }
@@ -57,48 +56,52 @@ for my $i (0 .. $GRIDp1) {
 while ($flag) {
 	unless ( defined($la=<$IN1>) ) {
 		$flag &=2;
-		$la = "@\t0";
+		$la = "@\t-1";
 	}
 	last unless $flag;
 	unless ( defined($lb=<$IN2>) ) {
 		$flag &=1;
-		$lb = "@\t0";
+		$lb = "@\t-1";
 	}
 	#chomp($la,$lb);
 	($kmer1,$count1) = split /\t/,$la;
 	($kmer2,$count2) = split /\t/,$lb;
 	chomp($count1,$count2);
+#warn "[$flag] $kmer1,$count1\t$kmer2,$count2\n";		
 	$count1 = int($count1 / $oneGrid);
 	$count2 = int($count2 / $oneGrid);
-	if ( $count1 > $GRIDp1 or $count2 > $GRIDp1 ) {
-		warn "[!] $count1,$count2 vs $GRIDp1\n";
-	}
+	$count1 = $GRID if $count1 > $GRID;
+	$count2 = $GRID if $count2 > $GRID;
 	if ( $kmer1 lt $kmer2 ) {
+		#print STDERR "$kmer1 < $kmer2 $count1,$count2\n";
 		if ( $kmer1 ne '@' ) {
 			++$RawArray[$count1][0];	# $kmer2 is bigger thus cannot be '@'
-++$TMP{"$count1."}{"$kmer1.\@x"};
-			print STDERR "$kmer1 < $kmer2 $count1,$count2\n";
+#++$TMP{"$count1."}{"$kmer1.\@x"};
+			#print STDERR "$kmer1 < $kmer2 $count1,$count2\n";
+			unread $IN2,$lb;
+			$lastunread = 2;
+		} else {
 			if ($lastunread == 2) {
 				last;
 			}
-			unread $IN2,$lb;
-			$lastunread = 2;
 		}
 	} elsif ( $kmer1 gt $kmer2 ) {
+		#print STDERR "$flag $kmer1 > $kmer2 $count1,$count2\n";
 		if ( $kmer2 ne '@' ) {
 			++$RawArray[0][$count2];
-++$TMP{".$count2"}{"x\@.$kmer2"};
-			print STDERR "$flag $kmer1 > $kmer2 $count1,$count2\n";
+#++$TMP{".$count2"}{"x\@.$kmer2"};
+			#print STDERR "$flag $kmer1 > $kmer2 $count1,$count2\n";
+			unread $IN1,$la;
+			$lastunread = 1;
+		} else {
 			if ($lastunread == 1) {
 				last;
 			}
-			unread $IN1,$la;
-			$lastunread = 1;
 		}
-	} elsif ( $count1 + $count2 ) {
+	} elsif ( $count1 + $count2 >= 0 ) {
 		++$RawArray[$count1][$count2];
-++$TMP{"$count1.$count2"}{"$kmer1"};
-		print STDERR "$flag $kmer1 = $kmer2 $count1,$count2\n";
+#++$TMP{"$count1.$count2"}{"$kmer1"};
+		#print STDERR "$flag $kmer1 = $kmer2 $count1,$count2\n";
 	}
 }
 #my $t=<$IN2>;
@@ -111,15 +114,15 @@ print STDERR "\n";
 close $IN1;
 close $IN2;
 
-ddx \%TMP;
-ddx \@RawArray;
+#ddx \%TMP;
+#ddx \@RawArray;
 
 open OUT,'>',$outf or die;
 print OUT "# Input: [$inf1],[$inf2]\n";
 print OUT "# Kmer_Length: $klen1,$klen2\n# Grid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
 print OUT "# Horizontal:[$inf2], Vertical: [$inf1]\n";
-print OUT join(',','.',( 0 .. $GRIDp1 )),"\n";
-for my $i ( 0 .. $GRIDp1 ) {
+print OUT join(',','.',( 0 .. $GRID )),"\n";
+for my $i ( 0 .. $GRID ) {
 	print OUT join(', ',$i,@{$RawArray[$i]}),"\n";
 }
 close OUT;
