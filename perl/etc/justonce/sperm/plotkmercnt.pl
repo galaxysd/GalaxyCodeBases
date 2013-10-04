@@ -14,16 +14,25 @@ die if $max < $GRID * $minGRIDstep;
 my $oneGrid = int($max/$GRID/$minGRIDstep) * $minGRIDstep;	# no need to +1 as max is for main parts of data only, 不包括极端值。
 
 sub openfile($) {
-    my ($filename)=@_;
-    my $infile;
-    if ($filename=~/.xz$/) {
-            open( $infile,"-|","xz -dc $filename") or die "Error opening $filename: $!\n";
-    } elsif ($filename=~/.gz$/) {
-        open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
-    } elsif ($filename=~/.lz4$/) {
-        open( $infile,"-|","/opt/bin/lz4c -dy $filename /dev/stdout") or die "Error opening $filename: $!\n";
-    } else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
-    return $infile;
+	my ($filename)=@_;
+	my ($KmerSum,$infile)=(0);
+	if ($filename=~/.xz$/) {
+			open( $infile,"-|","xz -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.gz$/) {
+		open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.lz4$/) {
+		open( $infile,"-|","/opt/bin/lz4c -dy $filename /dev/stdout") or die "Error opening $filename: $!\n";
+	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
+	open T,'<',"$filename.hist" or die $!;
+	while (<T>) {
+		my @t = split /\s+/;
+print join('|',@t),"\n" if $t[0] eq '#';
+		if ( $t[1] eq 'KmerSum:' ) {
+			chomp($KmerSum = $t[2]);
+		}
+	}
+	close T;
+	return [$infile,$KmerSum];
 }
 
 sub getKsize($) {
@@ -36,13 +45,13 @@ sub getKsize($) {
 	return $len;
 }
 
-my $IN1 = openfile($inf1);
-my $IN2 = openfile($inf2);
+my ($IN1,$KmerSum1) = @{openfile($inf1)};
+my ($IN2,$KmerSum2) = @{openfile($inf2)};
 my ($klen1,$klen2) = ( getKsize($IN1),getKsize($IN2) );
 if ($klen1 != $klen2) {
 	die "$klen1,$klen2";
 }
-print "Kmer_Length: $klen1,$klen2\nGrid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
+print "Kmer_Length: $klen1,$klen2 KmerSum: $KmerSum1,$KmerSum2\nGrid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
 
 my %TMP;
 
@@ -118,18 +127,21 @@ close $IN2;
 #ddx \@RawArray;
 
 open OUT,'>',$outf or die;
+open OUTP,'>',$outf.'.plot' or die;
 print OUT "# Input: [$inf1],[$inf2]\n";
 print OUT "# Kmer_Length: $klen1,$klen2\n# Grid: $oneGrid x $GRID = ",$oneGrid * $GRID," of $max, ",$max/($GRID*$oneGrid),"\n";
 print OUT "# Horizontal:[$inf2], Vertical: [$inf1]\n";
 print OUT join(',','.',( 0 .. $GRID )),"\n";
 for my $i ( 0 .. $GRID ) {
 	print OUT join(', ',$i,@{$RawArray[$i]}),"\n";
+	print OUTP join(', ',$i,@{$RawArray[$i]}),"\n";
 }
 close OUT;
-
+close OUTP;
 
 
 __END__
 find sss2/ -name *.?z* > kmerfreq.lst
 
-perl plotkmercnt.pl 9376518 a.gz b.gz t >tt1 2>tt2
+perl plotkmercnt.pl 40 a.gz b.gz t >tt1 2>tt2
+perl plotkmercnt.pl 40 a100k.gz b100k.gz t100k.40
