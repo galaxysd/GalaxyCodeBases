@@ -28,6 +28,7 @@ my $len = length $str;
 my $allcnt = 4 ** $len;
 
 my ($Sum,$kMax,$kMin,$cMax,$cMin,%Hist)=(0,0,999999999,0,999999999);
+my ($KmerSum,$K50,$K10,$K25,$K75,$K90,$Kadding)=(0,0,0,0,0,0,0);
 
 while (<$IN>) {
 	chomp;
@@ -35,6 +36,7 @@ while (<$IN>) {
 	#print "$str\t[$cnt]\n";
 	++$Hist{$cnt};
 	++$Sum;
+	$KmerSum += $cnt;
 	$kMax = $cnt if $cnt > $kMax;
 	$kMin = $cnt if $cnt < $kMin;
 }
@@ -50,8 +52,25 @@ print OUT "# K\t$len\t$allcnt
 # KmerFreq_Min-Max\t$kMin\t$kMax
 # Cnt_Min-Max\t$cMin\t$cMax
 # CntOfFoundKmer\t$Sum\t",$Sum/$allcnt,"\n";
-print OUT "# KmerFreq\tCntOfThisFreq\tRatioToSum\tRatioToWhole\n";
+
 my @order = sort {$a <=> $b} keys %Hist;
+for (@order) {
+	$Kadding += $_ * $Hist{$_};
+	if ( 10 * $Kadding <  $KmerSum ) {
+		$K90 = $_;
+	} elsif ( 4 * $Kadding <  $KmerSum ) {
+		$K75 = $_;
+	} elsif ( 2 * $Kadding <  $KmerSum ) {
+		$K50 = $_;
+	} elsif ( 4 * $Kadding <  $KmerSum * 3 ) {
+		$K25 = $_;
+	} elsif ( 10 * $Kadding <  $KmerSum * 9 ) {
+		$K10 = $_;
+	}
+}
+print OUT "# KmerSum: $KmerSum\n# K90: $K90, K75: $K75, K50: $K50, K25: $K25, K10: $K10\n";
+
+print OUT "# KmerFreq\tCntOfThisFreq\tRatioToSum\tRatioToWhole\n";
 for (@order) {
 	print OUT join("\t",$_,$Hist{$_},$Hist{$_}/$Sum,$Hist{$_}/$allcnt),"\n";
 }
