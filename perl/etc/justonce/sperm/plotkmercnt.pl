@@ -5,13 +5,12 @@ use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
 my $GRID = 40;	# 0 .. $GRID-1, but $GRID for bigger numbers.
-my $minGRIDstep = 1;
 
 die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
 my ($max,$inf1,$inf2,$outf)=@ARGV;
 
-die if $max < $GRID * $minGRIDstep;
-my $oneGrid = int($max/$GRID/$minGRIDstep) * $minGRIDstep;	# no need to +1 as max is for main parts of data only, 不包括极端值。
+die if $max <= 0;
+my $oneGrid = $max / $GRID;	# no need to +1 as max is for main parts of data only, 不包括极端值。
 
 sub openfile($) {
 	my ($filename)=@_;
@@ -76,11 +75,15 @@ while ($flag) {
 	($kmer1,$count1) = split /\t/,$la;
 	($kmer2,$count2) = split /\t/,$lb;
 	chomp($count1,$count2);
-#warn "[$flag] $kmer1,$count1\t$kmer2,$count2\n";		
-	$count1 = int($count1 / $oneGrid);
-	$count2 = int($count2 / $oneGrid);
+#warn "[$flag] $kmer1,$count1\t$kmer2,$count2\n";
+
+#	$count1 = int($count1 / $oneGrid);
+#	$count2 = int($count2 / $oneGrid);
+	$count1 = ($count1 / $KmerSum1) / $oneGrid;
+	$count2 = ($count1 / $KmerSum2) / $oneGrid;
 	$count1 = $GRID if $count1 > $GRID;
 	$count2 = $GRID if $count2 > $GRID;
+
 	if ( $kmer1 lt $kmer2 ) {
 		#print STDERR "$kmer1 < $kmer2 $count1,$count2\n";
 		if ( $kmer1 ne '@' ) {
