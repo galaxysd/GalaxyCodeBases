@@ -28,7 +28,7 @@ my $len = length $str;
 my $allcnt = 4 ** $len;
 
 my ($Sum,$kMax,$kMin,$cMax,$cMin,%Hist)=(0,0,999999999,0,999999999);
-my ($KmerSum,$K50,$K10,$K25,$K75,$K90,$Kadding)=(0,0,0,0,0,0,0);
+my ($KmerSum,$K90,$K75,$K50,$K25,$K10,$Kadding)=(0,0,0,0,0,0,0);
 
 while (<$IN>) {
 	chomp;
@@ -69,6 +69,9 @@ for (@order) {
 	}
 }
 print OUT "# KmerSum: $KmerSum\n# K90: $K90, K75: $K75, K50: $K50, K25: $K25, K10: $K10\n";
+my @t;
+push @t, $_/$KmerSum for ($K90,$K75,$K50,$K25,$K10);
+print OUT '＃ Kratio: ',join(', ',@t),"\n";
 
 print OUT "# KmerFreq\tCntOfThisFreq\tKmerSumRatio\tCumulativeKmerSumRatio\n";
 my $cumulative = 0;
