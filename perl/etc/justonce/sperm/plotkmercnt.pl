@@ -25,7 +25,7 @@ sub openfile($) {
 	open T,'<',"$filename.hist" or die $!;
 	while (<T>) {
 		my @t = split /\s+/;
-print join('|',@t),"\n" if $t[0] eq '#';
+#print join('|',@t),"\n" if $t[0] eq '#';
 		if ( $t[1] eq 'KmerSum:' ) {
 			chomp($KmerSum = $t[2]);
 		}

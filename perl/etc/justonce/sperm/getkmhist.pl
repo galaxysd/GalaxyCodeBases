@@ -71,7 +71,7 @@ for (@order) {
 print OUT "# KmerSum: $KmerSum\n# K90: $K90, K75: $K75, K50: $K50, K25: $K25, K10: $K10\n";
 my @t;
 push @t, $_/$KmerSum for ($K90,$K75,$K50,$K25,$K10);
-print OUT '＃ Kratio: ',join(', ',@t),"\n";
+print OUT '# Kratio: ',join(', ',@t),"\n";
 
 print OUT "# KmerFreq\tCntOfThisFreq\tKmerSumRatio\tCumulativeKmerSumRatio\n";
 my $cumulative = 0;
