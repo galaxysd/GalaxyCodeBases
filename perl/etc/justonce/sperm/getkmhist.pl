@@ -8,16 +8,16 @@ die "Usage: $0 <input>\n" if @ARGV < 1;
 my ($inf)=@ARGV;
 
 sub openfile($) {
-    my ($filename)=@_;
-    my $infile;
-    if ($filename=~/.xz$/) {
-            open( $infile,"-|","xz -dc $filename") or die "Error opening $filename: $!\n";
-    } elsif ($filename=~/.gz$/) {
-        open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
-    } elsif ($filename=~/.lz4$/) {
-        open( $infile,"-|","/opt/bin/lz4c -dy $filename /dev/stdout") or die "Error opening $filename: $!\n";
-    } else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
-    return $infile;
+	my ($filename)=@_;
+	my $infile;
+	if ($filename=~/.xz$/) {
+			open( $infile,"-|","xz -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.gz$/) {
+		open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.lz4$/) {
+		open( $infile,"-|","/opt/bin/lz4c -dy $filename /dev/stdout") or die "Error opening $filename: $!\n";
+	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
+	return $infile;
 }
 
 my $IN = openfile($inf);
@@ -70,9 +70,11 @@ for (@order) {
 }
 print OUT "# KmerSum: $KmerSum\n# K90: $K90, K75: $K75, K50: $K50, K25: $K25, K10: $K10\n";
 
-print OUT "# KmerFreq\tCntOfThisFreq\tRatioToSum\tRatioToWhole\n";
+print OUT "# KmerFreq\tCntOfThisFreq\tKmerSumRatio\tCumulativeKmerSumRatio\n";
+my $cumulative = 0;
 for (@order) {
-	print OUT join("\t",$_,$Hist{$_},$Hist{$_}/$Sum,$Hist{$_}/$allcnt),"\n";
+	$cumulative += $_*$Hist{$_};
+	print OUT join("\t",$_,$Hist{$_},$_*$Hist{$_}/$KmerSum,$cumulative/$KmerSum),"\n";
 }
 close OUT;
 
