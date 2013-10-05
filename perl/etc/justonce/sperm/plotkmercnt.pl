@@ -4,7 +4,7 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-my $GRID = 40;	# 0 .. $GRID-1, but $GRID for bigger numbers.
+my $GRID = 400;	# 0 .. $GRID-1, but $GRID for bigger numbers.
 
 die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
 my ($max,$inf1,$inf2,$outf)=@ARGV;
@@ -137,7 +137,7 @@ print OUT "# Horizontal:[$inf2], Vertical: [$inf1]\n";
 print OUT join(',','.',( 0 .. $GRID )),"\n";
 for my $i ( 0 .. $GRID ) {
 	print OUT join(', ',$i,@{$RawArray[$i]}),"\n";
-	print OUTP join(', ',$i,@{$RawArray[$i]}),"\n";
+	print OUTP join(', ',@{$RawArray[$i]}),"\n";
 }
 close OUT;
 close OUTP;
