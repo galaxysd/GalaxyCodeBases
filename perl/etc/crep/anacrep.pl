@@ -7,8 +7,6 @@ use Data::Dump qw(ddx);
 die "Usage: $0 <input> <cmplist(blank to quary)>\n" if @ARGV < 1;
 my ($inf,$cmplist)=@ARGV;
 
-my $skip = 10;
-
 sub openfile($) {
 	my ($filename)=@_;
 	my $infile;
@@ -26,21 +24,19 @@ my $IN = openfile($inf);
 chomp(my $tmp = <$IN>);
 my @arr = split /\t/,$tmp;
 
-my @arr0 = @arr;
-
 print "Read List:\n",'-' x 75,"\n";
-splice(@arr,0,$skip);
+
 my (%Experiments,%Samples,%Dat);
-$tmp = $skip - 1;
-for (@arr) {
-	++$tmp;
-	/^([^(]+)\(([^)]+)\)$/ or die;
+for my $i ( 0 .. $#arr ) {
+	print join("|",$i,$arr[$i]),"\t";
+	$arr[$i] =~ /^([^(]+)\(([^)]+)\)$/ or (print "<=\n" and next);
 	++$Samples{$1};
 	++$Experiments{$2};
-	push @{$Dat{$2}}, $tmp;
-	print join("|",$tmp+1,$1,$2,$arr0[$tmp]),"\n";
-	die if $arr0[$tmp] ne $_;
+	push @{$Dat{$2}}, $i;
+	print join("|",$1,$2),"\n";
 }
+
+
 my @SamplesL = sort keys %Samples;
 my @ExperimentsL = sort keys %Experiments;
 
@@ -69,15 +65,51 @@ unless ($cmplist) {
 		print $CmpPlans[$i][0],'(',join('|',@{$CmpPairs[$i][0]}),') <-> ',
 			$CmpPlans[$i]->[1],'(',join('|',@{$CmpPairs[$i][1]}),"): $ExperimentsL[$CmpPlans[$i][0]] --- $ExperimentsL[$CmpPlans[$i][1]]","\n";
 		for ( @{$CmpPairs[$i][0]},@{$CmpPairs[$i][1]} ) {
-			print " $_: ",$arr0[$_],"\n";
+			print " $_: ",$arr[$_],"\n";
 		}
 	}
 	#print '-' x 75,"\n";
 }
 
+ddx \@CmpPlans;
+ddx \@CmpPairs;
 
+open O,'>',$inf.'.up2' or die;
 
+while (<$IN>) {
+	chomp;
+	@arr = split /\t/;
+	my (@cmpA,@cmpB);
+	for my $p ( @CmpPairs ) {
+		@cmpA = @{$p->[0]};
+		@cmpB = @{$p->[1]};
+		my ($i,$avgA,$avgB)=(0);
+		for (@cmpA) {
+			$avgA += $arr[$_];
+			++$i;
+		}
+		$avgA /= $i;
+		$i=0;
+		for (@cmpB) {
+			$avgB += $arr[$_];
+			++$i;
+		}
+		$avgB /= $i;
+		my $ratio = -1;
+		$ratio = $avgA / $avgB if ($avgB);
+		if ($ratio >= 2) {
+			print O join("\t",$arr[0],$ratio,int(0.5+100*$avgA)/100,int(0.5+100*$avgB)/100,join('|',@arr[@cmpA]),join('|',@arr[@cmpB])),"\n";
+			for ( @cmpA,@cmpB ) {
+				print " $_: ",$arr[$_],"\t";
+			}
+			print "\n",'-'x5," $avgA / $avgB = $ratio\n";
+		}
+	}
 
+}
 
 close $IN;
+close O;
 
+__END__
+perl anacrep.pl crep_all_tsv_new.txt 12,13 > crep_all_tsv_new.txt.out
