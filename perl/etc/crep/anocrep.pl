@@ -7,7 +7,7 @@ use Data::Dump qw(ddx);
 die "Usage: $0 <anno_file> <input>\n" if @ARGV < 2;
 my ($anno,$inf)=@ARGV;
 
-my (%ANNO,%ANNOcnt,%LOCdesc,%LOC2AFF);
+my (%ANNO,%ANNOcnt,%LOCdesc,%LOC2AFF,%AFF2LOC);
 
 open I,'<',$anno or die;
 while (<I>) {
@@ -64,28 +64,40 @@ for my $aid (keys %ANNO) {
 for my $tid (keys %LOC2AFF) {
 	my @dat = @{$LOC2AFF{$tid}->[0]};
 	my $sum = $LOC2AFF{$tid}->[1];
+	my %hdat;
 	for (@dat) {
 		$_->[2] = $_->[1] / $sum;
+		$hdat{ $_->[0] } = [$_->[1],$_->[2]];
+		$AFF2LOC{ $_->[0] } = [] unless exists $AFF2LOC{ $_->[0] };
+		push @{ $AFF2LOC{$_->[0]} },[$tid,$_->[1],$_->[2]];
 	}
-	$LOC2AFF{$tid} = \@dat;
+	$LOC2AFF{$tid} = \%hdat;
 }
 #ddx \%LOC2AFF;
-#   LOC_Os05g35140 => [["Os.10031.1.S1_at", 11, 1]],
-#   LOC_Os07g12230 => [
-#                       ["OsAffx.22438.1.S1_x_at", 11, 0.407407407407407],
-#                       ["Os.10031.1.S1_at", 1, 0.037037037037037],
-#                       ["OsAffx.22438.1.S1_at", 11, 0.407407407407407],
-#                       ["OsAffx.8676.1.S1_at", 4, 0.148148148148148],
-#                     ],
+#   LOC_Os05g35140 => { "Os.10031.1.S1_at" => [11, 1] },
+#   LOC_Os07g12230 => {
+#                       "Os.10031.1.S1_at"       => [1, 0.037037037037037],
+#                       "OsAffx.22438.1.S1_at"   => [11, 0.407407407407407],
+#                       "OsAffx.22438.1.S1_x_at" => [11, 0.407407407407407],
+#                       "OsAffx.8676.1.S1_at"    => [4, 0.148148148148148],
+#                     },
+#ddx \%AFF2LOC;
+#   "Os.10031.1.S1_at"          => [
+#                                    ["LOC_Os05g35140", 11, 1],
+#                                    ["LOC_Os07g12230", 1, 0.037037037037037],
+#                                  ],
 
+die;
 my %outLOC;
 open I,'<',$inf or die;
 while (<I>) {
 	chomp;
 	my @dat = split /\t/;
-	my $tid = shift @dat;
-	if (exists $ANNO{$tid}) {
-		#$outLOC{}
+	my $aid = shift @dat;
+	if (exists $AFF2LOC{$aid}) {
+		for my $i ( @{ $AFF2LOC{$aid} } ) {
+			$outLOC{ $i->[0] } = [] unless exists $outLOC{ $i->[0] };
+		}
 	}
 }
 close I;
