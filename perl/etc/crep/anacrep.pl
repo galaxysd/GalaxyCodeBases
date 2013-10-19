@@ -75,6 +75,7 @@ ddx \@CmpPlans;
 ddx \@CmpPairs;
 
 open O,'>',$inf.'.up2' or die;
+open DOWN,'>',$inf.'.down2' or die;
 
 while (<$IN>) {
 	chomp;
@@ -97,8 +98,12 @@ while (<$IN>) {
 		$avgB /= $i;
 		my $ratio = -1;
 		$ratio = $avgA / $avgB if ($avgB);
-		if ($ratio >= 2) {
-			print O join("\t",$arr[0],$ratio,int(0.5+100*$avgA)/100,int(0.5+100*$avgB)/100,join('|',@arr[@cmpA]),join('|',@arr[@cmpB])),"\n";
+		if ($ratio >= 2 or $ratio <= 0.5) {
+			if ($ratio >= 2) {
+				print O join("\t",$arr[0],$ratio,int(0.5+100*$avgA)/100,int(0.5+100*$avgB)/100,join('|',@arr[@cmpA]),join('|',@arr[@cmpB])),"\n";
+			} elsif ($ratio <= 0.5) {
+				print DOWN join("\t",$arr[0],$ratio,int(0.5+100*$avgA)/100,int(0.5+100*$avgB)/100,join('|',@arr[@cmpA]),join('|',@arr[@cmpB])),"\n";
+			}
 			for ( @cmpA,@cmpB ) {
 				print " $_: ",$arr[$_],"\t";
 			}
@@ -110,6 +115,7 @@ while (<$IN>) {
 
 close $IN;
 close O;
+close DOWN;
 
 __END__
 perl anacrep.pl crep_all_tsv_new.txt 12,13 > crep_all_tsv_new.txt.out

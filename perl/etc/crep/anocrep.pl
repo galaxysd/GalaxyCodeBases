@@ -145,3 +145,4 @@ close O;
 
 __END__
 perl anocrep.pl crep_anno_merged.tsv crep_all_tsv_new.txt.up2
+perl anocrep.pl crep_anno_merged.tsv crep_all_tsv_new.txt.down2
