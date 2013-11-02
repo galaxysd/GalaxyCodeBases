@@ -80,7 +80,7 @@ while ($flag) {
 #	$count1 = int($count1 / $oneGrid);
 #	$count2 = int($count2 / $oneGrid);
 	$count1 = ($count1 / $KmerSum1) / $oneGrid;
-	$count2 = ($count1 / $KmerSum2) / $oneGrid;
+	$count2 = ($count2 / $KmerSum2) / $oneGrid;
 	$count1 = $GRID if $count1 > $GRID;
 	$count2 = $GRID if $count2 > $GRID;
 
@@ -148,3 +148,34 @@ find sss2/ -name *.?z* > kmerfreq.lst
 
 perl plotkmercnt.pl 40 a.gz b.gz t >tt1 2>tt2
 perl plotkmercnt.pl 40 a100k.gz b100k.gz t100k.40
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mda/S23.k17.lz4 out/s01v23k17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mlbac/Donor.k17.gz out/s01vDRk17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k17.lz4 sss2/mlbac/Donor.k17.gz out/s23vDRk17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mda/S23.k19.lz4 out/s01v23k19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mlbac/Donor.k19.gz out/s01vDRk19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k19.lz4 sss2/mlbac/Donor.k19.gz out/s23vDRk19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mda/S23.k23.lz4 out/s01v23k23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mlbac/Donor.k23.lz4 out/s01vDRk23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k23.lz4 sss2/mlbac/Donor.k23.lz4 out/s23vDRk23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mda/S23.k25.lz4 out/s01v23k25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s01vDRk25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s23vDRk25e9-5 &
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mlbac/S02.k17.lz4 out/s01vs02k17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mlbac/S03.k17.lz4 out/s01vs03k17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k17.lz4 sss2/mda/S24.k17.lz4 out/23v24k17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k17.lz4 sss2/mda/S28.k17.lz4 out/23v28k17e9-5 &
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mda/S23.k17.lz4 out/s01v23k17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k17.lz4 sss2/mlbac/Donor.k17.gz out/s01vDRk17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k17.lz4 sss2/mlbac/Donor.k17.gz out/s23vDRk17e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mda/S23.k19.lz4 out/s01v23k19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mlbac/Donor.k19.gz out/s01vDRk19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k19.lz4 sss2/mlbac/Donor.k19.gz out/s23vDRk19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mda/S23.k23.lz4 out/s01v23k23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mlbac/Donor.k23.lz4 out/s01vDRk23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k23.lz4 sss2/mlbac/Donor.k23.lz4 out/s23vDRk23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mda/S23.k25.lz4 out/s01v23k25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s01vDRk25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s23vDRk25e9-5 &
