@@ -4,7 +4,7 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-my $GRID = 400;	# 0 .. $GRID-1, but $GRID for bigger numbers.
+my $GRID = 50;	# 0 .. $GRID-1, but $GRID for bigger numbers.
 
 die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
 my ($max,$inf1,$inf2,$outf)=@ARGV;
@@ -179,3 +179,18 @@ perl plotkmercnt.pl 5e-9 sss2/mda/S23.k23.lz4 sss2/mlbac/Donor.k23.lz4 out/s23vD
 perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mda/S23.k25.lz4 out/s01v23k25e9-5 &
 perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s01vDRk25e9-5 &
 perl plotkmercnt.pl 5e-9 sss2/mda/S23.k25.lz4 sss2/mlbac/Donor.k25.lz4 out/s23vDRk25e9-5 &
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mlbac/S02.k19.lz4 out/s01vs02k19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k19.lz4 sss2/mlbac/S03.k19.lz4 out/s01vs03k19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k19.lz4 sss2/mda/S24.k19.lz4 out/23v24k19e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k19.lz4 sss2/mda/S28.k19.lz4 out/23v28k19e9-5 &
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mlbac/S02.k23.lz4 out/s01vs02k23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k23.lz4 sss2/mlbac/S03.k23.lz4 out/s01vs03k23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k23.lz4 sss2/mda/S24.k23.lz4 out/23v24k23e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k23.lz4 sss2/mda/S28.k23.lz4 out/23v28k23e9-5 &
+
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mlbac/S02.k25.lz4 out/s01vs02k25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mlbac/S01.k25.lz4 sss2/mlbac/S03.k25.lz4 out/s01vs03k25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k25.lz4 sss2/mda/S24.k25.lz4 out/23v24k25e9-5 &
+perl plotkmercnt.pl 5e-9 sss2/mda/S23.k25.lz4 sss2/mda/S28.k25.lz4 out/23v28k25e9-5 &
