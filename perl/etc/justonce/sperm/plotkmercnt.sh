@@ -33,5 +33,5 @@ PLOTCMD
 
 echo << EOF
 sh plotkmercnt.sh t100k.40.plot 10000
-eg. find out/*.plot |while read a;do sh plotkmercnt.sh $a 20000;done
+eg. find out/*.plot |while read a;do sh plotkmercnt.sh $a 100000;done
 EOF

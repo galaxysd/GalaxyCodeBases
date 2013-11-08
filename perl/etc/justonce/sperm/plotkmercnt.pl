@@ -4,7 +4,7 @@ use warnings;
 use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
-my $GRID = 50;	# 0 .. $GRID-1, but $GRID for bigger numbers.
+my $GRID = 40;	# 0 .. $GRID-1, but $GRID for bigger numbers.
 
 die "Usage: $0 <max_freq> <input1> <input2> <output>\n" if @ARGV < 4;
 my ($max,$inf1,$inf2,$outf)=@ARGV;
