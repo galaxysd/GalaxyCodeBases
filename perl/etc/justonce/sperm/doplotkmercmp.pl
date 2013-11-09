@@ -47,21 +47,22 @@ for my $k ( keys %Files ) {
 					print OUT $prefix,getout($arrA->[$x],$arrB->[$y],$k,$outpath),$linending;
 				}
 			}
-			# within A
-			for my $x ( 0 .. ($#$arrA-1) ) {
-				for my $y ( ($x+1) .. $#$arrA ) {
-					print "wA $arrA->[$x], $arrA->[$y]\n";
-					print OUT $prefix,getout($arrA->[$x],$arrA->[$y],$k,$outpath),$linending;
-				}
-			}
-			# within B
-			for my $x ( 0 .. ($#$arrB-1) ) {
-				for my $y ( ($x+1) .. $#$arrB ) {
-					print "wB $arrB->[$x], $arrB->[$y]\n";
-					print OUT $prefix,getout($arrB->[$x],$arrB->[$y],$k,$outpath),$linending;
-				}
-			}
 		}
+	}
+	for my $t ( @types ) {
+		print "$k: $t\n";
+		my $arrA = $Files{$k}->{$t};
+		# within A
+		for my $x ( 0 .. ($#$arrA-1) ) {
+			for my $y ( ($x+1) .. $#$arrA ) {
+				print "w $arrA->[$x], $arrA->[$y]\n";
+				print OUT $prefix,getout($arrA->[$x],$arrA->[$y],$k,$outpath),$linending;
+			}
+		}	
 	}
 }
 close OUT;
+
+__END__
+Well, Combine(7,2) = 21 . I should use this directly.
+But we may use different prefix for different tyoes (p or w) later, right ?
