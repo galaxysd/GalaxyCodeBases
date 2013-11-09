@@ -66,3 +66,6 @@ close OUT;
 __END__
 Well, Combine(7,2) = 21 . I should use this directly.
 But we may use different prefix for different tyoes (p or w) later, right ?
+
+For the duplicated ones:
+ps -ef |grep perl|perl -lane 'BEGIN {my (%x,%y);} @a=split /\s+/;$b=join(",",@a[10,11,12]);++$x{$b};push @{$y{$b}},$a[1]; END {my @z; for (keys %x) { if ($x{$_}>1) {print join("-",$x{$_},$_,"\t",@{$y{$_}}); push @z,$y{$_}->[0] };  } print join(" ",@z);print $#z }'
