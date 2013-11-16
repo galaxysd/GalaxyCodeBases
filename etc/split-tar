@@ -1,8 +1,8 @@
 #!/bin/bash
 # splits a large tar file into a set of smaller ones
 #
-# Author: Dr. Jürgen Vollmer <juergen.vollmer@informatik-vollmer.de>
-# Copyright (C) 2003 Dr. Jürgen Vollmer, Karlsruhe, Germany
+# Author: Dr. JÃ¼rgen Vollmer <juergen.vollmer@informatik-vollmer.de>
+# Copyright (C) 2003 Dr. JÃ¼rgen Vollmer, Karlsruhe, Germany
 # For usage and license agreement, see below (function usage)
 #
 # Id: split-tar,v 1.30 2010/01/13 17:57:52 vollmer Exp $
@@ -23,7 +23,7 @@ usage: $CMD [options] tarfile.<suffix> (filename|directory)...
   Splits a large tar archive into a set of smaller ones.
   Creates a set of tar archives direct from the files and directories.
 
-  <suffix> is one of tar, tar.gz, tgz, or tar.bz2
+  <suffix> is one of tar, tar.gz, tar.xz, tgz, or tar.bz2
   Files are written to tarfile-???.<suffix> into the current working directory,
   where ??? are three digits.
   Note: since a TAR file contains tar-specific administration information
@@ -37,7 +37,7 @@ usage: $CMD [options] tarfile.<suffix> (filename|directory)...
 Options:
   -c       : Create the tar archives from [filename|directory...].
   -C opts  : Pass opts to tar, when creating the tarfile with -c
-	     the compression options -z (gzip) or -j (bizp2) are
+	     the compression options -z (gzip), -J (xz) or -j (bizp2) are
              added by default, if the <suffix> indicates it.
   -e rate  : To compute the set of files to be put into a compressed
              tarfile, one has to estimate compressed size of each
@@ -104,7 +104,7 @@ Version:
   1.11 of 2006/06/02
 
 Author:
-  Dr. Jürgen Vollmer <juergen.vollmer@informatik-vollmer.de>
+  Dr. JÃ¼rgen Vollmer <juergen.vollmer@informatik-vollmer.de>
   If you find this software useful, I would be glad to receive a postcard
   from you, showing the place where you're living.
 
@@ -112,7 +112,7 @@ Homepage:
   http://www.informatik-vollmer.de/software/split-tar.html
 
 Copyright:
-  (C) 2003 Dr. Jürgen Vollmer, Viktoriastrasse 15, D-76133 Karlsruhe, Germany
+  (C) 2003 Dr. JÃ¼rgen Vollmer, Viktoriastrasse 15, D-76133 Karlsruhe, Germany
 
 License:
   This program is free software; you can redistribute it and/or modify
@@ -330,6 +330,9 @@ fi
 # it is not used to actually do the compression. That is done via the
 # TAR_COMPRESS tar command line option
 case `basename $TAR_FILE` in
+   *.tar.xz  ) SUFFIX=".tar.xz"
+	       COMPRESS_CMD="xz --stdout --no-name"
+	       TAR_COMPRESS=--xz;;
    *.tar.bz2 ) SUFFIX=".tar.bz2"
 	       COMPRESS_CMD="bzip2 --stdout"
                TAR_COMPRESS=--bzip2;;
@@ -422,7 +425,7 @@ do
     *    ) if   [ x"$COMPRESS_CMD" != x ]
 	   then # compute estimate of compressed file size
 	        case "${name##*.}" in
-	          gz | zip | bzip | bzip2 ) ;; # already compressed
+	          gz | zip | bzip | bzip2 | xz | rar ) ;; # already compressed
 	          *  ) if   [ x"$COMPRESSION_RATE" = x ]
 		       then size=`$COMPRESS_CMD "$name" | wc -c`
 		       else size=$((size / $COMPRESSION_RATE))
