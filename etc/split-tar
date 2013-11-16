@@ -102,6 +102,7 @@ Requirements:
 
 Version:
   1.11 of 2006/06/02
+  1.12 of 2013/11/16 by Galaxy
 
 Author:
   Dr. Jürgen Vollmer <juergen.vollmer@informatik-vollmer.de>
@@ -128,6 +129,10 @@ License:
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Tips:
+  split-tar -e 1 -s 1M -c tmp/tmptmp.tgz path/to/mp4/files
+
 END
 exit
 }
@@ -331,7 +336,7 @@ fi
 # TAR_COMPRESS tar command line option
 case `basename $TAR_FILE` in
    *.tar.xz  ) SUFFIX=".tar.xz"
-	       COMPRESS_CMD="xz --stdout --no-name"
+	       COMPRESS_CMD="xz --stdout"
 	       TAR_COMPRESS=--xz;;
    *.tar.bz2 ) SUFFIX=".tar.bz2"
 	       COMPRESS_CMD="bzip2 --stdout"
