@@ -39,6 +39,7 @@
 #define max2(a,b) ((a)>(b)?(a):(b))
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
 
+#include <string.h>
 /* Stanard lib of C++ */
 #include<string>
 #include<iostream>

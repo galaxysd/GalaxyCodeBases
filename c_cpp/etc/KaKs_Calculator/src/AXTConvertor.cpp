@@ -6,6 +6,8 @@
 #include<sstream>
 #include<vector>
 
+#include <stdlib.h>
+
 using namespace std;
 
 /* Convert one type to any other type */
