@@ -1,0 +1,103 @@
+#!/usr/bin/env perl
+=pod
+Author: Hu Xuesong @ BIOPIC <galaxy001@gmail.com>
+Version: 1.0.0 @ 20120720
+=cut
+use strict;
+use warnings;
+use Vcf;
+#use GTF;
+use Data::Dump qw(ddx);
+use Galaxy::IO::FASTAQ;
+use Galaxy::SeqTools qw(translate revcom);
+
+die "Usage: $0 <vcf.gz> <out>\n" if @ARGV<2;
+my $vcfs = shift;
+my $outfs = shift;
+
+warn "From [$vcfs] to [$outfs]\n";
+
+my $vcf = Vcf->new(file=>$vcfs);
+$vcf->parse_header();
+my (@samples) = $vcf->get_samples();
+ddx \@samples;
+
+while (my $x=$vcf->next_data_hash()) {
+	next if $$x{QUAL} < 20;
+	my ($Dindel,@GTs)=(0);
+	my %GTs = %{$$x{gtypes}};
+	my @Bases = ($$x{REF},@{$$x{ALT}});
+	$Dindel = length($Bases[1]) - length($Bases[0]);
+	for my $sample (keys %GTs) {
+		my $sampleID = $sample;
+		$sampleID =~ s/\.bam$//i;
+		next if $GTs{$sample}{DP}<=0;
+		next if $GTs{$sample}{GQ}<10;
+		my ($a1,$a2,$a3) = $vcf->split_gt($GTs{$sample}{GT});
+		die "[$a3]" if $a3;
+		push @GTs, "$sampleID|$a1/$a2|$Bases[$a1]/$Bases[$a2]|$GTs{$sample}{DP}|$GTs{$sample}{GQ}";
+	}
+	next unless @GTs;
+	print join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
+
+#	for my $gt (keys %GTs) {
+#		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
+#		if ($a3 or ($a1 != $a2)) {
+#			$flag = 1;
+#		}
+#	}
+	#ddx \%GTs;
+	#ddx $x;
+# vcf2cds.pl:189: {
+#   ALT    => ["A"],
+#   CHROM  => "scaffold75",
+#   FILTER => ["."],
+#   FORMAT => ["GT", "PL", "DP", "SP", "GQ"],
+#   gtypes => {
+#               "BHX011.bam" => { DP => 19, GQ => 61, GT => "0/0", PL => "0,57,255", SP => 0 },
+#               "BHX019.bam" => { DP => 26, GQ => 82, GT => "0/0", PL => "0,78,255", SP => 0 },
+#               "JHH001.bam" => { DP => 28, GQ => 99, GT => "0/1", PL => "244,0,255", SP => 9 },
+#             },
+#   ID     => ".",
+#   INFO   => {
+#               AC1 => 1,
+#               AF1 => 0.1667,
+#               DP  => 74,
+#               DP4 => "34,26,4,9",
+#               FQ  => 999,
+#               MQ  => 59,
+#               PV4 => "0.13,1,0.12,1",
+#               VDB => 0.0365,
+#             },
+#   POS    => 3572768,
+#   QUAL   => 999,
+#   REF    => "G",
+# }
+	#print $vcf->format_line($x);
+}
+#ddx $vcf;
+$vcf->close;
+
+
+sub cmpstr {
+	my ($a, $b) = @_;
+	my $c = $a ^ $b;
+	my @ret;
+	while ($c =~ /[^\0]/g) {
+		my $p = pos($c);
+		push @ret,[$p,substr($a,$p-1,1),substr($b,$p-1,1)];
+	}
+	@ret;
+}
+
+__END__
+
+bcftools view /bak/archive/projects/Tiger/BCF/WGS/parents.bcgv.bcf |bgzip -c > parents.bcgv.vcf.gz &
+tabix -p vcf parents.bcgv.vcf.gz
+./vcf2cds.pl parents.bcgv.vcf.gz genes97 scaffold97 >genes97.log
+./vcf2cds.pl parents.bcgv.vcf.gz genes1457 scaffold1457 >genes1457.log
+
+./vcf2cds.pl snow_white_000000_210210.bcgv1.vcf.gz agenes97 scaffold97 >agenes97.log
+./vcf2cds.pl snow_white_000000_210210.bcgv1.vcf.gz agenes1457 scaffold1457 >agenes1457.log
+
+./vcf2cdsN.pl parents.vcf.gz n3f > n3f.lg
