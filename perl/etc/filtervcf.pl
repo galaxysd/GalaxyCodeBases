@@ -11,16 +11,26 @@ use Data::Dump qw(ddx);
 use Galaxy::IO::FASTAQ;
 use Galaxy::SeqTools qw(translate revcom);
 
-die "Usage: $0 <vcf.gz> <out>\n" if @ARGV<2;
+die "Usage: $0 <vcf.gz> <minGQ> <out>\n" if @ARGV<2;
 my $vcfs = shift;
+my $qual = shift;
 my $outfs = shift;
 
-warn "From [$vcfs] to [$outfs]\n";
+warn "From [$vcfs] with [minGQ=$qual] to [$outfs]\n";
+
+open O,'>',$outfs."q$qual.snp.lst" or die;
+open OI,'>',$outfs."q$qual.indel.lst" or die;
 
 my $vcf = Vcf->new(file=>$vcfs);
 $vcf->parse_header();
 my (@samples) = $vcf->get_samples();
-ddx \@samples;
+#ddx \@samples;
+for (@samples) {
+	s/\.bam$//i;
+}
+my $t = 'Samples:'.join(',',@samples);
+print O join("\t",'#CHROM','POS','GT','QUAL',$t),"\n";
+print OI join("\t",'#CHROM','POS','GT','QUAL',$t),"\n";
 
 while (my $x=$vcf->next_data_hash()) {
 	next if $$x{QUAL} < 20;
@@ -32,13 +42,17 @@ while (my $x=$vcf->next_data_hash()) {
 		my $sampleID = $sample;
 		$sampleID =~ s/\.bam$//i;
 		next if $GTs{$sample}{DP}<=0;
-		next if $GTs{$sample}{GQ}<10;
+		next if $GTs{$sample}{GQ}<$qual;	# 10:219090, 20:88956, 15:150149.
 		my ($a1,$a2,$a3) = $vcf->split_gt($GTs{$sample}{GT});
 		die "[$a3]" if $a3;
-		push @GTs, "$sampleID|$a1/$a2|$Bases[$a1]/$Bases[$a2]|$GTs{$sample}{DP}|$GTs{$sample}{GQ}";
+		push @GTs, "$a1/$a2|$Bases[$a1]/$Bases[$a2]|$GTs{$sample}{DP}|$GTs{$sample}{GQ}";
 	}
 	next unless @GTs;
-	print join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
+	if (length($Bases[0]) == 1) {
+		print O join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
+	} else {
+		print OI join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
+	}
 
 #	for my $gt (keys %GTs) {
 #		my ($a1,$a2,$a3) = $vcf->split_gt($gt);
@@ -78,6 +92,8 @@ while (my $x=$vcf->next_data_hash()) {
 #ddx $vcf;
 $vcf->close;
 
+close O;
+close OI;
 
 sub cmpstr {
 	my ($a, $b) = @_;
