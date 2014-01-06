@@ -60,10 +60,17 @@ while (my $x=$vcf->next_data_hash()) {
 		push @GTs, join('|',"$a1/$a2","$Bases[$a1]/$Bases[$a2]",$GTs{$sample}{DP},$GTs{$sample}{GQ},$t);
 	}
 	next unless @GTs;
-	if (length($Bases[0]) == 1) {
+	#if (length($Bases[0]) == 1) {
+	my @t = map { length($_) } @Bases;
+	my %t;
+#ddx \@t;
+	++$t{$_} for @t;
+	@t = sort { $b <=> $a } keys %t;
+#ddx \@t;
+	if ( $t[0] == 1 ) {
 		print O join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
 	} else {
-		print OI join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs) ),"\n";
+		print OI join("\t",$$x{CHROM},$$x{POS},join('/',@Bases,$Dindel),$$x{QUAL}, join(", ",@GTs), $t[-1] ),"\n";
 	}
 
 #	for my $gt (keys %GTs) {
