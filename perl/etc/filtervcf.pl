@@ -10,8 +10,9 @@ use Vcf;
 use Data::Dump qw(ddx);
 use Galaxy::IO::FASTAQ;
 use Galaxy::SeqTools qw(translate revcom);
+use Galaxy::Data;
 
-die "Usage: $0 <vcf.gz> <minGQ> <out>\n" if @ARGV<2;
+die "Usage: $0 <vcf.gz> <minGQ> <out>\n" if @ARGV<3;
 my $vcfs = shift;
 my $qual = shift;
 my $outfs = shift;
@@ -45,7 +46,18 @@ while (my $x=$vcf->next_data_hash()) {
 		next if $GTs{$sample}{GQ}<$qual;	# 10:219090, 20:88956, 15:150149.
 		my ($a1,$a2,$a3) = $vcf->split_gt($GTs{$sample}{GT});
 		die "[$a3]" if $a3;
-		push @GTs, "$a1/$a2|$Bases[$a1]/$Bases[$a2]|$GTs{$sample}{DP}|$GTs{$sample}{GQ}";
+		my ($t,%t)=(0);
+		for (($Bases[$a1],$Bases[$a2])) {
+			++$t{$_};
+			$t = length $_ if $t < length $_;
+		}
+		if ($t==1) {
+			$t = join('',sort keys %t);
+			$t = $REV_IUB{$t};
+		} else {
+			$t = '.';
+		}
+		push @GTs, join('|',"$a1/$a2","$Bases[$a1]/$Bases[$a2]",$GTs{$sample}{DP},$GTs{$sample}{GQ},$t);
 	}
 	next unless @GTs;
 	if (length($Bases[0]) == 1) {
@@ -109,11 +121,7 @@ sub cmpstr {
 __END__
 
 bcftools view /bak/archive/projects/Tiger/BCF/WGS/parents.bcgv.bcf |bgzip -c > parents.bcgv.vcf.gz &
-tabix -p vcf parents.bcgv.vcf.gz
-./vcf2cds.pl parents.bcgv.vcf.gz genes97 scaffold97 >genes97.log
-./vcf2cds.pl parents.bcgv.vcf.gz genes1457 scaffold1457 >genes1457.log
+#tabix -p vcf parents.bcgv.vcf.gz
 
-./vcf2cds.pl snow_white_000000_210210.bcgv1.vcf.gz agenes97 scaffold97 >agenes97.log
-./vcf2cds.pl snow_white_000000_210210.bcgv1.vcf.gz agenes1457 scaffold1457 >agenes1457.log
+perl filtervcf.pl bam2.bcgv.vcf.gz 20 bam2 &
 
-./vcf2cdsN.pl parents.vcf.gz n3f > n3f.lg
