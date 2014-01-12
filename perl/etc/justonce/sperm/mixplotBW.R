@@ -1,7 +1,7 @@
 DATa <- read.table("bamrsplot.tsv",skip=1)
 DATb <- read.table("depstat/nrss1m.tsv",skip=3)
-for(k in c(1:2)) {
-     png(filename = paste0("mixplot.chr",k,".png"),
+for(k in c(1:22)) {
+     png(filename = paste0("mixplotBW.chr",k,".png"),
           width = 3780, height = 2835, units = "px", pointsize = 96)
      par(mar=c(2, 4, 2, 0.5))     # c(bottom, left, top, right)
      layout(rbind(1,2,3), heights=c(7,7,1))
