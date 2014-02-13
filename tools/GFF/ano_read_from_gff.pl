@@ -10,7 +10,7 @@ use Vcf;
 use Galaxy::IO;
 use Data::Dump qw(ddx);
 
-die "Usage: $0 <gff.gz> <out>\n" if @ARGV<2;
+die "Usage: $0 <gff.gz> <gene_file>\n" if @ARGV<2;
 my $infs = shift;
 my $outfs = shift;
 
@@ -56,7 +56,7 @@ while (<$IN>) {
 }
 close $IN;
 
-for my $geneid (keys %GFFdat) {
+for my $geneid (sort keys %GFFdat) {
 	my @Strands = sort keys %{$GFFdat{$geneid}};
 	die if @Strands != 1;
 	for my $strand ( @Strands ) {
