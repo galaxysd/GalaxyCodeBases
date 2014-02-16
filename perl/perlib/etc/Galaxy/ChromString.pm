@@ -25,7 +25,7 @@ sub ChrStrSetBase($$$$) {
 	my ($aChrStr,$Chr,$Pos,$Value) = @_;
 	my $v = pack('C',$Value);
 	substr $$aChrStr{$Chr}, $Pos-1, 1, $v;
-	return $v;
+	return 1;
 }
 
 sub ChrStrANDBase($$$$) {
@@ -33,8 +33,8 @@ sub ChrStrANDBase($$$$) {
 	my $str = substr $$aChrStr{$Chr}, $Pos-1, 1;
 	my $v = unpack('C',$str);
 	$v &= $Value;
-	$v = pack('C',$v);
-	substr $$aChrStr{$Chr}, $Pos-1, 1, $v;
+	my $vp = pack('C',$v);
+	substr $$aChrStr{$Chr}, $Pos-1, 1, $vp;
 	return $v;
 }
 sub ChrStrORBase($$$$) {
@@ -42,8 +42,8 @@ sub ChrStrORBase($$$$) {
 	my $str = substr $$aChrStr{$Chr}, $Pos-1, 1;
 	my $v = unpack('C',$str);
 	$v |= $Value;
-	$v = pack('C',$v);
-	substr $$aChrStr{$Chr}, $Pos-1, 1, $v;
+	my $vp = pack('C',$v);
+	substr $$aChrStr{$Chr}, $Pos-1, 1, $vp;
 	return $v;
 }
 
