@@ -44,6 +44,7 @@ while (<I>) {
 		}
 	}
 }
+close I;
 
 my (%Err,%Total);
 for (sort keys %GeneDat) {
