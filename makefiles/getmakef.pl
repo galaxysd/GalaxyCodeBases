@@ -12,6 +12,7 @@ my $BwaSai = "bwa aln -l 17 -q 10 $Ref";
 my $BwaSam = "bwa sampe -a 800 $Ref";
 my $BwaSort = 'perl pickU_sort.pl';
 my $BwaRmDup = 'samtools rmdup';
+my $readsCounter = '/share/users/huxs/git/toGit/c_cpp/faststater/readsCounter';
 
 opendir my($dh), $inp or die "Couldn't open dir '$inp': $!";
 my @files = readdir $dh;
@@ -37,7 +38,8 @@ ddx \%Pairs;
 ddx \@AllTargets;
 
 open M,'>','Makefile' or die $!;
-print M 'all: ',join(' ',@AllTargets),"\n";
+print M 'all: ',join(' ',@AllTargets,'_AdditionalTG_'),"\n";
+my @AdditionalTG;
 
 mkdir 'sai';
 mkdir 'sam';
@@ -55,7 +57,11 @@ die if @Files != 2;	# no SE now
 sai/${Target}_$read12.sai: $inp$fqname
 \t$BwaSai $inp$fqname >sai/${Target}_$read12.sai 2>sai/${Target}_$read12.logsai
 \tdate >> sai/${Target}_$read12.logsai
+
+sai/${Target}_$read12.fqstat: $inp$fqname
+\t$readsCounter -o sai/${Target}_$read12.fqstat $inp$fqname
 ";
+		push @AdditionalTG, "sai/${Target}_$read12.fqstat";
 	}
 	print M "
 sam/${Target}.sam.gz: ",join(' ',map { "sai/$_.sai" } @newFiles),"
@@ -73,4 +79,8 @@ bam/${Target}.rmdup.bam: sam/${Target}.sort.bam
 	print M "${Target}: bam/${Target}.rmdup.bam\n";
 }
 
+	print M join(' ','_AdditionalTG_:',@AdditionalTG),"\n";
 close M;
+
+__END__
+perl getmakefln.pl fq/ .
