@@ -48,7 +48,7 @@ $dbh->commit;
 
 my $sth = $dbh->prepare( "INSERT INTO gff ( chrid,primary_inf,start,end,strand,frame,name ) VALUES ( ?,?,?,?,?,?,? )" );
 
-
+warn "[!]Begin $annfile.\n";
 my (%ChrLen,$ChrDat,@IDs,@Lens);
 <A>;
 while (<A>) {
@@ -61,9 +61,9 @@ while (<A>) {
 	$ChrLen{$id} = $len;
 	push @IDs,$id;
 	push @Lens,$len;
-	print "$id, $len\n";
+#print "$id, $len\n";
 }
-$ChrDat = ChrStrInit(\@IDs,\@Lens);
+#$ChrDat = ChrStrInit(\@IDs,\@Lens);
 close A;
 
 my %bitflag = (
@@ -71,6 +71,7 @@ my %bitflag = (
 		'mRNA' => 2
 	);
 
+warn "[!]Begin $dbfile.\n";
 my $secname = ']';
 my (%GeneDat, %Gene2Chr, $strand, $seqname, $flag);
 while (<D>) {
@@ -118,6 +119,19 @@ for (split /;/,$sql) {
 $dbh->commit;
 my $sthi = $dbh->prepare( "SELECT * FROM gff WHERE chrid=? AND ? BETWEEN start AND end" );
 
+sub check_mRNA_is_dup($$) {
+	my ($mRNA_arr,$elm_arr)=@_;
+	my ($mRNA_start,$mRNA_end,$mRNA_name)=@$mRNA_arr[2,3,6];
+	for my $item (@$elm_arr) {
+		if ( $$item[6] eq $mRNA_name ) {
+			warn "ERR: CDS/UTR($$item[2]-$$item[3]) outsides mRNA:$mRNA_name($mRNA_start-$mRNA_end) !" if ( $mRNA_start > $$item[2] or $mRNA_end < $$item[3] );
+			return 1;
+		}
+	}
+	return 0;
+}
+
+warn "[!]Begin $infs.\n";
 my @bamnames;
 while (<$IN>) {
 	if (/^#/) {
@@ -125,16 +139,49 @@ while (<$IN>) {
 			chomp;
 			@bamnames = split /\t/;
 			@bamnames = splice @bamnames, 9;
+			print O "# Bams: ",join(',',@bamnames),"\n";
 print "[@bamnames]\n";
 		}
 		next;
 	}
 	chomp;
-	my ($chr, $pos, undef, $refbase, $altbases, $QUAL, undef, $INFO, $FORMAT, @data) = split /\t/;
+	my ($chr, $pos, @data) = split /\t/; # undef, $refbase, $altbases, $QUAL, undef, $INFO, $FORMAT,
+	if ($chr =~ /ref\|([^|]+)\|/) {
+		$chr = $1;
+	}
+	$sthi->execute( $chr, $pos ) or die $sthi->errstr;
+	my $qres = $sthi->fetchall_arrayref;
+	if ($#$qres == -1) {
+		print O join("\t", $chr, $pos, 'NA', @data),"\n";
+		#print join("\t", $chr, $pos, 'NA'),"\n";
+		next;
+	}
+	if ($#$qres == 0) {
+			my $res=$$qres[0];
+		ddx $qres;
+		die;
+		next;
+	}
+	my (@CDS,@mRNA);
+	for (@$qres) {
+		if ($$_[1] =~ /mRNA/) {push @mRNA, join(',',@$_[6,2,3,4,5]);}
+		 else {push @CDS, join(',',@$_[6,2,3,4,5]);}
+	}
+	if (@CDS > 0) {
+		print O join("\t", $chr, $pos, 'CDS', @data, join(';',@CDS)),"\n";
+		#print join("\t", $chr, $pos, 'CDS'),"\n";
+		#ddx @CDS;
+	} elsif (@mRNA > 0) {
+		print O join("\t", $chr, $pos, 'mRNA', @data, join(';',@mRNA)),"\n";
+		#print join("\t", $chr, $pos, 'mRNA'),"\n";
+	} else { die; }
 }
 close $IN;
 
 close O;
 
 __END__
-perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2.bcgv.vcf.gz t
+perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2.bcgv.vcf.gz bam2.bcgv.vcf.ano
+
+perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2q20.snp.lst bam2q20.snp.ano
+perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2.bam.depth.gz bam2.bam.depth.ano
