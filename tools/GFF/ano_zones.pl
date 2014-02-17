@@ -180,3 +180,15 @@ perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2.bcgv.vcf.gz bam2.bcgv.vcf.ano
 
 perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2q20.snp.lst bam2q20.snp.ano
 perl ano_zones.pl Dasnov3.db Dasnov3.ann bam2.bam.depth.gz bam2.bam.depth.ano
+
+grep Total_Bases sai/*.fqstat | awk -F" " 'BEGIN {x=0} {x+=$2} END {print x}'
+grep -P "\tNA\t" bam2q20.snp.ano | wc -l
+grep -P "\tCDS\t" bam2q20.snp.ano | wc -l
+grep -P "\tmRNA\t" bam2q20.snp.ano | wc -l
+
+grep -P "\tNA\t" bam2.bam.depth.ano | wc -l
+grep -P "\tNA\t" bam2.bam.depth.ano |  awk -F" " 'BEGIN {x=0} {x+=$4} END {print x}'
+grep -P "\tCDS\t" bam2.bam.depth.ano | wc -l
+grep -P "\tCDS\t" bam2.bam.depth.ano |  awk -F" " 'BEGIN {x=0} {x+=$4} END {print x}'
+grep -P "\tmRNA\t" bam2.bam.depth.ano | wc -l
+grep -P "\tmRNA\t" bam2.bam.depth.ano |  awk -F" " 'BEGIN {x=0} {x+=$4} END {print x}'
