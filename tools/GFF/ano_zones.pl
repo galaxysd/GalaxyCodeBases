@@ -9,7 +9,7 @@ use Vcf;
 #use GTF;
 use DBI;
 use Galaxy::IO;
-use Galaxy::ChromString;
+#use Galaxy::ChromString;
 use Data::Dump qw(ddx);
 
 die "Usage: $0 <db_file> <bwa ann file> <infile> <out>\n" if @ARGV<4;
@@ -27,7 +27,7 @@ open O,'>',$outfs or die;
 print O "# From [$infs] to [$outfs] with [$dbfile,$annfile]\n";
 
 my $dbh = DBI->connect(
-    "dbi:SQLite:dbname=mem.sqlite","","", 
+    "dbi:SQLite:dbname=:memory:","","", 
     {RaiseError => 0, PrintError => 1, AutoCommit => 0}
 ) or die $DBI::errstr;
 my $sql=q/
@@ -136,11 +136,12 @@ my @bamnames;
 while (<$IN>) {
 	if (/^#/) {
 		if (/^#CHROM\tPOS\t/) {
-			chomp;
-			@bamnames = split /\t/;
-			@bamnames = splice @bamnames, 9;
-			print O "# Bams: ",join(',',@bamnames),"\n";
-print "[@bamnames]\n";
+			print O $_;
+			#chomp;
+			#@bamnames = split /\t/;
+			#@bamnames = splice @bamnames, 9;
+			#print O "# Bams: ",join(',',@bamnames),"\n";
+#print "[@bamnames]\n";
 		}
 		next;
 	}
@@ -154,12 +155,6 @@ print "[@bamnames]\n";
 	if ($#$qres == -1) {
 		print O join("\t", $chr, $pos, 'NA', @data),"\n";
 		#print join("\t", $chr, $pos, 'NA'),"\n";
-		next;
-	}
-	if ($#$qres == 0) {
-			my $res=$$qres[0];
-		ddx $qres;
-		die;
 		next;
 	}
 	my (@CDS,@mRNA);
