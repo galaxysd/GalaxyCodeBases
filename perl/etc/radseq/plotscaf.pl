@@ -222,16 +222,16 @@ for my $i ($Ymin .. $YmaxVal) {
       <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9" stroke="white"/>
 TXTAX
 }
-=pod
+
 for my $i (0 .. 10) {
 	my $x = $i*$Xrange/10;
 	my $l = $unit*$i/$numSuflevel;
 	$l .= " $numSuf" if $l;
 	print O <<TXT1;
-      <text x="$x" y="$Yrange" dy="20" text-anchor="middle">$l</text>
+      <text x="$x" y="$Yrange" dy="20" text-anchor="middle" fill="white">$l</text>
 TXT1
 }
-=cut
+
 print O <<DEF2;
     </g>
   </defs>
@@ -265,19 +265,18 @@ TXT2
 			my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
 			$pChrA = $pa if $pChrA > $pa;
 			$pChrB = $pb if $pChrB < $pb;
-=pod
+
 			if (exists $MVScaffolds{$scaff}) {
 				$thiscolor = 'red';
 			} else {
-				$thiscolor = 'navy';
+				$thiscolor = $color[$chrcnt%scalar(@color)];
 			}
-			$thiscolor = 'black';
-=cut
-			#print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
+#			$thiscolor = 'black';
+
 			if (exists $MVScaffolds{$scaff}) {
 				$thiscolor = 'red';
-				print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 			}
+			print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 			my $topestY = $Ytotal;
 			for my $pos (@Poses) {
 				my @Circles = getCircles($PlotDat{$scaff}{$pos});
@@ -300,7 +299,8 @@ TXT2
 					my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
 					$topestY = $Py if $topestY > $Py;
 	#print "$y,$Py,$Yrange,$YmaxVal\n";
-					print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
+					#print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
+					print O "        <rect x=\"$pos\" y=\"$Py\" width=\"$r\" height=\"$r\" />\n";
 				}
 =pod
 				for (@CandiCircles) {
@@ -313,8 +313,8 @@ TXT2
 =cut
 			}
 			#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
+			print O "      </g>\n";
 			if (exists $MVScaffolds{$scaff}) {
-				print O "      </g>\n";
 				print O "      <text x=\"$Poses[0]\" y=\"",$topestY-$FontSize,"\" dy=\"5\" text-anchor=\"middle\" fill=\"navy\" stroke-width=\"0\">$scaff</text>\n";
 			}
 			#++$scaffcnt;
