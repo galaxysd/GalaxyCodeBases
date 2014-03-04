@@ -8,24 +8,17 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy;
 
-die "Usage: $0 <marker dat> <prefix> [out midfix]\n" if @ARGV<2;
-my $markf=shift;
-my $inf=shift;
+die "Usage: $0 <order file> <marker.rec> <outfile>\n" if @ARGV<3;
+my $orderf=shift;
+my $markerdat=shift;
 my $outf=shift;
 
-if ($outf) {
-	$outf = ".$outf";
-} else {
-	$outf = '';
-}
-
 my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
-$scaffnfo = '/bak/seqdata/genomes/Felis_catus-6.2/chr.nfo';
-my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
-$markerdat = $markf;
-print "From [$inf] to [$inf$outf.(dat|svg)]\n";
+#$scaffnfo = '/bak/seqdata/genomes/Felis_catus-6.2/chr.nfo';
 
-my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458 scaffold188);
+print "From [O:$orderf][$markerdat] to [$outf.(dat|svg)]\n";
+
+my %MVScaffolds = map {$_ => 1} qw(scaffold97 scaffold1457 scaffold91);
 
 my %Stat;
 
@@ -91,17 +84,19 @@ while (<I>) {
 }
 close I;
 #ddx \%MarkerDat;
-my (%OrderbyChr,%OrderedOnce,@DirectOrder,@notOrdered);
-open I,'<',$inf.'.order' or warn $! and goto NULLORDERFILE;
+my (%OrderbyChr,@ChrOrder,%OrderedOnce,@DirectOrder,@notOrdered);
+open I,'<',$orderf or warn $! and goto NULLORDERFILE;
 while (<I>) {
 	next if /^#/;
 	chomp;
 	my ($scaff,$chr) = split /\t/ or next;	# skip blank lines
 	next if exists $OrderedOnce{$scaff};
+	push @ChrOrder,$chr unless exists $OrderbyChr{$chr};
 	push @{$OrderbyChr{$chr}},$scaff;
 	push @DirectOrder,$scaff;
 	++$OrderedOnce{$scaff};
 }
+push @ChrOrder,'UN';
 close I;
 NULLORDERFILE:
 my $TotalLen=0;
@@ -128,17 +123,18 @@ if ($Stat{Scaffold_Ordered}) {
 
 # ------ BEGIN PLOT --------
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
-my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
-my $Xrange = 500;
+my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
+@color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
+my $Xrange = 1000;
 my $Yrange = 320;
-my $YmaxVal = 5;
+my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
 my $InBorder = 40;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder;
-my $FontSize = int($Xrange/40);
+my $FontSize = int($Xrange/50);
 my $FontFamily = 'Arial';
 
 my $perUnit = int($TotalLen/10);	# 279.330936 M /10 = 27.933093 M
@@ -151,16 +147,17 @@ my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
 my $countMax = int($TotalLen/$unit) + (($TotalLen%$unit)?1:0);
 #print join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
+my $Ymin = 0;
 
 my @Yticks;
-for my $i (1 .. $YmaxVal) {	# 0 will be shared with X-axie
+for my $i ($Ymin .. $YmaxVal) {	# 0 will be shared with X-axie, set $Ymin=1 if needed this.
 	my $pY = $Yrange - $i * ($Yrange/$YmaxVal);
 	push @Yticks,$pY;
 }
 
 my (%PlotDat,%PlotScaffRange,%PlotCandiDat);
 my $start = 0;
-for my $scaff (@notOrdered,@DirectOrder) {	# Well, Ordered last to be far away from X-axie.
+for my $scaff (@DirectOrder,@notOrdered) {	# Well, I prefer Ordered last to be far away from Y-axie, but they does not.
 	unless (exists $MarkerDat{$scaff}) {
 		warn "[!marker]$scaff\n";
 		++$Stat{'Marker_Not_found'};
@@ -190,12 +187,12 @@ my $ChrCount = keys %PlotDat;
 $ChrCount = 1;
 my $Ytotal = $Yitem*$ChrCount - $InBorder + $ArrowLen + 2*$OutBorder;
 
-open O,'>',$inf.$outf.'.svg' or die $!;
+open O,'>',$outf.'.svg' or die $!;
 print O <<HEAD;
 <?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny"
  width="${Xtotal}pt" height="${Ytotal}pt" viewBox="0 0 $Xtotal $Ytotal">
-<title>Plot $inf</title>
+<title>Plot $markerdat [O:$orderf]</title>
 <!--
   <rect x="0" y="0" width="$Xtotal" height="$Ytotal" fill="none" stroke="red" stroke-width="2" />
 -->
@@ -218,13 +215,14 @@ for my $i (1 .. 10) {
 print O '        ',$Xrange+$ArrowLen,',',$Yrange,' ',
 	$Xrange+$axisTick,',',$Yrange-2,' ',$Xrange+$axisTick,',',$Yrange+2,' ',
 	$Xrange+$ArrowLen,',',$Yrange,'" stroke-width="2"/>',"\n";
-for my $i (1 .. $YmaxVal) {
-	my $y = $Yticks[$i-1];
+for my $i ($Ymin .. $YmaxVal) {
+	my $y = $Yticks[$i-$Ymin];
 	print O <<TXTAX;
       <text x="0" y="$y" dx="-20" dy="5" text-anchor="middle">$i</text>
-      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9"/>
+      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9" stroke="white"/>
 TXTAX
 }
+=pod
 for my $i (0 .. 10) {
 	my $x = $i*$Xrange/10;
 	my $l = $unit*$i/$numSuflevel;
@@ -233,6 +231,7 @@ for my $i (0 .. 10) {
       <text x="$x" y="$Yrange" dy="20" text-anchor="middle">$l</text>
 TXT1
 }
+=cut
 print O <<DEF2;
     </g>
   </defs>
@@ -248,65 +247,86 @@ for my $chr ('-lg(p)') {
       <use x="0" y="0" xlink:href="#axis" stroke-width="2"/>
       <text x="8" y="-10" stroke-width="0">$chr</text>
 TXT2
-	my $scaffcnt=0;
-	for my $scaff (@DirectOrder,@notOrdered) {
-		next unless exists $MarkerDat{$scaff};
-		my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
-		my $thiscolor = $color[$scaffcnt%scalar(@color)];
-		my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
-		if (exists $MVScaffolds{$scaff}) {
-			$thiscolor = 'red';
+	my $chrcnt=0;
+	for my $chr ( @ChrOrder ) {
+		my ($pChrA,$pChrB)=($Xrange,0);
+		my @scaffs;	# @DirectOrder,@notOrdered
+		if ($chr ne $ChrOrder[-1]) {	# 'UN'
+			@scaffs = @{$OrderbyChr{$chr}};
 		} else {
-			$thiscolor = 'navy';
+			@scaffs = @notOrdered;
 		}
-        $thiscolor = 'black';
-		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
-		my $topestY = $Ytotal;
-		for my $pos (@Poses) {
-			my @Circles = getCircles($PlotDat{$scaff}{$pos});
-            my @CandiCircles = getCircles($PlotCandiDat{$scaff}{$pos}) if exists $PlotCandiDat{$scaff}{$pos};
-			my $t = shift @Circles;
-            shift @CandiCircles;
-			my $p = int($pos);
-			unless (exists $maxCircles{$p}) {
-				$maxCircles{$p} = $t;
-			} else {
-				if ($maxCircles{$p}->[0] < $t->[0]) {
-					$maxCircles{$p} = $t;
-				} elsif ($maxCircles{$p}->[0] == $t->[0] and $maxCircles{$p}->[1] < $t->[1]) {
-					$t->[1] += $maxCircles{$p}->[1];
-					$maxCircles{$p} = $t;
-				}
-			}
-			for (@Circles) {
-				my ($y,$r) = @$_;
-				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
-				$topestY = $Py if $topestY > $Py;
-#print "$y,$Py,$Yrange,$YmaxVal\n";
-				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
-			}
-			for (@CandiCircles) {
-				my ($y,$r) = @$_;
-				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
-				$topestY = $Py if $topestY > $Py;
-                #print "$y,$Py,$Yrange,$YmaxVal\n";
-				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"red\" fill=\"red\" />\n";
-			}
+		my $thiscolor = $color[$chrcnt%scalar(@color)];
+		print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$chr</title>\n";
+		for my $scaff ( @scaffs ) {
+			next unless exists $MarkerDat{$scaff};
+			my @Poses = sort {$a<=>$b} keys %{$PlotDat{$scaff}};
+			#my $thiscolor = $color[$scaffcnt%scalar(@color)];
+			my ($pa,$pb,$maxlgp) = @{$PlotScaffRange{$scaff}};
+			$pChrA = $pa if $pChrA > $pa;
+			$pChrB = $pb if $pChrB < $pb;
 =pod
-			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
-			print O <<TXTL;
-        <circle cx="$pos" cy="$pYmajor" r="1" />
-        <circle cx="$pos" cy="$pYmax" r="0.5" />
-TXTL
+			if (exists $MVScaffolds{$scaff}) {
+				$thiscolor = 'red';
+			} else {
+				$thiscolor = 'navy';
+			}
+			$thiscolor = 'black';
 =cut
+			#print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
+			if (exists $MVScaffolds{$scaff}) {
+				$thiscolor = 'red';
+				print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
+			}
+			my $topestY = $Ytotal;
+			for my $pos (@Poses) {
+				my @Circles = getCircles($PlotDat{$scaff}{$pos});
+	            #my @CandiCircles = getCircles($PlotCandiDat{$scaff}{$pos}) if exists $PlotCandiDat{$scaff}{$pos};
+				my $t = shift @Circles;
+	            #shift @CandiCircles;
+				my $p = int($pos);
+				unless (exists $maxCircles{$p}) {
+					$maxCircles{$p} = $t;
+				} else {
+					if ($maxCircles{$p}->[0] < $t->[0]) {
+						$maxCircles{$p} = $t;
+					} elsif ($maxCircles{$p}->[0] == $t->[0] and $maxCircles{$p}->[1] < $t->[1]) {
+						$t->[1] += $maxCircles{$p}->[1];
+						$maxCircles{$p} = $t;
+					}
+				}
+				for (@Circles) {
+					my ($y,$r) = @$_;
+					my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+					$topestY = $Py if $topestY > $Py;
+	#print "$y,$Py,$Yrange,$YmaxVal\n";
+					print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" />\n";
+				}
+=pod
+				for (@CandiCircles) {
+					my ($y,$r) = @$_;
+					my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
+					$topestY = $Py if $topestY > $Py;
+	                #print "$y,$Py,$Yrange,$YmaxVal\n";
+					print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"red\" fill=\"red\" />\n";
+				}
+=cut
+			}
+			#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
+			if (exists $MVScaffolds{$scaff}) {
+				print O "      </g>\n";
+				print O "      <text x=\"$Poses[0]\" y=\"",$topestY-$FontSize,"\" dy=\"5\" text-anchor=\"middle\" fill=\"navy\" stroke-width=\"0\">$scaff</text>\n";
+			}
+			#++$scaffcnt;
 		}
-		#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
+		my $size = $FontSize-2;
+		$chr =~ s/^chr//i;
+		print O "      <text x=\"",($pChrA+$pChrB)/2,"\" y=\"",$Yrange+$size+(1+$size)*($chrcnt%2),"\" dy=\"5\" text-anchor=\"middle\" stroke-width=\"0\" font-size=\"",$FontSize-2,"\">$chr</text>\n";
 		print O <<TXTLB;
-        <line x1="$pa" y1="$Yrange" x2="$pb" y2="$Yrange" stroke-width="2"/>
+        <line x1="$pChrA" y1="$Yrange" x2="$pChrB" y2="$Yrange" stroke-width="2"/>
       </g>
 TXTLB
-		print O "      <text x=\"$Poses[0]\" y=\"",$topestY-12,"\" dy=\"5\" text-anchor=\"middle\" fill=\"navy\" stroke-width=\"0\">$scaff</text>\n" if exists $MVScaffolds{$scaff};
-		++$scaffcnt;
+		++$chrcnt;
 	}
 #	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
 #	for my $x (sort {$a<=>$b} keys %maxCircles) {
@@ -335,8 +355,10 @@ ddx \%Stat;
 print commify($TotalLen),"\n";
 __END__
 
-perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" ./tig2cat.csv > ./tig2cat.tsv
+perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" ./tig2cat.csv | awk '{if(NR>1)print}' > ./tig2cat.tsv
 sort -t $'\t' -k 1,1 -k 2,2n -k 3,3n ./tig2cat.tsv > ./tig2cat.tsv.s
 awk '{print "scaffold"$4"\tchr"$1}' tig2cat.tsv.s|uniq > tig2cat.order
 
 ./plotscaf.pl rec16q20.npa15 tig2cats16q20s15
+
+perl plotscaf.pl tig2cat.order sw000-17R.REC.out.rec.npa sw000
