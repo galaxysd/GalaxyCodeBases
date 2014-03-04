@@ -208,6 +208,7 @@ for (@Yticks) {
 }
 print O "        0,$Yrange\n";
 
+$axisTick=1;	# remove X ticks.
 for my $i (1 .. 10) {
 	my $x = $i*$Xrange/10;
 	print O '        ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange,"\n";
