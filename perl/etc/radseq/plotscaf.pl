@@ -297,6 +297,7 @@ TXT2
 				}
 				for (@Circles) {
 					my ($y,$r) = @$_;
+					$r *= 2;	# make it bigger
 					my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
 					$topestY = $Py if $topestY > $Py;
 	#print "$y,$Py,$Yrange,$YmaxVal\n";
