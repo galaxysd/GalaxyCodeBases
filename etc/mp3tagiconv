@@ -7,6 +7,10 @@
 # published by the Free Software Foundation.
 #
 
+# https://code.google.com/p/mp3tagiconv/
+# http://linux-wiki.cn/wiki/Mp3%E6%A0%87%E7%AD%BE%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88
+# http://blog.icehoney.me/posts/2013-10-06-Archlinux-ape-cue-splitting
+
 import os
 import sys
 import locale
@@ -61,7 +65,7 @@ def MakeID3v1(id3, enc):
         v1["year"] = "\x00\x00\x00\x00"
 
     return ("TAG%(title)s%(artist)s%(album)s%(year)s%(comment)s"
-            "%(track)s%(genre)s") % v1 
+            "%(track)s%(genre)s") % v1
 
 def has_id3v1(filename):
     f = open(filename, 'rb+')
@@ -74,7 +78,7 @@ def get_id3v1(filename):
     f = open(filename, 'rb+')
     try: f.seek(-128, 2)
     except IOError: pass
-    else: 
+    else:
         id3v1 = mutagen.id3.ParseID3v1(f.read(128))
     return id3v1
 
@@ -159,14 +163,14 @@ def main(argv):
     enc = locale.getpreferredencoding()
     for filename in args:
         print "--", filename
-        try: 
+        try:
             # Prepare information from ID3v1
             id3v1 = get_id3v1(filename)
 
             fileID3 = mutagen.id3.ID3(filename)
             if id3v1 is not None:
                 # Merge ID3v1 and ID3v2
-                for i in id3v1.keys(): 
+                for i in id3v1.keys():
                     if i not in fileID3.keys():
                         fileID3.add(id3v1[i])
 
@@ -214,7 +218,7 @@ def main(argv):
                 print
                 print "*** File is NOT updated."
 
-        except AttributeError: print "- Unknown file type" 
+        except AttributeError: print "- Unknown file type"
         except KeyboardInterrupt: raise
         except Exception, err: print str(err)
         print
