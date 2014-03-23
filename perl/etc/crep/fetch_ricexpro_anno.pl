@@ -13,8 +13,8 @@ use HTML::TreeBuilder::XPath;
 #use HTML::TableExtract;
 use Data::Dump;
 
-#open I,'<','resLOC.lst' or die $!;
-#open O,'>','recLoc.anno' or die $!;
+open I,'<','resLOC.lst' or die $!;
+open O,'>','resLOC.anno' or die $!;
 
 my $ua = LWP::UserAgent->new;
 $ua->agent("Mozilla/5.0");
@@ -26,6 +26,12 @@ $req->content_type('application/x-www-form-urlencoded');
 
 my $keyword = 'LOC_Os01g01360';
 #$keyword = 'LOC_Os01g01040';
+
+while (<I>) {
+	chomp;
+	$keyword = $_;
+	print "$_\n";
+
 $req->content("keyword=$keyword");
 #$req = POST 'http://ricexpro.dna.affrc.go.jp/RXP_1006/gene-search.php', [ keyword => 'LOC_Os01g01030' ];
 $res = $ua->request($req);
@@ -88,15 +94,19 @@ if ($res->is_success) {
 		$Desc{$_} *= -1 if $Desc{$_} > 1;
 	}
 	my $tmp = join("\t",$keyword,join('|',@Locus),join('|',@FeatureNum),join('|',@Accession),join('|',@DescUniq));
-	print $tmp,"\n";
-	print '-' x 75,"\n";
+	print O $tmp,"\n";
+	print '-' x 5,"$tmp\n";
 	$tree->delete;
 }
 else {
 	print "Error: " . $res->status_line . "\n";
 }
-my $tmp_html = $res->content;
 
+}
+close I;
+close O;
+
+#my $tmp_html = $res->content;
 #ddx $res;
 
 __END__
