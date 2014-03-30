@@ -5,6 +5,8 @@ use Data::Dump;
 
 #die "Usage: $0 <s> <t>\nW(AA), W(Aa) and W(aa) is 1-s, 1, 1-t respectively.\n" if @ARGV<2;
 
+my $totalLen = 1000;
+
 my $mfa=<<Emfa;
 1  TAGACAATGACATACGTTATGTTGAA
 2  ..T...TA.G.C.C...C..T.....
@@ -46,22 +48,39 @@ print "$_: ",join('',@{$dat{$_}}),"\n" for @seqid;
 print "=== $seqcnt,$seqlen,$PolyC ===\n";
 
 sub getTpi(@) {
-	print "--I: @_\n";
+	print "--I: @_   ";
+	my %t;
+	++$t{$_} for @_;
+	my @t = sort {$a <=> $b} values %t;
+	die if @t != 2;
+	my ($p,$q) = @t;
+	my $sum = $p + $q;
+	$p /= $sum; $q /= $sum;
+	my $Tpi = 2*$p*$q*$seqcnt / ($seqcnt-1);
+	print "$p,$q,$Tpi\n";
+	return $Tpi;
 }
 
+my $Tpi = 0;
 for my $i (0 .. $#{$dat{'1'}}) {
 	my @arr;
 	for my $k (@seqid) {
 		push @arr,$dat{$k}->[$i];
 	}
-	getTpi(@arr);
+	$Tpi += getTpi(@arr);
 }
+print $Tpi;
+$Tpi /= $totalLen;
+print ", $Tpi\n";
 
 my $wUnder = 0;
 for my $i ( 1 .. ($seqcnt-1) ) {
 	$wUnder += 1/$i;
 	print "$i: $wUnder\n";
 }
-my $Tw = $PolyC / $wUnder / $seqlen;
+my $Tw = $PolyC / $wUnder / $totalLen;
 print "-> $Tw, $wUnder\n";
+
+print "Tpi: $Tpi   Tw: $Tw\n";
+
 
