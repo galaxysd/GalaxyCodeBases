@@ -50,9 +50,35 @@ for my $loc (@LocNums) {
 #ddx \%Acc2Accession;	# undef exists from file !
 
 my %cyDat;
+
+my %RXP2Name = (
+RXP_1006 => 'ABA', #Shoot gene expression profile in response to abscisic acid
+RXP_1009 => 'BRs', #Shoot gene expression profile in response to brassinosteroid
+RXP_1010 => 'CK' #Shoot gene expression profile in response to cytokinin
+);
+
+my (@FeatureOrder, @ExpOrder);
+# FeatureNum    RXP_1006        RXP_1009        RXP_1010
+## 0 hr (Cy3)|0 hr (Cy5)|1 hr (Cy3)|1 hr (Cy5)|3 hr (Cy3)|3 hr (Cy5)|6 hr (Cy3)|6 hr (Cy5)|12 hr (Cy3)|12 hr (Cy5)
 while (<A>) {
 	if ( /^#/ ) {
-		print O $_;
+		#print O $_;
+		if ( /^# FeatureNum\b/ ) {
+			chomp;
+			@FeatureOrder = split /\t/;
+			shift @FeatureOrder;
+			print "$_, $RXP2Name{$_}\n" for @FeatureOrder;
+		} elsif ( /^## (.+)$/ ) {
+			$_ = $1;
+			chomp;
+			my @Exps = split /\|/;
+			for ( @Exps ) {
+				/^(\d+) hr \(Cy([35])\)$/ or die;
+				push @ExpOrder,"${1}h_Cy$2";
+				#print "$_ => ${1}h_Cy$2\n";
+			}
+			print "@ExpOrder\n";
+		}
 		next;
 	}
 	my ( $acc,@dat ) = split /\t/;
