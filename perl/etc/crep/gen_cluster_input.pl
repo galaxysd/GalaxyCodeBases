@@ -62,14 +62,17 @@ print OA "$outHead";
 print OB "$outHead";
 while (<IR>) {
 	my ($id,$acc,@dat) = split /\t/;
+	my $LOCid = $id;
 	$id =~ s/^LOC_Os/t/;
-	my $newid = "${id}_${acc}" . join('', map {my $a; if (defined $_) {$a = int($_); $a="+$a" if $_>=0; $a="-$a" if $_<0 and $a==0; $a; } } ($dA{$id},$dB{$id}));
+	my $tmp = join('', map {my $a; if (defined $_) {$a = int($_); $a="+$a" if $_>=0; $a="-$a" if $_<0 and $a==0; $a; } } ($dA{$id},$dB{$id}));
+	my $newLOCid = $LOCid . $tmp;
+	my $newid = "${id}_${acc}$tmp";
 	if ($dFlag{$id} == '101') {
 		print OS join("\t",$newid,   $dA{$id} .';'. $dB{$id}   ,@dat);
 	} elsif ($dFlag{$id} == '1') {
-		print OA join("\t",$newid,$dFlag{$id},@dat);
+		print OA join("\t",$newid,$newLOCid,@dat);
 	} elsif ($dFlag{$id} == '100') {
-		print OB join("\t",$newid,$dFlag{$id},@dat);
+		print OB join("\t",$newid,$newLOCid,@dat);
 	} else { die; }
 }
 close IR;
@@ -78,3 +81,14 @@ close OA;
 close OB;
 
 __END__
+$ wc -l crep_all_tsv_new.txt.up2.*txt ricexpro.up2.* resLOC.rpratio
+   8704 crep_all_tsv_new.txt.up2.rev.txt
+   5863 crep_all_tsv_new.txt.up2.txt
+   4756 ricexpro.up2.clu.txt
+   7344 ricexpro.up2.rev.clu.txt
+    401 ricexpro.up2.stat.txt
+  12499 resLOC.rpratio
+  39567 total
+
+./cluster -f ricexpro.up2.clu.txt -l -cg a -ng -g 2 -e 2
+./cluster -f ricexpro.up2.rev.clu.txt -l -cg a -ng -g 2 -e 2
