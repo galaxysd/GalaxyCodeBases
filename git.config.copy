@@ -22,4 +22,4 @@
 	fetch = +refs/heads/*:refs/remotes/g/*
 	#mirror = true
 [alias]
-	xpush = !git push -v && git push g -v
+	xpush = !git push origin master -v && git push g master -v
