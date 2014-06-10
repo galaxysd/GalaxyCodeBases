@@ -148,7 +148,7 @@ if ($type) {
 	ddx \@notOrdered;
 }
 =cut
-push @ChrOrder,$CHR_UN;
+push @ChrOrder,$CHR_UN unless $type;
 
 # ------ BEGIN PLOT --------
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
@@ -156,6 +156,7 @@ my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
 @color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
 my $Xrange = 1000;
 my $Yrange = 320;
+$Yrange = 1000 if $type;
 my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
@@ -303,9 +304,6 @@ TXT2
 			}
 #			$thiscolor = 'black';
 
-			if (exists $MVScaffolds{$scaff}) {
-				$thiscolor = 'red';
-			}
 			print O '      <g stroke="',$thiscolor,'" fill="',$thiscolor,'" focusable = "true">',"\n        <title>$scaff, max=$maxlgp</title>\n";
 			my $topestY = $Ytotal;
 			for my $pos (@Poses) {
@@ -345,10 +343,11 @@ TXT2
 			}
 			#my ($pa,$pb) = @{$PlotScaffRange{$scaff}};
 			print O "      </g>\n";
-			if (exists $MVScaffolds{$scaff}) {
+			if (exists $MVScaffolds{$scaff} or $type) {
 				print O "      <text x=\"$Poses[0]\" y=\"",$topestY-$FontSize,"\" dy=\"5\" text-anchor=\"middle\" fill=\"navy\" stroke-width=\"0\">$scaff</text>\n";
 			}
 			#++$scaffcnt;
+			++$chrcnt if $type;
 		}
 		my $size = $FontSize-2;
 		$chr =~ s/^chr//i;
@@ -358,7 +357,7 @@ TXT2
         <line x1="$pChrA" y1="$Yrange" x2="$pChrB" y2="$Yrange" stroke-width="2"/>
       </g>
 TXTLB
-		++$chrcnt;
+		++$chrcnt unless $type;
 	}
 #	print O '      <polyline fill="none" stroke="gold" stroke-width="0.5" points="';
 #	for my $x (sort {$a<=>$b} keys %maxCircles) {
@@ -393,4 +392,11 @@ awk '{print "scaffold"$4"\tchr"$1}' tig2cat.tsv.s|uniq > tig2cat.order
 
 ./plotscaf.pl rec16q20.npa15 tig2cats16q20s15
 
+======
+
+zcat tig2cat.csv.gz | perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" | awk '{if(NR>1)print}' > tig2cat.tsv
+sort -t $'\t' -k 1,1 -k 2,2n -k 3,3n ./tig2cat.tsv > ./tig2cat.tsv.s
+awk '{print "scaffold"$4"\tchr"$1}' tig2cat.tsv.s|uniq > tig2cat.order
+
 perl plotscaf.pl tig2cat.order sw000-17R.REC.out.rec.npa sw000
+./plotscaf.pl tig2cat.order sw210-17R.REC.out.rec.npa sw210ts 1
