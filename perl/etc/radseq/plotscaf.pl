@@ -167,7 +167,7 @@ my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
 @color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
 my $Xrange = 1000;
 my $Yrange = 320;
-$Yrange = 900 if $type;
+$Xrange = 360 if $type;
 my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
@@ -175,7 +175,8 @@ my $OutBorder = 24;
 my $InBorder = 40;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder;
-my $FontSize = int($Xrange/50);
+my $FontSize = int($Yrange/16);
+my $SmallFontSize = $FontSize-2;
 my $FontFamily = 'Arial';
 
 my $perUnit = int($TotalLen/10);	# 279.330936 M /10 = 27.933093 M
@@ -186,7 +187,7 @@ $numSuflevel = 10 ** (3*$numSuflevel);	# 1,000,000 <---
 my $roundTo = 5 * (10 ** ($numlevel-1));	# 5e6
 my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
 my $countMax = int($TotalLen/$unit) + (($TotalLen%$unit)?1:0);
-#print join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
+print "[!]PlotSize: ",join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
 my $Ymin = 0;
 
@@ -264,9 +265,16 @@ for (@Yticks) {
 }
 print O "        0,$Yrange\n";
 
-$axisTick=1;	# remove X ticks.
-for my $i (1 .. 10) {
-	my $x = $i*$Xrange/10;
+my $XaxisColor = 'white';
+my $XaxisCount = 10;
+if ($type) {
+	$XaxisColor = 'black';
+	$XaxisCount = 5;
+} else {
+	$axisTick=1;	# remove X ticks.
+}
+for my $i (1 .. $XaxisCount) {
+	my $x = $i*$Xrange/$XaxisCount;
 	print O '        ',$x,',',$Yrange,' ',$x,',',$Yrange+$axisTick,' ',$x,',',$Yrange,"\n";
 }
 print O '        ',$Xrange+$ArrowLen,',',$Yrange,' ',
@@ -276,16 +284,16 @@ for my $i ($Ymin .. $YmaxVal) {
 	my $y = $Yticks[$i-$Ymin];
 	print O <<TXTAX;
       <text x="0" y="$y" dx="-20" dy="5" text-anchor="middle">$i</text>
-      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9" stroke="white"/>
+      <line x1="0" y1="$y" x2="$Xrange" y2="$y" stroke-width="0.5" stroke-dasharray="5,9" stroke="$XaxisColor"/>
 TXTAX
 }
 
-for my $i (0 .. 10) {
-	my $x = $i*$Xrange/10;
-	my $l = $unit*$i/$numSuflevel;
+for my $i (0 .. $XaxisCount) {
+	my $x = $i*$Xrange/$XaxisCount;
+	my $l = (10/$XaxisCount) * $unit*$i/$numSuflevel;
 	$l .= " $numSuf" if $l;
 	print O <<TXT1;
-      <text x="$x" y="$Yrange" dy="20" text-anchor="middle" fill="white">$l</text>
+      <text x="$x" y="$Yrange" dy="20" text-anchor="middle" font-size="$SmallFontSize" fill="$XaxisColor">$l</text>
 TXT1
 }
 
@@ -379,10 +387,9 @@ TXT2
 			#++$scaffcnt;
 			++$chrcnt if $type;
 		}
-		my $size = $FontSize-2;
 		$chr =~ s/^chr//i;
-		print O "      <text x=\"",($pChrA+$pChrB)/2,"\" y=\"",$Yrange+$size+(1+$size)*($chrcnt%2),
-			"\" dy=\"5\" text-anchor=\"middle\" stroke-width=\"0\" font-size=\"",$FontSize-2,"\">$chr</text>\n";	# one long line will break SyntaxHighlight ...
+		print O "      <text x=\"",($pChrA+$pChrB)/2,"\" y=\"",$Yrange+$SmallFontSize+(1+$SmallFontSize)*($chrcnt%2),
+			"\" dy=\"5\" text-anchor=\"middle\" stroke-width=\"0\" font-size=\"$SmallFontSize\">$chr</text>\n";	# one long line will break SyntaxHighlight ...
 		print O <<TXTLB;
         <line x1="$pChrA" y1="$Yrange" x2="$pChrB" y2="$Yrange" stroke-width="2"/>
       </g>
