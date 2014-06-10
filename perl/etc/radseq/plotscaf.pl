@@ -8,17 +8,23 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy;
 
-die "Usage: $0 <order file> <marker.rec> <outfile>\n" if @ARGV<3;
+die "Usage: $0 <order file> <marker.rec> <outfile> <1 for 97&1457 only>\n" if @ARGV<3;
 my $orderf=shift;
 my $markerdat=shift;
 my $outf=shift;
+my $type=shift;
 
-my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
+my $scaffnfo = '/bak/seqdata/genomes/TigerRefGenome/chr.nfo';
 #$scaffnfo = '/bak/seqdata/genomes/Felis_catus-6.2/chr.nfo';
 
 print "From [O:$orderf][$markerdat] to [$outf.(dat|svg)]\n";
 
 my %MVScaffolds = map {$_ => 1} qw(scaffold97 scaffold1457 scaffold91);
+if ($type) {
+	%MVScaffolds = ();
+}
+my %ResultZone = map {$_ => 1} qw(scaffold97 scaffold1457);
+my $CHR_UN = 'UN';
 
 my %Stat;
 
@@ -78,6 +84,9 @@ while (<I>) {
 	next if /^#/;
 	chomp;
 	my @items = split /\t/;
+	if ($type) {
+		next unless $ResultZone{$items[1]};
+	}
 	die unless exists $ScaffoldLen{$items[1]};
     my @tmp = split /[\/|]/,$items[7].'/'.$items[8];    # Aff,UnAff
 	push @{$MarkerDat{$items[1]}},[ $items[2],$items[9],int(0.5-1000*log($items[9])/log(10))/1000,$tmp[1]+$tmp[2] ];	# pos,p,lg(p) round to 0.001,SumMid(0 is red)
@@ -85,23 +94,31 @@ while (<I>) {
 close I;
 #ddx \%MarkerDat;
 my (%OrderbyChr,@ChrOrder,%OrderedOnce,@DirectOrder,@notOrdered);
+my (@order,%Scaff2Chr);
 open I,'<',$orderf or warn $! and goto NULLORDERFILE;
 while (<I>) {
 	next if /^#/;
 	chomp;
 	my ($scaff,$chr) = split /\t/ or next;	# skip blank lines
 	next if exists $OrderedOnce{$scaff};
+	next if $type and !$ResultZone{$scaff};	# only those in %ResultZone
 	push @ChrOrder,$chr unless exists $OrderbyChr{$chr};
 	push @{$OrderbyChr{$chr}},$scaff;
 	push @DirectOrder,$scaff;
 	++$OrderedOnce{$scaff};
+	$Scaff2Chr{$scaff} = $chr;
 }
-push @ChrOrder,'UN';
 close I;
-NULLORDERFILE:
-my $TotalLen=0;
-my @order = map {$_='scaffold'.$_} sort {$a<=>$b} map {s/^scaffold//;$_;} keys %MarkerDat;
+
 @order = @ChrOrder0;
+### my %UsedChr = map {$_ => 0} @ChrOrder;
+goto TOCONTINUE;
+
+NULLORDERFILE:
+@order = map {$_='scaffold'.$_} sort {$a<=>$b} map {s/^scaffold//;$_;} keys %MarkerDat;
+
+TOCONTINUE:
+my $TotalLen=0;
 for my $scaff (@order) {
 	next unless exists $MarkerDat{$scaff};
 	if (exists $OrderedOnce{$scaff}) {
@@ -113,6 +130,7 @@ for my $scaff (@order) {
 		++$Stat{Scaffold_notOrdered};
 	}
 	$TotalLen += $ScaffoldLen{$scaff};
+	### $UsedChr{ $Scaff2Chr{$scaff} } = 1 if $Scaff2Chr{$scaff};	# Well, assume the %ResultZone is mapped.
 }
 if ($Stat{Scaffold_notOrdered}) {
 	$Stat{AvgLen_notOrdered} = $Stat{Len_notOrdered} / $Stat{Scaffold_notOrdered};
@@ -120,6 +138,17 @@ if ($Stat{Scaffold_notOrdered}) {
 if ($Stat{Scaffold_Ordered}) {
 	$Stat{AvgLen_Ordered} = $Stat{Len_Ordered} / $Stat{Scaffold_Ordered};
 }
+=pod
+if ($type) {
+	my @chrs;
+	for (@ChrOrder) {
+		push @chrs,$_ if $UsedChr{$_};
+	}
+	@ChrOrder = @chrs;
+	ddx \@notOrdered;
+}
+=cut
+push @ChrOrder,$CHR_UN;
 
 # ------ BEGIN PLOT --------
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
@@ -159,7 +188,7 @@ my (%PlotDat,%PlotScaffRange,%PlotCandiDat);
 my $start = 0;
 for my $scaff (@DirectOrder,@notOrdered) {	# Well, I prefer Ordered last to be far away from Y-axie, but they does not.
 	unless (exists $MarkerDat{$scaff}) {
-		warn "[!marker]$scaff\n";
+		warn "[!marker]$scaff\n" unless $type;
 		++$Stat{'Marker_Not_found'};
 		next;
 	}
@@ -252,7 +281,7 @@ TXT2
 	for my $chr ( @ChrOrder ) {
 		my ($pChrA,$pChrB)=($Xrange,0);
 		my @scaffs;	# @DirectOrder,@notOrdered
-		if ($chr ne $ChrOrder[-1]) {	# 'UN'
+		if ($chr ne $CHR_UN) {	# 'UN'
 			@scaffs = @{$OrderbyChr{$chr}};
 		} else {
 			@scaffs = @notOrdered;
@@ -323,7 +352,8 @@ TXT2
 		}
 		my $size = $FontSize-2;
 		$chr =~ s/^chr//i;
-		print O "      <text x=\"",($pChrA+$pChrB)/2,"\" y=\"",$Yrange+$size+(1+$size)*($chrcnt%2),"\" dy=\"5\" text-anchor=\"middle\" stroke-width=\"0\" font-size=\"",$FontSize-2,"\">$chr</text>\n";
+		print O "      <text x=\"",($pChrA+$pChrB)/2,"\" y=\"",$Yrange+$size+(1+$size)*($chrcnt%2),
+			"\" dy=\"5\" text-anchor=\"middle\" stroke-width=\"0\" font-size=\"",$FontSize-2,"\">$chr</text>\n";	# one long line will break SyntaxHighlight ...
 		print O <<TXTLB;
         <line x1="$pChrA" y1="$Yrange" x2="$pChrB" y2="$Yrange" stroke-width="2"/>
       </g>
