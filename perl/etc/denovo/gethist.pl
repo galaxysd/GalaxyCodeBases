@@ -49,6 +49,6 @@ set terminal png notransparent nointerlace size 1200,960 font '/opt/arial.ttf' 2
 set output "plot.png"
 set xlabel 'Depth'
 set ylabel 'Count'
-set xrange[2:462]
+set xrange[2:862]
 set yrange[0:320000]
 plot 'tw.dat' using 1:2 with lines
