@@ -8,7 +8,7 @@ use warnings;
 use Data::Dump qw(ddx);
 use Galaxy;
 
-die "Usage: $0 <order file> <marker.rec> <outfile> <1 for 97&1457 only>\n" if @ARGV<3;
+die "Usage: $0 <order file> <marker.rec> <outfile> <TRUE for 97&1457 only,also dot size>\n" if @ARGV<3;
 my $orderf=shift;
 my $markerdat=shift;
 my $outf=shift;
@@ -23,7 +23,7 @@ my %MVScaffolds = map {$_ => 1} qw(scaffold97 scaffold1457 scaffold91);
 if ($type) {
 	%MVScaffolds = ();
 }
-my %ResultZone = map {$_ => 1} qw(scaffold97 scaffold1457);
+my %ResultZone = ('scaffold97' => -1, 'scaffold1457' => 1);	# scaffold97 on '-' strand.
 my $CHR_UN = 'UN';
 
 my %Stat;
@@ -48,6 +48,9 @@ sub getVal($) {	# deprecated
 		return -1;
 	}
 }
+
+my %CirclesR;
+my $MaxCirclesR = 1.5;
 sub getCircles($) {
 	my %dat = %{$_[0]};
 	my @ret;
@@ -55,7 +58,8 @@ sub getCircles($) {
 	for my $k (keys %dat) {
 		next unless $k;
 		my $r = int( 100 * sqrt($dat{$k}) ) / 100;
-		$r = 1.35 if $r > 1.35;
+		++$CirclesR{$r};
+		$r = $MaxCirclesR if $r > $MaxCirclesR;
 		push @ret,[$k,$r];
 		if ($max < $k) {
 			$max = $k;
@@ -92,7 +96,14 @@ while (<I>) {
 	push @{$MarkerDat{$items[1]}},[ $items[2],$items[9],int(0.5-1000*log($items[9])/log(10))/1000,$tmp[1]+$tmp[2] ];	# pos,p,lg(p) round to 0.001,SumMid(0 is red)
 }
 close I;
-#ddx \%MarkerDat;
+# ddx \%MarkerDat;
+#   scaffold1457 => [
+#                     [8766, 0.3698, 0.432, 7],
+#                     [33512, 0.02941, 1.532, 4],
+#                     [34634, 0.4706, 0.327, 7],
+#                     [36213, 0.03251, 1.488, 5],
+#                     [6453045, 1, 0, 9],
+#                   ],
 my (%OrderbyChr,@ChrOrder,%OrderedOnce,@DirectOrder,@notOrdered);
 my (@order,%Scaff2Chr);
 open I,'<',$orderf or warn $! and goto NULLORDERFILE;
@@ -156,7 +167,7 @@ my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
 @color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
 my $Xrange = 1000;
 my $Yrange = 320;
-$Yrange = 1000 if $type;
+$Yrange = 900 if $type;
 my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
@@ -194,6 +205,21 @@ for my $scaff (@DirectOrder,@notOrdered) {	# Well, I prefer Ordered last to be f
 		next;
 	}
 	my $maxlgp = 0;
+	if ($type && $ResultZone{$scaff} < 0) {
+		my @tmpDat = @{$MarkerDat{$scaff}};
+		my %poses;
+		for my $mditem (@tmpDat) {
+			my ($pos,$p,$lgp,$isFalse) = @$mditem;
+			++$poses{$pos};
+		}
+		my ($maxpos,$minpos) = (sort {$b<=>$a} keys %poses)[0,-1];
+		my $ToDeltra = $maxpos+$minpos;
+		$MarkerDat{$scaff} = [];
+		for my $mditem (@tmpDat) {
+			my ($pos,$p,$lgp,$isFalse) = @$mditem;
+			push @{$MarkerDat{$scaff}},[$ToDeltra-$pos,$p,$lgp,$isFalse];
+		}
+	}
 	for my $mditem (@{$MarkerDat{$scaff}}) {
 		my ($pos,$p,$lgp,$isFalse) = @$mditem;
 		my $posOchr = $start + $pos;
@@ -206,7 +232,7 @@ for my $scaff (@DirectOrder,@notOrdered) {	# Well, I prefer Ordered last to be f
 		}
         my $value = int(0.5+10*$posOchr/$BasepPx)/10;	# 10 => 720 dpi for pt unit system, enough.
 		++$PlotDat{$scaff}{$value}{$lgp};
-        ++$PlotCandiDat{$scaff}{$value}{$lgp} unless $isFalse;
+        #++$PlotCandiDat{$scaff}{$value}{$lgp} unless $isFalse;
 		$maxlgp = $lgp if $maxlgp < $lgp;
 	}
 	$PlotScaffRange{$scaff} = [ ( map {int(0.5+10*$_/$BasepPx)/10} ($start+1,$start+$ScaffoldLen{$scaff}) ),$maxlgp ];
@@ -324,7 +350,11 @@ TXT2
 				}
 				for (@Circles) {
 					my ($y,$r) = @$_;
-					$r *= 2;	# make it bigger
+					if ($type) {
+						$r *= $type;
+					} else {
+						$r *= 2;	# make it bigger
+					}
 					my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
 					$topestY = $Py if $topestY > $Py;
 	#print "$y,$Py,$Yrange,$YmaxVal\n";
@@ -384,6 +414,7 @@ close O;
 
 ddx \%Stat;
 print commify($TotalLen),"\n";
+ddx \%CirclesR;
 __END__
 
 perl -F',' -lane "map {s/'//g;s/ /_/} @F;print join(\"\t\",@F);" ./tig2cat.csv | awk '{if(NR>1)print}' > ./tig2cat.tsv
