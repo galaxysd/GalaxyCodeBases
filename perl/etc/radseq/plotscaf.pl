@@ -167,7 +167,7 @@ my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
 @color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
 my $Xrange = 980;
 my $Yrange = 340;
-#$Xrange = 500 if $type;
+$Xrange = 500 if $type;
 # Y=340pt, X=980pt or 500pt
 my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
@@ -190,7 +190,9 @@ my $unit = $perUnit + (-$perUnit % $roundTo);	# 30 M
 my $countMax = int($TotalLen/$unit) + (($TotalLen%$unit)?1:0);
 print "[!]PlotSize: ",join(",",$TotalLen/$numSuflevel,$perUnit/$numSuflevel,$numlevel,$numSuf,$numSuflevel,$roundTo/$numSuflevel,$unit/$numSuflevel,$countMax),"\n";
 my $BasepPx = 10*$unit/$Xrange;
+$BasepPx = $countMax*$unit/$Xrange;	# Well, use $countMax instead of fixed 10
 my $Ymin = 0;
+print "[!]TotalLen:$TotalLen, per10Unit:$perUnit, numlevel:$numlevel, numSuf:$numSuf=$numSuflevel, roundTo:$roundTo, unit:$unit, countMax:$countMax, BasepPx:$BasepPx\n";
 
 my @Yticks;
 for my $i ($Ymin .. $YmaxVal) {	# 0 will be shared with X-axie, set $Ymin=1 if needed this.
@@ -291,7 +293,7 @@ TXTAX
 
 for my $i (0 .. $XaxisCount) {
 	my $x = $i*$Xrange/$XaxisCount;
-	my $l = (10/$XaxisCount) * $unit*$i/$numSuflevel;
+	my $l = ($countMax/$XaxisCount) * $unit*$i/$numSuflevel;
 	$l .= " $numSuf" if $l;
 	print O <<TXT1;
       <text x="$x" y="$Yrange" dy="20" text-anchor="middle" font-size="$SmallFontSize" fill="$XaxisColor">$l</text>
@@ -439,3 +441,4 @@ awk '{print "scaffold"$4"\tchr"$1}' tig2cat.tsv.s|uniq > tig2cat.order
 
 perl plotscaf.pl tig2cat.order sw000-17R.REC.out.rec.npa sw000
 ./plotscaf.pl tig2cat.order sw210-17R.REC.out.rec.npa sw210ts 1
+./plotscaf.pl tig2cat.order sw210-17R.REC.out.rec.npa sw210tsn 2.5
