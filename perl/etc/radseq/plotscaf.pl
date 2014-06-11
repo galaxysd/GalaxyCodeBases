@@ -165,9 +165,10 @@ push @ChrOrder,$CHR_UN unless $type;
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
 my @color = qw(Black Red Green Navy Blue Purple Orange Gray Maroon Teal Brown);
 @color = qw(Black Brown #0F8B43 #3954A5 #199BCD #B2499B #EE7821 #686868);	# #ED1924
-my $Xrange = 1000;
-my $Yrange = 320;
-$Xrange = 360 if $type;
+my $Xrange = 980;
+my $Yrange = 340;
+#$Xrange = 500 if $type;
+# Y=340pt, X=980pt or 500pt
 my $YmaxVal = 6;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
