@@ -9,12 +9,30 @@ my $minRefLen = 50;
 my $maxRefLen = 100;
 my $HomSNPrate = 0.0005;
 my $HetSNPrate = 0.0005;
+my $TranStoV = 4;	# 转换比颠换，transitions，transversions
 my $QUAL = 'e';
 
 my $outCnt = 1;
 
 open I,'<','hg19chr17.bed.frag' or die;
 open Z,'<','zone.lst' or die;
+
+sub getSNP($) {
+	my $inbase = $_[0];
+	my $outBase = $inbase;
+	my $SorV = rand(1);
+	if ($SorV > $TranStoV/(1+$TranStoV)) {	# transversions
+		my $AB = rand(1);
+		if ($AB > 0.5) {
+			$outBase =~ tr/AGCTagct/CCAAccaa/;
+		} else {
+			$outBase =~ tr/AGCTagct/TTGGttgg/;
+		}
+	} else {	# transitions
+		$outBase =~ tr/AGCTagct/GATCgatc/;
+	}
+	return $outBase;
+}
 
 sub revcom($) {
     my $str = $_[0];
@@ -35,6 +53,7 @@ close Z;
 ddx \%MetUnchgRate;
 
 open S,'>','snp.lst';
+open M,'>','Met.lst';
 
 my $SNPremained = 0;
 my %usedPos;
@@ -49,13 +68,12 @@ sub addSNP($$$$$) {
 		do {
 			$Pos = int(rand($len));
 		} until ( ! exists $usedPos{$chr}{$s}{$Pos} );
-		++$usedPos{$chr}{$s}{$Pos};
+		$usedPos{$chr}{$s}{$Pos} = $type;
 		my $oldbase = substr $newseq,$Pos,1;
-		my $newbase = $oldbase;
-		$newbase =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+		my $newbase = getSNP($oldbase);
 		$newseq = $seq;
 		substr $newseq,$Pos,1,$newbase;
-		print S join("\t",$type,$chr,$s+$Pos,$oldbase,$newbase ,$Pos+1,$SNPcount,$seq,$newseq),"\n";
+		print S join("\t",$type,$chr,$s,$s+$len-1,$s+$Pos,$oldbase,$newbase ,$Pos+1,$SNPcount,$seq,$newseq),"\n";
 	}
 	return $seq;
 }
@@ -118,30 +136,47 @@ sub getPE ($$) {
 	return ($r1,$r2);
 }
 
-sub realdosim($$$$$$$$) {
-	my ($homhet,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e) = @_;
+sub realdosim($$$$$$$$$) {
+	my ($homhet,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e,$MetStatRef) = @_;
 	my @FH = @$fhref;
 	my ($flag,$newseq,$str,$seqname,$r1,$r2);
 	for ( 1 .. $thedepth ) {
+		my $outputhomhet;
+		if (defined $usedPos{$chr}{$s}) {
+			my @t = values %{$usedPos{$chr}{$s}};
+			my %t; @t{@t} = 0 .. $#t;
+			if (exists $t{'Het'}) {
+				$outputhomhet = 'Het';
+			} else {
+				$outputhomhet = 'Hom';
+			}
+		} else {
+			$outputhomhet = 'NoSNP';
+		}
+
 		# Hom -> seq1
 		# fq1 is Plus
-		$str = "$chr:$s $e fq1_Plus $homhet";
+		$str = "$chr:$s $e fq1_Waston $outputhomhet";
 		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
+		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
+		$seqname =~ s/ /#/g;
 #print "$_ $seqname\n";
 		print {$FH[0]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $ReadLen),"\n";
 		print {$FH[1]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $ReadLen),"\n";
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "$chr:$s $e fq1_Minus $homhet";
+		$str = "$chr:$s $e fq1_Crick $outputhomhet";
 		my $revtheseq = revcom($theseq);
 		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
+		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
+		$seqname =~ s/ /#/g;
 		print {$FH[2]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $ReadLen),"\n";
 		print {$FH[3]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $ReadLen),"\n";
 		++$outCnt;
@@ -149,21 +184,25 @@ sub realdosim($$$$$$$$) {
 }
 sub dosim($$$$$$$) {
 	my ($fhref,$unchgRate,$chr,$s,$e,$seq1,$seq2) = @_;
-	my $depth1 = int(0.9 + $eachDepth*3/4);
+	my $depth1 = int(0.9 + $eachDepth/2);
 	my $depth2 = $eachDepth - $depth1;
-	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e);
-	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e) if $depth2>0;
+	my %MetStat = (
+		'NoCpG' => 0, 'CpGisC' => 0, 'CpGtoT' => 0
+	);
+	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
+	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
+	print M join("\t",$chr,$s,$e,$e-$s+1,$MetStat{'CpGtoT'}),"\n";
 }
 
 my (@fhC,@fhN);
-open $fhC[0],'|-',"gzip -9c > Cpm.1.fq.gz" or die;
-open $fhC[1],'|-',"gzip -9c > Cpm.2.fq.gz" or die;
-open $fhC[2],'|-',"gzip -9c > Cmp.1.fq.gz" or die;
-open $fhC[3],'|-',"gzip -9c > Cmp.2.fq.gz" or die;
-open $fhN[0],'|-',"gzip -9c > Npm.1.fq.gz" or die;
-open $fhN[1],'|-',"gzip -9c > Npm.2.fq.gz" or die;
-open $fhN[2],'|-',"gzip -9c > Nmp.1.fq.gz" or die;
-open $fhN[3],'|-',"gzip -9c > Nmp.2.fq.gz" or die;
+open $fhC[0],'|-',"gzip -9c > Cwaston.1.fq.gz" or die;
+open $fhC[1],'|-',"gzip -9c > Cwaston.2.fq.gz" or die;
+open $fhC[2],'|-',"gzip -9c > Ccrick.1.fq.gz" or die;
+open $fhC[3],'|-',"gzip -9c > Ccrick.2.fq.gz" or die;
+open $fhN[0],'|-',"gzip -9c > Nwaston.1.fq.gz" or die;
+open $fhN[1],'|-',"gzip -9c > Nwaston.2.fq.gz" or die;
+open $fhN[2],'|-',"gzip -9c > Ncrick.1.fq.gz" or die;
+open $fhN[3],'|-',"gzip -9c > Ncrick.2.fq.gz" or die;
 my @Paras;
 while(<I>) {
 	chomp;
@@ -180,7 +219,10 @@ while(<I>) {
 	dosim(\@fhN,$Paras[2],$chr,$s,$e,$seq1,$seq2);
 }
 close S;
+close M;
 close $_ for (@fhC,@fhN);
+
+system("gzip -d *.fq.gz");
 
 __END__
 
