@@ -53,7 +53,7 @@ close Z;
 ddx \%MetUnchgRate;
 
 open S,'>','snp.lst';
-open M,'>','Met.lst';
+#open M,'>','Met.lst';
 
 my $SNPremained = 0;
 my %usedPos;
@@ -191,7 +191,7 @@ sub dosim($$$$$$$) {
 	);
 	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
 	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
-	print M join("\t",$chr,$s,$e,$e-$s+1,$MetStat{'CpGtoT'}),"\n";
+	#print M join("\t",$chr,$s,$e,$e-$s+1,$MetStat{'CpGtoT'}),"\n";
 }
 
 my (@fhC,@fhN);
@@ -219,10 +219,10 @@ while(<I>) {
 	dosim(\@fhN,$Paras[2],$chr,$s,$e,$seq1,$seq2);
 }
 close S;
-close M;
+#close M;
 close $_ for (@fhC,@fhN);
 
-system("gzip -d *.fq.gz");
+system("gzip -fd *.fq.gz");
 
 __END__
 
