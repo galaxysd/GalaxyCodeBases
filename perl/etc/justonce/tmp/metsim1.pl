@@ -118,15 +118,15 @@ sub getPE ($$) {
 	return ($r1,$r2);
 }
 
-sub dosim($$$$$$$) {
-	my ($fhref,$unchgRate,$chr,$s,$e,$seq1,$seq2) = @_;
+sub realdosim($$$$$$$$) {
+	my ($homhet,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e) = @_;
 	my @FH = @$fhref;
 	my ($flag,$newseq,$str,$seqname,$r1,$r2);
-	for ( 1 .. $eachDepth ) {
+	for ( 1 .. $thedepth ) {
 		# Hom -> seq1
 		# fq1 is Plus
-		$str = "$chr:$s $e fq1_Plus Hom";
-		($flag,$newseq) = simPlusMinus($seq1,$unchgRate);
+		$str = "$chr:$s $e fq1_Plus $homhet";
+		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
@@ -136,9 +136,9 @@ sub dosim($$$$$$$) {
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "$chr:$s $e fq1_Minus Hom";
-		my $revseq1 = revcom($seq1);
-		($flag,$newseq) = simPlusMinus($revseq1,$unchgRate);
+		$str = "$chr:$s $e fq1_Minus $homhet";
+		my $revtheseq = revcom($theseq);
+		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
@@ -146,6 +146,13 @@ sub dosim($$$$$$$) {
 		print {$FH[3]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $ReadLen),"\n";
 		++$outCnt;
 	}
+}
+sub dosim($$$$$$$) {
+	my ($fhref,$unchgRate,$chr,$s,$e,$seq1,$seq2) = @_;
+	my $depth1 = int(0.9 + $eachDepth*3/4);
+	my $depth2 = $eachDepth - $depth1;
+	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e);
+	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e) if $depth2>0;
 }
 
 my (@fhC,@fhN);
@@ -167,7 +174,7 @@ while(<I>) {
 		@Paras = @{ $MetUnchgRate{$s} };
 	}
 	my $seq1 = addSNP($chr,$s,$seq,$HomSNPrate,'Hom');
-	my $seq2 = addSNP($chr,$s,$seq,$HetSNPrate,'Het');
+	my $seq2 = addSNP($chr,$s,$seq1,$HetSNPrate,'Het');
 #ddx \@Paras; die;
 	dosim(\@fhC,$Paras[1],$chr,$s,$e,$seq1,$seq2);
 	dosim(\@fhN,$Paras[2],$chr,$s,$e,$seq1,$seq2);
