@@ -75,7 +75,7 @@ sub addSNP($$$$$) {
 		substr $newseq,$Pos,1,$newbase;
 		print S join("\t",$type,$chr,$s,$s+$len-1,$s+$Pos,$oldbase,$newbase ,$Pos+1,$SNPcount,$seq,$newseq),"\n";
 	}
-	return $seq;
+	return $newseq;
 }
 
 sub getCpG($) {
