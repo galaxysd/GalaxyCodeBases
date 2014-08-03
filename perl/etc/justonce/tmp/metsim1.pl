@@ -156,7 +156,7 @@ sub realdosim($$$$$$$$$) {
 
 		# Hom -> seq1
 		# fq1 is Plus
-		$str = "$chr:$s $e fq1_Waston $outputhomhet";
+		$str = "$chr:$s $e fq1#Waston $outputhomhet";
 		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
@@ -169,7 +169,7 @@ sub realdosim($$$$$$$$$) {
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "$chr:$s $e fq1_Crick $outputhomhet";
+		$str = "$chr:$s $e fq1#Crick $outputhomhet";
 		my $revtheseq = revcom($theseq);
 		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
 		++$$MetStatRef{$flag};
