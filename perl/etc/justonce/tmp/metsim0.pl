@@ -4,6 +4,7 @@ use warnings;
 
 my $minRefLen = 50;
 my $maxRefLen = 100;
+($minRefLen,$maxRefLen) = (90,220);
 
 open I,'<','hg19chr17.bed.frag' or die;
 
@@ -29,7 +30,7 @@ my $i=1;
 
 my @Rate = (
 	[.1,.1],[1,0],[0,1],[.5,.1],[.1,.5],
-	[.7,.5],[.5,.7],[.1,.5],[.5,.1],[.5,.5]
+	[.7,.3],[.3,.7],[.1,.5],[.5,.1],[.5,.5]
 );
 my $k=0;
 
@@ -43,8 +44,10 @@ while (<I>) {
 	unless ($i % $each) {
 		print join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
 		print O join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
-		chomp($_=<I>);
-		(undef,$s0) = split /\t/;
+		do {
+			$_=<I>;
+			(undef,$s0,undef,$len) = split /\t/;
+		} while ($len < $minRefLen or $len > $maxRefLen);
 		++$i;
 		++$k;
 	}

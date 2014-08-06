@@ -12,6 +12,8 @@ my $HetSNPrate = 0.0005;
 my $TranStoV = 4;	# 转换比颠换，transitions，transversions
 my $QUAL = 'e';
 
+($minRefLen,$maxRefLen) = (90,220);
+
 my $outCnt = 1;
 
 open I,'<','hg19chr17.bed.frag' or die;
@@ -157,7 +159,7 @@ sub realdosim($$$$$$$$$) {
 
 		# Hom -> seq1
 		# fq1 is Plus
-		$str = "$chr:$s $e fq1#Waston $outputhomhet";
+		$str = "$chr:$s $e Waston $outputhomhet";
 		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
@@ -170,7 +172,7 @@ sub realdosim($$$$$$$$$) {
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "$chr:$s $e fq1#Crick $outputhomhet";
+		$str = "$chr:$s $e Crick $outputhomhet";
 		my $revtheseq = revcom($theseq);
 		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
 		++$$MetStatRef{$flag};
@@ -212,7 +214,7 @@ while(<I>) {
 #print "$s\n";
 	if (exists $MetUnchgRate{$s}) {
 		@Paras = @{ $MetUnchgRate{$s} };
-		#ddx \@Paras;
+		ddx \@Paras;
 	}
 	my $seq1 = addSNP($chr,$s,$seq,$HomSNPrate,'Hom');
 	my $seq2 = addSNP($chr,$s,$seq1,$HetSNPrate,'Het');
