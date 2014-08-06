@@ -153,6 +153,7 @@ sub realdosim($$$$$$$$$) {
 		} else {
 			$outputhomhet = 'NoSNP';
 		}
+#print STDERR "$outputhomhet $unchgRate\t$chr,$s,$e\n";
 
 		# Hom -> seq1
 		# fq1 is Plus
@@ -211,6 +212,7 @@ while(<I>) {
 #print "$s\n";
 	if (exists $MetUnchgRate{$s}) {
 		@Paras = @{ $MetUnchgRate{$s} };
+		#ddx \@Paras;
 	}
 	my $seq1 = addSNP($chr,$s,$seq,$HomSNPrate,'Hom');
 	my $seq2 = addSNP($chr,$s,$seq1,$HetSNPrate,'Het');
