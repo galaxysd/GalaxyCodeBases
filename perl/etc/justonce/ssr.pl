@@ -90,9 +90,10 @@ sub getpattern($$) {
 				my $start = $eachposes[0]-$size;
 				my $left = substr($seq, $start-$flanking, $flanking);
 				my $right = substr($seq, $eachposes[-1]+$size,$flanking);
-				my $ssrseq = substr($seq, $start, @eachposes * $size);
+				my $ssrlen = (1+@eachposes) * $size;
+				my $ssrseq = substr($seq, $start, $ssrlen);
 				my $all = "$left ($ssrseq) $right";
-				print O join("\t",$pattern,@eachposes * $size, 1+$start,$all),"\n";
+				print O join("\t",$pattern, $ssrlen, 1+$start,$all),"\n";
 			}
 		}
 	    #print "$_ :";
