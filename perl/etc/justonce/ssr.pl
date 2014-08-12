@@ -35,7 +35,7 @@ sub revcom($) {
     return $rev;
 }
 my $maxLen = 500;
-my $minLen = 50;
+my $minLen = 100;	# 150
 my $flanking = 200;
 print "[@patterns]\n";
 my (@bothpatterns,%t);
