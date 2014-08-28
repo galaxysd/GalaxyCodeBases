@@ -7,7 +7,7 @@ use Data::Dump qw(ddx);
 die "Usage: $0 <input sam.gz/bam> <output>\n" if @ARGV < 2;
 my ($inf,$outf)=@ARGV;
 
-open CHR,'<','chr.lst' or die;
+open CHR,'<','chr.lst' or die "[x]Cannot read chr.lst, use `samtools faidx` to get one !\n";
 my %ChrGI2ID;
 while (<CHR>) {
 	my ($gi,$id) = split /\s+/,$_;
