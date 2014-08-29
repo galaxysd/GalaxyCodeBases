@@ -21,5 +21,8 @@
 	url = git@gitorious.org:galaxycodebases/main.git
 	fetch = +refs/heads/*:refs/remotes/g/*
 	#mirror = true
+[remote "c"]
+	url = git@coding.net:galaxy/GalaxyCodeBase.git
+	fetch = +refs/heads/*:refs/remotes/c/*
 [alias]
-	xpush = !git push origin master -v && git push g master -v
+	xpush = !git push origin master -v && git push g master -v  && git push c master -v
