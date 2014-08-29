@@ -1,6 +1,9 @@
 #!/bin/sh
 #$ -S /bin/bash
 
+# --       project & hard_queue_list       --
+#$ -P HUMcccR -q bc.q
+
 # --             our name                  --
 #$ -N PMiniWorm
 

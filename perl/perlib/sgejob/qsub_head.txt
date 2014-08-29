@@ -1,6 +1,9 @@
 #!/bin/sh
 #$ -S /bin/bash
 
+# --       project & hard_queue_list       --
+#$ -P HUMcccR -q bc.q
+
 # --             our name                  --
 #$ -N PMiniWorm
 
@@ -20,11 +23,14 @@
 #$ -e /dev/null
 #$ -o /dev/null
 
+SEEDFILE=ss.seed
+SEEDLINES=$(/usr/bin/wc -l $SEEDFILE|/bin/awk '{print $1}')
+
 ARC=lx26-amd64
 QSUB=$SGE_ROOT/bin/$ARC/qsub
 SLEEP=20
 
-cmd="$QSUB $0 $0 $@"
+cmd="$QSUB -t 1-$SEEDLINES $0 $0 $@"
 
 # started by SGE or manually
 if [ "$JOB_ID" = "" ]; then
@@ -46,6 +52,9 @@ else
 # jobs here
 	uname -a > ${MAIN}.out 2>>${MAIN}.err
 	sleep 2
+	PATH=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $1}')
+	MAIN=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $2}')
+	perl sperm_1_startplot.pl $PATH $MAIN
 # jobs end
 	ENDVALUE=$?
 	cat <<EOFSTAT >> ${MAIN}.err
