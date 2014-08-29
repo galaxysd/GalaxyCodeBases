@@ -7,7 +7,8 @@ use Data::Dump qw(ddx);
 die "Usage: $0 <input sam.gz/bam> <output>\n" if @ARGV < 2;
 my ($inf,$outf)=@ARGV;
 
-open CHR,'<','chr.lst' or die "[x]Cannot read chr.lst, use `samtools faidx` to get one !\n";
+=pod
+open CHR,'<','chr.lst' or die "[x]Cannot read chr.lst, use `samtools faidx` and append ChrID manually to get one!\n";
 my %ChrGI2ID;
 while (<CHR>) {
 	my ($gi,$id) = split /\s+/,$_;
@@ -16,6 +17,7 @@ while (<CHR>) {
 close CHR;
 $ChrGI2ID{'='}='=';
 ddx \%ChrGI2ID;
+=cut
 
 my $FH;
 if ($inf =~ /\.sam\.gz$/i) {
@@ -47,7 +49,8 @@ my %DatbyChrM;
 while ($line = <$FH>) {
 	my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 	#print "$id, $flag, Chr$ChrGI2ID{$ref}, $pos, $mapq, $CIAGR, Chr$ChrGI2ID{$mref}, $mpos, $isize\n";
-	my $commonChrID = $ChrGI2ID{$ref};
+	#my $commonChrID = $ChrGI2ID{$ref};
+	my $commonChrID = $ref;
 	my $posto1m = int($pos/1000000);
 	++$DatbyChrM{$commonChrID}->[$posto1m];
 }
