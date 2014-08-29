@@ -61,7 +61,7 @@ for my $chr ( keys %ChrLen ) {
 	while ($line = <$FH>) {
 		my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 		#print "$id, $flag, Chr$ChrGI2ID{$ref}, $pos, $mapq, $CIAGR, Chr$ChrGI2ID{$mref}, $mpos, $isize\n";
-		next if $ref ne $chr
+		next if $ref ne $chr;
 		#my $commonChrID = $ChrGI2ID{$ref};
 		my $commonChrID = $ref;
 		my $posto1m = int($pos/1000000);
