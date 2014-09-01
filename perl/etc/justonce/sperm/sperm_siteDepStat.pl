@@ -1,7 +1,7 @@
 #!/bin/env perl
 use strict;
 use warnings;
-use IO::Unread qw(unread);
+#use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
 #my $ZONE_LENGTH = 200000;
@@ -11,6 +11,7 @@ die "Usage: $0 <ZONE_LENGTH> <output>\n" if @ARGV < 2;
 my ($ZONE_LENGTH,$outf)=@ARGV;
 warn "ZONE_LENGTH: $ZONE_LENGTH\n";
 
+=pod
 open CHR,'<','chr.lst' or die;
 my %ChrGI2ID;
 while (<CHR>) {
@@ -20,8 +21,11 @@ while (<CHR>) {
 close CHR;
 $ChrGI2ID{'='}='=';
 #ddx \%ChrGI2ID;
+=cut
 
 open I,'<','xtubam/depth.sh' or die;
+# $ cat /bak/seqdata/sperm/xtubam/depth.sh
+# samtools depth mdaSperm23xtu.bam mdaSperm24xtu.bam mdaSperm28xtu.bam mlbacDonor.bam mlbacSpermS01.bam mlbacSpermS02.bam mlbacSpermS03.bam | xz -9c > depths.xz
 our @IDs;
 my @tmpids;
 while (<I>) {
@@ -34,11 +38,12 @@ close I;
 for (@tmpids) {
 	if (/\.bam$/) {
 		s/\.bam$//;
+		s/\.sort$//;
 		push @IDs,$_;
 	}
 }
 ddx \@IDs;
-our @IDsAllOne = split //,'1' x @IDs;
+#our @IDsAllOne = split //,'1' x @IDs;
 
 sub doaddup($$) {
 	my ($adder,$data) = @_;
@@ -71,15 +76,15 @@ sub dosetvalue($$) {
 	}
 }
 
-my $FileName = 'xtubam/depths.xz';
+my $FileName = 'xtubam/depths.gz';
 #$FileName = 'tmpdep.xz';
-open I,'-|',"xz -dc $FileName" or die;
+open I,'-|',"gzip -dc $FileName" or die;
 my $posPoint;	# 1-based coordinate
 my (%Dat,$t,%LastmPos);	# [cov-avg,emptRatio,covsum,covbp,emptbp,lasts]
 while (<I>) {
 	chomp;
-	my ($chrname,$pos,@depthDat) = split /\t/;
-	my $chrid = $ChrGI2ID{$chrname};
+	my ($chrid,$pos,@depthDat) = split /\t/;
+	#my $chrid = $ChrGI2ID{$chrname};
 	my $mPos = int($pos / $ZONE_LENGTH);
 	unless (defined $Dat{$chrid}->[$mPos]) {
 		$Dat{$chrid}->[$mPos] = [[],[],[],[],[],[]];
@@ -143,6 +148,6 @@ for my $chrid (keys %Dat) {
 
 
 __END__
-perl rsstat.pl 200000 rss.tsv
+perl sperm_siteDepStat.pl 200000 rss.tsv
 perl rsstat.pl 500000 rss5k.tsv
 perl rsstat.pl 1000000 rss1m.tsv
