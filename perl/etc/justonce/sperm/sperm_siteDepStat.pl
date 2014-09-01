@@ -131,7 +131,7 @@ for my $chrid (keys %Dat) {
 		}
 	}
 }
-ddx \%Dat;
+#ddx \%Dat;
 
 open OUT,'>',$outf or die "Error opening $outf: $!\n";
 print OUT "# ZONE_LENGTH: $ZONE_LENGTH\n# Order: ",join(' ',@IDs),"\n#",
