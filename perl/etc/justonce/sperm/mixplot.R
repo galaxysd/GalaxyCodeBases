@@ -8,7 +8,7 @@ SampleIDs <- c("MDA-Blood","MALBAC-Blood","MDA-Sperm23","MDA-Sperm24","MDA-Sperm
 theLen <- length(SampleIDs)
 
 ChrCount <- 22
-ChrCount <- 1
+#ChrCount <- 1
 
 DATa <- read.table("bamrsplot8.tsv.gz",skip=1)
 DATb <- read.table("rss1m.tsv.gz",skip=3)
