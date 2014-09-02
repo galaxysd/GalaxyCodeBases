@@ -2,11 +2,14 @@
 
 # R --save < lm.R --args bamrsplot.tsv tsv/nrss1m.tsv read.lm uncover.lm base.lm
 
+# gzcat bamrsplot8.tsv.gz|perl -lane 'print $_ unless $F[0] =~ /[XYM]/i' > bamrsplot8.auto.tsv
+# gzcat rss1m.tsv.gz|perl -lane 'print $_ unless $F[0] =~ /[XYM]/i' > rss1m.auto.tsv
+
 names <- c("MDA-Blood","MALBAC-Blood","MDA-Sperm23","MDA-Sperm24","MDA-Sperm28","MALBAC-SpermS01","MALBAC-SpermS02","MALBAC-SpermS03")
 theLen <- length(names)
 
-DATa <- read.table("bamrsplot8.tsv.gz",skip=1)
-DATb <- read.table("rss1m.tsv.gz",skip=3)
+DATa <- read.table("bamrsplot8.auto.tsv",skip=1)
+DATb <- read.table("rss1m.auto.tsv",skip=3)
 
 for (i in seq(3,1+theLen)) {
 	for (j in seq(i+1,2+theLen)) {
