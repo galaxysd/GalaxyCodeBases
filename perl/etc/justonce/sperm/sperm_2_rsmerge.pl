@@ -1,7 +1,7 @@
 #!/bin/env perl
 use strict;
 use warnings;
-use IO::Unread qw(unread);
+#use IO::Unread qw(unread);
 use Data::Dump qw(ddx);
 
 die "Usage: $0 <out> <in1> [in2] [...]\n" if @ARGV < 2;
@@ -25,13 +25,16 @@ for my $i (@FH) {
 	while (<$i>) {
 		if (/^\[(\w+)\]$/) {
 			$chr = $1;
+			$chr =~ s/^chr//i;
 			$zeroPos=0;
 			next;
 		}
-		my $v = (split /\s+/)[0];
-		$Dat{$chr}[$zeroPos]{$name} = $v;
-		$Max{$chr} = $v if (defined $Max{$chr}) ? $Max{$chr} < $v : 1;
-		++$zeroPos;
+		unless ($chr eq '][') {
+			my $v = (split /\s+/)[0];
+			$Dat{$chr}[$zeroPos]{$name} = $v;
+			$Max{$chr} = $v if (defined $Max{$chr}) ? $Max{$chr} < $v : 1;
+			++$zeroPos;
+		}
 	}
 }
 ddx \%Dat;
@@ -54,3 +57,15 @@ close OUT;
 __END__
 perl rsmerge.pl t t.out t2.out /bak/seqdata/sperm/t.out
 perl rsmerge.pl bamrsplot.tsv xtubam/*.ss
+
+perl sperm_2_rsmerge.pl bamrsplot8.tsv ~/t/sperm/*.nstat >log
+
+$ ls -1 ~/t/sperm/*.nstat
+/Users/Galaxy/t/sperm/ABlood-MDA.nstat
+/Users/Galaxy/t/sperm/Blood-MAL.nstat
+/Users/Galaxy/t/sperm/Sperm23-MDA.nstat
+/Users/Galaxy/t/sperm/Sperm24-MDA.nstat
+/Users/Galaxy/t/sperm/Sperm28-MDA.nstat
+/Users/Galaxy/t/sperm/SpermS01.nstat
+/Users/Galaxy/t/sperm/SpermS02.nstat
+/Users/Galaxy/t/sperm/SpermS03.nstat

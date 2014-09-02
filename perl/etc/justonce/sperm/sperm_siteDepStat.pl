@@ -151,3 +151,9 @@ __END__
 perl sperm_siteDepStat.pl 200000 rss.tsv
 perl rsstat.pl 500000 rss5k.tsv
 perl rsstat.pl 1000000 rss1m.tsv
+
+$ll -L *tsv depths.gz
+-rw-r--r-- 1 gaoshengjie bc_tumor  13G Sep  1 23:04 depths.gz
+-rw-r--r-- 1 gaoshengjie bc_tumor 693K Sep  2 14:01 rss1m.tsv
+-rw-r--r-- 1 gaoshengjie bc_tumor 1.4M Sep  2 13:58 rss500k.tsv
+(the two tsv starts at the same time, immediately after `samtools depth`.)
