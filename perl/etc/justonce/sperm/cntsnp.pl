@@ -28,8 +28,11 @@ sub getGT($) {
 
 while (<ISP>) {
 	next if /^#/;
-	my ($chr,$pos,undef,$ref,$alt,undef,undef,$INFO,undef,$data) = split /\t/;
+	my ($chr,$pos,undef,$ref,$alt,$QUAL,undef,$INFO,undef,$data) = split /\t/;
 	next if $INFO =~ /INDEL;/;
+	next if $QUAL < 20;
+	my $GQ = (split /:/,$data)[-1];
+	next if $GQ < 20;
 	next unless $chr =~ /^chr\d+/;
 	my $GT;
 	($chr,$pos,$GT) = @{getGT($_)};
@@ -37,8 +40,11 @@ while (<ISP>) {
 }
 while (<IBD>) {
 	next if /^#/;
-	my ($chr,$pos,undef,$ref,$alt,undef,undef,$INFO,undef,$data) = split /\t/;
+	my ($chr,$pos,undef,$ref,$alt,$QUAL,undef,$INFO,undef,$data) = split /\t/;
 	next if $INFO =~ /INDEL;/;
+	next if $QUAL < 20;
+	my $GQ = (split /:/,$data)[-1];
+	next if $GQ < 20;
 	next unless $chr =~ /^chr\d+/;
 	my $GT;
 	($chr,$pos,$GT) = @{getGT($_)};
