@@ -3,11 +3,14 @@ use strict;
 use warnings;
 use Data::Dump;
 
-die "Usage: $0 <blood vcf.gz> <sperm vcf.gz>\n" if @ARGV < 2;
+#die "Usage: $0 <blood vcf.gz> <sperm vcf.gz>\n" if @ARGV < 2;
+die "Usage: $0 <blood vcf> <sperm vcf>\n" if @ARGV < 2;
 my ($inbd,$insp)=@ARGV;
 
-open IBD, "-|", "zcat $inbd" or die "$!";
-open ISP, "-|", "zcat $insp" or die "$!";
+#open IBD, "-|", "zcat $inbd" or die "$!";
+#open ISP, "-|", "zcat $insp" or die "$!";
+open IBD,'<',$inbd or die "$!";
+open ISP,'<',$insp or die "$!";
 open O,'>',"$insp.stat";
 
 my %SNP;
