@@ -4,7 +4,7 @@
 
 # gzcat bamrsplot8.tsv.gz|perl -lane 'print $_ unless $F[0] =~ /[XYM]/i' > bamrsplot8.auto.tsv
 # gzcat rss1m.tsv.gz|perl -lane 'print $_ unless $F[0] =~ /[XYM]/i' > rss1m.auto.tsv
-
+# mv base.lm read.lm uncover.lm t/
 names <- c("MDA-Blood","MALBAC-Blood","MDA-Sperm23","MDA-Sperm24","MDA-Sperm28","MALBAC-SpermS01","MALBAC-SpermS02","MALBAC-SpermS03")
 theLen <- length(names)
 
