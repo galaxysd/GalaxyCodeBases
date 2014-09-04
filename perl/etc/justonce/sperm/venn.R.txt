@@ -16,9 +16,10 @@ venn.plot <- draw.triple.venn(
 	 #cat.col = c("blue", "red", "green"),
 	 fontfamily = rep("Arial", 7),
 	 cat.fontfamily = rep("Arial", 3),
-	 rotation.degree = 30
+	 rotation.degree = 30,
+	 ind = FALSE
 	 );
-tiff(filename = "Venn_diagram_MDA.tiff", compression = "lzw",width = 2049, height = 2049, units = "px", pointsize = 48);
+tiff(filename = "Venn_diagram_MDA.tiff", compression = "lzw",width = 2049, height = 2049, units = "px", pointsize = 40);
 grid.draw(venn.plot);
 dev.off();
 
@@ -43,8 +44,10 @@ venn.plot <- draw.triple.venn(
 	 #cat.col = c("blue", "red", "green"),
 	 fontfamily = rep("Arial", 7),
 	 cat.fontfamily = rep("Arial", 3),
-	 rotation.degree = 30
+	 rotation.degree = 30,
+	 ind = FALSE,
+	 cat.default.pos='outer'
 	 );
-tiff(filename = "Venn_diagram_MALBAC.tiff", compression = "lzw",width = 2049, height = 2049, units = "px", pointsize = 48);
+tiff(filename = "Venn_diagram_MALBAC.tiff", compression = "lzw",width = 2049, height = 2049, units = "px", pointsize = 40);
 grid.draw(venn.plot);
 dev.off();
