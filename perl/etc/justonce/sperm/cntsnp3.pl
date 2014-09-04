@@ -45,7 +45,23 @@ sub readfile($) {	# 1 .. 3
 readfile($_) for (1 .. 3);
 close $_ for @FH;
 
-ddx \%SNP;
+#ddx \%SNP;
+#              141050953 => { 1 => "TT", 2 => "TT" },
+
+my %Stat;
+for my $chr (keys %SNP) {
+	for my $pos (keys %{$Stat{$chr}}) {
+		my %Dat = %{$Stat{$chr}{$pos}};
+		my $flag = 0;
+		for my $k (keys %Dat) {
+			$flag |= 2^$k;
+		}
+		$Stat{$chr}{$pos} = $flag;
+ddx $Stat{$chr}{$pos}; print "$flag\n";
+	}
+}
+
+
 __END__
 my (%Results,%subResults);
 for my $chr (keys %SNP) {
