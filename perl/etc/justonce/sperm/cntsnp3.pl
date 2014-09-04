@@ -27,7 +27,7 @@ sub getGT($) {
 
 sub readfile($) {	# 1 .. 3
 	my $fh = $FH[ $_[0] - 1 ];
-	while ($fh) {
+	while (<$fh>) {
 		next if /^#/;
 		my ($chr,$pos,undef,$ref,$alt,$QUAL,undef,$INFO,undef,$data) = split /\t/;
 		next if $INFO =~ /INDEL;/;
