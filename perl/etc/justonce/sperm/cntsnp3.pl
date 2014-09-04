@@ -26,7 +26,8 @@ sub getGT($) {
 }
 
 sub readfile($) {	# 1 .. 3
-	my $fh = $FH[ $_[0] - 1 ];
+	my $id = $_[0];
+	my $fh = $FH[ $id - 1 ];
 	while (<$fh>) {
 		next if /^#/;
 		my ($chr,$pos,undef,$ref,$alt,$QUAL,undef,$INFO,undef,$data) = split /\t/;
@@ -37,7 +38,7 @@ sub readfile($) {	# 1 .. 3
 		next unless $chr =~ /^chr\d+/;
 		my $GT;
 		($chr,$pos,$GT) = @{getGT($_)};
-		$SNP{$chr}{$pos}{$_[0]} = $GT;
+		$SNP{$chr}{$pos}{$id} = $GT;
 	}
 }
 
