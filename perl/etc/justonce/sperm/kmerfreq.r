@@ -107,7 +107,7 @@ plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,0.212),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
 legend("topright",pch=c(15,-1),lty=c(-1,1),col=c("navy","red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=4,
-	legend= c(argv[1],paste0("Theoretical=",argv[2])))
+	legend= c(argv[1],paste0("lamda=",argv[2])))
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
 lines(xx,zz,xlim=c(0,maxXrange),type='l',col='red',lwd=2)
 #lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
