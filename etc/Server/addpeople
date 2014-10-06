@@ -11,6 +11,7 @@ fi
 
 useradd -N -p atluolab $1
 echo $PASS | passwd --stdin $1
+usermod -a -G lab $1
 
 mkdir /share/users/$1
 
