@@ -1,0 +1,6 @@
+perl -lane 'BEGIN {my (%a,$s);} ++$a{$F[2]};$s+=$F[2]; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' S01.depth > s01.dstat &
+
+bcftools view blood.mpileup|perl -lane 'BEGIN {my (%a);} next if /^#/;$t=$F[7];$t=~/DP=(\d+);/;++$a{$1}; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' > blood.dstat &
+
+perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; $s+=$F[0]*$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$r=$a{$i}/2561221808;print "$i\t$a{$i}\t$r";} else {print "$i\t0\t0"} } }' blood.dstat > blood.pstat &
+
