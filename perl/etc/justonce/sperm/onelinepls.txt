@@ -1,9 +1,14 @@
 perl -lane 'BEGIN {my (%a,$s);} ++$a{$F[2]};$s+=$F[2]; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' S01.depth > s01.dstat &
 
-bcftools view blood.mpileup|perl -lane 'BEGIN {my (%a);} next if /^#/;$t=$F[7];$t=~/DP=(\d+);/;++$a{$1}; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' > blood.dstat &
+#bcftools view blood.mpileup|perl -lane 'BEGIN {my (%a);} next if /^#/;$t=$F[7];$t=~/DP=(\d+);/;++$a{$1}; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' > blood.dstat &
+bcftools view blood.mpileup|perl -lane 'BEGIN {my (%a);} next if /^#/;next if $F[3] eq "N";$t=$F[7];$t=~/DP=(\d+);/;++$a{$1}; END {print "$_\t$a{$_}" for sort {$a<=>$b} keys %a;}' > blood.dstat &
 
 perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; $s+=$F[0]*$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$r=$a{$i}/2561221808;print "$i\t$a{$i}\t$r";} else {print "$i\t0\t0"} } }' blood.dstat > blood.pstat &
 
-perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$s+=$a{$i};$r=$s/2561221808;print "$i\t$r\t$a{$i}\t$s";} else {print "$i\t0\t0"} } }'
+#perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$s+=$a{$i};$r=$s/2561221808;print "$i\t$r\t$a{$i}\t$s";} else {print "$i\t0\t0"} } }'
+#perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1];$s+=$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$r=$s/2561221808;print "$i\t$r\t$a{$i}\t$s";$s-=$a{$i};} else {print "$i\t0\t0\t0"} } }'
+perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1];$s+=$F[1]; END { for my $i (0 .. 8011) { if (exists $a{$i}) {$r=$s/2561221808;print "$i\t$r\t$a{$i}\t$s";$s-=$a{$i};} else {print "$i\t0\t0\t0"} } }'
+
+paste <(awk '{print $1"\t"$2}' blood.pstat) <(awk '{print $2}' s23.pstat) <(awk '{print $2}' s24.pstat) <(awk '{print $2}' s28.pstat) <(awk '{print $2}' s01.pstat) <(awk '{print $2}' s02.pstat) <(awk '{print $2}' s03.pstat) >joined.tsv
 
 
