@@ -4,3 +4,6 @@ bcftools view blood.mpileup|perl -lane 'BEGIN {my (%a);} next if /^#/;$t=$F[7];$
 
 perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; $s+=$F[0]*$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$r=$a{$i}/2561221808;print "$i\t$a{$i}\t$r";} else {print "$i\t0\t0"} } }' blood.dstat > blood.pstat &
 
+perl -lane 'BEGIN {my (%a,$s);} $a{$F[0]}=$F[1]; END { my @k=sort {$a<=>$b} keys %a; for my $i (0 .. $k[-1]) { if (exists $a{$i}) {$s+=$a{$i};$r=$s/2561221808;print "$i\t$r\t$a{$i}\t$s";} else {print "$i\t0\t0"} } }'
+
+
