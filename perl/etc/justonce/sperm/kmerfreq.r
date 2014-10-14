@@ -6,8 +6,8 @@ if (is.null(argv) | length(argv)<2) {
 infile <- argv[1]
 avgcvg <- as.numeric(argv[2])
 
-maxXrange <- 30
-testXrange <- 20
+maxXrange <- 25
+testXrange <- 14
 #infile <- 'mlbacDonor.k25.lz4.hist'
 #avgcvg <- 6.85
 
@@ -15,7 +15,7 @@ library('vcd')
 
 aa=read.table(infile,skip=8)
 thefreq <- aa[,1]
-cnt <- aa[,2]
+cnt <- as.numeric(aa[,2])
 theratio <- aa[,3]
 
 thedata <- cbind(thefreq,cnt)
@@ -68,6 +68,9 @@ newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	p.hat <- dpois(count, lambda = par$lambda)
 	#expected <- sum(as.numeric(freq))/sum(p.hat) * p.hat
 	expected <- p.hat
+	relsum <- sum(expected)/sum(freq);
+	print(relsum);
+	#freq <- freq*relsum;
 	df <- switch(method[1], MinChisq = {
 		length(freq) + df
 	}, ML = {
@@ -88,6 +91,7 @@ sumres <- summary(fitres)
 print(fitres)
 print(sumres)
 
+print(cbind(fitres$observed,fitres$fitted,fitres$observed-fitres$fitted))
 
 tiff(filename = paste0(argv[1],".tiff"), compression="lzw", width = 683, height = 683)#, units = "px", pointsize = 52)
 par(mar=c(5, 8, 2, 0.5),ps=20,family='sans')
@@ -98,18 +102,21 @@ xx=aa[,1]
 #yy <- usedata[,1]	# freq
 
 mean2=avgcvg
-zz=dpois(xx,mean2);
+xxx=seq(0,max(xx))
+zz=dpois(xxx,mean2);
+maxY=max(zz,yy)
+maxY<-0.24
 #lines(xx,zz,xlim=c(0,60),type='l');
 
 #barplot(yy,xlim=c(0,20),ylim=c(0,0.212),xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
-plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,0.212),
-	main = paste0("Pearson goodness of fit, p = ",sumres[1,3]),
+plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,maxY),
+	main = paste0("Pearson goodness of fit, p=",sumres[1,3]),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
 legend("topright",pch=c(15,-1),lty=c(-1,1),col=c("navy","red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=4,
 	legend= c(argv[1],paste0("lamda=",argv[2])))
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
-lines(xx,zz,xlim=c(0,maxXrange),type='l',col='red',lwd=2)
+lines(xxx,zz,xlim=c(0,maxXrange),type='l',col='red',lwd=2)
 #lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
 lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
 dev.off()
@@ -130,3 +137,11 @@ dev.off()
 #                          X^2 df  P(> X^2)
 #Pearson          2.511278e+05 18 0.0000000
 #Likelihood Ratio 2.540676e+00 18 0.9999924
+
+#./kmerfreq.r S1.fq.k25.gz.hist 3.29571
+#./kmerfreq.r S2.fq.k25.gz.hist 3.28174
+#./kmerfreq.r S3.fq.k25.gz.hist 2.94459
+#./kmerfreq.r S23.fq.k25.gz.hist 3.26044
+#./kmerfreq.r S24.fq.k25.gz.hist 3.27885
+#./kmerfreq.r S28.fq.k25.gz.hist 3.30884
+#./kmerfreq.r blood.fq.k25.gz.hist 3.27885

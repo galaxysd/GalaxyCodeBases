@@ -12,19 +12,19 @@ testXrange <- 20
 
 #library('vcd')
 
-blood=read.table('mlbacDonor.k25.lz4.hist',skip=8)
+blood=read.table('blood.fq.k25.gz.hist',skip=8)
 #mda=read.table('mdaS23.k25.lz4.hist',skip=8)
 #malbac=read.table('S01.k25.lz4.hist',skip=8)
 indata=read.table(infile,skip=8)
 
 getdata <- function(x,range) {
 	thefreq <- x[,1]
-	cnt <- x[,2]
+	cnt <- as.numeric(x[,2])
 	theratio <- x[,3]
 	thedata <- cbind(thefreq,cnt)
 	flag <- thedata[,1] <= range
-	RVAL <- cbind(theratio[flag],thefreq[flag])
-	#RVAL <- cbind(cnt[flag],thefreq[flag])
+	#RVAL <- cbind(theratio[flag],thefreq[flag])
+	RVAL <- cbind(cnt[flag],thefreq[flag])
 	RVAL
 }
 
@@ -40,6 +40,8 @@ aa=chisq.test(xx)
 
 print(usedata2[,1])
 print(usedata1[,1])
+print(xx)
+print(c(sum(xx[,1]),sum(xx[,2])))
 print(aa)
 #print(bb)
 
