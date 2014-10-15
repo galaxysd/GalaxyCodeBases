@@ -3,13 +3,14 @@ if (is.null(argv) | length(argv)<2) {
   cat("Usage: kmerfreq.r hist_file coverage\n")
   q()
 }
-infile <- argv[1]
-avgcvg <- as.numeric(argv[2])
+testXrange <- as.numeric(argv[1])
+infile <- argv[2]
+avgcvg <- as.numeric(argv[3])
 
 maxXrange <- 25
-testXrange <- 14
-#infile <- 'mlbacDonor.k25.lz4.hist'
-#avgcvg <- 6.85
+#testXrange <- 20
+#infile <- 'blood.fq.k25.gz.hist'
+#avgcvg <- 3.27885
 
 library('vcd')
 
@@ -23,7 +24,8 @@ flag <- thedata[,1] <= testXrange
 #usedata <- cbind(cnt[flag],thefreq[flag])
 usedata <- cbind(theratio[flag],thefreq[flag])
 
-#fitres <- goodfit(usedata,type='poisson', par = list(lambda = avgcvg))
+fitres <- goodfit(usedata,type='poisson', par = list(lambda = avgcvg))
+#fitres <- goodfit(usedata,type='poisson', method = 'MinChisq')
 
 #sumres <- summary(fitres)
 
@@ -66,10 +68,13 @@ newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	}
 	par <- list(lambda = par)
 	p.hat <- dpois(count, lambda = par$lambda)
-	#expected <- sum(as.numeric(freq))/sum(p.hat) * p.hat
-	expected <- p.hat
-	relsum <- sum(expected)/sum(freq);
-	print(relsum);
+	#expected <- sum(freq)/sum(p.hat) * p.hat
+	#expected <- p.hat
+	expected <- p.hat * sum(freq) / sum(p.hat)
+	print(c(sum(freq),sum(p.hat),sum(freq) / sum(p.hat)))
+	print(cbind(p.hat,expected))
+	#relsum <- sum(expected)/sum(freq);
+	#print(relsum);
 	#freq <- freq*relsum;
 	df <- switch(method[1], MinChisq = {
 		length(freq) + df
@@ -84,16 +89,25 @@ newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	RVAL
 }
 
-fitres <- newfit(usedata, par = list(lambda = avgcvg))
+selfres <- newfit(usedata, par = list(lambda = avgcvg))
+selfsum <- summary(selfres)
+selfchi <- chisq.test(cbind(selfres$observed,selfres$fitted))
+print(selfres)
+print(selfsum)
+print(selfchi)
 
-sumres <- summary(fitres)
+newres<-list(observed = fitres$observed[c(-1,-2)], count = fitres$count[c(-1,-2)], fitted = fitres$fitted[c(-1,-2)],
+		type = "poisson", method = fitres$method, df = fitres$df - 2, par = fitres$par)
+class(newres) <- "goodfit"
 
-print(fitres)
+sumres <- summary(newres)
+
+print(newres)
 print(sumres)
 
-print(cbind(fitres$observed,fitres$fitted,fitres$observed-fitres$fitted))
+print(cbind(newres$observed,newres$fitted,(newres$observed-newres$fitted)/newres$fitted, selfres$fitted,(selfres$observed-selfres$fitted)/selfres$fitted))
 
-tiff(filename = paste0(argv[1],".tiff"), compression="lzw", width = 683, height = 683)#, units = "px", pointsize = 52)
+tiff(filename = paste0(infile,".tiff"), compression="lzw", width = 683, height = 683)#, units = "px", pointsize = 52)
 par(mar=c(5, 8, 2, 0.5),ps=20,family='sans')
 
 yy=aa[,3]
@@ -105,7 +119,7 @@ mean2=avgcvg
 xxx=seq(0,max(xx))
 zz=dpois(xxx,mean2);
 maxY=max(zz,yy)
-maxY<-0.24
+maxY<-0.3
 #lines(xx,zz,xlim=c(0,60),type='l');
 
 #barplot(yy,xlim=c(0,20),ylim=c(0,0.212),xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
@@ -116,12 +130,15 @@ plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,maxY),
 legend("topright",pch=c(15,-1),lty=c(-1,1),col=c("navy","red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=4,
 	legend= c(argv[1],paste0("lamda=",argv[2])))
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
-lines(xxx,zz,xlim=c(0,maxXrange),type='l',col='red',lwd=2)
 #lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
 lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
+lines(selfres$count,selfres$fitted,xlim=c(0,60),type='l',col='green',lwd=6)
+lines(xxx,zz,xlim=c(0,maxXrange),type='l',col='black',lwd=2)
 dev.off()
 
+print(selfchi)
 
+"
 #./kmerfreq.r mlbacDonor.k25.lz4.hist 6.85
 #./kmerfreq.r mdaS23.k25.lz4.hist 4.34
 #./kmerfreq.r S01.k25.lz4.hist 3.62
@@ -138,10 +155,11 @@ dev.off()
 #Pearson          2.511278e+05 18 0.0000000
 #Likelihood Ratio 2.540676e+00 18 0.9999924
 
-#./kmerfreq.r S1.fq.k25.gz.hist 3.29571
-#./kmerfreq.r S2.fq.k25.gz.hist 3.28174
-#./kmerfreq.r S3.fq.k25.gz.hist 2.94459
-#./kmerfreq.r S23.fq.k25.gz.hist 3.26044
-#./kmerfreq.r S24.fq.k25.gz.hist 3.27885
-#./kmerfreq.r S28.fq.k25.gz.hist 3.30884
-#./kmerfreq.r blood.fq.k25.gz.hist 3.27885
+./kmerfreq.r 15 S1.fq.k25.gz.hist.fixed 3.29571
+./kmerfreq.r 15 S2.fq.k25.gz.hist.fixed 3.28174
+./kmerfreq.r 15 S3.fq.k25.gz.hist.fixed 2.94459
+./kmerfreq.r 15 S23.fq.k25.gz.hist.fixed 3.26044
+./kmerfreq.r 15 S24.fq.k25.gz.hist.fixed 3.27885
+./kmerfreq.r 15 S28.fq.k25.gz.hist.fixed 3.30884
+./kmerfreq.r 15 blood.fq.k25.gz.hist.fixed 3.27885
+"

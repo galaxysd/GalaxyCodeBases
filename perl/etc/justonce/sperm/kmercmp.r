@@ -1,9 +1,10 @@
 #!/usr/bin/env r
-if (is.null(argv) | length(argv)<1) {
-  cat("Usage: kmerfreq.r hist_file\n")
+if (is.null(argv) | length(argv)<2) {
+  cat("Usage: kmerfreq.r blood_hist hist_file\n")
   q()
 }
-infile <- argv[1]
+bloodfile <- argv[1]
+infile <- argv[2]
 
 maxXrange <- 30
 testXrange <- 20
@@ -12,7 +13,7 @@ testXrange <- 20
 
 #library('vcd')
 
-blood=read.table('blood.fq.k25.gz.hist',skip=8)
+blood=read.table(bloodfile,skip=8)
 #mda=read.table('mdaS23.k25.lz4.hist',skip=8)
 #malbac=read.table('S01.k25.lz4.hist',skip=8)
 indata=read.table(infile,skip=8)
@@ -32,18 +33,29 @@ usedata1 <- getdata(blood,testXrange)
 usedata2 <- getdata(indata,testXrange)
 #usedata3 <- getdata(malbac,testXrange)
 
-xx=cbind(usedata2[,1],usedata1[,1])
+#xx=cbind(usedata2[,1],usedata1[,1])
+xx=usedata2[,1];
+yy=usedata1[,1]
 #yy=cbind(usedata1[,1],usedata2[,1])
 #aa=chisq.test(usedata2[,1], p = usedata1[,1], rescale.p = TRUE)
-aa=chisq.test(xx)
+aa=chisq.test(cbind(xx,yy))
 #bb=chisq.test(yy)
+
+bb<-wilcox.test(xx,yy,alternative='two',paired=TRUE,conf.int=TRUE)
 
 print(usedata2[,1])
 print(usedata1[,1])
-print(xx)
-print(c(sum(xx[,1]),sum(xx[,2])))
+#print(xx)
+print(c(sum(xx),sum(yy)))
 print(aa)
-#print(bb)
+print(bb)
 
-#./kmercmp.r mdaS23.k25.lz4.hist
-#./kmercmp.r S01.k25.lz4.hist
+"
+./kmercmp.r blood.fq.k25.gz.hist.fixed S1.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed S2.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed S3.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed S23.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed S24.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed S28.fq.k25.gz.hist.fixed
+./kmercmp.r S2.fq.k25.gz.hist.fixed S1.fq.k25.gz.hist.fixed
+"
