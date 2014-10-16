@@ -7,11 +7,18 @@ testXrange <- as.numeric(argv[1])
 infile <- argv[2]
 avgcvg <- as.numeric(argv[3])
 
-maxXrange <- 25
-#testXrange <- 20
-#infile <- 'blood.fq.k25.gz.hist'
-#avgcvg <- 3.27885
+if(!exists("D__myfit"))
+	source("myfit.R")
 
+#inid <- unlist(strsplit(infile,'.',TRUE))[1]
+inid <- strsplit(infile,'.',TRUE)[[1]][1]
+
+maxXrange <- 25
+"
+testXrange <- 15
+infile <- 'blood.fq.k25.gz.hist.fixed'
+avgcvg <- 3.27885
+"
 library('vcd')
 
 aa=read.table(infile,skip=8)
@@ -29,7 +36,61 @@ fitres <- goodfit(usedata,type='poisson', par = list(lambda = avgcvg))
 
 #sumres <- summary(fitres)
 
-newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
+print.myfit <- function(x, ...)
+{
+    cat(paste("\nObserved and fitted values for", x$type, "distribution\n"))
+    if(x$method[1] == "fixed")
+      cat("with fixed parameters \n\n")
+    else
+      cat(paste("with parameters estimated by `", paste(x$method, collapse = " "), "' \n\n", sep = ""))
+    RVAL <- cbind(x$count, x$observed, x$fitted)
+    colnames(RVAL) <- c("count", "observed", "fitted")
+    rownames(RVAL) <- rep("", nrow(RVAL))
+    print(RVAL)
+    invisible(x)
+}
+fitted.myfit <- function(object, ...)
+{
+  object$fitted
+}
+summary.myfit <- function(object, ...)
+{
+    df <- object$df
+    obsrvd <- object$observed
+    count <- object$count
+    expctd <- fitted(object)
+
+    G2 <- sum(ifelse(obsrvd == 0, 0, obsrvd * log(obsrvd/expctd))) * 2
+
+    n <- length(obsrvd)
+    switch(object$type,
+    "poisson" = { pfun <- "ppois" },
+    "binomial" = { pfun <- "pbinom" },
+    "nbinomial" = { pfun <- "pnbinom" })
+    p.hat <- diff(c(0, do.call(pfun, c(list(q = count[-n]), object$par)), 1))
+    #expctd <- p.hat * sum(obsrvd)
+    X2 <- sum((obsrvd - expctd)^2/expctd)
+
+    names(G2) <- "Likelihood Ratio"
+    names(X2) <- "Pearson"
+    if(any(expctd < 5) & object$method[1] != "ML")
+        warning("Chi-squared approximation may be incorrect")
+
+    RVAL <- switch(object$method[1],
+      "ML" = { G2 },
+      "MinChisq" = { X2 },
+      "fixed" = { c(X2, G2) }
+    )
+
+    RVAL <- cbind(RVAL, df, pchisq(RVAL, df = df, lower.tail = FALSE))
+    colnames(RVAL) <- c("X^2", "df", "P(> X^2)")
+
+    cat(paste("\n\t Goodness-of-fit test for", object$type, "distribution\n\n"))
+    print(RVAL)
+    invisible(RVAL)
+}
+
+myfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	if (is.vector(x)) {
 		x <- table(x)
 	}
@@ -70,8 +131,9 @@ newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	p.hat <- dpois(count, lambda = par$lambda)
 	#expected <- sum(freq)/sum(p.hat) * p.hat
 	#expected <- p.hat
-	expected <- p.hat * sum(freq) / sum(p.hat)
-	print(c(sum(freq),sum(p.hat),sum(freq) / sum(p.hat)))
+	zoomratio <- sum(freq) / sum(p.hat)
+	expected <- p.hat * zoomratio
+	print(c(sum(freq),sum(p.hat),zoomratio))
 	print(cbind(p.hat,expected))
 	#relsum <- sum(expected)/sum(freq);
 	#print(relsum);
@@ -84,31 +146,31 @@ newfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 		c(length(freq), sum(freq > 0)) + df
 	})
 	RVAL <- list(observed = freq, count = count, fitted = expected,
-		type = "poisson", method = method, df = df, par = par)
-	class(RVAL) <- "goodfit"
+		type = "poisson", method = method, df = df, par = par, zoom=zoomratio)
+	class(RVAL) <- "myfit"
 	RVAL
 }
 
-selfres <- newfit(usedata, par = list(lambda = avgcvg))
-selfsum <- summary(selfres)
-selfchi <- chisq.test(cbind(selfres$observed,selfres$fitted))
+selfres <- myfit(usedata, par = list(lambda = avgcvg))
+print('===myfit===')
 print(selfres)
-print(selfsum)
+selfsum <- summary(selfres)
+#print(selfsum)
+selfchi <- chisq.test(cbind(selfres$observed,selfres$fitted))
 print(selfchi)
 
 newres<-list(observed = fitres$observed[c(-1,-2)], count = fitres$count[c(-1,-2)], fitted = fitres$fitted[c(-1,-2)],
 		type = "poisson", method = fitres$method, df = fitres$df - 2, par = fitres$par)
 class(newres) <- "goodfit"
-
-sumres <- summary(newres)
-
+print('===goodfit===')
 print(newres)
-print(sumres)
+sumres <- summary(newres)
+#print(sumres)
 
 print(cbind(newres$observed,newres$fitted,(newres$observed-newres$fitted)/newres$fitted, selfres$fitted,(selfres$observed-selfres$fitted)/selfres$fitted))
 
 tiff(filename = paste0(infile,".tiff"), compression="lzw", width = 683, height = 683)#, units = "px", pointsize = 52)
-par(mar=c(5, 8, 2, 0.5),ps=20,family='sans')
+par(mar=c(5, 6, 2, 2),ps=20,family='sans')
 
 yy=aa[,3]
 xx=aa[,1]
@@ -118,25 +180,26 @@ xx=aa[,1]
 mean2=avgcvg
 xxx=seq(0,max(xx))
 zz=dpois(xxx,mean2);
-maxY=max(zz,yy)
-maxY<-0.3
+maxY=max(zz,yy,zz*selfres$zoom)
+maxY<-0.32
 #lines(xx,zz,xlim=c(0,60),type='l');
 
 #barplot(yy,xlim=c(0,20),ylim=c(0,0.212),xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,maxY),
-	main = paste0("Pearson goodness of fit, p=",sumres[1,3]),
+	main = paste0("Pearson goodness of fit, p=",selfsum[1,3]),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
-legend("topright",pch=c(15,-1),lty=c(-1,1),col=c("navy","red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=4,
-	legend= c(argv[1],paste0("lamda=",argv[2])))
+legend("topright",pch=-1,lty=1,col=c("navy",'green3',"red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=c(11,7,5),
+	legend= c(inid,paste0("lamda=",avgcvg),paste0("scaledby=",selfres$zoom)) )
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
 #lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
-lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
-lines(selfres$count,selfres$fitted,xlim=c(0,60),type='l',col='green',lwd=6)
-lines(xxx,zz,xlim=c(0,maxXrange),type='l',col='black',lwd=2)
+#lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
+lines(xxx,zz,xlim=c(0,maxXrange),type='l',col=rgb(0,0.804,0,0.8),lwd=7)
+lines(selfres$count,selfres$fitted,xlim=c(0,60),type='l',col=rgb(1,0,0,0.75),lwd=5)
+lines(xxx,zz*selfres$zoom,xlim=c(0,maxXrange),type='l',col=rgb(1,0,0,0.8),lwd=3)
 dev.off()
 
-print(selfchi)
+print(selfsum)
 
 "
 #./kmerfreq.r mlbacDonor.k25.lz4.hist 6.85
