@@ -84,8 +84,7 @@ myfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	} else if (method == "MinChisq") {
 		df <- df - 1
 		chi2 <- function(x) {
-			p.hat <- diff(c(0, ppois(count[-n], lambda = x),
-			  1))
+			p.hat <- diff(c(0, ppois(count[-n], lambda = x),1)) # DO NOT USE THIS NOW.
 			expected <- sum(freq) * p.hat
 			sum((freq - expected)^2/expected)
 		}
@@ -93,15 +92,12 @@ myfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 	}
 	par <- list(lambda = par)
 	p.hat <- dpois(count, lambda = par$lambda)
-	#expected <- sum(freq)/sum(p.hat) * p.hat
-	#expected <- p.hat
+
 	zoomratio <- sum(freq) / sum(p.hat)
 	expected <- p.hat * zoomratio
 	print(c(sum(freq),sum(p.hat),zoomratio))
-	print(cbind(p.hat,expected))
-	#relsum <- sum(expected)/sum(freq);
-	#print(relsum);
-	#freq <- freq*relsum;
+	#print(cbind(p.hat,expected))
+
 	df <- switch(method[1], MinChisq = {
 		length(freq) + df
 	}, ML = {
@@ -110,7 +106,44 @@ myfit <- function(x, method = c("ML", "MinChisq"), par = NULL) {
 		c(length(freq), sum(freq > 0)) + df
 	})
 	RVAL <- list(observed = freq, count = count, fitted = expected,
-		type = "poisson", method = method, df = df, par = par, zoom=zoomratio)
+		type = "poisson", method = method, df = df, par = par, zoom = zoomratio)
 	class(RVAL) <- "myfit"
+	RVAL
+}
+
+
+
+scale2pois <- function(x, lambda, cntmin = NULL, cntmax = NULL) {
+	if (is.vector(x)) {
+		x <- table(x)
+	}
+	if (is.table(x)) {
+		if (length(dim(x)) > 1)
+			stop("x must be a 1-way table")
+		freq <- as.vector(x)
+		count <- as.numeric(names(x))
+	} else {
+		if (!(!is.null(ncol(x)) && ncol(x) == 2))
+			stop("x must be a 2-column matrix or data.frame")
+		freq <- as.vector(x[, 1])
+		count <- as.vector(x[, 2])
+	}
+	#ncount <- 0:max(count)
+	n <- length(count)
+
+	p.hat <- dpois(count, lambda = lambda)
+	if (is.null(cntmin) | is.na(cntmin))
+		cntmin <- min(count)
+	if (is.null(cntmax) | is.na(cntmax))
+		cntmax <- max(count)
+	flag <- (count >= cntmin) & (count <= cntmax)
+	#print(c(cntmin,cntmax,count,flag))
+	zoomratio <- sum(p.hat[flag]) / sum(freq[flag])
+	scaled <- freq * zoomratio
+	#expected <- p.hat / zoomratio
+	#print(c(sum(freq),sum(scaled),sum(p.hat),sum(expected),zoomratio))
+	#print(cbind(freq,scaled, p.hat,expected))
+
+	RVAL <- list(ret = cbind(scaled,count), zoom = zoomratio, cntmin = cntmin, cntmax = cntmax)
 	RVAL
 }
