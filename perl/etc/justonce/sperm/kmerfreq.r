@@ -14,8 +14,8 @@ if(!exists("D__myfit"))
 
 #inid <- unlist(strsplit(infile,'.',TRUE))[1]
 inid <- strsplit(infile,'.',TRUE)[[1]][1]
-TheIDRelshp <- c('Donor','MALBAC Sperm01','MALBAC Sperm02','MALBAC Sperm03','MDA Sperm23','MDA Sperm24','MDA Sperm28')
-names(TheIDRelshp) <- c('blood','S1','S2','S3','S23','S24','S28')
+TheIDRelshp <- c('Donor','MALBAC Sperm01','MALBAC Sperm02','MALBAC Sperm03','MDA Sperm23','MDA Sperm24','MDA Sperm28','Donor')
+names(TheIDRelshp) <- c('blood','S1','S2','S3','S23','S24','S28','mlbacDonor')
 
 maxXrange <- 25
 "
@@ -88,11 +88,13 @@ maxY<-0.32
 
 #barplot(yy,xlim=c(0,20),ylim=c(0,0.212),xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,maxY),
-	main = paste0("Pearson goodness of fit, p=",selfsum[1,3]),
+	main = paste0("Pearson goodness of fit, p=",signif(scalesum[1,3],digits = 6)),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
 legend("topright",pch=-1,lty=1,col=c("navy",'green3',"red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=c(11,7,5),
-	legend= c(TheIDRelshp[inid],paste0("lamda=",avgcvg),paste0("scaledby=",signif(scaled$zoom, digits = 6)) ) )
+	legend= c( TheIDRelshp[inid],paste0("lamda=",signif(avgcvg,digits=6)),
+		paste0("scaledby=",signif(scaled$zoom, digits=6)) )
+)
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
 #lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
 #lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
@@ -104,7 +106,14 @@ lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='l',col=rgb(1,0,0,0.9),
 dev.off()
 
 print(selfsum)
-print(paste0(TheIDRelshp[inid],':[',scaled$cntmin,',',scaled$cntmax,"] scaleR=",scaled$zoom))
+outline <- paste0(TheIDRelshp[inid],':[',scaled$cntmin,',',scaled$cntmax,"] scaleR=",scaled$zoom)
+print(outline)
+write(outline,paste0(infile,".txt"),append=FALSE)
+
+outline <- paste0('X^2= ',scalesum[1,1],', df= ',scalesum[1,2],', p= ',scalesum[1,3])
+print(outline)
+write(outline,paste0(infile,".txt"),append=TRUE)
+
 print(scalesum)
 
 "
@@ -124,6 +133,7 @@ print(scalesum)
 #Pearson          2.511278e+05 18 0.0000000
 #Likelihood Ratio 2.540676e+00 18 0.9999924
 
+./kmerfreq.r 15 mlbacDonor.k25.lz4.hist.fixed 5.67811
 ./kmerfreq.r 15 S1.fq.k25.gz.hist.fixed 3.29571
 ./kmerfreq.r 15 S2.fq.k25.gz.hist.fixed 3.28174
 ./kmerfreq.r 15 S3.fq.k25.gz.hist.fixed 2.94459
