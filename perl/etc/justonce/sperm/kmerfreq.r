@@ -74,7 +74,8 @@ dbg1 <- function(x) {
 print(cbind(dbg1(scaleres),dbg1(newres),dbg1(selfres)))
 
 tiff(filename = paste0(infile,".tiff"), compression="lzw", width = 683, height = 683)#, units = "px", pointsize = 52)
-par(mar=c(5, 6, 2, 2),ps=20,family='sans')
+#par(mar=c(5, 6, 2, 2),ps=20,family='sans')
+par(mar=c(4.5, 6, 3, 2),ps=26,family='sans')
 
 yy <- theratio
 xx <- thefreq
