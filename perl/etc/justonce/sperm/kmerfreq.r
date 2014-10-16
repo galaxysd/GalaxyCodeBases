@@ -87,22 +87,22 @@ maxY<-0.32
 #lines(xx,zz,xlim=c(0,60),type='l');
 
 #barplot(yy,xlim=c(0,20),ylim=c(0,0.212),xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
-plot(xx,yy,type='h',lwd=20,xlim=c(1,maxXrange),ylim=c(0,maxY),
+plot(xx,yy,type='h',lwd=19,xlim=c(1,maxXrange),ylim=c(0,maxY),
 	main = paste0("Pearson goodness of fit, p=",signif(scalesum[1,3],digits = 6)),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
-legend("topright",pch=-1,lty=1,col=c("navy",'green3',"red"), x.intersp = 1, y.intersp = 2,cex=1,lwd=c(11,7,5),
+legend("topright",pch=-1,lty=1,col=c('navy','green3','red'), x.intersp = 1, y.intersp = 2,cex=1,lwd=c(11,7,8),
 	legend= c( TheIDRelshp[inid],paste0("lamda=",signif(avgcvg,digits=6)),
 		paste0("scaledby=",signif(scaled$zoom, digits=6)) )
 )
+lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='h',col=rgb(1,1,0,1),lwd=11)
+
 axis(1, at = seq(0, maxXrange, by = 5),lwd=3,cex=1)
-#lines(fitres$count,fitres$observed,xlim=c(0,60),type='l',col='blue')
-#lines(fitres$count,fitres$fitted,xlim=c(0,60),type='l',col='red',lwd=6)
 lines(xxx,zz,xlim=c(0,maxXrange),type='l',col=rgb(0,0.804,0,0.8),lwd=7)
-#lines(selfres$count,selfres$fitted,xlim=c(0,60),type='l',col=rgb(1,0,0,0.75),lwd=5)
-#lines(xxx,zz*selfres$zoom,xlim=c(0,maxXrange),type='l',col=rgb(1,0,0,0.8),lwd=3)
-lines(xx,yy*scaled$zoom,xlim=c(0,60),type='l',col=rgb(1,0,0,0.7),lwd=3)
-lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='l',col=rgb(1,0,0,0.9),lwd=5)
+#lines(xx,yy*scaled$zoom,xlim=c(0,60),type='l',col=rgb(1,0,0,0.7),lwd=3)
+#lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='l',col=rgb(1,0,0,0.9),lwd=5)
+
+lines(xx,yy*scaled$zoom,xlim=c(0,60),type='h',col=rgb(1,0,0,1),lwd=7)
 dev.off()
 
 print(selfsum)
