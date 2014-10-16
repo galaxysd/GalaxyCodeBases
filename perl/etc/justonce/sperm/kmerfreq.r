@@ -106,7 +106,7 @@ lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='l',col=rgb(1,0,0,0.9),
 dev.off()
 
 print(selfsum)
-outline <- paste0(TheIDRelshp[inid],':[',scaled$cntmin,',',scaled$cntmax,"] scaleR=",scaled$zoom)
+outline <- paste0(TheIDRelshp[inid],':[',scaled$cntmin,',',scaled$cntmax,"] cvg=",avgcvg," scaleR=",scaled$zoom)
 print(outline)
 write(outline,paste0(infile,".txt"),append=FALSE)
 

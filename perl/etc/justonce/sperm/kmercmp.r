@@ -6,8 +6,11 @@ if (is.null(argv) | length(argv)<2) {
 bloodfile <- argv[1]
 infile <- argv[2]
 
+if(!exists("D__myfit"))
+	source("myfit.R")
+
 maxXrange <- 30
-testXrange <- 20
+testXrange <- 15
 #infile <- 'mlbacDonor.k25.lz4.hist'
 #avgcvg <- 6.85
 
@@ -49,6 +52,29 @@ print(usedata1[,1])
 print(c(sum(xx),sum(yy)))
 print(aa)
 print(bb)
+"
+scaleres <- myfit(usedata2, par = list(lambda = 3))
+scaleres$fitted <- as.vector(usedata1[, 1])
+print('===scaledmyfit===')
+print(scaleres)
+dbg1 <- function(x) {
+	arg <- deparse(substitute(x))
+	RVAL <- cbind(x$observed,x$fitted,(x$observed-x$fitted)/x$fitted)
+	#RVAL <- round(RVAL,digits = 6)
+	colnames(RVAL) <- c(paste0(arg,'.ob'),paste0(arg,'.fi'),'(O-E)/E')
+	rownames(RVAL) <- 1+ 1:nrow(RVAL)
+	RVAL
+}
+print(cbind(dbg1(scaleres)))
+scalesum <- summary(scaleres)
+"
+mm=pdf2cdf(xx,T,T)
+nn=pdf2cdf(yy,T,T)
+
+ksres <- ks.test(xx,yy,alternative='t')
+print(ksres)
+ksres <- ks.test(mm,nn,alternative='t')
+print(ksres)
 
 "
 ./kmercmp.r blood.fq.k25.gz.hist.fixed S1.fq.k25.gz.hist.fixed
@@ -57,5 +83,9 @@ print(bb)
 ./kmercmp.r blood.fq.k25.gz.hist.fixed S23.fq.k25.gz.hist.fixed
 ./kmercmp.r blood.fq.k25.gz.hist.fixed S24.fq.k25.gz.hist.fixed
 ./kmercmp.r blood.fq.k25.gz.hist.fixed S28.fq.k25.gz.hist.fixed
+
 ./kmercmp.r S2.fq.k25.gz.hist.fixed S1.fq.k25.gz.hist.fixed
+./kmercmp.r blood.fq.k25.gz.hist.fixed mlbacDonor.k25.lz4.hist.fixed
+./kmercmp.r mlbacDonor.k25.lz4.hist.fixed S23.fq.k25.gz.hist.fixed
+
 "

@@ -147,3 +147,33 @@ scale2pois <- function(x, lambda, cntmin = NULL, cntmax = NULL) {
 	RVAL <- list(ret = cbind(scaled,count), zoom = zoomratio, cntmin = cntmin, cntmax = cntmax)
 	RVAL
 }
+
+cdf2pdf <- function(x, rescale = FALSE) {
+	mylen <- length(x) - 1
+	#RVAL <- diff(c(0, x, 1))[1:mylen]
+	RVAL <- diff(c(0, x), 1)[1:mylen]
+	if (rescale) {
+		s <- sum(RVAL)
+		RVAL <- RVAL/s
+	}
+	RVAL
+}
+
+# http://www.csee.ogi.edu/~gormanky/papers/handbook/ky.R
+pdf2cdf <- function(x, complete = FALSE, rescale = FALSE) {
+    # make a sorted PDF into a sorted CDF
+	mylen <- length(x)
+	RVAL <- x
+	if (complete | rescale) {
+		RVAL <- c(x,x[mylen])
+		mylen <- 1 + mylen
+		#length(RVAL) <- mylen
+	}
+	for (i in 2:mylen) {
+		RVAL[i] <- RVAL[i] + RVAL[i-1]
+	}
+	if (rescale) {
+		RVAL <- RVAL/RVAL[mylen]
+	}
+	return(RVAL)
+}
