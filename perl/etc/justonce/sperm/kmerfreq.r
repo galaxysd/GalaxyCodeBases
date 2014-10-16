@@ -92,7 +92,7 @@ plot(xx,yy,type='h',lwd=19,xlim=c(1,maxXrange),ylim=c(0,maxY),
 	xlab="K-mer count",ylab='Ratio',col='navy',cex.lab=1)
 # dpois(3,3.62)=0.2117524
 legend("topright",pch=-1,lty=1,col=c('navy','green3','red'), x.intersp = 1, y.intersp = 2,cex=1,lwd=c(11,7,8),
-	legend= c( TheIDRelshp[inid],paste0("lamda=",signif(avgcvg,digits=6)),
+	legend= c( TheIDRelshp[inid],paste0("lambda=",signif(avgcvg,digits=6)),
 		paste0("scaledby=",signif(scaled$zoom, digits=6)) )
 )
 lines(scaleres$count,scaleres$observed,xlim=c(0,60),type='h',col=rgb(1,1,0,1),lwd=11)
