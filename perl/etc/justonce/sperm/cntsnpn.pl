@@ -31,7 +31,7 @@ sub readfile($) {
 		next if $chr =~ /[XYM]/i;
 		next if $INFO =~ /INDEL;/;
 		++$totalID;
-		if (defined $data) {
+		if (defined $data and $id > 0) {
 			next if $QUAL < 20;
 			my $GQ = (split /:/,$data)[-1];
 			next if $GQ < 20;
@@ -61,8 +61,9 @@ warn "[@INS] -> [stat.txt]\n";
 readfile($_) for (0 .. $#FH);
 close $_ for @FH;
 
-#ddx \%SNP;
-#              141050953 => { 1 => "TT", 2 => "TT" },
+# chr1    245017123       1       1       0       0.31    0.69    0       0       rs880
+#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO
+#1       10019   rs376643643     TA      T       .       .       RS=376643643;RSPOS=10020;dbSNPBuildID=138;SSR=0;SAO=0;VP=0x050000020005000002000200;WGT=1;VC=DIV;R5;ASP;OTHERKG
 
 my %Stat;
 for my $chr (keys %SNP) {
