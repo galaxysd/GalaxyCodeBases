@@ -18,4 +18,5 @@ while (<I>) {
 	}
 }
 close I;
-print "Sum = $sum\n";
+my $v = sprintf("%b",$flag);
+print "Sum[${v}] = $sum\n";
