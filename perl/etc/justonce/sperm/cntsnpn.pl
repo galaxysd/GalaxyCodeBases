@@ -87,20 +87,7 @@ for (sort {$a<=>$b} keys %Stat) {
 close OUT;
 
 __END__
-perl ./cntsnp3.pl sperm23.5cf.filter sperm24.5cf.filter sperm28.5cf.filter
-2	243901
-4	268409
-6	38623
-8	253689
-10	33956
-12	35961
-14	7207
+./cntsnpn.pl dbSNP132.chr.All sperms0{1,2,3}.5cf.filter sperm2{3,4,8}.5cf.filter
+./cntsnpn.pl human_9606_b142_GRCh37p13.All.vcf.gz sperms0{1,2,3}.5cf.filter sperm2{3,4,8}.5cf.filter blood.malbac5.filter blood.mda3.filter
+二进制数的顺序和第一行顺序相反
 
-perl ./cntsnp3.pl sperms01.5cf.filter sperms02.5cf.filter sperms03.5cf.filter
-2	676931
-4	635059
-6	60638
-8	623031
-10	65199
-12	58892
-14	36960
