@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 use Data::Dump qw(ddx);
@@ -130,18 +130,21 @@ sub simPlusMinus($$) {	#甲基化只处理fq1的单链
 sub getPE ($$) {
 	my ($seq,$readlen) = @_;
 	my $seqlen = length $seq;
-	die if $seqlen < $readlen;
+	#die if $seqlen < $readlen;
+	if ($seqlen < $readlen) {
+		$readlen = $seqlen;
+	}
 	my $r1 = substr $seq,0,$readlen;
 	my $r2s = substr $seq,-$readlen,$readlen;
 	my $r2 = revcom($r2s);
 #print "$seqlen $r1,$r2s\t$seq\t$r2\n";
-	return ($r1,$r2);
+	return ($r1,$r2,$readlen);
 }
 
 sub realdosim($$$$$$$$$) {
 	my ($homhet,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e,$MetStatRef) = @_;
 	my @FH = @$fhref;
-	my ($flag,$newseq,$str,$seqname,$r1,$r2);
+	my ($flag,$newseq,$str,$seqname,$r1,$r2,$realReadlen);
 	for ( 1 .. $thedepth ) {
 		my $outputhomhet;
 		if (defined $usedPos{$chr}{$s}) {
@@ -163,12 +166,12 @@ sub realdosim($$$$$$$$$) {
 		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
-		($r1,$r2) = getPE($newseq,$ReadLen);
+		($r1,$r2,$realReadlen) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
 		$seqname =~ s/ /#/g;
 #print "$_ $seqname\n";
-		print {$FH[0]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $ReadLen),"\n";
-		print {$FH[1]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $ReadLen),"\n";
+		print {$FH[0]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $realReadlen),"\n";
+		print {$FH[1]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $realReadlen),"\n";
 		++$outCnt;
 		
 		# fq1 in Minus
@@ -177,11 +180,11 @@ sub realdosim($$$$$$$$$) {
 		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
-		($r1,$r2) = getPE($newseq,$ReadLen);
+		($r1,$r2,$realReadlen) = getPE($newseq,$ReadLen);
 		$seqname =  "\@$outCnt $flag $unchgRate $str";
 		$seqname =~ s/ /#/g;
-		print {$FH[2]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $ReadLen),"\n";
-		print {$FH[3]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $ReadLen),"\n";
+		print {$FH[2]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $realReadlen),"\n";
+		print {$FH[3]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $realReadlen),"\n";
 		++$outCnt;
 	}
 }
