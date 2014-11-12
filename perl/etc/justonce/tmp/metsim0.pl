@@ -88,14 +88,6 @@ sub getSNP($) {
 	return $outBase;
 }
 
-sub revcom($) {
-    my $str = $_[0];
-    $str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
-    my $rev = reverse $str;
-    $rev    =~ tr/[](){}<>/][)(}{></;
-    return $rev;
-}
-
 my $SNPremained = 0;
 my %usedPos;
 sub addSNP($$$$$) {
@@ -117,35 +109,6 @@ sub addSNP($$$$$) {
 		print S join("\t",$type,$chr,$s,$s+$len-1,$s+$Pos,$oldbase,$newbase ,$Pos+1,$SNPcount,$seq,$newseq),"\n";
 	}
 	return $newseq;
-}
-
-sub getCpG($) {
-	my ($seq) = @_;
-	my @ret;
-	while ($seq =~ /CG/gi) {
-#print join("\t",'CG',$-[0], $+[0],"$` ($&) $'"),"\n";
-		push @ret, $-[0];
-	}
-	return @ret;
-}
-sub getC($) {	# C but not CpG
-	my ($seq) = @_;
-	my @ret;
-	while ($seq =~ /C(?!G)/gi) {
-#print join("\t",'C',$-[0], $+[0],"$` ($&) $'"),"\n";
-		push @ret, $-[0];
-	}
-	return @ret;
-}
-
-sub doCoin($) {
-	my $rate = $_[0];
-	my $coin = rand(1);
-	if ($coin > $rate) {
-		return 0;
-	} else {
-		return 1;
-	}
 }
 
 seek I,0,0;
