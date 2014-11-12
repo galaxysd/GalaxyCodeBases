@@ -214,7 +214,7 @@ open $fhN[1],'|-',"gzip -9c > Nwaston.2.fq.gz" or die;
 open $fhN[2],'|-',"gzip -9c > Ncrick.1.fq.gz" or die;
 open $fhN[3],'|-',"gzip -9c > Ncrick.2.fq.gz" or die;
 my @Paras;
-print STDERR "[!]Check zone.lst if see any cross below:\n";
+print STDERR "[!]Run `metsim0.pl` to refresh zone.lst if see any cross below:\n";
 while(<I>) {
 	chomp;
 	my ($chr,$s,$e,$len,$seq) = split /\t/;
