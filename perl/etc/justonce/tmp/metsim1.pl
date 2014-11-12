@@ -16,7 +16,7 @@ my $QUAL = 'e';
 
 my $outCnt = 1;
 
-open I,'<','hg19chr17.bed.frag' or die;
+open I,'<','hg19chr18.bed.frag.trim' or die;
 open Z,'<','zone.lst' or die;
 
 sub getSNP($) {
@@ -195,6 +195,10 @@ sub dosim($$$$$$$) {
 	my %MetStat = (
 		'NoCpG' => 0, 'CpGisC' => 0, 'CpGtoT' => 0
 	);
+	unless (defined $unchgRate) {
+		$unchgRate = 1;
+		print STDERR '+';
+	}
 	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
 	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
 	#print M join("\t",$chr,$s,$e,$e-$s+1,$MetStat{'CpGtoT'}),"\n";
@@ -210,6 +214,7 @@ open $fhN[1],'|-',"gzip -9c > Nwaston.2.fq.gz" or die;
 open $fhN[2],'|-',"gzip -9c > Ncrick.1.fq.gz" or die;
 open $fhN[3],'|-',"gzip -9c > Ncrick.2.fq.gz" or die;
 my @Paras;
+print STDERR "[!]Check zone.lst if see any cross below:\n";
 while(<I>) {
 	chomp;
 	my ($chr,$s,$e,$len,$seq) = split /\t/;
@@ -228,7 +233,7 @@ while(<I>) {
 close S;
 #close M;
 close $_ for (@fhC,@fhN);
-
+warn "\n[!]Done !\n";
 system("gzip -fd *.fq.gz");
 
 __END__
