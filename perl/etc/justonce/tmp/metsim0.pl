@@ -1,12 +1,12 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 
 my $minRefLen = 50;
 my $maxRefLen = 100;
-($minRefLen,$maxRefLen) = (90,220);
+($minRefLen,$maxRefLen) = (40,220);
 
-open I,'<','hg19chr17.bed.frag' or die;
+open I,'<','hg19chr18.bed.frag.trim' or die;
 
 my $lines = 0;
 while (<I>) {
@@ -46,6 +46,7 @@ while (<I>) {
 		print O join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
 		do {
 			$_=<I>;
+			last unless defined $_;
 			(undef,$s0,undef,$len) = split /\t/;
 		} while ($len < $minRefLen or $len > $maxRefLen);
 		++$i;
