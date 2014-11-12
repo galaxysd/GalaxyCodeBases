@@ -5,9 +5,6 @@ use Data::Dump qw(ddx);
 
 my $eachDepth = 10;
 my $ReadLen = 50;
-my $HomSNPrate = 0.0005;
-my $HetSNPrate = 0.0005;
-my $TranStoV = 4;	# 转换比颠换，transitions，transversions
 my $QUAL = 'e';
 my ($minRefLen,$maxRefLen) = (40,220);
 
@@ -15,30 +12,14 @@ my $outCnt = 1;
 
 open I,'<','hg19chr18.bed.frag.trim' or die;
 open Z,'<','zone.lst' or die;
-
-sub getSNP($) {
-	my $inbase = $_[0];
-	my $outBase = $inbase;
-	my $SorV = rand(1);
-	if ($SorV > $TranStoV/(1+$TranStoV)) {	# transversions
-		my $AB = rand(1);
-		if ($AB > 0.5) {
-			$outBase =~ tr/AGCTagct/CCAAccaa/;
-		} else {
-			$outBase =~ tr/AGCTagct/TTGGttgg/;
-		}
-	} else {	# transitions
-		$outBase =~ tr/AGCTagct/GATCgatc/;
-	}
-	return $outBase;
-}
+open S,'<','snp.lst' or die;
 
 sub revcom($) {
-    my $str = $_[0];
-    $str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
-    my $rev = reverse $str;
-    $rev    =~ tr/[](){}<>/][)(}{></;
-    return $rev;
+	my $str = $_[0];
+	$str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+	my $rev = reverse $str;
+	$rev =~ tr/[](){}<>/][)(}{></;
+	return $rev;
 }
 
 my %MetUnchgRate;
@@ -48,32 +29,23 @@ while (<Z>) {
 	$MetUnchgRate{$s}=[$e,$ra,$rb];
 }
 close Z;
-
 ddx \%MetUnchgRate;
 
-open S,'>','snp.lst';
-#open M,'>','Met.lst';
+my %SNPList;
+while (<S>) {
+	chomp;
+	my ($HomHet,undef,$s,undef,undef,undef,undef,undef,undef,undef,$newseq) = split /\t/;
+	$SNPList{"$HomHet\t$s"} = $newseq;
+}
+close S;
 
 my $SNPremained = 0;
 my %usedPos;
-sub addSNP($$$$$) {
-	my ($chr,$s,$seq,$rate,$type) = @_;
-	my $len = length $seq;
-	my $SNPcount = $len * $rate + $SNPremained;
-	$SNPremained = $SNPcount - int($SNPcount);
+sub addSNP($$$$) {
+	my ($chr,$s,$seq,$type) = @_;
+	my $key = "$type\t$s";
 	my $newseq = $seq;
-	for ( 1 .. int($SNPcount) ) {
-		my $Pos;
-		do {
-			$Pos = int(rand($len));
-		} until ( ! exists $usedPos{$chr}{$s}{$Pos} );
-		$usedPos{$chr}{$s}{$Pos} = $type;
-		my $oldbase = substr $newseq,$Pos,1;
-		my $newbase = getSNP($oldbase);
-		$newseq = $seq;
-		substr $newseq,$Pos,1,$newbase;
-		print S join("\t",$type,$chr,$s,$s+$len-1,$s+$Pos,$oldbase,$newbase ,$Pos+1,$SNPcount,$seq,$newseq),"\n";
-	}
+	$newseq = $SNPList{$key} if exists $SNPList{$key};
 	return $newseq;
 }
 
@@ -221,8 +193,8 @@ while(<I>) {
 		@Paras = @{ $MetUnchgRate{$s} };
 		ddx \@Paras;
 	}
-	my $seq1 = addSNP($chr,$s,$seq,$HomSNPrate,'Hom');
-	my $seq2 = addSNP($chr,$s,$seq1,$HetSNPrate,'Het');
+	my $seq1 = addSNP($chr,$s,$seq,'Hom');
+	my $seq2 = addSNP($chr,$s,$seq1,'Het');
 #ddx \@Paras; die;
 	dosim(\@fhC,$Paras[1],$chr,$s,$e,$seq1,$seq2);
 	dosim(\@fhN,$Paras[2],$chr,$s,$e,$seq1,$seq2);
