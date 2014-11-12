@@ -5,14 +5,11 @@ use Data::Dump qw(ddx);
 
 my $eachDepth = 10;
 my $ReadLen = 50;
-my $minRefLen = 50;
-my $maxRefLen = 100;
 my $HomSNPrate = 0.0005;
 my $HetSNPrate = 0.0005;
 my $TranStoV = 4;	# 转换比颠换，transitions，transversions
 my $QUAL = 'e';
-
-($minRefLen,$maxRefLen) = (40,220);
+my ($minRefLen,$maxRefLen) = (40,220);
 
 my $outCnt = 1;
 
