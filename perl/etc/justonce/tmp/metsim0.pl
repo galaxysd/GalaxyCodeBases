@@ -60,10 +60,10 @@ while (<I>) {
 		++$k;
 	}
 }
-$k = $#Rate;
-$e = $ee if $e < $ee;
-print join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
-print O join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
+#$k = $#Rate;
+#$e = $ee if $e < $ee;
+#print join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
+#print O join("\t",$k,$s0,$e,@{$Rate[$k]}),"\n";
 
 #close I;
 close O;
