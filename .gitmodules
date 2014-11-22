@@ -11,3 +11,6 @@
 [submodule "etc/overlay"]
 	path = etc/overlay
 	url = git@github.com:galaxy001/gentooxy.git
+[submodule "mydoc"]
+	path = mydoc
+	url = git@bitbucket.org:galaxy001/mydoc.git
