@@ -46,7 +46,7 @@
 						</dict>
 					</dict>
 					<key>match</key>
-					<string>[ATCG]+</string>
+					<string>^[ATCGatcgNn*-?]+$</string>
 					<key>name</key>
 					<string>markup.seq.DNA</string>
 				</dict>
