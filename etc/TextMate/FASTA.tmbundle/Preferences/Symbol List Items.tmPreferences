@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Symbol List Items</string>
+	<key>scope</key>
+	<string>source.fasta markup.bioseq.Title</string>
+	<key>settings</key>
+	<dict>
+		<key>showInSymbolList</key>
+		<integer>1</integer>
+		<key>symbolTransformation</key>
+		<string>s/(^\&gt;|\s$)//;</string>
+	</dict>
+	<key>uuid</key>
+	<string>457E05A4-D915-4BCC-B639-17F911F98788</string>
+</dict>
+</plist>

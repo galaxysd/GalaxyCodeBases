@@ -18,7 +18,7 @@
 			<key>match</key>
 			<string>^&gt;.+$</string>
 			<key>name</key>
-			<string>markup.bioseq.ID</string>
+			<string>markup.bioseq.Title</string>
 		</dict>
 		<dict>
 			<key>captures</key>
@@ -111,7 +111,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>[ABCDEFGHIJKLMNOPQRSTUVWXY]</string>
+					<string>[ABCDEFGHIJKLMNOPQRSUVWXY]</string>
 					<key>name</key>
 					<string>markup.bioseq.aa.Basic</string>
 				</dict>
