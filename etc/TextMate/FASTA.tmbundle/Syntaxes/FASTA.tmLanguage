@@ -21,8 +21,50 @@
 			<string>markup.bioseq.ID</string>
 		</dict>
 		<dict>
-			<key>include</key>
-			<string>#bioseq-DNA</string>
+			<key>captures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-DNA</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-gaps</string>
+						</dict>
+					</array>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>\b[ATCGatcgNn*-?]+\b</string>
+			<key>name</key>
+			<string>markup.bioseq.DNA</string>
+		</dict>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-Protein</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-gaps</string>
+						</dict>
+					</array>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>\b[ABCDEFGHIJKLMNOPQRSTUVWXYZ*-?]+\b</string>
+			<key>name</key>
+			<string>markup.bioseq.Protein</string>
 		</dict>
 	</array>
 	<key>repository</key>
@@ -54,6 +96,34 @@
 					<string>[Gg]</string>
 					<key>name</key>
 					<string>markup.bioseq.base.G</string>
+				</dict>
+			</array>
+		</dict>
+		<key>bioseq-Protein</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>[AG]</string>
+					<key>name</key>
+					<string>markup.bioseq.aa.Aromatic</string>
+				</dict>
+			</array>
+		</dict>
+		<key>bioseq-gaps</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#bioseq-DNA</string>
+				</dict>
+				<dict>
+					<key>match</key>
+					<string>[*-?]</string>
+					<key>name</key>
+					<string>markup.bioseq.other</string>
 				</dict>
 			</array>
 		</dict>

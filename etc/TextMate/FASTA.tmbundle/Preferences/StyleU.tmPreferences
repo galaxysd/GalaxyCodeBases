@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Style: DNA.U (Umber)</string>
+	<string>Style: RNA.U (Umber)</string>
 	<key>scope</key>
 	<string>markup.bioseq.base.U</string>
 	<key>settings</key>
@@ -14,6 +14,6 @@
 		<string>#CC9900</string>
 	</dict>
 	<key>uuid</key>
-	<string>2B666027-8C56-4F0E-9B55-DC2A52678B66</string>
+	<string>2B666027-8C56-4F0E-9B55-DC2A52678B70</string>
 </dict>
 </plist>
