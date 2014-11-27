@@ -5,7 +5,7 @@
 	<key>name</key>
 	<string>Style: DNA Head</string>
 	<key>scope</key>
-	<string>markup.bioseq.ID</string>
+	<string>markup.bioseq.Title.DNA</string>
 	<key>settings</key>
 	<dict>
 		<key>background</key>

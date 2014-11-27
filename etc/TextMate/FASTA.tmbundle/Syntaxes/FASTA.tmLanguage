@@ -15,13 +15,96 @@
 	<key>patterns</key>
 	<array>
 		<dict>
-			<key>match</key>
-			<string>^&gt;.+$</string>
+			<key>begin</key>
+			<string>?&lt;A&gt;^\&gt;(.+)\n</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>markup.bioseq.Title.DNA</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?&lt;A&gt;?!\G)</string>
 			<key>name</key>
-			<string>markup.bioseq.Title</string>
+			<string>markup.bioseq.FASTA.DNA</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>patterns</key>
+							<array>
+								<dict>
+									<key>include</key>
+									<string>#bioseq-DNA</string>
+								</dict>
+							</array>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>[ATCG]+</string>
+					<key>name</key>
+					<string>markup.seq.DNA</string>
+				</dict>
+			</array>
 		</dict>
 		<dict>
-			<key>captures</key>
+			<key>begin</key>
+			<string>^\&gt;(.+)$</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>markup.bioseq.Title.RNA</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>markup.bioseq.FASTA.RNA</string>
+			<key>while</key>
+			<string>^[AUCGaucgNn*-?]+$</string>
+			<key>whileCaptures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>patterns</key>
+					<array>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-DNA</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-RNA</string>
+						</dict>
+						<dict>
+							<key>include</key>
+							<string>#bioseq-gaps</string>
+						</dict>
+					</array>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>^\&gt;(.+)$</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>markup.bioseq.Title.Protein</string>
+				</dict>
+			</dict>
+			<key>name</key>
+			<string>markup.bioseq.FASTA.Protein</string>
+			<key>while</key>
+			<string>^[ABCDEFGHIJKLMNOPQRSTUVWXYZ*-?]+$</string>
+			<key>whileCaptures</key>
 			<dict>
 				<key>0</key>
 				<dict>
@@ -38,33 +121,6 @@
 					</array>
 				</dict>
 			</dict>
-			<key>match</key>
-			<string>\b[ABCDEFGHIJKLMNOPQRSTUVWXYZ*-?]+\b</string>
-			<key>name</key>
-			<string>markup.bioseq.Protein</string>
-		</dict>
-		<dict>
-			<key>captures</key>
-			<dict>
-				<key>0</key>
-				<dict>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>#bioseq-DNA</string>
-						</dict>
-						<dict>
-							<key>include</key>
-							<string>#bioseq-gaps</string>
-						</dict>
-					</array>
-				</dict>
-			</dict>
-			<key>match</key>
-			<string>\b[ATCGatcgNn*-?]+\b</string>
-			<key>name</key>
-			<string>markup.bioseq.DNA</string>
 		</dict>
 	</array>
 	<key>repository</key>
@@ -117,14 +173,22 @@
 				</dict>
 			</array>
 		</dict>
-		<key>bioseq-gaps</key>
+		<key>bioseq-RNA</key>
 		<dict>
 			<key>patterns</key>
 			<array>
 				<dict>
-					<key>include</key>
-					<string>#bioseq-DNA</string>
+					<key>match</key>
+					<string>[Uu]</string>
+					<key>name</key>
+					<string>markup.bioseq.base.U</string>
 				</dict>
+			</array>
+		</dict>
+		<key>bioseq-gaps</key>
+		<dict>
+			<key>patterns</key>
+			<array>
 				<dict>
 					<key>match</key>
 					<string>[*-?]</string>
