@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fileTypes</key>
+	<array>
+		<string>fasta</string>
+		<string>fa</string>
+		<string>dna</string>
+	</array>
+	<key>firstLineMatch</key>
+	<string>^&gt;(.*)</string>
+	<key>name</key>
+	<string>FASTA</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>^&gt;.+$</string>
+			<key>name</key>
+			<string>markup.bioseq.ID</string>
+		</dict>
+		<dict>
+			<key>include</key>
+			<string>#bioseq-DNA</string>
+		</dict>
+	</array>
+	<key>repository</key>
+	<dict>
+		<key>bioseq-DNA</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>[Aa]</string>
+					<key>name</key>
+					<string>markup.bioseq.base.A</string>
+				</dict>
+				<dict>
+					<key>match</key>
+					<string>[Tt]</string>
+					<key>name</key>
+					<string>markup.bioseq.base.T</string>
+				</dict>
+				<dict>
+					<key>match</key>
+					<string>[Cc]</string>
+					<key>name</key>
+					<string>markup.bioseq.base.C</string>
+				</dict>
+				<dict>
+					<key>match</key>
+					<string>[Gg]</string>
+					<key>name</key>
+					<string>markup.bioseq.base.G</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>scopeName</key>
+	<string>source.fasta</string>
+	<key>uuid</key>
+	<string>F44460F6-8239-44C7-8A61-6F59BE248319</string>
+</dict>
+</plist>

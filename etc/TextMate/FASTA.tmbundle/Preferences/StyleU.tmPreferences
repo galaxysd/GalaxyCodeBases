@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Style: DNA.U (Umber)</string>
+	<key>scope</key>
+	<string>markup.bioseq.base.U</string>
+	<key>settings</key>
+	<dict>
+		<key>background</key>
+		<string>#000000</string>
+		<key>foreground</key>
+		<string>#CC9900</string>
+	</dict>
+	<key>uuid</key>
+	<string>2B666027-8C56-4F0E-9B55-DC2A52678B66</string>
+</dict>
+</plist>

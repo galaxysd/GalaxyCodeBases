@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>contactEmailRot13</key>
+	<string>tnynklfq@zr.pbz</string>
+	<key>contactName</key>
+	<string>Yuuki Galaxy</string>
+	<key>description</key>
+	<string>New shiny bundle for FASTA.
+
+NOT FINISHED YET !</string>
+	<key>name</key>
+	<string>FASTA</string>
+	<key>uuid</key>
+	<string>3ED03043-C505-4AAC-9A45-062B8D19A5E8</string>
+</dict>
+</plist>
