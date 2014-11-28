@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fileTypes</key>
+	<array>
+		<string>src</string>
+	</array>
+	<key>firstLineMatch</key>
+	<string>^&gt;(.*)</string>
+	<key>isDisabled</key>
+	<true/>
+	<key>name</key>
+	<string>test</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>begin</key>
+			<string>^(?&lt;A&gt;\&gt;)(.+)$</string>
+			<key>beginCaptures</key>
+			<dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>markup.bioseq.Title.DNA</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>(?&lt;A&gt;?!\G)</string>
+			<key>name</key>
+			<string>markup.bioseq.FASTA.DNA</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>captures</key>
+					<dict>
+						<key>0</key>
+						<dict>
+							<key>patterns</key>
+							<array>
+								<dict>
+									<key>include</key>
+									<string>source.bioseq</string>
+								</dict>
+							</array>
+						</dict>
+					</dict>
+					<key>match</key>
+					<string>^[ATCGatcgNn*\-?]+$</string>
+					<key>name</key>
+					<string>markup.seq.DNA</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.fasta</string>
+	<key>uuid</key>
+	<string>D1FE4C34-1075-4529-9B71-EC44F6813995</string>
+</dict>
+</plist>

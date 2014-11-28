@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>isDisabled</key>
+	<true/>
+	<key>name</key>
+	<string>Style: Protein</string>
+	<key>scope</key>
+	<string>source.bioseq</string>
+	<key>semanticClass</key>
+	<string>theme</string>
+	<key>settings</key>
+	<dict>
+		<key>name</key>
+		<string>Style: Protein AA</string>
+		<key>scope</key>
+		<string>markup.bioseq.aa.AA</string>
+		<key>settings</key>
+		<dict>
+			<key>background</key>
+			<string>#000000</string>
+			<key>foreground</key>
+			<string>#FF0000</string>
+		</dict>
+	</dict>
+	<key>uuid</key>
+	<string>2B666027-8C56-4F0E-9B55-DC2A52678B99</string>
+</dict>
+</plist>

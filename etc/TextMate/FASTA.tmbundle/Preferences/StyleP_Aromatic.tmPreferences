@@ -9,9 +9,9 @@
 	<key>settings</key>
 	<dict>
 		<key>background</key>
-		<string>#000000</string>
+		<string>#ffffff</string>
 		<key>foreground</key>
-		<string>#5050ff</string>
+		<string>#009600</string>
 	</dict>
 	<key>uuid</key>
 	<string>2B666027-8C56-4F0E-9B55-DC2A52678B02</string>

@@ -15,8 +15,12 @@
 	<key>patterns</key>
 	<array>
 		<dict>
+			<key>include</key>
+			<string>source.bioseq</string>
+		</dict>
+		<dict>
 			<key>begin</key>
-			<string>?&lt;A&gt;^\&gt;(.+)\n</string>
+			<string>^\&gt;(.+)$</string>
 			<key>beginCaptures</key>
 			<dict>
 				<key>1</key>
@@ -25,48 +29,10 @@
 					<string>markup.bioseq.Title.DNA</string>
 				</dict>
 			</dict>
-			<key>end</key>
-			<string>(?&lt;A&gt;?!\G)</string>
 			<key>name</key>
-			<string>markup.bioseq.FASTA.DNA</string>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>captures</key>
-					<dict>
-						<key>0</key>
-						<dict>
-							<key>patterns</key>
-							<array>
-								<dict>
-									<key>include</key>
-									<string>#bioseq-DNA</string>
-								</dict>
-							</array>
-						</dict>
-					</dict>
-					<key>match</key>
-					<string>^[ATCGatcgNn*\-?]+$</string>
-					<key>name</key>
-					<string>markup.seq.DNA</string>
-				</dict>
-			</array>
-		</dict>
-		<dict>
-			<key>begin</key>
-			<string>^\&gt;(.+)$</string>
-			<key>beginCaptures</key>
-			<dict>
-				<key>1</key>
-				<dict>
-					<key>name</key>
-					<string>markup.bioseq.Title.RNA</string>
-				</dict>
-			</dict>
-			<key>name</key>
-			<string>markup.bioseq.FASTA.RNA</string>
+			<string>markup.bioseq.FASTA.NA</string>
 			<key>while</key>
-			<string>^[AUCGaucgNn*-?]+$</string>
+			<string>(?i)^[ATCGUN*\-?]+$</string>
 			<key>whileCaptures</key>
 			<dict>
 				<key>0</key>
@@ -75,15 +41,7 @@
 					<array>
 						<dict>
 							<key>include</key>
-							<string>#bioseq-DNA</string>
-						</dict>
-						<dict>
-							<key>include</key>
-							<string>#bioseq-RNA</string>
-						</dict>
-						<dict>
-							<key>include</key>
-							<string>#bioseq-gaps</string>
+							<string>source.bioseq</string>
 						</dict>
 					</array>
 				</dict>
@@ -97,13 +55,13 @@
 				<key>1</key>
 				<dict>
 					<key>name</key>
-					<string>markup.bioseq.Title.Protein</string>
+					<string>markup.bioseq.Title.AA</string>
 				</dict>
 			</dict>
 			<key>name</key>
-			<string>markup.bioseq.FASTA.Protein</string>
+			<string>markup.bioseq.FASTA.AA</string>
 			<key>while</key>
-			<string>^[ABCDEFGHIJKLMNOPQRSTUVWXYZ*-?]+$</string>
+			<string>(?i)^[A-Z*\-?]+$</string>
 			<key>whileCaptures</key>
 			<dict>
 				<key>0</key>
@@ -112,92 +70,13 @@
 					<array>
 						<dict>
 							<key>include</key>
-							<string>#bioseq-Protein</string>
-						</dict>
-						<dict>
-							<key>include</key>
-							<string>#bioseq-gaps</string>
+							<string>source.bioseq</string>
 						</dict>
 					</array>
 				</dict>
 			</dict>
 		</dict>
 	</array>
-	<key>repository</key>
-	<dict>
-		<key>bioseq-DNA</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>match</key>
-					<string>[Aa]</string>
-					<key>name</key>
-					<string>markup.bioseq.base.A</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>[Tt]</string>
-					<key>name</key>
-					<string>markup.bioseq.base.T</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>[Cc]</string>
-					<key>name</key>
-					<string>markup.bioseq.base.C</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>[Gg]</string>
-					<key>name</key>
-					<string>markup.bioseq.base.G</string>
-				</dict>
-			</array>
-		</dict>
-		<key>bioseq-Protein</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>match</key>
-					<string>[ND]</string>
-					<key>name</key>
-					<string>markup.bioseq.aa.Aromatic</string>
-				</dict>
-				<dict>
-					<key>match</key>
-					<string>[ABCDEFGHIJKLMNOPQRSUVWXY]</string>
-					<key>name</key>
-					<string>markup.bioseq.aa.Basic</string>
-				</dict>
-			</array>
-		</dict>
-		<key>bioseq-RNA</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>match</key>
-					<string>[Uu]</string>
-					<key>name</key>
-					<string>markup.bioseq.base.U</string>
-				</dict>
-			</array>
-		</dict>
-		<key>bioseq-gaps</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>match</key>
-					<string>[*-?]</string>
-					<key>name</key>
-					<string>markup.bioseq.other</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
 	<key>scopeName</key>
 	<string>source.fasta</string>
 	<key>uuid</key>
