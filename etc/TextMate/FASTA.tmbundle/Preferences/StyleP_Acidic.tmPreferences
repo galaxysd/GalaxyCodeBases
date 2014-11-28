@@ -9,7 +9,7 @@
 	<key>settings</key>
 	<dict>
 		<key>background</key>
-		<string>#ffffff</string>
+		<string>#111100</string>
 		<key>foreground</key>
 		<string>#FF0000</string>
 	</dict>
