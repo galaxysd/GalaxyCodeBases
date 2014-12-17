@@ -196,8 +196,13 @@ while(<I>) {
 	my $seq1 = addSNP($chr,$s,$seq,'Hom');
 	my $seq2 = addSNP($chr,$s,$seq1,'Het');
 #ddx \@Paras; die;
+my ($a,$b)=($seq1,$seq2);
 	dosim(\@fhN,$Paras[1],$chr,$s,$e,$seq1,$seq2);
+die if $a ne $seq1;
+die if $b ne $seq2;
 	dosim(\@fhC,$Paras[2],$chr,$s,$e,$seq1,$seq2);
+die if $a ne $seq1;
+die if $b ne $seq2;
 }
 close S;
 #close M;
