@@ -134,6 +134,17 @@ while (<I>) {
 }
 close I;
 
+sub checkType($$) {
+	my ($pos,$telen) = @_;
+	++$pos;	# now, 1-based
+	my $posR = $pos+$telen;
+	if ( $posR < $CDS[0] ) {
+		return $posR - $CDS[0];
+	} elsif ( $pos > $CDS[1] ) {
+		return $pos - $CDS[1];
+	} else { return 0; }
+}
+
 sub analyseTE($) {
 	my $seq = $_[0];
 	for my $k (keys %{$leftTEs}) {
@@ -149,13 +160,15 @@ sub analyseTE($) {
 	}
 
 	my @Patterns = sort { length($a)<=>length($b) || $a cmp $b } keys %TEs;
+	my %PatDat;
 	for my $k (@Patterns) {
 		my @itsPoses;
 		my $itsLen = length($k);
 		print "\n$k\[$itsLen]: ";
 		while ($seq =~ /(?=$k)/g) {	# http://www.perlmonks.org/?node_id=1090633
 			my $p = pos $seq;
-			print "$p\t";
+			my $chk = checkType($p,$itsLen);
+			print "$p,$chk\t";
 		}
 		print "\n";
 	}
