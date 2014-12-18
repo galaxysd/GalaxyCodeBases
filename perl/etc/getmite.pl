@@ -99,9 +99,12 @@ sub getTE($) {
 my @CDS = (53565, 54167);
 my $getIN = 5;
 my $getLen = 6000;
-my $wholeLen = $getIN + $getLen;
 
+($getIN,$getLen) = (0,2000);
+
+my $wholeLen = $getIN + $getLen;
 my ($leftTEs,$rightTEs,%TEs);
+sub analyseTE($);
 
 open I,'<','pKB1A97-67.fa' or die $?;
 while (<I>) {
@@ -127,21 +130,36 @@ while (<I>) {
 	$leftTEs = getTE($left);
 	print BOLD,GREEN,substr($right,0,$getIN),RESET,substr($right,$getIN,$getLen),"\n";
 	$rightTEs = getTE($right);
+	analyseTE($seq);
 }
 close I;
 
-for my $k (keys %{$leftTEs}) {
-	$TEs{$k} = [ ${$leftTEs}{$k} ];
-}
-for my $k (keys %{$rightTEs}) {
-	push @{$TEs{$k}},${$rightTEs}{$k};
-}
-for my $k (keys %TEs) {
-	next unless scalar @{$TEs{$k}} == 2;
-	print '>',$k,"\t";
-	ddx $TEs{$k};
-}
+sub analyseTE($) {
+	my $seq = $_[0];
+	for my $k (keys %{$leftTEs}) {
+		$TEs{$k} = [ ${$leftTEs}{$k} ];
+	}
+	for my $k (keys %{$rightTEs}) {
+		push @{$TEs{$k}},${$rightTEs}{$k};
+	}
+	for my $k (keys %TEs) {
+		next unless scalar @{$TEs{$k}} == 2;
+		print '>',$k,"\t";
+		ddx $TEs{$k};
+	}
 
+	my @Patterns = sort { length($a)<=>length($b) || $a cmp $b } keys %TEs;
+	for my $k (@Patterns) {
+		my @itsPoses;
+		my $itsLen = length($k);
+		print "\n$k\[$itsLen]: ";
+		while ($seq =~ /(?=$k)/g) {	# http://www.perlmonks.org/?node_id=1090633
+			my $p = pos $seq;
+			print "$p\t";
+		}
+		print "\n";
+	}
+}
 __END__
 
 #http://repo.hackerzvoice.net/depot_madchat/esprit/texture/hallucinati/finding%20DNA%20palindroms.htm
