@@ -103,7 +103,7 @@ my $getLen = 6000;
 ($getIN,$getLen) = (0,2000);
 
 my $wholeLen = $getIN + $getLen;
-my ($leftTEs,$rightTEs,%TEs);
+my ($leftTEs,$rightTEs,%TEs,$allTEs);
 sub analyseTE($);
 
 open I,'<','pKB1A97-67.fa' or die $?;
@@ -126,10 +126,11 @@ while (<I>) {
 	my $left = substr $seq,($CDS[0]-1-$getLen),$wholeLen;
 	my $right = substr $seq,($CDS[1]-$getIN),$wholeLen;
 	#local $Term::ANSIColor::AUTORESET = 1;
-	print substr($left,0,$getLen),BOLD,GREEN,substr($left,$getLen),RESET,"\n";
-	$leftTEs = getTE($left);
-	print BOLD,GREEN,substr($right,0,$getIN),RESET,substr($right,$getIN,$getLen),"\n";
-	$rightTEs = getTE($right);
+#	print substr($left,0,$getLen),BOLD,GREEN,substr($left,$getLen),RESET,"\n";
+#	$leftTEs = getTE($left);
+#	print BOLD,GREEN,substr($right,0,$getIN),RESET,substr($right,$getIN,$getLen),"\n";
+#	$rightTEs = getTE($right);
+	$allTEs = getTE($seq);
 	analyseTE($seq);
 }
 close I;
@@ -145,8 +146,50 @@ sub checkType($$) {
 	} else { return 0; }
 }
 
+my (%PatDat,%PatFlag,@Patterns);
+sub printTE($$) {
+	my ($flag,$mode) = @_;
+	for my $k (@Patterns) {
+		if ($mode == 1) {
+			next unless $PatFlag{$k} == $flag;
+		} elsif ($mode == 0) {
+			next unless $PatFlag{$k} & $flag;
+		} elsif ($mode == -1) {
+			next if $PatFlag{$k} == $flag;
+		} else { die; }
+		my $itsLen = length($k);
+		my ($Instde,@Left,@Right,@PosL,@PosR) = (0);
+		for my $p (@{$PatDat{$k}}) {
+			push @Left,$p if $p < 0;
+			push @Right,$p if $p > 0;
+			$Instde = 1 if $p == 0;
+		}
+		if (@Left==0) {
+			@Left=('NA');
+			@PosL=('NA');
+		} else {
+			push @PosL,$_-$itsLen+$CDS[0] for @Left;
+		}
+		if (@Right==0) {
+			@Right=('NA');
+			@PosR=('NA');
+		} else {
+			push @PosR,$_+$CDS[1] for @Right;
+		}
+		
+		#print BOLD,GREEN,"$PatFlag{$k} $k\[$itsLen]: ",join(',',$Left[-1],$Right[0]),' -> ',join(',',$PosL[-1],$PosR[0]),($Instde?' *':''),RESET,"\n";
+		print BOLD,GREEN,"$k\[$itsLen]: ",join(',',$Left[-1],$Right[0]),' -> ',join(',',$PosL[-1],$PosR[0]),($Instde?' *':''),RESET,"\n";
+		if ((@Left + @Right)>2) {
+			print "\t",join(',',@PosL),' | ',join(',',@PosR);
+			#print " <- ",join(',',@Left),' | ',join(',',@Right);
+		}
+		print "\n";
+	}
+}
+
 sub analyseTE($) {
 	my $seq = $_[0];
+=pod
 	for my $k (keys %{$leftTEs}) {
 		$TEs{$k} = [ ${$leftTEs}{$k} ];
 	}
@@ -158,9 +201,11 @@ sub analyseTE($) {
 		print '>',$k,"\t";
 		ddx $TEs{$k};
 	}
-
-	my @Patterns = sort { length($a)<=>length($b) || $a cmp $b } keys %TEs;
-	my %PatDat;
+=cut
+	%TEs = %{$allTEs};
+	
+	@Patterns = sort { length($b)<=>length($a) || $a cmp $b } keys %TEs;
+	(%PatDat,%PatFlag)=();
 	for my $k (@Patterns) {
 		my @itsPoses;
 		my $itsLen = length($k);
@@ -169,10 +214,23 @@ sub analyseTE($) {
 			my $p = pos $seq;
 			my $chk = checkType($p,$itsLen);
 			print "$p,$chk\t";
+			push @{$PatDat{$k}},$chk;
+			$PatFlag{$k} |= 1 if $chk <0;
+			$PatFlag{$k} |= 2 if $chk >0;
+			$PatFlag{$k} |= 4 if $chk ==0;
 		}
 		print "\n";
 	}
+	#ddx \%PatFlag;
+	ddx \@Patterns;
+	print BOLD,RED,'-'x5,'Both','-'x10,"\n";
+	printTE(3,1);
+	print BOLD,RED,'-'x5,'Instde','-'x10,"\n";
+	printTE(4,0);
+	#print BOLD,RED,'-'x5,'Single','-'x10,"\n";
+	#printTE(3,-1);
 }
+
 __END__
 
 #http://repo.hackerzvoice.net/depot_madchat/esprit/texture/hallucinati/finding%20DNA%20palindroms.htm
