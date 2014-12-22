@@ -19,7 +19,8 @@ while (my $line = <IN>) {
 		#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 		#print "$id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize\n";
 		my @Dat1 = split /\t/,$line;
-		my $line2 = <IN> or die '[x]SAM/BAM file not paired !';
+		my $line2 = <IN>;
+		die '[x]SAM/BAM file not paired !' unless defined($line2);
 		my @Dat2 = split /\t/,$line2;
 		#if ( $ref eq 'chrEBV' or ($flag & 12) ) {
 		if ( $Dat1[2] eq 'chrEBV' or ($Dat1[1] & 12) or $Dat2[2] eq 'chrEBV' or ($Dat2[1] & 12) ) {
