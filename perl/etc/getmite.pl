@@ -69,7 +69,10 @@ FEATURES		   Location/Qualifiers
 
 my @CDS = (53565, 54167);
 my $irMinLen = 3;
-my $getLen = 6000;
+my $getLen = 40099;
+
+#$getLen = 100;
+#$irMinLen = 3;
 
 # http://www.perlmonks.org/?node_id=197793
 sub revdnacomp {
@@ -83,20 +86,47 @@ sub analyseIR($$) {
 	my ($seq1,$seq2) = @_;
 	my $seqlen1 = length $seq1;
 	my $seqlen2 = length $seq2;
+	my %Dat;
 	for my $irLeftPos2 (0 .. ($seqlen2-1)) {
 		#for my $irLen ($irMinLen .. int(($seqlen-$irLeftPos)/2)) {
-		for my $irLen ($irMinLen .. ($seqlen2-1-$irMinLen)) {
+		for my $irLen ($irMinLen .. ($seqlen2-1-$irLeftPos2)) {
 			my $irSeq = substr $seq2,$irLeftPos2,$irLen;
 			my $revcmp = revdnacomp($irSeq);
-			my @thePoses = (index $seqlen1,$revcmp);
+			my @thePoses = (index $seq1,$revcmp);
 			last if $thePoses[0] == -1;
-			#while ($thePoses[-1] != -1) {
-				#push @thePoses,index($remaindSeq,$revcmp,1+$thePoses[-1]);
-				#ddx \@thePoses;
-			#}
-			#pop @thePoses;
-			#print "@thePoses\t[$irSeq][$remaindSeq]\n";
+			$Dat{"$irLeftPos2|$_"} = $irLen for @thePoses;
+=pod
+			print "$irSeq\t";
+			for (@thePoses) {
+				my $found = substr $seq1,$_,$irLen+3;
+				print ".$found";
+			}
+			print "\n";
+=cut
 		}
+	}
+	return \%Dat;
+}
+sub printRes($$$$) {
+	my ($dat,$getLen,$left,$right) = @_;
+	my %res;
+	for my $poses (keys %{$dat}) {
+		my $irlen = $dat->{$poses};
+		push @{$res{$irlen}},$poses;
+	}
+	for my $irlen (keys %res) {
+		my %tmp;
+		for my $poses (@{$res{$irlen}}) {
+			my @Poses = split /\|/,$poses;
+			my $dis = $Poses[1] - $Poses[0];
+			$tmp{$poses} = $dis;
+		}
+		my @tmp = sort { $tmp{$a} <=> $tmp{$b} } @{$res{$irlen}};
+		$res{$irlen} = \@tmp;
+	}
+	for my $irlen (sort {$b<=>$a} keys %res) {
+		print "--- $irlen ---\n";
+		ddx $res{$irlen};
 	}
 }
 
@@ -119,7 +149,11 @@ while (<I>) {
 	$seq = uc $seq;
 	my $left = substr $seq,0,($CDS[0]-1);
 	my $right = substr $seq,($CDS[1]);
-	analyseIR($left,$right);
+	$left = substr $left,-$getLen;
+	$right = substr $right,0,$getLen;
+	my $res = analyseIR($left,$right);
+	#ddx $res;
+	printRes($res,$getLen,$left,$right);
 =pod
 	#print "[$left]\n\n[$right]\n";
 	[TTTATTGACCGGCAGCGGTATGCGAGTGCGAACACCAACTTCTTATGGTGAATCACAAATGTACGACCAGCCTTTGCCTGTCACGCAGATGGACATGGGGCAAATTCCT
