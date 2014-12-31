@@ -72,7 +72,7 @@ my $irMinLen = 3;
 my $getLen = 40099;
 
 $getLen = 150;
-$irMinLen = 5;
+$irMinLen = 3;
 
 # http://www.perlmonks.org/?node_id=197793
 sub revdnacomp {
@@ -92,16 +92,22 @@ sub analyseIR($$) {
 		for my $irLen ($irMinLen .. ($seqlen2-1-$irLeftPos2)) {
 			my $irSeq = substr $seq2,-$irLen-$irLeftPos2,$irLen;
 			my $revcmp = revdnacomp($irSeq);
-			my @thePoses = (index $seq1,$revcmp);
+			my @thePoses;
+			my $p = 0;
+			while ($p >= 0) {
+				$p = index $seq1,$revcmp,$p+1;
+				push @thePoses,$p;
+			}
 			last if $thePoses[0] == -1;
+			pop @thePoses;
 			$Dat{"$irLeftPos2|$_"} = $irLen for @thePoses;
 #=pod
-			print "$irSeq\t";
+			print "[$irSeq]\t";
 			for (@thePoses) {
 				my $found = substr $seq1,$_,$irLen+3;
-				print ".$found";
+				print ".$found $_";
 			}
-			print "\n";
+			print "\t$irLeftPos2\n";
 #=cut
 		}
 	}
