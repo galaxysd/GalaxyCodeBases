@@ -72,7 +72,7 @@ my $irMinLen = 3;
 my $getLen = 40099;
 
 $getLen = 150;
-$irMinLen = 3;
+$irMinLen = 5;
 
 # http://www.perlmonks.org/?node_id=197793
 sub revdnacomp {
@@ -100,21 +100,23 @@ sub analyseIR($$) {
 			}
 			last if $thePoses[0] == -1;
 			pop @thePoses;
-			$Dat{"$irLeftPos2|$_"} = $irLen for @thePoses;
+			$Dat{"$_|$irLeftPos2"} = $irLen for @thePoses;
 #=pod
-			print "[$irSeq]\t";
+			print "$irLen\[$irSeq]\t";
 			for (@thePoses) {
-				my $found = substr $seq1,$_,$irLen+3;
-				print ".$found $_";
+				my $found = substr $seq1,$_,$irLen;
+				my $extra = substr $seq1,$_+$irLen,6;
+				print ".$found",GREEN,BOLD,"$extra $_",RESET;
 			}
 			print "\t$irLeftPos2\n";
 #=cut
 		}
 	}
+	#print "1:$seq1,$seq2\n";
 	return \%Dat;
 }
 sub printRes($$$$) {
-	my ($dat,$getLen,$left,$right) = @_;
+	my ($dat,$getLen,$seq1,$seq2) = @_;
 	my %res;
 	for my $poses (keys %{$dat}) {
 		my $irlen = $dat->{$poses};
@@ -139,10 +141,18 @@ sub printRes($$$$) {
 			delete $res{$irlen};
 		}
 	}
-	for my $irlen (sort {$b<=>$a} keys %res) {
+	for my $irlen (sort {$a<=>$b} keys %res) {
 		print "--- $irlen ---\n";
-		ddx $res{$irlen};
+		#ddx $res{$irlen};
+		for my $poses ( @{$res{$irlen}} ) {
+			my @Poses = split /\|/,$poses;
+			my $irL = substr $seq1,$Poses[0],$irlen;
+			my $irR = substr $seq2,-$irlen-$Poses[1],$irlen;
+			#my $revcmp = revdnacomp($irR);
+			print "$poses $irL $irR\n";
+		}
 	}
+	#print "2:$seq1,$seq2\n";
 }
 
 open I,'<','pKB1A97-67.fa' or die $?;
