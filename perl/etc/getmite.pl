@@ -118,17 +118,26 @@ sub printRes($$$$) {
 	my %res;
 	for my $poses (keys %{$dat}) {
 		my $irlen = $dat->{$poses};
-		push @{$res{$irlen}},$poses;
+		++$res{$irlen}{$poses};
 	}
-	for my $irlen (keys %res) {
+	for my $irlen (sort {$a<=>$b} keys %res) {
 		my %tmp;
-		for my $poses (@{$res{$irlen}}) {
+		for my $poses (keys %{$res{$irlen}}) {
 			my @Poses = split /\|/,$poses;
 			my $dis = $Poses[1] + $Poses[0];
+			my $upperPoses = join('|',$Poses[0]-1,$Poses[1]-1);
+			if (exists $res{$irlen+1}) {
+				delete $res{$irlen}{$poses} if exists $res{$irlen+1}{$upperPoses};
+			}
 			$tmp{$poses} = $dis;
 		}
-		my @tmp = sort { $tmp{$a} <=> $tmp{$b} } @{$res{$irlen}};
-		$res{$irlen} = \@tmp;
+		my @Poses = keys %{$res{$irlen}};
+		if (@Poses > 0) {
+			my @tmp = sort { $tmp{$a} <=> $tmp{$b} } @Poses;
+			$res{$irlen} = \@tmp;
+		} else {
+			delete $res{$irlen};
+		}
 	}
 	for my $irlen (sort {$b<=>$a} keys %res) {
 		print "--- $irlen ---\n";
