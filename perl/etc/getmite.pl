@@ -78,7 +78,7 @@ $irMinLen = 5;
 sub revdnacomp {
   my $dna = shift; # or   my $dna = shift @_;
   my $revcomp = reverse($dna);
-  $revcomp =~ tr/ACGTacgt/TGCAtgca/;
+  $revcomp =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
   return $revcomp;
 }
 
@@ -101,7 +101,7 @@ sub analyseIR($$) {
 			last if $thePoses[0] == -1;
 			pop @thePoses;
 			$Dat{"$_|$irLeftPos2"} = $irLen for @thePoses;
-#=pod
+=pod
 			print "$irLen\[$irSeq]\t";
 			for (@thePoses) {
 				my $found = substr $seq1,$_,$irLen;
@@ -109,7 +109,7 @@ sub analyseIR($$) {
 				print ".$found",GREEN,BOLD,"$extra $_",RESET;
 			}
 			print "\t$irLeftPos2\n";
-#=cut
+=cut
 		}
 	}
 	#print "1:$seq1,$seq2\n";
@@ -174,8 +174,10 @@ while (<I>) {
 	$seq = uc $seq;
 	my $left = substr $seq,0,($CDS[0]-1);
 	my $right = substr $seq,($CDS[1]);
-	$left = substr $left,-$getLen;
-	$right = substr $right,0,$getLen;
+	print "0 Len:(",length $left,',',length $right,")\n";
+	#$left = substr $left,-$getLen;
+	#$right = substr $right,0,$getLen;
+	print "1 Len:(",length $left,',',length $right,")\n";
 	my $res = analyseIR($left,$right);
 	#ddx $res;
 	printRes($res,$getLen,$left,$right);
