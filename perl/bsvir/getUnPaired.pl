@@ -25,7 +25,7 @@ unless (defined $fq2) {
 	}
 	close IN;
 }
-warn "From:[$in] to [$out].{1,2}.fq.gz\nFQin:[$fq1],[$fq2]\n";
+warn "From:[$in] to [$out].*.gz\nFQin:[$fq1],[$fq2]\n";
 
 sub openfile($) {
 	my ($filename)=@_;
@@ -66,6 +66,7 @@ sub openpipe($$) {
 }
 my $OUT1 = openpipe('gzip -9c',"$out.1.fq.gz");
 my $OUT2 = openpipe('gzip -9c',"$out.2.fq.gz");
+my $OUT0 = openpipe('gzip -9c',"$out.sam.gz");
 
 my %IDs;
 open( IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
@@ -82,6 +83,7 @@ while (my $line = <IN>) {
 			die "[x]SAM/BAM file not paired as $Dat1[0] != $Dat2[0] !\n";
 		}
 		++$IDs{$Dat1[0]};
+		print $OUT0 "$line$line2";
 	} elsif ( $Dat1[2] eq '*' or $Dat2[2] eq '*' ) {
 		++$IDs{$Dat1[0]};
 		warn "-->[$line$line2";
@@ -105,7 +107,8 @@ while (my $FQ1dat = getFQitem($FQ1)) {
 
 
 close $OUT1;
-close $OUT2,
+close $OUT2;
+close $OUT0;
 close $FQ1;
 close $FQ2;
 #system("samtools view -bS $out.sam.gz >$out.bam");
