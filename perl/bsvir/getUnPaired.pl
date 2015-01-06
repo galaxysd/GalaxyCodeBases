@@ -93,6 +93,7 @@ while (my $line = <IN>) {
 	}
 }
 close IN;
+close $OUT0;
 
 while (my $FQ1dat = getFQitem($FQ1)) {
 	my $FQ2dat = getFQitem($FQ2);
@@ -108,10 +109,8 @@ while (my $FQ1dat = getFQitem($FQ1)) {
 	#warn "$FQ1dat->[0]\n";
 }
 
-
 close $OUT1;
 close $OUT2;
-close $OUT0;
 close $FQ1;
 close $FQ2;
 #system("samtools view -bS $out.sam.gz >$out.bam");
