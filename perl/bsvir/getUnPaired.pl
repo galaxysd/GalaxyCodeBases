@@ -66,7 +66,7 @@ sub openpipe($$) {
 }
 my $OUT1 = openpipe('gzip -9c',"$out.1.fq.gz");
 my $OUT2 = openpipe('gzip -9c',"$out.2.fq.gz");
-my $OUT0 = openpipe('gzip -9c',"$out.sam.gz");
+my $OUT0 = openpipe('gzip -9c',"$out.virsam.gz");
 
 my %IDs;
 open( IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
