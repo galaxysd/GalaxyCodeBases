@@ -25,7 +25,7 @@ unless (defined $fq2) {
 	}
 	close IN;
 }
-#die "$in,$out,$fq1,$fq2";
+warn "From:[$in] to [$out].{1,2}.fq.gz\nFQin:[$fq1],[$fq2]\n";
 
 sub openfile($) {
 	my ($filename)=@_;
@@ -45,6 +45,7 @@ my $FQ2 = openfile($fq2);
 sub getFQitem($) {
 	my $FH = $_[0];
 	my @dat;
+	return undef if eof($FH);
 	for (1 .. 4) {
 		my $line = <$FH>;
 		die '[x]FQ file not match 1 !' unless defined($line);
@@ -66,6 +67,7 @@ sub openpipe($$) {
 my $OUT1 = openpipe('gzip -9c',"$out.1.fq.gz");
 my $OUT2 = openpipe('gzip -9c',"$out.2.fq.gz");
 
+my %IDs;
 open( IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
 while (my $line = <IN>) {
 	#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
@@ -74,25 +76,42 @@ while (my $line = <IN>) {
 	my $line2 = <IN>;
 	die '[x]SAM/BAM file not paired !' unless defined($line2);
 	my @Dat2 = split /\t/,$line2;
-	my $FQ1dat = getFQitem($FQ1);
-	my $FQ2dat = getFQitem($FQ2);
-	unless ( ($FQ1dat->[0] eq $Dat1[0]) and ($FQ2dat->[0] eq $Dat2[0]) ) {
-		die '[x]FQ file not match 2 !',$FQ1dat->[0],'|',$Dat1[0];
-	}
 	#if ( $ref eq 'chrEBV' or ($flag & 12) ) {
 	if ( $Dat1[2] eq 'chrEBV' or ($Dat1[1] & 12) or $Dat2[2] eq 'chrEBV' or ($Dat2[1] & 12) ) {
 		if ($Dat1[0] ne $Dat2[0]) {
 			die "[x]SAM/BAM file not paired as $Dat1[0] != $Dat2[0] !\n";
 		}
-		print $OUT1,join('',$FQ1dat->[2]);
-		print $OUT2,join('',$FQ2dat->[2]);
+		++$IDs{$Dat1[0]};
 	} elsif ( $Dat1[2] eq '*' or $Dat2[2] eq '*' ) {
+		++$IDs{$Dat1[0]};
 		warn "-->[$line$line2";
 	}
 }
+close IN;
+
+while (my $FQ1dat = getFQitem($FQ1)) {
+	my $FQ2dat = getFQitem($FQ2);
+	unless ( $FQ1dat->[0] eq $FQ2dat->[0] ) {
+		die '[x]FQ file not match 2 ! ',$FQ1dat->[0],'|',$FQ2dat->[0];
+	}
+	if (exists $IDs{$FQ1dat->[0]}) {
+		print $OUT1 join('',@{$FQ1dat->[2]});
+		print $OUT2 join('',@{$FQ2dat->[2]});
+		delete $IDs{$FQ1dat->[0]};
+	}
+	last unless keys %IDs;
+	#warn "$FQ1dat->[0]\n";
+}
+
+
 close $OUT1;
 close $OUT2,
-close IN;
 close $FQ1;
 close $FQ2;
 #system("samtools view -bS $out.sam.gz >$out.bam");
+__END__
+bsmap -u -z 64 -p 12 -v 10 -q 2 -d HomoGRCh38.fa -a F12HPCCCSZ0010_Upload/s00_C.bs_1.fq.gz -b F12HPCCCSZ0010_Upload/s00_C.bs_2.fq.gz -o s00_C.bs.bam 2> s00_C.bs.err
+bsmap -u -z 64 -p 12 -v 10 -q 2 -d HomoGRCh38/HomoGRCh38.fa.gz -a F12HPCCCSZ0010_Upload/s01_P.bs_1.fq.gz -b F12HPCCCSZ0010_Upload/s01_P.bs_2.fq.gz -o s01_P.bs.bam 2> s01_P.bs.err
+-rw-r--r-- 1 huxs users  8598234466 Dec 22 21:53 s00_C.bs.bam
+-rw-r--r-- 1 huxs users         961 Dec 22 21:53 s00_C.bs.err
+-rw-r--r-- 1 huxs users           0 Dec 22 16:32 s00_C.bs.log
