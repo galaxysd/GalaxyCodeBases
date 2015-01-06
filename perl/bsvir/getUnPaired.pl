@@ -8,10 +8,21 @@ unless (defined $out) {
 	$out='grep_'.$in;
 	$out =~ s/\.[sb]am(\.gz)?//g;
 }
-unless (defined $fq2) {
+
+sub openpipe($$) {
+	my ($cmd,$filename)=@_;
+	my $infile;	# undef
+	if ( length($filename) ) {
+		open( $infile,"|-","$cmd >$filename") or die "Error opening [$cmd],[$filename]: $!\n";
+	}
+	return $infile;
+}
+my $OUT0 = openpipe('gzip -9c',"$out.virsam.gz");
+# unless (defined $fq2) {
 	open( IN,"-|","samtools view -H $in") or die "Error opening $in: $!\n";
 	while (my $line = <IN>) {
-		if ($line =~ /^\@PG/) {
+		print $OUT0 $line;
+		if ( (! defined $fq2) and $line =~ /^\@PG/) {
 			$line =~ /CL:"([^"]+)"/ or die "[x]SAM/BAM file header error as [$line]\n";
 			my @CLIs = split /\s+/,$1;
 			while (my $v = shift @CLIs) {
@@ -24,7 +35,7 @@ unless (defined $fq2) {
 		}
 	}
 	close IN;
-}
+# }
 warn "From:[$in] to [$out].*.gz\nFQin:[$fq1],[$fq2]\n";
 
 sub openfile($) {
@@ -56,17 +67,9 @@ sub getFQitem($) {
 	$id = (split /#/,$id)[0];
 	return [$id,$r12,\@dat];
 }
-sub openpipe($$) {
-	my ($cmd,$filename)=@_;
-	my $infile;	# undef
-	if ( length($filename) ) {
-		open( $infile,"|-","$cmd >$filename") or die "Error opening [$cmd],[$filename]: $!\n";
-	}
-	return $infile;
-}
+
 my $OUT1 = openpipe('gzip -9c',"$out.1.fq.gz");
 my $OUT2 = openpipe('gzip -9c',"$out.2.fq.gz");
-my $OUT0 = openpipe('gzip -9c',"$out.virsam.gz");
 
 my %IDs;
 open( IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
