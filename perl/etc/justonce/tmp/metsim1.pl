@@ -10,7 +10,7 @@ my ($minRefLen,$maxRefLen) = (40,220);
 
 my $outCnt = 1;
 
-open I,'<','hg19chr18.bed.frag.trim' or die;
+open I,'<','hg19chr17.bed.frag' or die;
 open Z,'<','zone.lst' or die;
 open S,'<','snp.lst' or die;
 
@@ -25,22 +25,25 @@ sub revcom($) {
 my %MetUnchgRate;
 while (<Z>) {
 	chomp;
-	my (undef,$s,$e,$ra,$rb) = split /\t/;
-	$MetUnchgRate{$s}=[$e,$ra,$rb];
+	next if /^#/;
+	my (undef,$s,$e,$ra,$rb,$rHa,$rHb) = split /\t/;
+	$MetUnchgRate{$s}=[$e,$ra,$rb,$rHa,$rHb];
 }
 close Z;
 ddx \%MetUnchgRate;
 
 my %SNPList;
+my %usedPos;
 while (<S>) {
 	chomp;
-	my ($HomHet,undef,$s,undef,undef,undef,undef,undef,undef,undef,$newseq) = split /\t/;
+	my ($HomHet,$chr,$s,undef,undef,undef,undef,$PosP1,undef,undef,$newseq) = split /\t/;
 	$SNPList{"$HomHet\t$s"} = $newseq;
+	$usedPos{$chr}{$s}{$PosP1-1} = $HomHet;
 }
 close S;
+#ddx \%usedPos;
 
 my $SNPremained = 0;
-my %usedPos;
 sub addSNP($$$$) {
 	my ($chr,$s,$seq,$type) = @_;
 	my $key = "$type\t$s";
@@ -78,7 +81,7 @@ sub doCoin($) {
 	}
 }
 
-sub simPlusMinus($$) {	#甲基化只处理fq1的单链
+sub simPlusMinus($$) {	#甲基化只处理fq1所在的单链
 	my ($seq,$unchgRate) = @_;
 	my @CGpos = getCpG($seq);
 	my @Cpos = getC($seq);
@@ -110,12 +113,13 @@ sub getPE ($$) {
 	return ($r1,$r2,$readlen);
 }
 
-sub realdosim($$$$$$$$$) {
-	my ($homhet,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e,$MetStatRef) = @_;
+sub realdosim($$$$$$$$$$) {
+	my ($homhet,$Het2MetR,$theseq,$thedepth,$fhref,$unchgRate,$chr,$s,$e,$MetStatRef) = @_;
 	my @FH = @$fhref;
 	my ($flag,$newseq,$str,$seqname,$r1,$r2,$realReadlen);
 	for ( 1 .. $thedepth ) {
 		my $outputhomhet;
+		my $realMetRate = $unchgRate;
 		if (defined $usedPos{$chr}{$s}) {
 			my @t = values %{$usedPos{$chr}{$s}};
 			my %t; @t{@t} = 0 .. $#t;
@@ -124,6 +128,24 @@ sub realdosim($$$$$$$$$) {
 			} else {
 				$outputhomhet = 'Hom';
 			}
+
+			if ($Het2MetR > 0) {
+				$outputhomhet .= " i$homhet:HetMut=>Met";
+				if ($homhet eq 'Hom') {
+					$realMetRate = 0;
+				} else {
+					$realMetRate = $Het2MetR;
+				}
+			} elsif ($Het2MetR < 0) {
+				$outputhomhet .= " i$homhet:Ref=>Met";
+				if ($homhet eq 'Het') {
+					$realMetRate = 0;
+				} else {
+					$realMetRate = -1 * $Het2MetR;
+				}
+			} else {
+				$outputhomhet .= " i$homhet:RandomMet";
+			}
 		} else {
 			$outputhomhet = 'NoSNP';
 		}
@@ -131,12 +153,12 @@ sub realdosim($$$$$$$$$) {
 
 		# Hom -> seq1
 		# fq1 is Plus
-		$str = "$chr:$s $e Waston $outputhomhet";
-		($flag,$newseq) = simPlusMinus($theseq,$unchgRate);
+		$str = "->$realMetRate $chr:$s $e Waston o$outputhomhet";
+		($flag,$newseq) = simPlusMinus($theseq,$realMetRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2,$realReadlen) = getPE($newseq,$ReadLen);
-		$seqname =  "\@$outCnt $flag $unchgRate $str";
+		$seqname =  "\@$outCnt $flag $unchgRate$str";
 		$seqname =~ s/ /#/g;
 #print "$_ $seqname\n";
 		print {$FH[0]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $realReadlen),"\n";
@@ -144,21 +166,21 @@ sub realdosim($$$$$$$$$) {
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "$chr:$s $e Crick $outputhomhet";
+		$str = "->$realMetRate $chr:$s $e Crick f$outputhomhet";
 		my $revtheseq = revcom($theseq);
-		($flag,$newseq) = simPlusMinus($revtheseq,$unchgRate);
+		($flag,$newseq) = simPlusMinus($revtheseq,$realMetRate);
 		++$$MetStatRef{$flag};
 #print "$flag $unchgRate $str, $seq1, $newseq\n";
 		($r1,$r2,$realReadlen) = getPE($newseq,$ReadLen);
-		$seqname =  "\@$outCnt $flag $unchgRate $str";
+		$seqname =  "\@$outCnt $flag $unchgRate$str";
 		$seqname =~ s/ /#/g;
 		print {$FH[2]} join("\n",$seqname.'/1',$r1,'+',$QUAL x $realReadlen),"\n";
 		print {$FH[3]} join("\n",$seqname.'/2',$r2,'+',$QUAL x $realReadlen),"\n";
 		++$outCnt;
 	}
 }
-sub dosim($$$$$$$) {
-	my ($fhref,$unchgRate,$chr,$s,$e,$seq1,$seq2) = @_;
+sub dosim($$$$$$$$) {
+	my ($fhref,$unchgRate,$Het2MetR,$chr,$s,$e,$seq1,$seq2) = @_;
 	my $depth1 = int(0.9 + $eachDepth/2);
 	my $depth2 = $eachDepth - $depth1;
 	my %MetStat = (
@@ -168,8 +190,8 @@ sub dosim($$$$$$$) {
 		$unchgRate = 1;
 		print STDERR '+';
 	}
-	realdosim('Hom',$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
-	realdosim('Het',$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
+	realdosim('Hom',$Het2MetR,$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
+	realdosim('Het',$Het2MetR,$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
 	#print M join("\t",$chr,$s,$e,$e-$s+1,$MetStat{'CpGtoT'}),"\n";
 }
 
@@ -197,12 +219,10 @@ while(<I>) {
 	my $seq2 = addSNP($chr,$s,$seq1,'Het');
 #ddx \@Paras; die;
 my ($a,$b)=($seq1,$seq2);
-	dosim(\@fhN,$Paras[1],$chr,$s,$e,$seq1,$seq2);
-die if $a ne $seq1;
-die if $b ne $seq2;
-	dosim(\@fhC,$Paras[2],$chr,$s,$e,$seq1,$seq2);
-die if $a ne $seq1;
-die if $b ne $seq2;
+	dosim(\@fhC,$Paras[1],$Paras[3],$chr,$s,$e,$seq1,$seq2);	# now 'C' comes 1st.
+#die if $a ne $seq1; die if $b ne $seq2;
+	dosim(\@fhN,$Paras[2],$Paras[4],$chr,$s,$e,$seq1,$seq2);
+#die if $a ne $seq1; die if $b ne $seq2;
 }
 close S;
 #close M;
