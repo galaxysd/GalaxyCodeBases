@@ -129,19 +129,19 @@ sub realdosim($$$$$$$$$$) {
 				$outputhomhet = 'Hom';
 			}
 
-			if ($Het2MetR > 0) {
+			if ($$Het2MetR[1] > 0) {
 				$outputhomhet .= " i$homhet:HetMut=>Met";
 				if ($homhet eq 'Hom') {
-					$realMetRate = 0;
+					$realMetRate = $$Het2MetR[0];
 				} else {
-					$realMetRate = $Het2MetR;
+					$realMetRate = $$Het2MetR[1];
 				}
-			} elsif ($Het2MetR < 0) {
+			} elsif ($$Het2MetR[1] < 0) {
 				$outputhomhet .= " i$homhet:Ref=>Met";
 				if ($homhet eq 'Het') {
-					$realMetRate = 0;
+					$realMetRate = -1 * $$Het2MetR[0];
 				} else {
-					$realMetRate = -1 * $Het2MetR;
+					$realMetRate = -1 * $$Het2MetR[1];
 				}
 			} else {
 				$outputhomhet .= " i$homhet:RandomMet";
@@ -188,7 +188,13 @@ sub dosim($$$$$$$$) {
 	);
 	unless (defined $unchgRate) {
 		$unchgRate = 1;
+		$Het2MetR = 0;
 		print STDERR '+';
+	}
+	if ($unchgRate >= 0.5) {
+		$Het2MetR = [$Het2MetR*(2*$unchgRate-1),$Het2MetR];
+	} else {
+		$Het2MetR = [0,$Het2MetR*2*$unchgRate];	# 绝对值小的排前面。
 	}
 	realdosim('Hom',$Het2MetR,$seq1,$depth1,$fhref,$unchgRate,$chr,$s,$e,\%MetStat);
 	realdosim('Het',$Het2MetR,$seq2,$depth2,$fhref,$unchgRate,$chr,$s,$e,\%MetStat) if $depth2>0;
