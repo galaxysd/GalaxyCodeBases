@@ -166,7 +166,7 @@ sub realdosim($$$$$$$$$$) {
 		++$outCnt;
 		
 		# fq1 in Minus
-		$str = "->$realMetRate $chr:$s $e Crick f$outputhomhet";
+		$str = "->$realMetRate $chr:$s $e Crick o$outputhomhet";
 		my $revtheseq = revcom($theseq);
 		($flag,$newseq) = simPlusMinus($revtheseq,$realMetRate);
 		++$$MetStatRef{$flag};
@@ -224,7 +224,7 @@ while(<I>) {
 	my $seq1 = addSNP($chr,$s,$seq,'Hom');
 	my $seq2 = addSNP($chr,$s,$seq1,'Het');
 #ddx \@Paras; die;
-my ($a,$b)=($seq1,$seq2);
+#my ($a,$b)=($seq1,$seq2);
 	dosim(\@fhC,$Paras[1],$Paras[3],$chr,$s,$e,$seq1,$seq2);	# now 'C' comes 1st.
 #die if $a ne $seq1; die if $b ne $seq2;
 	dosim(\@fhN,$Paras[2],$Paras[4],$chr,$s,$e,$seq1,$seq2);
