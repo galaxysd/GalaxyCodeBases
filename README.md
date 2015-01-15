@@ -28,7 +28,7 @@ var tags = new TagSelect({
 });
 ```
 
-## Methods
+### Methods
 
 ```javascript
 /* .get()
