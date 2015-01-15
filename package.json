@@ -2,7 +2,7 @@
   "name": "TagSelect.js",
   "version": "0.0.0",
   "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
-  "main": "TagSelect.js",
+  "main": "dist/TagSelect.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
