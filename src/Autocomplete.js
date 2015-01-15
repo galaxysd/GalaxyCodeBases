@@ -20,7 +20,7 @@
 	/* Init
 	**********************************************/
 
-	var TagComplete = function ($el, options) {
+	var Autocomplete = function ($el, options) {
 		this.$el = $el;
 		this.options = $.extend({}, DEFAULT_SETTINGS, options);
 		this.o = this.options;
@@ -36,7 +36,7 @@
 	/* Operations
 	**********************************************/
 
-	TagComplete.prototype.match = function (input) {
+	Autocomplete.prototype.match = function (input) {
 		if (!input) return $.Deferred().reject();
 
 		var $matches = $.Deferred(),
@@ -66,7 +66,7 @@
 		return $matches.reject(matchedAll);
 	};
 
-	TagComplete.prototype.select = function () {
+	Autocomplete.prototype.select = function () {
 		if (!this.isVisible) return;
 		var $node = this.$dd.children('.active'),
 			input = $node.data('repl'),
@@ -83,7 +83,7 @@
 		this.hide();
 	};
 
-	TagComplete.prototype.show = function (matches) {
+	Autocomplete.prototype.show = function (matches) {
 		var lis = new Array(matches.length),
 			inputLength = this.caretOffset - this.beginOffset;
 		for (var active, repl, i = 0; i < matches.length; i++) {
@@ -98,12 +98,12 @@
 		this.isVisible = true;
 	};
 
-	TagComplete.prototype.hide = function () {
+	Autocomplete.prototype.hide = function () {
 		this.$dd.removeClass('visible');
 		this.isVisible = false;
 	};
 
-	TagComplete.prototype.setActive = function (direction) {
+	Autocomplete.prototype.setActive = function (direction) {
 		var $current = this.$dd.children('.active');
 		var $next = $current[direction]();
 		if ($next.length) {
@@ -112,14 +112,14 @@
 		}
 	};
 
-	TagComplete.prototype.setOptions = function (options) {
+	Autocomplete.prototype.setOptions = function (options) {
 		this.options = $.extend(this.options, options);
 	};
 
 	/* Keyboard Events
 	**********************************************/
 
-	TagComplete.prototype.bindEvents = function () {
+	Autocomplete.prototype.bindEvents = function () {
 		this.$el.on({
 			input: _.bind(this.onInput, this),
 			keydown: _.bind(this.onKeydown, this),
@@ -127,7 +127,7 @@
 		});
 	};
 
-	TagComplete.prototype.onInput = function () {
+	Autocomplete.prototype.onInput = function () {
 		this.caretOffset = getCaretCharacterOffsetWithin(this.$el[0]);
 		var text = this.$el.text();
 
@@ -155,7 +155,7 @@
 		});
 	};
 
-	TagComplete.prototype.onKeydown = function (e) {
+	Autocomplete.prototype.onKeydown = function (e) {
 		if (!this.isVisible) {
 			return;
 		} else if ($.inArray(e.which, this.o.returnKeys) >= 0) {
@@ -211,9 +211,9 @@
 	$.fn[HANDLE] = function (method) {
 		var obj = this.data(HANDLE);
 		if (!method || typeof method === 'object') {
-			return obj || this.data(HANDLE, new TagComplete(this, method));
+			return obj || this.data(HANDLE, new Autocomplete(this, method));
 		} else if (!obj) {
-			$.error('Cannot call "' + method + '" - TagComplete not initialized.');
+			$.error('Cannot call "' + method + '" - Autocomplete not initialized.');
 		} else {
 			return obj[method].apply(obj, Array.prototype.slice.call(arguments, 1));
 		}

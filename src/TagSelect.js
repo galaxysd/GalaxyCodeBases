@@ -1,4 +1,4 @@
-(function () {
+(function ( _ ) {
 
 	/****************************************
 	************* CONSTANTS ****************/
@@ -19,24 +19,24 @@
 	/****************************************
 	************* TagSelect ****************/
 
-	var TagSelect = FTB.Component.extend({
+	function TagSelect (options) {
+		this.$el = options.$el || options.el;
+		this.selected = options.selected || [];
+		this.template = _.template(FIELD_TPL);
+		this.listeners = { change: [] };
 
-		init: function (options) {
-			this.$el = options.$el || options.el;
-			this.selected = options.selected || [];
-			this.template = _.template(FIELD_TPL);
+		this.setOptions(options.options);
 
-			this.setOptions(options.options);
+		this.$el
+			.attr(DEFAULT_ATTRIBUTES)
+			.prop('contenteditable', true)
+			.addClass('tagselect');
 
-			this.$el
-				.attr(DEFAULT_ATTRIBUTES)
-				.prop('contenteditable', true)
-				.addClass('tagselect');
+		this.render();
+		this.postRender();
+	}
 
-			if (_.isArray(this.options)) {
-				this.options = _.invert(this.options);
-			}
-		},
+	$.extend(TagSelect.prototype, {
 
 		render: function () {
 			return this.$el.html(
@@ -104,9 +104,20 @@
 
 		trim: function (text) {
 			return text.replace(/\n\s*/gm, '');
+		},
+
+		on: function (event, callback) {
+			this.listeners[event].push(callback);
+		},
+
+		trigger: function (event) {
+			_.forEach(this.listeners[event], function (callback) {
+				callback();
+			});
 		}
 
 	});
 
-	FTB.module('FTB.TagSelect', TagSelect);
-}());
+	// Export TagSelect global
+	window.TagSelect = TagSelect;
+}(window._));

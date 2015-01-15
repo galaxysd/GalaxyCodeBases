@@ -39,6 +39,13 @@ var selected = tags.get();
 /* .set()
 *************************/
 tags.set(['Orange']);
+
+/* .on()
+*************************/
+tags.on('change', function () {
+    console.log('Tags updated!');
+    console.log(tags.get());
+})
 ```
 
 ## Contributing
