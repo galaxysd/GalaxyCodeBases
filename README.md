@@ -2,6 +2,8 @@
 
 HTML5-based input for typing lists of tags, tokens, or other discrete values.
 
+> **Compatibility:** Only modern browsers are supported. Some of the nicer features of this plugin (copy/paste support, native selection and cursor movement) aren't realistic on older browsers.
+
 ***
 
 ## Quickstart
@@ -10,7 +12,7 @@ First, include the files from `dist/` in your project. They'll need to be includ
 
 ```html
 <link rel="stylesheet" href="TagSelect.min.css">
-<script src="TagSelect.js"></script>
+<script src="TagSelect.min.js"></script>
 ```
 
 Next, you can use the plugin in your own JavaScript. If you have an element with the ID 'my-input':
@@ -49,7 +51,7 @@ To get started, you'll need install the development dependencies:
 npm install
 ```
 
-Tasks — compiling [Sass](http://sass-lang.com/) and minifying JavaScript — are handled by [Grunt](http://gruntjs.com/).
+Development tasks, like compiling [Sass](http://sass-lang.com/) and minifying JavaScript, are handled by [Grunt](http://gruntjs.com/).
 
 ```bash
 # Watch for changes to *.scss files and recompile
