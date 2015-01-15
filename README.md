@@ -1,6 +1,20 @@
 # TagSelect.js
 
+## Overview
+
 HTML5-based input for typing lists of tags, tokens, or other discrete values.
+
+![screenshot](https://dl.dropboxusercontent.com/u/42869844/ftb/SUPPORT/TagSelect.png)
+
+Features:
+
+* Built-in validation, with visual feedback on unexpected values.
+* Full keyboard/cursor support (you can type anywhere in the input).
+* Full copy/paste support.
+
+Currently, all non-word characters are treated as tag dividers. More separator options may be added in the future.
+
+> **Dependencies:** jQuery and Lodash.
 
 > **Compatibility:** Only modern browsers are supported. Some of the nicer features of this plugin (copy/paste support, native selection and cursor movement) aren't realistic on older browsers.
 
