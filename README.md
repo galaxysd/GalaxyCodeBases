@@ -4,7 +4,7 @@
 
 HTML5-based input for typing lists of tags, tokens, or other discrete values.
 
-![screenshot](https://dl.dropboxusercontent.com/u/42869844/ftb/SUPPORT/TagSelect.png)
+![screenshot](https://dl.dropboxusercontent.com/u/42869844/LTS/TagSelect.png)
 
 Features:
 
