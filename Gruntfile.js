@@ -20,6 +20,7 @@ module.exports = function (grunt) {
 			main: {
 				options: {
 					wrap: 'window',
+					report: 'gzip',
 					banner: '/*! <%= pkg.name %> | <%= pkg.author %> | <%= grunt.template.today("yyyy-mm-dd") %> */\n'
 				},
 				files: {
