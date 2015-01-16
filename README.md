@@ -4,7 +4,7 @@
 
 HTML5-based input for typing lists of tags, tokens, or other discrete values.
 
-The plugin does *not* require jQuery. 2kb gzipped.
+The plugin does **not** require jQuery. 2kb gzipped.
 
 ![screenshot](https://dl.dropboxusercontent.com/u/42869844/LTS/TagSelect.png)
 
