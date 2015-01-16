@@ -36,8 +36,8 @@ Next, you can use the plugin in your own JavaScript. If you have an element with
 ```
 
 ```javascript
-var tags = new TagSelect({
-    $el: $('#my-input'),
+var element = document.querySelector('#my-input');
+var tags = new TagSelect(element, {
     options: ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'Magenta']
 });
 ```
