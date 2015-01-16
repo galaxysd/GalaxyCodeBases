@@ -32,14 +32,15 @@ var UP_KEY = 38,
 
 var Autocomplete = function (el, options) {
 	this.el = el;
-	this.$el = $(el);
 	this.options = _.merge({}, DEFAULT_SETTINGS, options);
 	this.o = this.options;
 	this.isVisible = false;
 	this.beginOffset = -1;
 	this.caretOffset = -1;
-	this.$dd = $('<ul class="' + this.o.ns + '-dropdown"/>');
-	this.$dd.insertAfter(this.$el);
+
+	this.dd = document.createElement('ul');
+	this.dd.classList.add(this.o.ns + '-dropdown');
+	this.el.insertAdjacentElement('afterend', this.dd);
 
 	this.bindEvents();
 };
@@ -77,10 +78,10 @@ Autocomplete.prototype.match = function (input) {
 	return $matches.reject(matchedAll);
 };
 
-Autocomplete.prototype.select = function ($node) {
+Autocomplete.prototype.select = function (node) {
 	if (!this.isVisible) return;
 	var inputLength = this.caretOffset - this.beginOffset,
-		completion = $node.data('insert');
+		completion = node.getAttribute('data-insert');
 
 	// Have to delete input and replace it, rather than appending
 	//	what's missing. E.g. we might need to replace 'state' with 'State'.
@@ -94,42 +95,41 @@ Autocomplete.prototype.show = function (matches) {
 	matches = _.map(matches, _.bind(function (match, i) {
 		return { ns: this.o.ns, active: i === 0, match: match };
 	}, this));
-	this.$dd
-		.html(_.map(matches, TERM_TPL))
-		.css({left: this.$el.width() + 1})
-		.addClass('visible');
+	this.dd.innerHTML = _.map(matches, TERM_TPL).join('');
+	this.dd.style.left = (this.el.offsetWidth + 1) + 'px';
+	this.dd.classList.add('visible');
 	this.isVisible = true;
 };
 
 Autocomplete.prototype.hide = function () {
-	this.$dd.removeClass('visible');
+	this.dd.classList.remove('visible');
 	this.isVisible = false;
 };
 
 Autocomplete.prototype.setActive = function (direction) {
-	var $current = this.$dd.children('.active');
-	var $next = $current[direction]();
-	if ($next.length) {
-		$current.removeClass('active');
-		$next.addClass('active');
+	var current = this.dd.querySelector('.active');
+	var next = current[direction + 'ElementSibling'];
+	if (next) {
+		current.classList.remove('active');
+		next.classList.add('active');
 	}
 };
 
 Autocomplete.prototype.setOptions = function (options) {
-	this.options = $.extend(this.options, options);
+	this.options = _.merge(this.options, options);
 };
 
 /* Keyboard Events
 **********************************************/
 
 Autocomplete.prototype.bindEvents = function () {
-	this.$el.on({
-		input: _.bind(this.onInput, this),
-		keydown: _.bind(this.onKeydown, this),
-		blur: _.bind(this.hide, this)
-	});
-	this.$dd.on('mousedown', '.' + this.o.ns + '-option',  _.bind(function (e) {
-		this.select($(e.target));
+	this.el.addEventListener('input', _.bind(this.onInput, this));
+	this.el.addEventListener('keydown', _.bind(this.onKeydown, this));
+	this.el.addEventListener('blur', _.bind(this.hide, this));
+	this.dd.addEventListener('mousedown',  _.bind(function (e) {
+		if (e.target.classList.contains(this.o.ns + '-option')) {
+			this.select(e.target);
+		}
 	}, this));
 };
 
@@ -167,11 +167,11 @@ Autocomplete.prototype.onKeydown = function (e) {
 	} else if (_.contains(this.o.returnKeys, e.which)) {
 		e.preventDefault();
 		e.stopImmediatePropagation();
-		this.select(this.$dd.find('.active'));
+		this.select(this.dd.querySelector('.active'));
 		this.hide();
 	} else if (_.contains(ARROW_KEYS, e.which)) {
 		e.preventDefault();
-		this.setActive(e.which === UP_KEY ? 'prev' : 'next');
+		this.setActive(e.which === UP_KEY ? 'previous' : 'next');
 	} else if (_.contains(HIDE_KEYS, e.which)) {
 		this.hide();
 	}
