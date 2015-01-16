@@ -14,7 +14,7 @@ Features:
 
 Currently, all non-word characters are treated as tag dividers. More separator options may be added in the future.
 
-> **Dependencies:** jQuery and Lodash.
+> **Dependencies:** Lodash or Underscore.
 
 > **Compatibility:** Only modern browsers are supported. Some of the nicer features of this plugin (copy/paste support, native selection and cursor movement) aren't realistic on older browsers.
 
@@ -22,7 +22,7 @@ Currently, all non-word characters are treated as tag dividers. More separator o
 
 ## Quickstart
 
-First, include the files from `dist/` in your project. They'll need to be included *after* jQuery. Example:
+First, include the files from `dist/` in your project. Example:
 
 ```html
 <link rel="stylesheet" href="TagSelect.min.css">

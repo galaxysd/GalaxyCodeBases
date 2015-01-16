@@ -49,10 +49,9 @@ var Autocomplete = function (el, options) {
 **********************************************/
 
 Autocomplete.prototype.match = function (input) {
-	if (!input) return $.Deferred().reject();
+	if (!input) return [];
 
-	var $matches = $.Deferred(),
-		escapedInput = RegExp.quote(input),
+	var escapedInput = RegExp.quote(input),
 		regStart = new RegExp('^' + escapedInput, 'i'),
 		regAll = new RegExp(escapedInput, 'i'),
 		matchedStart = [],
@@ -70,12 +69,7 @@ Autocomplete.prototype.match = function (input) {
 		}
 	}
 
-	// Resolve or reject deferred with matches
-	matchedAll = matchedStart.concat(matchedAll);
-	if (matchedAll.length) {
-		return $matches.resolve(matchedAll);
-	}
-	return $matches.reject(matchedAll);
+	return matchedStart.concat(matchedAll);
 };
 
 Autocomplete.prototype.select = function (node) {
@@ -152,13 +146,14 @@ Autocomplete.prototype.onInput = function () {
 	}
 
 	// Get the partial word and pass it to match()
-	var self = this,
-		word = text.substr(this.beginOffset, this.caretOffset - this.beginOffset);
-	this.match(word).done(function (matches) {
-		self.show(matches);
-	}).fail(function () {
-		self.hide();
-	});
+	var word = text.substr(this.beginOffset, this.caretOffset - this.beginOffset),
+		matches = this.match(word);
+
+	if (_.size(matches)) {
+		this.show(matches);
+	} else {
+		this.hide();
+	}
 };
 
 Autocomplete.prototype.onKeydown = function (e) {
