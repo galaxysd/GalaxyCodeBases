@@ -9,6 +9,13 @@
 		ARROW_KEYS = [UP_KEY, DOWN_KEY],	// Arrow keys
 		HIDE_KEYS = [37, 39],				// Keys that should hide suggestions
 
+		TERM_TPL = _.template(''
+			+ '<li class="<%= ns %>-option<%= active ? " active" : "" %>" '
+			+		'data-insert="<%- match %>">'
+			+	'<%- match %>'
+			+ '</li>'
+		),
+
 		DEFAULT_SETTINGS = {
 			ns: 'tasg',						// CSS/Event namespace
 			returnKeys: [13, 9],			// Enter, Tab
@@ -66,33 +73,25 @@
 		return $matches.reject(matchedAll);
 	};
 
-	Autocomplete.prototype.select = function () {
+	Autocomplete.prototype.select = function ($node) {
 		if (!this.isVisible) return;
-		var $node = this.$dd.children('.active'),
-			input = $node.data('repl'),
+		var inputLength = this.caretOffset - this.beginOffset,
 			completion = $node.data('insert');
 
-		// Have to delete input and replace it, rather
-		// 	than appending what's missing. E.g. we
-		// 	might need to replace 'state' with 'State'.
-		for (var i = 0; i < input.length; i++) {
+		// Have to delete input and replace it, rather than appending
+		//	what's missing. E.g. we might need to replace 'state' with 'State'.
+		for (var i = 0; i < inputLength; i++) {
 			document.execCommand('delete');
 		}
 		document.execCommand('insertText', false, completion);
-
-		this.hide();
 	};
 
 	Autocomplete.prototype.show = function (matches) {
-		var lis = new Array(matches.length),
-			inputLength = this.caretOffset - this.beginOffset;
-		for (var active, repl, i = 0; i < matches.length; i++) {
-			active = i === 0 ? 'active' : '';
-			repl = matches[i].substr(0, inputLength);
-			lis.push('<li class="' + active + '" data-insert="' + matches[i] + '" data-repl="' + repl + '">'
-				+ matches[i] + '</li>');
-		}
-		this.$dd.html(lis)
+		matches = _.map(matches, _.bind(function (match, i) {
+			return { ns: this.o.ns, active: i === 0, match: match };
+		}, this));
+		this.$dd
+			.html(_.map(matches, TERM_TPL))
 			.css({left: this.$el.width() + 1})
 			.addClass('visible');
 		this.isVisible = true;
@@ -125,6 +124,9 @@
 			keydown: _.bind(this.onKeydown, this),
 			blur: _.bind(this.hide, this)
 		});
+		this.$dd.on('mousedown', '.' + this.o.ns + '-option',  _.bind(function (e) {
+			this.select($(e.target));
+		}, this));
 	};
 
 	Autocomplete.prototype.onInput = function () {
@@ -161,7 +163,8 @@
 		} else if ($.inArray(e.which, this.o.returnKeys) >= 0) {
 			e.preventDefault();
 			e.stopImmediatePropagation();
-			this.select();
+			this.select(this.$dd.find('.active'));
+			this.hide();
 		} else if ($.inArray(e.which, ARROW_KEYS) >= 0) {
 			e.preventDefault();
 			this.setActive(e.which === UP_KEY ? 'prev' : 'next');
