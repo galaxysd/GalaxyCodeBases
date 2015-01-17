@@ -25,6 +25,8 @@
 #include "list.h"
 #include <unistd.h>
 
+#include "memstream.h"
+
 int usage(){
 	printf(
 			"Usage: sralign [Options] <fq(/a)_file1> [<fq(/a)_file2> ...]\n"

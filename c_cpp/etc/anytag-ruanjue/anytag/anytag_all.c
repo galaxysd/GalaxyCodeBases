@@ -25,6 +25,8 @@
 #include "thread.h"
 #include "anytag_aux.h"
 
+#include "memstream.h"
+
 int usage_all();
 
 typedef struct {

@@ -1,5 +1,5 @@
-VERSION=2.5.2
-MINOR_VER=20120618
+VERSION=2.5.3
+MINOR_VER=20140117
 CC=gcc
 CFLAGS=-g -W -Wall -O2 -finline-functions -D_FILE_OFFSET_BITS=64
 GLIBS=-lm -lpthread
@@ -12,13 +12,17 @@ all: anytag-$(VERSION) sralign
 
 
 anytag-$(VERSION): $(GENERIC_SRC) local_assembly.h local_assembly.c anytag_aux.h anytag_all.c main.c 
-	$(CC) $(CFLAGS) $(GLIBS) -DVERSION="\"$(VERSION) $(MINOR_VER)\"" -DUID="\"$(UNIQ_ID)\"" -o anytag-$(VERSION) file_reader.c stdaln.c sr_aln.c local_assembly.c anytag_all.c main.c
+	$(CC) $(CFLAGS) $(GLIBS) -DVERSION="\"$(VERSION) $(MINOR_VER)\"" -DUID="\"$(UNIQ_ID)\"" -o anytag-$(VERSION) file_reader.c stdaln.c sr_aln.c local_assembly.c anytag_all.c main.c memstream.c
 
 sralign: $(GENERIC_SRC) sralign.c error_correction.h
-	$(CC) $(CFLAGS) $(GLIBS) -o sralign sralign.c sr_aln.c file_reader.c stdaln.c
+	$(CC) $(CFLAGS) $(GLIBS) -o sralign sralign.c sr_aln.c file_reader.c stdaln.c memstream.c
 
-clean:
-	rm -f *.o *.gcda *.gcno *.gcov gmon.out anytag-$(VERSION) sralign
+
+.PHONY: clean clear
+
+clean: clear
+	rm -f anytag-$(VERSION) sralign
 
 clear:
 	rm -f *.o *.gcda *.gcno *.gcov gmon.out
+	rm -fr *.dSYM
