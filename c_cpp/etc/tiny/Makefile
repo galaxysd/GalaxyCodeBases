@@ -39,11 +39,11 @@ all: $(SOURCES:.c=)
 	@echo  [$(OLevel)]:${<} -\> ${@}
 	@gcc $(WARNFLAGS) $(CFLAGS) $(OLevel) $(LDFLAGS) -o $@ $<
 	@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o ./asm/$@.s $<
-	@as -alhnd -o /dev/null ./asm/$@.s > ./asm/$@.asm
+	-as -alhnd -o /dev/null ./asm/$@.s > ./asm/$@.asm
 #@gcc $(CFLAGS) $(OLevel) $(LDFLAGS) $(ASMFLAGS) -o - $< | as -alhnd > ./asm/$@.asm
 	@rm ./asm/$@.s
 
-./duptc: override LDLIB += -lm
+duptc: override LDLIB += -lm
 
 clean:
 	-rm $(SOURCES:.c=)
