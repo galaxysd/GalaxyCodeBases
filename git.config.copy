@@ -4,8 +4,8 @@
 	bare = false
 	logallrefupdates = true
 [remote "origin"]
-	fetch = +refs/heads/*:refs/remotes/origin/*
 	url = ssh://galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
@@ -24,5 +24,7 @@
 [remote "c"]
 	url = git@coding.net:galaxy/GalaxyCodeBase.git
 	fetch = +refs/heads/*:refs/remotes/c/*
-[alias]
-	xpush = !git push origin master -v && git push g master -v  && git push c master -v
+[submodule "mydoc"]
+	url = git@bitbucket.org:galaxy001/mydoc.git
+[submodule "c_cpp/lib/htslib"]
+	url = git://github.com/samtools/htslib.git

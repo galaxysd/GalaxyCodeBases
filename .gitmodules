@@ -14,3 +14,6 @@
 [submodule "mydoc"]
 	path = mydoc
 	url = git@bitbucket.org:galaxy001/mydoc.git
+[submodule "c_cpp/lib/htslib"]
+	path = c_cpp/lib/htslib
+	url = git://github.com/samtools/htslib.git
