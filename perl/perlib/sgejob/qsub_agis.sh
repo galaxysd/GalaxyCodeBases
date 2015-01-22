@@ -2,14 +2,11 @@
 #$ -S /bin/bash
 
 #$ -N getMatrix
-#$ -l vf=3G
+#$ -l vf=3G -t 1-50
 
 #$ -cwd
 #$ -r y
 #$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
-
-#$ -e /dev/null
-#$ -o /dev/null
 
 ARC=lx-amd64
 QSUB=$SGE_ROOT/bin/$ARC/qsub
@@ -43,7 +40,11 @@ else
 	echo \#$ENVIRONMENT $JOB_NAME of $QUEUE @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$TASK_ID] >>${MAIN}.err
 # jobs here
 	uname -a >>${MAIN}.out 2>>${MAIN}.err
-	perl -e 'for (1..20000000) {$a{$_}=$_;print $a{$_},"\n";};exit 1;'
+	#perl -e 'for (1..20000000) {$a{$_}=$_;print $a{$_},"\n";};exit 1;'
+SEEDFILE=id.lst
+SEED=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE)
+echo [${SEED}]
+perl ./new.Matrix_calculator.pl -b -r ref.fa -i bam/${SEED}.sort.bam -s vcf/${SEED}.SNPs.filter.vcf -o matrix/${SEED}.matrix 2>matrix/${SEED}.matrix.err
 # jobs end
 	ENDVALUE=$?
 	cat <<EOFSTAT >> ${MAIN}.err
