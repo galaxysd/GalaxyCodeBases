@@ -128,6 +128,21 @@ int sam_format2(const bam_hdr_t *h, const bam1_t *b, kstring_t *str)
 	return str->l;
 }
 
+#define PRINT_OPAQUE_STRUCT(p)  print_mem((p), sizeof(*(p)))
+// From http://stackoverflow.com/questions/5349896/print-a-struct-in-c
+void print_mem(void const *vp, size_t n) {
+	unsigned char const *p = vp;
+	for (size_t i=0; i<n; i++) {
+		printf("%02x", p[i]);
+		if ( (i&7) == 7 ) {
+			putchar('\n');
+		} else {
+			putchar(' ');
+		}
+	}
+	putchar('\n');
+};
+
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s <in.bam>\n",argv[0]);
@@ -143,6 +158,7 @@ int main(int argc, char *argv[]) {
 		// Print out contig name and length
 		printf("%s\t%d\n", header->target_name[i], header->target_len[i]);
 	}
+	PRINT_OPAQUE_STRUCT(header);
 	int r;
 	while ((r = sam_read1(fp, header, b)) >= 0) { // read one alignment from `in'
 		sam_format2(header, b, &ks);	// The same as sam_format1 in sam.c of htslib.
@@ -151,6 +167,7 @@ int main(int argc, char *argv[]) {
 	if (r < -1) {
 		fprintf(stderr, "[!] truncated file.\n");
 	}
+	PRINT_OPAQUE_STRUCT(b);
 	bam_destroy1(b);
 	bam_hdr_destroy(header);
 	sam_close(fp);
