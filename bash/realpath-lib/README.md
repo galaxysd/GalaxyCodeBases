@@ -1,3 +1,15 @@
+Comments
+========
+
+From https://github.com/AsymLabs/realpath-lib
+
+See also
+
+* https://sites.google.com/site/jdisnard/realpath
+
+* https://github.com/mkropat/sh-realpath
+
+
 realpath-lib
 ============
 
