@@ -8,6 +8,9 @@
 #$ -r y
 #$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
 
+#$ -e /dev/null
+#$ -o /dev/null
+
 ARC=lx-amd64
 QSUB=$SGE_ROOT/bin/$ARC/qsub
 SLEEP=20
