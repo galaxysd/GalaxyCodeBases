@@ -18,6 +18,7 @@ sub openpipe($$) {
 	return $infile;
 }
 my $OUT0 = openpipe('gzip -9c',"$out.virsam.gz");
+open OUT3,'>',"$out.insertsize" or die "Error opening [$out.insertsize]: $!\n";
 # unless (defined $fq2) {
 	open( IN,"-|","samtools view -H $in") or die "Error opening $in: $!\n";
 	while (my $line = <IN>) {
@@ -71,7 +72,7 @@ sub getFQitem($) {
 my $OUT1 = openpipe('gzip -9c',"$out.1.fq.gz");
 my $OUT2 = openpipe('gzip -9c',"$out.2.fq.gz");
 
-my %IDs;
+my ($READLEN,$InsSum,$InsCnt,%IDs,%InsDat)=(0,0,0);
 open( IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
 while (my $line = <IN>) {
 	#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
@@ -89,10 +90,30 @@ while (my $line = <IN>) {
 		print $OUT0 "$line$line2";
 	} elsif ( $Dat1[2] eq '*' or $Dat2[2] eq '*' ) {
 		++$IDs{$Dat1[0]};
-		warn "-->[$line$line2";
+		warn "-1->[$line$line2";
+	} else {
+		my $isize = abs($Dat1[8]);
+		if ($Dat1[8] + $Dat2[8] == 0) {
+			++$InsDat{$isize};
+			if ($Dat1[8] != 0) {
+				$InsSum += $isize;
+				++$InsCnt;
+			}
+			if ($Dat1[5] =~ /^(\d+)M$/) {	# should be outside this `if`, but inside means less times thus faster(?).
+				$READLEN = $1 if $READLEN < $1;
+			}
+		} else {
+			warn "-2->$isize\->[$line$line2";
+		}
 	}
 }
 close IN;
+$InsCnt = -1 unless $InsCnt;
+print OUT3 "BamIn:$in\nFQ1in:$fq1\nFQ2in:$fq2\nOut:$out\nReadLength:$READLEN\nInsertSize:",$InsSum/$InsCnt,"\n\n_Total_\t$InsCnt\n";
+for my $s (sort {$a<=>$b} keys %InsDat) {
+	print OUT3 "$s\t$InsDat{$s}\n";
+}
+close OUT3;
 close $OUT0;
 
 while (my $FQ1dat = getFQitem($FQ1)) {
