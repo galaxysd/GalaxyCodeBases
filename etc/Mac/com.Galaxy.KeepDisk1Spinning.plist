@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.Galaxy.KeepDisk1Spinning</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>bash</string>
+		<string>-c</string>
+		<string>while (sleep 7);do hexdump -n4095 -C /dev/disk1 &gt;/var/log/KeepDisk1Spinning.log;date &gt;&gt;/var/log/KeepDisk1Spinning.log;done</string>
+	</array>
+<!--
+while (sleep 0.5);do /usr/local/sbin/smartctl --attributes disk1|egrep 'Cycle|Temperature_Celsius|Start_Stop_Count';date;done
+while (sleep 7);do sudo hexdump -n4095 -C /dev/disk1|head;date;done
+# No need to sudo as we are already root.
+
+	<key>StandardOutPath</key>
+	<string>/var/log/KeepDiskSpinning.log</string>
+
+### Put me in /Library/LaunchDaemons/ as it is "System-wide daemons provided by the administrator". Remember to "sudo chown root:wheel".
+### sudo launchctl load /Library/LaunchDaemons/com.Galaxy.KeepDisk1Spinning.plist
+### ll /var/log/KeepDisk* && tail -3 /var/log/KeepDisk1Spinning.log
+
+# Even set to 5s, the real interval is 10s.
+	<key>StartInterval</key>
+	<integer>7</integer>
+-->
+	<key>KeepAlive</key>
+	<true/>
+</dict>
+</plist>
+
