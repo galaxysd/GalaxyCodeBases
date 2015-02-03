@@ -42,13 +42,14 @@ while (<IN2>) {
 			}
 			print OUT "\n";
 		}
-		@CurrArray=();
+		@CurrArray=([$id,$_]);
 	}
 }
 close IN2;
 close OUT;
 
-
+__END__
+./cmp.pl Tiger_aln_bam/pti096_clean_aln_pe.bam Tiger_aln_rmdup/pti096_clean_aln_pe_rmdup.bam pti096.cmp.sam &
 
 # http://www.nature.com/nature/journal/v399/n6737/full/399682a0.html
 # Cultures in chimpanzees
