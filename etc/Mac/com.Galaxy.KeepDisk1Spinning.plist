@@ -8,12 +8,13 @@
 	<array>
 		<string>bash</string>
 		<string>-c</string>
-		<string>while (sleep 7);do hexdump -n4095 -C /dev/disk1 &gt;/var/log/KeepDisk1Spinning.log;date &gt;&gt;/var/log/KeepDisk1Spinning.log;done</string>
+		<string>while (sleep 7);do hexdump -n4095 -C /dev/disk1 &gt;/dev/null;done</string>
 	</array>
 <!--
 while (sleep 0.5);do /usr/local/sbin/smartctl --attributes disk1|egrep 'Cycle|Temperature_Celsius|Start_Stop_Count';date;done
 while (sleep 7);do sudo hexdump -n4095 -C /dev/disk1|head;date;done
 # No need to sudo as we are already root.
+while (sleep 7);do hexdump -n4095 -C /dev/disk1 &gt;/var/log/KeepDisk1Spinning.log;date &gt;&gt;/var/log/KeepDisk1Spinning.log;done
 
 	<key>StandardOutPath</key>
 	<string>/var/log/KeepDiskSpinning.log</string>
