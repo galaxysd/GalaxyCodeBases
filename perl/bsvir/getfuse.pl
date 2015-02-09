@@ -31,16 +31,27 @@ ddx $finHum;
 ddx $finHBV;
 
 warn "[!]Ref: h=[$$finHum[0]],v=[$$finHBV[0]]\n";
-=pod
+
+
+
 my $SearchPanRange = 2*$isize + 100;
+=pod
+也需要统计reads断点的累计来推测断点。
+=cut
 sub doPileUp() {
 	my ($t)=@_;
 	my (%PileUp,%Depth);
 }
-sub doPan() {
-	my ($t)=@_;
-	my (%PileUp,%Depth);
+my $doPanDAT = ['',-$SearchPanRange];	# Chr, RightPos
+sub doPan($$$$) {
+	my ($ref,$pos,$mappedLen,$id)=@_;
+	#my (%PileUp,%Depth);
+	if (($ref ne $$doPanDAT[0]) or ($pos > 1 + $$doPanDAT[1])) {	# Next Pan is coming, analyse last Pan now.
+		doPileUp() if $$doPanDAT[0] ne '';
+		$$doPanDAT[0] = $ref; $$doPanDAT[1] = $pos+$mappedLen-1;
+	}
 }
+=pod
 open INHUM,"-|","samtools view $inhum" or die "Error opening $inhum: $!\n";
 while (<INHUM>) {
 	chomp;
@@ -61,6 +72,7 @@ while (<INVIR>) {
 	my $mappedQual = parseCIGAR($qual,$CIAGR);
 	my $mappedLen = length $mappedSeq;
 	if ( $DEBUG > 1 ) {
+		doPan($ref,$pos,$mappedLen,$id);
 		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual,$seq,$CIAGR];
 		warn "$CIAGR,$ref\t$id,$seq\n$mappedSeq\n";
 		my $theref = substr($Genome{$ref},$pos-1,$mappedLen);
