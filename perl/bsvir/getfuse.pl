@@ -4,6 +4,7 @@ use warnings;
 use Data::Dump qw(ddx);
 
 my $minLen = 5;
+my $DEBUG=2.9;
 
 die "Usage: $0 <ins_size> <hum_sorted_bam> <vir_sorted_bam> [out_prefix]\n" if @ARGV < 3;
 my ($isize,$inhum,$invir,$out)=@ARGV;
@@ -54,22 +55,27 @@ sub getsamChrLen($) {
 	<$FQ2>;chomp($_=<$FQ2>);
 	$readlen2 = length $_;
 	close $FQ2;
-	my $GENOME = openfile($Ref);
-	while (<$GENOME>) {
-		s/^>//;
-		/^(\S+)/ or next;
-		my $seqname = $1;
-		print STDERR " >$seqname ...";
-		$/=">";
-		my $genome=<$GENOME>;
-		chomp $genome;
-		$genome=~s/\s//g;
-		$/="\n";
-		$Genome{$seqname}=$genome;
-		my $thelength = length $Genome{$seqname};
-		print STDERR "\b\b\b", $thelength, ".\n";
-		$genome='';
-		die if $thelength != $ChrLen{$seqname};
+	unless (($DEBUG - int($DEBUG)) > 0.8) {
+		my $GENOME = openfile($Ref);
+		while (<$GENOME>) {
+			s/^>//;
+			/^(\S+)/ or next;
+			my $seqname = $1;
+			print STDERR " >$seqname ...";
+			$/=">";
+			my $genome=<$GENOME>;
+			chomp $genome;
+			$genome=~s/\s//g;
+			$/="\n";
+			$Genome{$seqname}=$genome;
+			my $thelength = length $Genome{$seqname};
+			print STDERR "\b\b\b", $thelength, ".\n";
+			$genome='';
+			if ( $DEBUG > 0 ) {
+				die if $thelength != $ChrLen{$seqname};
+			}
+		}
+		close $GENOME;
 	}
 	return [[$Ref,$fq1,$fq2,$readlen1,$readlen2],%ChrLen];
 }
@@ -89,7 +95,7 @@ ddx $finHBV;
 
 warn "[!]Ref: h=[$$finHum[0]],v=[$$finHBV[0]]\n";
 
-sub parseCIGAR() {
+sub parseCIGAR($$) {
 	# http://davetang.org/muse/2011/01/28/perl-and-sam/	<= insert '-' to both
 	# http://www.perlmonks.org/?node_id=858230	<= insert X when 'D' in reads. <- chosen
 	my ($Read,$CIGAR)=@_;
@@ -106,30 +112,49 @@ sub parseCIGAR() {
 			substr($ref,$curr_pos,$I,'');	#delete $I characters
 			$total_len -= $I;
 		} elsif (my ($D) = $CIGAR =~ m/(\d+)D/) {
-			substr($ref,$curr_pos,0,"X" x $D);  #insert $D X's
+			substr($ref,$curr_pos,0,"!" x $D);  #insert $D as '!', which is Q=0 for QUAL
 			$total_len += $D;
 			$curr_pos  += $D;
-		} elsif (my ($I) = $CIGAR =~ m/(\d+)S/) {
-			# POS   │ 1-based leftmost POSition/coordinate of clipped sequence
+		} elsif (my ($S) = $CIGAR =~ m/(\d+)S/) {
+			# POS │ 1-based leftmost POSition/coordinate of clipped sequence
 			# thus no change on $curr_pos and $total_len.
 			# It is up to bwa to ensure 'S' exists only at terminals. bsmap does not use 'S'.
-			substr($ref,$curr_pos,$I,'');	#delete $I characters
+			substr($ref,$curr_pos,$S,'');	#delete $I characters
 			print STDERR '.1.';
 		}
 	}
 	#$ref = substr($ref,0,$total_len); #truncate ?????
-	die if length $ref != $total_len;
+	if ( $DEBUG > 0 ) {
+		die if length $ref != $total_len;
+	}
 	#print "INPUT = $input   CIGAR = $CIGAR\n";
 	#print "->REF = $ref\n\n";
 	return $ref;
 }
 
 open INVIR,"-|","samtools view $invir" or die "Error opening $invir: $!\n";
+my (%PileUpVIR,%DepthVIR);
 while (<INVIR>) {
 	chomp;
 	my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
+	my $mappedSeq = parseCIGAR($seq,$CIAGR);
+	my $mappedQual = parseCIGAR($qual,$CIAGR);
+	my $mappedLen = length $mappedSeq;
+	if ( $DEBUG > 1 ) {
+		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual,$seq,$CIAGR];
+	} else {
+		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual];
+	}
+}
+for my $chr (keys %PileUpVIR) {
+	for my $Datp ( @{$PileUpVIR{$chr}} ) {
+		for my $pos ( ($Datp->[0]) .. ($Datp->[0] + $Datp->[1]) ) {
+			++$DepthVIR{$chr}->[$pos];
+		}
+	}
 }
 
+ddx \%DepthVIR; 
 
 __END__
 ./getfuse.pl 200 grep_s00_C.bs.virsam.sort.bam grep_s00_C.bs.sort.bam
