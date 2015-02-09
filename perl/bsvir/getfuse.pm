@@ -1,11 +1,12 @@
 use strict;
 use warnings;
+#package main;
 
-package main;
-
+# Static Var.
 our $DEBUG;
 our ($minLen,%Genome,%ChrLen);
 
+# Functions
 sub openfile($) {
 	my ($filename)=@_;
 	my $infile;
@@ -17,6 +18,13 @@ sub openfile($) {
 		open( $infile,"-|","bzip2 -dc $filename") or die "Error opening $filename: $!\n";
 	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
 	return $infile;
+}
+sub revcom($) {
+	my $str = $_[0];
+	$str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+	my $rev = reverse $str;
+	$rev =~ tr/[](){}<>/][)(}{></;
+	return $rev;
 }
 
 
@@ -47,7 +55,7 @@ sub getsamChrLen($) {
 	<$FQ2>;chomp($_=<$FQ2>);
 	$readlen2 = length $_;
 	close $FQ2;
-	unless (($DEBUG - int($DEBUG)) > 0.8) {
+	if ( ($DEBUG - int($DEBUG)) < 0.85 or ($Ref eq 'HBV.AJ507799.2.fa') ) {
 		my $GENOME = openfile($Ref);
 		while (<$GENOME>) {
 			s/^>//;
