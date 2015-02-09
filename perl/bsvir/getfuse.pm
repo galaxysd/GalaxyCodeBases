@@ -1,4 +1,10 @@
+use strict;
+use warnings;
+
 package main;
+
+our $DEBUG;
+our ($minLen,%Genome,%ChrLen);
 
 sub openfile($) {
 	my ($filename)=@_;
