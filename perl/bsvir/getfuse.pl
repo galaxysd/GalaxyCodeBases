@@ -27,6 +27,7 @@ sub openfile($) {
 	return $infile;
 }
 
+my %Genome;	# Let's share it.
 sub getsamChrLen($) {
 	my $in = $_[0];
 	my (%ChrLen,$Ref,$fq1,$fq2,$readlen1,$readlen2);
@@ -43,15 +44,32 @@ sub getsamChrLen($) {
 			$Ref = $1 if /\-d\s+([.\w]+)\b/;
 			$fq1 = $1 if /\-a\s+([^\s"]+)(\s|"?$)/;
 			$fq2 = $1 if /\-b\s+([^\s"]+)(\s|"?$)/;
-			my $FQ1 = openfile($fq1);
-			<$FQ1>;chomp($_=<$FQ1>);
-			$readlen1 = length $_;
-			close $FQ1;
-			my $FQ2 = openfile($fq2);
-			<$FQ2>;chomp($_=<$FQ2>);
-			$readlen2 = length $_;
-			close $FQ2;
 		}
+	}
+	my $FQ1 = openfile($fq1);
+	<$FQ1>;chomp($_=<$FQ1>);
+	$readlen1 = length $_;
+	close $FQ1;
+	my $FQ2 = openfile($fq2);
+	<$FQ2>;chomp($_=<$FQ2>);
+	$readlen2 = length $_;
+	close $FQ2;
+	my $GENOME = openfile($Ref);
+	while (<$GENOME>) {
+		s/^>//;
+		/^(\S+)/ or next;
+		my $seqname = $1;
+		print STDERR " >$seqname ...";
+		$/=">";
+		my $genome=<$GENOME>;
+		chomp $genome;
+		$genome=~s/\s//g;
+		$/="\n";
+		$Genome{$seqname}=$genome;
+		my $thelength = length $Genome{$seqname};
+		print STDERR "\b\b\b", $thelength, ".\n";
+		$genome='';
+		die if $thelength != $ChrLen{$seqname};
 	}
 	return [[$Ref,$fq1,$fq2,$readlen1,$readlen2],%ChrLen];
 }
@@ -71,8 +89,43 @@ ddx $finHBV;
 
 warn "[!]Ref: h=[$$finHum[0]],v=[$$finHBV[0]]\n";
 
-open INHUM,"-|","samtools view $inhum" or die "Error opening $inhum: $!\n";
-while (<INHUM>) {
+sub parseCIGAR() {
+	# http://davetang.org/muse/2011/01/28/perl-and-sam/	<= insert '-' to both
+	# http://www.perlmonks.org/?node_id=858230	<= insert X when 'D' in reads. <- chosen
+	my ($Read,$CIGAR)=@_;
+	#my ($input, $ref) = ($Read, $Read);
+	my $ref = $Read;
+	my (@edit_cmd) = $CIGAR =~ m/\d+\w/g;
+	my $curr_pos = 0;
+	my $total_len =0;
+	foreach my $cmd (@edit_cmd) {
+		if (my ($M) = $cmd =~ m/(\d+)M/) {
+			$curr_pos += $M;
+			$total_len+= $M;
+		} elsif (my ($I) = $CIGAR =~ m/(\d+)I/) {
+			substr($ref,$curr_pos,$I,'');	#delete $I characters
+			$total_len -= $I;
+		} elsif (my ($D) = $CIGAR =~ m/(\d+)D/) {
+			substr($ref,$curr_pos,0,"X" x $D);  #insert $D X's
+			$total_len += $D;
+			$curr_pos  += $D;
+		} elsif (my ($I) = $CIGAR =~ m/(\d+)S/) {
+			# POS   │ 1-based leftmost POSition/coordinate of clipped sequence
+			# thus no change on $curr_pos and $total_len.
+			# It is up to bwa to ensure 'S' exists only at terminals. bsmap does not use 'S'.
+			substr($ref,$curr_pos,$I,'');	#delete $I characters
+			print STDERR '.1.';
+		}
+	}
+	#$ref = substr($ref,0,$total_len); #truncate ?????
+	die if length $ref != $total_len;
+	#print "INPUT = $input   CIGAR = $CIGAR\n";
+	#print "->REF = $ref\n\n";
+	return $ref;
+}
+
+open INVIR,"-|","samtools view $invir" or die "Error opening $invir: $!\n";
+while (<INVIR>) {
 	chomp;
 	my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
 }
@@ -81,3 +134,17 @@ while (<INHUM>) {
 __END__
 ./getfuse.pl 200 grep_s00_C.bs.virsam.sort.bam grep_s00_C.bs.sort.bam
 记得把流程中的文件名改下，突出ref是哪个物种。
+
+
+CMD Log:
+bsmap -u -d HomoGRCh38.fa -a F12HPCCCSZ0010_Upload/s00_C.bs_1.fq.gz -b F12HPCCCSZ0010_Upload/s00_C.bs_2.fq.gz -z 64 -p 12 -v 10 -q 2 -o s00_C.bs.bam >s00_C.bs.log 2>s00_C.bs.err
+
+./getUnPaired.pl s00_C.bs.bam	# 出UnPaired的fq和sam，及grep_s00_C.insertsize。
+
+bsmap -z 64 -p 12 -v 10 -q 2 -d HBV.AJ507799.2.fa -a grep_s00_C.bs.1.fq.gz -b grep_s00_C.bs.2.fq.gz -o grep_s00_C.bs.bam 2>grep_s00_C.bs.log &
+samtools sort -l 9 grep_s00_C.bs.bam grep_s00_C.bs.sort	# UnPaired与病毒比
+
+samtools view -bS grep_s00_C.bs.virsam.gz > grep_s00_C.bs.virsam.bam && \
+samtools sort -l 9 grep_s00_C.bs.virsam.bam grep_s00_C.bs.virsam.sort &	# UnPaired与人比
+
+./getfuse.pl 200 grep_s00_C.bs.virsam.sort.bam grep_s00_C.bs.sort.bam
