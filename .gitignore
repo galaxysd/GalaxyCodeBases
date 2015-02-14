@@ -16,3 +16,6 @@ _Inline
 ._.DS_Store
 .DS_Store
 
+bash/realpath-lib/readlink*.log
+perl/etc/justonce/tmp/*.lst
+
