@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use File::Basename;
 #package main;
 
 # Static Var.
@@ -31,8 +32,9 @@ sub revcom($) {
 
 sub getsamChrLen($) {
 	my $in = $_[0];
+	my $inpath = dirname($in);
 	my ($Ref,$fq1,$fq2,$readlen1,$readlen2);
-	open( IN,"-|","samtools view -H $in") or die "Error opening $in: $!\n";
+	open( IN,"-|","samtools view -H $in") or die "Error(m1) opening $in: $!\n";
 	while (<IN>) {
 		chomp;
 		my ($t,$id,$ln)=split /\t/;
@@ -42,11 +44,25 @@ sub getsamChrLen($) {
 			$ChrLen{$id} = $ln;
 		} elsif ($t eq '@PG') {
 # @PG	ID:BSMAP	VN:2.87	CL:"bsmap -u -d HomoGRCh38.fa -a F12HPCCCSZ0010_Upload/s00_C.bs_1.fq.gz -b F12HPCCCSZ0010_Upload/s00_C.bs_2.fq.gz -z 64 -p 12 -v 10 -q 2 -o s00_C.bs.bam"
-			$Ref = $1 if /\-d\s+([.\w]+)\b/;
-			$fq1 = $1 if /\-a\s+([^\s"]+)(\s|"?$)/;
-			$fq2 = $1 if /\-b\s+([^\s"]+)(\s|"?$)/;
+# @PG	ID:bwa-meth	PN:bwa-meth	VN:0.10	CL:"./bwameth.py -t 24 -p s00_C.bshum --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz"
+			if ($id eq 'ID:BSMAP') {
+				$Ref = $1 if /\-d\s+([.\w]+)\b/;
+				$fq1 = $1 if /\-a\s+([^\s"]+)(\s|"?$)/;
+				$fq2 = $1 if /\-b\s+([^\s"]+)(\s|"?$)/;
+			} elsif ($id eq 'ID:bwa-meth') {
+				$Ref = $1 if /\--reference\s+([.\w]+)\b/;
+				if (/CL:.+\s([^-\s"]+)\s+([^-\s"]+)(\s|"?$)/) {
+					$fq1 = $1;
+					$fq2 = $2;
+				}
+			}
+
 		}
 	}
+	if ($inpath ne '.') {
+		($Ref,$fq1,$fq2) = map { "$inpath/$_" } ($Ref,$fq1,$fq2);
+	}
+#warn "$Ref,$fq1,$fq2,$inpath";
 	my $FQ1 = openfile($fq1);
 	<$FQ1>;chomp($_=<$FQ1>);
 	$readlen1 = length $_;
@@ -55,7 +71,7 @@ sub getsamChrLen($) {
 	<$FQ2>;chomp($_=<$FQ2>);
 	$readlen2 = length $_;
 	close $FQ2;
-	if ( ($DEBUG - int($DEBUG)) < 0.85 or ($Ref eq 'HBV.AJ507799.2.fa') ) {
+	if ( ($DEBUG - int($DEBUG)) < 0.85 or ($Ref =~ /HBV\.AJ507799\.2\.fa$/) ) {
 		my $GENOME = openfile($Ref);
 		while (<$GENOME>) {
 			s/^>//;
@@ -91,30 +107,36 @@ sub parseCIGAR($$) {
 	my $curr_pos = 0;
 	my $total_len =0;
 	foreach my $cmd (@edit_cmd) {
+		#warn "$cmd";
 		if (my ($M) = $cmd =~ m/(\d+)M/) {
 			$curr_pos += $M;
 			$total_len+= $M;
-		} elsif (my ($I) = $CIGAR =~ m/(\d+)I/) {
+		} elsif (my ($I) = $cmd =~ m/(\d+)I/) {
 			substr($ref,$curr_pos,$I,'');	#delete $I characters
-			$total_len -= $I;
-		} elsif (my ($D) = $CIGAR =~ m/(\d+)D/) {
+			#$total_len -= $I;
+		} elsif (my ($D) = $cmd =~ m/(\d+)D/) {
 			substr($ref,$curr_pos,0,"!" x $D);  #insert $D as '!', which is Q=0 for QUAL
 			$total_len += $D;
 			$curr_pos  += $D;
-		} elsif (my ($S) = $CIGAR =~ m/(\d+)S/) {
+		} elsif (my ($S) = $cmd =~ m/(\d+)S/) {
 			# POS │ 1-based leftmost POSition/coordinate of clipped sequence
 			# thus no change on $curr_pos and $total_len.
 			# It is up to bwa to ensure 'S' exists only at terminals. bsmap does not use 'S'.
 			substr($ref,$curr_pos,$S,'');	#delete $I characters
-			print STDERR '.1.';
+			#substr($ref,$curr_pos,$S,(' ' x $S));
+			#$curr_pos += $S;
 		}
 	}
+	#$ref =~ s/ //g;
 	#$ref = substr($ref,0,$total_len); #truncate ?????
 	if ( $DEBUG > 0 ) {
-		die if length $ref != $total_len;
+		if (length $ref != $total_len) {
+			print "INPUT = [$Read], CIGAR=[$CIGAR]\n";
+			print "->REF = [$ref]\n";
+			print length($ref),"->$total_len\n\n";
+			die;
+		}
 	}
-	#print "INPUT = $Read   CIGAR = $CIGAR\n";
-	#print "->REF = $ref\n\n";
 	return $ref;
 }
 

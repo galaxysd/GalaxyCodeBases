@@ -29,12 +29,10 @@ $finHBV = getsamChrLen($invir);
 #ddx \%ChrLen; ddx \%Genome;
 ddx $finHum;
 ddx $finHBV;
+my ($MaxReadLen) = sort {$b<=>$a} ($$finHum[3],$$finHum[4],$$finHBV[3],$$finHBV[4]);
 
-warn "[!]Ref: h=[$$finHum[0]],v=[$$finHBV[0]]\n";
-
-
-
-my $SearchPanRange = 2*$isize + 100;
+warn "[!]Ref: h=[$$finHum[0]],v=[$$finHBV[0]]. MaxReadLen=[$MaxReadLen]\n";
+my $SearchPanRange = 2*$isize + $MaxReadLen;	# incase reads with soft clipping.
 =pod
 也需要统计reads断点的累计来推测断点。
 =cut
@@ -46,7 +44,7 @@ my $doPanDAT = ['',-$SearchPanRange];	# Chr, RightPos
 sub doPan($$$$) {
 	my ($ref,$pos,$mappedLen,$id)=@_;
 	#my (%PileUp,%Depth);
-	if (($ref ne $$doPanDAT[0]) or ($pos > 1 + $$doPanDAT[1])) {	# Next Pan is coming, analyse last Pan now.
+	if (($ref ne $$doPanDAT[0]) or ($pos > 1 + $$doPanDAT[1] + $SearchPanRange)) {	# Next Pan is coming, analyse last Pan now.
 		doPileUp() if $$doPanDAT[0] ne '';
 		$$doPanDAT[0] = $ref; $$doPanDAT[1] = $pos+$mappedLen-1;
 	}
@@ -63,7 +61,7 @@ while (<INHUM>) {
 }
 close INHUM;
 =cut
-open INVIR,"-|","samtools view $invir" or die "Error opening $invir: $!\n";
+open INVIR,"-|","samtools view -F 4 $invir" or die "Error(1) opening $invir: $!\n";
 my (%PileUpVIR,%DepthVIR);
 while (<INVIR>) {
 	chomp;
@@ -74,14 +72,14 @@ while (<INVIR>) {
 	if ( $DEBUG > 1 ) {
 		doPan($ref,$pos,$mappedLen,$id);
 		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual,$seq,$CIAGR];
-		warn "$CIAGR,$ref\t$id,$seq\n$mappedSeq\n";
+#warn "$CIAGR,$ref\t$id,$seq\n$mappedSeq\n";
 		my $theref = substr($Genome{$ref},$pos-1,$mappedLen);
 		# 用bisofite处理后，含甲基化的C不会变成T，不含甲基化的C变成T。由于他只能吧C变成T，所以，正链就是C->T，而他的反义互补连则是负连的C->T，反映到正链上就是G->A。
 		# 比如CG，如果他在watson连上并且没有甲基化，那么bisofte处理后就变成TG，如果是在crick链上变成CA。
 		my $therefMet = $theref; $therefMet =~ s/C/T/ig;
 		#my $therefRCMet = revcom($theref); $therefRCMet =~ s/C/T/ig; $therefRCMet = revcom($therefRCMet);
 		my $therefRCMet = $theref; $therefRCMet =~ s/G/A/ig;
-		warn "$therefMet\n$therefRCMet\n$theref\n\n";
+#warn "$therefMet\n$therefRCMet\n$theref\n\n";
 	} else {
 		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual];
 	}
@@ -120,3 +118,8 @@ samtools view -bS grep_s00_C.bs.virsam.gz > grep_s00_C.bs.virsam.bam && \
 samtools sort -l 9 grep_s00_C.bs.virsam.bam grep_s00_C.bs.virsam.sort &	# UnPaired与人比
 
 ./getfuse.pl 200 grep_s00_C.bs.virsam.sort.bam grep_s00_C.bs.sort.bam >t.log 2>t.err
+
+------
+
+./bwameth.py --calmd -t 24 -p s00_C.bshum.calmd --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshum.calmd.err
+./bwameth.py --calmd -t 24 -p s00_C.bshbv.calmd --read-group s00_C --reference HBV.AJ507799.2.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshbv.calmd.err
