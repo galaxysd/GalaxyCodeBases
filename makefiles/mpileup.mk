@@ -29,7 +29,7 @@ list:
 bai: $(BAIS)
 
 $(OUT): $(BYCHR) bcfbychr.lst
-	bcftools concat -f bcfbychr.lst -o $(OUT)
+	bcftools concat -O b -f bcfbychr.lst -o $(OUT)
 
 bychr/:
 	mkdir bychr
