@@ -123,3 +123,24 @@ samtools sort -l 9 grep_s00_C.bs.virsam.bam grep_s00_C.bs.virsam.sort &	# UnPair
 
 ./bwameth.py --calmd -t 24 -p s00_C.bshum.calmd --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshum.calmd.err
 ./bwameth.py --calmd -t 24 -p s00_C.bshbv.calmd --read-group s00_C --reference HBV.AJ507799.2.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshbv.calmd.err
+
+------
+
+./bwameth.py -t 24 -p s00_C.bshum --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshum.err
+samtools sort -m 2415919104 -n s00_C.bshum.bam -O bam -T s00_C.bshum.sid >s00_C.bshum.sid.bam 2>tt.err
+
+../getUnPaired.pl s00_C.bshum.sid.bam n3_grep
+samtools view -bS n3_grep.vircandi.sam.gz >n3_grep.vircandi.bam
+samtools sort -m 2415919104 n3_grep.vircandi.bam -O bam -T n3_grep.vircandi.sort >n3_grep.vircandi.sort.bam
+
+./bwameth.py -t 24 -p n3_grep.vircandi.bshbv --read-group s00_C_grep --reference HBV.AJ507799.2.fa n3_grep.1.fq.gz n3_grep.2.fq.gz 2>n3_grep.vircandi.bshbv.err
+samtools sort -m 2415919104 -n n3_grep.vircandi.bshbv.bam -O bam -T n3_grep.vircandi.bshbv.sid >n3_grep.vircandi.bshbv.sid.bam
+
+
+
+
+./bwameth.py -t 24 -p s00_C.bshbv --read-group s00_C --reference HBV.AJ507799.2.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2>s00_C.bshbv.err
+samtools sort -m 2415919104 -n s00_C.bshbv.bam -O bam -T s00_C.bshbv.sid >s00_C.bshbv.sid.bam
+
+ls -lh s00_C.bshbv.bam s00_C.bshbv.sid.bam s00_C.bshum.bam s00_C.bshum.sid.bam
+

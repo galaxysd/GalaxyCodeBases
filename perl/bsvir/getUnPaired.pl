@@ -20,7 +20,8 @@ sub openpipe($$) {
 	}
 	return $infile;
 }
-my $OUT0 = openpipe('gzip -9c',"$out.virsam.gz");
+my $OUT0 = openpipe('gzip -9c',"$out.vircandi.sam.gz");
+my $OUT4 = openpipe('gzip -9c',"$out.shortsoftclip.sam.gz");
 open OUT3,'>',"$out.insertsize" or die "Error opening [$out.insertsize]: $!\n";
 
 my $inType='BSMAP';
@@ -30,6 +31,7 @@ my $inType='BSMAP';
 	my $inpath = dirname($in);
 	while (my $line = <IN>) {
 		print $OUT0 $line;
+		print $OUT4 $line;
 		if ( (! defined $fq2) and $line =~ /^\@PG/) {
 			$line =~ /CL:"([^"]+)"/ or die "[x]SAM/BAM file header error as [$line]\n";
 			my ($t,$id)=split /\t/,$line;
@@ -150,6 +152,8 @@ while (my $line = <IN>) {
 		if ($flag == 1) {
 			doSamPair(\@Dat1,\@Dat2);
 			print $OUT0 "$line$line2";
+		} else {
+			print $OUT4 "$line$line2";
 		}
 	} elsif ( $Dat1[2] eq '*' or $Dat2[2] eq '*' ) {
 		#++$IDs{$Dat1[0]};
@@ -183,6 +187,7 @@ for my $s (sort {$a<=>$b} keys %InsDat) {
 }
 close OUT3;
 close $OUT0;
+close $OUT4;
 
 if ($inType eq 'BSMAP') {
 	my $FQ1 = openfile($fq1);
