@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use DBI qw(:sql_types);
+use File::Basename;
 use Data::Dump qw(ddx);
 
 die "Usage: $0 <hum_sorted_bam> <vir_sorted_bam> <out_prefix>\n" if @ARGV < 3;
@@ -35,6 +36,15 @@ CREATE TABLE MergedSam
    YDYCVir TEXT
 );
 CREATE INDEX nFQID12 ON MergedSam(FQID12);
+CREATE TABLE SamInfo (
+   Type TEXT,
+   Ref TEXT,
+   FQ1 TEXT,
+   FQ2 TEXT,
+   ReadLen1 INTEGER,
+   ReadLen2 INTEGER,
+   Sam TEXT
+);
 /;
 for (split /;\s*/,$sql) {
 	next if /^\s*$/;
@@ -51,6 +61,64 @@ my ($upStr1,$upStr2) = ($upStr0,$upStr0); $upStr1 =~ s/{-}/Hum/g; $upStr2 =~ s/{
 my $sthupd1 = $dbh->prepare($upStr1); my $sthupd2 = $dbh->prepare($upStr2);
 
 my $sthid = $dbh->prepare( "SELECT * FROM MergedSam WHERE FQID12=?" );
+
+sub openfile($) {
+	my ($filename)=@_;
+	my $infile;
+	if ($filename=~/.xz$/) {
+		open( $infile,"-|","xz -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.gz$/) {
+		open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
+	} elsif ($filename=~/.bz2$/) {
+		open( $infile,"-|","bzip2 -dc $filename") or die "Error opening $filename: $!\n";
+	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
+	return $infile;
+}
+sub getsamChrLen($$) {
+	my ($Type,$in) = @_;
+	my $inpath = dirname($in);
+	my ($Ref,$fq1,$fq2,$readlen1,$readlen2);
+	open( IN,"-|","samtools view -H $in") or die "Error(m1) opening $in: $!\n";
+	while (<IN>) {
+		chomp;
+		my ($t,$id,$ln)=split /\t/;
+		if ($t eq '@SQ') {
+			$id = (split /\:/,$id)[1];
+			$ln = (split /\:/,$ln)[1];
+			#$ChrLen{$id} = $ln;
+		} elsif ($t eq '@PG') {
+# @PG	ID:BSMAP	VN:2.87	CL:"bsmap -u -d HomoGRCh38.fa -a F12HPCCCSZ0010_Upload/s00_C.bs_1.fq.gz -b F12HPCCCSZ0010_Upload/s00_C.bs_2.fq.gz -z 64 -p 12 -v 10 -q 2 -o s00_C.bs.bam"
+# @PG	ID:bwa-meth	PN:bwa-meth	VN:0.10	CL:"./bwameth.py -t 24 -p s00_C.bshum --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz"
+			if ($id eq 'ID:BSMAP') {
+				$Ref = $1 if /\-d\s+([.\w]+)\b/;
+				$fq1 = $1 if /\-a\s+([^\s"]+)(\s|"?$)/;
+				$fq2 = $1 if /\-b\s+([^\s"]+)(\s|"?$)/;
+			} elsif ($id eq 'ID:bwa-meth') {
+				$Ref = $1 if /\--reference\s+([.\w]+)\b/;
+				if (/CL:.+\s([^-\s"]+)\s+([^-\s"]+)(\s|"?$)/) {
+					$fq1 = $1;
+					$fq2 = $2;
+				}
+			} else {die;}
+
+		}
+	}
+	if ($inpath ne '.') {
+		($Ref,$fq1,$fq2) = map { "$inpath/$_" } ($Ref,$fq1,$fq2);
+	}
+#warn "$Ref,$fq1,$fq2,$inpath";
+	my $FQ1 = openfile($fq1);
+	<$FQ1>;chomp($_=<$FQ1>);
+	$readlen1 = length $_;
+	close $FQ1;
+	my $FQ2 = openfile($fq2);
+	<$FQ2>;chomp($_=<$FQ2>);
+	$readlen2 = length $_;
+	close $FQ2;
+	my $sthinsnfo = $dbh->prepare("INSERT INTO SamInfo (Type,Ref,FQ1,FQ2,ReadLen1,ReadLen2,Sam) VALUES (?,?,?,?,?,?,?)");
+	$sthinsnfo->execute($Type,$Ref,$fq1,$fq2,$readlen1,$readlen2,$in);
+	warn "[!]Reading [$in]: ($Type,$Ref,$fq1,$fq2,$readlen1,$readlen2)\n";
+}
 
 sub Sam2FQ($) {
 	my $rd = $_[0];
@@ -73,6 +141,7 @@ sub Sam2FQ($) {
 }
 sub InsertSam($$) {
 	my ($Type,$in)=@_;
+	getsamChrLen($Type,$in);
 	open( IN,"-|","samtools view -F768 $in") or die "Error opening $in: $!\n";
 	while (my $line = <IN>) {
 		#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
@@ -111,11 +180,20 @@ $dbh->commit;
 
 
 
-
-
+$sql=q/
+CREATE INDEX nSort ON MergedSam(HumChr,HumPos,VirChr,VirPos);
+/;
+for (split /;\s*/,$sql) {
+	next if /^\s*$/;
+	$dbh->do($_) or die $dbh->errstr,"[$_]";
+}
 $dbh->commit;
 $dbh->disconnect;
 
 __END__
 ../mergebam.pl n3_grep.vircandi.sam.gz n3_grep.vircandi.bshbv.bam n3_merged
 sqlite3 n3_merged.sqlite .dump >n3_merged.sqlite.dump
+
+
+sqlite> EXPLAIN QUERY PLAN SELECT * FROM MergedSam WHERE HumChr IS NOT NULL AND VirChr IS NOT NULL AND HumCIAGR <> '*' AND VirCIAGR <> '*' ORDER BY HumChr,HumPos,VirChr,VirPos ASC;
+0|0|0|SCAN TABLE MergedSam USING INDEX nSort (~62500 rows)
