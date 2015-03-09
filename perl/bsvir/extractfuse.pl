@@ -47,7 +47,7 @@ if ($#$qres == 1) {
 #   VirRef => "HBV.AJ507799.2.fa",
 #   VirSAM => "n3_grep.vircandi.bshbv.bam",
 
-getsamChrLen($nfo{'HumRef'}); getsamChrLen($nfo{'VirRef'});
+getRefChrLen($nfo{'HumRef'}); getRefChrLen($nfo{'VirRef'});
 #ddx \%ChrLen; ddx \%Genome;
 
 my $sth = $dbh->prepare( "SELECT * FROM MergedSam
@@ -80,10 +80,11 @@ while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 #   "r,GA",
 # ]
 =cut
-	;
+	my $ret = Mgfq2Hum($row);
 }
 
-
+$dbh->rollback;
+$dbh->disconnect;
 
 __END__
 ../mergebam.pl n3_grep.vircandi.sam.gz n3_grep.vircandi.bshbv.bam n3_merged
