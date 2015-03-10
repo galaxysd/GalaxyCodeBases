@@ -80,7 +80,7 @@ while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 #   "r,GA",
 # ]
 =cut
-	my $ret = Mgfq2Hum($row);
+	my $ret = Mgfq2HumVir($row,'Hum');
 }
 
 $dbh->rollback;

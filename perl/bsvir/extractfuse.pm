@@ -137,11 +137,16 @@ sub CIAGR2Bin($$$$) {
 	return $refbin;
 }
 
-sub Mgfq2Hum($) {
-	my $rd = $_[0];	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIAGR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIAGR_11, VirMapQ, YDYCHum, YDYCVir_14
-	my ($strandHum,$strandVir)=(0,0);
-	$strandHum = 1 if $$rd[3] & 0x10;
-	$strandVir = 1 if $$rd[8] & 0x10;
+sub Mgfq2HumVir($$) {
+	my ($rd,$Type) = @_;	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIAGR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIAGR_11, VirMapQ, YDYCHum, YDYCVir_14
+	my ($strandHum,$strandVir,$idA,$idB)=(0,0);
+	if ($Type eq 'Hum') {
+		($idA,$idB) = (3,8);	# Hum is 'Hum'
+	} elsif ($Type eq 'Vir') {
+		($idA,$idB) = (8,3);	# Hum is 'Vir'
+	} else {die;}
+	$strandHum = 1 if $$rd[$idA] & 0x10;
+	$strandVir = 1 if $$rd[$idB] & 0x10;
 	my $strandVir2Hum = ($strandVir ^ $strandHum);
 	my ($seqHum,$seqVir,$qual)=($$rd[1],$$rd[1],$$rd[2]);
 	if ($strandVir or $strandHum) {
@@ -152,14 +157,14 @@ sub Mgfq2Hum($) {
 		}
 		$seqVir = $rcseq if $strandVir;
 	}
-	my $CIAGRmHum = CIAGR2Bin('0' x length($seqHum),$$rd[6],'1','MIDS');
-	my $CIAGRmVir = CIAGR2Bin('0' x length($seqVir),$$rd[11],'2','MS');
+	my $CIAGRmHum = CIAGR2Bin('0' x length($seqHum),$$rd[3+$idA],'1','MIDS');
+	my $CIAGRmVir = CIAGR2Bin('0' x length($seqVir),$$rd[3+$idB],'2','MS');
 	$CIAGRmVir = reverse $CIAGRmVir if $strandVir2Hum;
-	$CIAGRmVir = CIAGR2Bin($CIAGRmVir,$$rd[6],'2','IDS');
+	$CIAGRmVir = CIAGR2Bin($CIAGRmVir,$$rd[3+$idA],'2','IDS');
 	my $CIAGRmDiff = $CIAGRmHum ^ $CIAGRmVir;
 	$CIAGRmDiff |= '0' x length $CIAGRmDiff;
 	if ( $DEBUG > 0 ) {
-		print "$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIAGRmHum\n$CIAGRmVir\n$CIAGRmDiff\n";
+		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIAGRmHum\n$CIAGRmVir\n$CIAGRmDiff\n";
 	}
 	return [$strandHum,$strandVir2Hum,$seqHum,$qual];
 }
