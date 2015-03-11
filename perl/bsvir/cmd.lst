@@ -19,3 +19,8 @@ cp /share/users/huxs/work/bsvir/*.p? /share/users/huxs/work/bsvir/bwameth/cmd.ls
 #./bwameth.py -t 24 -p s00_C.bshbv --read-group s00_C --reference HBV.AJ507799.2.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2> s00_C.bshbv.err
 
 https://github.com/brentp/bwa-meth
+
+tar -czvf bsvir.tgz cmd.lst getUnPaired.pl mergebam.pl extractfuse.p?
+
+cd /share/users/huxs/work/bsvir/bwameth
+mate ../*.p? cmd.lst
