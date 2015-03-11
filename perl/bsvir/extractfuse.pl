@@ -85,6 +85,8 @@ while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 
 $dbh->rollback;
 $dbh->disconnect;
+# 记录“3”的起止点。取1条，搜overlap，扩展start、end，再搜overlap，until差值恒定
+# 一阶导数正负最大的就是两分界点。插入应该是酶反应，必然有重复序列。
 
 __END__
 ../mergebam.pl n3_grep.vircandi.sam.gz n3_grep.vircandi.bshbv.bam n3_merged

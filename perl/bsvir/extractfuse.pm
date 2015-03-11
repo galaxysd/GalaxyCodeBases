@@ -136,6 +136,9 @@ sub CIAGR2Bin($$$$) {
 	}
 	return $refbin;
 }
+sub GenCigar($) {
+	my ($seq)=@_;
+}
 
 sub Mgfq2HumVir($$) {
 	my ($rd,$Type) = @_;	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIAGR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIAGR_11, VirMapQ, YDYCHum, YDYCVir_14
@@ -163,6 +166,7 @@ sub Mgfq2HumVir($$) {
 	$CIAGRmVir = CIAGR2Bin($CIAGRmVir,$$rd[3+$idA],'2','IDS');
 	my $CIAGRmDiff = $CIAGRmHum ^ $CIAGRmVir;
 	$CIAGRmDiff |= '0' x length $CIAGRmDiff;
+	GenCigar($CIAGRmDiff);
 	if ( $DEBUG > 0 ) {
 		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIAGRmHum\n$CIAGRmVir\n$CIAGRmDiff\n";
 	}
