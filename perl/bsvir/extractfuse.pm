@@ -118,8 +118,12 @@ sub CIGAR2Bin($$$$) {
 			print "-I- $refbin,$curr_pos,$total_len,$I,$cmd\n" if $DEBUG > 3;
 			#$total_len -= $I;
 		} elsif (my ($D) = $cmd =~ m/(\d+)D/ and $acceptdCIGAR=~/D/) {
-			substr($refbin,$curr_pos,0,$Value x $D);
-			print "-D- $refbin,$curr_pos,$total_len,$D,$cmd\n" if $DEBUG > 3;
+			my $thisValue = $Value;
+			if ($Value == -1) {
+				$thisValue = substr($refbin,$curr_pos,1);
+			}
+			substr($refbin,$curr_pos,0,$thisValue x $D);
+			print "-D- $refbin,$curr_pos,$total_len,$D,$cmd,[$thisValue]\n" if $DEBUG > 3;
 			$total_len += $D;
 			$curr_pos  += $D;
 		} elsif (my ($S) = $cmd =~ m/(\d+)S/) {
@@ -221,12 +225,12 @@ sub Mgfq2HumVir($$) {
 	my $CIGARmHum = CIGAR2Bin('0' x length($seqHum),$$rd[3+$idA],'1','MIDS');
 	my $CIGARmVir = CIGAR2Bin('0' x length($seqVir),$$rd[3+$idB],'2','MS');
 	$CIGARmVir = reverse $CIGARmVir if $strandVir2Hum;
-	$CIGARmVir = CIGAR2Bin($CIGARmVir,$$rd[3+$idA],'2','IDS');
+	$CIGARmVir = CIGAR2Bin($CIGARmVir,$$rd[3+$idA],-1,'IDS');
 	my $CIGARmDiff = $CIGARmHum ^ $CIGARmVir;
 	$CIGARmDiff |= '0' x length $CIGARmDiff;
 	my $retRLEa = GenRLEa($CIGARmDiff);
 	my $retana = analyseRLEa($retRLEa,$seqHum);
-	if ( $DEBUG > 1 ) {
+	if ( $DEBUG > 2 or ($DEBUG > 1 and $#$retana>-1) ) {
 		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIGARmHum\n$CIGARmVir\n$CIGARmDiff,",
 		RLEa2str($retRLEa),"\n";
 		ddx $retRLEa;

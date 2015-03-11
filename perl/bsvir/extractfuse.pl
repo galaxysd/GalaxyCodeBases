@@ -12,9 +12,10 @@ use extractfuse;
 die "Usage: $0 <ins_size> <merged.sqlite> <out_prefix>\n" if @ARGV < 3;
 my ($isize,$in,$out)=@ARGV;
 
-our $DEBUG=1.9;
+our $DEBUG=2.9;
+$DEBUG=0.9;
 our $minLen = 5;
-our $low_complexity_cutoff_ratio=0.88; # 0.85
+our $low_complexity_cutoff_ratio=0.9; # 0.85
 our $N_num_cutoff=2;
 
 our (%Genome,%ChrLen);	# Let's share them.
@@ -82,7 +83,18 @@ while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 #   "r,GA",
 # ]
 =cut
-	my $ret = Mgfq2HumVir($row,'Hum');
+	my $retHum = Mgfq2HumVir($row,'Hum');
+	my $retVir = Mgfq2HumVir($row,'Vir');
+	if ($#{$$retHum[0]}==1 and $#{$$retVir[0]}==1) {
+		my ($PosBeginHum,$PosEndHum) = ( $$row[5]+$$retHum[0]->[0],$$row[5]+$$retHum[0]->[1] );
+		my ($PosBeginVir,$PosEndVir) = ( $$row[10]+$$retVir[0]->[0],$$row[10]+$$retVir[0]->[1] );
+		print join("\t",$$retHum[1],$$retVir[1],$$row[4],$PosBeginHum,$PosEndHum,$$row[9],$PosBeginVir,$PosEndVir),"\n";
+	} elsif ($#{$$retHum[0]}==1 or $#{$$retVir[0]}==1) {
+		if ( $DEBUG > 2 ) {
+			ddx [$row,$retHum,$retVir];
+			print "\nWARN\n\n";
+		}
+	}
 }
 
 $dbh->rollback;

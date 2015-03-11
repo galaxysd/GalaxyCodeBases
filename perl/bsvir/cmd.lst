@@ -1,0 +1,21 @@
+./bwameth.py -t 24 -p s00_C.bshum --read-group s00_C --reference HomoGRCh38.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz > s00_C.bshum.log 2> s00_C.bshum.err
+
+samtools sort -m 2415919104 -n s00_C.bshum.bam -O bam -T s00_C.bshum.sid > s00_C.bshum.sid.bam 2> tt.err
+
+./getUnPaired.pl s00_C.bshum.sid.bam n3_grep
+
+./bwameth.py -t 24 -p n3_grep.vircandi.bshbv --read-group s00_C_grep --reference HBV.AJ507799.2.fa n3_grep.1.fq.gz n3_grep.2.fq.gz
+
+./mergebam.pl n3_grep.vircandi.sam.gz n3_grep.vircandi.bshbv.bam n3_merged
+
+./extractfuse.pl 200 n3_merged.sqlite n3
+
+
+
+
+
+cp /share/users/huxs/work/bsvir/*.p? /share/users/huxs/work/bsvir/bwameth/cmd.lst .
+
+#./bwameth.py -t 24 -p s00_C.bshbv --read-group s00_C --reference HBV.AJ507799.2.fa s00_C.bs_1.fq.gz s00_C.bs_2.fq.gz 2> s00_C.bshbv.err
+
+https://github.com/brentp/bwa-meth
