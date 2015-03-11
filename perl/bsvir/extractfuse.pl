@@ -20,11 +20,17 @@ our $N_num_cutoff=2;
 
 our (%Genome,%ChrLen);	# Let's share them.
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=./$in","","",{
+my %attr = (
 	RaiseError => 1,
 	PrintError => 1,
 	AutoCommit => 0
-}) or die $DBI::errstr;
+);
+my $dbh = DBI->connect("dbi:SQLite:dbname=./$in","","",\%attr) or die $DBI::errstr;
+
+unlink "./${out}.sqlite";
+$dbh->sqlite_backup_to_file( "./$out.sqlite" );	# Well, we can just cp the file as well, before open it.
+my $dboh = DBI->connect("dbi:SQLite:dbname=./${out}.sqlite","","",\%attr) or die $DBI::errstr;
+$dboh->do("PRAGMA cache_size = -2000000");	# 2G http://www.sqlite.org/pragma.html#pragma_cache_size
 
 my $sthnfo = $dbh->prepare( "SELECT * FROM SamInfo");
 $sthnfo->execute();
@@ -96,9 +102,11 @@ while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 		}
 	}
 }
-
 $dbh->rollback;
 $dbh->disconnect;
+
+$dboh->commit;
+$dboh->disconnect;
 # 记录“3”的起止点。取1条，搜overlap，扩展start、end，再搜overlap，until差值恒定
 # 一阶导数正负最大的就是两分界点。插入应该是酶反应，必然有重复序列。
 
