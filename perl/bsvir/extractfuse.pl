@@ -12,8 +12,10 @@ use extractfuse;
 die "Usage: $0 <ins_size> <merged.sqlite> <out_prefix>\n" if @ARGV < 3;
 my ($isize,$in,$out)=@ARGV;
 
-our $DEBUG=2.9;
+our $DEBUG=1.9;
 our $minLen = 5;
+our $low_complexity_cutoff_ratio=0.88; # 0.85
+our $N_num_cutoff=2;
 
 our (%Genome,%ChrLen);	# Let's share them.
 
@@ -60,7 +62,7 @@ my $rows = []; # cache for batches of rows
 while( my $row = ( shift(@$rows) || # get row from cache, or reload cache:
 	shift(@{$rows=$sth->fetchall_arrayref(undef,10_000)||[]}) )
 ) {
-	ddx $row;
+	#ddx $row;
 =pod
 # extractfuse.pl:28: [
 #   "FCC1DVKACXX:7:1205:10704:40309#TTAGGCAT/2",

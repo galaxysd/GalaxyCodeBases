@@ -6,6 +6,7 @@ use File::Basename;
 # Static Var.
 our $DEBUG;
 our ($minLen,%Genome,%ChrLen);
+our ($low_complexity_cutoff_ratio,$N_num_cutoff);
 
 # Functions
 sub openfile($) {
@@ -136,10 +137,67 @@ sub CIGAR2Bin($$$$) {
 	}
 	return $refbin;
 }
-sub GenCigar($) {
+sub GenRLEa($) {
 	my ($seq)=@_;
+	my (@retChar,@retLen,@retLastP);
+	my $lastPos = 0;
+	while ($seq =~ m/((\d)\2*)/g) {
+		#$ret .= $bin2ab{$2} . length($1);
+		push @retChar,"$2";
+		push @retLen,length($1);
+		push @retLastP,$lastPos;
+		$lastPos += length($1);
+	}
+	return [\@retChar,\@retLen,\@retLastP];
 }
-
+sub RLEa2str($) {
+	my $dat = $_[0];
+	my ($retCharR,$retLenR) = @$dat;
+	my %bin2ab = (0=>'N',1=>'A',2=>'B',3=>'C');
+	my $ret;
+	for my $i (0 .. $#$retCharR) {
+		if (exists $bin2ab{$$retCharR[$i]}) {
+			$ret .= $bin2ab{$$retCharR[$i]} . $$retLenR[$i];
+		} else {die;}
+	}
+	return $ret;
+}
+sub low_complexity_filter($) {  # https://github.com/chienchi/FaQCs/blob/master/FaQCs.pl
+	my ($seq) = @_;
+	my $seq_len = length ($seq);
+	my @low_complex_array=("A","T","C","G","AT","AC","AG","TA","TC","TG","CA","CT","CG","GA","GT","GC","N");
+	my $low_complexity=0;
+	for my $item (@low_complex_array) {
+		my $item_len = length ($item);
+		my $num_low_complex = $seq =~ s/$item/$item/g;
+		my $value = ($num_low_complex*$item_len/$seq_len);
+		if ( $value >= $low_complexity) {
+			$low_complexity=$value;
+			last if $value == 1;
+		}
+	}
+	return ($low_complexity);
+}
+sub analyseRLEa($$) {
+	my ($dat,$seq)=@_;
+	my ($retCharR,$retLenR,$retLastPR) = @$dat;
+	my @ret;
+	if ($#$retCharR==2 and $$retCharR[1]==3) {
+		if (($$retCharR[0]==1 and $$retCharR[2]==2) or ($$retCharR[0]==2 and $$retCharR[2]==1)) {
+			my $subseq = substr $seq,$$retLastPR[1],$$retLenR[1];
+			my $low_complexity = low_complexity_filter($subseq);
+			my $drop=0;
+			$drop = 1 if $low_complexity > $low_complexity_cutoff_ratio;
+			if ( $DEBUG > 2 ) {
+				print "-!- $seq,",RLEa2str($dat),"\n-!- ",'.'x$$retLenR[0],"$subseq,$drop,$low_complexity\n";
+			}
+			unless ($drop) {
+				@ret = ($$retLastPR[1],$$retLastPR[2]-1);
+			}
+		}
+	}
+	return \@ret;
+}
 sub Mgfq2HumVir($$) {
 	my ($rd,$Type) = @_;	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIGAR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIGAR_11, VirMapQ, YDYCHum, YDYCVir_14
 	my ($strandHum,$strandVir,$idA,$idB)=(0,0);
@@ -166,11 +224,15 @@ sub Mgfq2HumVir($$) {
 	$CIGARmVir = CIGAR2Bin($CIGARmVir,$$rd[3+$idA],'2','IDS');
 	my $CIGARmDiff = $CIGARmHum ^ $CIGARmVir;
 	$CIGARmDiff |= '0' x length $CIGARmDiff;
-	GenCigar($CIGARmDiff);
-	if ( $DEBUG > 0 ) {
-		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIGARmHum\n$CIGARmVir\n$CIGARmDiff\n";
+	my $retRLEa = GenRLEa($CIGARmDiff);
+	my $retana = analyseRLEa($retRLEa,$seqHum);
+	if ( $DEBUG > 1 ) {
+		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIGARmHum\n$CIGARmVir\n$CIGARmDiff,",
+		RLEa2str($retRLEa),"\n";
+		ddx $retRLEa;
+		ddx $retana;
 	}
-	return [$strandHum,$strandVir2Hum,$seqHum,$qual];
+	return [$retana,$strandHum,$strandVir2Hum,$retRLEa,$seqHum,$qual];
 }
 
 1;
