@@ -53,9 +53,9 @@ sub doPan($$$$) {
 open INHUM,"-|","samtools view $inhum" or die "Error opening $inhum: $!\n";
 while (<INHUM>) {
 	chomp;
-	my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
-	my $mappedSeq = parseCIGAR($seq,$CIAGR);
-	my $mappedQual = parseCIGAR($qual,$CIAGR);
+	my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
+	my $mappedSeq = parseCIGAR($seq,$CIGAR);
+	my $mappedQual = parseCIGAR($qual,$CIGAR);
 	my $mappedLen = length $mappedSeq;
 	doPan($ref,$pos,$mappedLen,$id,$mappedSeq,$mappedQual);
 }
@@ -65,14 +65,14 @@ open INVIR,"-|","samtools view -F 4 $invir" or die "Error(1) opening $invir: $!\
 my (%PileUpVIR,%DepthVIR);
 while (<INVIR>) {
 	chomp;
-	my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
-	my $mappedSeq = parseCIGAR($seq,$CIAGR);
-	my $mappedQual = parseCIGAR($qual,$CIAGR);
+	my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/;
+	my $mappedSeq = parseCIGAR($seq,$CIGAR);
+	my $mappedQual = parseCIGAR($qual,$CIGAR);
 	my $mappedLen = length $mappedSeq;
 	if ( $DEBUG > 1 ) {
 		doPan($ref,$pos,$mappedLen,$id);
-		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual,$seq,$CIAGR];
-warn "$CIAGR,$ref\t$id,$seq\n$mappedSeq\n";
+		push @{$PileUpVIR{$ref}},[$pos,$mappedLen,$id,$mappedSeq,$mappedQual,$seq,$CIGAR];
+warn "$CIGAR,$ref\t$id,$seq\n$mappedSeq\n";
 		my $theref = substr($Genome{$ref},$pos-1,$mappedLen);
 		# 用bisofite处理后，含甲基化的C不会变成T，不含甲基化的C变成T。由于他只能吧C变成T，所以，正链就是C->T，而他的反义互补连则是负连的C->T，反映到正链上就是G->A。
 		# 比如CG，如果他在watson连上并且没有甲基化，那么bisofte处理后就变成TG，如果是在crick链上变成CA。

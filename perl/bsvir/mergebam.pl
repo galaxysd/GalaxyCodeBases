@@ -25,12 +25,12 @@ CREATE TABLE MergedSam
    HumFlag INTEGER,
    HumChr TEXT,
    HumPos INTEGER,
-   HumCIAGR TEXT,
+   HumCIGAR TEXT,
    HumMapQ INTEGER,
    VirFlag INTEGER,
    VirChr TEXT,
    VirPos INTEGER,
-   VirCIAGR TEXT,
+   VirCIGAR TEXT,
    VirMapQ INTEGER,
    YDYCHum TEXT,
    YDYCVir TEXT
@@ -52,11 +52,11 @@ for (split /;\s*/,$sql) {
 }
 $dbh->commit;
 
-my $inStr0 = "INSERT INTO MergedSam (FQID12,FQSeq,FQQual,{-}Flag,{-}Chr,{-}Pos,{-}CIAGR,{-}MapQ,YDYC{-}) VALUES (?,?,?,?,?,?,?,?,?)";
+my $inStr0 = "INSERT INTO MergedSam (FQID12,FQSeq,FQQual,{-}Flag,{-}Chr,{-}Pos,{-}CIGAR,{-}MapQ,YDYC{-}) VALUES (?,?,?,?,?,?,?,?,?)";
 my ($inStr1,$inStr2) = ($inStr0,$inStr0); $inStr1 =~ s/{-}/Hum/g; $inStr2 =~ s/{-}/Vir/g;
 my $sthins1 = $dbh->prepare($inStr1); my $sthins2 = $dbh->prepare($inStr2);
 
-my $upStr0 = "UPDATE MergedSam SET {-}Flag=?,{-}Chr=?,{-}Pos=?,{-}CIAGR=?,{-}MapQ=?,YDYC{-}=? WHERE FQID12=?";
+my $upStr0 = "UPDATE MergedSam SET {-}Flag=?,{-}Chr=?,{-}Pos=?,{-}CIGAR=?,{-}MapQ=?,YDYC{-}=? WHERE FQID12=?";
 my ($upStr1,$upStr2) = ($upStr0,$upStr0); $upStr1 =~ s/{-}/Hum/g; $upStr2 =~ s/{-}/Vir/g;
 my $sthupd1 = $dbh->prepare($upStr1); my $sthupd2 = $dbh->prepare($upStr2);
 
@@ -128,7 +128,7 @@ sub Sam2FQ($) {
 	} elsif ($$rd[1] & 0x80) {
 		$rd12 = 2;
 	}
-	die "CIAGR:$$rd[5]" if $$rd[5] =~ /H/;
+	die "CIGAR:$$rd[5]" if $$rd[5] =~ /H/;
 	my $seq = $$rd[9];
 	my $qual = $$rd[10];
 	if ($$rd[1] & 0x10) {
@@ -144,10 +144,10 @@ sub InsertSam($$) {
 	getsamChrLen($Type,$in);
 	open( IN,"-|","samtools view -F768 $in") or die "Error opening $in: $!\n";
 	while (my $line = <IN>) {
-		#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
-		#print "$id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize\n";
+		#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
+		#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
 		my @Dat1 = split /\t/,$line;
-		my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = @Dat1;
+		my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = @Dat1;
 		my $ret1 = Sam2FQ(\@Dat1);
 		(undef,$id,$seq,$qual) = @$ret1;
 		my $YDYC;
@@ -164,11 +164,11 @@ sub InsertSam($$) {
 		$sthid->execute($id);
 		my $qres = $sthid->fetchall_arrayref;
 		if ($#$qres == -1) {
-			$sthins1->execute($id,$seq,$qual,$flag,$ref,$pos,$CIAGR,$mapq,$YDYC) if $Type eq 'Hum';
-			$sthins2->execute($id,$seq,$qual,$flag,$ref,$pos,$CIAGR,$mapq,$YDYC) if $Type eq 'Vir';
+			$sthins1->execute($id,$seq,$qual,$flag,$ref,$pos,$CIGAR,$mapq,$YDYC) if $Type eq 'Hum';
+			$sthins2->execute($id,$seq,$qual,$flag,$ref,$pos,$CIGAR,$mapq,$YDYC) if $Type eq 'Vir';
 		} elsif ($#$qres == 0) {
-			$sthupd1->execute($flag,$ref,$pos,$CIAGR,$mapq,$YDYC,$id) if $Type eq 'Hum';
-			$sthupd2->execute($flag,$ref,$pos,$CIAGR,$mapq,$YDYC,$id) if $Type eq 'Vir';
+			$sthupd1->execute($flag,$ref,$pos,$CIGAR,$mapq,$YDYC,$id) if $Type eq 'Hum';
+			$sthupd2->execute($flag,$ref,$pos,$CIGAR,$mapq,$YDYC,$id) if $Type eq 'Vir';
 		} else {die;}
 	}
 }
@@ -195,5 +195,5 @@ __END__
 sqlite3 n3_merged.sqlite .dump >n3_merged.sqlite.dump
 
 
-sqlite> EXPLAIN QUERY PLAN SELECT * FROM MergedSam WHERE HumChr IS NOT NULL AND VirChr IS NOT NULL AND HumCIAGR <> '*' AND VirCIAGR <> '*' ORDER BY HumChr,HumPos,VirChr,VirPos ASC;
+sqlite> EXPLAIN QUERY PLAN SELECT * FROM MergedSam WHERE HumChr IS NOT NULL AND VirChr IS NOT NULL AND HumCIGAR <> '*' AND VirCIGAR <> '*' ORDER BY HumChr,HumPos,VirChr,VirPos ASC;
 0|0|0|SCAN TABLE MergedSam USING INDEX nSort (~62500 rows)

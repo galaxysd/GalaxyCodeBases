@@ -98,7 +98,7 @@ sub Sam2FQ($) {
 	} elsif ($$rd[1] & 0x80) {
 		$rd12 = 2;
 	}
-	die "CIAGR:$$rd[5]" if $$rd[5] =~ /H/;
+	die "CIGAR:$$rd[5]" if $$rd[5] =~ /H/;
 	my $seq = $$rd[9];
 	my $qual = $$rd[10];
 	if ($$rd[1] & 0x10) {
@@ -124,8 +124,8 @@ sub doSamPair($$) {
 }
 open( IN,"-|","samtools view -F768 $in") or die "Error opening $in: $!\n";
 while (my $line = <IN>) {
-	#my ($id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
-	#print "$id, $flag, $ref, $pos, $mapq, $CIAGR, $mref, $mpos, $isize\n";
+	#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
+	#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
 	my @Dat1 = split /\t/,$line;
 	my $line2 = <IN>;
 	die '[x]SAM/BAM file not paired !' unless defined($line2);

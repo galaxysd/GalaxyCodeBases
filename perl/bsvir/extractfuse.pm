@@ -94,20 +94,20 @@ sub parseCIGAR($$) {
 	}
 	return $ref;
 }
-sub CIAGR2Bin($$$$) {
-	my ($seq,$CIGAR,$Value,$acceptdCIAGR)=@_;
+sub CIGAR2Bin($$$$) {
+	my ($seq,$CIGAR,$Value,$acceptdCIGAR)=@_;
 	my (@edit_cmd) = $CIGAR =~ m/\d+\w/g;
 	my $curr_pos = 0;
 	my $total_len =0;
 	my $refbin = $seq;
 	foreach my $cmd (@edit_cmd) {
 		if (my ($M) = $cmd =~ m/(\d+)M/) {
-			substr($refbin,$curr_pos,$M,$Value x $M) if $acceptdCIAGR=~/M/;
+			substr($refbin,$curr_pos,$M,$Value x $M) if $acceptdCIGAR=~/M/;
 			print "-M- $refbin,$curr_pos,$total_len,$M,$cmd\n" if $DEBUG > 3;
 			$curr_pos += $M;
 			$total_len+= $M;
 		} elsif (my ($I) = $cmd =~ m/(\d+)I/) {
-			if ($acceptdCIAGR=~/I/) {
+			if ($acceptdCIGAR=~/I/) {
 				substr($refbin,$curr_pos,$I,'');	#delete $I characters
 			} else {
 				substr($refbin,$curr_pos,$I,$Value x $I);
@@ -116,7 +116,7 @@ sub CIAGR2Bin($$$$) {
 			}
 			print "-I- $refbin,$curr_pos,$total_len,$I,$cmd\n" if $DEBUG > 3;
 			#$total_len -= $I;
-		} elsif (my ($D) = $cmd =~ m/(\d+)D/ and $acceptdCIAGR=~/D/) {
+		} elsif (my ($D) = $cmd =~ m/(\d+)D/ and $acceptdCIGAR=~/D/) {
 			substr($refbin,$curr_pos,0,$Value x $D);
 			print "-D- $refbin,$curr_pos,$total_len,$D,$cmd\n" if $DEBUG > 3;
 			$total_len += $D;
@@ -127,12 +127,12 @@ sub CIAGR2Bin($$$$) {
 			# thus no change on $curr_pos and $total_len.
 			# It is up to bwa to ensure 'S' exists only at terminals. bsmap does not use 'S'.
 			#substr($ref,$curr_pos,$S,'');	#delete $I characters
-			substr($refbin,$curr_pos,$S,('0' x $S)) if $acceptdCIAGR=~/s/;
+			substr($refbin,$curr_pos,$S,('0' x $S)) if $acceptdCIGAR=~/s/;
 			$curr_pos += $S;
-		} elsif ($cmd !~ /\d+[MIDS]/) {die "[x]Unsupported CIAGR:[$cmd]";}
+		} elsif ($cmd !~ /\d+[MIDS]/) {die "[x]Unsupported CIGAR:[$cmd]";}
 	}
 	if ( $DEBUG > 3 ) {
-		print "<-$CIGAR,$Value,$acceptdCIAGR\n->$seq\n- $refbin\n";
+		print "<-$CIGAR,$Value,$acceptdCIGAR\n->$seq\n- $refbin\n";
 	}
 	return $refbin;
 }
@@ -141,7 +141,7 @@ sub GenCigar($) {
 }
 
 sub Mgfq2HumVir($$) {
-	my ($rd,$Type) = @_;	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIAGR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIAGR_11, VirMapQ, YDYCHum, YDYCVir_14
+	my ($rd,$Type) = @_;	# FQID12_0, FQSeq_1, FQQual, HumFlag_3, HumChr, HumPos, HumCIGAR_6, HumMapQ, VirFlag_8, VirChr, VirPos, VirCIGAR_11, VirMapQ, YDYCHum, YDYCVir_14
 	my ($strandHum,$strandVir,$idA,$idB)=(0,0);
 	if ($Type eq 'Hum') {
 		($idA,$idB) = (3,8);	# Hum is 'Hum'
@@ -160,15 +160,15 @@ sub Mgfq2HumVir($$) {
 		}
 		$seqVir = $rcseq if $strandVir;
 	}
-	my $CIAGRmHum = CIAGR2Bin('0' x length($seqHum),$$rd[3+$idA],'1','MIDS');
-	my $CIAGRmVir = CIAGR2Bin('0' x length($seqVir),$$rd[3+$idB],'2','MS');
-	$CIAGRmVir = reverse $CIAGRmVir if $strandVir2Hum;
-	$CIAGRmVir = CIAGR2Bin($CIAGRmVir,$$rd[3+$idA],'2','IDS');
-	my $CIAGRmDiff = $CIAGRmHum ^ $CIAGRmVir;
-	$CIAGRmDiff |= '0' x length $CIAGRmDiff;
-	GenCigar($CIAGRmDiff);
+	my $CIGARmHum = CIGAR2Bin('0' x length($seqHum),$$rd[3+$idA],'1','MIDS');
+	my $CIGARmVir = CIGAR2Bin('0' x length($seqVir),$$rd[3+$idB],'2','MS');
+	$CIGARmVir = reverse $CIGARmVir if $strandVir2Hum;
+	$CIGARmVir = CIGAR2Bin($CIGARmVir,$$rd[3+$idA],'2','IDS');
+	my $CIGARmDiff = $CIGARmHum ^ $CIGARmVir;
+	$CIGARmDiff |= '0' x length $CIGARmDiff;
+	GenCigar($CIGARmDiff);
 	if ( $DEBUG > 0 ) {
-		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIAGRmHum\n$CIAGRmVir\n$CIAGRmDiff\n";
+		print "<<<[$Type]$strandHum,$strandVir2Hum\n ,$$rd[1]\n$strandHum,$seqHum\n$strandVir,$seqVir\n$$rd[6],$$rd[11]\n$CIGARmHum\n$CIGARmVir\n$CIGARmDiff\n";
 	}
 	return [$strandHum,$strandVir2Hum,$seqHum,$qual];
 }

@@ -51,7 +51,7 @@ getRefChrLen($nfo{'HumRef'}); getRefChrLen($nfo{'VirRef'});
 #ddx \%ChrLen; ddx \%Genome;
 
 my $sth = $dbh->prepare( "SELECT * FROM MergedSam
- WHERE HumChr IS NOT NULL AND VirChr IS NOT NULL AND HumCIAGR <> '*' AND VirCIAGR <> '*'
+ WHERE HumChr IS NOT NULL AND VirChr IS NOT NULL AND HumCIGAR <> '*' AND VirCIGAR <> '*'
  ORDER BY HumChr,HumPos,VirChr,VirPos ASC;" );
 $sth->execute();
 
