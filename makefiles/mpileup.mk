@@ -1,10 +1,15 @@
 OUT := test.bcf
-CMD := samtools mpileup -g -d 1000 -t DP,DPR,DV,DP4,SP -f /bak/seqdata/genomes/TigerRefGenome/P_tigris.scaffold.fa
+CMD := samtools mpileup -g -d 1000 -t DP,DPR,DV,DP4,SP -f /bak/seqdata/genomes/Felis_catus_80_masked/Felis_catus80_chr.fa
 
 #BAMS := pti096_clean_aln_pe_rmdup.bam pti183_clean_aln_pe_rmdup.bam pti301_clean_aln_pe_rmdup.bam pti332_clean_aln_pe_rmdup.bam
 BAMS := $(wildcard *.bam)
 #CHRS := scaffold1000 scaffold979 scaffold982
-CHRS := $(shell samtools view -H $(firstword $(BAMS)) | sed -n 's/^@SQ\tSN:\([a-zA-Z0-9_\-]*\).*/\1/p')
+RAWCHRS := $(shell samtools view -H $(firstword $(BAMS)) | sed -n 's/^@SQ\tSN:\([^\t]*\).*/\1/p')
+
+p+ = $(subst |,+,$1)
++p = $(subst +,|,$1)
+
+CHRS := $(call p+,$(RAWCHRS))
 
 BYCHR = $(addsuffix .bcf,$(addprefix bychr/_,$(CHRS)))
 BAIS = $(addsuffix .bai,$(BAMS))
@@ -42,7 +47,7 @@ bcfbychr.lst: $(BYCHR)
 	samtools index $*
 
 bychr/_%.bcf: $(BAMS) | bychr/
-	$(CMD) -r $* $(BAMS) >$@
+	$(CMD) -r "$(call +p,$(*))" $(BAMS) >$@
 
 clean:
 	-rm -fr bychr
