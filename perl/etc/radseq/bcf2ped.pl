@@ -35,6 +35,8 @@ $t = "# In: [$bcfs], Out: [$outfs]. minSampleCnt=$minSampleCnt\n";
 print O $t;
 print $t;
 
+open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
+
 my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag);
 open L,'<',$tfamfs or die;
 while (<L>) {
@@ -73,6 +75,7 @@ close OFO;
 my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
 my (@Samples,@Parents);
 while (<$th>) {
+	print OV $_;
 	next if /^##/;
 	chomp;
 	my @data = split /\t/;
@@ -210,7 +213,9 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	print OP join("\t",$1,$SNPid,0,$POS,@GTall),"\n";
 	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
 	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
-	++$Stat{'Marker_Out'}
+	++$Stat{'Marker_Out'};
+	print OV $_;
+	print OV join("\t",$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data),"\n";
 }
 close $th;
 
@@ -219,6 +224,7 @@ close OPA;
 close OPO;
 close OM;
 close OD;
+close OV;
 
 print O Dumper(\%Stat);
 close O;
