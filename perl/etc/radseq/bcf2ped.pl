@@ -214,8 +214,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
 	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
 	++$Stat{'Marker_Out'};
-	print OV $_;
-	print OV join("\t",$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO, $FORMAT, @data),"\n";
+	print OV $_,"\n";
 }
 close $th;
 
