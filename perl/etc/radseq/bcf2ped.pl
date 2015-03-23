@@ -72,7 +72,7 @@ close OF;
 close OFA;
 close OFO;
 
-my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
+my $th = openpipe('bcftools view --types snps',$bcfs);	# -I	skip indels, para changed in v1.1
 my (@Samples,@Parents);
 while (<$th>) {
 	print OV $_;
@@ -180,7 +180,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt < $minSampleCnt) {
+	if ($QUAL<20 or scalar(keys %GTcnt)<2 or $SPcnt < $minSampleCnt) {	# No 'FQ' in 'INFO' for v1.1
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
