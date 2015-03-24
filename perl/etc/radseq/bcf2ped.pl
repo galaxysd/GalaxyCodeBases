@@ -41,7 +41,7 @@ print $t;
 
 #open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
 
-my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag,%inFamily);
+my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag,%inFamily,%ISinFamily);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
@@ -77,9 +77,13 @@ close OF;
 close OFA;
 close OFO;
 for my $family (keys %inFamily) {
-	delete $inFamily{$family} if scalar @{$inFamily{$family}} == 1;
+	if (scalar @{$inFamily{$family}} == 1) {
+		delete $inFamily{$family};
+	} else {
+		$ISinFamily{$_}=$family for @{$inFamily{$family}};
+	}
 }
-ddx \%inFamily;
+ddx \%inFamily; ddx \%ISinFamily;
 
 my $th = openpipe('bcftools view --types snps -m2 -M2',$bcfs);	# -I	skip indels, para changed in v1.1; '-m2 -M2' for biallelic sites.
 my (@Samples,@Parents);
@@ -101,7 +105,8 @@ while (<$th>) {
 			}
 		} splice @data,9;
 		# ../5.bam_0000210210_merged/d1_4_merged.D4.JHH001.XTU.sort.rmdup.bam
-		@Parents = grep(!/^GZXJ/,@Samples);
+		#@Parents = grep(!/^GZXJ/,@Samples);
+		@Parents=();
 		last;
 	}
 }
@@ -156,9 +161,15 @@ while (<$th>) {
 			++$GTcnt{$gt};
 			my @GT = split /[\/|]/,$gt;
 			++$SPcnt;
-			if ($Pheno{$_} == 2) {
-				++$GTitemCnt{$_} for @GT;
-			}
+			if ($DomRec eq 'R') {
+				if ($Pheno{$_} == 2) {
+					++$GTitemCnt{$_} for @GT;
+				}
+			} elsif ($DomRec eq 'D') {
+				if (exists $ISinFamily{$_}) {
+					++$GTitemCnt{$_} for @GT;
+				}
+			} else {die;}
 			$GT{$_}{'GTp'} = join ' ',map($Bases[$_], @GT);
 			#$GT{$_}{'O_K'} = 1;
 		} else {
@@ -167,7 +178,11 @@ while (<$th>) {
 		}
 		push @plinkGT,$GT{$_}{'GTp'};
 	}
-	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt; # Desc
+	if ($DomRec eq 'R') {
+		($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt; # Desc
+	} elsif ($DomRec eq 'D') {
+		($Mut) = sort { $GTitemCnt{$a} <=> $GTitemCnt{$b} } keys %GTitemCnt; # Asc
+	} else {die;}
 	unless (defined $Mut) {
 		++$Stat{'VCF_noAffInd_Skipped'};
 		next;
