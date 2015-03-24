@@ -12,6 +12,7 @@ p+ = $(subst |,+,$1)
 CHRS := $(call p+,$(RAWCHRS))
 
 BYCHR = $(addsuffix .bcf,$(addprefix bychr/_,$(CHRS)))
+BYCHRINX = $(addsuffix .csi,$(BYCHR))
 BAIS = $(addsuffix .bai,$(BAMS))
 #GATKBAIS = $(BAMS:.bam=.bai)
 
@@ -33,8 +34,8 @@ list:
 
 bai: $(BAIS)
 
-$(OUT): $(BYCHR) bcfbychr.lst
-	bcftools concat -O b -f bcfbychr.lst -o $(OUT)
+$(OUT): $(BYCHR) bcfbychr.lst $(BYCHRINX)
+	bcftools concat -a -O b -f bcfbychr.lst -o $(OUT)
 
 bychr/:
 	mkdir bychr
@@ -45,6 +46,9 @@ bcfbychr.lst: $(BYCHR)
 
 %.bai: $*
 	samtools index $*
+
+%.csi: $*
+	bcftools index $*
 
 bychr/_%.bcf: $(BAMS) | bychr/
 	$(CMD) -r "$(call +p,$(*))" $(BAMS) >$@
