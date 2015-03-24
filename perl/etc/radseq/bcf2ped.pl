@@ -120,6 +120,18 @@ for (my $i = 0; $i < @Samples; $i++) {
 print O "# Samples: [",join('],[',@res),"]\t# 1=control, 2=case, 0=drop\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples: (1=control, 2=case, 0=drop)\n[",join("]\n[",@res),"]\nParents: [",join('],[',@Parents),"]\n";
 
+my (%ChrID2Num);
+sub genChrNumber($) {
+	my $id = $_[0];
+	if (exists $ChrID2Num{$id}) {
+		return $ChrID2Num{$id};
+	} else {
+		my $lastCnt = scalar keys %ChrID2Num;
+		$ChrID2Num{$id} = $lastCnt+1;
+		return $ChrID2Num{$id};
+	}
+}
+
 while (<$th>) {
 	next if /^#/;
 	chomp;
@@ -210,7 +222,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	}
 	$Mut = $Bases[$Mut];
 	my $SNPid = "r".$Stat{'VCF_In'};
-	$CHROM =~ /(\d+)/;
+	$CHROM = genChrNumber($CHROM);
 	#print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
 	print OD join("\t",${CHROM},${POS},$SNPid),"\n";
@@ -249,6 +261,7 @@ close OM;
 close OD;
 #close OV;
 
+print O Dumper(\%ChrID2Num);
 print O Dumper(\%Stat);
 close O;
 
