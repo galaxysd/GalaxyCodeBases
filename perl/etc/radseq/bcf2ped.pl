@@ -12,11 +12,15 @@ use Galaxy::IO;
 use Galaxy::SeqTools;
 use Data::Dumper;
 
-die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <out>\n" if @ARGV<4;
+die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <Dominant/Recessive> <out>\n" if @ARGV<5;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $minSampleCnt=shift;	# 16 for 16 samples in paper
+my $DomRec=shift;
 my $outfs=shift;
+
+$DomRec='D' if $DomRec =~ /^D/i;
+$DomRec='R' if $DomRec =~ /^R/i;
 
 my (%Stat,$t);
 open OP,'>',$outfs.'.tped' or die "Error opening $outfs.tped : $!\n";
@@ -31,11 +35,13 @@ if ($tfamfs ne $outfs.'.tfam') {
 	open OFO,'>',$outfs.'.control.tfam' or die $!;
 } else {die;}
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
-$t = "# In: [$bcfs], Out: [$outfs]. minSampleCnt=$minSampleCnt\n";
+$t = "# In:[$bcfs], Out:[$outfs]. minSampleCnt=$minSampleCnt Dominant/Recessive:[$DomRec]\n";
 print O $t;
 print $t;
 
-my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag);
+#open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
+
+my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag,%inFamily,%ISinFamily);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
@@ -50,6 +56,7 @@ while (<L>) {
 	} else { die; }	# $pho can only be 1 or 2
 #	$tfamSampleFlag{$ind} = 3 if $ind !~ /^GZXJ/;
 	push @tfamSamples,$ind;
+	push @{$inFamily{$family}},$ind;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 }
 for my $ind (@tfamSamples) {
@@ -69,10 +76,19 @@ close L;
 close OF;
 close OFA;
 close OFO;
+for my $family (keys %inFamily) {
+	if (scalar @{$inFamily{$family}} == 1) {
+		delete $inFamily{$family};
+	} else {
+		$ISinFamily{$_}=$family for @{$inFamily{$family}};
+	}
+}
+ddx \%inFamily; ddx \%ISinFamily;
 
-my $th = openpipe('bcftools view -I',$bcfs);	# -I	skip indels
+my $th = openpipe('bcftools view --types snps -m2 -M2',$bcfs);	# -I	skip indels, para changed in v1.1; '-m2 -M2' for biallelic sites.
 my (@Samples,@Parents);
 while (<$th>) {
+	#print OV $_;
 	next if /^##/;
 	chomp;
 	my @data = split /\t/;
@@ -89,7 +105,8 @@ while (<$th>) {
 			}
 		} splice @data,9;
 		# ../5.bam_0000210210_merged/d1_4_merged.D4.JHH001.XTU.sort.rmdup.bam
-		@Parents = grep(!/^GZXJ/,@Samples);
+		#@Parents = grep(!/^GZXJ/,@Samples);
+		@Parents=();
 		last;
 	}
 }
@@ -102,6 +119,18 @@ for (my $i = 0; $i < @Samples; $i++) {
 }	# http://stackoverflow.com/questions/2591747/how-can-i-compare-arrays-in-perl
 print O "# Samples: [",join('],[',@res),"]\t# 1=control, 2=case, 0=drop\n# Parents: [",join('],[',@Parents),"]\n";
 warn "Samples: (1=control, 2=case, 0=drop)\n[",join("]\n[",@res),"]\nParents: [",join('],[',@Parents),"]\n";
+
+my (%ChrID2Num);
+sub genChrNumber($) {
+	my $id = $_[0];
+	if (exists $ChrID2Num{$id}) {
+		return $ChrID2Num{$id};
+	} else {
+		my $lastCnt = scalar keys %ChrID2Num;
+		$ChrID2Num{$id} = $lastCnt+1;
+		return $ChrID2Num{$id};
+	}
+}
 
 while (<$th>) {
 	next if /^#/;
@@ -144,9 +173,15 @@ while (<$th>) {
 			++$GTcnt{$gt};
 			my @GT = split /[\/|]/,$gt;
 			++$SPcnt;
-			if ($Pheno{$_} == 2) {
-				++$GTitemCnt{$_} for @GT;
-			}
+			if ($DomRec eq 'R') {
+				if ($Pheno{$_} == 2) {
+					++$GTitemCnt{$_} for @GT;
+				}
+			} elsif ($DomRec eq 'D') {
+				if (exists $ISinFamily{$_}) {
+					++$GTitemCnt{$_} for @GT;
+				}
+			} else {die;}
 			$GT{$_}{'GTp'} = join ' ',map($Bases[$_], @GT);
 			#$GT{$_}{'O_K'} = 1;
 		} else {
@@ -155,7 +190,11 @@ while (<$th>) {
 		}
 		push @plinkGT,$GT{$_}{'GTp'};
 	}
-	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt;
+	if ($DomRec eq 'R') {
+		($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt; # Desc
+	} elsif ($DomRec eq 'D') {
+		($Mut) = sort { $GTitemCnt{$a} <=> $GTitemCnt{$b} } keys %GTitemCnt; # Asc
+	} else {die;}
 	unless (defined $Mut) {
 		++$Stat{'VCF_noAffInd_Skipped'};
 		next;
@@ -177,13 +216,13 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($QUAL<20 or $INFO{'FQ'}<=0 or scalar(keys %GTcnt)<2 or $SPcnt < $minSampleCnt) {
+	if ($QUAL<20 or scalar(keys %GTcnt)<2 or $SPcnt < $minSampleCnt) {	# No 'FQ' in 'INFO' for v1.1
 		++$Stat{'VCF_Skipped'};
 		next;
 	}
 	$Mut = $Bases[$Mut];
 	my $SNPid = "r".$Stat{'VCF_In'};
-	$CHROM =~ /(\d+)/;
+	my $ChrID = genChrNumber($CHROM);
 	#print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
 	print OD join("\t",${CHROM},${POS},$SNPid),"\n";
@@ -207,10 +246,11 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 			} else { die; }
 		}
 	}
-	print OP join("\t",$1,$SNPid,0,$POS,@GTall),"\n";
-	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
-	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
-	++$Stat{'Marker_Out'}
+	print OP join("\t",$ChrID,$SNPid,0,$POS,@GTall),"\n";
+	print OPA join("\t",$ChrID,$SNPid,0,$POS,@GTcase),"\n";
+	print OPO join("\t",$ChrID,$SNPid,0,$POS,@GTcontrol),"\n";
+	++$Stat{'Marker_Out'};
+	#print OV $_,"\n";
 }
 close $th;
 
@@ -219,7 +259,9 @@ close OPA;
 close OPO;
 close OM;
 close OD;
+#close OV;
 
+print O Dumper(\%ChrID2Num);
 print O Dumper(\%Stat);
 close O;
 
@@ -227,6 +269,23 @@ ddx \%Stat;
 
 print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0 --allow-no-sex\n--pheno $outfs.phe --all-pheno [screen log will be saved by p-link itselt]\n";
 __END__
+
+bcftools view -s^FCAP114 -m2 mpileup_20150321HKT071334.vcf.gz \
+ | bcftools norm -Df ../ref/Felis_catus80_chr.fa -c e -m+both \
+ | bcftools filter -sLowQual -e'%QUAL<10' \
+ | bcftools filter -m+ -sDepthHigh -e'DP>650' \
+ | bcftools filter -m+ -sDepthLow -e'DP<2' \
+ | bcftools filter -m+ -sBadSites -e'%QUAL<10 && RPB<0.1' \
+ | tee >(bcftools view -Oz -o filter_20150321HKT071334.vcf.gz) \
+ | bcftools view -f .,PASS -Oz -o filtered.vcf.gz &
+
+bcftools query -f '%CHROM,%POS\t%REF|%ALT|%QUAL\t%DP[\t%SAMPLE=%GT,%DP]\n' filtered.vcf.gz |les
+
+./bcf2ped.pl ~/work/catbtail/merged/kinkcats.tfam ~/work/catbtail/merged/mpileup_20150321HKT071334.vcf.gz 18 D xxxxx 2>xxxxx
+
+
+
+=== Old ===
 grep -hv \# radseq.gt > radseq.tfam
 
 ./bcf2bed.pl radseq.tfam radseq.bcgv.bcf radseq 2>&1 | tee radseq.pedlog
