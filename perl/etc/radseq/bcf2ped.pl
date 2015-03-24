@@ -222,7 +222,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	}
 	$Mut = $Bases[$Mut];
 	my $SNPid = "r".$Stat{'VCF_In'};
-	$CHROM = genChrNumber($CHROM);
+	my $ChrID = genChrNumber($CHROM);
 	#print OP join("\t",$1,$SNPid,0,$POS,@plinkGT),"\n";
 	print OM join("\t",$SNPid,$Mut),"\n";
 	print OD join("\t",${CHROM},${POS},$SNPid),"\n";
@@ -246,9 +246,9 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 			} else { die; }
 		}
 	}
-	print OP join("\t",$1,$SNPid,0,$POS,@GTall),"\n";
-	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
-	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
+	print OP join("\t",$ChrID,$SNPid,0,$POS,@GTall),"\n";
+	print OPA join("\t",$ChrID,$SNPid,0,$POS,@GTcase),"\n";
+	print OPO join("\t",$ChrID,$SNPid,0,$POS,@GTcontrol),"\n";
 	++$Stat{'Marker_Out'};
 	#print OV $_,"\n";
 }
@@ -280,6 +280,8 @@ bcftools view -s^FCAP114 -m2 mpileup_20150321HKT071334.vcf.gz \
  | bcftools view -f .,PASS -Oz -o filtered.vcf.gz &
 
 bcftools query -f '%CHROM,%POS\t%REF|%ALT|%QUAL\t%DP[\t%SAMPLE=%GT,%DP]\n' filtered.vcf.gz |les
+
+./bcf2ped.pl ~/work/catbtail/merged/kinkcats.tfam ~/work/catbtail/merged/mpileup_20150321HKT071334.vcf.gz 18 D xxxxx 2>xxxxx
 
 
 
