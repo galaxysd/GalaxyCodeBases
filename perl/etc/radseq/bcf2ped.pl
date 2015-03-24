@@ -12,7 +12,7 @@ use Galaxy::IO;
 use Galaxy::SeqTools;
 use Data::Dumper;
 
-die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <out>\n" if @ARGV<4;
+die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <D/R> <out>\n" if @ARGV<4;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $minSampleCnt=shift;	# 16 for 16 samples in paper
@@ -35,9 +35,9 @@ $t = "# In: [$bcfs], Out: [$outfs]. minSampleCnt=$minSampleCnt\n";
 print O $t;
 print $t;
 
-open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
+#open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
 
-my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag);
+my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag,%inFamily);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
@@ -52,6 +52,7 @@ while (<L>) {
 	} else { die; }	# $pho can only be 1 or 2
 #	$tfamSampleFlag{$ind} = 3 if $ind !~ /^GZXJ/;
 	push @tfamSamples,$ind;
+	push @{$inFamily{$family}},$ind;
 	$Pheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
 }
 for my $ind (@tfamSamples) {
@@ -71,11 +72,15 @@ close L;
 close OF;
 close OFA;
 close OFO;
+for my $family (keys %inFamily) {
+	delete $inFamily{$family} if scalar @{$inFamily{$family}} > 1;
+}
+ddx \%inFamily;
 
-my $th = openpipe('bcftools view --types snps',$bcfs);	# -I	skip indels, para changed in v1.1
+my $th = openpipe('bcftools view --types snps -m2 -M2',$bcfs);	# -I	skip indels, para changed in v1.1; '-m2 -M2' for biallelic sites.
 my (@Samples,@Parents);
 while (<$th>) {
-	print OV $_;
+	#print OV $_;
 	next if /^##/;
 	chomp;
 	my @data = split /\t/;
@@ -158,7 +163,7 @@ while (<$th>) {
 		}
 		push @plinkGT,$GT{$_}{'GTp'};
 	}
-	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt;
+	($Mut) = sort { $GTitemCnt{$b} <=> $GTitemCnt{$a} } keys %GTitemCnt; # Desc
 	unless (defined $Mut) {
 		++$Stat{'VCF_noAffInd_Skipped'};
 		next;
@@ -214,7 +219,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 	print OPA join("\t",$1,$SNPid,0,$POS,@GTcase),"\n";
 	print OPO join("\t",$1,$SNPid,0,$POS,@GTcontrol),"\n";
 	++$Stat{'Marker_Out'};
-	print OV $_,"\n";
+	#print OV $_,"\n";
 }
 close $th;
 
@@ -223,7 +228,7 @@ close OPA;
 close OPO;
 close OM;
 close OD;
-close OV;
+#close OV;
 
 print O Dumper(\%Stat);
 close O;
@@ -232,6 +237,21 @@ ddx \%Stat;
 
 print "[Prepare $outfs.phe.] And then:\np-link --tfile $outfs --reference-allele $outfs.MinorAllele --fisher --out ${outfs}P --model --cell 0 --allow-no-sex\n--pheno $outfs.phe --all-pheno [screen log will be saved by p-link itselt]\n";
 __END__
+
+bcftools view -s^FCAP114 -m2 mpileup_20150321HKT071334.vcf.gz \
+ | bcftools norm -Df ../ref/Felis_catus80_chr.fa -c e -m+both \
+ | bcftools filter -sLowQual -e'%QUAL<10' \
+ | bcftools filter -m+ -sDepthHigh -e'DP>650' \
+ | bcftools filter -m+ -sDepthLow -e'DP<2' \
+ | bcftools filter -m+ -sBadSites -e'%QUAL<10 && RPB<0.1' \
+ | tee >(bcftools view -Oz -o filter_20150321HKT071334.vcf.gz) \
+ | bcftools view -f .,PASS -Oz -o filtered.vcf.gz &
+
+bcftools query -f '%CHROM,%POS\t%REF|%ALT|%QUAL\t%DP[\t%SAMPLE=%GT,%DP]\n' filtered.vcf.gz |les
+
+
+
+=== Old ===
 grep -hv \# radseq.gt > radseq.tfam
 
 ./bcf2bed.pl radseq.tfam radseq.bcgv.bcf radseq 2>&1 | tee radseq.pedlog
