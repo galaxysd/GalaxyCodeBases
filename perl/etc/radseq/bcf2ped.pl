@@ -12,11 +12,15 @@ use Galaxy::IO;
 use Galaxy::SeqTools;
 use Data::Dumper;
 
-die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <D/R> <out>\n" if @ARGV<4;
+die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <Dominant/Recessive> <out>\n" if @ARGV<5;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $minSampleCnt=shift;	# 16 for 16 samples in paper
+my $DomRec=shift;
 my $outfs=shift;
+
+$DomRec='D' if $DomRec =~ /^D/i;
+$DomRec='R' if $DomRec =~ /^R/i;
 
 my (%Stat,$t);
 open OP,'>',$outfs.'.tped' or die "Error opening $outfs.tped : $!\n";
@@ -31,7 +35,7 @@ if ($tfamfs ne $outfs.'.tfam') {
 	open OFO,'>',$outfs.'.control.tfam' or die $!;
 } else {die;}
 open O,'>',$outfs.'.bcf2pedlog' or die "Error opening $outfs.bcf2pedlog : $!\n";
-$t = "# In: [$bcfs], Out: [$outfs]. minSampleCnt=$minSampleCnt\n";
+$t = "# In:[$bcfs], Out:[$outfs]. minSampleCnt=$minSampleCnt Dominant/Recessive:[$DomRec]\n";
 print O $t;
 print $t;
 
@@ -73,7 +77,7 @@ close OF;
 close OFA;
 close OFO;
 for my $family (keys %inFamily) {
-	delete $inFamily{$family} if scalar @{$inFamily{$family}} > 1;
+	delete $inFamily{$family} if scalar @{$inFamily{$family}} == 1;
 }
 ddx \%inFamily;
 
