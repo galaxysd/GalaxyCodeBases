@@ -1,7 +1,11 @@
 OUTMAIN := mpileup
-OUT = $(addsuffix $(shell date +%Y%m%d%Z%H%M%S).bcf,$(OUTMAIN)_)
+DATESTR := $(shell date +%Y%m%d%Z%H%M%S)
+OUTP := $(OUTMAIN)_$(DATESTR)
+OUT := $(OUTP).bcf
+VCF := $(OUTP).vcf
 
-CMD := samtools mpileup -g -d 1000 -t DP,DPR,DV,DP4,SP -f /bak/seqdata/genomes/Felis_catus_80_masked/Felis_catus80_chr.fa
+REF := /bak/seqdata/genomes/Felis_catus_80_masked/Felis_catus80_chr.fa
+CMD := samtools mpileup -g -d 1000 -t DP,DPR,DV,DP4,SP -f $(REF)
 
 #BAMS := pti096_clean_aln_pe_rmdup.bam pti183_clean_aln_pe_rmdup.bam pti301_clean_aln_pe_rmdup.bam pti332_clean_aln_pe_rmdup.bam
 BAMS := $(sort $(wildcard *.bam))
@@ -27,7 +31,12 @@ space = $(NOOP) $(NOOP)
 
 .PHONY: all clean cleanall list
 
-all: list $(OUT) bcfbychr.lst
+all: list $(OUT) bcfbychr.lst $(VCF)
+	bcftools index $(VCF).gz &
+	bcftools stats -F $(REF) -s - -d 0,1500,1 $(VCF).gz >$(VCF).stats
+	bcftools norm -Df $(REF) -c e -m+both $(VCF).gz | bcftools filter -sLowQual -e'%QUAL<10' | bcftools filter -m+ -sDepthHigh -e'DP>650' | bcftools filter -m+ -sDepthLow -e'DP<2' | bcftools filter -m+ -sBadSites -e'%QUAL<10 && RPB<0.1' | tee >(bcftools view -Oz -o $(VCF).filtering.gz) | bcftools view -f .,PASS -Oz -o $(VCF).filtered.gz
+	bcftools index $(VCF).filtered.gz &
+	bcftools index $(VCF).filtering.gz
 
 list:
 	@echo -e '$(subst $(space),\n,$(BAMS))' >_bams.lst
@@ -39,6 +48,9 @@ bai: $(BAIS)
 
 $(OUT): $(BYCHR) bcfbychr.lst $(BYCHRINX)
 	bcftools concat -a -O b -f bcfbychr.lst -o $(OUT)
+
+$(VCF): $(OUT)
+	bcftools call -vmO z -f GQ,GP -o $(@).gz $<
 
 bychr/:
 	mkdir bychr
