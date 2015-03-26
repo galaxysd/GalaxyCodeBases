@@ -16,15 +16,10 @@ people first.
 Issues
 ------
 
-1. Only bugs and feature requests are accepted here.
-2. We'll only work on important features. If the feature you're asking only
-benefits a few people, you'd better implement the feature yourself and send us
-a pull request, or ask some of your friends to do so.
-3. We don't answer questions of any other types here. Since very few people
-are watching the issue tracker here, you'll probably get no help from here.
-Get help from forums or [mailing lists].
-4. Issues in languages other than English will be Google translated into English
-later.
+1. Since too many people are reporting urls in the issue tracker, the
+issue tracker is now closed.
+2. Since this project is very simple, you can discuss a feature by
+sending a pull request.
 
 
 [mailing lists]:   https://groups.google.com/forum/#!forum/shadowsocks
