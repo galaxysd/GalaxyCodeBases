@@ -16,10 +16,10 @@ people first.
 Issues
 ------
 
-1. Since too many people are reporting urls in the issue tracker, the
-issue tracker is now closed.
-2. Since this project is very simple, you can discuss a feature by
-sending a pull request.
+1. Since too many people were reporting urls in the issue tracker, the
+issue tracker has been closed.
+2. This project is very simple, you can discuss a feature by sending
+a pull request.
 
 
 [mailing lists]:   https://groups.google.com/forum/#!forum/shadowsocks
