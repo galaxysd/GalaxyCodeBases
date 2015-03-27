@@ -1,16 +1,15 @@
 BAMS = $(sort $(wildcard *.bam))
 BAMF = $(patsubst %.bam,%,$(BAMS))
 OUT1 = $(addsuffix .recal.tbl,$(BAMF))
-OUT2 = $(addsuffix .post.tbl,$(BAMF))
-OUT3 = $(addsuffix .recal.tbl,$(BAMF))
-OUT5 = $(addsuffix .cmp.pdf,$(BAMF))
-OUT4 = $(addsuffix .recal.bam,$(BAMF))
+OUT3 = $(addsuffix .post.tbl,$(BAMF))
+OUT4 = $(addsuffix .cmp.pdf,$(BAMF))
+OUT2 = $(addsuffix .recal.bam,$(BAMF))
 
 REF := /bak/seqdata/genomes/Felis_catus_80_masked/Felis_catus80_chr.fa
 
 .PHONY: all
 
-all: $(OUT1) $(OUT2) $(OUT3) $(OUT4) $(OUT5)
+all: $(OUT1) $(OUT2) $(OUT3) $(OUT4)
 	echo $(BAMS)
 
 %.recal.tbl: %.bam
