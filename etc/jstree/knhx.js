@@ -477,6 +477,7 @@ function kn_init_conf()
 	conf.width = 800; conf.height = 600;
 	conf.xmargin = 20; conf.ymargin = 20;
 	conf.fontsize = 8;
+	conf.font = "Helvetica";
 	conf.c_ext = "rgb(0,0,0)";
 	conf.c_int = "rgb(255,0,0)";
 	conf.c_line = "rgb(0,20,200)";
@@ -508,6 +509,7 @@ function kn_plot_core(canvas, tree, conf)
 	}
 	var ctx = canvas.getContext("2d");
 //	ctx.font = "10px Sans";
+	ctx.font = conf.fontsize*1.25 + 'px ' + conf.font;
 	ctx.strokeStyle = ctx.fillStyle = "white";
 	ctx.fillRect(0, 0, conf.width, conf.height);
 	CanvasTextFunctions.enable(ctx);
@@ -515,7 +517,8 @@ function kn_plot_core(canvas, tree, conf)
 	var max_namelen, i;
 	for (i = 0, max_namelen = 0; i < tree.node.length; ++i) {
 		if (tree.node[i].child.length) continue;
-		var tmp = ctx.measureText(conf.font, conf.fontsize, tree.node[i].name);
+		//var tmp = ctx.CmeasureText(conf.font, conf.fontsize, tree.node[i].name);
+		var tmp = ctx.measureText(tree.node[i].name).width;
 		if (tmp > max_namelen) max_namelen = tmp;
 	}
 	// set transformation
@@ -536,28 +539,32 @@ function kn_plot_core(canvas, tree, conf)
 	}
 	// leaf name
 	ctx.strokeStyle = conf.c_ext;
-	ctx.fillStyle = conf.c_hl;
+	ctx.fillStyle = conf.c_ext;
 	for (i = 0; i < tree.node.length; ++i) {
 		var p = tree.node[i];
 		if (p.child.length == 0 || p.hidden) {
 			if (p.hl) {
-				var tmp = ctx.measureText(conf.font, conf.fontsize, tree.node[i].name);
+				//var tmp = ctx.CmeasureText(conf.font, conf.fontsize, tree.node[i].name);
+				var tmp = ctx.measureText(tree.node[i].name).width;
 				ctx.fillRect(p.x * real_x + conf.xskip * 2 + shift_x, p.y * real_y + shift_y - conf.fontsize * .8,
 							 tmp, conf.fontsize * 1.5);
 			}
-//			ctx.fillText(p.name, p.x * real_x + conf.xskip * 2 + shift_x, p.y * real_y + shift_y + conf.fontsize / 3);
-			ctx.drawText(conf.font, conf.fontsize, p.x * real_x + conf.xskip * 2 + shift_x,
-						 p.y * real_y + shift_y + conf.fontsize / 3, p.name);
+			ctx.fillText(p.name, p.x * real_x + conf.xskip * 2 + shift_x, p.y * real_y + shift_y + conf.fontsize / 3);
+//			ctx.drawText(conf.font, conf.fontsize, p.x * real_x + conf.xskip * 2 + shift_x,
+//						 p.y * real_y + shift_y + conf.fontsize / 3, p.name);
 		}
 	}
 	// internal name
+	ctx.textAlign="right";
 	ctx.strokeStyle = conf.c_int;
+	ctx.fillStyle = conf.c_int;
 	for (i = 0; i < tree.node.length; ++i) {
 		var p = tree.node[i];
 		if (p.child.length && p.name.length > 0 && !p.hidden) {
-			var l = ctx.measureText(conf.font, conf.fontsize, p.name);
-			ctx.drawText(conf.font, conf.fontsize, p.x * real_x - conf.xskip + shift_x - l,
-						 p.y * real_y + shift_y - conf.fontsize / 3, p.name);
+			ctx.fillText(p.name, p.x * real_x - conf.xskip + shift_x, p.y * real_y + shift_y - conf.fontsize / 3);
+//			var l = ctx.CmeasureText(conf.font, conf.fontsize, p.name);
+//			ctx.drawText(conf.font, conf.fontsize, p.x * real_x - conf.xskip + shift_x - l,
+//						 p.y * real_y + shift_y - conf.fontsize / 3, p.name);
 		}
 	}
 	// internal name 2
@@ -565,19 +572,22 @@ function kn_plot_core(canvas, tree, conf)
 		var re = new RegExp(conf.regex);
 		if (re) {
 			ctx.strokeStyle = conf.c_regex;
+			ctx.fillStyle = conf.c_regex;
 			for (i = 0; i < tree.node.length; ++i) {
 				var p = tree.node[i];
 				if (p.meta) {
 					var m = re.exec(p.meta);
 					if (m && m.length > 1) {	// m may be null, thus test itself first !
-						var l = ctx.measureText(conf.font, conf.fontsize, m[1]);
-						ctx.drawText(conf.font, conf.fontsize, p.x * real_x - conf.xskip + shift_x - l,
-									 p.y * real_y + shift_y + conf.fontsize * 1.33, m[1]);
+						ctx.fillText(m[1], p.x * real_x - conf.xskip + shift_x, p.y * real_y + shift_y + conf.fontsize * 1.33);
+//						var l = ctx.CmeasureText(conf.font, conf.fontsize, m[1]);
+//						ctx.drawText(conf.font, conf.fontsize, p.x * real_x - conf.xskip + shift_x - l,
+//									 p.y * real_y + shift_y + conf.fontsize * 1.33, m[1]);
 					}
 				}
 			}
 		}
 	}
+	ctx.textAlign="left";	// restore default
 	// horizontal lines
 	var y;
 	ctx.strokeStyle = conf.c_line;
@@ -625,7 +635,7 @@ function kn_plot_core_O(canvas, tree, conf)
 	var max_namelen, i;
 	for (i = 0, max_namelen = max_namechr = 0; i < tree.node.length; ++i) {
 		if (tree.node[i].child.length) continue;
-		var tmp = ctx.measureText(conf.font, conf.fontsize, tree.node[i].name);
+		var tmp = ctx.CmeasureText(conf.font, conf.fontsize, tree.node[i].name);
 		if (tmp > max_namelen) max_namelen = tmp;
 	}
 	// set transformation and estimate the font size
@@ -663,7 +673,7 @@ function kn_plot_core_O(canvas, tree, conf)
 		if (p.child.length) continue;
 		ctx.save();
 		var tmp;
-		if (p.hl) tmp = ctx.measureText(conf.font, fontsize, tree.node[i].name);
+		if (p.hl) tmp = ctx.CmeasureText(conf.font, fontsize, tree.node[i].name);
 		if (p.y * full > Math.PI * .5 && p.y * full < Math.PI * 1.5) {
 			ctx.rotate(p.y * full - Math.PI);
 			if (p.hl) ctx.fillRect(-(real_r + fontsize/2), -fontsize * .8, -tmp, fontsize * 1.5);
