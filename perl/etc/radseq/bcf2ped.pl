@@ -88,7 +88,7 @@ ddx \%inFamily; ddx \%ISinFamily;
 
 my $cmd = 'bcftools view --types snps -m2 -M2';
 if (defined $sampleList) {
-	$cmd .= "-S $sampleList";
+	$cmd .= " -S $sampleList";
 }
 print O "Open:[$cmd] [$bcfs]\n";
 print "Open:[$cmd] [$bcfs]\n";;
@@ -289,7 +289,8 @@ bcftools view -s^FCAP114 -m2 mpileup_20150321HKT071334.vcf.gz \
 bcftools query -f '%CHROM,%POS\t%REF|%ALT|%QUAL\t%DP[\t%SAMPLE=%GT,%DP]\n' filtered.vcf.gz |les
 
 ./bcf2ped.pl ~/work/catbtail/merged/kinkcats.tfam ~/work/catbtail/merged/mpileup_20150321HKT071334.vcf.gz 18 D xxxxx 2>xxxxx
-
+/
+./bcf2ped.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 14 D outA14 sample.a
 
 
 === Old ===
