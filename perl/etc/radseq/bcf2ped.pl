@@ -12,12 +12,13 @@ use Galaxy::IO;
 use Galaxy::SeqTools;
 use Data::Dumper;
 
-die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <Dominant/Recessive> <out>\n" if @ARGV<5;
+die "Usage: $0 <tfam file> <bcgv bcf> <min Sample Count> <Dominant/Recessive> <out> [sample list]\n" if @ARGV<5;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $minSampleCnt=shift;	# 16 for 16 samples in paper
 my $DomRec=shift;
 my $outfs=shift;
+my $sampleList=shift;
 
 $DomRec='D' if $DomRec =~ /^D/i;
 $DomRec='R' if $DomRec =~ /^R/i;
@@ -85,7 +86,13 @@ for my $family (keys %inFamily) {
 }
 ddx \%inFamily; ddx \%ISinFamily;
 
-my $th = openpipe('bcftools view --types snps -m2 -M2',$bcfs);	# -I	skip indels, para changed in v1.1; '-m2 -M2' for biallelic sites.
+my $cmd = 'bcftools view --types snps -m2 -M2';
+if (defined $sampleList) {
+	$cmd .= "-S $sampleList";
+}
+print O "Open:[$cmd] [$bcfs]\n";
+print "Open:[$cmd] [$bcfs]\n";;
+my $th = openpipe($cmd,$bcfs);
 my (@Samples,@Parents);
 while (<$th>) {
 	#print OV $_;
