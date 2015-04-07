@@ -301,6 +301,12 @@ bcftools query -f '%CHROM,%POS\t%REF|%ALT|%QUAL\t%DP[\t%SAMPLE=%GT,%DP]\n' filte
 /
 ./bcf2ped.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 14 D outA14 sample.a
 
+./dojoin.pl outA14.dict 3 outA14P.model.DOM 3 tmp.DOM
+
+awk '{print $3" "$1" "$2" "$4" "$6" "$7" "$8" "$9" "$10" "$11}' tmp.DOM.out > tmp.DOM.out.j
+
+cat tmp.DOM.out.j|perl -lane '@a=split /\//,"$F[7]/$F[8]";$sum=$a[0]+$a[1]+$a[2]+$a[3];
+print join("\t",@F,$sum)' |sort -k2,2 -k3,3n > out14P.DOM.npa
 
 === Old ===
 grep -hv \# radseq.gt > radseq.tfam
