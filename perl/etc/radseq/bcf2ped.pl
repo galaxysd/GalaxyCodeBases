@@ -41,6 +41,14 @@ print O $t;
 print $t;
 
 #open OV,'>',$outfs.'.vcf' or die "Error opening $outfs.vcf : $!\n";
+my %selectedSamples;
+if (defined $sampleList) {
+	open L,'<',$sampleList or die;
+	while (<L>) {
+		chomp;
+		++$selectedSamples{$_};
+	}
+}
 
 my (%Pheno,@tfamSamples,%tfamDat,%tfamSampleFlag,%inFamily,%ISinFamily);
 open L,'<',$tfamfs or die;
@@ -50,7 +58,7 @@ while (<L>) {
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
 	$tfamDat{$ind} = $_."\n";
-	if ($ind =~ s/^~//) {
+	if ($ind =~ s/^~// or (! exists $selectedSamples{$ind}) ) {
 		$tfamSampleFlag{$ind} = 0;
 	} elsif ($pho == 1 or $pho == 2) {
 		$tfamSampleFlag{$ind} = $pho;
