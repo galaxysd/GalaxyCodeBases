@@ -57,8 +57,9 @@ while (<L>) {
 	#print OF $_;
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
+	next unless exists $selectedSamples{$ind};
 	$tfamDat{$ind} = $_."\n";
-	if ($ind =~ s/^~// or (! exists $selectedSamples{$ind}) ) {
+	if ($ind =~ s/^~//) {
 		$tfamSampleFlag{$ind} = 0;
 	} elsif ($pho == 1 or $pho == 2) {
 		$tfamSampleFlag{$ind} = $pho;
