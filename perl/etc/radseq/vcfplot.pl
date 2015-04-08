@@ -30,7 +30,7 @@ if ($samples ne 'none') {
 	my @t = split /,/,$samples;
 	%SkippedSamples = map { $_ => 1 } @t;
 }
-warn "$DomRec\[$cmd $bcfs]\n";
+warn "$DomRec [$cmd $bcfs]\n";
 
 my (@tfamSamples,%tfamDat,%tfamSamplePheno,%inFamily,@CaseS,@ControlS);
 open L,'<',$tfamfs or die;
@@ -52,7 +52,7 @@ while (<L>) {
 	push @tfamSamples,$ind;
 	push @{$inFamily{$family}},$ind;
 }
-ddx \%tfamSamplePheno,\%inFamily;
+#ddx \%tfamSamplePheno,\%inFamily;
 close L;
 
 my @Samples;
@@ -112,6 +112,12 @@ sub TermColorGT($$) {
 	return $ret.' ';
 }
 
+open OUTT,'>',$outfs.'.txt' or die $!;
+open OUTS,'>',$outfs.'.svg' or die $!;
+print OUTT "### $DomRec [$cmd $bcfs]\n";
+print OUTT "## Case_Samples: ",join(', ',@CaseS),"\n";
+print OUTT "## Control_Samples: ",join(', ',@ControlS),"\n";
+print OUTT join("\t",qw/#Chr Pos Case_Samples/)," . Control_Samples\n";
 $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
 	chomp;
@@ -154,16 +160,18 @@ while (<$fh>) {
 	next unless defined $theGT;
 	#ddx \%caseGT,\%ctlGT,$theGT;
 	#print decodeGT($theGT,\@GTs);
-	print join("\t",$chr,$pos,
+	print OUTT join("\t",$chr,$pos,
 		join('  ',map {TermColorGT(decodeGT($_,\@GTs),decodeGT($theGT,\@GTs));} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}))
 	),RESET,"\n";
 }
 close $fh;
-
-ddx \@CaseS,\@ControlS;
+close OUTT;
+close OUTS;
+#ddx \@CaseS,\@ControlS;
 
 __END__
-./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotN114.svg
+./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotN114
+./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' none D plotN114a
 
 gi|753572091|ref|NC_018727.2|:151586958-152939134
 -200k
