@@ -7,7 +7,7 @@ use Galaxy::IO;
 use Data::Dumper;
 use Term::ANSIColor qw(:constants);
 
-die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <out>\n" if @ARGV<6;
+die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <outprefix>\n" if @ARGV<6;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $regions=shift;
@@ -19,13 +19,18 @@ $DomRec='D' if $DomRec =~ /^D/i;
 $DomRec='R' if $DomRec =~ /^R/i;
 
 my %SkippedSamples;
-my $cmd = 'bcftools query -f\'%CHROM\t%POS\t%REF,%ALT\t%QUAL\t%DP[\t%SAMPLE,%GT,%DP,%GQ]\n\' -r\'' . $regions . '\'';
+my $cmd = 'bcftools query -f\'%CHROM\t%POS\t%REF,%ALT\t%QUAL\t%DP[\t%SAMPLE,%GT,%DP,%GQ]\n\'';
+if ($regions ne 'all') {
+	$cmd .= " -r '$regions'";
+	my @t = split /,/,$samples;
+	%SkippedSamples = map { $_ => 1 } @t;
+}
 if ($samples ne 'none') {
 	$cmd .= ' -s^'.$samples;
 	my @t = split /,/,$samples;
 	%SkippedSamples = map { $_ => 1 } @t;
 }
-warn "[$cmd $bcfs]\n";
+warn "$DomRec\[$cmd $bcfs]\n";
 
 my (@tfamSamples,%tfamDat,%tfamSamplePheno,%inFamily,@CaseS,@ControlS);
 open L,'<',$tfamfs or die;
@@ -38,7 +43,7 @@ while (<L>) {
 	$tfamDat{$ind} = $_."\n";
 	if ($pho == 1 or $pho == 2) {
 		$tfamSamplePheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
-		if ($pho == 1) {
+		if ($pho == 2) {
 			push @CaseS,$ind;
 		} else {
 			push @ControlS,$ind;
@@ -94,15 +99,17 @@ sub decodeGT($$) {
 }
 sub TermColorGT($$) {
 	my ($thisGT,$ref) = @_;
+	my $ret;
 	if (length $thisGT > 1) {
 		return GREEN . $thisGT;
 	} elsif ($thisGT eq $ref) {
-		return YELLOW . $thisGT;
+		$ret = YELLOW . $thisGT;
 	} elsif ($thisGT eq '.') {
-		return WHITE . $thisGT;
+		$ret = WHITE . $thisGT;
 	} else {
-		return BLUE . $thisGT;
+		$ret = BLUE . $thisGT;
 	}
+	return $ret.' ';
 }
 
 $fh = openpipe($cmd,$bcfs);
@@ -147,7 +154,9 @@ while (<$fh>) {
 	next unless defined $theGT;
 	#ddx \%caseGT,\%ctlGT,$theGT;
 	#print decodeGT($theGT,\@GTs);
-	print join("\t",$chr,$pos,map {TermColorGT(decodeGT($_,\@GTs),decodeGT($theGT,\@GTs));} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}) ),RESET,"\n";
+	print join("\t",$chr,$pos,
+		join('  ',map {TermColorGT(decodeGT($_,\@GTs),decodeGT($theGT,\@GTs));} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}))
+	),RESET,"\n";
 }
 close $fh;
 
