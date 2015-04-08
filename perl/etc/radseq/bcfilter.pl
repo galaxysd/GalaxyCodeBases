@@ -76,8 +76,13 @@ while (<$th>) {
 		}
 	}
 	my $SPcnt = 0;
+	my $GQok = 1;
 	my (%GTitemCnt,$Mut,@plinkGT);
 	for (@Samples) {
+		if ($GT{$_}{'GQ'} < 20 {
+			$GQok = 0;
+			last;
+		}
 		if ($GT{$_}{'DP'} > 0) {
 			my $gt = $GT{$_}{'GT'};
 			++$GTcnt{$gt};
@@ -103,7 +108,7 @@ ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%INFO,\%GT if scalar(k
 =cut
 #warn "$CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO\n";
 #ddx $CHROM, $POS, $ID, $REF, $ALT, $QUAL, $FILTER, $INFO,\%GTcnt,\%INFO,\%GT,\%GTitemCnt,$Mut;
-	if ($SPcnt < $minSampleCnt) {	# No 'FQ' in 'INFO' for v1.1
+	if ( $GQok == 0 or $SPcnt < $minSampleCnt) {	# No 'FQ' in 'INFO' for v1.1
 		++$Stat{'VCF_Skipped'};
 		#warn $_,"\n";
 		next;
