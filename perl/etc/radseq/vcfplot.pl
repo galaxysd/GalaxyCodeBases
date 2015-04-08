@@ -3,8 +3,9 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 use Galaxy::IO;
-use Galaxy::SeqTools;
+#use Galaxy::SeqTools;
 use Data::Dumper;
+use Term::ANSIColor qw(:constants);
 
 die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <out>\n" if @ARGV<6;
 my $tfamfs=shift;
@@ -91,6 +92,18 @@ sub decodeGT($$) {
 	$ret = '.' if length $ret == 0;
 	return $ret;
 }
+sub TermColorGT($$) {
+	my ($thisGT,$ref) = @_;
+	if (length $thisGT > 1) {
+		return GREEN . $thisGT;
+	} elsif ($thisGT eq $ref) {
+		return YELLOW . $thisGT;
+	} elsif ($thisGT eq '.') {
+		return WHITE . $thisGT;
+	} else {
+		return BLUE . $thisGT;
+	}
+}
 
 $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
@@ -134,7 +147,7 @@ while (<$fh>) {
 	next unless defined $theGT;
 	#ddx \%caseGT,\%ctlGT,$theGT;
 	#print decodeGT($theGT,\@GTs);
-	print join("\t",$chr,$pos,map {decodeGT($_,\@GTs);} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}) ),"\n";
+	print join("\t",$chr,$pos,map {TermColorGT(decodeGT($_,\@GTs),decodeGT($theGT,\@GTs));} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}) ),RESET,"\n";
 }
 close $fh;
 
