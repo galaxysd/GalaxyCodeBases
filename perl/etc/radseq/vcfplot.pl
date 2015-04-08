@@ -1,0 +1,111 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Data::Dump qw(ddx);
+use Galaxy::IO;
+use Galaxy::SeqTools;
+use Data::Dumper;
+
+die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <out>\n" if @ARGV<6;
+my $tfamfs=shift;
+my $bcfs=shift;
+my $regions=shift;
+my $samples=shift;
+my $DomRec=shift;
+my $outfs=shift;
+
+$DomRec='D' if $DomRec =~ /^D/i;
+$DomRec='R' if $DomRec =~ /^R/i;
+
+my %SkippedSamples;
+my $cmd = 'bcftools query -f\'%CHROM\t%POS\t%REF,%ALT\t%QUAL\t%DP[\t%SAMPLE,%GT,%DP,%GQ]\n\' -r\'' . $regions . '\'';
+if ($samples ne 'none') {
+	$cmd .= ' -s^'.$samples;
+	my @t = split /,/,$samples;
+	%SkippedSamples = map { $_ => 1 } @t;
+}
+warn "[$cmd $bcfs]\n";
+
+my (@tfamSamples,%tfamDat,%tfamSamplePheno,%inFamily);
+open L,'<',$tfamfs or die;
+while (<L>) {
+	next if /^(#|$)/;
+	#print OF $_;
+	chomp;
+	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
+	next if exists $SkippedSamples{$ind};
+	$tfamDat{$ind} = $_."\n";
+	if ($pho == 1 or $pho == 2) {
+		$tfamSamplePheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
+	} else { die; }	# $pho can only be 1 or 2
+	push @tfamSamples,$ind;
+	push @{$inFamily{$family}},$ind;
+}
+ddx \%tfamSamplePheno,\%inFamily;
+close L;
+
+my @Samples;
+my $fh = openpipe('bcftools query -l',$bcfs);
+while (<$fh>) {
+	chomp;
+	push @Samples,$_ unless exists $SkippedSamples{$_};
+}
+close $fh;
+
+sub smallerKey($) {
+	my $in = $_[0];
+	my @order = sort { $in->{$a} <=> $in->{$b} || $a<=>$b } grep {$_ ne '.'} keys %{$in};
+	return $order[0];
+}
+sub biggerKey($) {
+	my $in = $_[0];
+	my @order = sort { $in->{$b} <=> $in->{$a} || $a<=>$b } grep {$_ ne '.'} keys %{$in};
+	return $order[0];
+}
+
+$fh = openpipe($cmd,$bcfs);
+while (<$fh>) {
+	chomp;
+	my ($chr,$pos,$refalt,$qual,$adp,@sampleDat) = split /\t/;
+	next if $qual < 20;
+	my @GTs = split /,/,$refalt;
+	my $t;
+	for (@GTs) {
+		$t = length $_;
+		last if $t>1;
+	}
+	next if $t>1;	# skip indels
+	#print join(',',$chr,$pos,$qual,$adp),"\t@GTs\t@sampleDat\n";
+# gi|753572091|ref|NC_018727.2|,152998276,999,136	A C	FCAP055,1/1,5,18 FCAP056,1/1,8,27 FCAP059,1/1,3,12 FCAP066,1/1,2,9 FCAP067,1/1,6,21 FCAP069,1/1,6,21 FCAP072,1/1,16,51 FCAP075,0/1,7,57 FCAP084,0/1,6,50 FCAP085,1/1,3,12 FCAP086,0/0,6,9 FCAP087,1/1,8,27 FCAP088,1/1,8,27 FCAP089,1/1,5,18 FCAP090,1/1,4,15 FCAP110,1/1,7,24 FCAP111,0/1,8,54 FCAP112,0/1,8,12 FCAP113,0/1,4,30
+	my ($skipped,%SampleDat,%caseGT,%ctlGT)=(0);
+	die if @Samples != @sampleDat;
+	for (@sampleDat) {
+		my ($id,$gt,$sdp,$squal) = split /,/,$_;
+		if ($sdp==0 or $squal<20) {
+			$gt = './.';
+			++$skipped;
+		}
+		my @sGTs = split /\//,$gt;
+		$SampleDat{$id} = \@sGTs;
+		if ($tfamSamplePheno{$id} == 2) {	# 2=aff/case
+			++$caseGT{$_} for @sGTs;
+		} elsif ($tfamSamplePheno{$id} == 1) {
+			++$ctlGT{$_} for @sGTs;
+		} else {die;}
+	}
+	#next if $skipped > 0.5 * scalar(@sampleDat);
+	my $theGT;
+	if ($DomRec eq 'D') {
+		$theGT = biggerKey(\%ctlGT);
+	} elsif ($DomRec eq 'R') {
+		$theGT = biggerKey(\%caseGT);
+	}
+	#ddx \%ctlGT,$theGT if $ctlGT{0} == $ctlGT{1};
+}
+close $fh;
+
+__END__
+./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotN114.svg
+
+gi|753572091|ref|NC_018727.2|:151586958-152939134
+-200k
