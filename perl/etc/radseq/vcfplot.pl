@@ -113,11 +113,13 @@ sub TermColorGT($$) {
 }
 
 open OUTT,'>',$outfs.'.txt' or die $!;
-open OUTS,'>',$outfs.'.svg' or die $!;
 print OUTT "### $DomRec [$cmd $bcfs]\n";
 print OUTT "## Case_Samples: ",join(', ',@CaseS),"\n";
 print OUTT "## Control_Samples: ",join(', ',@ControlS),"\n";
-print OUTT join("\t",qw/#Chr Pos Case_Samples/)," . Control_Samples\n";
+{
+	no warnings 'qw';
+	print OUTT join("\t",qw/#Chr Pos Case_Samples/)," . Control_Samples\n";
+}
 $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
 	chomp;
@@ -166,7 +168,10 @@ while (<$fh>) {
 }
 close $fh;
 close OUTT;
-close OUTS;
+
+system("cat $outfs.txt | aha >$outfs.htm");
+
+warn "[!]Use less -RS $outfs.txt or open $outfs.htm\n";
 #ddx \@CaseS,\@ControlS;
 
 __END__
