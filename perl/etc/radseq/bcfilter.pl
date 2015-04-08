@@ -79,7 +79,7 @@ while (<$th>) {
 	my $GQok = 1;
 	my (%GTitemCnt,$Mut,@plinkGT);
 	for (@Samples) {
-		if ($GT{$_}{'GQ'} < 20 {
+		if ($GT{$_}{'GQ'} < 20) {
 			$GQok = 0;
 			last;
 		}
