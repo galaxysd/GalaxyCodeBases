@@ -52,10 +52,20 @@ while (<$fh>) {
 }
 close $fh;
 
-sub smallerKey($) {
-	my $in = $_[0];
-	my @order = sort { $in->{$a} <=> $in->{$b} || $a<=>$b } grep {$_ ne '.'} keys %{$in};
-	return $order[0];
+sub biggerKeyExcept($$) {
+	my ($in,$except) = @_;
+	my @range1 = grep {$_ ne '.'} keys %{$in};
+	my @range2 = grep {$_ ne $except} @range1;
+	if (scalar @range2 == 0) {
+		return undef;
+	} elsif (scalar @range2 == 1) {
+		return $range2[0];
+	} elsif (scalar @range2 > 1) {
+		my @order = sort { $in->{$b} <=> $in->{$a} || $a<=>$b } @range2;
+		return $order[0];
+	} elsif (scalar @range1 == 1) {
+		return $range1[0];
+	} else {die;}
 }
 sub biggerKey($) {
 	my $in = $_[0];
@@ -96,11 +106,14 @@ while (<$fh>) {
 	#next if $skipped > 0.5 * scalar(@sampleDat);
 	my $theGT;
 	if ($DomRec eq 'D') {
-		$theGT = biggerKey(\%ctlGT);
+		my $t = biggerKey(\%ctlGT);
+		next unless defined $t;
+		$theGT = biggerKeyExcept(\%caseGT,$t);
 	} elsif ($DomRec eq 'R') {
 		$theGT = biggerKey(\%caseGT);
 	}
-	#ddx \%ctlGT,$theGT if $ctlGT{0} == $ctlGT{1};
+	next unless defined $theGT;
+	#ddx \%caseGT,\%ctlGT,$theGT;
 }
 close $fh;
 
