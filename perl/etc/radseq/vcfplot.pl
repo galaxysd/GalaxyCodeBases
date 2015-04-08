@@ -26,7 +26,7 @@ if ($samples ne 'none') {
 }
 warn "[$cmd $bcfs]\n";
 
-my (@tfamSamples,%tfamDat,%tfamSamplePheno,%inFamily);
+my (@tfamSamples,%tfamDat,%tfamSamplePheno,%inFamily,@CaseS,@ControlS);
 open L,'<',$tfamfs or die;
 while (<L>) {
 	next if /^(#|$)/;
@@ -37,6 +37,11 @@ while (<L>) {
 	$tfamDat{$ind} = $_."\n";
 	if ($pho == 1 or $pho == 2) {
 		$tfamSamplePheno{$ind} = $pho;	# disease phenotype (1=unaff/ctl, 2=aff/case, 0=miss)
+		if ($pho == 1) {
+			push @CaseS,$ind;
+		} else {
+			push @ControlS,$ind;
+		}
 	} else { die; }	# $pho can only be 1 or 2
 	push @tfamSamples,$ind;
 	push @{$inFamily{$family}},$ind;
@@ -72,6 +77,20 @@ sub biggerKey($) {
 	my @order = sort { $in->{$b} <=> $in->{$a} || $a<=>$b } grep {$_ ne '.'} keys %{$in};
 	return $order[0];
 }
+sub decodeGT($$) {
+	my ($gt,$array) = @_;
+	my @sGTs = split /\//,$gt;
+	my %GTs = map { $_ => 1 } @sGTs;
+	@sGTs = sort {$a cmp $b} keys %GTs;
+	my $ret = '';
+	for (@sGTs) {
+		if (/^\d+$/) {
+			$ret .= $array->[$_];
+		}
+	}
+	$ret = '.' if length $ret == 0;
+	return $ret;
+}
 
 $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
@@ -96,7 +115,7 @@ while (<$fh>) {
 			++$skipped;
 		}
 		my @sGTs = split /\//,$gt;
-		$SampleDat{$id} = \@sGTs;
+		$SampleDat{$id} = $gt;
 		if ($tfamSamplePheno{$id} == 2) {	# 2=aff/case
 			++$caseGT{$_} for @sGTs;
 		} elsif ($tfamSamplePheno{$id} == 1) {
@@ -114,8 +133,12 @@ while (<$fh>) {
 	}
 	next unless defined $theGT;
 	#ddx \%caseGT,\%ctlGT,$theGT;
+	#print decodeGT($theGT,\@GTs);
+	print join("\t",$chr,$pos,map {decodeGT($_,\@GTs);} ($theGT,@SampleDat{@CaseS},'.',@SampleDat{@ControlS}) ),"\n";
 }
 close $fh;
+
+ddx \@CaseS,\@ControlS;
 
 __END__
 ./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotN114.svg
