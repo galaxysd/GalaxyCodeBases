@@ -8,3 +8,7 @@ To compile just type
 To "install" aha type (as root, or with sudo)
 :make install
 All files are subjects to the LGPL or the MPL. (Dual licensed).
+
+From https://github.com/theZiz/aha
+
+git://github.com/theZiz/aha.git
