@@ -225,6 +225,12 @@ Markdown 支持有序列表和无序列表。
     *   Green
     *   Blue
 
+效果就是
+
+* red
+* green
+* blue
+
 等同于：
 
     +   Red
@@ -652,7 +658,7 @@ Markdown 使用一种和链接很相似的语法来标记图片，同样也允�
 
     ![Alt text][id]
 
-「id」是图片参考的名称，图片参考的定义方式则和连结参考一样：
+「id」是图片参考的名称，图片参考的定义方式则和链接参考一样：
 
     [id]: url/to/image  "Optional title attribute"
 
