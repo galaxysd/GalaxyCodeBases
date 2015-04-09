@@ -118,7 +118,7 @@ print OUTT "## Case_Samples: ",join(', ',@CaseS),"\n";
 print OUTT "## Control_Samples: ",join(', ',@ControlS),"\n";
 {
 	no warnings 'qw';
-	print OUTT join("\t",qw/#Chr Pos Case_Samples/)," . Control_Samples\n";
+	print OUTT join("\t",qw/#Chr Pos Mutant/),"   Case_Samples  .  Control_Samples\n";
 }
 $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
@@ -151,6 +151,7 @@ while (<$fh>) {
 		} else {die;}
 	}
 	#next if $skipped > 0.5 * scalar(@sampleDat);
+	next if $skipped > 0;
 	my $theGT;
 	if ($DomRec eq 'D') {
 		my $t = biggerKey(\%ctlGT);
@@ -169,7 +170,7 @@ while (<$fh>) {
 close $fh;
 close OUTT;
 
-system("cat $outfs.txt | aha >$outfs.htm");
+system("cat $outfs.txt | aha -b >$outfs.htm");
 
 warn "[!]Use less -RS $outfs.txt or open $outfs.htm\n";
 #ddx \@CaseS,\@ControlS;
