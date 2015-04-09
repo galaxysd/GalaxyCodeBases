@@ -7,16 +7,31 @@ use Galaxy::IO;
 use Data::Dumper;
 use Term::ANSIColor qw(:constants);
 
-die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <outprefix>\n" if @ARGV<6;
+die "Usage: $0 <tfam file> <bcgv bcf> <regions> <list,of,samples to exclude(none)> <Dominant/Recessive> <outprefix> [Hom1,Hom2:Het1,Het2]\n" if @ARGV<6;
 my $tfamfs=shift;
 my $bcfs=shift;
 my $regions=shift;
 my $samples=shift;
 my $DomRec=shift;
 my $outfs=shift;
+my $HomHetFilter=shift;
 
 $DomRec='D' if $DomRec =~ /^D/i;
 $DomRec='R' if $DomRec =~ /^R/i;
+
+open OUTT,'>',$outfs.'.txt' or die $!;
+
+my %HomHetRequired;
+if (defined $HomHetFilter) {
+	my ($Homs,$Hets) = split /:/,$HomHetFilter;
+	my @Hom = split /,/,$Homs;
+	my @Het = split /,/,$Hets;
+	$HomHetRequired{'Hom'} = {map { $_ => 1 } @Hom};
+	$HomHetRequired{'Het'} = {map { $_ => 1 } @Het};
+	print OUTT "### HomHetFilter: Hom:[@Hom], Het:[@Het]\n";
+	warn "HomHetFilter: Hom:[@Hom], Het:[@Het]\n";
+	#ddx \%HomHetRequired,\($Homs,$Hets),$HomHetFilter;
+}
 
 my %SkippedSamples;
 my $cmd = 'bcftools query -f\'%CHROM\t%POS\t%REF,%ALT\t%QUAL\t%DP[\t%SAMPLE,%GT,%DP,%GQ]\n\'';
@@ -112,7 +127,6 @@ sub TermColorGT($$) {
 	return $ret.' ';
 }
 
-open OUTT,'>',$outfs.'.txt' or die $!;
 print OUTT "### $DomRec [$cmd $bcfs]\n";
 print OUTT "## Case_Samples: ",join(', ',@CaseS),"\n";
 print OUTT "## Control_Samples: ",join(', ',@ControlS),"\n";
@@ -143,6 +157,16 @@ while (<$fh>) {
 			++$skipped;
 		}
 		my @sGTs = split /\//,$gt;
+		if ( (exists $HomHetRequired{'Hom'}{$id}) and ($sGTs[0] ne $sGTs[1]) ) {
+			++$skipped;
+			last;
+		}
+		if (exists $HomHetRequired{'Het'} && exists $HomHetRequired{'Het'}{$id}) {
+			if ($sGTs[0] eq $sGTs[1]) {
+				++$skipped;
+				last;
+			}
+		}
 		$SampleDat{$id} = $gt;
 		if ($tfamSamplePheno{$id} == 2) {	# 2=aff/case
 			++$caseGT{$_} for @sGTs;
@@ -178,6 +202,9 @@ warn "[!]Use less -RS $outfs.txt or open $outfs.htm\n";
 __END__
 ./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotN114
 ./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' none D plotN114a
+
+./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' FCAP114 D plotNh FCAP075:FCAP072
+./vcfplot.pl kinkcats.tfam mpileup_20150403.vcf.filtered.gz 'gi|753572091|ref|NC_018727.2|:151386958-153139134' none D plotNha FCAP075:FCAP072
 
 gi|753572091|ref|NC_018727.2|:151586958-152939134
 -200k
