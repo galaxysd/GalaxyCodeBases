@@ -13,6 +13,6 @@
 	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
 	sortdiff = !sh -c 'git diff "$@" | grep "^[+-]" | sort -k 1.2 | uniq -u -s1'
 	xpush = "!f(){ for i in `git remote`; do git push -v $i; done; };f"
-	xpull = "!f(){ for i in `git remote`; do git pull -v $i; done; };f"
+	xpull = "!f(){ for i in `git remote`; do git pull -v $i $1; done; };f"
 [push]
 	default = matching
