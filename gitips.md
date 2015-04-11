@@ -2,6 +2,163 @@ Detach subdirectory into separate Git repository
 ======
 http://stackoverflow.com/questions/359424/detach-subdirectory-into-separate-git-repository
 
+# The Easy Way&trade;
+
+It turns out that this is such a common and useful practice that the overlords of git made it really easy, but you have to have a newer version of git (>= 1.7.11 May 2012). See the **appendix** for how to install the latest git. Also, there's a **real-world example** in the **walkthrough** below.
+
+0. Prepare the old repo
+
+        pushd <big-repo>
+        git subtree split -P <name-of-folder> -b <name-of-new-branch>
+        popd
+
+  **Note:** `<name-of-folder>` must NOT contain leading or trailing characters.  For instance, the folder named `subproject` MUST be passed as `subproject`, NOT `./subproject/`
+
+ **Note for windows users:** when your folder depth is > 1, `<name-of-folder>` must have *nix style folder separator (/). For instance, the folder named `path1\path2\subproject` MUST be passed as `path1/path2/subproject`
+
+0. Create the new repo
+
+        mkdir <new-repo>
+        pushd <new-repo>
+
+        git init
+        git pull </path/to/big-repo> <name-of-new-branch>
+    
+0. Link the new repo to Github or wherever
+
+        git remote add origin <git@github.com:my-user/new-repo.git>
+        git push origin -u master
+
+0. Cleanup, *if desired*
+
+        popd # get out of <new-repo>
+        pushd <big-repo>
+
+        git rm -rf <name-of-folder>
+
+  **Note**: This leaves all the historical references in the repository.See the **Appendix** below if you're actually concerned about having committed a password or you need to decreasing the file size of your `.git` folder.
+
+...
+
+# Walkthrough
+
+These are the **same steps as above**, but following my exact steps for my repository instead of using `<meta-named-things>`.
+
+Here's a project I have for implementing JavaScript browser modules in node:
+
+    tree ~/Code/node-browser-compat
+    
+    node-browser-compat
+    ├── ArrayBuffer
+    ├── Audio
+    ├── Blob
+    ├── FormData
+    ├── atob
+    ├── btoa
+    ├── location
+    └── navigator
+
+I want to split out a single folder, `btoa`, into a separate git repository
+
+    pushd ~/Code/node-browser-compat/
+    git subtree split -P btoa -b btoa-only
+    popd
+
+I now have a new branch, `btoa-only`, that only has commits for `btoa` and I want to create a new repository.
+
+    mkdir ~/Code/btoa/
+    pushd ~/Code/btoa/
+    git init
+    git pull ~/Code/node-browser-compat btoa-only
+
+Next I create a new repo on Github or bitbucket, or whatever and add it is the `origin` (btw, "origin" is just a convention, not part of the command - you could call it "remote-server" or whatever you like)
+
+    git remote add origin git@github.com:node-browser-compat/btoa.git
+    git push origin -u master
+
+Happy day!
+
+**Note:** If you created a repo with a `README.md`, `.gitignore` and `LICENSE`, you will need to pull first:
+
+    git pull origin -u master
+    git push origin -u master
+
+Lastly, I'll want to remove the folder from the bigger repo
+
+    git rm -rf btoa
+
+...
+
+# Appendix
+
+## Latest git on OS X
+
+To get the latest version of git:
+
+    brew install git
+
+To get brew for OS X:
+
+<http://brew.sh>
+
+## Latest git on Ubuntu
+
+    sudo apt-get update
+    sudo apt-get install git
+    git --version
+
+If that doesn't work (you have a very old version of ubuntu), try
+
+    sudo add-apt-repository ppa:git-core/ppa
+    sudo apt-get update
+    sudo apt-get install git
+
+If that still doesn't work, try
+
+    sudo chmod +x /usr/share/doc/git/contrib/subtree/git-subtree.sh
+    sudo ln -s \
+    /usr/share/doc/git/contrib/subtree/git-subtree.sh \
+    /usr/lib/git-core/git-subtree
+
+Thanks to rui.araujo from the comments.
+
+## clearing your history
+
+By default removing files from git doesn't actually remove them from git, it just commits that they aren't there anymore. If you want to actually remove the historical references (i.e. you have a committed a password), you need to do this:
+
+    git filter-branch --tree-filter 'rm -rf <name-of-folder>' HEAD
+
+After that you can check that your file or folder no longer shows up in the git history at all
+
+    git log -S<name-of-folder> # should show nothing
+
+However, you **can't "push" deletes to github** and the like. If you try you'll get an error and you'll have to `git pull` before you can `git push` - and then you're back to having everything in your history.
+
+So if you want to delete history from the "origin" - meaning to delete it from github, bitbucket, etc - you'll need to delete the repo and re-push a pruned copy of the repo. But wait - **there's more**! - If you're really concerned about getting rid of a password or something like that you'll need to prune the backup (see below).
+
+## making `.git` smaller
+
+The aforementioned delete history command still leaves behind a bunch of backup files - because git is all too kind in helping you to not ruin your repo by accident. It will eventually deleted orphaned files over the days and months, but it leaves them there for a while in case you realize that you accidentally deleted something you didn't want to.
+
+So if you really want to *empty the trash* to **reduce the clone size** of a repo immediately you have to do all of this really weird stuff:
+
+    rm -rf .git/refs/original/ && \
+    git reflog expire --all && \
+    git gc --aggressive --prune=now
+
+    git reflog expire --all --expire-unreachable=0
+    git repack -A -d
+    git prune
+
+That said, I'd recommend not performing these steps unless you know that you need to - just in case you did prune the wrong subdirectory, y'know? The backup files shouldn't get cloned when you push the repo, they'll just be in your local copy.
+
+# Credit
+
+  * http://psionides.eu/2010/02/04/sharing-code-between-projects-with-git-subtree/
+  * http://stackoverflow.com/questions/1216733/remove-a-directory-permanently-from-git
+  * http://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/
+  * http://stackoverflow.com/questions/1904860/how-to-remove-unreferenced-blobs-from-my-git-repo
+
 
 
 How do you merge two git repositories ?
