@@ -12,3 +12,5 @@ git submodule foreach git gc
 
 git submodule foreach git checkout master
 git submodule
+
+git subtree pull --prefix=c_cpp/lib/cstring  git://github.com/cloudwu/cstring.git master
