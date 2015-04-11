@@ -2,7 +2,7 @@ Detach subdirectory into separate Git repository
 ======
 http://stackoverflow.com/questions/359424/detach-subdirectory-into-separate-git-repository
 
-# The Easy Way&trade;
+### The Easy Way&trade;
 
 It turns out that this is such a common and useful practice that the overlords of git made it really easy, but you have to have a newer version of git (>= 1.7.11 May 2012). See the **appendix** for how to install the latest git. Also, there's a **real-world example** in the **walkthrough** below.
 
@@ -14,7 +14,7 @@ It turns out that this is such a common and useful practice that the overlords o
 
   **Note:** `<name-of-folder>` must NOT contain leading or trailing characters.  For instance, the folder named `subproject` MUST be passed as `subproject`, NOT `./subproject/`
 
- **Note for windows users:** when your folder depth is > 1, `<name-of-folder>` must have *nix style folder separator (/). For instance, the folder named `path1\path2\subproject` MUST be passed as `path1/path2/subproject`
+  **Note for windows users:** when your folder depth is > 1, `<name-of-folder>` must have *nix style folder separator (/). For instance, the folder named `path1\path2\subproject` MUST be passed as `path1/path2/subproject`
 
 0. Create the new repo
 
@@ -40,7 +40,7 @@ It turns out that this is such a common and useful practice that the overlords o
 
 ...
 
-# Walkthrough
+### Walkthrough
 
 These are the **same steps as above**, but following my exact steps for my repository instead of using `<meta-named-things>`.
 
@@ -89,9 +89,9 @@ Lastly, I'll want to remove the folder from the bigger repo
 
 ...
 
-# Appendix
+### Appendix
 
-## Latest git on OS X
+#### Latest git on OS X
 
 To get the latest version of git:
 
@@ -101,7 +101,7 @@ To get brew for OS X:
 
 <http://brew.sh>
 
-## Latest git on Ubuntu
+#### Latest git on Ubuntu
 
     sudo apt-get update
     sudo apt-get install git
@@ -122,7 +122,7 @@ If that still doesn't work, try
 
 Thanks to rui.araujo from the comments.
 
-## clearing your history
+#### clearing your history
 
 By default removing files from git doesn't actually remove them from git, it just commits that they aren't there anymore. If you want to actually remove the historical references (i.e. you have a committed a password), you need to do this:
 
@@ -136,7 +136,7 @@ However, you **can't "push" deletes to github** and the like. If you try you'll 
 
 So if you want to delete history from the "origin" - meaning to delete it from github, bitbucket, etc - you'll need to delete the repo and re-push a pruned copy of the repo. But wait - **there's more**! - If you're really concerned about getting rid of a password or something like that you'll need to prune the backup (see below).
 
-## making `.git` smaller
+#### making `.git` smaller
 
 The aforementioned delete history command still leaves behind a bunch of backup files - because git is all too kind in helping you to not ruin your repo by accident. It will eventually deleted orphaned files over the days and months, but it leaves them there for a while in case you realize that you accidentally deleted something you didn't want to.
 
@@ -152,7 +152,7 @@ So if you really want to *empty the trash* to **reduce the clone size** of a rep
 
 That said, I'd recommend not performing these steps unless you know that you need to - just in case you did prune the wrong subdirectory, y'know? The backup files shouldn't get cloned when you push the repo, they'll just be in your local copy.
 
-# Credit
+### Credit
 
   * http://psionides.eu/2010/02/04/sharing-code-between-projects-with-git-subtree/
   * http://stackoverflow.com/questions/1216733/remove-a-directory-permanently-from-git
