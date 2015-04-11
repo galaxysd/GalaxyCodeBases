@@ -1,8 +1,11 @@
 #!/bin/sh
 
-git remote add g git@gitlab.com:galaxycodebases/main.git
-git remote add c git@coding.net:galaxy/GalaxyCodeBase.git
-git remote add github git@github.com:galaxysd/GalaxyCodeBases.git
+# git clone git@github.com:galaxysd/GalaxyCodeBases.git toGit
+
+git remote add gitlab git@gitlab.com:galaxycodebases/main.git
+git remote add coding git@coding.net:galaxy/GalaxyCodeBase.git
+git remote add orcz galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git
+# git remote add github git@github.com:galaxysd/GalaxyCodeBases.git
 # git push -u github master
 git remote -v
 git remote update
