@@ -3,28 +3,23 @@
 	filemode = true
 	bare = false
 	logallrefupdates = true
+	ignorecase = true
+	precomposeunicode = true
 [remote "origin"]
 	url = ssh://galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
-[submodule "c_cpp/gnulib"]
-	url = git://git.savannah.gnu.org/gnulib.git
-[submodule "c_cpp/pspp"]
-	url = git://git.savannah.gnu.org/pspp.git
 [submodule "etc/overlay"]
 	url = git@github.com:galaxy001/gentooxy.git
 [submodule "released/pIRS"]
 	url = ssh://galaxy001@git.code.sf.net/p/pirsim/code
-[remote "g"]
-	url = git@gitorious.org:galaxycodebases/main.git
-	fetch = +refs/heads/*:refs/remotes/g/*
-	#mirror = true
 [remote "c"]
 	url = git@coding.net:galaxy/GalaxyCodeBase.git
 	fetch = +refs/heads/*:refs/remotes/c/*
+[remote "g"]
+	url = git@gitlab.com:galaxycodebases/main.git
+	fetch = +refs/heads/*:refs/remotes/g/*
 [submodule "mydoc"]
 	url = git@bitbucket.org:galaxy001/mydoc.git
-[submodule "c_cpp/lib/htslib"]
-	url = git://github.com/samtools/htslib.git

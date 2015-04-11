@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git remote add g git@gitorious.org:galaxycodebases/main.git
+git remote add g git@gitlab.com:galaxycodebases/main.git
 git remote add c git@coding.net:galaxy/GalaxyCodeBase.git
 git remote -v
 git remote update
