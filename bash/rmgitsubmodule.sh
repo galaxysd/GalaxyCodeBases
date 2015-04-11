@@ -16,4 +16,5 @@ git rm $1
 # or, if you want to leave it in your working tree
 #git rm --cached $1
 
-rm -vrf .git/modules/$1
+echo Cleanup [.git/modules/$1]
+rm -rf .git/modules/$1
