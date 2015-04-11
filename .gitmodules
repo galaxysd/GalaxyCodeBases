@@ -1,9 +1,3 @@
-[submodule "c_cpp/gnulib"]
-	path = c_cpp/gnulib
-	url = git://git.savannah.gnu.org/gnulib.git
-[submodule "c_cpp/pspp"]
-	path = c_cpp/pspp
-	url = git://git.savannah.gnu.org/pspp.git
 [submodule "released/pIRS"]
 	path = released/pIRS
 #	url = https://code.google.com/p/pirs/
