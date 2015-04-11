@@ -1,7 +1,8 @@
 [submodule "released/pIRS"]
 	path = released/pIRS
 #	url = https://code.google.com/p/pirs/
-	url = ssh://galaxy001@git.code.sf.net/p/pirsim/code
+#	url = ssh://galaxy001@git.code.sf.net/p/pirsim/code
+	url = git@github.com:galaxy001/pirs.git
 [submodule "etc/overlay"]
 	path = etc/overlay
 	url = git@github.com:galaxy001/gentooxy.git
