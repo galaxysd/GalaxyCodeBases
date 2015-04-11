@@ -4,11 +4,14 @@
 
 git remote add gitlab git@gitlab.com:galaxycodebases/main.git
 git remote add coding git@coding.net:galaxy/GalaxyCodeBase.git
-git remote add orcz galaxy@repo.or.cz/srv/git/GalaxyCodeBases.git
+git remote add orcz ssh://repo.or.cz/GalaxyCodeBases.git
 # git remote add github git@github.com:galaxysd/GalaxyCodeBases.git
 # git push -u github master
 git remote -v
 git remote update
+
+git submodule init
+git submodule update
 
 cd released/pIRS
 git remote add sf ssh://galaxy001@git.code.sf.net/p/pirsim/code
