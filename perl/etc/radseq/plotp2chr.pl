@@ -293,7 +293,8 @@ TXT2
 				my $Py = int(10*$Yrange*(1-$y/$YmaxVal))/10;
 				$topestY = $Py if $topestY > $Py;
                 #print "$y,$Py,$Yrange,$YmaxVal\n";
-				print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"red\" fill=\"red\" />\n";
+				# 这里用于把最大值标红
+				#print O "        <circle cx=\"$pos\" cy=\"$Py\" r=\"$r\" stroke=\"red\" fill=\"red\" />\n";
 			}
 =pod
 			my ($pYmajor,$pYmax) = map {int(10*$Yrange*(1-$_/$YmaxVal))/10;} ($major,$max);
