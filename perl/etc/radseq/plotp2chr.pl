@@ -132,8 +132,10 @@ if ($Stat{Scaffold_Ordered}) {
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
 my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
 my $Xrange = 500;
+$Xrange = 1200;
 my $Yrange = 320;
 my $YmaxVal = 5;
+$YmaxVal = 4;
 my $ArrowLen = 20;	# 16+4
 my $axisTick = 4;
 my $OutBorder = 24;
