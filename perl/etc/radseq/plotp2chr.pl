@@ -18,10 +18,11 @@ if ($outf) {
 	$outf = '';
 }
 
-my $scaffnfo = '/bak/seqdata/2012/tiger/120512_TigerRefGenome/chr.nfo';
-$scaffnfo = '/share/users/huxs/work/tiger/cat/chr.inf';
+my $scaffnfo = 'chr.nfo';
+$scaffnfo = 'chr.inf';
 my $markerdat = '/share/users/huxs/work/tiger/paper/rec.npa';
 $markerdat = "/share/users/huxs/work/tiger/cat/rec.npa";
+$markerdat = $inf . '.npa';
 print "From [$inf] to [$inf$outf.(dat|svg)]\n";
 
 my %MVScaffolds = map {$_ => 1} qw(scaffold75 scaffold1458 scaffold188);
