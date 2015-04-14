@@ -132,7 +132,7 @@ if ($Stat{Scaffold_Ordered}) {
 # 1in = 2.54cm = 25.4mm = 72pt = 12pc, 1pc=2.1167mm, 1pt=0.35278mm
 my @color = qw(Red Purple Brown Navy Green Maroon Blue Teal);
 my $Xrange = 500;
-$Xrange = 1200;
+$Xrange = 1000;
 my $Yrange = 320;
 my $YmaxVal = 5;
 $YmaxVal = 4;
@@ -144,6 +144,7 @@ my $Yextra = 200;
 my $Xtotal = $Xrange + $ArrowLen + 2*$OutBorder;
 my $Yitem = $Yrange + $ArrowLen + $InBorder + $Yextra;
 my $FontSize = int($Xrange/40);
+$FontSize = int($Yrange/25.6);
 my $FontFamily = 'Arial';
 
 my $perUnit = int($TotalLen/10);	# 279.330936 M /10 = 27.933093 M
