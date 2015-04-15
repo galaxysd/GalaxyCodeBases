@@ -20,7 +20,8 @@ gfwlist2pac -i Downloads/gfwlist.txt -f x.pac -p "SOCKS5 127.0.0.1:19998"
 cd ~/git/toGit/etc/autoproxy-gfwlist/
 proxychains4 -q wget 'https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt' -O newlist.txt
 shasum gfwlist.txt newlist.txt
-PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i newlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy.pac
+PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i newlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt --precise -f Galaxy.pac
+PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i newlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy1.pac
 rm newlist.txt
 ```
 嗯，最后一行复制时正好没有回车。
