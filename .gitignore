@@ -18,4 +18,4 @@ _Inline
 
 bash/realpath-lib/readlink*.log
 perl/etc/justonce/tmp/*.lst
-
+etc/autoproxy-gfwlist/*.pac
