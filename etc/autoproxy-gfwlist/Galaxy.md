@@ -18,7 +18,7 @@ gfwlist2pac -i Downloads/gfwlist.txt -f x.pac -p "SOCKS5 127.0.0.1:19998"
 ### For me
 ```
 cd ~/git/toGit/etc/autoproxy-gfwlist/
-PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i gfwlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy.pac
+PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i gfwlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy.pac
 ```
 ## 把 GFWList 转换成性能更好的 PAC
 http://www.v2ex.com/t/104858
