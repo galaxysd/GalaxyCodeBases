@@ -5,6 +5,8 @@ git diff .
 
 git subtree pull --prefix=c_cpp/lib/cstring git://github.com/cloudwu/cstring.git master
 git subtree pull --prefix=c_cpp/lib/htslib git://github.com/samtools/htslib.git master
+git subtree pull --prefix=etc/gfwlist2pac git://github.com/clowwindy/gfwlist2pac.git master
+git subtree pull --squash --prefix=etc/autoproxy-gfwlist git://github.com/calfzhou/autoproxy-gfwlist.git master
 git fsck
 git gc --aggressive --prune=now
 
