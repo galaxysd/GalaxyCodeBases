@@ -8,7 +8,7 @@ See also: https://github.com/calfzhou/autoproxy-gfwlist/tree/master
 ## Usage
 [notsobad / update-goagentx-rule.md](https://gist.github.com/notsobad/56f860741b53fbe54c38)
 
-安装https://github.com/clowwindy/gfwlist2pac, 下载https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt，执行：
+安装https://github.com/clowwindy/gfwlist2pac, 下载https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt ，执行：
 
 ```
 gfwlist2pac -i Downloads/gfwlist.txt -f x.pac -p "SOCKS5 127.0.0.1:19998"
@@ -18,7 +18,10 @@ gfwlist2pac -i Downloads/gfwlist.txt -f x.pac -p "SOCKS5 127.0.0.1:19998"
 ### For me
 ```
 cd ~/git/toGit/etc/autoproxy-gfwlist/
-PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i gfwlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy.pac
+proxychains4 -q wget 'https://autoproxy-gfwlist.googlecode.com/svn/trunk/gfwlist.txt' -O newlist.txt
+shasum gfwlist.txt newlist.txt
+PYTHONPATH=../gfwlist2pac python ../gfwlist2pac/gfwlist2pac/main.py -i newlist.txt -p 'SOCKS5 127.0.0.1:8000; SOCKS5 127.0.0.1:8016; SOCKS 127.0.0.1:8000; DIRECT;' --user-rule rule_Galaxy.txt -f Galaxy.pac
+ls *.txt *.pac
 ```
 ## 把 GFWList 转换成性能更好的 PAC
 http://www.v2ex.com/t/104858
