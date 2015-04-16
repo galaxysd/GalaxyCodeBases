@@ -62,10 +62,11 @@ while (<$fh>) {
 close $fh;
 
 open O,'>',$outfs or die $!;
-print O "# xxx";
+print O "# ",join("\t",qw/ZoneID ZonePos N Control Case/),"\n";
 #ddx \%Filled;
 #ddx \%Count;
 my $maxZoneID = int(($RegionEnd-$RegionBegin)/$WinSize);
+my $zoneRealBeginAdd = int($RegionBegin/$WinSize);
 for my $zoneID (0 .. $maxZoneID) {
 	my @ResLine=qw(? ? ?);
 	for my $i (0 .. 2) {
@@ -73,7 +74,7 @@ for my $zoneID (0 .. $maxZoneID) {
 			$ResLine[$i] = $Count{$zoneID}->[$i] / $Filled{$zoneID}->[$i] if defined $Count{$zoneID}->[$i];
 		}
 	}
-	print O join("\t",$zoneID,@ResLine),"\n";
+	print O join("\t",$zoneID,$zoneID + $zoneRealBeginAdd,@ResLine),"\n";
 	#ddx $Count{$zoneID};
 }
 close O;
@@ -90,3 +91,24 @@ grep -P '\t2$' outA13.tfam|awk -vORS=, '{print $2}'| sed 's/,$/\n/'
 grep -P '\t2$' outA13.tfam|awk '{print $2}'| paste -d, -s
 
 bcftools query -f '%CHROM,%POS\t%DP[\t%SAMPLE=%DP]\n' -s `grep -P '\t2$' outA13.tfam|awk '{print $2}'| paste -d, -s` mpileup_20150402HKT165931.bcf|les
+
+gnuplot << PLOTCMD
+
+set datafile missing "?"
+set autoscale                        # scale axes automatically
+unset log                              # remove any log-scaling
+unset label                            # remove any previous labels
+set xtic auto                          # set xtics automatically
+set ytic auto                          # set ytics automatically
+set title "Force Deflection Data for a Beam and a Column"
+set xlabel "Window Position"
+set ylabel "Coverage"
+set key 0.01,100
+set label "Chr B2" at 0.003,260
+set arrow from 0.0028,250 to 0.003,280
+#      set xr [0.0:0.022]
+#      set yr [0:325]
+plot "outA13.depth10k" using 2:4 title 'Control' with linespoints , \
+     "outA13.depth10k" using 2:5 title 'Case' with points
+
+PLOTCMD
