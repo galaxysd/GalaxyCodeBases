@@ -38,7 +38,7 @@ close F;
 
 my $cmd = 'bcftools query -f \'%CHROM\t%POS\t%REF\t%DP[\t%SAMPLE=%DP]\n\' -r \'' . "$Regions' -s " . join(',',@CaseS,@ControlS);
 warn "$cmd $bcfs |less -S\n";
-my (%Stat,%Count,%Filled);
+my (%Count,%Filled);
 my $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
 	chomp;
@@ -47,21 +47,36 @@ while (<$fh>) {
 	my $refPos = $pos - $RegionBegin;
 	my $zoneID = int($refPos/$WinSize);
 	if ($ref eq 'N') {
-		++$Filled{'N'}->[$zoneID];
-		$Count{'N'}{$zoneID} += $adp;
+		++$Filled{$zoneID}->[0];
+		$Count{$zoneID}->[0] += $adp;
 		next;
 	}
-	++$Filled{'B'}->[$zoneID];
+	++$Filled{$zoneID}->[1];
+	++$Filled{$zoneID}->[2];
 	for (@sampleDat) {
 		my ($id,$sdp) = split /=/,$_;
 		my $StaType = $tfamSamplePheno{$id};
-		$Count{$StaType}{$zoneID} += $sdp;
+		$Count{$zoneID}->[$StaType] += $sdp;
 	}
 }
 close $fh;
 
-ddx \%Filled;
-ddx \%Count;
+open O,'>',$outfs or die $!;
+print O "# xxx";
+#ddx \%Filled;
+#ddx \%Count;
+my $maxZoneID = int(($RegionEnd-$RegionBegin)/$WinSize);
+for my $zoneID (0 .. $maxZoneID) {
+	my @ResLine=qw(? ? ?);
+	for my $i (0 .. 2) {
+		if (defined $Filled{$zoneID}->[$i]) {
+			$ResLine[$i] = $Count{$zoneID}->[$i] / $Filled{$zoneID}->[$i] if defined $Count{$zoneID}->[$i];
+		}
+	}
+	print O join("\t",$zoneID,@ResLine),"\n";
+	#ddx $Count{$zoneID};
+}
+close O;
 
 __END__
 ./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam outA13.depth10k
