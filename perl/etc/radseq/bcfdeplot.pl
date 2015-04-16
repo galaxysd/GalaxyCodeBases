@@ -9,6 +9,7 @@ use Galaxy::IO;
 my $WinSize=10,000;
 my $RegionBegin=151586958;
 my $RegionEnd=152939134;
+($RegionBegin,$RegionEnd) = (151586900,152939200);
 my $Regions='gi|753572091|ref|NC_018727.2|:'."$RegionBegin-$RegionEnd";
 
 die "Usage: $0 <mpileup bcf> <tfam file> <out>\n" if @ARGV<3;
@@ -37,16 +38,30 @@ close F;
 
 my $cmd = 'bcftools query -f \'%CHROM\t%POS\t%REF\t%DP[\t%SAMPLE=%DP]\n\' -r \'' . "$Regions' -s " . join(',',@CaseS,@ControlS);
 warn "$cmd $bcfs |less -S\n";
+my (%Stat,%Count,%Filled);
 my $fh = openpipe($cmd,$bcfs);
 while (<$fh>) {
 	chomp;
 	my ($chr,$pos,$ref,$adp,@sampleDat) = split /\t/;
 	#print "$chr,$pos,$ref:@sampleDat\n";
+	my $refPos = $pos - $RegionBegin;
+	my $zoneID = int($refPos/$WinSize);
+	if ($ref eq 'N') {
+		++$Filled{'N'}->[$zoneID];
+		$Count{'N'}{$zoneID} += $adp;
+		next;
+	}
+	++$Filled{'B'}->[$zoneID];
 	for (@sampleDat) {
 		my ($id,$sdp) = split /=/,$_;
+		my $StaType = $tfamSamplePheno{$id};
+		$Count{$StaType}{$zoneID} += $sdp;
 	}
 }
 close $fh;
+
+ddx \%Filled;
+ddx \%Count;
 
 __END__
 ./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam outA13.depth10k
