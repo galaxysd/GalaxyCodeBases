@@ -95,8 +95,7 @@ bcftools query -f '%CHROM,%POS\t%DP[\t%SAMPLE=%DP]\n' -s `grep -P '\t2$' outA13.
 
 gnuplot << PLOTCMD
 
-set term png font "/opt/arial.ttf" 24 size 1920,1080 truecolor linewidth 3
-set output "outA13.png"
+set term png font "/opt/arial.ttf" 24 size 2400,900 truecolor linewidth 2
 set datafile missing "?"
 set autoscale	# scale axes automatically
 unset log	# remove any log-scaling
@@ -106,9 +105,28 @@ set ytic auto	# set ytics automatically
 set title "Chr B2"
 set xlabel "Window Position"
 set ylabel "Coverage"
-# set xrange [152040000:152070000]
-set yrange [0:600]
-plot "outA13.depth10k" using 2:4 title 'Control' with points , \
-     "outA13.depth10k" using 2:5 title 'Case' with points
+
+set yrange [0:500]
+
+set format x "%.0f"
+#set style fill transparent solid 0.5 noborder
+
+set output "outA13z.png"
+set style data linespoints
+set xrange [152040000:152070000]
+plot "outA13.depth10k" using 2:5 title 'Case' lc rgb 'red',\
+     '' using 2:4 title 'Control' lc rgb 'navy'
+
+set output "outA13.png"
+set style data dots
+set xrange [151586900:152939200]
+plot "outA13.depth10k" using 2:5 title 'Case: Red' lc rgb 'red',\
+     '' using 2:4 title 'Control: Navy' lc rgb 'navy'
+
+set style data lines
+set output "outA13_Case.png"
+plot "outA13.depth10k" using 2:5 title 'Case' lc rgb 'navy'
+set output "outA13_Control.png"
+plot "outA13.depth10k" using 2:4 title 'Control' lc rgb 'navy'
 
 PLOTCMD
