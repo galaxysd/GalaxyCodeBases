@@ -6,7 +6,8 @@ use Galaxy::IO;
 #use Galaxy::SeqTools;
 #use Data::Dumper;
 
-my $WinSize=10,000;
+my $WinSize=10000;
+$WinSize=20;
 my $RegionBegin=151586958;
 my $RegionEnd=152939134;
 ($RegionBegin,$RegionEnd) = (151586900,152939200);
@@ -74,7 +75,7 @@ for my $zoneID (0 .. $maxZoneID) {
 			$ResLine[$i] = $Count{$zoneID}->[$i] / $Filled{$zoneID}->[$i] if defined $Count{$zoneID}->[$i];
 		}
 	}
-	print O join("\t",$zoneID,$zoneID + $zoneRealBeginAdd,@ResLine),"\n";
+	print O join("\t",$zoneID,($zoneID + $zoneRealBeginAdd)*$WinSize,@ResLine),"\n";
 	#ddx $Count{$zoneID};
 }
 close O;
@@ -94,21 +95,20 @@ bcftools query -f '%CHROM,%POS\t%DP[\t%SAMPLE=%DP]\n' -s `grep -P '\t2$' outA13.
 
 gnuplot << PLOTCMD
 
+set term png font "/opt/arial.ttf" 24 size 1920,1080 truecolor linewidth 3
+set output "outA13.png"
 set datafile missing "?"
-set autoscale                        # scale axes automatically
-unset log                              # remove any log-scaling
-unset label                            # remove any previous labels
-set xtic auto                          # set xtics automatically
-set ytic auto                          # set ytics automatically
-set title "Force Deflection Data for a Beam and a Column"
+set autoscale	# scale axes automatically
+unset log	# remove any log-scaling
+unset label	# remove any previous labels
+set xtic auto	# set xtics automatically
+set ytic auto	# set ytics automatically
+set title "Chr B2"
 set xlabel "Window Position"
 set ylabel "Coverage"
-set key 0.01,100
-set label "Chr B2" at 0.003,260
-set arrow from 0.0028,250 to 0.003,280
-#      set xr [0.0:0.022]
-#      set yr [0:325]
-plot "outA13.depth10k" using 2:4 title 'Control' with linespoints , \
+# set xrange [152040000:152070000]
+set yrange [0:600]
+plot "outA13.depth10k" using 2:4 title 'Control' with points , \
      "outA13.depth10k" using 2:5 title 'Case' with points
 
 PLOTCMD
