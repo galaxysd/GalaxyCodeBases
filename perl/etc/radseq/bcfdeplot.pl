@@ -13,9 +13,10 @@ my $RegionEnd=152939134;
 ($RegionBegin,$RegionEnd) = (151586900,152939200);
 my $Regions='gi|753572091|ref|NC_018727.2|:'."$RegionBegin-$RegionEnd";
 
-die "Usage: $0 <mpileup bcf> <tfam file> <out>\n" if @ARGV<3;
+die "Usage: $0 <mpileup bcf> <tfam file> <Win Size> <out>\n" if @ARGV<3;
 my $bcfs=shift;
 my $tfamfs=shift;
+$WinSize=shift;
 my $outfs=shift;
 
 my (@tfamSamples,%tfamSamplePheno,%inFamily,@CaseS,@ControlS);
@@ -80,9 +81,48 @@ for my $zoneID (0 .. $maxZoneID) {
 }
 close O;
 
-__END__
-./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam outA13.depth10k
+my $PlotCmd = <<"PLOTCMD";
+set term png font "/opt/arial.ttf" 24 size 2400,900 truecolor linewidth 2
+set datafile missing "?"
+set autoscale	# scale axes automatically
+unset log	# remove any log-scaling
+unset label	# remove any previous labels
+set xtic auto	# set xtics automatically
+set ytic auto	# set ytics automatically
+set title "Chr B2"
+set xlabel "Window Position"
+set ylabel "Coverage"
 
+set yrange [0:500]
+
+set format x "%.0f"
+#set style fill transparent solid 0.5 noborder
+
+set output "${outfs}z.png"
+set style data linespoints
+set xrange [152040000:152070000]
+plot "$outfs" using 2:5 title 'Case' lc rgb 'red',\\
+     '' using 2:4 title 'Control' lc rgb 'navy'
+
+set output "$outfs.png"
+set style data dots
+set xrange [151586900:152939200]
+plot "$outfs" using 2:5 title 'Case: Red' lc rgb 'red',\\
+     '' using 2:4 title 'Control: Navy' lc rgb 'navy'
+
+set style data lines
+set output "${outfs}_Case.png"
+plot "$outfs" using 2:5 title 'Case' lc rgb 'navy'
+set output "${outfs}_Control.png"
+plot "$outfs" using 2:4 title 'Control' lc rgb 'navy'
+PLOTCMD
+
+system "gnuplot << PLOTCMD\n$PlotCmd\nPLOTCMD\n";
+
+__END__
+#./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam outA13.depth10k
+./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam 20 outA13.depth20
+./bcfdeplot.pl mpileup_20150402HKT165931.bcf outA13.tfam 100000 outA13.depth100k
 
 
 bcftools query -f '%CHROM,%POS\t%DP[\t%SAMPLE=%DP]\n' mpileup_20150402HKT165931.bcf|les
