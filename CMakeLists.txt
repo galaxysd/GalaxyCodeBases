@@ -19,6 +19,8 @@ if (OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH false)
+
 include_directories("${CMAKE_SOURCE_DIR}/src")
 
 add_executable(mvicuna
