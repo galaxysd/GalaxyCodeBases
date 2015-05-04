@@ -57,7 +57,9 @@ while (<L>) {
 	#print OF $_;
 	chomp;
 	my ($family,$ind,$P,$M,$sex,$pho) = split /\t/;
-	next unless exists $selectedSamples{$ind};
+	if (defined $sampleList) {
+		next unless exists $selectedSamples{$ind};
+	}
 	$tfamDat{$ind} = $_."\n";
 	if ($ind =~ s/^~//) {
 		$tfamSampleFlag{$ind} = 0;
