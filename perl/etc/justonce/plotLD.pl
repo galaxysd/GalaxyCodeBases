@@ -80,5 +80,6 @@ perl plotLD.pl 5000 tiger650.filtered.Amur.r2.ld.bz2 tiger650.filtered.Amur.dict
 
 cp plotLD.pl /share/users/huxs/work/tigerLYC/Tiger_SNP_Final/
 
+./bcf2ped.pl samples.tfam tiger650.filtered.gz 3 R tiger650.filtered.Amur Amur.lst
 p-link --tfile tiger650.filtered.Amur --r2 --out tiger650.filtered.Amur.r2 --allow-no-sex --ld-window-kb 60000 --ld-window-r2 0 --ld-window 10000
 -rw-r--r-- 1 huxs users 2006976400720 May  5 01:22 tiger650.filtered.Amur.r2.ld
