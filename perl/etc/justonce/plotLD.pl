@@ -83,3 +83,27 @@ cp plotLD.pl /share/users/huxs/work/tigerLYC/Tiger_SNP_Final/
 ./bcf2ped.pl samples.tfam tiger650.filtered.gz 3 R tiger650.filtered.Amur Amur.lst
 p-link --tfile tiger650.filtered.Amur --r2 --out tiger650.filtered.Amur.r2 --allow-no-sex --ld-window-kb 60000 --ld-window-r2 0 --ld-window 10000
 -rw-r--r-- 1 huxs users 2006976400720 May  5 01:22 tiger650.filtered.Amur.r2.ld
+
+perl -lane 'last if /^# Dist$/;next if /^# DistMax/;shift @F;print join("\t",@F);' tiger650.filtered.Amur.ld.out > t.tsv
+
+gnuplot
+
+set palette defined ( 0 '#000090',\
+                      1 '#000fff',\
+                      2 '#0090ff',\
+                      3 '#0fffee',\
+                      4 '#90ff70',\
+                      5 '#ffee00',\
+                      6 '#ff7000',\
+                      7 '#ee0000',\
+                      8 '#7f0000')
+set xrange [0:100]
+set cbrange [0:20000]
+set cblabel "Cnt"
+set xlabel "r2"
+set ylabel "Dist5k"
+plot 't.tsv' matrix with image
+
+set dgrid3d 50
+set cbrange [0:5000]
+splot 't.tsv' matrix with pm3d
