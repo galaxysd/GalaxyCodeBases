@@ -1,0 +1,42 @@
+[% UNLESS Win32 %]
+   >../NEWS
+[% END %]
+
+* 26 Jul 2008     VBinDiff 3.0 beta 4
+
+  Fixed a major bug in the Win32 hex editor
+   (which caused it to crash after saving changes)
+  Added --enable-debug configure option
+  Clarified licensing
+
+* 25 Jun 2008     VBinDiff 3.0 beta 3
+
+  The line editor now has an input history
+  Space now moves to the next difference (same as Enter)
+  win32/vbindiff.rc had been left out of the source archive
+
+*  7 Jun 2008     VBinDiff 3.0 beta 2
+
+  Improved the line editor (used for entering search strings, etc.)
+  Updated my email address
+
+* 11 Nov 2005     VBinDiff 3.0 beta 1
+
+  Added a POSIX (eg, Linux) version alongside the Win32 version
+  Added single-file mode
+  Added EBCDIC support
+  Added support for resized consoles (no longer assumes 80x25)
+
+* October 2004    VBinDiff 2.x
+
+  Added support for editing files
+  Never publicly released
+
+* October 1997    VBinDiff 2.x
+
+  Ported from OS/2 to Win32 (OS/2 support dropped)
+  Never publicly released
+
+* January 1996    VBinDiff 1.x
+
+  First public release of VBinDiff (OS/2 version)

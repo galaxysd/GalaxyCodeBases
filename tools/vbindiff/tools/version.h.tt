@@ -1,0 +1,52 @@
+>../win32/version.h
+----------------------------------------------------------------------
+/*********************************************************************
+**
+**   Visual Binary Diff
+**   Copyright 1995-2008 by Christopher J. Madsen
+**
+**   Auto-generated version information
+**
+**   This program is free software; you can redistribute it and/or
+**   modify it under the terms of the GNU General Public License as
+**   published by the Free Software Foundation; either version 2 of
+**   the License, or (at your option) any later version.
+**
+**   This program is distributed in the hope that it will be useful,
+**   but WITHOUT ANY WARRANTY; without even the implied warranty of
+**   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**   GNU General Public License for more details.
+**
+**   You should have received a copy of the GNU General Public License
+**   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\*********************************************************************/
+[% PERL %]
+
+# Compute a numeric version:
+my $major   = $stash->get('major');
+my $minor   = $stash->get('minor');
+my $type    = 1000;               # Normal release
+my $release = 0;
+
+if ($minor =~ s/^(\d+)_alpha(\d+)$/$1/) {
+  $type = 100;
+  $release = $2;
+} elsif ($minor =~ s/^(\d+)_beta(\d+)$/$1/) {
+  $type = 200;
+  $release = $2;
+} elsif ($minor =~ s/^(\d+)_rc(\d+)$/$1/) {
+  $type = 300;
+  $release = $2;
+} else {
+  die "Can't understand $minor" unless $minor =~ /^\d+$/;
+}
+
+$stash->set(numeric_version => "$major,$minor,$type,$release");
+
+[% END %]
+#ifndef PACKAGE_VERSION
+
+#define PACKAGE_VERSION    "[% major %].[% minor %]"
+#define PACKAGE_VERSION_NUM [% numeric_version %]
+
+#endif /* not PACKAGE_VERSION */
