@@ -1,0 +1,174 @@
+#! /usr/bin/perl
+#---------------------------------------------------------------------
+# $Id: wren.pl 1752 2007-04-08 00:46:39Z cjm $
+# Copyright 2007 Christopher J. Madsen <perl@cjmweb.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See either the
+# GNU General Public License or the Artistic License for more details.
+#
+# Rename files via wildcard
+#---------------------------------------------------------------------
+
+use English;
+use Getopt::Long 2.10;
+use strict;
+
+my $VERSION = join('', 'r', (q$Rev: 1752 $ =~ /(\d+)/));
+
+my $description;
+
+sub isWin32 () { $^O =~ /win32/i }
+
+#---------------------------------------------------------------------
+# Parse arguments
+
+my($opt_capitalize, $opt_lowercase, $opt_uppercase, $opt_fixed_strings,
+   $opt_ignore_case, $opt_no_change, $date_suffix, $svn, $use_date);
+
+my($options,$match,$replace) = '';
+
+Getopt::Long::config(qw(bundling no_getopt_compat));
+GetOptions(
+    'capitalize|c'    => \$opt_capitalize,
+    'lowercase|l'     => \$opt_lowercase,
+    'uppercase|u'     => \$opt_uppercase,
+    'date-suffix|d'   => \$date_suffix,
+    'evaluate|e'      => sub { $options .= 'e' },
+    'fixed-strings|F' => \$opt_fixed_strings,
+    'ignore-case|i'   => \$opt_ignore_case,
+    'just-print|dry-run|recon|n' => \$opt_no_change,
+    'multiple|m'      => sub { $options .= 'g' },
+    'subversion|svn|s'=> \$svn,
+    'help'            => \&usage,
+    'version'         => \&usage
+) or usage();
+
+if ($opt_capitalize) {
+    $match   = '(?<!\w\')\b([a-zA-Z])([a-zA-Z]*)';
+    $replace = '\U$1\L$2';
+} elsif ($opt_lowercase) {
+    $match   = '.+';
+    $replace = '\L$&';
+} elsif ($opt_uppercase) {
+    $match   = '.+';
+    $replace = '\U$&';
+} elsif ($date_suffix) {
+    $match    = "\$";
+    $replace  = '.$date';
+    $use_date = 1;
+} else {
+    $options .= "i" if $opt_ignore_case;
+
+    usage() if $#ARGV < 2;
+    $match   = shift @ARGV;
+    $replace = shift @ARGV;
+    if ($opt_fixed_strings) {
+        $match = quotemeta($match);
+        $replace = quotemeta($replace);
+    } else {
+        $replace =~ s/\$MATCH|\$0/\$&/;
+        $use_date = 1 if $match =~ /\$date/ or $replace =~ /\$date/;
+    }
+} # end else MATCH REPLACE
+
+usage() if $#ARGV < 0;          # No files specified
+
+#---------------------------------------------------------------------
+require Wild if isWin32; # Expand wildcards
+
+unless ($opt_no_change or not eval { require MSDOS::Descript; 1 }) {
+  $description = MSDOS::Descript->new;
+}
+
+my $loop =
+    'foreach my $file (@ARGV) {' .
+    '    my $newName = $file;';
+$loop .=
+    '    my (@date,$date) = (localtime((stat $file)[9]))[5,4,3]; ++$date[1]; ' .
+    '    $date[0] %= 100;  $date = sprintf"%02d%02d%02d", @date; '
+    if $use_date; # Calculate the file date only if we use it
+$loop .=
+    "    \$newName =~ s;$match;$replace;$options;" .
+    '    doRename($file,$newName);' .
+    '}';
+
+eval $loop;
+die $@ if $@;
+
+$description->update if $description;
+
+exit;
+
+#=====================================================================
+# Subroutines:
+#---------------------------------------------------------------------
+# Do the actual renaming on disk:
+#
+# Input:
+#   oldName:  The file to rename (must be in the current directory)
+#   newName:  The new name of the file
+#
+# Returns:  true for success, false for error
+
+sub renameFile
+{
+  if ($svn) {
+    return system(qw(svn rename), @_) == 0;
+  } else {
+    return rename $_[0], $_[1];
+  }
+} # end renameFile
+
+#---------------------------------------------------------------------
+# Rename a file:
+#
+# Input:
+#   oldName:  The file to rename (must be in the current directory)
+#   newName:  The new name of the file
+
+sub doRename
+{
+    my ($oldName,$newName) = @ARG;
+    return unless ($oldName ne $newName) && (-e $oldName);
+    print $oldName," " x (12-length($oldName))," => ",$newName;
+    if ($opt_no_change) {
+        print "\n";
+    } elsif (( (isWin32 and (lc($oldName) eq lc($newName)))
+               or (not -e $newName) )
+             and renameFile($oldName,$newName)) {
+        print "\n";
+        $description->rename($oldName, $newName) if $description;
+    } else {
+        print " error\n";
+    }
+} # end doRename
+
+#---------------------------------------------------------------------
+# Display usage information and exit:
+
+sub usage {
+    print "WRen $VERSION\n";
+    exit if $_[0] and $_[0] eq 'version';
+    print "\n" . <<'';
+Usage:  wren [options] MATCH REPLACE file ...
+        wren [-c | -d | -l | -u] file ...
+  -F, --fixed-strings   Treat MATCH & REPLACE as fixed strings (not regexps)
+  -e, --evaluate        Evaluate REPLACE as a Perl expression
+  -i, --ignore-case     Use case insensitive matching
+  -m, --multiple        Replace multiple occurrences in each filename
+  -n, --just-print      Don't actually rename any files
+  -c, --capitalize      Capitalize the first word of all filenames
+  -d, --date-suffix     Append modification date to all filenames
+  -s, --subversion      Use "svn rename"
+  -l, --lowercase       Convert all filenames to lowercase
+  -u, --uppercase       Convert all filenames to UPPERCASE
+      --help            Display this help message
+      --version         Display version information
+
+    exit;
+} # end usage

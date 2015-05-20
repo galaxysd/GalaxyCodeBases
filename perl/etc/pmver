@@ -1,0 +1,87 @@
+#! /usr/bin/perl -w
+#---------------------------------------------------------------------
+# $Id: pmver.pl 2537 2011-10-27 07:20:59Z cjm $
+# Copyright 2007 Christopher J. Madsen <perl@cjmweb.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See either the
+# GNU General Public License or the Artistic License for more details.
+#
+# Print version numbers for Perl modules
+#---------------------------------------------------------------------
+
+use strict;
+use Getopt::Long 2.10;
+
+my $VERSION = join('', 'r', (q$Rev: 2537 $ =~ /(\d+)/));
+
+#---------------------------------------------------------------------
+my ($editModule, $pathOnly);
+
+Getopt::Long::config(qw(bundling no_getopt_compat));
+GetOptions(
+    'edit|e'    => \$editModule,
+    'path-only|p'=>\$pathOnly,
+    'x'         => sub { warn "-x is deprecated, use -e instead\n";
+                         $editModule = 1 },
+    'help'      => \&usage,
+    'version'   => \&usage
+) or usage();
+
+usage() unless @ARGV;
+
+sub usage {
+    print "pmver $VERSION\n";
+    exit if $_[0] and $_[0] eq 'version';
+    print "\n" . <<'END HELP';
+Usage:  pmver [options] MODULE ...
+  -e, --edit       Open MODULE.pm in your editor
+  -p, --path-only  Display only the pathname (no version)
+  -?, --help       Display this help message
+      --version    Display version information
+END HELP
+
+    exit;
+} # end usage
+
+#---------------------------------------------------------------------
+my $errorCount = 0;
+
+foreach my $module (@ARGV) {
+  $module =~ s!\s+\z!!g;      # Remove trailing space, just in case
+  $module =~ s![-/\\ ]!::!g;  # Allow pathnames and distribution names
+  $module =~ s!^dzp::!Dist::Zilla::Plugin::!i;
+  $module =~ s!^dzpb::!Dist::Zilla::PluginBundle::!i;
+
+  eval "require $module;";
+  if (my $error = $@) {
+    $error =~ s/\s+at \(eval \d+\) line \d+\.$//;
+    print "$module not found:\n$error\n";
+    ++$errorCount;
+  } else {
+    my $file = $module;
+    $file =~ s!::!/!g;
+    my $fn = $INC{"$file.pm"};
+
+    if ($pathOnly) {
+      printf("%s\n", $fn);
+    } else {
+      my $version = $module->VERSION;
+      printf("%s %s is\n %s\n",
+             $module, (defined $version ? $version : '<NO $VERSION>'),
+             $fn);
+    }
+
+    if ($editModule) {
+      my $editor = ($ENV{EDITOR_NOWAIT} || $ENV{VISUAL} || $ENV{EDITOR} ||
+                    die "Please set EDITOR_NOWAIT, VISUAL, or EDITOR\n");
+      system qq'$editor "$fn"';
+    }
+  } # end else module found
+} # end foreach module to check
+
+exit $errorCount;
