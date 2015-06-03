@@ -44,7 +44,7 @@ my $seqout = Bio::SeqIO->new(
 	);	
 
 while (my $inseq = $seqin->next_seq) {
-	my $id = $inseq->{'display_id'};
+	my $id = $inseq->id;
 	if (not exists $Genome{$id}) {
 		warn "Err $id\n";
 		ddx $inseq;
@@ -52,6 +52,9 @@ while (my $inseq = $seqin->next_seq) {
 	$inseq->{'seq'} = $Genome{$id};
 	$seqout->write_seq($inseq);
 }
+$seqin->close();
+$seqout->close();
+
 
 __END__
 ./faseq2fq.pl /share/users/liuyc/Project_Tiger_Population_Genomics/3_Tiger_Data_Align/PSMC/diploid_fq/pti096_diploid.fq.gz t.fa out.fq.gz &
