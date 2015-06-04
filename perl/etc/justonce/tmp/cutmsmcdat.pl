@@ -9,7 +9,7 @@ my $chrid = $1;
 
 my @indcnt = 1 .. 9;
 
-warn "($1,$fname)\n";
+warn "($chrid,$fname)\n";
 my (@OutFH,@remained);
 
 open IN,'<',$fname or die $!;
@@ -25,9 +25,13 @@ while (<IN>) {
 	chomp;
 	my @dat = split /\t/,$_;
 	#print "[$dat[-1]]\n";
-	next if length $dat[-1] != 54;
+	#next if length $dat[-1] != 54;
 	next unless $dat[2] > 0;
-	die unless $dat[-1] =~ /^[ATCG]+$/;
+	unless ($dat[-1] =~ /^[ATCG]+$/) {
+		warn "[!]$dat[-1].\n";
+		$remained[$_] += $dat[2] for @indcnt;
+		next;
+	}
 	for my $c (@indcnt) {
 		my $cnt = 2*$c;
 		my $str = substr $dat[-1],0,$cnt;
