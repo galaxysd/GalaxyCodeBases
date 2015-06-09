@@ -1,0 +1,34 @@
+.
+|-- README                     # README
+|-- biodb                      # interface to biological databases
+|   `-- batchUCSC.pl           #   batch UCSC data retrieval; http://lh3lh3.users.sourceforge.net/ucsc-mysql.shtml
+|-- klib.lua                   # the klib Lua library (from http://bit.ly/klibgit)
+|-- math                       # mathematics
+|   |-- matmul_SSE             #   matrix multiplication in a few languages; plus SSE example
+|   |   |-- matmul-double.c    #     double numbers
+|   |   |-- matmul.c           #     float numbers; plus SSE implementation
+|   |   |-- matmul.js          #     javascript implementation
+|   |   |-- matmul.lua         #     lua implementation
+|   |   `-- matmul.pl          #     perl implementation
+|   |-- lsoda.c                #   LSODA ODE solver
+|   `-- unequal-jk.c           #   block Jackknife; requiring klib/ksort.h
+|-- popgen                     # population genetics
+|   `-- genetic_dist.js        #   compute the genetic distance from deCODE genetic maps
+|-- seq                        # sequence analysis
+|   |-- seqbility              #   unitilities to compute mappability http://bit.ly/snpable
+|   |   |-- apply_mask_l.c     #     apply a mask to a list of sites
+|   |   |-- apply_mask_s.c     #     apply a mask to a sequence
+|   |   |-- gen_mask.c         #     generate a mask from a raw mask
+|   |   |-- gen_raw_mask.pl    #     generate a raw mask from BWA SAM output
+|   |   |-- splitfa.c          #     split a reference sequence to overlapping short mers
+|   |   |-- uniq-dist-acc.pl   #     get the accumulative distribution from uniq-dist output
+|   |   |-- uniq-dist-cmp.pl   #     compare to uniq-dist output
+|   |   |-- uniq-dist.c        #     compute the distance between adjacent loci in unique regions
+|   |   `-- [...]
+|   |-- seqtk                  #   toolkit for manipulation FASTA/Q files
+|   |   `-- [...]
+|   |-- bc2rg.lua              #   generate the RG SAM tag from the BC tag
+|   |-- bioutils.lua           #   collection of bioinfo related (tiny) utilites
+|   `-- sam2bp.lua             #   collect break points from a SAM file containing split hits
+`-- sys                        # system related programs
+    `-- asub                   #   array job submiter
