@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 
 with open('1000.log', 'rb') as f:
@@ -5,4 +6,4 @@ with open('1000.log', 'rb') as f:
         line = line.strip()
         m = re.findall('connecting (.*?):', line)
         if m:
-            print m[0]
+            print(m[0])
