@@ -44,6 +44,27 @@ ddx \%GnomeDBnfo;
 #my $MammaliaGDBs = $genome_db_adaptor->fetch_all_by_ancestral_taxon_id($MammaliaTaxID,1);
 #ddx $MammaliaGDBs;
 
+$sql = qq{
+	SELECT DISTINCT method_link_species_set_id FROM method_link_species_set
+	  JOIN method_link USING (method_link_id)
+	  JOIN species_set ss ON ss.species_set_id=method_link_species_set.species_set_id
+	  JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+	  JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+	  JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+	  JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+	  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+	  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES';
+};
+my $sth = $dbh->prepare($sql);
+$sth->execute();
+
+my (@IDsMLSS);
+while(my @retdat = $sth->fetchrow()) {
+	push @IDsMLSS,$retdat[0];
+}
+warn 'MLSS_ID: ',join(', ',@IDsMLSS),"\n";
+
+
 __END__
 USE ensembl_compara_80;
 
