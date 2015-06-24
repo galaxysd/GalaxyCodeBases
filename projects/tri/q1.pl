@@ -55,3 +55,16 @@ SELECT DISTINCT ss.species_set_id, ss1.genome_db_id, gdb1.taxon_id, gdb1.name, s
   JOIN genome_db gdb1 ON gdb1.genome_db_id=ss1.genome_db_id
   JOIN genome_db gdb ON gdb.genome_db_id=ss.genome_db_id
   WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id;
+=>5046
+
+SELECT DISTINCT ss.species_set_id FROM species_set ss
+  JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+  JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+  JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+  JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+  JOIN genome_db gdb1 ON gdb1.genome_db_id=ss1.genome_db_id
+  JOIN genome_db gdb ON gdb.genome_db_id=ss.genome_db_id
+  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id;
+=>746
+
