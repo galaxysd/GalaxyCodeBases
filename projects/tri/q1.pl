@@ -133,3 +133,81 @@ SELECT DISTINCT method_link_species_set_id, method_link_species_set.name, ss.spe
   WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES';
 =>741 rows in set (1.02 sec)
 
+EXPLAIN SELECT DISTINCT homology_id,method_link_species_set_id, method_link_species_set.name, ss.species_set_id FROM method_link_species_set
+  JOIN homology USING (method_link_species_set_id)
+  JOIN method_link USING (method_link_id)
+  JOIN species_set ss ON ss.species_set_id=method_link_species_set.species_set_id
+  JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+  JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+  JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+  JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES';
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+| id   | select_type | table                   | type  | possible_keys               | key                        | key_len | ref                                                                      | rows  | Extra                                                     |
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+|    1 | SIMPLE      | method_link             | const | PRIMARY,type                | type                       | 52      | const                                                                    |     1 | Using temporary                                           |
+|    1 | SIMPLE      | sst0                    | ALL   | tag_species_set_id          | NULL                       | NULL    | NULL                                                                     |     9 | Using where                                               |
+|    1 | SIMPLE      | ss0                     | ref   | species_set_id,genome_db_id | species_set_id             | 4       | ensembl_compara_80.sst0.species_set_id                                   |    50 | Using where; Using index                                  |
+|    1 | SIMPLE      | ss                      | ref   | species_set_id,genome_db_id | genome_db_id               | 5       | ensembl_compara_80.ss0.genome_db_id                                      |    72 |                                                           |
+|    1 | SIMPLE      | method_link_species_set | ref   | PRIMARY,method_link_id      | method_link_id             | 9       | const,ensembl_compara_80.ss.species_set_id                               |    11 |                                                           |
+|    1 | SIMPLE      | homology                | ref   | method_link_species_set_id  | method_link_species_set_id | 4       | ensembl_compara_80.method_link_species_set.method_link_species_set_id    | 31685 |                                                           |
+|    1 | SIMPLE      | sst2                    | ALL   | tag_species_set_id          | NULL                       | NULL    | NULL                                                                     |     9 | Using where; Distinct; Using join buffer (flat, BNL join) |
+|    1 | SIMPLE      | ss2                     | ref   | species_set_id,genome_db_id | species_set_id             | 4       | ensembl_compara_80.sst2.species_set_id                                   |    50 | Using where; Using index; Distinct                        |
+|    1 | SIMPLE      | ss1                     | ref   | species_set_id,genome_db_id | species_set_id             | 9       | ensembl_compara_80.ss.species_set_id,ensembl_compara_80.ss2.genome_db_id |    11 | Using index; Distinct                                     |
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+9 rows in set (0.01 sec)
+
+EXPLAIN SELECT DISTINCT homology_id FROM homology
+ WHERE method_link_species_set_id IN (
+   SELECT DISTINCT method_link_species_set_id FROM method_link_species_set
+     INNER JOIN method_link USING (method_link_id)
+     INNER JOIN species_set ss ON ss.species_set_id=method_link_species_set.species_set_id
+     INNER JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+     INNER JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+     INNER JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+     INNER JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+     INNER JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+     WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES'
+ );
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+| id   | select_type | table                   | type  | possible_keys               | key                        | key_len | ref                                                                      | rows  | Extra                                                     |
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+|    1 | PRIMARY     | method_link             | const | PRIMARY,type                | type                       | 52      | const                                                                    |     1 | Using temporary                                           |
+|    1 | PRIMARY     | sst0                    | ALL   | tag_species_set_id          | NULL                       | NULL    | NULL                                                                     |     9 | Using where; Start temporary                              |
+|    1 | PRIMARY     | ss0                     | ref   | species_set_id,genome_db_id | species_set_id             | 4       | ensembl_compara_80.sst0.species_set_id                                   |    50 | Using where; Using index                                  |
+|    1 | PRIMARY     | ss                      | ref   | species_set_id,genome_db_id | genome_db_id               | 5       | ensembl_compara_80.ss0.genome_db_id                                      |    72 |                                                           |
+|    1 | PRIMARY     | method_link_species_set | ref   | PRIMARY,method_link_id      | method_link_id             | 9       | const,ensembl_compara_80.ss.species_set_id                               |    11 |                                                           |
+|    1 | PRIMARY     | homology                | ref   | method_link_species_set_id  | method_link_species_set_id | 4       | ensembl_compara_80.method_link_species_set.method_link_species_set_id    | 31685 |                                                           |
+|    1 | PRIMARY     | sst2                    | ALL   | tag_species_set_id          | NULL                       | NULL    | NULL                                                                     |     9 | Using where; Distinct; Using join buffer (flat, BNL join) |
+|    1 | PRIMARY     | ss2                     | ref   | species_set_id,genome_db_id | species_set_id             | 4       | ensembl_compara_80.sst2.species_set_id                                   |    50 | Using where; Using index; Distinct                        |
+|    1 | PRIMARY     | ss1                     | ref   | species_set_id,genome_db_id | species_set_id             | 9       | ensembl_compara_80.ss.species_set_id,ensembl_compara_80.ss2.genome_db_id |    11 | Using index; Distinct; End temporary                      |
++------+-------------+-------------------------+-------+-----------------------------+----------------------------+---------+--------------------------------------------------------------------------+-------+-----------------------------------------------------------+
+9 rows in set (0.01 sec)
+
+SELECT DISTINCT homology_id,method_link_species_set_id, method_link_species_set.name, ss.species_set_id FROM method_link_species_set
+  JOIN homology USING (method_link_species_set_id)
+  JOIN method_link USING (method_link_id)
+  JOIN species_set ss ON ss.species_set_id=method_link_species_set.species_set_id
+  JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+  JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+  JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+  JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES'
+  LIMIT 100;
+=>100 rows in set (4.41 sec)
+
+SELECT DISTINCT homology_id,h.description,mlss.name,h.dn,h.ds FROM homology h
+  JOIN method_link_species_set mlss USING (method_link_species_set_id)
+  JOIN method_link USING (method_link_id)
+  JOIN species_set ss ON ss.species_set_id=mlss.species_set_id
+  JOIN species_set ss0 ON ss.genome_db_id=ss0.genome_db_id
+  JOIN species_set ss1 ON ss.species_set_id=ss1.species_set_id
+  JOIN species_set ss2 ON ss1.genome_db_id=ss2.genome_db_id
+  JOIN species_set_tag sst0 ON sst0.species_set_id=ss0.species_set_id
+  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
+  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES'
+   AND h.dn IS NOT NULL
+  LIMIT 100,100;
+=>100 rows in set (4.52 sec)
