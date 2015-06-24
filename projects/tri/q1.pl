@@ -7,6 +7,7 @@ use DBI;
 use Data::Dump qw (ddx);
 #use IO::Unread;
 
+use Bio::Align::DNAStatistics;
 use Bio::EnsEMBL::Registry;
 
 ## Load the registry automatically
@@ -55,7 +56,7 @@ $sql = qq{
 	  JOIN species_set_tag sst2 ON sst2.species_set_id=ss2.species_set_id
 	  WHERE sst0.value = 'mammals' AND sst2.value = 'mammals' AND ss1.genome_db_id != ss.genome_db_id AND method_link.type='ENSEMBL_ORTHOLOGUES';
 };
-my $sth = $dbh->prepare($sql);
+$sth = $dbh->prepare($sql);
 $sth->execute();
 
 my (@IDsMLSS);
@@ -74,13 +75,50 @@ for my $mlss (@IDsMLSS) {
     ## For each homology
     foreach my $this_homology (@{$homologies}) {
       next unless defined $this_homology->dn();
-      $this_homology->print_homology();
+      print $this_homology->toString(),"\n";
       print "The non-synonymous substitution rate is: ", $this_homology->dn(), "\n";
+
+	  my $description = $this_homology->description;
+	  # next unless ($description =~ /orth/);    # uncomment for orthologs only
+      my ($a,$b) = @{$this_homology->gene_list};
+      my $spa = $a->taxon->get_short_name;
+      my $spb = $b->taxon->get_short_name;
+      my $labela = $a->stable_id;
+      $labela .= "(" . $a->display_label . ")" if $a->display_label;
+      my $labelb = $b->stable_id;
+      $labelb .= "(" . $b->display_label . ")" if $b->display_label;
 
       ## Get and print the alignment
       my $simple_align = $this_homology->get_SimpleAlign( -seq_type => 'cds' );
       print $alignIO $simple_align;
 	  #ddx $this_homology;
+
+      my $dn; my $ds;
+      my $lnl = $this_homology->lnl;
+      if ($lnl) {
+          $dn = $this_homology->dn;
+          $ds = $this_homology->ds;
+      } else {
+          # This bit calculates dnds values using the counting method in bioperl-run
+          my $aln = $simple_align;
+              my $stats;
+              eval { $stats = new Bio::Align::DNAStatistics;};
+              if($stats->can('calc_KaKs_pair')) {
+                  my ($seq1id,$seq2id) = map { $_->display_id } $aln->each_seq;
+                  my $results;
+                  print ">";
+                  eval { $results = $stats->calc_KaKs_pair($aln, $seq1id, $seq2id);};
+                  unless ($@) {
+                    my $counting_method_dn = $results->[0]{D_n};
+                    my $counting_method_ds = $results->[0]{D_s};
+                    $dn = $counting_method_dn;
+                    $ds = $counting_method_ds;
+                  }
+              }
+          }
+          ##
+      $dn = 'na' if (!defined($dn));
+	  print "$spa,$labela,$spb,$labelb,$dn,$ds\n";
     }
     print "\n";
 }
