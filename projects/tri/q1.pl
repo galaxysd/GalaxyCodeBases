@@ -78,7 +78,7 @@ for my $mlss (@IDsMLSS) {
       print "The non-synonymous substitution rate is: ", $this_homology->dn(), "\n";
 
       ## Get and print the alignment
-      my $simple_align = $this_homology->get_SimpleAlign();
+      my $simple_align = $this_homology->get_SimpleAlign( -seq_type => 'cds' );
       print $alignIO $simple_align;
 	  #ddx $this_homology;
     }
