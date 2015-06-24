@@ -64,6 +64,26 @@ while(my @retdat = $sth->fetchrow()) {
 }
 warn 'MLSS_ID: ',join(', ',@IDsMLSS),"\n";
 
+## The BioPerl alignment formatter
+my $alignIO = Bio::AlignIO->newFh(-format => "clustalw");
+
+my $HomologyAdaptor = $reg->get_adaptor("Multi", "compara", "Homology");
+for my $mlss (@IDsMLSS) {
+	my $homologies = $HomologyAdaptor->fetch_all_by_MethodLinkSpeciesSet($mlss);
+	print '-----',$mlss,"-----\n";
+    ## For each homology
+    foreach my $this_homology (@{$homologies}) {
+      next unless defined $this_homology->dn();
+      $this_homology->print_homology();
+      print "The non-synonymous substitution rate is: ", $this_homology->dn(), "\n";
+
+      ## Get and print the alignment
+      my $simple_align = $this_homology->get_SimpleAlign();
+      print $alignIO $simple_align;
+	  #ddx $this_homology;
+    }
+    print "\n";
+}
 
 __END__
 USE ensembl_compara_80;
