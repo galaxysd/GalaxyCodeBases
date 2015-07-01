@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Data::Dump qw(ddx);
+
+use FindBin 1.51 qw($RealBin);
+=pod
+http://perl5.git.perl.org/perl.git/commitdiff/ce6c0f31778913bcbf7ccd245ab390dddd8a1361
+-$VERSION = "1.50";
++$VERSION = "1.51";
+Thu, 19 May 2011 04:35:43 +0000 (21:35 -0700)
+The FindBin documentation states as a known bug that it will return a wrong result if a script of the same name as the current one exists in
+$PATH, and is executable.
+Further "discussion": http://www.perlmonks.org/?node_id=41213
+=cut
+FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5.git.perl.org/perl.git/commitdiff/f509412828fa95d62b8d41774f816a14ba046cac
+use lib "$RealBin/../lib";
+
+print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript),"\n";
+
