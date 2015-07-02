@@ -16,6 +16,12 @@ my %StatDat;
 for (@ARGV) {
 	print STDERR "[!]Reading [$_]: ";
 	open INSAM,'-|',"$SAMTOOLSBIN view $_" or die "Error opening $_: $!\n";
+	while (<INSAM>) {
+		my @read1=split /\t/;
+		my $OPT = join("\t",@read1[11 .. $#read1]);
+		next if $OPT =~ /\bXT:A:R\b/;
+		next if $OPT =~ /\bXA:Z:/;	# bwa mem use XA:Z for Alternative hits, SA:Z for Chimeric reads. We need skip those with Alternative hits.
+	}
 	close INSAM;
 	warn "done.\n";
 }
