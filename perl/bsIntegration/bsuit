@@ -51,7 +51,7 @@ $Config->read($cfgfile);
 #ddx \$Config;
 
 warn "[!]Runing $0 [$cmd].\n";
-do $Cmd2Fun{$cmd}();
+$Cmd2Fun{$cmd}();	# If use `do $Cmd2Fun{$cmd}();`, the sub MUST return 1;
 warn "[!]done !\n";
 
 # overlap = (min(end_mate1,end_mate2) - max(start_mate1,start_mate2)) http://sourceforge.net/p/bio-bwa/mailman/message/27028596/
