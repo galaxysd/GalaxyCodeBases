@@ -50,7 +50,10 @@ sub opensam($) {
      	open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
     } elsif ($filename=~/.sam$/) {
      	open( $infile,"<",$filename) or die "Error opening $filename: $!\n";
-	} else {die "[x]Only support .sam(.gz) & .bam [$filename]\n";}
+	} else {
+		#die "[x]Only support .sam(.gz) & .bam [$filename]\n";
+		open( $infile,"-|","samtools view -h -F 132 $filename") or die "Error opening $filename: $!\n. Only support .sam(.gz) & .bam !";
+	}
     return $infile;
 }
 
