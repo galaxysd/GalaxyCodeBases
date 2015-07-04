@@ -133,7 +133,7 @@ Galaxy::IO::INI - Read/Write .ini style files with as little code as possible
     my $Config = Galaxy::IO::INI->new();
 
     # Open the config
-    $Config = Galaxy::IO::INI->read( 'file.conf' );
+    $Config->read( 'file.conf' );
 
     # Reading properties
     my $rootproperty = $Config->{_}->{rootproperty};

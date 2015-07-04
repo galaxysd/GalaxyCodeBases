@@ -17,9 +17,19 @@ my $scriptpath = abs_path($0); # ended with filename
 =cut
 FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5.git.perl.org/perl.git/commitdiff/f509412828fa95d62b8d41774f816a14ba046cac
 use lib "$RealBin/lib";
+#print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
 
-print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
+use Galaxy::IO::INI;
 
-use Galaxy::ShowHelp;
-ShowHelp();
+die "Usage: $0 <command> <config_file>\n" if @ARGV <2;
+my $cmd=shift;
+my $cfgfile=shift;
 
+my $Config = Galaxy::IO::INI->new();
+$Config->read($cfgfile);
+
+ddx \$Config
+
+
+
+# overlap = (min(end_mate1,end_mate2) - max(start_mate1,start_mate2)) http://sourceforge.net/p/bio-bwa/mailman/message/27028596/
