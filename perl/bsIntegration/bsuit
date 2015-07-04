@@ -19,17 +19,39 @@ FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5
 use lib "$RealBin/lib";
 #print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
 
+use BSuitLib;
 use Galaxy::IO::INI;
 
-die "Usage: $0 <command> <config_file>\n" if @ARGV <2;
-my $cmd=shift;
+my %Cmd2Fun = (
+	'prepare' => \&do_pre,
+	'aln' => \&do_pre,
+	'grep' => \&do_pre,
+);
+
+my $ShowHelp=0;
+if (@ARGV < 2) {
+	warn "Usage: $0 <command> <config_file>\n";
+	$ShowHelp=1;
+}
+my $cmd=lc shift;
 my $cfgfile=shift;
+die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
 
-my $Config = Galaxy::IO::INI->new();
+unless (exists $Cmd2Fun{$cmd}) {
+	warn "[x]Unknown Command: [$cmd] !\n";
+	$ShowHelp=1;
+}
+if ($ShowHelp) {
+	die '[!]Available Commands are: [',join('],[',sort keys %Cmd2Fun),"], case insensitive.\n";
+}
+
+
+our $Config = Galaxy::IO::INI->new();
 $Config->read($cfgfile);
+#ddx \$Config;
 
-ddx \$Config
-
-
+warn "[!]Runing $0 [$cmd].\n";
+do $Cmd2Fun{$cmd}();
+warn "[!]done !\n";
 
 # overlap = (min(end_mate1,end_mate2) - max(start_mate1,start_mate2)) http://sourceforge.net/p/bio-bwa/mailman/message/27028596/
