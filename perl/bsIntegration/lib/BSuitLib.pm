@@ -7,7 +7,7 @@ use Galaxy::IO::FASTA;
 
 sub do_pre() {
 	#my $Config = $_[0];
-	#ddx \$Config;
+	ddx \$Config;
 	my $RootPath = $Config->{'Output'}->{'WorkDir'};
 	$RootPath =~ s/[\/\\]+$//g;
 	warn "[!] WorkDir: [$RootPath]\n";
@@ -22,10 +22,11 @@ sub do_pre() {
 	my $RefConfig = Galaxy::IO::INI->new();
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
+		$found=1 if exists $Config->{$RefFilesSHA};
 	}
 	if ($found==0) {
 		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
-		#$Config->{$RefFilesSHA};
+		$RefConfig->{$RefFilesSHA} = { RefChrIDs => '', VirusChrIDs => '' };
 		open O,'>',$Refile or die $!;
 		my $FH=openfile($Config->{'RefFiles'}->{'HostRef'});
 		my @ChrIDs;
@@ -53,8 +54,11 @@ sub do_pre() {
 		}
 		$RefConfig->{$RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
 		close $FH;
+		$RefConfig->write("$RootPath/Ref/Ref.ini");
+	} else {
+		warn "[!] Already Read References Pairs:[$HostRefName,$VirusRefName].\n";
 	}
-	ddx $RefConfig;
+	ddx \$RefConfig;
 }
 
 

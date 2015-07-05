@@ -95,7 +95,13 @@ sub write_string {
 		my $block = $self->{$section};
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
+		my %Properties = map { $_ => 1 } keys %{$block};
+		delete $Properties{'='};
 		foreach my $property ( @{$$block{'='}} ) {
+			$contents .= "$property=$block->{$property}\n";
+			delete $Properties{$property};
+		}
+		foreach my $property ( sort keys %Properties ) {
 			$contents .= "$property=$block->{$property}\n";
 		}
 	}
