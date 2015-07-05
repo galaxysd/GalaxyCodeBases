@@ -71,6 +71,9 @@ sub do_aln() {
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
 	} else {die "[x] Prepare INI not found ! [$RootPath/Ref/Ref.ini]\n";}
+	my $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
+	my $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
+	my $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 	my $Refilename = $RefConfig->{$RefFilesSHA}->{'Refilename'};
 	warn "$Refilename\n";
 }
