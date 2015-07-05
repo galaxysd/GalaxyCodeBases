@@ -22,7 +22,7 @@ sub do_pre() {
 	my $RefConfig = Galaxy::IO::INI->new();
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
-		$found=1 if exists $Config->{$RefFilesSHA};
+		$found=1 if exists $RefConfig->{$RefFilesSHA};
 	}
 	if ($found==0) {
 		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
