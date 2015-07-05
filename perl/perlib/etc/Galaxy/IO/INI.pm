@@ -255,7 +255,9 @@ L<Config::Simple>, which inspired this module by being not quite
 
 =head1 SEE ALSO
 
-L<Config::Simple>, L<Config::General>, L<ali.as>
+L<Config::Tiny>, L<Config::Simple>, L<Config::General>, L<ali.as>
+
+http://search.cpan.org/~rsavage/Config-Tiny/lib/Config/Tiny.pm
 
 =head1 COPYRIGHT
 
