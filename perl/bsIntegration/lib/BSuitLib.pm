@@ -27,12 +27,12 @@ sub do_pre() {
 		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
 		my $Ref=openfile($Config->{'RefFiles'}->{'HostRef'});
 		while (my $ret = FastaReadNext($Ref)) {
-			if ($$ret[0] =~ /(^chrEBV$)|(Un\b)|(random$)/) {
-				warn "[!]  skip chr[$$ret[0]].\n";
+			if ($$ret[0] =~ /(^chrEBV$)|(Un[_-])|(random$)/) {
+				warn "[!]  skip Ref[$$ret[0]].\n";
 				next;
 			}
 			my $len = length $$ret[1];
-			warn "[!]  read chr[$$ret[0]], $len bp.\n";
+			warn "[!]  read Ref[$$ret[0]], $len bp.\n";
 		}
 	}
 }
