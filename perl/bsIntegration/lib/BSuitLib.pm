@@ -58,7 +58,10 @@ sub do_pre() {
 	} else {
 		warn "[!] Already Read References Pairs:[$HostRefName,$VirusRefName].\n";
 	}
-	ddx \$RefConfig;
+	#ddx \$RefConfig;
+	warn "[!] Building index for [$Refile].\n";
+	system("$RealBin/bin/bwameth.py",'index',$Refile);
+	warn "[!] Prepare done !\n";
 }
 
 
