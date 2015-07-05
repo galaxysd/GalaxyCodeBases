@@ -3,7 +3,7 @@ use BSuitInc;
 use File::Path;
 use File::Basename;
 use Galaxy::IO;
-use Galaxy::IO::FASTA;;
+use Galaxy::IO::FASTA;
 
 sub do_pre() {
 	#my $Config = $_[0];

@@ -28,10 +28,13 @@ my %Cmd2Fun = (
 	'grep' => \&do_pre,
 );
 
+sub ShowHelp() {
+	die '[!]Available Commands are: [',join('],[',sort keys %Cmd2Fun),"], case insensitive.\n";
+}
 my $ShowHelp=0;
 if (@ARGV < 2) {
 	warn "Usage: $0 <command> <config_file>\n";
-	$ShowHelp=1;
+	ShowHelp();
 }
 my $cmd=lc shift;
 my $cfgfile=shift;
@@ -39,12 +42,8 @@ die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
 
 unless (exists $Cmd2Fun{$cmd}) {
 	warn "[x]Unknown Command: [$cmd] !\n";
-	$ShowHelp=1;
+	ShowHelp();
 }
-if ($ShowHelp) {
-	die '[!]Available Commands are: [',join('],[',sort keys %Cmd2Fun),"], case insensitive.\n";
-}
-
 
 our $Config = Galaxy::IO::INI->new();
 $Config->read($cfgfile);
