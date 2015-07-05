@@ -87,7 +87,7 @@ sub do_aln() {
 	open O,'>',"$RootPath/${ProjectID}_aln.sh" or die $!;
 	print O "!#/bin/sh\n\n";
 	for (keys %tID) {
-		my $cmd = "$RealBin/bin/bwameth.py --reference $Refilename -t 24 -p ${_}_r --read-group $_ $Config->{'DataFiles'}->{$tID{$_}{1}} $Config->{'DataFiles'}->{$tID{$_}{2}}\n";
+		my $cmd = "$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $_ -p $RootPath/${ProjectID}_aln/$_ $Config->{'DataFiles'}->{$tID{$_}{1}} $Config->{'DataFiles'}->{$tID{$_}{2}}\n";
 		print O $cmd;
 	}
 	close O;
@@ -95,6 +95,17 @@ sub do_aln() {
 	warn "[!] Please run [$RootPath/${ProjectID}_aln.sh] to do the aln.\n"
 }
 
-sub do_grep() {}
+sub do_grep() {
+	my $RootPath = $Config->{'Output'}->{'WorkDir'};
+	my $ProjectID = $Config->{'Output'}->{'ProjectID'};
+	warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
+	my (%tID);
+	for (@{$Config->{'DataFiles'}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
+	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
+	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
+}
 
 1;
