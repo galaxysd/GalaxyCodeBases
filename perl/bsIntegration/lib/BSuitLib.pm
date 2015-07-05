@@ -19,22 +19,42 @@ sub do_pre() {
 	my $Refile = "$RootPath/Ref/$RefFilesSHA/$Refprefix.fa";
 #warn "[$HostRefName,$VirusRefName] -> $Refprefix [$RefFilesSHA]\n";
 	my $found = 0;
+	my $RefConfig = Galaxy::IO::INI->new();
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
-		my $RefConfig = Galaxy::IO::INI->new();
-		$Config->read("$RootPath/Ref/Ref.ini");
+		$RefConfig->read("$RootPath/Ref/Ref.ini");
 	}
 	if ($found==0) {
 		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
-		my $Ref=openfile($Config->{'RefFiles'}->{'HostRef'});
-		while (my $ret = FastaReadNext($Ref)) {
+		#$Config->{$RefFilesSHA};
+		open O,'>',$Refile or die $!;
+		my $FH=openfile($Config->{'RefFiles'}->{'HostRef'});
+		my @ChrIDs;
+		while (my $ret = FastaReadNext($FH)) {
 			if ($$ret[0] =~ /(^chrEBV$)|(Un[_-])|(random$)/) {
 				warn "[!]  skip Ref[$$ret[0]].\n";
 				next;
 			}
 			my $len = length $$ret[1];
 			warn "[!]  read Ref[$$ret[0]], $len bp.\n";
+			print O ">$$ret[0]\n$$ret[1]\n";
+			$RefConfig->{$RefFilesSHA}->{$$ret[0]} = $len;
+			push @ChrIDs,$$ret[0];
 		}
+		$RefConfig->{$RefFilesSHA}->{RefChrIDs} = join(',',@ChrIDs);
+		close $FH;
+		@ChrIDs=();
+		$FH=openfile($Config->{'RefFiles'}->{'VirusRef'});
+		while (my $ret = FastaReadNext($FH)) {
+			my $len = length $$ret[1];
+			warn "[!]  read Virus[$$ret[0]], $len bp.\n";
+			print O ">$$ret[0]\n$$ret[1]\n";
+			$RefConfig->{$RefFilesSHA}->{$$ret[0]} = $len;
+			push @ChrIDs,$$ret[0];
+		}
+		$RefConfig->{$RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
+		close $FH;
 	}
+	ddx $RefConfig;
 }
 
 
