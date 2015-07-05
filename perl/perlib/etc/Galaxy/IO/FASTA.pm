@@ -3,28 +3,26 @@ use strict;
 use warnings;
 require Exporter;
 our @ISA   =qw(Exporter);
-our @EXPORT    =qw(readwholefa);
-our @EXPORT_OK   =qw(readwholefa);
+our @EXPORT    =qw(FastaReadNext);
+our @EXPORT_OK   =qw(FastaReadNext);
 our $VERSION   = v1.0.0;
 
-sub readwholefa($) {
+sub FastaReadNext($) {
 	my $fh = $_[0];
-	my %Genome;
+	my ($seqname,$genome);
 	while (<$fh>) {
 		s/^>//;
 		/^(\S+)/ or next;
-		my $seqname = $1;
-		print STDERR " >$seqname ...";
+		$seqname = $1;
 		$/=">";
-		my $genome=<$fh>;
+		$genome=<$fh>;
 		chomp $genome;
 		$genome=~s/\s//g;
 		$/="\n";
-		$Genome{$seqname}=$genome;
-		print STDERR "\b\b\b",length $Genome{$seqname},".\n";
-		$genome='';
+		return [$seqname,$genome];
 	}
-	return \%Genome;
+	$genome='';
+	return 0;
 }
 
 1;
