@@ -61,12 +61,13 @@ sub do_pre() {
 	#ddx \$RefConfig;
 	warn "[!] Building index for [$Refile].\n";
 	system("$RealBin/bin/bwameth.py",'index',$Refile);
-	warn "[!] Prepare done !\n";
+	#warn "[!] Prepare done !\n";
 }
 
 sub do_aln() {
 	my $RootPath = $Config->{'Output'}->{'WorkDir'};
-	warn "[!] WorkDir: [$RootPath]\n";
+	my $ProjectID = $Config->{'Output'}->{'ProjectID'};
+	warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
 	my $RefConfig = Galaxy::IO::INI->new();
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
@@ -75,7 +76,23 @@ sub do_aln() {
 	my $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
 	my $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 	my $Refilename = $RefConfig->{$RefFilesSHA}->{'Refilename'};
-	warn "$Refilename\n";
+	#warn "$Refilename\n";
+	my (%tID);
+	for (@{$Config->{'DataFiles'}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
+	#ddx \%tID;
+	File::Path::make_path("$RootPath/${ProjectID}_aln",{verbose => 0,mode => 0755});
+	open O,'>',"$RootPath/${ProjectID}_aln.sh" or die $!;
+	print O "!#/bin/sh\n\n";
+	for (keys %tID) {
+		my $cmd = "$RealBin/bin/bwameth.py --reference $Refilename -t 24 -p ${_}_r --read-group $_ $Config->{'DataFiles'}->{$tID{$_}{1}} $Config->{'DataFiles'}->{$tID{$_}{2}}\n";
+		print O $cmd;
+	}
+	close O;
+	chmod 0755,"$RootPath/${ProjectID}_aln.sh";
+	warn "[!] Please run [$RootPath/${ProjectID}_aln.sh] to do the aln.\n"
 }
 
 sub do_grep() {}
