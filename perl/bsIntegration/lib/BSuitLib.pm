@@ -26,7 +26,7 @@ sub do_pre() {
 	}
 	if ($found==0) {
 		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
-		$RefConfig->{$RefFilesSHA} = { RefChrIDs => '', VirusChrIDs => '' };
+		$RefConfig->{$RefFilesSHA} = { Refilename => $Refile, RefChrIDs => '', VirusChrIDs => '' };
 		open O,'>',$Refile or die $!;
 		my $FH=openfile($Config->{'RefFiles'}->{'HostRef'});
 		my @ChrIDs;
@@ -64,5 +64,17 @@ sub do_pre() {
 	warn "[!] Prepare done !\n";
 }
 
+sub do_aln() {
+	my $RootPath = $Config->{'Output'}->{'WorkDir'};
+	warn "[!] WorkDir: [$RootPath]\n";
+	my $RefConfig = Galaxy::IO::INI->new();
+	if ( -f "$RootPath/Ref/Ref.ini" ) {
+		$RefConfig->read("$RootPath/Ref/Ref.ini");
+	} else {die "[x] Prepare INI not found ! [$RootPath/Ref/Ref.ini]\n";}
+	my $Refilename = $RefConfig->{$RefFilesSHA}->{'Refilename'};
+	warn "$Refilename\n";
+}
+
+sub do_grep() {}
 
 1;

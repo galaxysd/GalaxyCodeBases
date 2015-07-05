@@ -24,8 +24,8 @@ use Galaxy::IO::INI;
 
 my %Cmd2Fun = (
 	'prepare' => \&do_pre,
-	'aln' => \&do_pre,
-	'grep' => \&do_pre,
+	'aln' => \&do_aln,
+	'grep' => \&do_grep,
 );
 
 sub ShowHelp() {
