@@ -137,7 +137,10 @@ sub do_grep() {
 	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
 	File::Path::make_path("$RootPath/${ProjectID}_grep",{verbose => 0,mode => 0755});
-	for (keys %tID) {}
+	for my $k (keys %tID) {
+		my $myBamf = "$RootPath/${ProjectID}_aln/$k.sn.bam";
+		warn $myBamf;
+	}
 }
 
 1;

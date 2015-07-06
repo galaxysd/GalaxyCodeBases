@@ -33,5 +33,6 @@ sub warnFileExist(@) {
 	#warn "[Debug] @_\n";
 	return join(' ',@_);
 }
+# http://perldoc.perl.org/perlfaq4.html#How-do-I-expand-function-calls-in-a-string%3f
 
 1;
