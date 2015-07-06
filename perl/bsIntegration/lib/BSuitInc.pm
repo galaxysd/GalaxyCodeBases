@@ -21,4 +21,17 @@ sub getRef2char($$) {
 	return $HostChar.$VirusChar;
 }
 
+sub warnFileExist(@) {
+	my %NotFound;
+	for (@_) {
+		++$NotFound{$_} unless -f $_;
+	}
+	my @NF = sort keys %NotFound;
+	if (@NF > 0) {
+		warn "[!!!] File NOT Found:[",join('],[',@NF),"]\n";
+	}
+	#warn "[Debug] @_\n";
+	return join(' ',@_);
+}
+
 1;

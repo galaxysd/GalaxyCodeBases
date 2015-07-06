@@ -75,7 +75,7 @@ sub do_aln() {
 	my $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
 	my $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
 	my $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
-	my $Refilename = $RefConfig->{$RefFilesSHA}->{'Refilename'};
+	my $Refilename = warnFileExist($RefConfig->{$RefFilesSHA}->{'Refilename'});
 	#warn "$Refilename\n";
 	my (%tID);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
@@ -85,9 +85,39 @@ sub do_aln() {
 	#ddx \%tID;
 	File::Path::make_path("$RootPath/${ProjectID}_aln",{verbose => 0,mode => 0755});
 	open O,'>',"$RootPath/${ProjectID}_aln.sh" or die $!;
-	print O "!#/bin/sh\n\n";
-	for (keys %tID) {
-		my $cmd = "$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $_ -p $RootPath/${ProjectID}_aln/$_ $Config->{'DataFiles'}->{$tID{$_}{1}} $Config->{'DataFiles'}->{$tID{$_}{2}}\n";
+	print O "#!/bin/sh\n\n";
+	for my $k (keys %tID) {
+		my @FQ1c = split /\s*,\s*/,$Config->{'DataFiles'}->{$tID{$k}{1}};
+		my @FQ2c = split /\s*,\s*/,$Config->{'DataFiles'}->{$tID{$k}{2}};
+		die "[x]  DataFiles not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
+		my $cmd;
+		if (@FQ1c == 1) {
+			$cmd = <<"CMD";
+$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $k -p $RootPath/${ProjectID}_aln/$k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$RootPath/${ProjectID}_aln/$k.log
+CMD
+			print O $cmd;
+		} else {
+			my @theBams;
+			for my $i (0 .. $#FQ1c) {
+				my $fID = basename($FQ1c[$i]);
+				$fID =~ s/\.fq(\.gz)?$//i;
+				$cmd = <<"CMD";
+$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -p $RootPath/${ProjectID}_aln/${k}_${i}_${fID} @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$RootPath/${ProjectID}_aln/${k}_${i}_${fID}.log
+CMD
+				push @theBams,"$RootPath/${ProjectID}_aln/${k}_${i}_${fID}.bam";
+				print O $cmd;
+			}
+			my $theBamsJ = join(' ',@theBams);
+			$cmd = <<"CMD";
+samtools merge -l 9 $RootPath/${ProjectID}_aln/$k.bam $theBamsJ
+samtools index $RootPath/${ProjectID}_aln/$k.bam
+CMD
+			print O $cmd;
+		}
+		$cmd = <<"CMD";
+samtools sort -m 2415919104 -n $RootPath/${ProjectID}_aln/$k.bam -O bam -T $RootPath/${ProjectID}_aln/$k.sn >$RootPath/${ProjectID}_aln/$k.sn.bam 2>>$RootPath/${ProjectID}_aln/$k.log
+
+CMD
 		print O $cmd;
 	}
 	close O;
