@@ -55,15 +55,24 @@ our $RootPath = $Config->{'Output'}->{'WorkDir'};
 $RootPath =~ s/[\/\\]+$//g;
 our $ProjectID = $Config->{'Output'}->{'ProjectID'};
 warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
+
+our $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
+our $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
+our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
+
 our $RefConfig = Galaxy::IO::INI->new();
+our (%RefChrIDs,%VirusChrIDs);
 if ($cmd ne 'prepare') {
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
 	} else {die "[x] Prepare INI not found ! [$RootPath/Ref/Ref.ini]\n";}
+	my @RefChrID = split(',',$RefConfig->{$RefFilesSHA}->{'RefChrIDs'});
+	my @VirusChrID = split(',',$RefConfig->{$RefFilesSHA}->{'VirusChrIDs'});
+	for (@RefChrID) {
+		$RefChrIDs{$_} = $RefConfig->{$RefFilesSHA}->{$_};
+	}
+	$VirusChrIDs{$_} = $RefConfig->{$RefFilesSHA}->{$_} for @VirusChrID;
 }
-our $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
-our $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
-our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 
 $Cmd2Fun{$cmd}();	# If use `do $Cmd2Fun{$cmd}();`, the sub MUST return 1;
 warn "[!]done !\n";

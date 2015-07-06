@@ -108,9 +108,6 @@ CMD
 }
 
 sub do_grep() {	
-	my @RefChrIDs = split(',',$RefConfig->{$RefFilesSHA}->{'RefChrIDs'});
-	my @VirusChrIDs = split(',',$RefConfig->{$RefFilesSHA}->{'VirusChrIDs'});
-	
 	my (%tID);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
@@ -119,10 +116,34 @@ sub do_grep() {
 	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
 	File::Path::make_path("$RootPath/${ProjectID}_grep",{verbose => 0,mode => 0755});
+	my $GrepResult = Galaxy::IO::INI->new();
 	for my $k (keys %tID) {
 		my $myBamf = "$RootPath/${ProjectID}_aln/$k.sn.bam";
-		warn $myBamf;
+		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
+		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
+		#warn "$myBamf,$InsMean,$InsSD";
+		$GrepResult->{$k} = {
+			'InBam' => $myBamf,
+			InsMean => $InsMean,
+			InsSD => $InsSD,
+		};
+		$GrepResult->{$k} = { DatFile => "$RootPath/${ProjectID}_grep/$k.sam" };
+		open( IN,"-|","samtools view -F768 $myBamf") or die "Error opening $in: $!\n";
+		while (my $line = <IN>) {
+			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
+			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
+			my @Dat1 = split /\t/,$line;
+			my $line2 = <IN>;
+			die '[x]SAM/BAM file not paired !' unless defined($line2);
+			my @Dat2 = split /\t/,$line2;
+			last;
+		}
+		close IN;
 	}
+	#ddx \$GrepResult;
+	#ddx (\%RefChrIDs,\%VirusChrIDs);
+	warn $GrepResult->write_string;
+	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
 }
 
 1;
