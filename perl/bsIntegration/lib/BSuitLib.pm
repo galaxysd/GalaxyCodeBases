@@ -7,19 +7,12 @@ use Galaxy::IO::FASTA;
 
 sub do_pre() {
 	#my $Config = $_[0];
-	ddx \$Config;
-	my $RootPath = $Config->{'Output'}->{'WorkDir'};
-	$RootPath =~ s/[\/\\]+$//g;
-	warn "[!] WorkDir: [$RootPath]\n";
+	#ddx \$Config;
 	File::Path::make_path("$RootPath/Ref",{verbose => 0,mode => 0755});
-	my $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
-	my $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
-	my $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 	my $Refprefix = getRef2char($HostRefName,$VirusRefName);
 	my $Refile = "$RootPath/Ref/$RefFilesSHA/$Refprefix.fa";
 #warn "[$HostRefName,$VirusRefName] -> $Refprefix [$RefFilesSHA]\n";
 	my $found = 0;
-	my $RefConfig = Galaxy::IO::INI->new();
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
 		$found=1 if exists $RefConfig->{$RefFilesSHA};
@@ -61,20 +54,9 @@ sub do_pre() {
 	#ddx \$RefConfig;
 	warn "[!] Building index for [$Refile].\n";
 	system("$RealBin/bin/bwameth.py",'index',$Refile);
-	#warn "[!] Prepare done !\n";
 }
 
 sub do_aln() {
-	my $RootPath = $Config->{'Output'}->{'WorkDir'};
-	my $ProjectID = $Config->{'Output'}->{'ProjectID'};
-	warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
-	my $RefConfig = Galaxy::IO::INI->new();
-	if ( -f "$RootPath/Ref/Ref.ini" ) {
-		$RefConfig->read("$RootPath/Ref/Ref.ini");
-	} else {die "[x] Prepare INI not found ! [$RootPath/Ref/Ref.ini]\n";}
-	my $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
-	my $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
-	my $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 	my $Refilename = warnFileExist($RefConfig->{$RefFilesSHA}->{'Refilename'});
 	#warn "$Refilename\n";
 	my (%tID);
@@ -125,10 +107,10 @@ CMD
 	warn "[!] Please run [$RootPath/${ProjectID}_aln.sh] to do the aln.\n"
 }
 
-sub do_grep() {
-	my $RootPath = $Config->{'Output'}->{'WorkDir'};
-	my $ProjectID = $Config->{'Output'}->{'ProjectID'};
-	warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
+sub do_grep() {	
+	my @RefChrIDs = split(',',$RefConfig->{$RefFilesSHA}->{'RefChrIDs'});
+	my @VirusChrIDs = split(',',$RefConfig->{$RefFilesSHA}->{'VirusChrIDs'});
+	
 	my (%tID);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;

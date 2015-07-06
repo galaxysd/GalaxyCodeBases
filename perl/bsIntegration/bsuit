@@ -50,6 +50,21 @@ $Config->read($cfgfile);
 #ddx \$Config;
 
 warn "[!]Runing $0 [$cmd].\n";
+
+our $RootPath = $Config->{'Output'}->{'WorkDir'};
+$RootPath =~ s/[\/\\]+$//g;
+our $ProjectID = $Config->{'Output'}->{'ProjectID'};
+warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
+our $RefConfig = Galaxy::IO::INI->new();
+if ($cmd ne 'prepare') {
+	if ( -f "$RootPath/Ref/Ref.ini" ) {
+		$RefConfig->read("$RootPath/Ref/Ref.ini");
+	} else {die "[x] Prepare INI not found ! [$RootPath/Ref/Ref.ini]\n";}
+}
+our $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
+our $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
+our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
+
 $Cmd2Fun{$cmd}();	# If use `do $Cmd2Fun{$cmd}();`, the sub MUST return 1;
 warn "[!]done !\n";
 
