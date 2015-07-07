@@ -35,12 +35,11 @@ sub openfile($) {
 
 sub getRefChr1st($) {
 	my $GENOME = $_[0];
-	my $genome;
 	while (<$GENOME>) {
 		s/^>//;
 		/^(\S+)/ or next;
 		my $seqname = $1;
-		print STDERR " >$seqname ...";
+		print STDERR ">$seqname ...";
 		$/=">";
 		my $genome=<$GENOME>;
 		chomp $genome;
@@ -48,8 +47,8 @@ sub getRefChr1st($) {
 		$/="\n";
 		my $thelength = length $genome;
 		print STDERR "\b\b\b", $thelength, ".\n";
+		return $genome;
 	}
-	return $genome;
 }
 
 my $Refh = openfile($Reff);
@@ -62,6 +61,7 @@ my $VirLen = length $Virstr;
 close $Virfh;
 $Virstr .= $Virstr;	# circle
 
+
 my (@Refticks);
 while (@Refticks < 100) {
 	my $pos0 = int(rand($RefLen-(2*$RefBorder)))+$RefBorder;
@@ -71,6 +71,7 @@ while (@Refticks < 100) {
 	next if $N > 2*$PEinsertLen*$RefNratioMax;
 	push @Refticks,$pos0
 }
+@Refticks = sort {$a<=>$b} @Refticks;
 
 ddx \@Refticks;
 
