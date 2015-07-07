@@ -64,7 +64,7 @@ $Virstr .= $Virstr;	# circle
 
 my (@Refticks);
 while (@Refticks < 100) {
-	my $pos0 = int(rand($RefLen-2*$RefBorder))+$RefBorder;
+	my $pos0 = int(rand($RefLen-(2*$RefBorder)))+$RefBorder;
 	my $str0 = substr $Refstr,($pos0-$PEinsertLen),2*$PEinsertLen;
 	my $seq = $str0;
 	my $N = $seq=~tr/Nn//;
