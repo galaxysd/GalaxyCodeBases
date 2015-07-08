@@ -136,7 +136,14 @@ sub do_grep() {
 			my $line2 = <IN>;
 			die '[x]SAM/BAM file not paired !' unless defined($line2);
 			my @Dat2 = split /\t/,$line2;
-			last;
+			#next if $Dat1[4]<$CFGminMAPQ or $Dat2[4]<$CFGminMAPQ;
+			my $flag = 0;
+			$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
+			$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat2[2]});
+			#$flag |= 4 if $Dat1[2] ne $Dat2[2];
+			next unless $flag;
+			warn "$flag $InsSD\n${line}$line2\n" if $flag>1;
+			#last;
 		}
 		close IN;
 	}
@@ -147,3 +154,12 @@ sub do_grep() {
 }
 
 1;
+
+__END__
+samtools view -h /share/users/huxs/work/bsvir/bsI/SZ0010_aln/780_T.bam '*' | samtools bam2fq -O - | gzip -9 > /share/users/huxs/work/bsvir/bsI/SZ0010_aln/780_T.unmap.fq.gz
+samtools view -h /share/users/huxs/work/bsvir/bsI/SZ0010_aln/s01_P.bam '*'|samtools bam2fq -O -|gzip -9 > /share/users/huxs/work/bsvir/bsI/SZ0010_aln/s01_P.unmap.fq.gz &
+
+./bin/bwameth.py --reference /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa -t 24 --read-group 780_T -p ~/work/bsvir/bsI/SZ0010_aln/780_T.unmap ~/work/bsvir/bsI/SZ0010_aln/780_T.unmap.fq.gz 2>~/work/bsvir/bsI/SZ0010_aln/780_T.unmap.log &    #/
+./bin/bwameth.py --reference /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa -t 24 --read-group s01_P -p /share/users/huxs/work/bsvir/bsI/SZ0010_aln/s01_P.unmap /share/users/huxs/work/bsvir/bsI/SZ0010_aln/s01_P.unmap.fq.gz 2>/share/users/huxs/work/bsvir/bsI/SZ0010_aln/s01_P.unmap.log &
+
+samtools view -h /share/users/huxs/work/bsvir/bsI/SZ0010_aln/780_T.bam 'gi|86261677|emb|AJ507799.2|'

@@ -45,6 +45,8 @@ unless (exists $Cmd2Fun{$cmd}) {
 	ShowHelp();
 }
 
+our $CFGminMAPQ = 30;
+
 our $Config = Galaxy::IO::INI->new();
 $Config->read($cfgfile);
 #ddx \$Config;
