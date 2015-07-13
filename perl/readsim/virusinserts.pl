@@ -64,7 +64,7 @@ $Virstr .= $Virstr;	# circle
 
 my (@Refticks,@Virticks);
 sub getticks($) {
-	my $RefBorder = $_[0];
+	my ($RefBorder,$Refstr) = @_;
 	my @theticks;
 	while (@theticks < 100) {
 		my $pos0 = int(rand($RefLen-(2*$RefBorder)))+$RefBorder;
@@ -78,8 +78,8 @@ sub getticks($) {
 	return \@theticks;
 }
 
-@Refticks = @{getticks($RefBorder)};
-@Virticks = @{getticks(0)};
+@Refticks = @{getticks($RefBorder,$Refstr)};
+@Virticks = @{getticks(0,$Virstr)};
 
 ddx \@Refticks,\@Virticks;
 
