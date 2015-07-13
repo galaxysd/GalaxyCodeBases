@@ -62,18 +62,26 @@ close $Virfh;
 $Virstr .= $Virstr;	# circle
 
 
-my (@Refticks);
-while (@Refticks < 100) {
-	my $pos0 = int(rand($RefLen-(2*$RefBorder)))+$RefBorder;
-	my $str0 = substr $Refstr,($pos0-$PEinsertLen),2*$PEinsertLen;
-	my $seq = $str0;
-	my $N = $seq=~tr/Nn//;
-	next if $N > 2*$PEinsertLen*$RefNratioMax;
-	push @Refticks,$pos0
+my (@Refticks,@Virticks);
+sub getticks($) {
+	my $RefBorder = $_[0];
+	my @theticks;
+	while (@theticks < 100) {
+		my $pos0 = int(rand($RefLen-(2*$RefBorder)))+$RefBorder;
+		my $str0 = substr $Refstr,($pos0-$PEinsertLen),2*$PEinsertLen;
+		my $seq = $str0;
+		my $N = $seq=~tr/Nn//;
+		next if $N > 2*$PEinsertLen*$RefNratioMax;
+		push @theticks,$pos0
+	}
+	@theticks = sort {$a<=>$b} @theticks;
+	return \@theticks;
 }
-@Refticks = sort {$a<=>$b} @Refticks;
 
-ddx \@Refticks;
+@Refticks = @{getticks($RefBorder)};
+@Virticks = @{getticks(0)};
+
+ddx \@Refticks,\@Virticks;
 
 __END__
 ./virusinserts.pl /share/users/huxs/git/toGit/perl/readsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa test
