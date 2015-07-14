@@ -15,6 +15,7 @@ $Virf='/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa';
 my $SampleCnt = 100;
 my $Depth = 50;
 my $PEinsertLen=200;
+my $SeqReadLen=90;
 my $VirFragMax = 500;
 my $VirFragMin = 20;
 my $RefBorder = $PEinsertLen + 1000;
@@ -79,9 +80,33 @@ sub getticks($$$) {
 }
 
 @Refticks = @{getticks($RefBorder,$Refstr,$RefLen)};
-@Virticks = @{getticks(0,$Virstr,$VirLen)};
+@Virticks = @{getticks($VirFragMax,$Virstr,$VirLen)};
+#ddx \@Refticks,\@Virticks;
 
-ddx \@Refticks,\@Virticks;
+sub revcom($) {
+    my $str = $_[0];
+    $str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+    my $rev = reverse $str;
+    $rev    =~ tr/[](){}<>/][)(}{></;
+    return $rev;
+}
+open O,'>',"$outp.Ref.fa";
+for my $pRef (@Refticks) {
+	my $seqR1 = substr $Refstr,($pRef-$PEinsertLen),$PEinsertLen;
+	my $seqR2 = substr $Refstr,$pRef,$PEinsertLen;
+	my $pVir = shift @Virticks;
+	my $LenV = int(rand($VirFragMax-$VirFragMin))+$VirFragMin;
+	my $startV = $pVir-int(0.5*$LenV);
+	my $seqV = substr $Virstr,$startV,$LenV;
+	my $isReverse = int(rand(2));
+	my $strand = '+';
+	if ($isReverse) {
+		$seqV = revcom($seqV);
+		$strand = '-';
+	}
+	print O join('_','>Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$LenV),"\n",uc $seqR1,lc $seqV,uc $seqR2,"\n\n";
+}
+close O;
 
 __END__
 ./virusinserts.pl /share/users/huxs/git/toGit/perl/readsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa test
