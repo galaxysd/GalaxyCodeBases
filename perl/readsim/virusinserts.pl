@@ -91,6 +91,8 @@ sub revcom($) {
     return $rev;
 }
 open O,'>',"$outp.Ref.fa";
+open R1,'>',"$outp.1.fq";
+open R2,'>',"$outp.2.fq";
 for my $pRef (@Refticks) {
 	my $seqR1 = substr $Refstr,($pRef-$PEinsertLen),$PEinsertLen;
 	my $seqR2 = substr $Refstr,$pRef,$PEinsertLen;
@@ -104,9 +106,28 @@ for my $pRef (@Refticks) {
 		$seqV = revcom($seqV);
 		$strand = '-';
 	}
-	print O join('_','>Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$LenV),"\n",uc $seqR1,lc $seqV,uc $seqR2,"\n\n";
+	my $newSeq = join('',uc $seqR1,lc $seqV,uc $seqR2);
+	my $tID = join('_','Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$LenV);
+	print O '>',$tID,"\n$newSeq\n\n";
+	my $maxP = length($newSeq) - $PEinsertLen;
+	my $step = int(2*$SeqReadLen/$Depth) or die "2* $SeqReadLen /$Depth => 0\n";
+	my $p = 0;
+	while ($p <= $maxP) {
+		my $PE = substr $newSeq,$p,$PEinsertLen;
+		my $R1 = substr $PE,0,$SeqReadLen;
+		my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
+		#my $revR1 = revcom($R1);
+		my $revR2 = revcom($R2);
+		my $Qual = 'e' x $SeqReadLen;
+		print R1 "\@sf${p}_${tID}/1\n$R1\n+\n$Qual\n";
+		print R2 "\@sf${p}_${tID}/2\n$revR2\n+\n$Qual\n";
+		#print R1 "\@sr${p}_${tID}/1\n$revR1\n+\n$Qual\n";
+		#print R2 "\@sr${p}_${tID}/2\n$R2\n+\n$Qual\n";
+		$p += $step;
+	}
 }
 close O;
+close R1; close R2;
 
 __END__
 ./virusinserts.pl /share/users/huxs/git/toGit/perl/readsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa test
