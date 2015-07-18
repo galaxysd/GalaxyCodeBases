@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo "Patching Microsoft Office Outlook..."
+sudo perl -i.bak -pe 's|\x00\x0F\xA3\xCA\x72\x02\x31\xC0|\x00\x0F\xA3\xCA\x72\x02\x90\x90|' /Applications/Microsoft\ Outlook.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s - /Applications/Microsoft\ Outlook.app/Contents/Frameworks/MicrosoftSetupUI.framework
+
+echo "Patching Microsoft Office Word..."
+sudo perl -i.bak -pe 's|\x00\x0F\xA3\xCA\x72\x02\x31\xC0|\x00\x0F\xA3\xCA\x72\x02\x90\x90|' /Applications/Microsoft\ Word.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s - /Applications/Microsoft\ Word.app/Contents/Frameworks/MicrosoftSetupUI.framework
+
+echo "Patching Microsoft Office Excel..."
+sudo perl -i.bak -pe 's|\x00\x0F\xA3\xCA\x72\x02\x31\xC0|\x00\x0F\xA3\xCA\x72\x02\x90\x90|' /Applications/Microsoft\ Excel.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s - /Applications/Microsoft\ Excel.app/Contents/Frameworks/MicrosoftSetupUI.framework
+
+echo "Patching Microsoft Office PowerPoint..."
+sudo perl -i.bak -pe 's|\x00\x0F\xA3\xCA\x72\x02\x31\xC0|\x00\x0F\xA3\xCA\x72\x02\x90\x90|' /Applications/Microsoft\ PowerPoint.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s - /Applications/Microsoft\ PowerPoint.app/Contents/Frameworks/MicrosoftSetupUI.framework
+
+echo "Credits go to darkvoid."
+echo "All done! Enjoy! :)"
