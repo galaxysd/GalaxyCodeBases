@@ -18,3 +18,6 @@ sudo codesign -f -s - /Applications/Microsoft\ PowerPoint.app/Contents/Framework
 
 echo "Credits go to darkvoid."
 echo "All done! Enjoy! :)"
+
+# http://officecdn.microsoft.com/pr/C1297A47-86C4-4C1F-97FA-950631F94777/OfficeMac/Microsoft_Office_2016_Installer.pkg
+# Length: 1158911746 (1.1G) [application/octet-stream]
