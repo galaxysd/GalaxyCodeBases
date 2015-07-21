@@ -5,12 +5,12 @@ use Time::HiRes qw ( gettimeofday tv_interval );
 
 use Data::Dump qw(ddx);
 
-die "Usage: $0 <Ref> <Virus> <Outprefix>\n" if @ARGV <3;
+die "Usage: $0 <Host> <Virus> <Outprefix>\n" if @ARGV <3;
 
 my ($Reff,$Virf,$outp)=@ARGV;
 
-$Reff='/share/users/huxs/git/toGit/perl/readsim/Chr1.fa';
-$Virf='/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa';
+#$Reff='/share/users/huxs/git/toGit/perl/readsim/Chr1.fa';
+#$Virf='/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa';
 
 my $SampleCnt = 100;
 my $Depth = 50;
