@@ -23,7 +23,7 @@
 ./bsuit grep prj.ini
 ```
 
-# Format of **config_file**
+# Format of `config_file`
 
 ## An example
 
@@ -55,17 +55,21 @@ ProjectID=SZ2015
 
 ## Details
 
+ + For comment lines, use `;` as the first character.
+
  + `RefFiles` Section
    - `HostRef` is **Host genome**.
    - `VirusRef` is **Virus sequence**.
 
  + `DataFiles` Section
    - Each *Sample* need an **unique ID** as *SampleID*. Use `SampleID.1` and `SampleID.2` to specify pair-end sequencing data.
+   - For samples with multiple PE sets, join each file with *comma* and keep their order.
 
  + `InsertSizes` Section
-
+   - For each `SampleID`, use `SampleID` to specify average insert sizes. And use `SampleID.SD` to specify its standard deviation.
 
  + `Output` Section
-
+   - `WorkDir` is the output directory.
+   - `ProjectID` is an **unique ID** for this analyse defined in the `config_file`.
 
 # Description
