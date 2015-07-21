@@ -53,12 +53,19 @@ WorkDir=/share/work/bsvir/bsI
 ProjectID=SZ2015
 ```
 
-## 配置文件说明
+## Details
 
  + `RefFiles` Section
    - `HostRef` is **Host genome**.
    - `VirusRef` is **Virus sequence**.
 
+ + `DataFiles` Section
+   - Each *Sample* need an **unique ID** as *SampleID*. Use `SampleID.1` and `SampleID.2` to specify pair-end sequencing data.
+
+ + `InsertSizes` Section
+
+
+ + `Output` Section
 
 
 # Description
