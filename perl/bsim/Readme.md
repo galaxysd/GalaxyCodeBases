@@ -6,7 +6,9 @@
 ./virusinserts.pl /share/human/Chr1.fa /share/bsvir/HBV.AJ507799.2.fa test
 ```
 
-This will read "Ref.fa" as host genome, and "Virus.fa" as virus, save output file to "Outprefix.ref.fa","Outprefix.1.fq","Outprefix.2.fq".
+This will read "Ref.fa" as **Host genome**, and "Virus.fa" as **Virus sequence**, save output file to "Outprefix.ref.fa","Outprefix.1.fq","Outprefix.2.fq".
+
+For both input files, **only** the first sequence is loaded. All follow sequences, if any, are simply ignored.
 
 # Description
 
