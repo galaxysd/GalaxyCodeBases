@@ -73,3 +73,5 @@ ProjectID=SZ2015
    - `ProjectID` is an **unique ID** for this analyse defined in the `config_file`.
 
 # Description
+
+**BSuit** is a suit to analyse xxx.
