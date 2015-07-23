@@ -9,8 +9,9 @@ die "Usage: $0 <Host> <Virus> <bam sort-n>\n" if @ARGV <3;
 
 my ($Reff,$Virf,$bamin)=@ARGV;
 
-$Reff='/share/users/huxs/git/toGit/perl/readsim/Chr1.fa';
+$Reff='/share/users/huxs/git/toGit/perl/bsim/Chr1.fa';
 $Virf='/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa';
+$bamin='/share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam';
 
 sub openfile($) {
 	my ($filename)=@_;
@@ -31,7 +32,6 @@ sub getRefChr1stID($) {
 		s/^>//;
 		/^(\S+)/ or next;
 		my $seqname = $1;
-		print STDERR ">$seqname ...";
 		return $seqname;
 	}
 }
@@ -42,6 +42,7 @@ close $Refh;
 my $Virfh = openfile($Virf);
 my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
+warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
 my $bamfh = openfile($bamin);
 while (<$bamfh>) {
@@ -49,9 +50,11 @@ while (<$bamfh>) {
 	$_=<$bamfh>;
 	my @dat2 = split /\t/;
 	die "[x]Read1 & Read2 not match ! [$dat1[0]] ne [$dat2[0]]\n" if $dat1[0] ne $dat2[0];
-	warn "[$dat1[0]] [$dat2[0]] [$dat1[3]] [$dat2[3]]\n";
+	#warn "[$dat1[0]] [$dat2[0]] [$dat1[3]] [$dat2[3]]\n";
 }
 close $bamfh;
 
 __END__
-./bamstat.pl /share/users/huxs/git/toGit/perl/readsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa /share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam
+./bamstat.pl /share/users/huxs/git/toGit/perl/bsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa /share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam
+
+zcat /bak/seqdata/genomes/HomoGRCh38/HomoGRCh38.fa.gz|head -n3500000 > Chr1.fa
