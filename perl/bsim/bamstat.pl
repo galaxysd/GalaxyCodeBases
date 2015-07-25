@@ -45,7 +45,7 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getpos($$$$$) {
+sub getHostPos($$$$$) {
 	my ($thePos,$RefLeft,$RefMiddle,$RefRight,$VirLen) = @_;
 	my $LeftPannelen = $RefMiddle - $RefLeft;
 	my $RightPannelen = $RefRight - $RefMiddle;
@@ -53,7 +53,9 @@ sub getpos($$$$$) {
 	if ($thePos <= $LeftPannelen) {
 		$retPos = $RefLeft + $thePos +1;
 	} elsif ($thePos <= $LeftPannelen+$VirLen) {
-		$retPos = $LeftPannelen - $thePos -1;
+		my $p1 = $LeftPannelen - $thePos -1;
+		my $p2 = $thePos - $LeftPannelen - $VirLen;
+		$retPos = ($p1 > $p2)?$p1:$p2;
 	} elsif ($thePos <= $LeftPannelen+$VirLen+$RightPannelen) {
 		$retPos = $RefLeft + $thePos - $VirLen +1;
 	} else {die;}
@@ -70,6 +72,7 @@ sub cigar2rpos($$) {
 	return $lpos + $reflen -1;
 }
 
+my %Stat;
 my $bamfh = openfile($bamin);
 while (<$bamfh>) {
 	my @dat1 = split /\t/;
@@ -81,7 +84,7 @@ while (<$bamfh>) {
 	my ($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight) = ($1,$2,$3,$4,$5,$6,$7);
 	my $rpos1 = cigar2rpos($dat1[5],$dat1[3]);
 	my $rpos2 = cigar2rpos($dat2[5],$dat2[3]);
-	warn "[$dat1[0]]:\n\t$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\t@dat1[1,2,3] $rpos1 - @dat2[1,2,3] $rpos2\n";
+	warn "[$dat1[0]]:\n\t$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\t@dat1[1,2,3,5] $rpos1 - @dat2[1,2,3,5] $rpos2\n";
 	my ($r12R1,$r12R2)=(0,0);
 	if (($dat1[1] & 0x40) and ($dat2[1] & 0x80) ) {
 		$r12R1 = 1; $r12R2 = 2;
@@ -104,11 +107,12 @@ while (<$bamfh>) {
 	} else {$refR2 = "Other:$dat2[2]";}
 	my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
 	my $VirLen = $VirRight - $VirLeft;
-	$R1Left = getpos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R1Right = getpos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R2Left = getpos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R2Right = getpos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLen);
+	$R1Left = getHostPos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLen);
+	$R1Right = getHostPos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLen);
+	$R2Left = getHostPos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLen);
+	$R2Right = getHostPos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLen);
 	warn "\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
+	++$Stat{'SamPairs'};
 }
 close $bamfh;
 
