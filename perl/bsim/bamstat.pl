@@ -45,8 +45,9 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getHostPos($$$$$) {
-	my ($thePos,$RefLeft,$RefMiddle,$RefRight,$VirLen) = @_;
+sub getHostPos($$$$$$) {
+	my ($thePos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight) = @_;
+	my $VirLen = $VirRight - $VirLeft;
 	my $LeftPannelen = $RefMiddle - $RefLeft;
 	my $RightPannelen = $RefRight - $RefMiddle;
 	my $retPos=0;
@@ -60,6 +61,13 @@ sub getHostPos($$$$$) {
 		$retPos = $RefLeft + $thePos - $VirLen +1;
 	} else {die;}
 	return $retPos;
+}
+sub getVirusPos($$$$$$) {
+	my ($thePos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight) = @_;
+	my $VirLen = $VirRight - $VirLeft;
+	my $LeftPannelen = $RefMiddle - $RefLeft;
+	my $RightPannelen = $RefRight - $RefMiddle;
+	my $retPos=0;
 }
 sub cigar2rpos($$) {
 	my ($cigar,$lpos) = @_;
@@ -106,11 +114,20 @@ while (<$bamfh>) {
 		$refR2 = 'Virus';
 	} else {$refR2 = "Other:$dat2[2]";}
 	my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-	my $VirLen = $VirRight - $VirLeft;
-	$R1Left = getHostPos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R1Right = getHostPos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R2Left = getHostPos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLen);
-	$R2Right = getHostPos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLen);
+	if ($refR1 eq 'Host') {
+		$R1Left = getHostPos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+		$R1Right = getHostPos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+	} elsif ($refR1 eq 'Virus') {
+		$R1Left = getVirusPos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+		$R1Right = getVirusPos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+	}
+	if ($refR2 eq 'Host') {
+		$R2Left = getHostPos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+		$R2Right = getHostPos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+	} elsif ($refR2 eq 'Virus') {
+		$R2Left = getVirusPos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+		$R2Right = getVirusPos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight);
+	}
 	warn "\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
 	++$Stat{'SamPairs'};
 }
