@@ -14,6 +14,9 @@ $Reff='t.fa';
 $Virf='/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa';
 $bamin='/share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam';
 
+my $InsertSize = 200;
+my $ReadLen = 90;
+
 sub openfile($) {
 	my ($filename)=@_;
 	my $infile;
@@ -45,7 +48,7 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getHostPos($$$$$$$) {
+sub getHostPos($$$$$$$$) {
 	my ($thePos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR) = @_;
 	my $VirLen = $VirRight - $VirLeft;
 	my $LeftPannelen = $RefMiddle - $RefLeft;
@@ -54,12 +57,16 @@ sub getHostPos($$$$$$$) {
 	if ($thePos <= $LeftPannelen) {
 		$retPos = $RefLeft + $thePos +1;
 	} elsif ($thePos <= $LeftPannelen+$VirLen) {
+		my $p1 = $LeftPannelen - $thePos -1;
+		my $p2 = $thePos - $LeftPannelen - $VirLen;
 		if ($refR eq 'Host') {
-			my $p1 = $LeftPannelen - $thePos -1;
-			my $p2 = $thePos - $LeftPannelen - $VirLen;
 			$retPos = ($p1 > $p2)?$p1:$p2;
 		} elsif ($refR eq 'Virus') {
-			$retPos = 1;
+			if ($VirStrand eq '+') {
+				$retPos = $VirLeft + $p1 +1;
+			} elsif ($VirStrand eq '-') {
+				$retPos = $VirRight + $p1 -$ReadLen +1;
+			} else {die;}
 		}
 	} elsif ($thePos <= $LeftPannelen+$VirLen+$RightPannelen) {
 		$retPos = $RefLeft + $thePos - $VirLen +1;
@@ -112,9 +119,9 @@ while (<$bamfh>) {
 	} else {$refR2 = "Other:$dat2[2]";}
 	my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
 	$R1Left = getHostPos($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR1);
-	$R1Right = getHostPos($innerPos+89,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR1);
-	$R2Left = getHostPos($innerPos+110,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
-	$R2Right = getHostPos($innerPos+199,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
+	$R1Right = getHostPos($innerPos+$ReadLen-1,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR1);
+	$R2Left = getHostPos($innerPos+($InsertSize-$ReadLen),$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
+	$R2Right = getHostPos($innerPos+$InsertSize-1,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
 	warn "\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
 	++$Stat{'SamPairs'};
 }
