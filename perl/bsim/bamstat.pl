@@ -59,6 +59,16 @@ sub getpos($$$$$) {
 	} else {die;}
 	return $retPos;
 }
+sub cigar2rpos($$) {
+	my ($cigar,$lpos) = @_;
+	my $reflen = 0;
+	my @cigar = $cigar =~ /(\d+)(\w)/g;
+	while (@cigar) {
+		my ($len,$op) = splice(@cigar,0,2);
+		$reflen += $len if $op eq 'M' or $op eq 'D';
+	}
+	return $lpos + $reflen -1;
+}
 
 my $bamfh = openfile($bamin);
 while (<$bamfh>) {
@@ -69,7 +79,9 @@ while (<$bamfh>) {
 	# sf0_Ref_2707868_2708068_2708268_Vir_-_5629_5731
 	$dat1[0] =~ /^sf(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)$/ or die;
 	my ($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight) = ($1,$2,$3,$4,$5,$6,$7);
-	warn "[$dat1[0]]:\n\t$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\t@dat1[1,2,3] - @dat2[1,2,3]\n";
+	my $rpos1 = cigar2rpos($dat1[5],$dat1[3]);
+	my $rpos2 = cigar2rpos($dat2[5],$dat2[3]);
+	warn "[$dat1[0]]:\n\t$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\t@dat1[1,2,3] $rpos1 - @dat2[1,2,3] $rpos2\n";
 	my ($r12R1,$r12R2)=(0,0);
 	if (($dat1[1] & 0x40) and ($dat2[1] & 0x80) ) {
 		$r12R1 = 1; $r12R2 = 2;
