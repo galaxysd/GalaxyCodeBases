@@ -122,10 +122,38 @@ while (<$bamfh>) {
 	$R1Right = getHostPos($innerPos+$ReadLen-1,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR1);
 	$R2Left = getHostPos($innerPos+($InsertSize-$ReadLen),$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
 	$R2Right = getHostPos($innerPos+$InsertSize-1,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
-	warn "\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
-	++$Stat{'SamPairs'};
+	my $flag=0;
+	if ($refR1 eq 'Host' and $refR2 eq 'Host') {	# SamPairsHost
+		$flag |=1;
+		if (($R1Left == $dat1[3]) or ($R1Right == $rpos1)) {	# Fq1anchored
+			$flag |=2;
+			if ($dat1[5] eq "${ReadLen}M") {
+				$flag |=8;
+			} elsif ($dat1[5] =~ /^(\d+)S/) {
+				$flag |=8 if $1 + $R1Left ==0;
+			} elsif ($dat1[5] =~ /(\d+)S$/) {
+				$flag |=8 if $1 + $R1Right ==0;
+			} else { $flag |=1024 }
+		}
+		if (($R2Left == $dat2[3]) or ($R1Right == $rpos2)) {	# Fq2anchored
+			$flag |=4;
+			if ($dat2[5] eq "${ReadLen}M") {
+				$flag |=16;
+			} elsif ($dat2[5] =~ /^(\d+)S/) {
+				$flag |=16 if $1 + $R2Left ==0;
+			} elsif ($dat2[5] =~ /(\d+)S$/) {
+				$flag |=16 if $1 + $R2Right ==0;
+			} else { $flag |=2048 }
+		}
+	} elsif ("$refR1 $refR2" !~ /Other/) {
+		$flag |=4096;	# Virus are not supported yet.
+	}
+	warn "Flag:$flag\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
+	++$Stat{$flag};
 }
 close $bamfh;
+
+ddx \%Stat;
 
 __END__
 ./bamstat.pl /share/users/huxs/git/toGit/perl/bsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa /share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam
