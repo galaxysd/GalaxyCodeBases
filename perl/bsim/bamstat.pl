@@ -63,9 +63,9 @@ sub getHostPos($$$$$$$$) {
 			$retPos = ($p1 > $p2)?$p1:$p2;
 		} elsif ($refR eq 'Virus') {
 			if ($VirStrand eq '+') {
-				$retPos = $VirLeft + $p1 +1;
+				$retPos = $VirLeft + $p1 +1;	# 病毒序列涉及正负链，需要考虑R1、R2是哪条链上的。此处$refR eq 'Virus'的代码错误。
 			} elsif ($VirStrand eq '-') {
-				$retPos = $VirRight + $p1 -$ReadLen +1;
+				$retPos = $VirRight + $p1 -$ReadLen +2;	# 调成加二是迁就。真正要修改的是调用前针对正负链设置$thePos。
 			} else {die;}
 		}
 	} elsif ($thePos <= $LeftPannelen+$VirLen+$RightPannelen) {
