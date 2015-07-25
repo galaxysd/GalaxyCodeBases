@@ -123,33 +123,48 @@ while (<$bamfh>) {
 	$R2Left = getHostPos($innerPos+($InsertSize-$ReadLen),$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
 	$R2Right = getHostPos($innerPos+$InsertSize-1,$RefLeft,$RefMiddle,$RefRight,$VirLeft,$VirRight,$VirStrand,$refR2);
 	my $flag=0;
-	if ($refR1 eq 'Host' and $refR2 eq 'Host') {	# SamPairsHost
+	if ($refR1 eq 'Host') {	# SamPairsHost
 		$flag |=1;
 		if (($R1Left == $dat1[3]) or ($R1Right == $rpos1)) {	# Fq1anchored
 			$flag |=2;
 			if ($dat1[5] eq "${ReadLen}M") {
+				$flag |=4;
 				$flag |=8;
 			} elsif ($dat1[5] =~ /^(\d+)S/) {
+				$flag |=4;
 				$flag |=8 if $1 + $R1Left ==0;
 			} elsif ($dat1[5] =~ /(\d+)S$/) {
+				$flag |=4;
 				$flag |=8 if $1 + $R1Right ==0;
-			} else { $flag |=1024 }
+			}
 		}
-		if (($R2Left == $dat2[3]) or ($R1Right == $rpos2)) {	# Fq2anchored
-			$flag |=4;
-			if ($dat2[5] eq "${ReadLen}M") {
-				$flag |=16;
-			} elsif ($dat2[5] =~ /^(\d+)S/) {
-				$flag |=16 if $1 + $R2Left ==0;
-			} elsif ($dat2[5] =~ /(\d+)S$/) {
-				$flag |=16 if $1 + $R2Right ==0;
-			} else { $flag |=2048 }
-		}
-	} elsif ("$refR1 $refR2" !~ /Other/) {
-		$flag |=4096;	# Virus are not supported yet.
 	}
+	if ($refR2 eq 'Host') {
+		$flag |=16;
+		if (($R2Left == $dat2[3]) or ($R1Right == $rpos2)) {	# Fq2anchored
+			$flag |=32;
+			if ($dat2[5] eq "${ReadLen}M") {
+				$flag |=64;
+				$flag |=128;
+			} elsif ($dat2[5] =~ /^(\d+)S/) {
+				$flag |=64;
+				$flag |=128 if $1 + $R2Left ==0;
+			} elsif ($dat2[5] =~ /(\d+)S$/) {
+				$flag |=64;
+				$flag |=128 if $1 + $R2Right ==0;
+			}
+		}
+	}
+	$flag |=4096 if $refR1 eq 'Virus';	# Virus are not supported yet.
+	$flag |=8192 if $refR2 eq 'Virus';
+	$flag = sprintf "%016b",$flag;
 	warn "Flag:$flag\t$r12R1,$r12R2 $strandR1,$strandR2 $refR1,$refR2\t$R1Left,$R1Right,$R2Left,$R2Right\n";
 	++$Stat{$flag};
+=pod
+$flag:
+	0: Other,Other
+	1: Host
+=cut
 }
 close $bamfh;
 
@@ -159,3 +174,45 @@ __END__
 ./bamstat.pl /share/users/huxs/git/toGit/perl/bsim/Chr1.fa /share/users/huxs/work/bsvir/HBV.AJ507799.2.fa /share/users/huxs/work/bsvir/bsI/Test1_aln/T.sn.bam
 
 zcat /bak/seqdata/genomes/HomoGRCh38/HomoGRCh38.fa.gz|head -n3500000 > Chr1.fa
+
+# bamstat.pl:171: {
+#   "0000000000000000" => 93,
+#   "0000000000001111" => 18,
+#   "0000000000010000" => 4,
+#   "0000000000010001" => 253,
+#   "0000000000010011" => 29,
+#   "0000000000010111" => 136,
+#   "0000000000011111" => 242,
+#   "0000000000111111" => 169,
+#   "0000000001110000" => 1,
+#   "0000000001111111" => 796,
+#   "0000000011110000" => 26,
+#   "0000000011110001" => 13,
+#   "0000000011110011" => 161,
+#   "0000000011110111" => 922,
+#   "0000000011111111" => 2182,
+#   "0001000000000000" => 121,
+#   "0001000000010000" => 720,
+#   "0001000011110000" => 1150,
+#   "0010000000000000" => 84,
+#   "0010000000000001" => 145,
+#   "0010000000000011" => 77,
+#   "0010000000000111" => 98,
+#   "0010000000001111" => 1584,
+#   "0011000000000000" => 5585,
+# }
+
+# bamstat.pl:156: {
+#   "0"    => 347,
+#   "1"    => 253,
+#   "3"    => 136,
+#   "11"   => 242,
+#   "15"   => 796,
+#   "21"   => 13,
+#   "23"   => 922,
+#   "31"   => 2182,
+#   "1027" => 29,
+#   "1047" => 161,
+#   "2063" => 169,
+#   "4096" => 9359,
+# }
