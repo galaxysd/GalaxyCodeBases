@@ -8,7 +8,7 @@ use Data::Dump qw(ddx);
 my ($inp)=@ARGV;
 $inp='fq';
 
-my $Ref = 'ref/Felis_catus80_chr.fa';
+my $Ref = 'ref/hs37d5.fa';
 my $BwaKit = "./bwa.kit/run-bwamem -sad -t12";
 my $SamTools = './bwa.kit/samtools';
 my $SamtoolsMerge = "$SamTools merge -l 9";
@@ -26,23 +26,42 @@ closedir $dh;
 
 my (%Pairs,@AllTargets);
 for ( @files ) {
-	m~^([^/]+?)([\W_]*?)([12])?(\.f(ast|)q(\.gz)?)$~i or die $_;
-	my ($m,$rp,$r,$ext) = ($1,$2,$3,$4);
-	$m =~ s/\W//g and die $m;
+	m~^([^/]+?)([\W_.]*?)([12])?(\.clean)?(\.f(ast|)q(\.gz)?)$~i or die $_;
+	my ($m,$rp,$r,$ext) = ($1,$2,$3,$5);
+	#$m =~ s/\W//g and die $m;	# 减号也是\W, >_<
 	print "$1, $2, $3, $4, $5, $6, $7\t$m,$rp,$r,$ext, $_\n";
 die unless ($r == 1) or ($r==2);	# no SE now
 	push @{$Pairs{$m}},[$_,$r];
 }
 
-my %Samples;
+my (%SamplesFN,%Samples);
 for (keys %Pairs) {
-	my ($sid) = split /_/,$_;
-	push @{$Samples{$sid}},$_;
+	my ($sid) = (split /_/,$_)[-2];
+	push @{$SamplesFN{$sid}},$_;
 }
-@AllTargets = sort keys %Samples;
+@AllTargets = sort keys %SamplesFN;
 
 ddx \%Pairs;
+ddx \%SamplesFN;
+print join(',',@AllTargets),"\n";
+
+open S,'>','Samples.list.pre';
+print S "$_\t\n" for @AllTargets;
+close S;
+
+if (-s 'Samples.list') {
+	open S,'<','Samples.list';
+	while (<S>) {
+		chomp;
+		my ($id,$sample)=split /\t/;
+		$Samples{$sample} = $SamplesFN{$id};
+	}
+} else {
+	$Samples{$_} = $SamplesFN{$_} for @AllTargets;
+}
 ddx \%Samples;
+print join(',',@AllTargets),"\n";
+@AllTargets = sort keys %Samples;
 print join(',',@AllTargets),"\n";
 
 open M,'>','Makefile' or die $!;
