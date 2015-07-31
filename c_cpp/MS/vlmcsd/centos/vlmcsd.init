@@ -16,7 +16,10 @@ source /etc/init.d/functions
 
 # Daemon
 NAME=vlmcsd-server
-DAEMON=/usr/bin/vlmcsd
+DAEMON=/opt/sbin/vlmcsd
+
+INIFILE=/opt/sbin/vlmcsd.ini
+LOGFILE=/opt/sbin/vlmcsd.log
 
 # Path to the lock file.
 #
@@ -38,7 +41,7 @@ start() {
     fi
 
     echo -n $"Starting ${NAME}: "
-    daemon $DAEMON -p $PID_FILE
+    daemon $DAEMON -p $PID_FILE -i $INIFILE -l $LOGFILE
 
     RETVAL=$?
     echo
@@ -82,3 +85,4 @@ case "$1" in
 esac
 
 exit $RETVAL
+
