@@ -5,9 +5,9 @@ KMS Emulator in C for openwrt.
 
 http://forums.mydigitallife.info/threads/50234-Emulated-KMS-Servers-on-non-Windows-platforms
 
-##Windows ¼¤»îÃüÁî£º
+##Windows æ¿€æ´»å‘½ä»¤ï¼š
 
-CD ¡°%SystemRoot%\SYSTEM32¡å
+CD â€œ%SystemRoot%\SYSTEM32â€³
 
 CSCRIPT /NOLOGO SLMGR.VBS /SKMS 192.168.0.xxx
 
@@ -15,11 +15,11 @@ CSCRIPT /NOLOGO SLMGR.VBS /ATO
 
 CSCRIPT /NOLOGO SLMGR.VBS /XPR
 
-##Office/Project/Visio 2013(2010»»ÏÂ°²×°Â·¾¶) ¼¤»îÃüÁî£º
+##Office/Project/Visio 2013(2010æ¢ä¸‹å®‰è£…è·¯å¾„) æ¿€æ´»å‘½ä»¤ï¼š
 
-32Î»£ºCD ¡°%ProgramFiles(x86)%\MICROSOFT OFFICE\OFFICE15¡å
+32ä½ï¼šCD â€œ%ProgramFiles(x86)%\MICROSOFT OFFICE\OFFICE15â€³
 
-64Î»£ºCD ¡°%ProgramFiles%\MICROSOFT OFFICE\OFFICE15¡å
+64ä½ï¼šCD â€œ%ProgramFiles%\MICROSOFT OFFICE\OFFICE15â€³
 
 CSCRIPT OSPP.VBS /SETHST:192.168.0.xxx
 
