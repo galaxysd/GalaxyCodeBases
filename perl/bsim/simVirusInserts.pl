@@ -92,12 +92,12 @@ $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 my @fps = sort keys %fqFiles;
 print INI "[DataFiles]\n";
 for my $i (0 .. $#fps) {
-	print INI "F${i}.1=",abs_path($fps[$i].'.1.fq'),"\n";
-	print INI "F${i}.2=",abs_path($fps[$i].'.2.fq'),"\n";
+	print INI "F$fps[$i].1=",abs_path($fps[$i].'.1.fq'),"\n";
+	print INI "F$fps[$i].2=",abs_path($fps[$i].'.2.fq'),"\n";
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
-	print INI "F${i}=",$fqFiles{$fps[$i]},"\nF${i}.SD=1\n";
+	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=1\n";
 }
 close INI;
 
