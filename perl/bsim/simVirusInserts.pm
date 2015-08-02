@@ -109,7 +109,9 @@ sub getype($$) {
 			$type = 'F';
 		}
 	} elsif ($R1 =~ /^[a-z]+[A-Z]+$/) {
-		if ($R2 =~ /^[A-Z]+$/) {
+		if ($R2 =~ /^[a-z]+[A-Z]+$/) {
+			$type = 'H';
+		} elsif ($R2 =~ /^[A-Z]+$/) {
 			$type = 'G';
 		}
 	}
