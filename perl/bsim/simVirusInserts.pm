@@ -165,4 +165,15 @@ sub dosim($$$) {
 	close R1; close R2;
 }
 
+sub cigar2rpos($$) {
+	my ($cigar,$lpos) = @_;
+	my $reflen = 0;
+	my @cigar = $cigar =~ /(\d+)(\w)/g;
+	while (@cigar) {
+		my ($len,$op) = splice(@cigar,0,2);
+		$reflen += $len if $op eq 'M' or $op eq 'D';	# 'S' in other place.
+	}
+	return $lpos + $reflen -1;
+}
+
 1;
