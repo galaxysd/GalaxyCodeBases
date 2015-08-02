@@ -45,6 +45,16 @@ my %Para = (
 );
 dosim($Refstr,$Virstr,\%Para);
 
+$Para{LeftStart} = $SeqReadLen;
+$Para{LeftEnd} = 2*$PEinsertLen;
+$Para{OutPrefix} = $outp . '_m03';
+dosim($Refstr,$Virstr,\%Para);
+
+$Para{LeftStart} = 2*$PEinsertLen +1;
+$Para{LeftEnd} = 2*$PEinsertLen +$SeqReadLen-1;
+$Para{OutPrefix} = $outp . '_m04';
+dosim($Refstr,$Virstr,\%Para);
+
 $Para{VirFrag} = int($SeqReadLen*0.5);
 $Para{LeftStart} = $Para{VirFrag}+1;
 $Para{LeftEnd} = $SeqReadLen -1;
