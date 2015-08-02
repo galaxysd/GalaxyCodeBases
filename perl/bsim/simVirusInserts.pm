@@ -171,9 +171,27 @@ sub cigar2rpos($$) {
 	my @cigar = $cigar =~ /(\d+)(\w)/g;
 	while (@cigar) {
 		my ($len,$op) = splice(@cigar,0,2);
-		$reflen += $len if $op eq 'M' or $op eq 'D';	# 'S' in other place.
+		$reflen += $len if $op =~ /^[MD]$/;
 	}
 	return $lpos + $reflen -1;
+}
+
+sub cigar2SMS($) {
+	my ($cigar) = @_;
+	my @cigars = $cigar =~ /(\d+\w)/g;
+	my ($Left,$Middle,$Right)=(0,0,0);
+	if ($cigars[0] =~ /(\d+)S/) {
+		shift @cigars;
+		$Left = $1;
+		
+	}
+	if ($cigars[-1] =~ /(\d+)S/) {
+		pop @cigars;
+		$Right = $1;
+	}
+	$Middle = join('',@cigars);
+	$Middle = cigar2rpos($Middle,1);
+	return [$Left,$Middle,$Right];
 }
 
 1;
