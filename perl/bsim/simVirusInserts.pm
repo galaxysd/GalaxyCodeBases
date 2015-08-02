@@ -67,14 +67,64 @@ sub getticks($$$$$) {
 	return \@theticks;
 }
 
+sub getype($$) {
+	my ($R1,$R2)=@_;
+	my $type='I'; # !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJ
+	if ($R1 =~ /^[A-Z]+$/) {
+		if ($R2 =~ /^[A-Z]+[a-z]+$/) {
+			$type = '1';
+		} elsif ($R2 =~ /^[A-Z]+[a-z]+[A-Z]+$/) {
+			$type = '2';
+		} elsif ($R2 =~ /^[a-z]+$/) {
+			$type = '3';
+		} elsif ($R2 =~ /^[a-z]+[A-Z]+$/) {
+			$type = '4';
+		} elsif ($R2 =~ /^[A-Z]+$/) {
+			$type = '5';
+		}
+	} elsif ($R1 =~ /^[A-Z]+[a-z]+$/) {
+		if ($R2 =~ /^[A-Z]+[a-z]+$/) {
+			$type = '6';
+		} elsif ($R2 =~ /^[A-Z]+[a-z]+[A-Z]+$/) {
+			$type = '7';
+		} elsif ($R2 =~ /^[a-z]+$/) {
+			$type = '8';
+		} elsif ($R2 =~ /^[a-z]+[A-Z]+$/) {
+			$type = '9';
+		} elsif ($R2 =~ /^[A-Z]+$/) {
+			$type = 'A';
+		}
+	} elsif ($R1 =~ /^[A-Z]+[a-z]+[A-Z]+$/) {
+		if ($R2 =~ /^[A-Z]+[a-z]+[A-Z]+$/) {
+			$type = 'B';
+		} elsif ($R2 =~ /^[a-z]+[A-Z]+$/) {
+			$type = 'C';
+		} elsif ($R2 =~ /^[A-Z]+$/) {
+			$type = 'D';
+		}
+	} elsif ($R1 =~ /^[a-z]+$/) {
+		if ($R2 =~ /^[a-z]+[A-Z]+$/) {
+			$type = 'E';
+		} elsif ($R2 =~ /^[A-Z]+$/) {
+			$type = 'F';
+		}
+	} elsif ($R1 =~ /^[a-z]+[A-Z]+$/) {
+		if ($R2 =~ /^[A-Z]+$/) {
+			$type = 'G';
+		}
+	}
+	return $type;
+}
+
 sub dosim($$$) {
 	my ($Refstr,$Virstr,$Paras)=@_;
 	my $PEinsertLen = $Paras->{PEinsertLen};
 	my $SeqReadLen = $Paras->{SeqReadLen};
+	my $RefBorder = $PEinsertLen + 1000;
 	open O,'>',$Paras->{OutPrefix}.'.Ref.fa';
 	open R1,'>',$Paras->{OutPrefix}.'.1.fq';
 	open R2,'>',$Paras->{OutPrefix}.'.2.fq';
-	my @Refticks = @{getticks($Paras->{RefBorder},$Refstr,$Paras->{RefLen},$PEinsertLen,$Paras->{RefNratioMax})};
+	my @Refticks = @{getticks($RefBorder,$Refstr,$Paras->{RefLen},$PEinsertLen,$Paras->{RefNratioMax})};
 	my @Virticks = @{getticks($Paras->{VirFrag},$Virstr,$Paras->{VirLen},int(0.9+ 0.5*$Paras->{VirFrag}),$Paras->{RefNratioMax})};
 	ddx $Paras;
 	for my $pRef (@Refticks) {
@@ -93,16 +143,18 @@ sub dosim($$$) {
 		my $tID = join('_','Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$Paras->{VirFrag});
 		print O '>',$tID,"\n$newSeq\n\n";
 		my $maxP = length($newSeq) - $PEinsertLen;
-		for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
-			last if $p > $maxP;
+		#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
+		for my $p (0 .. $maxP) {
+			#last if $p > $maxP;
 			my $PE = substr $newSeq,$p,$PEinsertLen;
 			my $R1 = substr $PE,0,$SeqReadLen;
 			my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 			#my $revR1 = revcom($R1);
 			my $revR2 = revcom($R2);
-			my $Qual = 'e' x $SeqReadLen;
-			print R1 "\@sf${p}_${tID}/1\n$R1\n+\n$Qual\n";
-			print R2 "\@sf${p}_${tID}/2\n$revR2\n+\n$Qual\n";
+			my $type = getype($R1,$R2);
+			my $Qual = $type x $SeqReadLen;
+			print R1 "\@sf${p}_${tID}/1 $type\n$R1\n+\n$Qual\n";
+			print R2 "\@sf${p}_${tID}/2 $type\n$revR2\n+\n$Qual\n";
 			#print R2 "\@sr${p}_${tID}/2\n$revR1\n+\n$Qual\n";
 			#print R1 "\@sr${p}_${tID}/1\n$R2\n+\n$Qual\n";
 		}

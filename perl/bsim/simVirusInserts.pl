@@ -7,11 +7,6 @@ use FindBin 1.51 qw($RealBin);
 use lib "$RealBin";
 use simVirusInserts;
 
-my $SampleCnt = 100;
-#my $Depth = 50;
-my $PEinsertLen=200;
-my $SeqReadLen=90;
-my $RefBorder = $PEinsertLen + 1000;
 my $RefNratioMax = 0.02;
 
 die "Usage: $0 <Host> <Virus> <Outprefix>\n" if @ARGV <3;
@@ -32,37 +27,45 @@ close $Virfh;
 $Virstr .= $Virstr;	# circle
 
 my %Para = (
-	PEinsertLen => $PEinsertLen,
-	SeqReadLen => $SeqReadLen,
+	PEinsertLen => 200,
+	SeqReadLen => 90,
 	RefNratioMax => $RefNratioMax,
-	RefBorder => $RefBorder,
-	LeftStart => 1,
-	LeftEnd => $SeqReadLen-1,
 	RefLen => $RefLen,
 	VirLen => $VirLen,
-	VirFrag => 2*$PEinsertLen,
-	OutPrefix => $outp . '_m01',
+	VirFrag => 2 * 90,
+	OutPrefix => $outp . '_m13FG',
 );
 dosim($Refstr,$Virstr,\%Para);
 
-$Para{LeftStart} = $SeqReadLen;
-$Para{LeftEnd} = 2*$PEinsertLen;
-$Para{OutPrefix} = $outp . '_m03';
+$Para{PEinsertLen} = 200;
+$Para{VirFrag} = 45;
+$Para{OutPrefix} = $outp . '_m2D';
 dosim($Refstr,$Virstr,\%Para);
 
-$Para{LeftStart} = 2*$PEinsertLen +1;
-$Para{LeftEnd} = 2*$PEinsertLen +$SeqReadLen-1;
-$Para{OutPrefix} = $outp . '_m04';
+$Para{PEinsertLen} = 420;
+$Para{VirFrag} = 120;
+$Para{OutPrefix} = $outp . '_m458AE';
 dosim($Refstr,$Virstr,\%Para);
 
-$Para{VirFrag} = int($SeqReadLen*0.5);
-$Para{LeftStart} = $Para{VirFrag}+1;
-$Para{LeftEnd} = $SeqReadLen -1;
-$Para{OutPrefix} = $outp . '_m02';
+$Para{PEinsertLen} = 200;
+$Para{VirFrag} = 120;
+$Para{OutPrefix} = $outp . '_m9';
 dosim($Refstr,$Virstr,\%Para);
 
-#my $VirFragMax = 500;
-#my $VirFragMin = 20;
+$Para{PEinsertLen} = 150;
+$Para{VirFrag} = 120;
+$Para{OutPrefix} = $outp . '_m6';
+dosim($Refstr,$Virstr,\%Para);
+
+$Para{PEinsertLen} = 150;
+$Para{VirFrag} = 45;
+$Para{OutPrefix} = $outp . '_m7C';
+dosim($Refstr,$Virstr,\%Para);
+
+$Para{PEinsertLen} = 100;
+$Para{VirFrag} = 45;
+$Para{OutPrefix} = $outp . '_mB';
+dosim($Refstr,$Virstr,\%Para);
 
 __END__
 ./simVirusInserts.pl hs_ref_GRCh38.p2_chr18.mfa.gz HBV.AJ507799.2.fa.gz simout
