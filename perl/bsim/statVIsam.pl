@@ -23,9 +23,22 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getInsertPos($$$) {
-	my ($r1fr,$rSMS,$r12)=@_;
-	my ($FiveSkip,$ThreeSkip,$FiveT,$ThreeT)=(0,0,0);
+sub getInsertPos($$$$$) {
+	my ($r1fr,$innerPos,$InsertSize,$ReadLen,$r12)=@_;
+	my ($FiveT,$ThreeT)=(0,0);
+	if (($r12 == 1 and $r1fr eq 'f') or ($r12 == 2 and $r1fr eq 'r')) {
+		$FiveT = $innerPos;
+		$ThreeT = $innerPos + $ReadLen;
+	} elsif (($r12 == 2 and $r1fr eq 'f') or ($r12 == 1 and $r1fr eq 'r')) {
+		my $InnerDis = $InsertSize - $ReadLen*2;
+		$FiveT = $innerPos + $ReadLen + $InnerDis;
+		$ThreeT = $innerPos + $InsertSize;
+	} else {die 'Y';}
+	return ($FiveT,$ThreeT);
+}
+sub InsertPos2RealPos($$$$) {
+	my ($r1fr,$rSMS)=@_;
+	my ($FiveSkip,$ThreeSkip)=(0,0);
 	if ($r1fr eq 'f') {
 		$FiveSkip = $$rSMS[0];
 		$ThreeSkip = $$rSMS[2];
@@ -34,13 +47,11 @@ sub getInsertPos($$$) {
 		$ThreeSkip = $$rSMS[0];
 	}
 }
-sub InsertPos2RealPos() {
-	my ($t)=@_;
-}
-sub getRealPos($$$$$$) {
-	my ($r1fr,$MappedChr,$rSMS,$r12,$strand,$samPos)=@_;
-	getInsertPos($r1fr,$rSMS,$r12);
-	return (1,2);
+sub getRealPos($$$$$$$$$) {
+	my ($r1fr,$innerPos,$InsertSize,$ReadLen,$MappedChr,$rSMS,$r12,$strand,$samPos)=@_;
+	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
+	InsertPos2RealPos($r1fr,$rSMS,$FiveT,$ThreeT);
+	return ($FiveT,$ThreeT);
 }
 
 my %Stat;
@@ -53,7 +64,7 @@ for my $bamin (@ARGV) {
 		my @dat2 = split /\t/;
 		die "[x]Read1 & Read2 not match ! [$dat1[0]] ne [$dat2[0]]\n" if $dat1[0] ne $dat2[0];
 		# sf0_Ref_2707868_2708068_2708268_Vir_-_5629_5731
-		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R__(\d+)_(\d+)$/ or die;
+		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R_(\d+)_(\d+)$/ or die "$dat1[0]";
 		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight,$InsertSize,$ReadLen) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);
 		#print "$dat1[0] $innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\n";
 		my $r1SMS = cigar2SMS($dat1[5]);
@@ -80,8 +91,9 @@ for my $bamin (@ARGV) {
 			$refR2 = 'Virus';
 		} else {$refR2 = "Other:$dat2[2]";}
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-		($R1Left,$R1Right) = getRealPos($r1fr,$refR1,$r1SMS,$r12R1,$strandR1,$dat1[3]);
-		warn "($R1Left,$R1Right) $r12R1 $r1fr";
+		($R1Left,$R1Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$refR1,$r1SMS,$r12R1,$strandR1,$dat1[3]);
+		($R2Left,$R2Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$refR2,$r2SMS,$r12R2,$strandR2,$dat2[3]);
+		warn "$r1fr ($R1Left,$R1Right) $r12R1 ($R2Left,$R2Right) $r12R2\n";
 	}
 	close $bamfh;
 	print STDERR ".\n";
