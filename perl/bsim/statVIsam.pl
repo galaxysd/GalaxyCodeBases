@@ -23,8 +23,23 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getInsertPoa($$$$$) {
-	my ($refRead,$cigar,$samPos);
+sub getInsertPos($$$) {
+	my ($r1fr,$rSMS,$r12)=@_;
+	my ($FiveSkip,$ThreeSkip,$FiveT,$ThreeT)=(0,0,0);
+	if ($r1fr eq 'f') {
+		$FiveSkip = $$rSMS[0];
+		$ThreeSkip = $$rSMS[2];
+	} elsif ($r1fr eq 'r') {
+		$FiveSkip = $$rSMS[2];
+		$ThreeSkip = $$rSMS[0];
+	}
+}
+sub InsertPos2RealPos() {
+	my ($t)=@_;
+}
+sub getRealPos($$$$$$) {
+	my ($r1fr,$MappedChr,$rSMS,$r12,$strand,$samPos)=@_;
+	getInsertPos($r1fr,$rSMS,$r12);
 	return (1,2);
 }
 
@@ -38,8 +53,8 @@ for my $bamin (@ARGV) {
 		my @dat2 = split /\t/;
 		die "[x]Read1 & Read2 not match ! [$dat1[0]] ne [$dat2[0]]\n" if $dat1[0] ne $dat2[0];
 		# sf0_Ref_2707868_2708068_2708268_Vir_-_5629_5731
-		$dat1[0] =~ /^sf(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)$/ or die;
-		my ($innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight) = ($1,$2,$3,$4,$5,$6,$7);
+		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)$/ or die;
+		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight) = ($1,$2,$3,$4,$5,$6,$7,$8);
 		#print "$dat1[0] $innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\n";
 		my $r1SMS = cigar2SMS($dat1[5]);
 		my $r2SMS = cigar2SMS($dat2[5]);
@@ -65,8 +80,8 @@ for my $bamin (@ARGV) {
 			$refR2 = 'Virus';
 		} else {$refR2 = "Other:$dat2[2]";}
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-		($R1Left,$R1Right) = getInsertPoa($refR1,$r1SMS,$r12R1,$strandR1,$dat1[3]);
-		die "($R1Left,$R1Right)";
+		($R1Left,$R1Right) = getRealPos($r1fr,$refR1,$r1SMS,$r12R1,$strandR1,$dat1[3]);
+		warn "($R1Left,$R1Right) $r12R1 $r1fr";
 	}
 	close $bamfh;
 	print STDERR ".\n";

@@ -142,7 +142,7 @@ sub dosim($$$) {
 			$strand = '-';
 		}
 		my $newSeq = join('',uc $seqR1,lc $seqV,uc $seqR2);
-		my $tID = join('_','Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$Paras->{VirFrag});
+		my $tID = join('_','Ref',$pRef-$PEinsertLen,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
 		print O '>',$tID,"\n$newSeq\n\n";
 		my $maxP = length($newSeq) - $PEinsertLen;
 		#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
@@ -151,14 +151,16 @@ sub dosim($$$) {
 			my $PE = substr $newSeq,$p,$PEinsertLen;
 			my $R1 = substr $PE,0,$SeqReadLen;
 			my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
-			#my $revR1 = revcom($R1);
 			my $revR2 = revcom($R2);
 			my $type = getype($R1,$R2);
 			my $Qual = $type x $SeqReadLen;
 			print R1 "\@sf${p}_${tID}/1 $type\n$R1\n+\n$Qual\n";
 			print R2 "\@sf${p}_${tID}/2 $type\n$revR2\n+\n$Qual\n";
-			#print R2 "\@sr${p}_${tID}/2\n$revR1\n+\n$Qual\n";
-			#print R1 "\@sr${p}_${tID}/1\n$R2\n+\n$Qual\n";
+			my $revR1 = revcom($R1);
+			$type =~ tr/123456789ABCDEFGH/GDFA5HCE94B728316/;	# 反向后的对应关系
+			$Qual = $type x $SeqReadLen;
+			print R2 "\@sr${p}_${tID}/2 $type\n$revR1\n+\n$Qual\n";
+			print R1 "\@sr${p}_${tID}/1 $type\n$R2\n+\n$Qual\n";
 		}
 	}
 	close O;
