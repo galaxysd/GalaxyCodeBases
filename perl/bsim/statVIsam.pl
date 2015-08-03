@@ -23,9 +23,9 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getInsertPoa($$$) {
+sub getInsertPoa($$$$$) {
 	my ($refRead,$cigar,$samPos);
-	
+	return (1,2);
 }
 
 my %Stat;
@@ -65,7 +65,8 @@ for my $bamin (@ARGV) {
 			$refR2 = 'Virus';
 		} else {$refR2 = "Other:$dat2[2]";}
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-		$R1Left = getInsertPoa($refR1,$dat1[5],$dat1[3]);
+		($R1Left,$R1Right) = getInsertPoa($refR1,$r1SMS,$r12R1,$strandR1,$dat1[3]);
+		die "($R1Left,$R1Right)";
 	}
 	close $bamfh;
 	print STDERR ".\n";
