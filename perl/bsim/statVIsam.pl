@@ -40,10 +40,10 @@ sub InsertPos2PartLVR($$$$) {
 	my ($r1fr,$Pos,$InsertSize,$VirFrag)=@_;
 	my ($type,$lastingLen)=('',0);
 	if ($r1fr eq 'f') {
-		if ($Pos <= $InsertSize) {
+		if ($Pos < $InsertSize) {
 			$type = 'L';
 			$lastingLen = $InsertSize - $Pos;
-		} elsif ( $Pos <= ($InsertSize + $VirFrag) ) {
+		} elsif ( $Pos < ($InsertSize + $VirFrag) ) {
 			$type = 'V';
 			$lastingLen = $VirFrag - ($Pos - $InsertSize);
 		} else {
@@ -51,10 +51,10 @@ sub InsertPos2PartLVR($$$$) {
 			$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
 		}
 	} elsif ($r1fr eq 'r') {
-		if ( $Pos >= ($InsertSize + $VirFrag) ) {
+		if ( $Pos > ($InsertSize + $VirFrag) ) {
 			$type = 'L';
 			$lastingLen = $Pos - $InsertSize - $VirFrag;
-		} elsif ( $Pos >= $InsertSize ) {
+		} elsif ( $Pos > $InsertSize ) {
 			$type = 'V';
 			$lastingLen = $Pos - $InsertSize;
 		} else {
@@ -64,8 +64,8 @@ sub InsertPos2PartLVR($$$$) {
 	}
 	return ($type,$lastingLen);
 }
-sub Parts2List($$$$$) {
-	my ($type1,$lastingLen1,$type2,$lastingLen2,$ReadLen) = @_;
+sub Parts2List($$$$$$$$$) {
+	my ($r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag) = @_;
 	my %Type2Int = (
 		L => 1,
 		V => 2,
@@ -75,7 +75,26 @@ sub Parts2List($$$$$) {
 	if ($type1 eq $type2) {
 		return ( "${ReadLen}${type1}" );
 	} elsif ( $Type2Int{$type1} < $Type2Int{$type2} ) {
-		;
+		my @ret = ( "${lastingLen1}${type1}" );
+		my $nextInt = $Type2Int{$type1};
+		my $nextPos = $Pos;
+		my $nextLL = $lastingLen1;
+		my $nextType;
+		my $RemainLen = $ReadLen;
+		while ($nextInt < $Type2Int{$type2}) {
+			++$nextInt;
+			if ($r1fr eq 'f') {
+				$nextPos += $nextLL;
+			} else {
+				$nextPos -= $nextLL;
+			}
+			$RemainLen -= $nextLL;
+			($nextType,$nextLL) = InsertPos2PartLVR($r1fr,$nextPos,$InsertSize,$VirFrag);
+			$nextLL=$RemainLen if $nextInt == $Type2Int{$type2};
+			#ddx [$nextInt,$nextType,$RemainLen,$nextLL,1,$r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag];
+			push @ret,"${nextLL}$nextType";
+		}
+		return @ret;
 	} else { die 'E'; }
 }
 sub InsertPos2InsertParts($$$$$$$$) {
@@ -88,12 +107,13 @@ sub InsertPos2InsertParts($$$$$$$$) {
 	if ($r1fr eq 'f') {
 		$FiveSkip = $$rSMS[0];
 		$ThreeSkip = $$rSMS[2];
-		@Parts = Parts2List($type5,$lastingLen5,$type3,$lastingLen3,$ReadLen);
+		@Parts = Parts2List($r1fr,$FiveT,$type5,$lastingLen5,$type3,$lastingLen3,$ReadLen,$InsertSize,$VirFrag);
 	} elsif ($r1fr eq 'r') {
 		$FiveSkip = $$rSMS[2];
 		$ThreeSkip = $$rSMS[0];
-		@Parts = Parts2List($type3,$lastingLen3,$type5,$lastingLen5,$ReadLen);
+		@Parts = Parts2List($r1fr,$ThreeT,$type3,$lastingLen3,$type5,$lastingLen5,$ReadLen,$InsertSize,$VirFrag);
 	}
+	return @Parts;
 }
 sub InsertParts2RealPos() {
 	;
@@ -101,7 +121,7 @@ sub InsertParts2RealPos() {
 sub getRealPos($$$$$$$$$$) {
 	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	InsertPos2InsertParts($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS, $FiveT,$ThreeT);
+	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS, $FiveT,$ThreeT);
 	#InsertParts2RealPos($MappedChr,$strand);
 	return ($FiveT,$ThreeT);
 }
