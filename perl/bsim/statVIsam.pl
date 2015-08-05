@@ -23,10 +23,10 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub InsertParts2RealPos($$$$$) {
-	my ($r1fr,$rSMS,$PartsRef,$MappedChr) = @_;
+sub InsertParts2RealPos($$$$$$) {
+	my ($r1fr,$rSMS,$PartsRef,$MappedChr,$simLMR,$VirSLR) = @_;
 	my ($FiveSkip,$ThreeSkip)=(0,0);
-	ddx $PartsRef;
+	#ddx $PartsRef;
 	if ($r1fr eq 'f') {
 		$FiveSkip = $$rSMS[0];
 		$ThreeSkip = $$rSMS[2];
@@ -35,28 +35,32 @@ sub InsertParts2RealPos($$$$$) {
 		$ThreeSkip = $$rSMS[0];
 	}
 	my @Poses;
-	my %Partype2Chr = (
-		L => 'Host',
-		V => 'Virus',
-		R => 'Host',
-	);
 	for my $Part (@$PartsRef) {
 		$Part =~ /^(\d+)(\w+)$/ or die "[$Part]";
 		my ($slen,$type)=($1,$2);
-		if ($Partype2Chr{$type} eq 'Host') {
-			;
+		my $tmp;
+		if ($type eq 'V') {
+			if ( ($VirSLR->[0] eq '+' and $r1fr eq 'f') or ($VirSLR->[0] eq '-' and $r1fr eq 'r') ) {
+				$tmp = 1+ $VirSLR->[1] + $slen;
+			} else {
+				$tmp = $VirSLR->[2] - $slen;
+			}
 		} else {
-			;
+			$tmp = 1+ $simLMR->[1] - $slen if $type eq 'L';
+			$tmp = 1+ $simLMR->[1] + $slen if $type eq 'R';
 		}
+		push @Poses,$tmp.$type."+$slen";
 	}
+	return @Poses;
 }
 sub getRealPos($$$$$$$$$$) {
-	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
-	my $VirFrag = $VirRight - $VirLeft;
+	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirSLR, $MappedChr,$rSMS,$r12,$strand,$simLMR)=@_;
+	my @ret;	# 暂且忽略 $strand
+	my $VirFrag = $VirSLR->[2] - $VirSLR->[1];
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
 	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
-	InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$strand);
-	return ($FiveT,$ThreeT);
+	my @Poses = InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$simLMR,$VirSLR);
+	return @Poses;
 }
 
 my %Stat;
@@ -96,9 +100,9 @@ for my $bamin (@ARGV) {
 			$refR2 = 'Virus';
 		} else {$refR2 = "Other:$dat2[2]";}
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-		($R1Left,$R1Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$VirLeft,$VirRight, $refR1,$r1SMS,$r12R1,$strandR1);
-		($R2Left,$R2Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$VirLeft,$VirRight, $refR2,$r2SMS,$r12R2,$strandR2);
-		warn "$r1fr ($R1Left,$R1Right) $r12R1 ($R2Left,$R2Right) $r12R2 SamPos:$dat1[3],$dat2[3]\n";
+		my @Poses1 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR1,$r1SMS,$r12R1,$strandR1, [$RefLeft,$RefMiddle,$RefRight]);
+		my @Poses2 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR2,$r2SMS,$r12R2,$strandR2, [$RefLeft,$RefMiddle,$RefRight]);
+		warn "(@Poses1)->@dat1[3,5]\n(@Poses2)->@dat2[3,5]\n";
 	}
 	close $bamfh;
 	print STDERR ".\n";
