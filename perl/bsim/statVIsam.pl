@@ -23,105 +23,15 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub getInsertPos($$$$$) {
-	my ($r1fr,$innerPos,$InsertSize,$ReadLen,$r12)=@_;
-	my ($FiveT,$ThreeT)=(0,0);
-	if (($r12 == 1 and $r1fr eq 'f') or ($r12 == 2 and $r1fr eq 'r')) {
-		$FiveT = $innerPos;
-		$ThreeT = $innerPos + $ReadLen;
-	} elsif (($r12 == 2 and $r1fr eq 'f') or ($r12 == 1 and $r1fr eq 'r')) {
-		my $InnerDis = $InsertSize - $ReadLen*2;
-		$FiveT = $innerPos + $ReadLen + $InnerDis;
-		$ThreeT = $innerPos + $InsertSize;
-	} else {die 'Y';}
-	return ($FiveT,$ThreeT);
-}
-sub InsertPos2PartLVR($$$$) {
-	my ($r1fr,$Pos,$InsertSize,$VirFrag)=@_;
-	my ($type,$lastingLen)=('',0);
-	if ($r1fr eq 'f') {
-		if ($Pos < $InsertSize) {
-			$type = 'L';
-			$lastingLen = $InsertSize - $Pos;
-		} elsif ( $Pos < ($InsertSize + $VirFrag) ) {
-			$type = 'V';
-			$lastingLen = $VirFrag - ($Pos - $InsertSize);
-		} else {
-			$type = 'R';
-			$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
-		}
-	} elsif ($r1fr eq 'r') {
-		if ( $Pos > ($InsertSize + $VirFrag) ) {
-			$type = 'L';
-			$lastingLen = $Pos - $InsertSize - $VirFrag;
-		} elsif ( $Pos > $InsertSize ) {
-			$type = 'V';
-			$lastingLen = $Pos - $InsertSize;
-		} else {
-			$type = 'R';
-			$lastingLen = $Pos;
-		}
-	}
-	return ($type,$lastingLen);
-}
-sub Parts2List($$$$$$$$$) {
-	my ($r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag) = @_;
-	my %Type2Int = (
-		L => 1,
-		V => 2,
-		R => 3,
-	);
-	my %Int2Type = reverse %Type2Int;
-	if ($type1 eq $type2) {
-		return ( "${ReadLen}${type1}" );
-	} elsif ( $Type2Int{$type1} < $Type2Int{$type2} ) {
-		my @ret = ( "${lastingLen1}${type1}" );
-		my $nextInt = $Type2Int{$type1};
-		my $nextPos = $Pos;
-		my $nextLL = $lastingLen1;
-		my $nextType;
-		my $RemainLen = $ReadLen;
-		while ($nextInt < $Type2Int{$type2}) {
-			++$nextInt;
-			if ($r1fr eq 'f') {
-				$nextPos += $nextLL;
-			} else {
-				$nextPos -= $nextLL;
-			}
-			$RemainLen -= $nextLL;
-			($nextType,$nextLL) = InsertPos2PartLVR($r1fr,$nextPos,$InsertSize,$VirFrag);
-			$nextLL=$RemainLen if $nextInt == $Type2Int{$type2};
-			#ddx [$nextInt,$nextType,$RemainLen,$nextLL,1,$r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag];
-			push @ret,"${nextLL}$nextType";
-		}
-		return @ret;
-	} else { die 'E'; }
-}
-sub InsertPos2InsertParts($$$$$$$$) {
-	my ($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS,$FiveT,$ThreeT)=@_;
-	my $VirFrag = $VirRight - $VirLeft;
-	my ($FiveSkip,$ThreeSkip)=(0,0);
-	my ($type5,$lastingLen5) = InsertPos2PartLVR($r1fr,$FiveT,$InsertSize,$VirFrag);
-	my ($type3,$lastingLen3) = InsertPos2PartLVR($r1fr,$ThreeT,$InsertSize,$VirFrag);
-	my @Parts;
-	if ($r1fr eq 'f') {
-		$FiveSkip = $$rSMS[0];
-		$ThreeSkip = $$rSMS[2];
-		@Parts = Parts2List($r1fr,$FiveT,$type5,$lastingLen5,$type3,$lastingLen3,$ReadLen,$InsertSize,$VirFrag);
-	} elsif ($r1fr eq 'r') {
-		$FiveSkip = $$rSMS[2];
-		$ThreeSkip = $$rSMS[0];
-		@Parts = Parts2List($r1fr,$ThreeT,$type3,$lastingLen3,$type5,$lastingLen5,$ReadLen,$InsertSize,$VirFrag);
-	}
-	return @Parts;
-}
+
 sub InsertParts2RealPos() {
 	;
 }
 sub getRealPos($$$$$$$$$$) {
 	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
+	my $VirFrag = $VirRight - $VirLeft;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS, $FiveT,$ThreeT);
+	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr,$rSMS, $FiveT,$ThreeT);
 	#InsertParts2RealPos($MappedChr,$strand);
 	return ($FiveT,$ThreeT);
 }
