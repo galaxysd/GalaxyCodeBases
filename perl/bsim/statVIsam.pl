@@ -24,7 +24,7 @@ close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
 sub InsertParts2RealPos($$$$$) {
-	my ($r1fr,$rSMS,$PartsRef) = @_;
+	my ($r1fr,$rSMS,$PartsRef,$MappedChr) = @_;
 	my ($FiveSkip,$ThreeSkip)=(0,0);
 	ddx $PartsRef;
 	if ($r1fr eq 'f') {
@@ -33,6 +33,21 @@ sub InsertParts2RealPos($$$$$) {
 	} elsif ($r1fr eq 'r') {
 		$FiveSkip = $$rSMS[2];
 		$ThreeSkip = $$rSMS[0];
+	}
+	my @Poses;
+	my %Partype2Chr = (
+		L => 'Host',
+		V => 'Virus',
+		R => 'Host',
+	);
+	for my $Part (@$PartsRef) {
+		$Part =~ /^(\d+)(\w+)$/ or die "[$Part]";
+		my ($slen,$type)=($1,$2);
+		if ($Partype2Chr{$type} eq 'Host') {
+			;
+		} else {
+			;
+		}
 	}
 }
 sub getRealPos($$$$$$$$$$) {
