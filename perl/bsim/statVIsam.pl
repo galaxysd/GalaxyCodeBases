@@ -31,7 +31,7 @@ sub getRealPos($$$$$$$$$$) {
 	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
 	my $VirFrag = $VirRight - $VirLeft;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr,$rSMS, $FiveT,$ThreeT);
+	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
 	#InsertParts2RealPos($MappedChr,$strand);
 	return ($FiveT,$ThreeT);
 }
