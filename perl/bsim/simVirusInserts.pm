@@ -279,17 +279,12 @@ sub Parts2List($$$$$$$$$) {
 }
 sub InsertPos2InsertParts($$$$$$) {
 	my ($InsertSize,$ReadLen,$VirFrag,$r1fr,$FiveT,$ThreeT)=@_;
-	my ($FiveSkip,$ThreeSkip)=(0,0);
 	my ($type5,$lastingLen5) = InsertPos2PartLVR($r1fr,$FiveT,$InsertSize,$VirFrag);
 	my ($type3,$lastingLen3) = InsertPos2PartLVR($r1fr,$ThreeT,$InsertSize,$VirFrag);
 	my @Parts;
 	if ($r1fr eq 'f') {
-		#$FiveSkip = $$rSMS[0];
-		#$ThreeSkip = $$rSMS[2];
 		@Parts = Parts2List($r1fr,$FiveT,$type5,$lastingLen5,$type3,$lastingLen3,$ReadLen,$InsertSize,$VirFrag);
 	} elsif ($r1fr eq 'r') {
-		#$FiveSkip = $$rSMS[2];
-		#$ThreeSkip = $$rSMS[0];
 		@Parts = Parts2List($r1fr,$ThreeT,$type3,$lastingLen3,$type5,$lastingLen5,$ReadLen,$InsertSize,$VirFrag);
 	}
 	return @Parts;

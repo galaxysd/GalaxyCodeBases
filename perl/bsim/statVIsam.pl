@@ -23,16 +23,24 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-
-sub InsertParts2RealPos() {
-	;
+sub InsertParts2RealPos($$$$$) {
+	my ($r1fr,$rSMS,$PartsRef) = @_;
+	my ($FiveSkip,$ThreeSkip)=(0,0);
+	ddx $PartsRef;
+	if ($r1fr eq 'f') {
+		$FiveSkip = $$rSMS[0];
+		$ThreeSkip = $$rSMS[2];
+	} elsif ($r1fr eq 'r') {
+		$FiveSkip = $$rSMS[2];
+		$ThreeSkip = $$rSMS[0];
+	}
 }
 sub getRealPos($$$$$$$$$$) {
 	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
 	my $VirFrag = $VirRight - $VirLeft;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
 	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
-	#InsertParts2RealPos($MappedChr,$strand);
+	InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$strand);
 	return ($FiveT,$ThreeT);
 }
 
