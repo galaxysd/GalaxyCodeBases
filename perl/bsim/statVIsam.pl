@@ -36,21 +36,73 @@ sub getInsertPos($$$$$) {
 	} else {die 'Y';}
 	return ($FiveT,$ThreeT);
 }
-sub InsertPos2RealPos($$$$$$) {
-	my ($r1fr,$rSMS)=@_;
+sub InsertPos2PartLVR($$$$) {
+	my ($r1fr,$Pos,$InsertSize,$VirFrag)=@_;
+	my ($type,$lastingLen)=('',0);
+	if ($r1fr eq 'f') {
+		if ($Pos <= $InsertSize) {
+			$type = 'L';
+			$lastingLen = $InsertSize - $Pos;
+		} elsif ( $Pos <= ($InsertSize + $VirFrag) ) {
+			$type = 'V';
+			$lastingLen = $VirFrag - ($Pos - $InsertSize);
+		} else {
+			$type = 'R';
+			$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
+		}
+	} elsif ($r1fr eq 'r') {
+		if ( $Pos >= ($InsertSize + $VirFrag) ) {
+			$type = 'L';
+			$lastingLen = $Pos - $InsertSize - $VirFrag;
+		} elsif ( $Pos >= $InsertSize ) {
+			$type = 'V';
+			$lastingLen = $Pos - $InsertSize;
+		} else {
+			$type = 'R';
+			$lastingLen = $Pos;
+		}
+	}
+	return ($type,$lastingLen);
+}
+sub Parts2List($$$$$) {
+	my ($type1,$lastingLen1,$type2,$lastingLen2,$ReadLen) = @_;
+	my %Type2Int = (
+		L => 1,
+		V => 2,
+		R => 3,
+	);
+	my %Int2Type = reverse %Type2Int;
+	if ($type1 eq $type2) {
+		return ( "${ReadLen}${type1}" );
+	} elsif ( $Type2Int{$type1} < $Type2Int{$type2} ) {
+		;
+	} else { die 'E'; }
+}
+sub InsertPos2InsertParts($$$$$$$$) {
+	my ($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS,$FiveT,$ThreeT)=@_;
+	my $VirFrag = $VirRight - $VirLeft;
 	my ($FiveSkip,$ThreeSkip)=(0,0);
+	my ($type5,$lastingLen5) = InsertPos2PartLVR($r1fr,$FiveT,$InsertSize,$VirFrag);
+	my ($type3,$lastingLen3) = InsertPos2PartLVR($r1fr,$ThreeT,$InsertSize,$VirFrag);
+	my @Parts;
 	if ($r1fr eq 'f') {
 		$FiveSkip = $$rSMS[0];
 		$ThreeSkip = $$rSMS[2];
+		@Parts = Parts2List($type5,$lastingLen5,$type3,$lastingLen3,$ReadLen);
 	} elsif ($r1fr eq 'r') {
 		$FiveSkip = $$rSMS[2];
 		$ThreeSkip = $$rSMS[0];
+		@Parts = Parts2List($type3,$lastingLen3,$type5,$lastingLen5,$ReadLen);
 	}
 }
-sub getRealPos($$$$$$$$) {
-	my ($r1fr,$innerPos, $InsertSize,$ReadLen, $MappedChr,$rSMS,$r12,$strand)=@_;
+sub InsertParts2RealPos() {
+	;
+}
+sub getRealPos($$$$$$$$$$) {
+	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirLeft,$VirRight, $MappedChr,$rSMS,$r12,$strand)=@_;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	InsertPos2RealPos($r1fr,$rSMS, $FiveT,$ThreeT, $MappedChr,$strand);
+	InsertPos2InsertParts($InsertSize,$ReadLen,$VirLeft,$VirRight,$r1fr,$rSMS, $FiveT,$ThreeT);
+	#InsertParts2RealPos($MappedChr,$strand);
 	return ($FiveT,$ThreeT);
 }
 
@@ -91,8 +143,8 @@ for my $bamin (@ARGV) {
 			$refR2 = 'Virus';
 		} else {$refR2 = "Other:$dat2[2]";}
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
-		($R1Left,$R1Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, $refR1,$r1SMS,$r12R1,$strandR1);
-		($R2Left,$R2Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, $refR2,$r2SMS,$r12R2,$strandR2);
+		($R1Left,$R1Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$VirLeft,$VirRight, $refR1,$r1SMS,$r12R1,$strandR1);
+		($R2Left,$R2Right) = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen,$VirLeft,$VirRight, $refR2,$r2SMS,$r12R2,$strandR2);
 		warn "$r1fr ($R1Left,$R1Right) $r12R1 ($R2Left,$R2Right) $r12R2 SamPos:$dat1[3],$dat2[3]\n";
 	}
 	close $bamfh;
