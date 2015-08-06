@@ -40,19 +40,18 @@ resAll <- integer(0)
 for (p in Poses) {
 	chrdat <- integer(0)
 	for (i in p) chrdat[i] <- 1L
-	thelen <- length(chrdat)
-	length(chrdat) <- ceiling(thelen/WinSize)*WinSize
+	#thelen <- length(chrdat)
+	#length(chrdat) <- ceiling(thelen/WinSize)*WinSize	# 补齐末端会造成 bias
 	chrdat[is.na(chrdat)] <- 0L
 	res0 <- rollapply(chrdat, WinSize, sum, by = WinSize)
 	resAll <- append(resAll,res0)
 }
-reshist <- hist(resAll,plot=F)
-tbl <- table(resAll)
 
-#print(resAll)
-#print(res)
+tbl <- table(resAll)
 print(tbl)
 write.table(tbl, paste0(OutP,".tsv"), sep = "\t", quote=F,row.names=F,col.names=F)
+
+reshist <- hist(resAll,plot=F)
 pdf(file=paste0(OutP,".pdf"),title='Histogram of VCF Density')
 plot(reshist,freq=F,main='Histogram of SNP windowed density',xlab=paste0('SNP Count in every ',WinSize,' bps'))
 dev.off()
