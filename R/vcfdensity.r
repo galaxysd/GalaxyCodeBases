@@ -21,8 +21,22 @@ if (!interactive()) {
 	}
 }
 
+library('parallel')
 library('data.table')
-suppressPackageStartupMessages(library('zoo'))
+#suppressPackageStartupMessages(library('zoo'))
+# http://www.r-bloggers.com/wapply-a-faster-but-less-functional-rollapply-for-vector-setups/
+wapply <- function(x, width, by = NULL, FUN = NULL, ...) {
+	FUN <- match.fun(FUN)
+	if (is.null(by)) by <- width
+		lenX <- length(x)
+	SEQ1 <- seq(1, lenX - width + 1, by = by)
+	SEQ2 <- lapply(SEQ1, function(x) x:(x + width - 1))
+	OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
+	OUT <- base:::simplify2array(OUT, higher = TRUE)
+	return(OUT)
+}
+NumofCore <- detectCores(logical = TRUE)
+
 
 options(datatable.verbose=T)
 
@@ -46,7 +60,7 @@ dorolling <- function(x, rollwin) {
 	#thelen <- length(chrdat)
 	#length(chrdat) <- ceiling(thelen/WinSize)*WinSize	# 补齐末端会造成 bias
 	#chrdat[is.na(chrdat)] <- 0L
-	res0 <- rollapply(chrdat, rollwin, sum,na.rm = TRUE, by = rollwin)
+	res0 <- wapply(chrdat, rollwin, FUN = sum,na.rm = TRUE)
 	return(res0)
 }
 resArr <- tabAll[, dorolling(Pos,rollwin=WinSize), by=Chr]
