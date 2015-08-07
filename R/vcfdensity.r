@@ -35,11 +35,6 @@ print(head(tabAll))
 cat("...\t...\t...\n")
 print(tail(tabAll))
 
-#Poses <- split(tabAll$V2,tabAll$V1)
-#print(Poses[2])
-
-#WinSize <- 1000
-
 dorolling <- function(x, rollwin, verbose=F) {
 	chrdat <- integer(max(x))
 	#for (i in x) chrdat[i] <- 1L
@@ -51,7 +46,6 @@ dorolling <- function(x, rollwin, verbose=F) {
 	if (verbose) cat("[!!] rollWinSize =",rollwin,"\n")
 	return(res0)
 }
-#resArr <- lapply(Poses, dorolling,rollwin=WinSize)
 resArr <- tabAll[, dorolling(Pos,rollwin=WinSize), by=Chr]
 resAll <- unlist(resArr$V1,use.names=F)
 cat("[!] Stat done.\n")
@@ -65,7 +59,6 @@ pdf(file=paste0(OutP,".pdf"),title='Histogram of VCF Density')
 plot(reshist,freq=F,main='Histogram of SNP windowed density',xlab=paste0('SNP Count in every ',WinSize,' bps'))
 dev.off()
 
-#t=sapply(Poses,mean)
 resPhist <- hist(resAll[resAll!=0],plot=F)
 pdf(file=paste0(OutP,".nonZero.pdf"),title='Histogram of VCF Density')
 plot(resPhist,freq=F,main='Histogram of SNP windowed density (+)',xlab=paste0('SNP Count in every ',WinSize,' bps'))
