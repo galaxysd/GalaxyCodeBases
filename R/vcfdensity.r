@@ -23,31 +23,38 @@ if (!interactive()) {
 
 library('data.table')
 suppressPackageStartupMessages(library('zoo'))
-tab5rows <- read.table(pipe(paste0("gzip -dc ",InVCFgz," | cut -f1,2")),sep="\t",nrows=5)
-classes <- sapply(tab5rows, class)
+#tab5rows <- read.table(pipe(paste0("gzip -dc ",InVCFgz," | cut -f1,2")),sep="\t",nrows=5)
+#classes <- sapply(tab5rows, class)
+classes <- c(V1="factor",V2="integer")
 #tabAll <- read.table(pipe("zcat vcf.gz | cut -f1,2|head -300"),sep="\t", colClasses = classes,col.names=c('Chr','Pos'))
 tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|awk '!/^#|\tINDEL;/'"),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T,verbose=F)
 #tabAll <- fread("cat t.vcf|grep -ve '^#' |head -n500000000",header=F,verbose=T,sep="\t",autostart=100,select=c(1,2),stringsAsFactors=T, colClasses=classes,data.table=T)
+setnames(tabAll,1,'Chr')
+setnames(tabAll,2,'Pos')
+print(head(tabAll))
+cat("...\t...\t...\n")
+print(tail(tabAll))
 
-#print(tabAll)
-
-Poses <- split(tabAll$V2,tabAll$V1)
+#Poses <- split(tabAll$V2,tabAll$V1)
 #print(Poses[2])
 
 #WinSize <- 1000
 
 dorolling <- function(x, rollwin, verbose=F) {
-	chrdat <- integer(0)
-	for (i in x) chrdat[i] <- 1L
+	chrdat <- integer(max(x))
+	#for (i in x) chrdat[i] <- 1L
+	chrdat[x] <- 1L
 	#thelen <- length(chrdat)
 	#length(chrdat) <- ceiling(thelen/WinSize)*WinSize	# 补齐末端会造成 bias
-	chrdat[is.na(chrdat)] <- 0L
+	#chrdat[is.na(chrdat)] <- 0L
 	res0 <- rollapply(chrdat, rollwin, sum, by = rollwin)
 	if (verbose) cat("[!!] rollWinSize =",rollwin,"\n")
 	return(res0)
 }
-resArr <- lapply(Poses, dorolling,rollwin=WinSize)
-resAll <- unlist(resArr)
+#resArr <- lapply(Poses, dorolling,rollwin=WinSize)
+resArr <- tabAll[, dorolling(Pos,rollwin=WinSize), by=Chr]
+resAll <- unlist(resArr$V1,use.names=F)
+cat("[!] Stat done.\n")
 
 tbl <- table(resAll)
 print(tbl)
