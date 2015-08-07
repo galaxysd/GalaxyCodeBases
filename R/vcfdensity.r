@@ -34,7 +34,7 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...) {
 	SEQ1 <- seq(1, lenX - width + 1, by = by)
 	SEQ2 <- lapply(SEQ1, function(x) x:(x + width - 1))
 	#OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
-	OUT <- mclapply(SEQ2, function(a) FUN(x[a], ..., mc.cores = getOption("mc.cores", NumofCore)))
+	OUT <- mclapply(SEQ2, function(a) FUN(x[a], ...), mc.cores = getOption("mc.cores", NumofCore))
 	OUT <- base:::simplify2array(OUT, higher = TRUE)
 	return(OUT)
 }
