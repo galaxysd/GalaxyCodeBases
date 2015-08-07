@@ -1,5 +1,8 @@
 #!/usr/bin/env littler
 
+library('parallel')
+NumofCore <- detectCores(logical = TRUE)
+
 if (!interactive()) {
 	if (is.null(argv) | length(argv)<3) {
 		cat("Usage: ./vcfdensity.r <WinSize> <input.vcf.gz> <output.prefix>\n")
@@ -9,7 +12,7 @@ if (!interactive()) {
 		if (is.na(WinSize)) WinSize <- 0L
 		InVCFgz <- trimws(argv[2],'both')
 		OutP <- trimws(argv[3],'both')
-		cat("[!] WinSize=[",WinSize,"], [",InVCFgz,"]->[",OutP,"].*\n",sep='')
+		cat("[!] WinSize=[",WinSize,"], [",InVCFgz,"]->[",OutP,"].*, Core:[",NumofCore,"]\n",sep='')
 		if (!file.exists(InVCFgz)) {
 			cat("[x] File not found:[", InVCFgz, "] !\n",sep='')
 			q(status=-1)
@@ -21,22 +24,20 @@ if (!interactive()) {
 	}
 }
 
-library('parallel')
 library('data.table')
 #suppressPackageStartupMessages(library('zoo'))
 # http://www.r-bloggers.com/wapply-a-faster-but-less-functional-rollapply-for-vector-setups/
 wapply <- function(x, width, by = NULL, FUN = NULL, ...) {
 	FUN <- match.fun(FUN)
 	if (is.null(by)) by <- width
-		lenX <- length(x)
+	lenX <- length(x)
 	SEQ1 <- seq(1, lenX - width + 1, by = by)
 	SEQ2 <- lapply(SEQ1, function(x) x:(x + width - 1))
-	OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
+	#OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
+	OUT <- mclapply(SEQ2, function(a) FUN(x[a], ..., mc.cores = getOption("mc.cores", NumofCore)))
 	OUT <- base:::simplify2array(OUT, higher = TRUE)
 	return(OUT)
 }
-NumofCore <- detectCores(logical = TRUE)
-
 
 options(datatable.verbose=T)
 
@@ -68,7 +69,7 @@ resAll <- unlist(resArr$V1,use.names=F)
 cat("[!] Stat done.\n")
 
 tbl <- table(resAll)
-print(tbl)
+print(head(tbl,80))
 write.table(tbl, paste0(OutP,".tsv"), sep = "\t", quote=F,row.names=F,col.names=F)
 
 reshist <- hist(resAll,plot=F)
