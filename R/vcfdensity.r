@@ -32,7 +32,7 @@ classes <- c(V1="factor",V2="integer")
 #tabAll <- read.table(pipe("zcat vcf.gz | cut -f1,2|head -300"),sep="\t", colClasses = classes,col.names=c('Chr','Pos'))
 tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|awk '!/^#|\tINDEL;/'|cut -f1,2"),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T)
 # grep -ve '^#' 也可，但 MacOS X 下没有 grep -vP '\tINDEL'
-# Piped file will be in `/dev/shm/file46583ba3b517`, thus add `|cut -f1,2` to reduce its footsize
+# Piped file will be in `/dev/shm/file46583ba3b517` tempory, thus add `|cut -f1,2` to reduce its footprint.
 setnames(tabAll,1,'Chr')
 setnames(tabAll,2,'Pos')
 print(head(tabAll))
