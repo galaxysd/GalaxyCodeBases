@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --vanilla --default-packages=data.table,zoo,utils,graphics,grDevices
+#!/usr/bin/env Rscript --vanilla
 
 argv <- commandArgs(T)
 
@@ -23,16 +23,18 @@ if (!interactive()) {
 	}
 }
 
+library('data.table')
+library('zoo')
+library('utils')
+library('graphics')
+library('grDevices')
 
 classes <- c(V1="factor",V2="integer")
-#tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|grep -ve '^#' "),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T,verbose=F)
 tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|awk '!/^#|\tINDEL;/'"),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T,verbose=F)
 
 setnames(tabAll,1,'Chr')
 setnames(tabAll,2,'Pos')
 print(head(tabAll))
-cat("...\t...\t...\n")
-print(tail(tabAll))
 
 dorolling <- function(x, rollwin) {
 	chrdat <- integer(max(x))
