@@ -36,16 +36,18 @@ Poses <- split(tabAll$V2,tabAll$V1)
 
 #WinSize <- 1000
 
-resAll <- integer(0)
-for (p in Poses) {
+dorolling <- function(x, rollwin, verbose=F) {
 	chrdat <- integer(0)
-	for (i in p) chrdat[i] <- 1L
+	for (i in x) chrdat[i] <- 1L
 	#thelen <- length(chrdat)
 	#length(chrdat) <- ceiling(thelen/WinSize)*WinSize	# 补齐末端会造成 bias
 	chrdat[is.na(chrdat)] <- 0L
-	res0 <- rollapply(chrdat, WinSize, sum, by = WinSize)
-	resAll <- append(resAll,res0)
+	res0 <- rollapply(chrdat, rollwin, sum, by = rollwin)
+	if (verbose) cat("[!!] rollWinSize =",rollwin,"\n")
+	return(res0)
 }
+resArr <- lapply(Poses, dorolling,rollwin=WinSize)
+resAll <- unlist(resArr)
 
 tbl <- table(resAll)
 print(tbl)
