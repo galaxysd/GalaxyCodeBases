@@ -23,25 +23,29 @@ if (!interactive()) {
 
 library('data.table')
 suppressPackageStartupMessages(library('zoo'))
+
+options(datatable.verbose=T)
+
 #tab5rows <- read.table(pipe(paste0("gzip -dc ",InVCFgz," | cut -f1,2")),sep="\t",nrows=5)
 #classes <- sapply(tab5rows, class)
 classes <- c(V1="factor",V2="integer")
 #tabAll <- read.table(pipe("zcat vcf.gz | cut -f1,2|head -300"),sep="\t", colClasses = classes,col.names=c('Chr','Pos'))
-tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|awk '!/^#|\tINDEL;/'"),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T,verbose=F)
+tabAll <- fread(paste0("gzip -dc ",InVCFgz,"|awk '!/^#|\tINDEL;/'"),header=F,stringsAsFactors=T,sep="\t",autostart=100,select=c(1,2), colClasses=classes, data.table=T)
 # grep -ve '^#' 也可，但 MacOS X 下没有 grep -vP '\tINDEL'
 setnames(tabAll,1,'Chr')
 setnames(tabAll,2,'Pos')
 print(head(tabAll))
 cat("...\t...\t...\n")
+setkey(tabAll,Chr)
 print(tail(tabAll))
 
 dorolling <- function(x, rollwin) {
-	chrdat <- integer(max(x))
+	chrdat <- integer(0)	# No need to `integer(max(x))` as we use `sum(na.rm=T)`
 	chrdat[x] <- 1L
 	#thelen <- length(chrdat)
 	#length(chrdat) <- ceiling(thelen/WinSize)*WinSize	# 补齐末端会造成 bias
 	#chrdat[is.na(chrdat)] <- 0L
-	res0 <- rollapply(chrdat, rollwin, sum, by = rollwin)
+	res0 <- rollapply(chrdat, rollwin, sum,na.rm = TRUE, by = rollwin)
 	return(res0)
 }
 resArr <- tabAll[, dorolling(Pos,rollwin=WinSize), by=Chr]
