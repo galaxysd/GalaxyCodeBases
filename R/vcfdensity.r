@@ -33,8 +33,8 @@ wapply <- function(x, width, by = NULL, FUN = NULL, ...) {
 	lenX <- length(x)
 	SEQ1 <- seq(1, lenX - width + 1, by = by)
 	SEQ2 <- lapply(SEQ1, function(x) x:(x + width - 1))
-	#OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
-	OUT <- mclapply(SEQ2, function(a) FUN(x[a], ...), mc.cores = getOption("mc.cores", NumofCore))
+	OUT <- lapply(SEQ2, function(a) FUN(x[a], ...))
+	#OUT <- mclapply(SEQ2, function(a) FUN(x[a], ...), mc.cores = getOption("mc.cores", NumofCore))
 	OUT <- base:::simplify2array(OUT, higher = TRUE)
 	return(OUT)
 }
@@ -64,8 +64,8 @@ dorolling <- function(x, rollwin) {
 	res0 <- wapply(chrdat, rollwin, FUN = sum,na.rm = TRUE)
 	return(res0)
 }
-resArr <- tabAll[, dorolling(Pos,rollwin=WinSize), by=Chr]
-resAll <- unlist(resArr$V1,use.names=F)
+resArr <- tabAll[, .(Density=dorolling(Pos,rollwin=WinSize)), by=Chr]
+resAll <- unlist(resArr$Density,use.names=F)
 cat("[!] Stat done.\n")
 
 tbl <- table(resAll)
