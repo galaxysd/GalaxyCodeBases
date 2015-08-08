@@ -1,7 +1,7 @@
 #!/usr/bin/env littler
 
-library('parallel')
-NumofCore <- detectCores(logical = TRUE)
+#library('parallel')
+#NumofCore <- detectCores(logical = TRUE)
 
 if (!interactive()) {
 	if (is.null(argv) | length(argv)<3) {
@@ -12,7 +12,7 @@ if (!interactive()) {
 		if (is.na(WinSize)) WinSize <- 0L
 		InVCFgz <- trimws(argv[2],'both')
 		OutP <- trimws(argv[3],'both')
-		cat("[!] WinSize=[",WinSize,"], [",InVCFgz,"]->[",OutP,"].*, Core:[",NumofCore,"]\n",sep='')
+		cat("[!] WinSize=[",WinSize,"], [",InVCFgz,"]->[",OutP,"].*\n",sep='')
 		if (!file.exists(InVCFgz)) {
 			cat("[x] File not found:[", InVCFgz, "] !\n",sep='')
 			q(status=-1)
@@ -65,6 +65,7 @@ dorolling <- function(x, rollwin) {
 	return(res0)
 }
 resArr <- tabAll[, .(Density=dorolling(Pos,rollwin=WinSize)), by=Chr]
+# lapply optimization changed j from 'lapply(.SD, dorolling, rollwin = WinSize)' to 'list(dorolling(Pos, rollwin = WinSize))'
 resAll <- unlist(resArr$Density,use.names=F)
 cat("[!] Stat done.\n")
 
