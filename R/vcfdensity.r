@@ -3,6 +3,14 @@
 library('parallel')
 NumofCore <- detectCores(logical = TRUE)
 
+# 这是实验室同学委托咱写的，统计给定尺寸的窗口内，SNP出现次数的分布。
+# 咱觉得那篇文章统计这个纯属无聊，只能证明该物种基因组很大，能被分成50个以上的100k的窗口。即“中心极限定理”。
+# 好吧，刚才确认定理名时看到：“独立同分布的中心极限定理”，于是，算是证明该个体，在100k的尺度上，没有明显的连锁，吧。额，貌似有点用？
+# 貌似美元符号会按LaTex解析，额，反正下面有原文本，大家将就看吧。为这个折腾转义也太EP了。
+# 话说，SNP频率不独立，和连锁没关系吧。那是证明啥？在这个尺度上没有“鱼”和“饵”的关系？本来真核生物中，也就酵母等微生物才把同一代谢通路的基因挨着放吧。于是，这统计到底有啥用？
+# http://pastebin.com/Ks0F3r3y
+# https://twitter.com/galaxy001/status/630356226782564353
+
 if (!interactive()) {
 	if (is.null(argv) | length(argv)<3) {
 		cat("Usage: ./vcfdensity.r <WinSize> <input.vcf.gz> <output.prefix>\n")
