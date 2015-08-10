@@ -102,7 +102,7 @@ for my $bamin (@ARGV) {
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
 		my @Poses1 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR1,$r1SMS,$r12R1,$strandR1, [$RefLeft,$RefMiddle,$RefRight]);
 		my @Poses2 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR2,$r2SMS,$r12R2,$strandR2, [$RefLeft,$RefMiddle,$RefRight]);
-		warn "(@Poses1)->@dat1[3,5]\n(@Poses2)->@dat2[3,5]\n";
+		warn "(@Poses1)->@dat1[3,5] $refR1\n(@Poses2)->@dat2[3,5] $refR2\n";
 	}
 	close $bamfh;
 	print STDERR ".\n";
@@ -111,4 +111,18 @@ for my $bamin (@ARGV) {
 
 ddx \%Stat;
 __END__
-./statVIsam.pl hs_ref_GRCh38.p2_chr18.mfa.gz HBV.AJ507799.2.fa.gz bam/*.sn.bam
+./statVIsam.pl chr18.fa HBV.AJ507799.2.fa.gz bam/Fsimout_m7C.sn.bam
+bam/*.sn.bam
+
+输出：
+sf94_Ref_30669853_30670003_30670153_Vir_+_88313_88358_R_150_90 [0.56.34][0.56.34]
+(30669948L+56 88348V+34)->30669948 56M34S Host
+(88355V+41 30670053R+49)->30670004 41S49M Host
+括号内是模拟的位置，箭头右边是bam文件的内容。
+第一条是Read1，第二条是Read2.
+
+30669948L+56：模拟在左侧，人的30669948处，然后有56M
+88348V+34 后面跟着的病毒序列是88348开始的，有34M
+可以看出，bwa把它比对到长的地方了。
+
+负链的上周折腾了好几天，你找人帮忙写下吧。现在的结果是右端点的坐标。
