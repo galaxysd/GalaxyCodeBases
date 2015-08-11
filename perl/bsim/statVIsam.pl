@@ -41,13 +41,13 @@ sub InsertParts2RealPos($$$$$$) {
 		my $tmp;
 		if ($type eq 'V') {
 			if ( ($VirSLR->[0] eq '+' and $r1fr eq 'f') or ($VirSLR->[0] eq '-' and $r1fr eq 'r') ) {
-				$tmp = 1+ $VirSLR->[1] + $slen;
+				$tmp = 1+ $VirSLR->[1]; # LeftPos => not to: + $slen;
 			} else {
 				$tmp = $VirSLR->[2] - $slen;
 			}
 		} else {
 			$tmp = 1+ $simLMR->[1] - $slen if $type eq 'L';
-			$tmp = 1+ $simLMR->[1] + $slen if $type eq 'R';
+			$tmp = 1+ $simLMR->[1] if $type eq 'R';	# LeftPos => not to add $slen
 		}
 		push @Poses,$tmp.$type."+$slen";
 	}
@@ -60,6 +60,7 @@ sub getRealPos($$$$$$$$$$) {
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
 	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
 	my @Poses = InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$simLMR,$VirSLR);
+	ddx [$FiveT,$ThreeT,@Parts];
 	return @Poses;
 }
 
@@ -76,6 +77,7 @@ for my $bamin (@ARGV) {
 		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R_(\d+)_(\d+)$/ or die "$dat1[0]";
 		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight,$InsertSize,$ReadLen) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);
 		#print "$dat1[0] $innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\n";
+		next if $r1fr eq 'r';	# 封印反向Reads。
 		my $r1SMS = cigar2SMS($dat1[5]);
 		my $r2SMS = cigar2SMS($dat2[5]);
 		print "$dat1[0] [",join('.',@$r1SMS),"][",join('.',@$r1SMS),"]\n";
@@ -102,7 +104,7 @@ for my $bamin (@ARGV) {
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
 		my @Poses1 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR1,$r1SMS,$r12R1,$strandR1, [$RefLeft,$RefMiddle,$RefRight]);
 		my @Poses2 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR2,$r2SMS,$r12R2,$strandR2, [$RefLeft,$RefMiddle,$RefRight]);
-		warn "(@Poses1)->@dat1[3,5] $refR1\n(@Poses2)->@dat2[3,5] $refR2\n";
+		print "(@Poses1)->@dat1[3,5] $refR1\n(@Poses2)->@dat2[3,5] $refR2\n";
 	}
 	close $bamfh;
 	print STDERR ".\n";
