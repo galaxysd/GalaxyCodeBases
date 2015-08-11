@@ -252,17 +252,17 @@ sub Parts2List($$$$$$$$$) {
 		R => 3,
 	);
 	my %Int2Type = reverse %Type2Int;
-	if ($type1 eq $type2) {
-		return ( "${ReadLen}${type1}" );
-	} elsif ( $Type2Int{$type1} < $Type2Int{$type2} ) {
+	#if ($type1 eq $type2) {
+	#	return ( "${ReadLen}${type1}" );
+	#} els
+	if ( $Type2Int{$type1} <= $Type2Int{$type2} ) {
 		my @ret = ( "${lastingLen1}${type1}" );
-		my $nextInt = $Type2Int{$type1};
+		my $nextInt = 1+ $Type2Int{$type1};
 		my $nextPos = $Pos;
 		my $nextLL = $lastingLen1;
 		my $nextType;
 		my $RemainLen = $ReadLen;
-		while ($nextInt < $Type2Int{$type2}) {
-			++$nextInt;
+		while ($nextInt <= $Type2Int{$type2}) {
 			if ($r1fr eq 'f') {
 				$nextPos += $nextLL;
 			} else {
@@ -273,6 +273,7 @@ sub Parts2List($$$$$$$$$) {
 			$nextLL=$RemainLen if $nextInt == $Type2Int{$type2};
 			#ddx [$nextInt,$nextType,$RemainLen,$nextLL,1,$r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag];
 			push @ret,"${nextLL}$nextType";
+			++$nextInt;
 		}
 		return @ret;
 	} else { die 'E'; }
