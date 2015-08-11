@@ -63,6 +63,21 @@ sub getRealPos($$$$$$$$$$) {
 	ddx [$FiveT,$ThreeT,@Parts];
 	return @Poses;
 }
+sub checkPoses($$) {
+	my ($simPoses,$bwaPos) = @_;
+	my $found = 0;
+	for my $posStr (@$simPoses) {
+		$posStr =~ /^(\d+)([LVR])\+(\d+)$/ or die "[$posStr]";
+		my ($Pos,$LVR,$mapLen) = ($1,$2,$3);
+		if ($Pos == $bwaPos->[1]) {
+			if ( ($LVR eq 'V' and $bwaPos->[0] eq 'Virus') or ($LVR =~ /[LR]/ and $bwaPos->[0] eq 'Host') ) {
+				$found = 1;
+				last;
+			}
+		}
+	}
+	return $found;
+}
 
 my %Stat;
 for my $bamin (@ARGV) {
@@ -80,7 +95,6 @@ for my $bamin (@ARGV) {
 		next if $r1fr eq 'r';	# 封印反向Reads。
 		my $r1SMS = cigar2SMS($dat1[5]);
 		my $r2SMS = cigar2SMS($dat2[5]);
-		print "$dat1[0] [",join('.',@$r1SMS),"][",join('.',@$r1SMS),"]\n";
 		my ($r12R1,$r12R2)=(0,0);
 		if (($dat1[1] & 0x40) and ($dat2[1] & 0x80) ) {
 			$r12R1 = 1; $r12R2 = 2;
@@ -104,7 +118,12 @@ for my $bamin (@ARGV) {
 		my ($R1Left,$R1Right,$R2Left,$R2Right)=(0,0,0,0);
 		my @Poses1 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR1,$r1SMS,$r12R1,$strandR1, [$RefLeft,$RefMiddle,$RefRight]);
 		my @Poses2 = getRealPos($r1fr,$innerPos,$InsertSize,$ReadLen, [$VirStrand,$VirLeft,$VirRight], $refR2,$r2SMS,$r12R2,$strandR2, [$RefLeft,$RefMiddle,$RefRight]);
-		print "(@Poses1)->@dat1[3,5] $refR1\n(@Poses2)->@dat2[3,5] $refR2\n";
+		my $GoodR1 = checkPoses(\@Poses1,[$refR1,@dat1[3,5]]);
+		my $GoodR2 = checkPoses(\@Poses2,[$refR2,@dat2[3,5]]);
+		if ($GoodR1+$GoodR2 != 2) {
+			print "$dat1[0] [",join('.',@$r1SMS),"][",join('.',@$r1SMS),"]\n";
+			print "(@Poses1)->@dat1[3,5] $refR1 $GoodR1\n(@Poses2)->@dat2[3,5] $refR2 $GoodR2\n\n";
+		}
 	}
 	close $bamfh;
 	print STDERR ".\n";
