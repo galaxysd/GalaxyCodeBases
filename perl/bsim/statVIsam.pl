@@ -43,7 +43,7 @@ sub InsertParts2RealPos($$$$$$) {
 			if ( ($VirSLR->[0] eq '+' and $r1fr eq 'f') or ($VirSLR->[0] eq '-' and $r1fr eq 'r') ) {
 				$tmp = 1+ $VirSLR->[1]; # LeftPos => not to: + $slen;
 			} else {
-				$tmp = $VirSLR->[2] - $slen;
+				$tmp = 1+ $VirSLR->[2] - $slen;
 			}
 		} else {
 			$tmp = 1+ $simLMR->[1] - $slen if $type eq 'L';
@@ -121,6 +121,8 @@ for my $bamin (@ARGV) {
 		my $GoodR1 = checkPoses(\@Poses1,[$refR1,@dat1[3,5]]);
 		my $GoodR2 = checkPoses(\@Poses2,[$refR2,@dat2[3,5]]);
 		if ($GoodR1+$GoodR2 != 2) {
+			next if $GoodR1==0 and $refR1 =~ /^Other/;
+			next if $GoodR2==0 and $refR2 =~ /^Other/;
 			print "$dat1[0] [",join('.',@$r1SMS),"][",join('.',@$r1SMS),"]\n";
 			print "(@Poses1)->@dat1[3,5] $refR1 $GoodR1\n(@Poses2)->@dat2[3,5] $refR2 $GoodR2\n\n";
 		}
