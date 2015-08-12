@@ -203,7 +203,7 @@ sub cigar2SMS($) {
 
 
 
-sub getInsertPos($$$$$) {
+sub getInsertPos($$$$$) {	# 返回Read在模拟拼合片段上的左右端点。
 	my ($r1fr,$innerPos,$InsertSize,$ReadLen,$r12)=@_;
 	my ($FiveT,$ThreeT)=(0,0);
 	if (($r12 == 1 and $r1fr eq 'f') or ($r12 == 2 and $r1fr eq 'r')) {
@@ -216,20 +216,23 @@ sub getInsertPos($$$$$) {
 	} else {die 'Y';}
 	return ($FiveT,$ThreeT);
 }
-sub InsertPos2PartLVR($$$$) {
-	my ($r1fr,$Pos,$InsertSize,$VirFrag)=@_;
+sub InsertPos2PartLVR($$$) {	# 对getInsertPos返回的，模拟拼合片段上的点，返回其所属区段:[LVR],及到该区段末尾的长度（与读长无关）。
+	my ($Pos,$InsertSize,$VirFrag)=@_;
 	my ($type,$lastingLen)=('',0);
+
+	if ($Pos < $InsertSize) {
+		$type = 'L';
+		$lastingLen = $InsertSize - $Pos;
+	} elsif ( $Pos < ($InsertSize + $VirFrag) ) {
+		$type = 'V';
+		$lastingLen = $VirFrag - ($Pos - $InsertSize);
+	} else {
+		$type = 'R';
+		$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
+	}
+=pod
 	if ($r1fr eq 'f') {
-		if ($Pos < $InsertSize) {
-			$type = 'L';
-			$lastingLen = $InsertSize - $Pos;
-		} elsif ( $Pos < ($InsertSize + $VirFrag) ) {
-			$type = 'V';
-			$lastingLen = $VirFrag - ($Pos - $InsertSize);
-		} else {
-			$type = 'R';
-			$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
-		}
+		# those above
 	} elsif ($r1fr eq 'r') {
 		if ( $Pos > ($InsertSize + $VirFrag) ) {
 			$type = 'L';
@@ -242,10 +245,11 @@ sub InsertPos2PartLVR($$$$) {
 			$lastingLen = $Pos;
 		}
 	}
+=cut
 	return ($type,$lastingLen);
 }
-sub Parts2List($$$$$$$$$) {
-	my ($r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag) = @_;
+sub Parts2List($$$$$$$$) {	# 根据左右两个InsertPos2PartLVR返回值，计算理论覆盖模式。 [mmL,nnV,ddR] (mm+nn+dd = ReadLength)
+	my ($Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag) = @_;
 	my %Type2Int = (
 		L => 1,
 		V => 2,
@@ -263,13 +267,9 @@ sub Parts2List($$$$$$$$$) {
 		my $nextType;
 		my $RemainLen = $ReadLen;
 		while ($nextInt <= $Type2Int{$type2}) {
-			if ($r1fr eq 'f') {
-				$nextPos += $nextLL;
-			} else {
-				$nextPos -= $nextLL;
-			}
+			$nextPos += $nextLL;
 			$RemainLen -= $nextLL;
-			($nextType,$nextLL) = InsertPos2PartLVR($r1fr,$nextPos,$InsertSize,$VirFrag);
+			($nextType,$nextLL) = InsertPos2PartLVR($nextPos,$InsertSize,$VirFrag);
 			$nextLL=$RemainLen if $nextInt == $Type2Int{$type2};
 			#ddx [$nextInt,$nextType,$RemainLen,$nextLL,1,$r1fr,$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag];
 			push @ret,"${nextLL}$nextType";
@@ -278,22 +278,17 @@ sub Parts2List($$$$$$$$$) {
 		return @ret;
 	} else { die 'E'; }
 }
-sub InsertPos2InsertParts($$$$$$) {
-	my ($InsertSize,$ReadLen,$VirFrag,$r1fr,$FiveT,$ThreeT)=@_;
-	my ($type5,$lastingLen5) = InsertPos2PartLVR($r1fr,$FiveT,$InsertSize,$VirFrag);
-	my ($type3,$lastingLen3) = InsertPos2PartLVR($r1fr,$ThreeT,$InsertSize,$VirFrag);
-	my @Parts;
-	if ($r1fr eq 'f') {
-		@Parts = Parts2List($r1fr,$FiveT,$type5,$lastingLen5,$type3,$lastingLen3,$ReadLen,$InsertSize,$VirFrag);
-	} elsif ($r1fr eq 'r') {
-		@Parts = Parts2List($r1fr,$ThreeT,$type3,$lastingLen3,$type5,$lastingLen5,$ReadLen,$InsertSize,$VirFrag);
-	}
+sub InsertPos2InsertParts($$$$$) {
+	my ($InsertSize,$ReadLen,$VirFrag,$FiveT,$ThreeT)=@_;
+	my ($type5,$lastingLen5) = InsertPos2PartLVR($FiveT,$InsertSize,$VirFrag);
+	my ($type3,$lastingLen3) = InsertPos2PartLVR($ThreeT,$InsertSize,$VirFrag);
+	my @Parts = Parts2List($FiveT,$type5,$lastingLen5,$type3,$lastingLen3,$ReadLen,$InsertSize,$VirFrag);
 	return @Parts;
 }
 sub getInsertParts($$$$$$) {
 	my ($InsertSize,$ReadLen,$VirFrag,$r1fr,$innerPos,$r12) = @_;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
+	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag, $FiveT,$ThreeT);
 	return @Parts;
 }
 

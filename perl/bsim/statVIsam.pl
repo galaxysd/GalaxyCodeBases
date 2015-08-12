@@ -58,7 +58,7 @@ sub getRealPos($$$$$$$$$$) {
 	my @ret;	# 暂且忽略 $strand
 	my $VirFrag = $VirSLR->[2] - $VirSLR->[1];
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
-	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag,$r1fr, $FiveT,$ThreeT);
+	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag, $FiveT,$ThreeT);
 	my @Poses = InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$simLMR,$VirSLR);
 	ddx [$FiveT,$ThreeT,@Parts];
 	return @Poses;
