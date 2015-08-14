@@ -256,7 +256,7 @@ sub Parts2List($$$$$$$$) {	# 根据左右两个InsertPos2PartLVR返回值，计�
 		R => 3,
 	);
 	my %Int2Type = reverse %Type2Int;
-	#if ($type1 eq $type2) {
+	#if ($type1 eq $type2) {	# 'L'的Read1记录这样到LR分界点最方便。需要`$nextLL`则手动替换。
 	#	return ( "${ReadLen}${type1}" );
 	#} els
 	if ( $Type2Int{$type1} <= $Type2Int{$type2} ) {

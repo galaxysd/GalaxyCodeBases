@@ -23,17 +23,8 @@ my $VirID = getRefChr1stID($Virfh);
 close $Virfh;
 warn "[!]Ref:[$RefID], Virus:[$VirID].\n";
 
-sub InsertParts2RealPos($$$$$$) {
-	my ($r1fr,$rSMS,$PartsRef,$MappedChr,$simLMR,$VirSLR) = @_;
-	my ($FiveSkip,$ThreeSkip)=(0,0);
-	#ddx $PartsRef;
-	if ($r1fr eq 'f') {
-		$FiveSkip = $$rSMS[0];
-		$ThreeSkip = $$rSMS[2];
-	} elsif ($r1fr eq 'r') {
-		$FiveSkip = $$rSMS[2];
-		$ThreeSkip = $$rSMS[0];
-	}
+sub InsertParts2RealPos($$$$$) {
+	my ($r1fr,$PartsRef,$MappedChr,$simLMR,$VirSLR) = @_;
 	my @Poses;
 	for my $Part (@$PartsRef) {
 		$Part =~ /^(\d+)(\w+)$/ or die "[$Part]";
@@ -46,7 +37,7 @@ sub InsertParts2RealPos($$$$$$) {
 				$tmp = 1+ $VirSLR->[2] - $slen;
 			}
 		} else {
-			$tmp = 1+ $simLMR->[1] - $slen if $type eq 'L';
+			$tmp = 1+ $simLMR->[1] - $slen if $type eq 'L';	# `1+ $simLMR->[1] - $slen` can also be `1+ $simLMR->[0] + $innerPos` for 'L' && Read1。
 			$tmp = 1+ $simLMR->[1] if $type eq 'R';	# LeftPos => not to add $slen
 		}
 		push @Poses,$tmp.$type."+$slen";
@@ -59,7 +50,7 @@ sub getRealPos($$$$$$$$$$) {
 	my $VirFrag = $VirSLR->[2] - $VirSLR->[1];
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
 	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag, $FiveT,$ThreeT);
-	my @Poses = InsertParts2RealPos($r1fr,$rSMS,\@Parts,$MappedChr,$simLMR,$VirSLR);
+	my @Poses = InsertParts2RealPos($r1fr,\@Parts,$MappedChr,$simLMR,$VirSLR);
 	ddx [$FiveT,$ThreeT,@Parts];
 	return @Poses;
 }
