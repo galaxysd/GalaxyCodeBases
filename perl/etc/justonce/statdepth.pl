@@ -21,7 +21,7 @@ for my $chr (sort keys %Depdat) {
 	while (@poses) {
 		$st = shift @poses;
 		$ed = shift @poses;
-		while ($poses[0] - $ed == 1) {
+		while (@poses && $poses[0] - $ed == 1) {
 			$ed = shift @poses;
 		}
 		push @{$Ranges{$chr}},[$st,$ed];
