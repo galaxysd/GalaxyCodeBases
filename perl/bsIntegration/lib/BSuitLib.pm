@@ -1,6 +1,6 @@
 package main;
 use BSuitInc;
-use File::Path;
+use File::Path 2.08;	# http://search.cpan.org/~riche/File-Path-2.11/lib/File/Path.pm#API_CHANGES
 use File::Basename;
 use Galaxy::IO;
 use Galaxy::IO::FASTA;
