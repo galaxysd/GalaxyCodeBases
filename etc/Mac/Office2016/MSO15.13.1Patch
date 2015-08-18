@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# 制作自签名证书，并将其命名为Codesign；制作自签名证书的方法参见：http://bd808.com/blog/2013/10/21/creating-a-self-signed-code-certificate-for-xcode/
+
+echo "Patching Microsoft Office Outlook (15.13.1)..."
+sudo perl -i -pe 's|\x00\x00\x74\x1D|\x00\x00\x90\x90|' /Applications/Microsoft\ Outlook.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s Codesign /Applications/Microsoft\ Outlook.app/Contents/Frameworks/MicrosoftSetupUI.framework
+sudo codesign -f -s Codesign /Applications/Microsoft\ Outlook.app
+
+echo "Patching Microsoft Office Word (15.13.1)..."
+sudo perl -i -pe 's|\x00\x00\x74\x1D|\x00\x00\x90\x90|' /Applications/Microsoft\ Word.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s Codesign /Applications/Microsoft\ Word.app/Contents/Frameworks/MicrosoftSetupUI.framework
+sudo codesign -f -s Codesign /Applications/Microsoft\ Word.app
+
+echo "Patching Microsoft Office Excel (15.13.1)..."
+sudo perl -i -pe 's|\x00\x00\x74\x1D|\x00\x00\x90\x90|' /Applications/Microsoft\ Excel.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s Codesign /Applications/Microsoft\ Excel.app/Contents/Frameworks/MicrosoftSetupUI.framework
+sudo codesign -f -s Codesign /Applications/Microsoft\ Excel.app
+
+echo "Patching Microsoft Office PowerPoint (15.13.1)..."
+sudo perl -i -pe 's|\x00\x00\x74\x1D|\x00\x00\x90\x90|' /Applications/Microsoft\ PowerPoint.app/Contents/Frameworks/MicrosoftSetupUI.framework/Versions/Current/MicrosoftSetupUI
+sudo codesign -f -s Codesign /Applications/Microsoft\ PowerPoint.app/Contents/Frameworks/MicrosoftSetupUI.framework
+sudo codesign -f -s Codesign /Applications/Microsoft\ PowerPoint.app
