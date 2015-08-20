@@ -102,5 +102,5 @@ for my $i (0 .. $#fps) {
 close INI;
 
 __END__
-./simVirusInserts.pl hs_ref_GRCh38.p2_chr18.mfa.gz HBV.AJ507799.2.fa.gz simout
+./simVirusInserts.pl hs_ref_GRCh38.p2_chr18.mfa.gz X04615.fa.gz simout
 
