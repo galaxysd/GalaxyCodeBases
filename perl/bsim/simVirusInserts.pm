@@ -229,7 +229,8 @@ sub InsertPos2PartLVR($$$) {	# 对getInsertPos返回的，模拟拼合片段上�
 		$lastingLen = $VirFrag - ($Pos - $InsertSize);
 	} else {
 		$type = 'R';
-		$lastingLen = $Pos - ($InsertSize + $VirFrag);	# towards Mid-point
+		$lastingLen = 2*$InsertSize + $VirFrag - $Pos;	# towards 3'
+		#$lastingLen = $Pos - ($InsertSize + $VirFrag);	# towards Mid-point
 	}
 	# LVR模型没有考虑LVR各自悬空的情况，需要修正为LLVVRR。
 =pod
