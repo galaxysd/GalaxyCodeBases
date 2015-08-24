@@ -32,7 +32,7 @@ sub InsertParts2RealPos($$$$$) {
 		my $tmp;
 		if ($type eq 'V') {
 			if ( ($VirSLR->[0] eq '+' and $r1fr eq 'f') or ($VirSLR->[0] eq '-' and $r1fr eq 'r') ) {
-				$tmp = 1+ $VirSLR->[1]; # LeftPos => not to: + $slen;
+				$tmp = $VirSLR->[1]; # LeftPos => not to: + $slen;
 			} else {
 				$tmp = 1+ $VirSLR->[2] - $slen;
 			}
@@ -47,7 +47,7 @@ sub InsertParts2RealPos($$$$$) {
 sub getRealPos($$$$$$$$$$) {
 	my ($r1fr,$innerPos, $InsertSize,$ReadLen,$VirSLR, $MappedChr,$rSMS,$r12,$strand,$simLMR)=@_;
 	my @ret;	# 暂且忽略 $strand
-	my $VirFrag = $VirSLR->[2] - $VirSLR->[1];
+	my $VirFrag = $VirSLR->[2] - $VirSLR->[1] +1;
 	my ($FiveT,$ThreeT) = getInsertPos($r1fr,$innerPos,$InsertSize,$ReadLen,$r12);
 	my @Parts = InsertPos2InsertParts($InsertSize,$ReadLen,$VirFrag, $FiveT,$ThreeT);
 	my @Poses = InsertParts2RealPos($r1fr,\@Parts,$MappedChr,$simLMR,$VirSLR);
@@ -80,8 +80,8 @@ for my $bamin (@ARGV) {
 		my @dat2 = split /\t/;
 		die "[x]Read1 & Read2 not match ! [$dat1[0]] ne [$dat2[0]]\n" if $dat1[0] ne $dat2[0];
 		# sf0_Ref_2707868_2708068_2708268_Vir_-_5629_5731
-		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R_(\d+)_(\d+)_([\d\|\-LVR]+)$/ or die "$dat1[0]";
-		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight,$InsertSize,$ReadLen,$R12LVR) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11);
+		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R_(\d+)_(\d+)$/ or die "$dat1[0]";	# _([\d\|\-LVR]+)
+		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight,$InsertSize,$ReadLen) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);
 		#print "$dat1[0] $innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\n";
 		next if $r1fr eq 'r';	# 封印反向Reads。
 		my $r1SMS = cigar2SMS($dat1[5]);
