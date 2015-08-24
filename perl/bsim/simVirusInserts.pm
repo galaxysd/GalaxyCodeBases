@@ -153,6 +153,7 @@ sub dosim($$$) {
 			my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 			my $revR2 = revcom($R2);
 			my $type = getype($R1,$R2);
+			$type = '0' if $p == 0 or $p == $maxP;
 			my ($Part1,$Part2);
 			my $Qual = $type x $SeqReadLen;
 			$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,1);
