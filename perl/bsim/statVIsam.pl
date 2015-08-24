@@ -83,7 +83,7 @@ for my $bamin (@ARGV) {
 		$dat1[0] =~ /^s([fr])(\d+)_Ref_(\d+)_(\d+)_(\d+)_Vir_([+-])_(\d+)_(\d+)_R_(\d+)_(\d+)$/ or die "$dat1[0]";	# _([\d\|\-LVR]+)
 		my ($r1fr,$innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight,$InsertSize,$ReadLen) = ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);
 		#print "$dat1[0] $innerPos,$RefLeft,$RefMiddle,$RefRight,$VirStrand,$VirLeft,$VirRight\n";
-		next if $r1fr eq 'r';	# 封印反向Reads。
+		#next if $r1fr eq 'r';	# 封印反向Reads。
 		my $r1SMS = cigar2SMS($dat1[5]);
 		my $r2SMS = cigar2SMS($dat2[5]);
 		my ($r12R1,$r12R2)=(0,0);

@@ -229,8 +229,9 @@ sub InsertPos2PartLVR($$$) {	# 对getInsertPos返回的，模拟拼合片段上�
 		$lastingLen = $VirFrag - ($Pos - $InsertSize);
 	} else {
 		$type = 'R';
-		$lastingLen = 2*$InsertSize + $VirFrag - $Pos;
+		$lastingLen = $Pos - ($InsertSize + $VirFrag);	# towards Mid-point
 	}
+	# LVR模型没有考虑LVR各自悬空的情况，需要修正为LLVVRR。
 =pod
 	if ($r1fr eq 'f') {
 		# those above
@@ -256,11 +257,11 @@ sub Parts2List($$$$$$$$) {	# 根据左右两个InsertPos2PartLVR返回值，计�
 		V => 2,
 		R => 3,
 	);
+	#ddx [$Pos,$type1,$lastingLen1,$type2,$lastingLen2,$ReadLen,$InsertSize,$VirFrag];
 	my %Int2Type = reverse %Type2Int;
-	#if ($type1 eq $type2) {	# 'L'的Read1记录这样到LR分界点最方便。需要`$nextLL`则手动替换。
-	#	return ( "${ReadLen}${type1}" );
-	#} els
-	if ( $Type2Int{$type1} <= $Type2Int{$type2} ) {
+	if ($type1 eq $type2) {	# 'L'的Read1记录这样到LR分界点最方便。需要`$nextLL`则手动替换。
+		return ( "${lastingLen1}${type1}" );	# 一律按左端点返回
+	} elsif ( $Type2Int{$type1} <= $Type2Int{$type2} ) {
 		my @ret = ( "${lastingLen1}${type1}" );
 		my $nextInt = 1+ $Type2Int{$type1};
 		my $nextPos = $Pos;
