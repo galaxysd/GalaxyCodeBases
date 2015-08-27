@@ -118,12 +118,16 @@ for my $mlss (@IDsMLSS) {
           }
           ##
       $dn = 'na' if (!defined($dn));
-	  print "$spa,$labela,$spb,$labelb,$dn,$ds\n";
+	  print "$spa,$labela,$spb,$labelb,$dn,$ds,$description\n";
     }
     print "\n";
 }
 
 __END__
+
+les q2.txt |grep -P 'ENSMMUG00000029355|ENSMMUG00000030190|ENSPPYG00000025870|ENSCJAG00000022855|ENSPPYG00000016721|ENSECAG00000024079'
+
+
 USE ensembl_compara_80;
 
 SELECT DISTINCT ss.species_set_id, ss1.genome_db_id, gdb1.taxon_id, gdb1.name, ss.genome_db_id, gdb.taxon_id, gdb.name, gdb.assembly FROM species_set ss
