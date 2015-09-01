@@ -4,7 +4,7 @@
 
 git remote add gitlab git@gitlab.com:galaxycodebases/main.git
 git remote add coding git@coding.net:galaxy/GalaxyCodeBase.git
-git remote add orcz ssh://repo.or.cz/GalaxyCodeBases.git
+git remote add orcz ssh://galaxy@repo.or.cz/GalaxyCodeBases.git
 # git remote add github git@github.com:galaxysd/GalaxyCodeBases.git
 # git push -u github master
 git remote -v
