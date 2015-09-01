@@ -132,6 +132,7 @@ sub do_grep($) {
 		open( IN,"-|","samtools view $myBamf") or die "Error opening $in: $!\n";	# `-F768` later
 		system( "samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
 		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
+		open IOUT,'>',"$RootPath/${ProjectID}_grep/$k.blocks" or die "$!";
 		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
 		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
@@ -154,6 +155,7 @@ sub do_grep($) {
 		}
 		close IN;
 		close GOUT;
+		close IOUT;
 	}
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
