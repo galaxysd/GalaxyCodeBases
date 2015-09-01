@@ -31,7 +31,7 @@ open INI,'>',$outp.'.ini' or die $!;
 print INI <<CONTENT;
 [RefFiles]
 HostRef=/bak/seqdata/genomes/HomoGRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
-VirusRef=/share/users/huxs/work/bsvir/HBV.AJ507799.2.fa
+VirusRef=/share/users/huxs/work/bsvir/X04615.fa.gz
 
 [Output]
 WorkDir=/share/users/huxs/work/bsvir/bsI
