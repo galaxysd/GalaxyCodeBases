@@ -107,7 +107,8 @@ CMD
 	warn "[!] Please run [$RootPath/${ProjectID}_aln.sh] to do the aln.\n"
 }
 
-sub do_grep() {	
+sub do_grep($) {
+	my $cfgfile = $_[0];
 	my (%tID);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
@@ -118,7 +119,7 @@ sub do_grep() {
 	File::Path::make_path("$RootPath/${ProjectID}_grep",{verbose => 0,mode => 0755});
 	my $GrepResult = Galaxy::IO::INI->new();
 	for my $k (keys %tID) {
-		my $myBamf = "$RootPath/${ProjectID}_aln/$k.sn.bam";
+		my $myBamf = "$RootPath/${ProjectID}_aln/$k.bam";
 		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
 		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
 		#warn "$myBamf,$InsMean,$InsSD";
@@ -128,24 +129,31 @@ sub do_grep() {
 			InsSD => $InsSD,
 		};
 		$GrepResult->{$k} = { DatFile => "$RootPath/${ProjectID}_grep/$k.sam" };
-		open( IN,"-|","samtools view -F768 $myBamf") or die "Error opening $in: $!\n";
+		open( IN,"-|","samtools view $myBamf") or die "Error opening $in: $!\n";	# `-F768` later
+		system( "samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
+		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
+		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
 		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
 			my @Dat1 = split /\t/,$line;
-			my $line2 = <IN>;
-			die '[x]SAM/BAM file not paired !' unless defined($line2);
-			my @Dat2 = split /\t/,$line2;
+			#my $line2 = <IN>;
+			#die '[x]SAM/BAM file not paired !' unless defined($line2);
+			#my @Dat2 = split /\t/,$line2;
 			#next if $Dat1[4]<$CFGminMAPQ or $Dat2[4]<$CFGminMAPQ;
 			my $flag = 0;
 			$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
-			$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat2[2]});
-			#$flag |= 4 if $Dat1[2] ne $Dat2[2];
+			$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+			$flag |= 4 if $Dat1[6] ne '=';
+			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			next unless $flag;
-			warn "$flag $InsSD\n${line}$line2\n" if $flag>1;
+			my $curpos = tell(GOUT);
+			warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
+			print GOUT $line;
 			#last;
 		}
 		close IN;
+		close GOUT;
 	}
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
