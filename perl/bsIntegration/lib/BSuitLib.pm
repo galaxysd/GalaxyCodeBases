@@ -170,11 +170,11 @@ sub do_grep($) {
 			print GOUT $line;
 			#ddx \%ReadsIndex;
 			#last;
-			print STDERR "\b\b\bdone.\n";
 		}
 		close IN;
 		close GOUT;
 		close IOUT;
+		print STDERR "\b\b\bdone.\n";
 	}
 	#ddx \%ReadsIndex;
 #   "Fsimout_m13FG\tsf169_Ref_28544413_28544612_28544812_Vir_+_958_1137_R_200_90"   =>   [
