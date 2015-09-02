@@ -92,6 +92,7 @@ sub write_string {
 	my $self = shift;
 	my $contents = '';
 	foreach my $section (@{$$self{']'}}) {
+		next unless defined $section ;
 		my $block = $self->{$section};
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';

@@ -193,6 +193,7 @@ sub do_grep($) {
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0],$ReadsIndex{$b}->[0]) } keys %ReadsIndex;
 	close GOUTI;
 	warn $GrepResult->write_string;
+	ddx $GrepResult;
 	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
 }
 
