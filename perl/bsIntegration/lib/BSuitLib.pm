@@ -4,6 +4,7 @@ use File::Path 2.08;	# http://search.cpan.org/~riche/File-Path-2.11/lib/File/Pat
 use File::Basename;
 use Galaxy::IO;
 use Galaxy::IO::FASTA;
+use JSON;
 
 sub do_pre() {
 	#my $Config = $_[0];
@@ -118,6 +119,7 @@ sub do_grep($) {
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
 	File::Path::make_path("$RootPath/${ProjectID}_grep",{verbose => 0,mode => 0755});
 	my $GrepResult = Galaxy::IO::INI->new();
+	my %ReadsIndex;
 	for my $k (keys %tID) {
 		my $myBamf = "$RootPath/${ProjectID}_aln/$k.bam";
 		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
@@ -138,10 +140,17 @@ sub do_grep($) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
 			my @Dat1 = split /\t/,$line;
+			my $r12R1;
+			if ($Dat1[1] & 0x40) {
+				$r12R1 = 1;
+			} elsif ($Dat1[1] & 0x80) {
+				$r12R1 = 2;
+			} else {die $Dat1[1];}
+			--$r12R1;
 			#my $line2 = <IN>;
 			#die '[x]SAM/BAM file not paired !' unless defined($line2);
 			#my @Dat2 = split /\t/,$line2;
-			#next if $Dat1[4]<$CFGminMAPQ or $Dat2[4]<$CFGminMAPQ;
+			#next if $Dat1[4]<$CFGminMAPQ;
 			my $flag = 0;
 			$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
 			$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
@@ -149,14 +158,22 @@ sub do_grep($) {
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			next unless $flag;
 			my $curpos = tell(GOUT);
-			warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
+			$ReadsIndex{$Dat1[0]}->[$r12R1] = $curpos;
+			$ReadsIndex{$Dat1[0]}->[2+$r12R1] = $Dat1[2];
+			$ReadsIndex{$Dat1[0]}->[4+$r12R1] = $Dat1[3];
+			$ReadsIndex{$Dat1[0]}->[6+$r12R1] = $Dat1[4];
+			$ReadsIndex{$Dat1[0]}->[8+$r12R1] = $Dat1[5];
+			#warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
+			print "($Dat1[2],$Dat1[3],$Dat1[5],$curpos)\n";
 			print GOUT $line;
+			#ddx \%ReadsIndex;
 			#last;
 		}
 		close IN;
 		close GOUT;
 		close IOUT;
 	}
+	ddx \%ReadsIndex;
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	warn $GrepResult->write_string;
