@@ -24,6 +24,11 @@ sub getRef2char($$) {
 sub sortChrPos($$) {
 	my ($ChrA,$PosA) = split /\t/,$_[0];
 	my ($ChrB,$PosB) = split /\t/,$_[1];
+	if ($ChrA eq $ChrB) {
+		return $PosA <=> $PosB;
+	}
+	return 1 if exists $VirusChrIDs{$ChrA};
+	return -1 if exists $VirusChrIDs{$ChrB};
 	$ChrA cmp $ChrB ||
 	$PosA <=> $PosB;
 }
