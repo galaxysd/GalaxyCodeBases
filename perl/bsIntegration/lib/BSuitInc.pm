@@ -21,6 +21,13 @@ sub getRef2char($$) {
 	return $HostChar.$VirusChar;
 }
 
+sub sortChrPos($$) {
+	my ($ChrA,$PosA) = split /\t/,$_[0];
+	my ($ChrB,$PosB) = split /\t/,$_[1];
+	$ChrA cmp $ChrB ||
+	$PosA <=> $PosB;
+}
+
 sub warnFileExist(@) {
 	my %NotFound;
 	for (@_) {

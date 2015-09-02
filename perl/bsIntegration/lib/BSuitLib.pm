@@ -4,7 +4,7 @@ use File::Path 2.08;	# http://search.cpan.org/~riche/File-Path-2.11/lib/File/Pat
 use File::Basename;
 use Galaxy::IO;
 use Galaxy::IO::FASTA;
-use JSON;
+#use JSON;
 
 sub do_pre() {
 	#my $Config = $_[0];
@@ -146,7 +146,7 @@ sub do_grep($) {
 			} elsif ($Dat1[1] & 0x80) {
 				$r12R1 = 2;
 			} else {die $Dat1[1];}
-			--$r12R1;
+			#--$r12R1;
 			#my $line2 = <IN>;
 			#die '[x]SAM/BAM file not paired !' unless defined($line2);
 			#my @Dat2 = split /\t/,$line2;
@@ -158,13 +158,14 @@ sub do_grep($) {
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			next unless $flag;
 			my $curpos = tell(GOUT);
-			$ReadsIndex{$Dat1[0]}->[$r12R1] = $curpos;
-			$ReadsIndex{$Dat1[0]}->[2+$r12R1] = $Dat1[2];
-			$ReadsIndex{$Dat1[0]}->[4+$r12R1] = $Dat1[3];
-			$ReadsIndex{$Dat1[0]}->[6+$r12R1] = $Dat1[4];
-			$ReadsIndex{$Dat1[0]}->[8+$r12R1] = $Dat1[5];
+			my $id = join("\t",$k,$Dat1[0]);
+			$ReadsIndex{$id}->[8+$r12R1] = $Dat1[5];
+			$ReadsIndex{$id}->[$r12R1] = $curpos;
+			$ReadsIndex{$id}->[2+$r12R1] = $Dat1[2];
+			$ReadsIndex{$id}->[4+$r12R1] = $Dat1[3];
+			$ReadsIndex{$id}->[6+$r12R1] = $Dat1[4];
 			#warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
-			print "($Dat1[2],$Dat1[3],$Dat1[5],$curpos)\n";
+			#print "($Dat1[2],$Dat1[3],$Dat1[5],$curpos)\n";
 			print GOUT $line;
 			#ddx \%ReadsIndex;
 			#last;
@@ -174,8 +175,20 @@ sub do_grep($) {
 		close IOUT;
 	}
 	ddx \%ReadsIndex;
+#   "Fsimout_m13FG\tsf169_Ref_28544413_28544612_28544812_Vir_+_958_1137_R_200_90"   =>   [
+#     undef, 33159,34573, "chr1","chr1", 14341526,14341599, 1,1, "19S22M49S","49S31M10S" ],
+	for my $k (keys %ReadsIndex) {
+		#my ($m,$n,$x,$y) = $ReadsIndex{$k}->[3,4,5,6];
+		my $x = join("\t",$ReadsIndex{$k}->[3],$ReadsIndex{$k}->[5]);
+		my $y = join("\t",$ReadsIndex{$k}->[4],$ReadsIndex{$k}->[6]);
+		my @s = sort sortChrPos($x,$y);
+		$ReadsIndex{$k}->[0] = $s[0];
+	}
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
+	open GOUTI,'<',$GrepResult->{$k}{'DatFile'} or die "$!";
+	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0],$ReadsIndex{$b}->[0]) } keys %ReadsIndex;
+	close GOUTI;
 	warn $GrepResult->write_string;
 	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
 }
