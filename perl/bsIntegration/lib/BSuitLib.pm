@@ -136,6 +136,7 @@ sub do_grep($) {
 		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
 		open IOUT,'>',"$RootPath/${ProjectID}_grep/$k.blocks" or die "$!";
 		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
+		print STDERR "[!] Reading [$myBamf] ...";
 		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
@@ -169,12 +170,13 @@ sub do_grep($) {
 			print GOUT $line;
 			#ddx \%ReadsIndex;
 			#last;
+			print STDERR "\b\b\bdone.\n";
 		}
 		close IN;
 		close GOUT;
 		close IOUT;
 	}
-	ddx \%ReadsIndex;
+	#ddx \%ReadsIndex;
 #   "Fsimout_m13FG\tsf169_Ref_28544413_28544612_28544812_Vir_+_958_1137_R_200_90"   =>   [
 #     undef, 33159,34573, "chr1","chr1", 14341526,14341599, 1,1, "19S22M49S","49S31M10S" ],
 	for my $k (keys %ReadsIndex) {
@@ -184,6 +186,7 @@ sub do_grep($) {
 		my @s = sort sortChrPos($x,$y);
 		$ReadsIndex{$k}->[0] = $s[0];
 	}
+	warn "[!] Bam Reading done.\n";
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	open GOUTI,'<',$GrepResult->{$k}{'DatFile'} or die "$!";
