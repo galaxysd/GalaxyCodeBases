@@ -190,7 +190,9 @@ sub do_grep($) {
 		close IN;
 		close GOUT;
 		print STDERR "\b\b\bdone.\n";
-		open $tFH{$k},'<',$GrepResult->{$k}{'DatFile'} or die "$!";
+		if ($DEBUG) {
+			open $tFH{$k},'<',$GrepResult->{$k}{'DatFile'} or die "$!";
+		}
 	}
 	for my $tk (keys %ReadsIndex) {
 		my ($flag,%tmp)=(0);
@@ -215,6 +217,9 @@ sub do_grep($) {
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
+	if ($DEBUG) {
+		open BOUTDBG,'>',"$RootPath/${ProjectID}_grep/blocks.txt" or die "$!";
+	}
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0][1],$ReadsIndex{$b}->[0][1]) } keys %ReadsIndex;
 	my ($Cnt,%hChrRange,%vChrRange,@Store,@PureVirReads)=(0);
 	for my $cid (@IDsorted) {
@@ -234,21 +239,37 @@ sub do_grep($) {
 				$DatRef = \%hChrRange;
 				$isHost = 1;
 			}
-			my $tid = join("\n",$cid,$i);
-			while ( mergeIn($isHost,$DatRef,$ReadsIndex{$cid}->[$i],\@Store,$tid) ) {
+			while ( mergeIn($isHost,$DatRef,$ReadsIndex{$cid}->[$i],\@Store,$cid,$i) ) {
 				++$Cnt;
 				print BOUT "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
 					"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
 					join(',',map { my @t = split /\n/;my @f=split /\t/,$t[0];join(':',$f[0],$ReadsIndex{$t[0]}->[$t[1]]->[0]); } @Store),"\n\n";
+				if ($DEBUG) {
+					print BOUTDBG "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
+						"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
+						join(',',map { my @t = split /\n/;my @f=split /\t/,$t[0];join(':',$f[0],$ReadsIndex{$t[0]}->[$t[1]]->[0]); } @Store),"\n";
+					for (@Store) {
+						my @t = split /\n/;
+						my @f=split /\t/,$t[0];
+						seek($tFH{$f[0]},$ReadsIndex{$t[0]}->[$t[1]]->[0],0);
+						my $str = readline $tFH{$f[0]};
+						print BOUTDBG $str;
+					}
+					print BOUTDBG "\n";
+				}
 				%hChrRange = %vChrRange = @Store = ();
 			}
 		}
 	}
 	close BOUT;
-	close $tFH{$_} for keys %tFH;
-	warn $GrepResult->write_string;
-	ddx $GrepResult;
+	if ($DEBUG) {
+		close $tFH{$_} for keys %tFH;
+		close BOUTDBG;
+	}
+	#warn $GrepResult->write_string;
+	#ddx $GrepResult;
 	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
+	warn "[!] grep done with [$Cnt] items.\n";
 }
 
 1;

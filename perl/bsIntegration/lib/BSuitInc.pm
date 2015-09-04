@@ -53,44 +53,35 @@ sub cigar2poses($) {
 	return ($reflen,$readlen);
 }
 
-sub mergeIn($$$$$) {
-	my ($isHost,$rChrRange,$aRead,$rStore,$tid) = @_;
+sub mergeIn($$$$$$) {
+	my ($isHost,$rChrRange,$aRead,$rStore,$cid,$i) = @_;
 	my ($reflen,$readlen) = cigar2poses($aRead->[5]);
 	my $thisehPos = $aRead->[3]+$reflen;
 	my $ret;	# 1 -> again, 0 -> merged
-	if (exists $rChrRange->{$aRead->[2]}) {
+	if ($i > 1 or $isHost == 0) {
+		# same PE or assume overlap on Virus
+		$ret = 0;
+		if (keys %{$rChrRange} and exists $rChrRange->{$aRead->[2]}) {
+			if ($aRead->[3] <= $rChrRange->{$aRead->[2]}->[0]) {
+				$rChrRange->{$aRead->[2]}->[0] = $aRead->[3];
+			}
+			if ($thisehPos >= $rChrRange->{$aRead->[2]}->[1]) {
+				$rChrRange->{$aRead->[2]}->[1] = $thisehPos;
+			}
+		} else {
+			$rChrRange->{$aRead->[2]} = [ $aRead->[3],$thisehPos ];
+		}
+	} elsif (exists $rChrRange->{$aRead->[2]}) {
 		if ($aRead->[3] <= $rChrRange->{$aRead->[2]}->[1]) {
 			#die unless $thisehPos >= $rChrRange->{$aRead->[2]}->[1];
 			$rChrRange->{$aRead->[2]}->[1] = $thisehPos if $thisehPos >= $rChrRange->{$aRead->[2]}->[1];
 			$ret = 0;
 		} else {
-			if ($isHost) {
-				$ret = 1;
-			} else {
-				$ret = 0;
-				# assume overlap
-				if ($aRead->[3] <= $rChrRange->{$aRead->[2]}->[0]) {
-					$rChrRange->{$aRead->[2]}->[0] = $aRead->[3];
-				}
-				if ($thisehPos >= $rChrRange->{$aRead->[2]}->[1]) {
-					$rChrRange->{$aRead->[2]}->[1] = $thisehPos;
-				}
-			}
-		}
-	} else {
-		if (keys %{$rChrRange}) {
-			if ($isHost) {
-				$ret = 1;
-			} else {
-				$ret = 0;
-				$rChrRange->{$aRead->[2]} = [ $aRead->[3],$thisehPos ];
-			}
-		} else {
-			$rChrRange->{$aRead->[2]} = [ $aRead->[3],$thisehPos ];
-			$ret = 0;
+			$ret = 1;
 		}
 	}
 	unless ($ret) {
+		my $tid = join("\n",$cid,$i);
 		push @{$rStore},$tid;
 	}
 	return $ret;
