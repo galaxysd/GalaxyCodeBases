@@ -139,6 +139,22 @@ sub do_grep($) {
 		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
 		print STDERR "[!] Reading [$myBamf] ...";
 		while (my $line = <IN>) {
+			my @Dat1 = split /\t/,$line;
+			my $flag = 0;
+			if ($Dat1[6] eq '=') {
+				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
+				$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+			} else {
+				$flag |= 4 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+			}
+			next unless $flag;
+			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
+			my $id = join("\t",$k,$Dat1[0]);
+			$ReadsIndex{$id} = [[0,$Dat1[2],$flag]];
+		}
+		close IN;
+		open IN,'-|',"samtools view $myBamf" or die "Error opening $myBamf: $!\n";
+		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
 			my @Dat1 = split /\t/,$line;
@@ -160,20 +176,15 @@ sub do_grep($) {
 			} else {
 				$flag |= 4 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
 			}
-			next unless $flag;
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			my $curpos = tell(GOUT);
 			my $id = join("\t",$k,$Dat1[0]);
-			$ReadsIndex{$id}->[11] = $flag;
-			$ReadsIndex{$id}->[$r12R1] = $curpos;
-			$ReadsIndex{$id}->[2+$r12R1] = $Dat1[2];	# Chr
-			$ReadsIndex{$id}->[4+$r12R1] = $Dat1[3];	# Pos
-			$ReadsIndex{$id}->[6+$r12R1] = $Dat1[4];	# MapQ
-			$ReadsIndex{$id}->[8+$r12R1] = $Dat1[5];	# CIGAR
 			#warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
+			next unless defined $ReadsIndex{$id};
+			push @{$ReadsIndex{$id}},[$curpos,$r12R1,@Dat1[2,3,4,5],$flag];	# Chr, Pos, MapQ, CIGAR
 			#print "($Dat1[2],$Dat1[3],$Dat1[5],$curpos)\n";
 			print GOUT $line;
-			#ddx \%ReadsIndex;
+			#ddx $ReadsIndex{$id} if scalar @{$ReadsIndex{$id}} > 2;
 			#last;
 		}
 		close IN;
@@ -181,25 +192,34 @@ sub do_grep($) {
 		print STDERR "\b\b\bdone.\n";
 		open $tFH{$k},'<',$GrepResult->{$k}{'DatFile'} or die "$!";
 	}
-	#ddx \%ReadsIndex;
-#   "Fsimout_m13FG\tsf169_Ref_28544413_28544612_28544812_Vir_+_958_1137_R_200_90"   =>   [
-#     undef, 33159,34573, "chr1","chr1", 14341526,14341599, 1,1, "19S22M49S","49S31M10S" ],
 	for my $tk (keys %ReadsIndex) {
-		#my ($m,$n,$x,$y) = $ReadsIndex{$tk}->[3,4,5,6];
-		my $x = join("\t",$ReadsIndex{$tk}->[3],$ReadsIndex{$tk}->[5],1);
-		my $y = join("\t",$ReadsIndex{$tk}->[4],$ReadsIndex{$tk}->[6],2);
-		my @s = sort sortChrPos($x,$y);
-		$ReadsIndex{$tk}->[0] = $s[0];
-ddx $ReadsIndex{$tk};
+		my ($flag,%tmp)=(0);
+		for my $i (1 .. $#{$ReadsIndex{$tk}}) {
+			my $x = join("\t",$ReadsIndex{$tk}->[$i][2],$ReadsIndex{$tk}->[$i][3]);
+			$tmp{$x} = $i;
+			$flag |= $ReadsIndex{$tk}->[$i][6];
+		}
+		my @s = sort sortChrPos(keys %tmp);
+		$ReadsIndex{$tk}->[0][0] = $tmp{$s[0]};
+		$ReadsIndex{$tk}->[0][1] = join("\t",$ReadsIndex{$tk}->[$tmp{$s[0]}][2],$ReadsIndex{$tk}->[$tmp{$s[0]}][3]);
+		$ReadsIndex{$tk}->[0][2] = $flag;
+#ddx $ReadsIndex{$tk};
+# BSuitLib.pm:213: [
+#   [1, "chr15\t20858350", 15],
+#   [1477321, 1, "chr15", 20858350, 0, "48M42S", 12],
+#   [33704587, 1, "gi|59585|emb|X04615.1|", 652, 0, "45S45M", 11],
+#   [34264944, 2, "gi|59585|emb|X04615.1|", 717, 60, "56M34S", 12],
+# ]
 	}
 	warn "[!] Bam Reading done.\n";
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
-	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0],$ReadsIndex{$b}->[0]) } keys %ReadsIndex;
+	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0][1],$ReadsIndex{$b}->[0][1]) } keys %ReadsIndex;
 	my ($Cnt,$hChr,$hsPos,$hePos,%vChrRange,@Store,@PureVirReads)=(0,"\t",0,0);
 	for my $cid (@IDsorted) {
-		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0];
+		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0][1];
+		push @minCPR,$ReadsIndex{$cid}->[0][0];
 		if (exists $VirusChrIDs{$minCPR[0]}) {
 			push @PureVirReads,$cid;
 			next;
@@ -230,7 +250,8 @@ ddx $ReadsIndex{$tk};
 			push @Store,$cid;
 		} else {
 			++$Cnt;
-			print BOUT "[Block$Cnt]\nHostChrPoses=$hChr:$hsPos-$hePos\nVirusChrPoses=???\nSamFS=",join(',',map {$ReadsIndex{$_}->[0]} @Store),"\n\n";
+			print BOUT "[Block$Cnt]\nHostChrPoses=$hChr:$hsPos-$hePos\nVirusChrPoses=???\nSamFS=",
+				join(',',map { my @t = split /\t/,$ReadsIndex{$_}->[0];$ReadsIndex{$_}->[$t[2]]; } @Store),"\n\n";
 			@Store = ($cid);
 			$hChr = $minCPR[0];
 			$hsPos = $minCPR[1];
