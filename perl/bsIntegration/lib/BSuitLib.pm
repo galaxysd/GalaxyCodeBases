@@ -216,7 +216,7 @@ sub do_grep($) {
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0][1],$ReadsIndex{$b}->[0][1]) } keys %ReadsIndex;
-	my ($Cnt,$hChr,$hsPos,$hePos,%hChrRange,%vChrRange,@Store,@PureVirReads)=(0,"\t",0,0);
+	my ($Cnt,%hChrRange,%vChrRange,@Store,@PureVirReads)=(0);
 	for my $cid (@IDsorted) {
 		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0][1];
 		push @minCPR,$ReadsIndex{$cid}->[0][0];
@@ -226,43 +226,23 @@ sub do_grep($) {
 		}
 		my ($thisehPos,$thisvChr,$thissvPos,$thisevPos);
 		for my $i (1 .. $#{$ReadsIndex{$cid}}) {
-			my $ret = mergeIn(\%hChrRange,$ReadsIndex{$cid}->[$i]);
+			my ($DatRef,$isHost);
+			if (exists $VirusChrIDs{$ReadsIndex{$cid}->[$i]->[2]}) {
+				$DatRef = \%vChrRange;
+				$isHost = 0;
+			} else {
+				$DatRef = \%hChrRange;
+				$isHost = 1;
+			}
+			my $tid = join("\n",$cid,$i);
+			while ( mergeIn($isHost,$DatRef,$ReadsIndex{$cid}->[$i],\@Store,$tid) ) {
+				++$Cnt;
+				print BOUT "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
+					"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
+					join(',',map { my @t = split /\n/;my @f=split /\t/,$t[0];join(':',$f[0],$ReadsIndex{$t[0]}->[$t[1]]->[0]); } @Store),"\n\n";
+				%hChrRange = %vChrRange = @Store = ();
+			}
 		}
-		my $rRead12 = $minCPR[2] ^ 3;
-		if ($ReadsIndex{$cid}->[11] & 6) {
-			my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$minCPR[2]+6]);
-			$thisehPos = $minCPR[1] + $reflen;
-			my ($Vreflen,$Vreadlen) = cigar2poses($ReadsIndex{$cid}->[$rRead12+6]);
-			$thisvChr = $ReadsIndex{$cid}->[$rRead12+2];
-			$thisvsPos = $ReadsIndex{$cid}->[$rRead12+4];
-			$thisvePos = $thissvPos + $Vreflen;
-		} else {
-			my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$rRead12+6]);
-			$thisehPos = $ReadsIndex{$cid}->[$rRead12+4] + $reflen;
-		}
-		if ($hChr eq "\t") {
-			die "[x] The 1st sorted SAM record is Pure Virus PE.\n" if exists $VirusChrIDs{$minCPR[0]};
-			$hChr = $minCPR[0];
-			$hsPos = $minCPR[1];
-			$hePos = $thisehPos;
-			push @Store,$cid;
-			next;
-		}
-		if ($hChr eq $minCPR[0] and $minCPR[1] <= $ehPos) {
-			$hePos = $thisehPos;
-			push @Store,$cid;
-		} else {
-			++$Cnt;
-			print BOUT "[Block$Cnt]\nHostChrPoses=$hChr:$hsPos-$hePos\nVirusChrPoses=???\nSamFS=",
-				join(',',map { my @t = split /\t/,$ReadsIndex{$_}->[0];$ReadsIndex{$_}->[$t[2]]; } @Store),"\n\n";
-			@Store = ($cid);
-			$hChr = $minCPR[0];
-			$hsPos = $minCPR[1];
-			$hePos = $thisehPos;
-			%vChrRange = ();
-		}
-		my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$minCPR[2]+6]);
-		my $start = $ReadsIndex{$cid}->[$minCPR[2]+6]
 	}
 	close BOUT;
 	close $tFH{$_} for keys %tFH;
