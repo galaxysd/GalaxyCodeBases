@@ -58,7 +58,7 @@ sub mergeIn($$$$$$) {
 	my ($reflen,$readlen) = cigar2poses($aRead->[5]);
 	my $thisehPos = $aRead->[3]+$reflen;
 	my $ret;	# 1 -> again, 0 -> merged
-	if ($i > 1 or $isHost == 0) {
+	if ($i > 1 or $isHost == 0 or scalar(keys %{$rChrRange})==0) {
 		# same PE or assume overlap on Virus
 		$ret = 0;
 		if (keys %{$rChrRange} and exists $rChrRange->{$aRead->[2]}) {
@@ -69,20 +69,23 @@ sub mergeIn($$$$$$) {
 				$rChrRange->{$aRead->[2]}->[1] = $thisehPos;
 			}
 		} else {
-			$rChrRange->{$aRead->[2]} = [ $aRead->[3],$thisehPos ];
+			$rChrRange->{$aRead->[2]} = [ $aRead->[3],$thisehPos,0 ];
 		}
 	} elsif (exists $rChrRange->{$aRead->[2]}) {
-		if ($aRead->[3] <= $rChrRange->{$aRead->[2]}->[1]) {
+		if ($aRead->[3] <= $rChrRange->{$aRead->[2]}->[1]) {	# overlap
 			#die unless $thisehPos >= $rChrRange->{$aRead->[2]}->[1];
 			$rChrRange->{$aRead->[2]}->[1] = $thisehPos if $thisehPos >= $rChrRange->{$aRead->[2]}->[1];
 			$ret = 0;
 		} else {
 			$ret = 1;
 		}
+	} else {	# different HostChr
+		$ret = 1;
 	}
 	unless ($ret) {
 		my $tid = join("\n",$cid,$i);
 		push @{$rStore},$tid;
+		++$rChrRange->{$aRead->[2]}->[2];
 	}
 	return $ret;
 }
@@ -90,7 +93,7 @@ sub formatChrRange($) {
 	my ($rChrRange) = @_;
 	my @ret;
 	for my $c (sort keys %{$rChrRange}) {
-		push @ret, "${c}:".$rChrRange->{$c}->[0].'-'.$rChrRange->{$c}->[1];
+		push @ret, "${c}:".$rChrRange->{$c}->[0].'-'.$rChrRange->{$c}->[1].':'.$rChrRange->{$c}->[2];
 	}
 	return join(',',@ret);
 }
