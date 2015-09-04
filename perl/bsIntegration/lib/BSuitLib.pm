@@ -216,7 +216,7 @@ sub do_grep($) {
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
 	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0][1],$ReadsIndex{$b}->[0][1]) } keys %ReadsIndex;
-	my ($Cnt,$hChr,$hsPos,$hePos,%vChrRange,@Store,@PureVirReads)=(0,"\t",0,0);
+	my ($Cnt,$hChr,$hsPos,$hePos,%hChrRange,%vChrRange,@Store,@PureVirReads)=(0,"\t",0,0);
 	for my $cid (@IDsorted) {
 		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0][1];
 		push @minCPR,$ReadsIndex{$cid}->[0][0];
@@ -225,6 +225,9 @@ sub do_grep($) {
 			next;
 		}
 		my ($thisehPos,$thisvChr,$thissvPos,$thisevPos);
+		for my $i (1 .. $#{$ReadsIndex{$cid}}) {
+			my $ret = mergeIn(\%hChrRange,$ReadsIndex{$cid}->[$i]);
+		}
 		my $rRead12 = $minCPR[2] ^ 3;
 		if ($ReadsIndex{$cid}->[11] & 6) {
 			my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$minCPR[2]+6]);
