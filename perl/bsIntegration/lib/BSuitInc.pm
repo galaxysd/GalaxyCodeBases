@@ -1,4 +1,6 @@
 package main;
+#use strict;
+#use warnings;
 use Digest::SHA;
 
 sub getFilesHash(@) {
@@ -31,6 +33,24 @@ sub sortChrPos($$) {
 	return -1 if exists $VirusChrIDs{$ChrB};
 	$ChrA cmp $ChrB ||
 	$PosA <=> $PosB;
+}
+
+sub cigar2poses($) {
+	my ($cigar) = @_;
+	my @cigar = $cigar =~ /(\d+)(\w)/g;
+	my ($reflen,$maxM,$readlen)=(0,0,0);
+	while (@cigar) {
+		my ($len,$op) = splice(@cigar,0,2);
+		if ($op eq 'M') {
+			$reflen += $len;
+			$readlen += $len;
+			$maxM = $len if $maxM < $len;
+			next;
+		}
+		$reflen += $len if $op eq 'D';
+		$readlen += $len if $op eq 'I';
+	}
+	return ($reflen,$readlen);
 }
 
 sub warnFileExist(@) {

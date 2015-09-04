@@ -1,4 +1,6 @@
 package main;
+#use strict;
+use warnings;
 use BSuitInc;
 use File::Path 2.08;	# http://search.cpan.org/~riche/File-Path-2.11/lib/File/Path.pm#API_CHANGES
 use File::Basename;
@@ -110,7 +112,7 @@ CMD
 
 sub do_grep($) {
 	my $cfgfile = $_[0];
-	my (%tID);
+	my (%tID,%tFH);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
@@ -131,10 +133,9 @@ sub do_grep($) {
 			InsSD => $InsSD,
 		};
 		$GrepResult->{$k} = { DatFile => "$RootPath/${ProjectID}_grep/$k.sam" };
-		open( IN,"-|","samtools view $myBamf") or die "Error opening $in: $!\n";	# `-F768` later
+		open( IN,"-|","samtools view $myBamf") or die "Error opening $myBamf: $!\n";	# `-F768` later
 		system( "samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
 		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
-		open IOUT,'>',"$RootPath/${ProjectID}_grep/$k.blocks" or die "$!";
 		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
 		print STDERR "[!] Reading [$myBamf] ...";
 		while (my $line = <IN>) {
@@ -153,18 +154,22 @@ sub do_grep($) {
 			#my @Dat2 = split /\t/,$line2;
 			#next if $Dat1[4]<$CFGminMAPQ;
 			my $flag = 0;
-			$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
-			$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
-			$flag |= 4 if $Dat1[6] ne '=';
-			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
+			if ($Dat1[6] eq '=') {
+				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
+				$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+			} else {
+				$flag |= 4 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+			}
 			next unless $flag;
+			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			my $curpos = tell(GOUT);
 			my $id = join("\t",$k,$Dat1[0]);
-			$ReadsIndex{$id}->[8+$r12R1] = $Dat1[5];
+			$ReadsIndex{$id}->[11] = $flag;
 			$ReadsIndex{$id}->[$r12R1] = $curpos;
-			$ReadsIndex{$id}->[2+$r12R1] = $Dat1[2];
-			$ReadsIndex{$id}->[4+$r12R1] = $Dat1[3];
-			$ReadsIndex{$id}->[6+$r12R1] = $Dat1[4];
+			$ReadsIndex{$id}->[2+$r12R1] = $Dat1[2];	# Chr
+			$ReadsIndex{$id}->[4+$r12R1] = $Dat1[3];	# Pos
+			$ReadsIndex{$id}->[6+$r12R1] = $Dat1[4];	# MapQ
+			$ReadsIndex{$id}->[8+$r12R1] = $Dat1[5];	# CIGAR
 			#warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
 			#print "($Dat1[2],$Dat1[3],$Dat1[5],$curpos)\n";
 			print GOUT $line;
@@ -173,25 +178,70 @@ sub do_grep($) {
 		}
 		close IN;
 		close GOUT;
-		close IOUT;
 		print STDERR "\b\b\bdone.\n";
+		open $tFH{$k},'<',$GrepResult->{$k}{'DatFile'} or die "$!";
 	}
 	#ddx \%ReadsIndex;
 #   "Fsimout_m13FG\tsf169_Ref_28544413_28544612_28544812_Vir_+_958_1137_R_200_90"   =>   [
 #     undef, 33159,34573, "chr1","chr1", 14341526,14341599, 1,1, "19S22M49S","49S31M10S" ],
-	for my $k (keys %ReadsIndex) {
-		#my ($m,$n,$x,$y) = $ReadsIndex{$k}->[3,4,5,6];
-		my $x = join("\t",$ReadsIndex{$k}->[3],$ReadsIndex{$k}->[5]);
-		my $y = join("\t",$ReadsIndex{$k}->[4],$ReadsIndex{$k}->[6]);
+	for my $tk (keys %ReadsIndex) {
+		#my ($m,$n,$x,$y) = $ReadsIndex{$tk}->[3,4,5,6];
+		my $x = join("\t",$ReadsIndex{$tk}->[3],$ReadsIndex{$tk}->[5],1);
+		my $y = join("\t",$ReadsIndex{$tk}->[4],$ReadsIndex{$tk}->[6],2);
 		my @s = sort sortChrPos($x,$y);
-		$ReadsIndex{$k}->[0] = $s[0];
+		$ReadsIndex{$tk}->[0] = $s[0];
+ddx $ReadsIndex{$tk};
 	}
 	warn "[!] Bam Reading done.\n";
 	#ddx \$GrepResult;
 	#ddx (\%RefChrIDs,\%VirusChrIDs);
-	open GOUTI,'<',$GrepResult->{$k}{'DatFile'} or die "$!";
+	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0],$ReadsIndex{$b}->[0]) } keys %ReadsIndex;
-	close GOUTI;
+	my ($Cnt,$hChr,$hsPos,$hePos,%vChrRange,@Store,@PureVirReads)=(0,"\t",0,0);
+	for my $cid (@IDsorted) {
+		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0];
+		if (exists $VirusChrIDs{$minCPR[0]}) {
+			push @PureVirReads,$cid;
+			next;
+		}
+		my ($thisehPos,$thisvChr,$thissvPos,$thisevPos);
+		my $rRead12 = $minCPR[2] ^ 3;
+		if ($ReadsIndex{$cid}->[11] & 6) {
+			my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$minCPR[2]+6]);
+			$thisehPos = $minCPR[1] + $reflen;
+			my ($Vreflen,$Vreadlen) = cigar2poses($ReadsIndex{$cid}->[$rRead12+6]);
+			$thisvChr = $ReadsIndex{$cid}->[$rRead12+2];
+			$thisvsPos = $ReadsIndex{$cid}->[$rRead12+4];
+			$thisvePos = $thissvPos + $Vreflen;
+		} else {
+			my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$rRead12+6]);
+			$thisehPos = $ReadsIndex{$cid}->[$rRead12+4] + $reflen;
+		}
+		if ($hChr eq "\t") {
+			die "[x] The 1st sorted SAM record is Pure Virus PE.\n" if exists $VirusChrIDs{$minCPR[0]};
+			$hChr = $minCPR[0];
+			$hsPos = $minCPR[1];
+			$hePos = $thisehPos;
+			push @Store,$cid;
+			next;
+		}
+		if ($hChr eq $minCPR[0] and $minCPR[1] <= $ehPos) {
+			$hePos = $thisehPos;
+			push @Store,$cid;
+		} else {
+			++$Cnt;
+			print BOUT "[Block$Cnt]\nHostChrPoses=$hChr:$hsPos-$hePos\nVirusChrPoses=???\nSamFS=",join(',',map {$ReadsIndex{$_}->[0]} @Store),"\n\n";
+			@Store = ($cid);
+			$hChr = $minCPR[0];
+			$hsPos = $minCPR[1];
+			$hePos = $thisehPos;
+			%vChrRange = ();
+		}
+		my ($reflen,$readlen) = cigar2poses($ReadsIndex{$cid}->[$minCPR[2]+6]);
+		my $start = $ReadsIndex{$cid}->[$minCPR[2]+6]
+	}
+	close BOUT;
+	close $tFH{$_} for keys %tFH;
 	warn $GrepResult->write_string;
 	ddx $GrepResult;
 	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
