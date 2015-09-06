@@ -26,6 +26,7 @@ my %Cmd2Fun = (
 	'prepare' => \&do_pre,
 	'aln' => \&do_aln,
 	'grep' => \&do_grep,
+	'analyse' => \&do_analyse,
 );
 
 sub ShowHelp() {
@@ -45,7 +46,8 @@ unless (exists $Cmd2Fun{$cmd}) {
 	ShowHelp();
 }
 
-our $CFGminMAPQ = 30;
+#our $CFGminMAPQ = 30;
+our $minHostDepth = 30;
 our $DEBUG = 1;
 
 our $Config = Galaxy::IO::INI->new();

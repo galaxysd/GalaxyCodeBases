@@ -272,6 +272,49 @@ sub do_grep($) {
 	warn "[!] grep done with [$Cnt] items.\n";
 }
 
+sub do_analyse {
+	my (%tID,%tFH);
+	for (@{$Config->{'DataFiles'}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
+	my %ReadsIndex;
+	for my $k (keys %tID) {
+		my $GrepResult = "$RootPath/${ProjectID}_grep/$k.sam";
+		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
+		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
+		open $tFH{$k},'<',$GrepResult or die "$!";
+	}
+	File::Path::make_path("$RootPath/${ProjectID}_analyse",{verbose => 0,mode => 0755});
+	my $BlockINI = Galaxy::IO::INI->new();
+	my $BlockINIFN = "$RootPath/${ProjectID}_grep/blocks.ini";
+	if ( -f $BlockINIFN ) {
+		$BlockINI->read($BlockINIFN);
+	} else {die "[x] Grep INI not found ! [$BlockINIFN]\n";}
+	for my $Bid (@{$BlockINI->{']'}}) {
+		my @HostRange = split /,/,$BlockINI->{$Bid}->{'HostRange'};
+		my @VirusRange = split /,/,$BlockINI->{$Bid}->{'VirusRange'};
+		my @SamFS = split /,/,$BlockINI->{$Bid}->{'SamFS'};
+		next if (@HostRange<1 or @VirusRange<1);	# Need to do assembly
+		my ($maxHostDepth,$maxItem) = (0,-1);
+		for my $i (0 .. $#HostRange) {
+			my ($chr,$range,$depth) = split /:/,$HostRange[$i];
+			if ($maxHostDepth < $depth) {
+				$maxHostDepth = $depth;
+				$maxItem = $i;
+			}
+			$HostRange[$i] = [$chr,(split /-/,$range),$depth];
+		}
+		next if $maxHostDepth < $minHostDepth;
+		#ddx $maxItem,\@HostRange;
+		my %ReadsbyChr;
+		for (@SamFS) {
+			my ($fid,$pos) = split /:/,$_;
+		}
+	}
+	close $tFH{$_} for keys %tFH;
+}
+
 1;
 
 __END__
