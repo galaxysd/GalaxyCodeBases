@@ -98,6 +98,27 @@ sub formatChrRange($) {
 	return join(',',@ret);
 }
 
+sub guessMethyl($) {
+	my ($seq) = @_;
+	my %BaseCnt=(
+		A => 0, G => 0, C => 0, T => 0,
+		N => 0,
+	);
+	for (split //,$seq) {
+		++$BaseCnt{uc $_};
+	}
+	my $seqlen = length($seq) - $BaseCnt{'N'};
+	return 'N' if $seqlen == 0;
+	my @Cnts = sort { $BaseCnt{uc $b} <=> $BaseCnt{uc $a} } keys %BaseCnt;
+	#ddx [\@Cnts,\%BaseCnt];
+	if ($BaseCnt{'C'}<=$seqlen*$main::methly3BaseErrRate and $BaseCnt{'T'}>0) {
+		return 'CT';
+	} elsif ($BaseCnt{'G'}<=$seqlen*$main::methly3BaseErrRate and $BaseCnt{'A'}>0) {
+		return 'GA';
+	} else {
+		return 'Raw';
+	}
+}
 
 sub warnFileExist(@) {
 	my %NotFound;

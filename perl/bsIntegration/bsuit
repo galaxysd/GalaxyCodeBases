@@ -48,6 +48,7 @@ unless (exists $Cmd2Fun{$cmd}) {
 
 #our $CFGminMAPQ = 30;
 our $minHostDepth = 30;
+our $methly3BaseErrRate = 0.08;
 our $DEVELOP = 1;
 our $DEBUG = 1;
 

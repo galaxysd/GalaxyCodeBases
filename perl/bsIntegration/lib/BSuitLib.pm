@@ -287,7 +287,7 @@ sub do_analyse {
 		my $InsSD = $main::Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
 		open $tFH{$k},'<',$GrepResult or die "$!";
 	}
-	File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse/idba",{verbose => 0,mode => 0755});
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse",{verbose => 0,mode => 0755});
 	my $BlockINI = Galaxy::IO::INI->new();
 	my $BlockINIFN = "$main::RootPath/${main::ProjectID}_grep/blocks.ini";
 	if ( -f $BlockINIFN ) {
@@ -312,6 +312,7 @@ sub do_analyse {
 		}
 		next if $maxHostDepth < $main::minHostDepth;
 		#ddx $maxItem,\@HostRange;
+		File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse/idba/$Bid",{verbose => 0,mode => 0755});
 		system("samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa");
 		my $FH;
 		open $FH,'<',"$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa" or die $!;
@@ -323,9 +324,9 @@ sub do_analyse {
 			push @retVirus,$ret;
 		}
 		close $FH;
-		open FHo,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Refo.fa" or die $!;
-		open FHf,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Reff.fa" or die $!;
-		open FHr,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Refr.fa" or die $!;
+		open FHo,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Refo.fa" or die $!;
+		open FHf,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Reff.fa" or die $!;
+		open FHr,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Refr.fa" or die $!;
 		for ($retHost,@retVirus) {
 			my ($id,$seq) = @$_;
 			print FHo ">$id\n$seq\n";
@@ -337,14 +338,29 @@ sub do_analyse {
 			print FHr ">${id}_R\n$seqR\n";
 		}
 		close FHo; close FHf; close FHr;
-		my %ReadsbyChr;
+		#my %ReadsbyChr;
+		open FHQo,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readso.fa" or die $!;
+		open FHQf,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsf.fa" or die $!;
+		open FHQr,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsr.fa" or die $!;
 		for (@SamFS) {
 			my ($fid,$pos) = split /:/,$_;
 			seek($tFH{$fid},$pos,0);
 			my $str = readline $tFH{$fid};
 			chomp $str;
 			my @dat = split /\t/,$str;
+			next if $dat[1] & 256;
+			next unless ($dat[2] eq $HostRange[$maxItem][0]) or (exists $main::VirusChrIDs{$dat[2]});
+			my $type = guessMethyl($dat[9]);
+			$str = ">$dat[0]_$dat[1]\n$dat[9]\n";
+			if ($type eq 'CT') {
+				print FHQf $str;
+			} elsif ($type eq 'GA') {
+				print FHQr $str;
+			} else {
+				print FHQo $str;
+			}
 		}
+		close FHQo; close FHQf; close FHQr;
 		die;
 	}
 	close $tFH{$_} for keys %tFH;
