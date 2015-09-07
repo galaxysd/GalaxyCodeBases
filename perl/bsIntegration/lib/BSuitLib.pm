@@ -57,6 +57,7 @@ sub do_pre() {
 	#ddx \$RefConfig;
 	warn "[!] Building index for [$Refile].\n";
 	system("$RealBin/bin/bwameth.py",'index',$Refile);
+	system("samtools",'faidx',$Refile);
 }
 
 sub do_aln() {
@@ -273,6 +274,7 @@ sub do_grep($) {
 }
 
 sub do_analyse {
+	my $Refilename = warnFileExist($RefConfig->{$RefFilesSHA}->{'Refilename'});
 	my (%tID,%tFH);
 	for (@{$Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
@@ -285,7 +287,7 @@ sub do_analyse {
 		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
 		open $tFH{$k},'<',$GrepResult or die "$!";
 	}
-	File::Path::make_path("$RootPath/${ProjectID}_analyse",{verbose => 0,mode => 0755});
+	File::Path::make_path("$RootPath/${ProjectID}_analyse/idba",{verbose => 0,mode => 0755});
 	my $BlockINI = Galaxy::IO::INI->new();
 	my $BlockINIFN = "$RootPath/${ProjectID}_grep/blocks.ini";
 	if ( -f $BlockINIFN ) {
@@ -305,12 +307,45 @@ sub do_analyse {
 			}
 			$HostRange[$i] = [$chr,(split /-/,$range),$depth];
 		}
+		if ($DEVELOP) {
+			next if $HostRange[$maxItem][0] ne 'chr18';
+		}
 		next if $maxHostDepth < $minHostDepth;
 		#ddx $maxItem,\@HostRange;
+		system("samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$RootPath/${ProjectID}_analyse/idba/Ref.fa");
+		my $FH;
+		open $FH,'<',"$RootPath/${ProjectID}_analyse/idba/Ref.fa" or die $!;
+		my $retHost = FastaReadNext($FH);
+		close $FH;
+		my @retVirus;
+		$FH=openfile($Config->{'RefFiles'}->{'VirusRef'});
+		while (my $ret = FastaReadNext($FH)) {
+			push @retVirus,$ret;
+		}
+		close $FH;
+		open FHo,'>',"$RootPath/${ProjectID}_analyse/idba/Refo.fa" or die $!;
+		open FHf,'>',"$RootPath/${ProjectID}_analyse/idba/Reff.fa" or die $!;
+		open FHr,'>',"$RootPath/${ProjectID}_analyse/idba/Refr.fa" or die $!;
+		for ($retHost,@retVirus) {
+			my ($id,$seq) = @$_;
+			print FHo ">$id\n$seq\n";
+			my $seqF = $seq;
+			$seqF =~ tr /Cc/Tt/;
+			print FHf ">${id}_F\n$seqF\n";
+			my $seqR = $seq;
+			$seqF =~ tr /Gg/Aa/;
+			print FHr ">${id}_R\n$seqR\n";
+		}
+		close FHo; close FHf; close FHr;
 		my %ReadsbyChr;
 		for (@SamFS) {
 			my ($fid,$pos) = split /:/,$_;
+			seek($tFH{$fid},$pos,0);
+			my $str = readline $tFH{$fid};
+			chomp $str;
+			my @dat = split /\t/,$str;
 		}
+		die;
 	}
 	close $tFH{$_} for keys %tFH;
 }
