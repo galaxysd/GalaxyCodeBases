@@ -19,7 +19,7 @@ FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5
 use lib "$RealBin/lib";
 #print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
 
-use BSuitLib;
+require BSuitLib;
 use Galaxy::IO::INI;
 
 my %Cmd2Fun = (

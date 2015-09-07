@@ -1,7 +1,7 @@
 package main;
-#use strict;
+use strict;
 use warnings;
-use BSuitInc;
+require BSuitInc;
 use File::Path 2.08;	# http://search.cpan.org/~riche/File-Path-2.11/lib/File/Path.pm#API_CHANGES
 use File::Basename;
 use Galaxy::IO;
@@ -11,20 +11,20 @@ use Galaxy::IO::FASTA;
 sub do_pre() {
 	#my $Config = $_[0];
 	#ddx \$Config;
-	File::Path::make_path("$RootPath/Ref",{verbose => 0,mode => 0755});
-	my $Refprefix = getRef2char($HostRefName,$VirusRefName);
-	my $Refile = "$RootPath/Ref/$RefFilesSHA/$Refprefix.fa";
-#warn "[$HostRefName,$VirusRefName] -> $Refprefix [$RefFilesSHA]\n";
+	File::Path::make_path("$main::RootPath/Ref",{verbose => 0,mode => 0755});
+	my $Refprefix = getRef2char($main::HostRefName,$main::VirusRefName);
+	my $Refile = "$main::RootPath/Ref/$main::RefFilesSHA/$Refprefix.fa";
+#warn "[$main::HostRefName,$main::VirusRefName] -> $Refprefix [$main::RefFilesSHA]\n";
 	my $found = 0;
-	if ( -f "$RootPath/Ref/Ref.ini" ) {
-		$RefConfig->read("$RootPath/Ref/Ref.ini");
-		$found=1 if exists $RefConfig->{$RefFilesSHA};
+	if ( -f "$main::RootPath/Ref/Ref.ini" ) {
+		$main::RefConfig->read("$main::RootPath/Ref/Ref.ini");
+		$found=1 if exists $main::RefConfig->{$main::RefFilesSHA};
 	}
 	if ($found==0) {
-		File::Path::make_path("$RootPath/Ref/$RefFilesSHA",{verbose => 0,mode => 0755});
-		$RefConfig->{$RefFilesSHA} = { Refilename => $Refile, RefChrIDs => '', VirusChrIDs => '' };
+		File::Path::make_path("$main::RootPath/Ref/$main::RefFilesSHA",{verbose => 0,mode => 0755});
+		$main::RefConfig->{$main::RefFilesSHA} = { Refilename => $Refile, RefChrIDs => '', VirusChrIDs => '' };
 		open O,'>',$Refile or die $!;
-		my $FH=openfile($Config->{'RefFiles'}->{'HostRef'});
+		my $FH=openfile($main::Config->{'RefFiles'}->{'HostRef'});
 		my @ChrIDs;
 		while (my $ret = FastaReadNext($FH)) {
 			if ($$ret[0] =~ /(^chrEBV$)|(Un[_-])|(random$)/) {
@@ -34,52 +34,52 @@ sub do_pre() {
 			my $len = length $$ret[1];
 			warn "[!]  read Ref[$$ret[0]], $len bp.\n";
 			print O ">$$ret[0]\n$$ret[1]\n";
-			$RefConfig->{$RefFilesSHA}->{$$ret[0]} = $len;
+			$main::RefConfig->{$main::RefFilesSHA}->{$$ret[0]} = $len;
 			push @ChrIDs,$$ret[0];
 		}
-		$RefConfig->{$RefFilesSHA}->{RefChrIDs} = join(',',@ChrIDs);
+		$main::RefConfig->{$main::RefFilesSHA}->{RefChrIDs} = join(',',@ChrIDs);
 		close $FH;
 		@ChrIDs=();
-		$FH=openfile($Config->{'RefFiles'}->{'VirusRef'});
+		$FH=openfile($main::Config->{'RefFiles'}->{'VirusRef'});
 		while (my $ret = FastaReadNext($FH)) {
 			my $len = length $$ret[1];
 			warn "[!]  read Virus[$$ret[0]], $len bp.\n";
 			print O ">$$ret[0]\n$$ret[1]\n";
-			$RefConfig->{$RefFilesSHA}->{$$ret[0]} = $len;
+			$main::RefConfig->{$main::RefFilesSHA}->{$$ret[0]} = $len;
 			push @ChrIDs,$$ret[0];
 		}
-		$RefConfig->{$RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
+		$main::RefConfig->{RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
 		close $FH;
-		$RefConfig->write("$RootPath/Ref/Ref.ini");
+		$main::RefConfig->write("$main::RootPath/Ref/Ref.ini");
 	} else {
-		warn "[!] Already Read References Pairs:[$HostRefName,$VirusRefName].\n";
+		warn "[!] Already Read References Pairs:[$main::HostRefName,$main::VirusRefName].\n";
 	}
-	#ddx \$RefConfig;
+	#ddx \$main::RefConfig;
 	warn "[!] Building index for [$Refile].\n";
 	system("$RealBin/bin/bwameth.py",'index',$Refile);
-	system("samtools",'faidx',$Refile);
+	system("samtools",'faidx',$Refile) unless -s $Refile.'.fai';
 }
 
 sub do_aln() {
-	my $Refilename = warnFileExist($RefConfig->{$RefFilesSHA}->{'Refilename'});
+	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	#warn "$Refilename\n";
 	my (%tID);
-	for (@{$Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
 	#ddx \%tID;
-	File::Path::make_path("$RootPath/${ProjectID}_aln",{verbose => 0,mode => 0755});
-	open O,'>',"$RootPath/${ProjectID}_aln.sh" or die $!;
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_aln",{verbose => 0,mode => 0755});
+	open O,'>',"$main::RootPath/${main::ProjectID}_aln.sh" or die $!;
 	print O "#!/bin/sh\n\n";
 	for my $k (keys %tID) {
-		my @FQ1c = split /\s*,\s*/,$Config->{'DataFiles'}->{$tID{$k}{1}};
-		my @FQ2c = split /\s*,\s*/,$Config->{'DataFiles'}->{$tID{$k}{2}};
+		my @FQ1c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{1}};
+		my @FQ2c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{2}};
 		die "[x]  DataFiles not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
 		my $cmd;
 		if (@FQ1c == 1) {
 			$cmd = <<"CMD";
-$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $k -p $RootPath/${ProjectID}_aln/$k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$RootPath/${ProjectID}_aln/$k.log
+$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $k -p $main::RootPath/${main::ProjectID}_aln/$k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log
 CMD
 			print O $cmd;
 		} else {
@@ -88,52 +88,52 @@ CMD
 				my $fID = basename($FQ1c[$i]);
 				$fID =~ s/\.fq(\.gz)?$//i;
 				$cmd = <<"CMD";
-$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -p $RootPath/${ProjectID}_aln/${k}_${i}_${fID} @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$RootPath/${ProjectID}_aln/${k}_${i}_${fID}.log
+$RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -p $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID} @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log
 CMD
-				push @theBams,"$RootPath/${ProjectID}_aln/${k}_${i}_${fID}.bam";
+				push @theBams,"$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam";
 				print O $cmd;
 			}
 			my $theBamsJ = join(' ',@theBams);
 			$cmd = <<"CMD";
-samtools merge -l 9 $RootPath/${ProjectID}_aln/$k.bam $theBamsJ
-samtools index $RootPath/${ProjectID}_aln/$k.bam
+samtools merge -l 9 $main::RootPath/${main::ProjectID}_aln/$k.bam $theBamsJ
+samtools index $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			print O $cmd;
 		}
 		$cmd = <<"CMD";
-samtools sort -m 2415919104 -n $RootPath/${ProjectID}_aln/$k.bam -O bam -T $RootPath/${ProjectID}_aln/$k.sn >$RootPath/${ProjectID}_aln/$k.sn.bam 2>>$RootPath/${ProjectID}_aln/$k.log
+samtools sort -m 2415919104 -n $main::RootPath/${main::ProjectID}_aln/$k.bam -O bam -T $main::RootPath/${main::ProjectID}_aln/$k.sn >$main::RootPath/${main::ProjectID}_aln/$k.sn.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
 
 CMD
 		print O $cmd;
 	}
 	close O;
-	chmod 0755,"$RootPath/${ProjectID}_aln.sh";
-	warn "[!] Please run [$RootPath/${ProjectID}_aln.sh] to do the aln.\n"
+	chmod 0755,"$main::RootPath/${main::ProjectID}_aln.sh";
+	warn "[!] Please run [$main::RootPath/${main::ProjectID}_aln.sh] to do the aln.\n"
 }
 
 sub do_grep($) {
 	my $cfgfile = $_[0];
 	my (%tID,%tFH);
-	for (@{$Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
 	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
-	File::Path::make_path("$RootPath/${ProjectID}_grep",{verbose => 0,mode => 0755});
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_grep",{verbose => 0,mode => 0755});
 	my $GrepResult = Galaxy::IO::INI->new();
 	my %ReadsIndex;
 	for my $k (keys %tID) {
-		my $myBamf = "$RootPath/${ProjectID}_aln/$k.bam";
-		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
-		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
+		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/$k.bam";
+		my $InsMean = $main::Config->{'InsertSizes'}->{$k} or die;
+		my $InsSD = $main::Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
 		#warn "$myBamf,$InsMean,$InsSD";
 		$GrepResult->{$k} = {
 			'InBam' => $myBamf,
 			InsMean => $InsMean,
 			InsSD => $InsSD,
 		};
-		$GrepResult->{$k} = { DatFile => "$RootPath/${ProjectID}_grep/$k.sam" };
+		$GrepResult->{$k} = { DatFile => "$main::RootPath/${main::ProjectID}_grep/$k.sam" };
 		open( IN,"-|","samtools view $myBamf") or die "Error opening $myBamf: $!\n";	# `-F768` later
 		system( "samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
 		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
@@ -144,9 +144,9 @@ sub do_grep($) {
 			my $flag = 0;
 			if ($Dat1[6] eq '=') {
 				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
-				$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
-				$flag |= 4 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			}
 			next unless $flag;
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
@@ -173,9 +173,9 @@ sub do_grep($) {
 			my $flag = 0;
 			if ($Dat1[6] eq '=') {
 				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
-				$flag |= 2 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
-				$flag |= 4 if exists($VirusChrIDs{$Dat1[2]}) or exists($VirusChrIDs{$Dat1[6]});
+				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			}
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
 			my $curpos = tell(GOUT);
@@ -191,7 +191,7 @@ sub do_grep($) {
 		close IN;
 		close GOUT;
 		print STDERR "\b\b\bdone.\n";
-		if ($DEBUG) {
+		if ($main::DEBUG) {
 			open $tFH{$k},'<',$GrepResult->{$k}{'DatFile'} or die "$!";
 		}
 	}
@@ -216,24 +216,24 @@ sub do_grep($) {
 	}
 	warn "[!] Bam Reading done.\n";
 	#ddx \$GrepResult;
-	#ddx (\%RefChrIDs,\%VirusChrIDs);
-	open BOUT,'>',"$RootPath/${ProjectID}_grep/blocks.ini" or die "$!";
-	if ($DEBUG) {
-		open BOUTDBG,'>',"$RootPath/${ProjectID}_grep/blocks.txt" or die "$!";
+	#ddx (\%RefChrIDs,\%main::VirusChrIDs);
+	open BOUT,'>',"$main::RootPath/${main::ProjectID}_grep/blocks.ini" or die "$!";
+	if ($main::DEBUG) {
+		open BOUTDBG,'>',"$main::RootPath/${main::ProjectID}_grep/blocks.txt" or die "$!";
 	}
 	my @IDsorted = sort { sortChrPos($ReadsIndex{$a}->[0][1],$ReadsIndex{$b}->[0][1]) } keys %ReadsIndex;
 	my ($Cnt,%hChrRange,%vChrRange,@Store,@PureVirReads)=(0);
 	for my $cid (@IDsorted) {
 		my @minCPR = split /\t/,$ReadsIndex{$cid}->[0][1];
 		push @minCPR,$ReadsIndex{$cid}->[0][0];
-		if (exists $VirusChrIDs{$minCPR[0]}) {
+		if (exists $main::VirusChrIDs{$minCPR[0]}) {
 			push @PureVirReads,$cid;
 			next;
 		}
 		my ($thisehPos,$thisvChr,$thissvPos,$thisevPos);
 		for my $i (1 .. $#{$ReadsIndex{$cid}}) {
 			my ($DatRef,$isHost);
-			if (exists $VirusChrIDs{$ReadsIndex{$cid}->[$i]->[2]}) {
+			if (exists $main::VirusChrIDs{$ReadsIndex{$cid}->[$i]->[2]}) {
 				$DatRef = \%vChrRange;
 				$isHost = 0;
 			} else {
@@ -245,7 +245,7 @@ sub do_grep($) {
 				print BOUT "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
 					"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
 					join(',',map { my @t = split /\n/;my @f=split /\t/,$t[0];join(':',$f[0],$ReadsIndex{$t[0]}->[$t[1]]->[0]); } @Store),"\n\n";
-				if ($DEBUG) {
+				if ($main::DEBUG) {
 					print BOUTDBG "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
 						"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
 						join(',',map { my @t = split /\n/;my @f=split /\t/,$t[0];join(':',$f[0],$ReadsIndex{$t[0]}->[$t[1]]->[0]); } @Store),"\n";
@@ -263,33 +263,33 @@ sub do_grep($) {
 		}
 	}
 	close BOUT;
-	if ($DEBUG) {
+	if ($main::DEBUG) {
 		close $tFH{$_} for keys %tFH;
 		close BOUTDBG;
 	}
 	#warn $GrepResult->write_string;
 	#ddx $GrepResult;
-	$GrepResult->write("$RootPath/${ProjectID}_grep.ini");
+	$GrepResult->write("$main::RootPath/${main::ProjectID}_grep.ini");
 	warn "[!] grep done with [$Cnt] items.\n";
 }
 
 sub do_analyse {
-	my $Refilename = warnFileExist($RefConfig->{$RefFilesSHA}->{'Refilename'});
+	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	my (%tID,%tFH);
-	for (@{$Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
 	my %ReadsIndex;
 	for my $k (keys %tID) {
-		my $GrepResult = "$RootPath/${ProjectID}_grep/$k.sam";
-		my $InsMean = $Config->{'InsertSizes'}->{$k} or die;
-		my $InsSD = $Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
+		my $GrepResult = "$main::RootPath/${main::ProjectID}_grep/$k.sam";
+		my $InsMean = $main::Config->{'InsertSizes'}->{$k} or die;
+		my $InsSD = $main::Config->{'InsertSizes'}->{"$k.SD"} or die; # SD cannot be 0, so no need to test with defined.
 		open $tFH{$k},'<',$GrepResult or die "$!";
 	}
-	File::Path::make_path("$RootPath/${ProjectID}_analyse/idba",{verbose => 0,mode => 0755});
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse/idba",{verbose => 0,mode => 0755});
 	my $BlockINI = Galaxy::IO::INI->new();
-	my $BlockINIFN = "$RootPath/${ProjectID}_grep/blocks.ini";
+	my $BlockINIFN = "$main::RootPath/${main::ProjectID}_grep/blocks.ini";
 	if ( -f $BlockINIFN ) {
 		$BlockINI->read($BlockINIFN);
 	} else {die "[x] Grep INI not found ! [$BlockINIFN]\n";}
@@ -307,25 +307,25 @@ sub do_analyse {
 			}
 			$HostRange[$i] = [$chr,(split /-/,$range),$depth];
 		}
-		if ($DEVELOP) {
+		if ($main::DEVELOP) {
 			next if $HostRange[$maxItem][0] ne 'chr18';
 		}
-		next if $maxHostDepth < $minHostDepth;
+		next if $maxHostDepth < $main::minHostDepth;
 		#ddx $maxItem,\@HostRange;
-		system("samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$RootPath/${ProjectID}_analyse/idba/Ref.fa");
+		system("samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa");
 		my $FH;
-		open $FH,'<',"$RootPath/${ProjectID}_analyse/idba/Ref.fa" or die $!;
+		open $FH,'<',"$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa" or die $!;
 		my $retHost = FastaReadNext($FH);
 		close $FH;
 		my @retVirus;
-		$FH=openfile($Config->{'RefFiles'}->{'VirusRef'});
+		$FH=openfile($main::Config->{'RefFiles'}->{'VirusRef'});
 		while (my $ret = FastaReadNext($FH)) {
 			push @retVirus,$ret;
 		}
 		close $FH;
-		open FHo,'>',"$RootPath/${ProjectID}_analyse/idba/Refo.fa" or die $!;
-		open FHf,'>',"$RootPath/${ProjectID}_analyse/idba/Reff.fa" or die $!;
-		open FHr,'>',"$RootPath/${ProjectID}_analyse/idba/Refr.fa" or die $!;
+		open FHo,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Refo.fa" or die $!;
+		open FHf,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Reff.fa" or die $!;
+		open FHr,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/Refr.fa" or die $!;
 		for ($retHost,@retVirus) {
 			my ($id,$seq) = @$_;
 			print FHo ">$id\n$seq\n";

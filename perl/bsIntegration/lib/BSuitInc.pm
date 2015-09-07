@@ -1,6 +1,6 @@
 package main;
-#use strict;
-#use warnings;
+use strict;
+use warnings;
 use Digest::SHA;
 
 sub getFilesHash(@) {
@@ -29,8 +29,8 @@ sub sortChrPos($$) {
 	if ($ChrA eq $ChrB) {
 		return $PosA <=> $PosB;
 	}
-	return 1 if exists $VirusChrIDs{$ChrA};
-	return -1 if exists $VirusChrIDs{$ChrB};
+	return 1 if exists $main::VirusChrIDs{$ChrA};
+	return -1 if exists $main::VirusChrIDs{$ChrB};
 	$ChrA cmp $ChrB ||
 	$PosA <=> $PosB;
 }
