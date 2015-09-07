@@ -148,32 +148,31 @@ sub dosim($$$) {
 		for my $mt (0 .. $#newSeqs) {
 			my $newSeq = $newSeqs[$mt];
 			my $tID = join('_','Methyl',$mt,'Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
-		print O '>',$tID,"\n$newSeq\n\n";
-		my $maxP = length($newSeq) - $PEinsertLen;
-		#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
-		for my $p (0 .. $maxP) {
-			#last if $p > $maxP;
-			my $PE = substr $newSeq,$p,$PEinsertLen;
-			my $R1 = substr $PE,0,$SeqReadLen;
-			my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
-			my $revR2 = revcom($R2);
-			my $type = getype($R1,$R2);
-			$type = '0' if $p == 0 or $p == $maxP;
-			my ($Part1,$Part2);
-			my $Qual = $type x $SeqReadLen;
-			$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,1);
-			$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
-			print R1 "\@sf${p}_${tID}/1 ${Part1} $type\n$R1\n+\n$Qual\n";
-			print R2 "\@sf${p}_${tID}/2 ${Part2} $type\n$revR2\n+\n$Qual\n";
-			my $revR1 = revcom($R1);
-			$type =~ tr/123456789ABCDEFGH/GDFA5HCE94B728316/;	# 反向后的对应关系
-			$Qual = $type x $SeqReadLen;
-			$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,2);
-			$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,1);
-			print R2 "\@sr${p}_${tID}/2 ${Part2} $type\n$revR1\n+\n$Qual\n";
-			print R1 "\@sr${p}_${tID}/1 ${Part1} $type\n$R2\n+\n$Qual\n";
-		}
-
+			print O '>',$tID,"\n$newSeq\n\n";
+			my $maxP = length($newSeq) - $PEinsertLen;
+			#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
+			for my $p (0 .. $maxP) {
+				#last if $p > $maxP;
+				my $PE = substr $newSeq,$p,$PEinsertLen;
+				my $R1 = substr $PE,0,$SeqReadLen;
+				my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
+				my $revR2 = revcom($R2);
+				my $type = getype($R1,$R2);
+				$type = '0' if $p == 0 or $p == $maxP;
+				my ($Part1,$Part2);
+				my $Qual = $type x $SeqReadLen;
+				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,1);
+				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
+				print R1 "\@sf${p}_${tID}/1 ${Part1} $type\n$R1\n+\n$Qual\n";
+				print R2 "\@sf${p}_${tID}/2 ${Part2} $type\n$revR2\n+\n$Qual\n";
+				my $revR1 = revcom($R1);
+				$type =~ tr/123456789ABCDEFGH/GDFA5HCE94B728316/;	# 反向后的对应关系
+				$Qual = $type x $SeqReadLen;
+				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,2);
+				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,1);
+				print R2 "\@sr${p}_${tID}/2 ${Part2} $type\n$revR1\n+\n$Qual\n";
+				print R1 "\@sr${p}_${tID}/1 ${Part1} $type\n$R2\n+\n$Qual\n";
+			}
 		}
 	}
 	close O;
