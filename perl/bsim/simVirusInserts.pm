@@ -141,8 +141,13 @@ sub dosim($$$) {
 			$seqV = revcom($seqV);
 			$strand = '-';
 		}
-		my $newSeq = join('',uc $seqR1,lc $seqV,uc $seqR2);
-		my $tID = join('_','Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
+		my $RawNewSeq = join('',uc $seqR1,lc $seqV,uc $seqR2);
+		my @newSeqs = ($RawNewSeq,$RawNewSeq,$RawNewSeq);
+		$newSeqs[1] =~ tr /Cc/Tt/;	# 100% un-methylation F
+		$newSeqs[2] =~ tr /Gg/Aa/;	# 100% un-methylation R
+		for my $mt (0 .. $#newSeqs) {
+			my $newSeq = $newSeqs[$mt];
+			my $tID = join('_','Methyl',$mt,'Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
 		print O '>',$tID,"\n$newSeq\n\n";
 		my $maxP = length($newSeq) - $PEinsertLen;
 		#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
@@ -167,6 +172,8 @@ sub dosim($$$) {
 			$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,1);
 			print R2 "\@sr${p}_${tID}/2 ${Part2} $type\n$revR1\n+\n$Qual\n";
 			print R1 "\@sr${p}_${tID}/1 ${Part1} $type\n$R2\n+\n$Qual\n";
+		}
+
 		}
 	}
 	close O;
