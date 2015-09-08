@@ -405,8 +405,18 @@ sub do_analyse {
 			}
 			$Assem{$fro} = \@asm;
 		}
-		my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
-		die;
+		#my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
+		#die;
+		if ($main::DEBUG) {
+			open DBG,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/idba.fa" or die $!;
+			print DBG ">Host\n$retHost\n\n";
+			print DBG ">Virus$_\n$retVirus[$_]\n" for 0 .. $#retVirus;
+			print DBG "\n";
+			for my $fro (sort keys %Assem) {
+				print DBG ">Asm_${fro}$_\n$Assem{$fro}->[$_]\n" for 0 .. $#{$Assem{$fro}};
+			}
+		}
+		warn "[$Bid]\n";
 	}
 	close $tFH{$_} for keys %tFH;
 }

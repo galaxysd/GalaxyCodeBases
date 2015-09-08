@@ -164,7 +164,22 @@ sub doAlign($$$) {
 	# 暂时只考虑第一条
 	my $retHost = $$retHostARef[0];
 	my $retVirus = $$retVirusARef[0];
+	my @froDat = sort keys %{$AssemHRef};
+	my $fro0 = shift @froDat;
+	my $result = $AssemHRef->{$fro0}->[0];
+	for my $fro (@froDat) {
+		$fro0 = mergeAln( $result,$AssemHRef->{$fro}->[0],$fro0,$fro );
+	}
+	dynAln($retHost,$result);
+}
+sub dynAln($$$) {
+	my ($ref,$query,$MatrixR) = @_;
 	;
+}
+sub mergeAln($$$$) {
+	my ($ref,$query,$fro1,$fro2) = @_;
+	my $ret = dynAln($ref,$query,$fro2);
+	return $fro1;
 }
 
 sub warnFileExist(@) {
