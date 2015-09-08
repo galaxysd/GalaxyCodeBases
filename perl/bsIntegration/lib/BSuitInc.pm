@@ -128,6 +128,45 @@ sub guessMethyl($) {
 	}
 }
 
+# 由于include在main前面，所以可以在此统一计算打分矩阵。
+my ($match,$methylmatch,$mismatch,$gapopen,$gapext) = (2,1,-3,-1,-1);
+my (%MatrixO,%MatrixFct,%MatrixRga);
+my @Bases = sort qw(A C G T);
+# $ perl -e '@Bases = sort qw(A T C G); print join("|",@Bases),"\n"'
+# A|C|G|T
+for my $i (0 .. $#Bases) {
+	for my $j ($i .. $#Bases) {
+		my $str = $Bases[$i] . $Bases[$j];
+		if ($i == $j) {
+			$MatrixO{$str} = $MatrixFct{$str} = $MatrixRga{$str} = $match;
+		} else {
+			$MatrixO{$str} = $mismatch;
+			if ($str =~ /^[CT]+$/) {
+				$MatrixFct{$str} = $methylmatch;
+			} else {
+				$MatrixFct{$str} = $mismatch;
+			}
+			if ($str =~ /^[GA]+$/) {
+				$MatrixRga{$str} = $methylmatch;
+			} else {
+				$MatrixRga{$str} = $mismatch;
+			}
+		}
+	}
+}
+#ddx (\%MatrixO,\%MatrixFct,\%MatrixRga);
+#	{ AA => 2, AC => -3, AG => -3, AT => -3, CC => 2, CG => -3, CT => -3, GG => 2, GT => -3, TT => 2 },
+#	{ AA => 2, AC => -3, AG => -3, AT => -3, CC => 2, CG => -3, CT => 1, GG => 2, GT => -3, TT => 2 },
+#	{ AA => 2, AC => -3, AG => 1, AT => -3, CC => 2, CG => -3, CT => -3, GG => 2, GT => -3, TT => 2 },
+
+sub doAlign($$$) {
+	my ($AssemHRef,$retHostARef,$retVirusARef) = @_;
+	# 暂时只考虑第一条
+	my $retHost = $$retHostARef[0];
+	my $retVirus = $$retVirusARef[0];
+	;
+}
+
 sub warnFileExist(@) {
 	my %NotFound;
 	for (@_) {

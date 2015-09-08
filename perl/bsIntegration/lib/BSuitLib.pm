@@ -373,16 +373,18 @@ sub do_analyse {
 			next unless defined($ReadsbyID{$id}->[0]);
 			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
 			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
+			my $FH;
 			if ($type eq 'CT') {
-				print $FHO{'f'}->[0] $str;
+				$FH = $FHO{'f'}->[0];
 				++$FHO{'f'}->[1];
 			} elsif ($type eq 'GA') {
-				print $FHO{'r'}->[0] $str;
+				$FH = $FHO{'r'}->[0];
 				++$FHO{'r'}->[1];
 			} else {
-				print $FHO{'o'}->[0] $str;
+				$FH = $FHO{'o'}->[0];
 				++$FHO{'o'}->[1];
 			}
+			print $FH $str;
 		}
 		#close $FHO{$_}->[0] for keys %FHO;
 		my %Assem;
@@ -403,6 +405,7 @@ sub do_analyse {
 			}
 			$Assem{$fro} = \@asm;
 		}
+		my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
 		die;
 	}
 	close $tFH{$_} for keys %tFH;
