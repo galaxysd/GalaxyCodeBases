@@ -338,29 +338,71 @@ sub do_analyse {
 			print FHr ">${id}_R\n$seqR\n";
 		}
 		close FHo; close FHf; close FHr;
-		#my %ReadsbyChr;
-		open FHQo,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readso.fa" or die $!;
-		open FHQf,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsf.fa" or die $!;
-		open FHQr,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsr.fa" or die $!;
+		my %ReadsbyID;
+		my %FHO = (
+			o => [undef,0],
+			f => [undef,0],
+			r => [undef,0],
+		);
+		open $FHO{'o'}->[0],'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readso.fa" or die $!;
+		open $FHO{'f'}->[0],'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsf.fa" or die $!;
+		open $FHO{'r'}->[0],'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Readsr.fa" or die $!;
+		my $maxReadLen = 0;
 		for (@SamFS) {
 			my ($fid,$pos) = split /:/,$_;
 			seek($tFH{$fid},$pos,0);
 			my $str = readline $tFH{$fid};
 			chomp $str;
+			my $strlen = length $str;
+			$maxReadLen = $strlen if $maxReadLen < $strlen;
 			my @dat = split /\t/,$str;
 			next if $dat[1] & 256;
-			next unless ($dat[2] eq $HostRange[$maxItem][0]) or (exists $main::VirusChrIDs{$dat[2]});
-			my $type = guessMethyl($dat[9]);
-			$str = ">$dat[0]_$dat[1]\n$dat[9]\n";
-			if ($type eq 'CT') {
-				print FHQf $str;
-			} elsif ($type eq 'GA') {
-				print FHQr $str;
-			} else {
-				print FHQo $str;
+			my $seq = $dat[9];
+			$seq = revcom($seq) if $dat[1] & 16;
+			if ($dat[1] & 64) {
+				$ReadsbyID{$dat[0]}->[1]=$seq;
+			} elsif ($dat[1] & 128) {
+				$ReadsbyID{$dat[0]}->[2]=$seq;
+			}
+			if (($dat[2] eq $HostRange[$maxItem][0]) or (exists $main::VirusChrIDs{$dat[2]})) {
+				++$ReadsbyID{$dat[0]}->[0];
 			}
 		}
-		close FHQo; close FHQf; close FHQr;
+		for my $id (keys %ReadsbyID) {
+			next unless defined($ReadsbyID{$id}->[1]) and defined($ReadsbyID{$id}->[2]);
+			next unless defined($ReadsbyID{$id}->[0]);
+			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
+			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
+			if ($type eq 'CT') {
+				print $FHO{'f'}->[0] $str;
+				++$FHO{'f'}->[1];
+			} elsif ($type eq 'GA') {
+				print $FHO{'r'}->[0] $str;
+				++$FHO{'r'}->[1];
+			} else {
+				print $FHO{'o'}->[0] $str;
+				++$FHO{'o'}->[1];
+			}
+		}
+		#close $FHO{$_}->[0] for keys %FHO;
+		my %Assem;
+		my $idbaRead = '-r';
+		$idbaRead = '-l' if $maxReadLen > 128;
+		for my $fro (keys %FHO) {
+			close $FHO{$fro}->[0];
+			next unless $FHO{$fro}->[1];
+			my $reff = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Ref$fro.fa";
+			my $readsf = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Reads$fro.fa";
+			my $outp = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/$fro";
+			system("$RealBin/bin/idba_hybrid $main::idbacmd -r $readsf --reference $reff -o $outp");
+			next unless -s "$outp/scaffold.fa";
+			my ($tFH,@asm);
+			open $tFH,'<',"$outp/scaffold.fa" or die $!;
+			while (my $ret = FastaReadNext($tFH)) {
+				push @asm,$ret;
+			}
+			$Assem{$fro} = \@asm;
+		}
 		die;
 	}
 	close $tFH{$_} for keys %tFH;

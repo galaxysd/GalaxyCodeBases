@@ -98,6 +98,14 @@ sub formatChrRange($) {
 	return join(',',@ret);
 }
 
+sub revcom($) {
+	my $str = $_[0];
+	$str =~ tr/acgtrymkswhbvdnxACGTRYMKSWHBVDNX/tgcayrkmswdvbhnxTGCAYRKMSWDVBHNX/;
+	my $rev = reverse $str;
+	$rev =~ tr/[](){}<>/][)(}{></;
+	return $rev;
+}
+
 sub guessMethyl($) {
 	my ($seq) = @_;
 	my %BaseCnt=(
