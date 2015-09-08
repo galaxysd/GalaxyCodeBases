@@ -392,11 +392,11 @@ sub do_analyse {
 		$idbaRead = '-l' if $maxReadLen > 128;
 		for my $fro (keys %FHO) {
 			close $FHO{$fro}->[0];
-			next unless $FHO{$fro}->[1];
+			next if $FHO{$fro}->[1] <= 2;
 			my $reff = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Ref$fro.fa";
 			my $readsf = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Reads$fro.fa";
 			my $outp = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/$fro";
-			system("$RealBin/bin/idba_hybrid $main::idbacmd -r $readsf --reference $reff -o $outp");
+			system("$RealBin/bin/idba_hybrid $main::idbacmd -r $readsf --reference $reff -o $outp >/dev/null");
 			next unless -s "$outp/scaffold.fa";
 			my ($tFH,@asm);
 			open $tFH,'<',"$outp/scaffold.fa" or die $!;
@@ -409,11 +409,11 @@ sub do_analyse {
 		#die;
 		if ($main::DEBUG) {
 			open DBG,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/idba.fa" or die $!;
-			print DBG ">Host\n$retHost\n\n";
-			print DBG ">Virus$_\n$retVirus[$_]\n" for 0 .. $#retVirus;
+			print DBG ">Host\n$$retHost[1]\n\n";
+			#print DBG ">Virus$_->[0]\n$_->[1]\n" for @retVirus;
 			print DBG "\n";
 			for my $fro (sort keys %Assem) {
-				print DBG ">Asm_${fro}$_\n$Assem{$fro}->[$_]\n" for 0 .. $#{$Assem{$fro}};
+				print DBG ">Asm_${fro}$_ $Assem{$fro}->[$_]->[0]\n$Assem{$fro}->[$_]->[1]\n" for 0 .. $#{$Assem{$fro}};
 			}
 		}
 		warn "[$Bid]\n";

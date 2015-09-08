@@ -129,8 +129,8 @@ sub guessMethyl($) {
 }
 
 # 由于include在main前面，所以可以在此统一计算打分矩阵。
-my ($match,$methylmatch,$mismatch,$gapopen,$gapext) = (2,1,-3,-1,-1);
-my (%MatrixO,%MatrixFct,%MatrixRga);
+my ($match,$methylmatch,$mismatch,$INDEL) = (2,1,-3,-4);
+our (%MatrixO,%MatrixFct,%MatrixRga);
 my @Bases = sort qw(A C G T);
 # $ perl -e '@Bases = sort qw(A T C G); print join("|",@Bases),"\n"'
 # A|C|G|T
@@ -174,7 +174,96 @@ sub doAlign($$$) {
 }
 sub dynAln($$$) {
 	my ($ref,$query,$MatrixR) = @_;
-	;
+	my @a=('',split //,$ref);
+	my @b=('',split //,$query);
+	my (@matrix,@path);
+	my ($i,$j,$sc);
+	$matrix[$_][0]=0 for (0 .. $#a);
+	$matrix[0][$_]=0 for (0 .. $#b);
+	$path[$#a][$#b] = 0;
+	# dynamic recursion
+	for ($i=1;$i<=$#a;$i++) {
+		for ($j=1;$j<=$#b;$j++) {
+			my $str = join('',sort ($a[$i],$b[$j]));
+			$matrix[$i][$j] = $MatrixR->{$str} + $matrix[$i-1][$j-1];
+			$path[$i][$j] = 1;	# case 0: i,j are aligned
+			$sc=$matrix[$i-1][$j] + $INDEL;	# case 1: i aligned to -
+			if ($sc > $matrix[$i][$j]) {
+				$matrix[$i][$j] = $sc;
+				$path[$i][$j] = 2;
+			}
+			$sc=$matrix[$i][$j-1] + $INDEL;	# case 2: j aligned to -
+			if ($sc > $matrix[$i][$j]) {
+				$matrix[$i][$j] = $sc;
+				$path[$i][$j] = 3;
+			}
+			if ($matrix[$i][$j] < 0) {	# Local
+				$matrix[$i][$j] = 0;
+				$path[$i][$j] = 0;
+			}
+		}
+	}
+	# Traceback (with shadow matrix)
+	my ($count,@ax,@ay,@as)=(0);	# first is 0.
+	--$i;--$j;	# outside for, $i will bigger than $#a by 1 step
+	my ($len,$mv,$mi,$mj)=(0);
+	while ($i>=0 and $j>=0) {
+		# Set Start Point
+		#$mi=$i;$mj=$j;
+		($mv,$mi,$mj)=@{&getmax(\@matrix,$i,$j)};	# Local
+		# Traceback cycle for single str
+		while ($mi>=0 and $mj>=0) {
+			$as[$count] = $matrix[$mi][$mj] unless $as[$count];
+			++$len;
+			#&traceback($a[$mi],$b[$mj],$path[$mi][$mj],$ax[$count],$ay[$count]);
+			my $path = $path[$mi][$mj];
+			if (! defined $path) {	# $path == 0
+				--$len;
+				if ($len>0) {
+					@{$ax[$count]} = reverse @{$ax[$count]};
+					@{$ay[$count]} = reverse @{$ay[$count]};
+					++$count;
+					$len=0;
+				}
+				--$mi;--$mj;
+				$i=$mi;$j=$mj;
+				($mv,$mi,$mj)=@{&getmax(\@matrix,$i,$j)};	# Local
+			} elsif ($path == 1) {
+				push @{$ax[$count]},$a[$mi];push @{$ay[$count]},$b[$mj];
+				--$mi;--$mj;
+			} elsif ($path == 2) {
+				push @{$ax[$count]},$a[$mi];push @{$ay[$count]},"-";
+				--$mi;
+			} elsif ($path == 3) {
+				push @{$ax[$count]},"-";push @{$ay[$count]},$b[$mj];
+				--$mj;
+			} else {
+				die;
+			}
+		}
+	}
+	for ($i=1;$i<=$count;$i++) {
+		print "No. $i:\n";
+		print 'X:[',@{$ax[$i-1]},"]\n",'Y:[',@{$ay[$i-1]},"]\n",'Score:',$as[$i-1],"\n";
+	}
+}
+sub getmax($$$) {
+	my ($arref,$ii,$ij)=@_;
+	my ($mv,$mi,$mj,$i,$j)=(-1,-1,-1);
+	for ($i=1;$i<=$ii;$i++) {
+		for ($j=1;$j<=$ij;$j++) {
+			if ($mv == $$arref[$i][$j]) {	# keep ($mi+$mj) max, to achieve max(mi^2+mj^2)
+				if (($mi+$mj) < ($i+$j)) {
+					#$mv=$$arref[$i][$j];
+					$mi=$i;$mj=$j;
+				}
+			} elsif ($mv < $$arref[$i][$j]) {
+				$mv=$$arref[$i][$j];
+				$mi=$i;$mj=$j;
+			}
+		}
+	}
+	return [$mv,$mi,$mj];
 }
 sub mergeAln($$$$) {
 	my ($ref,$query,$fro1,$fro2) = @_;

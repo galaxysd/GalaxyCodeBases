@@ -52,7 +52,7 @@ our $methly3BaseErrRate = 0.08;
 our $DEVELOP = 1;
 our $DEBUG = 1;
 
-our $idbacmd = '--max_gap 900 --min_region 30 --min_contig 30 --mink 9 --maxk 89 --step 20';
+our $idbacmd = '--max_gap 100 --min_region 31 --min_contig 31 --mink 17 --maxk 89 --step 20';
 
 our $Config = Galaxy::IO::INI->new();
 $Config->read($cfgfile);
