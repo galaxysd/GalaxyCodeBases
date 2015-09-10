@@ -528,6 +528,7 @@ namespace bio {
 
 		  has_path_ = false;
 		  path_.clear();
+		  overlap_ = 0;
 
 		  while ((i > 0) || (j > 0)) {
 
@@ -555,6 +556,7 @@ namespace bio {
 						path_.push_back('m');
 					} else path_.push_back('R');
 
+					++overlap_;
 					--i;
 					--j;
 
@@ -595,7 +597,9 @@ namespace bio {
 			  std::reverse(path_.begin(), path_.end());
 			  has_path_ = true;
 		  }
-		  return path_;
+		  char numstr[22]; // [21] is enough to hold all numbers up to 64-bits
+		  sprintf(numstr, ",%d", overlap_);
+		  return path_ + numstr;
       } // path
 
 
@@ -608,6 +612,7 @@ namespace bio {
       	  	  	  	  	  //         2: suffix gap free alignment,
       	  	  	  	  	  //            penalize gaps in the prefix
       bool has_path_;
+	  int overlap_;
       std::string path_;
       std::string path_prefix_, // if alignment end within one string,
       	  	 path_suffix_;  	   // these store what needs to be attached,

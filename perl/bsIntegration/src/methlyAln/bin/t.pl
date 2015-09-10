@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 
@@ -12,7 +12,7 @@ print WRITER "a,gtttaacccgg\n,gttCggttCg\nxxx\n";
 
 while(<READER>) {
 	chomp;
-	if (/^Path(\d): (.+)$/) {
-		print "[$_] [$1] [$2]\n";
+	if (/^Path(\d): ([IDMmR]+),(\d+)$/) {
+		print "[$_] [$1] [$2] [$3]\n";
 	}
 }
