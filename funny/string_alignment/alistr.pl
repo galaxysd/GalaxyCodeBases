@@ -1,10 +1,11 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 use strict;
-#use warnings;
+use warnings;
 use Time::HiRes qw ( gettimeofday tv_interval );
+use lib '../../perl/perlib/etc';
 use Galaxy::ShowHelp;
 
-$main::VERSION=0.0.2;
+$main::VERSION=0.0.3;
 
 our $opts='i:o:lbv';
 our($opt_i, $opt_o, $opt_l, $opt_v, $opt_b);
@@ -32,8 +33,8 @@ unless ($opt_b) {print STDERR 'press [Enter] to continue...'; <>;}
 my $start_time = [gettimeofday];
 #BEGIN
 open IN,'<',$opt_i or die "[x]Error opening $opt_i: $!\n";
-$a=<IN> or die "[x]Error: $opt_i is empty!\n";
-$b=<IN> or die "[x]Error: $opt_i contains only 1 line!\n";
+defined($a=<IN>) or die "[x]Error: $opt_i is empty!\n";
+defined($b=<IN>) or die "[x]Error: $opt_i contains only 1 line!\n";
 close IN;
 chomp($a,$b);
 if ($opt_v) {
