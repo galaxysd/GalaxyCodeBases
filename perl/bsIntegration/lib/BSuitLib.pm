@@ -374,10 +374,10 @@ sub do_analyse {
 			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
 			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
 			my $FH;
-			if ($type eq 'CT') {
+			if ($type eq '1CT') {
 				$FH = $FHO{'f'}->[0];
 				++$FHO{'f'}->[1];
-			} elsif ($type eq 'GA') {
+			} elsif ($type eq '2GA') {
 				$FH = $FHO{'r'}->[0];
 				++$FHO{'r'}->[1];
 			} else {
@@ -405,7 +405,7 @@ sub do_analyse {
 			}
 			$Assem{$fro} = \@asm;
 		}
-		#my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
+		my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
 		#die;
 		if ($main::DEBUG) {
 			open DBG,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/idba.fa" or die $!;

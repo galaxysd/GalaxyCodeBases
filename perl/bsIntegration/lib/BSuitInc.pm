@@ -2,6 +2,7 @@ package main;
 use strict;
 use warnings;
 use Digest::SHA;
+use IPC::Open2;
 
 sub getFilesHash(@) {
 	my $fileStr = join(',',@_);
@@ -120,11 +121,11 @@ sub guessMethyl($) {
 	my @Cnts = sort { $BaseCnt{uc $b} <=> $BaseCnt{uc $a} } keys %BaseCnt;
 	#ddx [\@Cnts,\%BaseCnt];
 	if ($BaseCnt{'C'}<=$seqlen*$main::methly3BaseErrRate and $BaseCnt{'T'}>0) {
-		return 'CT';
+		return '1CT';
 	} elsif ($BaseCnt{'G'}<=$seqlen*$main::methly3BaseErrRate and $BaseCnt{'A'}>0) {
-		return 'GA';
+		return '2GA';
 	} else {
-		return 'Raw';
+		return '0Raw';
 	}
 }
 
@@ -168,9 +169,11 @@ sub doAlign($$$) {
 	my $fro0 = shift @froDat;
 	my $result = $AssemHRef->{$fro0}->[0];
 	for my $fro (@froDat) {
-		$fro0 = mergeAln( $result,$AssemHRef->{$fro}->[0],$fro0,$fro );
+		#$fro0 = mergeAln( $result,$AssemHRef->{$fro}->[0],$fro0,$fro );
+		$result = mergeAln( $result,$AssemHRef->{$fro}->[0] );
 	}
-	dynAln($retHost,$result);
+	#dynAln($retHost,$result);
+	die;
 }
 sub dynAln($$$) {
 	my ($ref,$query,$MatrixR) = @_;
@@ -265,10 +268,24 @@ sub getmax($$$) {
 	}
 	return [$mv,$mi,$mj];
 }
-sub mergeAln($$$$) {
-	my ($ref,$query,$fro1,$fro2) = @_;
-	my $ret = dynAln($ref,$query,$fro2);
-	return $fro1;
+
+sub mergeAln($$) {
+	my ($ref,$query) = @_;
+	my  $pid = open2( \*READER, \*WRITER, "./bin/alnmethly" );
+	WRITER->autoflush(); # default here, actually
+	my @Dat = ([$ref,undef],[$query,undef],[]);
+	$Dat[2]->[0] = revcom($query);
+	$_->[1] = guessMethyl($_->[0]) for @Dat;
+	@Dat = sort { $a->[1] cmp $b->[1] } @Dat;
+	print WRITER join("\n",map {$_->[0]} @Dat),"\n";
+	while(<READER>) {
+		chomp;
+		if (/^Path(\d): ([IDMmR]+),(\d+)$/) {
+			print "[$_] [$1] [$2] [$3]\n";
+		}
+	}
+	print join("\n",map {$_->[0]} @Dat),"\n";
+	return 1;
 }
 
 sub warnFileExist(@) {
