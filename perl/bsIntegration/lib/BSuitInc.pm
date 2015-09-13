@@ -190,7 +190,7 @@ sub doAlign($$$) {
 		(undef,$VirLeft,$VirInsert) = ($1,$2,$3);
 		$VirCut = $VirusInfo[1] + length($VirLeft)+1;
 	}
-	ddx $VirusResult;
+	#ddx $VirusResult;
 	return [$RefInfo[0],$RefCut,$VirusInfo[0],$VirCut,length($VirInsert)];
 }
 sub dynAln($$$) { # 废弃 {

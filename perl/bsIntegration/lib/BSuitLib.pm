@@ -293,6 +293,7 @@ sub do_analyse {
 	if ( -f $BlockINIFN ) {
 		$BlockINI->read($BlockINIFN);
 	} else {die "[x] Grep INI not found ! [$BlockINIFN]\n";}
+	open OA,'>',"$main::RootPath/${main::ProjectID}_analyse.txt" or die;
 	for my $Bid (@{$BlockINI->{']'}}) {
 		my @HostRange = split /,/,$BlockINI->{$Bid}->{'HostRange'};
 		my @VirusRange = split /,/,$BlockINI->{$Bid}->{'VirusRange'};
@@ -407,6 +408,7 @@ sub do_analyse {
 		}
 		my $ret = doAlign(\%Assem,[$retHost],\@retVirus);
 		#die;
+		print OA "[$Bid]\nRefCut: $ret->[0] $ret->[1]\nVirusCut: $ret->[2] $ret->[3] +$ret->[4]\n\n" if $ret->[1] > 0;
 		if ($main::DEBUG) {
 			open DBG,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/idba.fa" or die $!;
 			print DBG ">Host\n$$retHost[1]\n\n";
@@ -419,6 +421,7 @@ sub do_analyse {
 		}
 		warn "[$Bid]\n";
 	}
+	close OA;
 	close $tFH{$_} for keys %tFH;
 }
 
