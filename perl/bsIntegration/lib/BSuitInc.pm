@@ -277,14 +277,32 @@ sub mergeAln($$) {
 	$Dat[2]->[0] = revcom($query);
 	$_->[1] = guessMethyl($_->[0]) for @Dat;
 	@Dat = sort { $a->[1] cmp $b->[1] } @Dat;
+	for (@Dat) {
+		if ($_->[1] eq '1CT') {
+			$_->[0] =~ s/[CT]/Y/ig;
+		} elsif ($_->[1] eq '2GA') {
+			$_->[0] =~ s/[GA]/R/ig;
+		}
+	}
 	print WRITER join("\n",map {$_->[0]} @Dat),"\n";
+	my %Result;
 	while(<READER>) {
 		chomp;
 		if (/^Path(\d): ([IDMmR]+),(\d+)$/) {
-			print "[$_] [$1] [$2] [$3]\n";
+			#print "[$_] [$1] [$2] [$3]\n";
+			$Result{$1} = [$2,$3];
 		}
 	}
+	my @Resu = sort { $Result{$b}->[1] <=> $Result{$a}->[1] } keys %Result;
 	print join("\n",map {$_->[0]} @Dat),"\n";
+	ddx $Result{$Resu[0]};
+	my @ResDat = split //,$Result{$Resu[0]}->[0];
+	my @QuaryDat = split //,$Dat[$Resu[0]]->[0];
+	print "@QuaryDat\n@ResDat\n";
+	my @AlnDat;
+	for my $p (0 .. $#ResDat) {
+		;
+	}
 	return 1;
 }
 
