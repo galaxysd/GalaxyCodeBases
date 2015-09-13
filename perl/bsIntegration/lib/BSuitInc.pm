@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Digest::SHA;
 use IPC::Open2;
+use Galaxy::Data;
 
 sub getFilesHash(@) {
 	my $fileStr = join(',',@_);
@@ -166,16 +167,19 @@ sub doAlign($$$) {
 	my $retHost = $$retHostARef[0];
 	my $retVirus = $$retVirusARef[0];
 	my @froDat = sort keys %{$AssemHRef};
+	ddx $AssemHRef;
 	my $fro0 = shift @froDat;
-	my $result = $AssemHRef->{$fro0}->[0];
+	my $result = $AssemHRef->{$fro0}->[0]->[1];
 	for my $fro (@froDat) {
 		#$fro0 = mergeAln( $result,$AssemHRef->{$fro}->[0],$fro0,$fro );
-		$result = mergeAln( $result,$AssemHRef->{$fro}->[0] );
+		$result = mergeAln( $result,$AssemHRef->{$fro}->[0]->[1] );
 	}
-	#dynAln($retHost,$result);
-	die;
+	ddx $retHost,$result;
+	$result = mergeAln( $retHost->[1],$result );
+	die "[$result]";
+	return $result;
 }
-sub dynAln($$$) {
+sub dynAln($$$) { # 废弃 {
 	my ($ref,$query,$MatrixR) = @_;
 	my @a=('',split //,$ref);
 	my @b=('',split //,$query);
@@ -250,7 +254,7 @@ sub dynAln($$$) {
 		print 'X:[',@{$ax[$i-1]},"]\n",'Y:[',@{$ay[$i-1]},"]\n",'Score:',$as[$i-1],"\n";
 	}
 }
-sub getmax($$$) {
+sub getmax($$$) { # 废弃 {
 	my ($arref,$ii,$ij)=@_;
 	my ($mv,$mi,$mj,$i,$j)=(-1,-1,-1);
 	for ($i=1;$i<=$ii;$i++) {
@@ -294,16 +298,46 @@ sub mergeAln($$) {
 		}
 	}
 	my @Resu = sort { $Result{$b}->[1] <=> $Result{$a}->[1] } keys %Result;
-	print join("\n",map {$_->[0]} @Dat),"\n";
-	ddx $Result{$Resu[0]};
+	#print join("\n",map {$_->[0]} @Dat),"\n";
+	#ddx $Result{$Resu[0]},$Resu[0];
 	my @ResDat = split //,$Result{$Resu[0]}->[0];
 	my @QuaryDat = split //,$Dat[$Resu[0]]->[0];
-	print "@QuaryDat\n@ResDat\n";
+	my @Refdat = split //,$ref;
+	#print "R:@Refdat\nQ:@QuaryDat\nA:@ResDat\n";
 	my @AlnDat;
+	my ($Refp,$Querp) = (0,0);
 	for my $p (0 .. $#ResDat) {
-		;
+		if ($ResDat[$p] =~ /^[DMmR]$/) {
+			++$Querp if $ResDat[$p] eq 'D';
+			my $theBases = $IUB{$Refdat[$p-$Refp]} or die;
+			push @$theBases,@$theBases if $#$theBases==0;
+			++$AlnDat[$p]->{$_} for @$theBases;
+		}
+		if ($ResDat[$p] =~ /^[MmR]$/) {
+			my $theBases = $IUB{$QuaryDat[$p-$Querp]};
+			push @$theBases,@$theBases if $#$theBases==0;
+			++$AlnDat[$p]->{$_} for @$theBases;
+		} elsif ($ResDat[$p] eq 'I') {
+			++$Refp;
+			my $theBases = $IUB{$QuaryDat[$p-$Querp]};
+			push @$theBases,@$theBases if $#$theBases==0;
+			++$AlnDat[$p]->{$_} for @$theBases;
+		}
 	}
-	return 1;
+	#ddx \@AlnDat;
+	my $reseq;
+	for (@AlnDat) {
+		my %t = %{$_};
+		my @k = sort { $t{$a} <=> $t{$b} } keys %t;
+		my $iub;
+		if (@k>1 and $t{$k[0]} == $t{$k[1]}) {
+			$iub = join('',sort @k[0,1]);
+		} else {
+			$iub = $k[0];
+		}
+		$reseq .= $REV_IUB{$iub};
+	}
+	return $reseq;
 }
 
 sub warnFileExist(@) {
