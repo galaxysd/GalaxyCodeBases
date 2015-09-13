@@ -405,7 +405,7 @@ sub do_analyse {
 			}
 			$Assem{$fro} = \@asm;
 		}
-		my $frag = doAlign(\%Assem,[$retHost],\@retVirus);
+		my $ret = doAlign(\%Assem,[$retHost],\@retVirus);
 		#die;
 		if ($main::DEBUG) {
 			open DBG,'>',"$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/idba.fa" or die $!;
@@ -415,6 +415,7 @@ sub do_analyse {
 			for my $fro (sort keys %Assem) {
 				print DBG ">Asm_${fro}$_ $Assem{$fro}->[$_]->[0]\n$Assem{$fro}->[$_]->[1]\n" for 0 .. $#{$Assem{$fro}};
 			}
+			print DBG "\nResult: ",join(",",@$ret),"\n";
 		}
 		warn "[$Bid]\n";
 	}

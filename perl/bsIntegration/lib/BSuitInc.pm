@@ -167,17 +167,31 @@ sub doAlign($$$) {
 	my $retHost = $$retHostARef[0];
 	my $retVirus = $$retVirusARef[0];
 	my @froDat = sort keys %{$AssemHRef};
-	ddx $AssemHRef;
+	#ddx $AssemHRef;
 	my $fro0 = shift @froDat;
-	my $result = $AssemHRef->{$fro0}->[0]->[1];
+	my $result = [$AssemHRef->{$fro0}->[0]->[1]];
 	for my $fro (@froDat) {
 		#$fro0 = mergeAln( $result,$AssemHRef->{$fro}->[0],$fro0,$fro );
-		$result = mergeAln( $result,$AssemHRef->{$fro}->[0]->[1] );
+		$result = mergeAln( $result->[0],$AssemHRef->{$fro}->[0]->[1] );
 	}
-	ddx $retHost,$result;
-	$result = mergeAln( $retHost->[1],$result );
-	die "[$result]";
-	return $result;
+	#ddx $retHost,$result;
+	my $HostResult = mergeAln( $retHost->[1],$result->[0] );
+	#ddx $HostResult;
+	my @RefInfo = split /[:-]/,$retHost->[0];
+	my ($RefCut,$Left,$Insert)=(0);
+	if ($HostResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
+		(undef,$Left,$Insert) = ($1,$2,$3);
+		$RefCut = $RefInfo[1] + length($Left)+1;
+	}
+	my $VirusResult = mergeAln( $retVirus->[1],$result->[0] );
+	my @VirusInfo = split /[:-]/,$retVirus->[0];
+	my ($VirCut,$VirLeft,$VirInsert)=(0,0,0);
+	if ($VirusResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
+		(undef,$VirLeft,$VirInsert) = ($1,$2,$3);
+		$VirCut = $VirusInfo[1] + length($VirLeft)+1;
+	}
+	ddx $VirusResult;
+	return [$RefInfo[0],$RefCut,$VirusInfo[0],$VirCut,length($VirInsert)];
 }
 sub dynAln($$$) { # 废弃 {
 	my ($ref,$query,$MatrixR) = @_;
@@ -277,10 +291,10 @@ sub mergeAln($$) {
 	my ($ref,$query) = @_;
 	my  $pid = open2( \*READER, \*WRITER, "./bin/alnmethly" );
 	WRITER->autoflush(); # default here, actually
-	my @Dat = ([$ref,undef],[$query,undef],[]);
-	$Dat[2]->[0] = revcom($query);
+	my @Dat = ([$query,undef],[revcom($query),undef]);
 	$_->[1] = guessMethyl($_->[0]) for @Dat;
 	@Dat = sort { $a->[1] cmp $b->[1] } @Dat;
+	unshift @Dat,[$ref,guessMethyl($ref)];
 	for (@Dat) {
 		if ($_->[1] eq '1CT') {
 			$_->[0] =~ s/[CT]/Y/ig;
@@ -288,6 +302,7 @@ sub mergeAln($$) {
 			$_->[0] =~ s/[GA]/R/ig;
 		}
 	}
+	#ddx \@Dat;
 	print WRITER join("\n",map {$_->[0]} @Dat),"\n";
 	my %Result;
 	while(<READER>) {
@@ -337,7 +352,7 @@ sub mergeAln($$) {
 		}
 		$reseq .= $REV_IUB{$iub};
 	}
-	return $reseq;
+	return [$reseq,$Result{$Resu[0]}->[0]];
 }
 
 sub warnFileExist(@) {
