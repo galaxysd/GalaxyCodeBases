@@ -13,6 +13,15 @@
 
  + bwa mem from: https://github.com/lh3/bwa
 
+# Install
+
+```
+cd src
+./download.sh
+./install.sh
+pip install toolshed
+```
+
 # Usage
 
 ```
