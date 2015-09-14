@@ -30,6 +30,7 @@ pip install toolshed
 ./bsuit prepare prj.ini
 ./bsuit aln prj.ini
 ./bsuit grep prj.ini
+./bsuit analyse prj.ini
 ```
 
 # Format of `config_file`
