@@ -289,7 +289,7 @@ sub getmax($$$) { # 废弃 {
 
 sub mergeAln($$) {
 	my ($ref,$query) = @_;
-	my  $pid = open2( \*READER, \*WRITER, "./bin/alnmethly" );
+	my  $pid = open2( \*READER, \*WRITER, "$RealBin/bin/alnmethly" );
 	WRITER->autoflush(); # default here, actually
 	my @Dat = ([$query,undef],[revcom($query),undef]);
 	$_->[1] = guessMethyl($_->[0]) for @Dat;

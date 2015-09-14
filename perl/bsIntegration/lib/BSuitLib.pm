@@ -56,8 +56,8 @@ sub do_pre() {
 	}
 	#ddx \$main::RefConfig;
 	warn "[!] Building index for [$Refile].\n";
-	system("$RealBin/bin/bwameth.py",'index',$Refile);
-	system("samtools",'faidx',$Refile) unless -s $Refile.'.fai';
+	system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");
+	system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
 }
 
 sub do_aln() {
@@ -71,7 +71,7 @@ sub do_aln() {
 	#ddx \%tID;
 	File::Path::make_path("$main::RootPath/${main::ProjectID}_aln",{verbose => 0,mode => 0755});
 	open O,'>',"$main::RootPath/${main::ProjectID}_aln.sh" or die $!;
-	print O "#!/bin/sh\n\n";
+	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
 	for my $k (keys %tID) {
 		my @FQ1c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{1}};
 		my @FQ2c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{2}};
@@ -134,8 +134,8 @@ sub do_grep($) {
 			InsSD => $InsSD,
 		};
 		$GrepResult->{$k} = { DatFile => "$main::RootPath/${main::ProjectID}_grep/$k.sam" };
-		open( IN,"-|","samtools view $myBamf") or die "Error opening $myBamf: $!\n";	# `-F768` later
-		system( "samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
+		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";	# `-F768` later
+		system( "$main::PathPrefix samtools view -H $myBamf >".$GrepResult->{$k}{'DatFile'} );
 		open GOUT,'>>',$GrepResult->{$k}{'DatFile'} or die "$!";
 		print GOUT join("\t",'@PG','ID:bsuit',"CL:\"grep $cfgfile\""),"\n";
 		print STDERR "[!] Reading [$myBamf] ...";
@@ -154,7 +154,7 @@ sub do_grep($) {
 			$ReadsIndex{$id} = [[0,$Dat1[2],$flag]];
 		}
 		close IN;
-		open IN,'-|',"samtools view $myBamf" or die "Error opening $myBamf: $!\n";
+		open IN,'-|',"$main::PathPrefix samtools view $myBamf" or die "Error opening $myBamf: $!\n";
 		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
@@ -314,7 +314,7 @@ sub do_analyse {
 		next if $maxHostDepth < $main::minHostDepth;
 		#ddx $maxItem,\@HostRange;
 		File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse/idba/$Bid",{verbose => 0,mode => 0755});
-		system("samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa");
+		system("$main::PathPrefix samtools faidx $Refilename $HostRange[$maxItem][0]:$HostRange[$maxItem][1]-$HostRange[$maxItem][2] >$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa");
 		my $FH;
 		open $FH,'<',"$main::RootPath/${main::ProjectID}_analyse/idba/Ref.fa" or die $!;
 		my $retHost = FastaReadNext($FH);
