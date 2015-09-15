@@ -13,7 +13,11 @@
 
  + bwa mem from: https://github.com/lh3/bwa
 
+ + IDBA-Hybrid from: https://github.com/loneknightpy/idba
+
 # Install
+
+You'll need `cmake` and `aclocal, autoconf, automake` and devel-libs, as well as `gcc, g++` to compile all sources.
 
 ```
 cd src
