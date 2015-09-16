@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-use FindBin 1.51 qw($RealBin);
+#use FindBin 1.51 qw($RealBin);
 =pod
 http://perl5.git.perl.org/perl.git/commitdiff/ce6c0f31778913bcbf7ccd245ab390dddd8a1361
 -$VERSION = "1.50";
@@ -15,6 +15,11 @@ Further "discussion": http://www.perlmonks.org/?node_id=41213
 use Cwd 'abs_path';
 my $scriptpath = abs_path($0); # ended with filename
 =cut
+use FindBin qw($RealBin);
+if ($FindBin::VERSION < 1.51) {
+	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
+}
+
 FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5.git.perl.org/perl.git/commitdiff/f509412828fa95d62b8d41774f816a14ba046cac
 use lib "$RealBin/lib";
 #print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
