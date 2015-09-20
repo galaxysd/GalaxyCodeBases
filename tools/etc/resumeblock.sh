@@ -19,6 +19,6 @@ bytes_total() {
 echo "$(bytes_total) to $(bytes_transferred)"
 
 while (( $(bytes_transferred) < $(bytes_total) )); do
-  ( dd bs=1 skip=$(bytes_transferred) count=0 2>/dev/null && cat ) < $source_disk |lz4 -9 - - | ssh -p2211 -T -c arcfour -o Compression=no -x "$host" "lz4cat - >> '$host_image'"
+  ( dd bs=1 skip=$(bytes_transferred) count=0 2>/dev/null && cat ) < $source_disk | ssh -p2211 -T -c arcfour -o Compression=yes -x "$host" "cat >> '$host_image'"
 done
 
