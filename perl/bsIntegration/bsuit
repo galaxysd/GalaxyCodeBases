@@ -19,7 +19,6 @@ use FindBin qw($RealBin);
 if ($FindBin::VERSION < 1.51) {
 	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
 }
-
 FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5.git.perl.org/perl.git/commitdiff/f509412828fa95d62b8d41774f816a14ba046cac
 use lib "$RealBin/lib";
 #print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
