@@ -29,3 +29,8 @@ OFFICERECEIPTS=$(pkgutil --pkgs=com.microsoft.office*)
 for ARECEIPT in $OFFICERECEIPTS; do
   pkgutil --forget $ARECEIPT
 done
+
+OFFICERECEIPTS=$(pkgutil --pkgs=com.microsoft.package*)
+for ARECEIPT in $OFFICERECEIPTS; do
+  pkgutil --forget $ARECEIPT
+done
