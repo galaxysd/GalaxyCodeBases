@@ -10,3 +10,9 @@ for APP in Word Excel PowerPoint OneNote Outlook; do echo [$APP];mkdir $APP;mv /
 for APP in Word Excel PowerPoint OneNote Outlook; do echo [$APP];cd $APP;cfv -rr -C -t sha1;mv $APP.sha1 ..;cd ..;done
 
 ````
+
+## After Update
+
+````bash
+for APP in Word Excel PowerPoint OneNote Outlook; do echo [$APP];mkdir $APP;ls /Applications/Microsoft\ ${APP}.app/Contents/Resources/Fonts/;done
+````
