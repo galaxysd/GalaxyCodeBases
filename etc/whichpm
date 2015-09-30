@@ -17,3 +17,11 @@ __END__
 http://www.perlmonks.org/?node=whichpm
 http://search.cpan.org/~jkutej/App-whichpm-0.04/script/whichpm
 
+For Version info.:
+alias modver="perl -e\"eval qq{use \\\$ARGV[0];\\\\\\\$v=\\\\\\\$\\\${ARGV[0]}::VERSION;};\ print\\\$@?qq{No module found\\n}:\\\$v?qq{Version \\\$v\\n}:qq{Found.\\n};\"\$1"
+
+$ whichpm File::Spec::Functions
+/System/Library/Perl/5.18/darwin-thread-multi-2level/File/Spec/Functions.pm
+
+$ modver File::Spec::Functions
+Version 3.40
