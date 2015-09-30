@@ -1,3 +1,8 @@
+//usr/bin/env go run $0 $@; exit $?
+
+// http://golangcookbook.com/chapters/running/shebang/
+// https://gist.github.com/jemygraw/412a4fd557d875fd3037
+
 package main
 
 //Usage: vsina http://video.weibo.com/show?fid=1034:0e906d53094c5d231bf09028af8ba9b1
