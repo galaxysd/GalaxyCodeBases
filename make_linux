@@ -55,6 +55,9 @@ mkdir -p binaries/MacOSX/ppc
 mkdir -p binaries/iOS/arm
 
 mkdir -p binaries/FreeBSD/intel
+mkdir -p binaries/NetBSD/intel
+mkdir -p binaries/OpenBSD/intel
+mkdir -p binaries/DragonFly/intel
 mkdir -p binaries/Solaris/intel
 mkdir -p binaries/Windows/intel
 mkdir -p binaries/Minix/intel

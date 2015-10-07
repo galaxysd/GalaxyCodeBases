@@ -121,6 +121,10 @@ ifneq ($(NO_DNS),1)
       BASELDFLAGS += -lresolv
     endif
 
+    ifeq ($(OPENBSD),1)
+      DNS_PARSER := internal
+    endif
+
     ifeq ($(SOLARIS),1)
       BASELDFLAGS += -lresolv
     endif
@@ -551,6 +555,7 @@ help:
 	@echo "Other useful CFLAGS:"
 	@echo "    -DSUPPORT_WINE               Add code that the Windows version of $(PROGRAM_NAME) runs on Wine if MSRPC=1"
 	@echo "    -D_PEDANTIC                  Report rare error/warning conditions instead of silently ignoring them."
+	@echo "    -DINCLUDE_BETAS              Include SKU / activation IDs for obsolete beta/preview products."
 	@echo "    -DFD_SETSIZE=<x>             Allow <x> -L statements in $(PROGRAM_NAME) (default: 64 on Windows, 1024 on most Unixes)."
 	@echo "    -flto                        Use link time optimization. Not supported by old compilers (gcc < 4.7). Use whenever supported."
 	@echo "    -flto=jobserver              Utilize all CPUs during link time optimization. Requires ${MAKE} -j <cpus>"
