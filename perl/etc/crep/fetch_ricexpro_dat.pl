@@ -13,7 +13,7 @@ use HTML::TreeBuilder::XPath;
 use HTML::TableExtract;
 use Data::Dump;
 
-my @ArrayList = qw {RXP_1006 RXP_1009 RXP_1010};
+my @ArrayList = qw {RXP_1006 RXP_1009 RXP_1010 RXP_1008 RXP_1007 RXP_1012};
 my $Order = '0 hr (Cy3)|0 hr (Cy5)|1 hr (Cy3)|1 hr (Cy5)|3 hr (Cy3)|3 hr (Cy5)|6 hr (Cy3)|6 hr (Cy5)|12 hr (Cy3)|12 hr (Cy5)';
 
 open I,'<','resLOC.anno' or die $!;
