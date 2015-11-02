@@ -55,10 +55,10 @@ my (%cyDat,%cyRDat);
 my %RXP2Name = (
 RXP_1006 => 'ABA', #Shoot gene expression profile in response to abscisic acid
 RXP_1009 => 'BRs', #Shoot gene expression profile in response to brassinosteroid
-RXP_1010 => 'CK' #Shoot gene expression profile in response to cytokinin
-RXP_1008 => 'Aux' #Shoot gene expression profile in response to auxin
-RXP_1007 => 'GA' #Shoot gene expression profile in response to gibberellin
-RXP_1012 => 'JA' #Shoot gene expression profile in response to jasmonic acid
+RXP_1010 => 'CK', #Shoot gene expression profile in response to cytokinin
+RXP_1008 => 'Aux', #Shoot gene expression profile in response to auxin
+RXP_1007 => 'GA', #Shoot gene expression profile in response to gibberellin
+RXP_1012 => 'JA', #Shoot gene expression profile in response to jasmonic acid
 );	# Cy3 (mock treatment) and Cy5 (hormone treatment) => Cy5/Cy3, http://ricexpro.dna.affrc.go.jp/RXP_1006/index.php
 
 my (@FeatureOrder, @ExpOrder, @FeatNameOrder, @reps, %rep, @FinalOrder, @RatioExpOrder, @RatioFinalOrder);
