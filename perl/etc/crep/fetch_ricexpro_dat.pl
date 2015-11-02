@@ -45,11 +45,13 @@ for my $FeatureNum (@AccNums) {
 my %ArrayDat;
 for my $Exp (@ArrayList) {
 
+BEGINHTTP:
 my $req = HTTP::Request->new(GET => "http://ricexpro.dna.affrc.go.jp/$Exp/view-plot-data.php?featurenum=$FeatureNum");
 my $res = $ua->request($req);
 # check the outcome
 if (! $res->is_success) {
-		die "Error: Login as Guest failed !\n";
+	warn "Error: Login as Guest failed !\n";
+	goto BEGINHTTP;
 }
 
 #ddx $res;
