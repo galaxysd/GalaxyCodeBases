@@ -6,7 +6,7 @@ git diff .
 # `git subtree add` when it does not exist.
 git subtree pull --prefix=c_cpp/lib/cstring git://github.com/cloudwu/cstring.git master
 git subtree pull --prefix=c_cpp/lib/htslib git://github.com/samtools/htslib.git master
-git subtree pull --prefix=etc/gfwlist2pac git://github.com/clowwindy/gfwlist2pac.git master
+# 已被和谐 git subtree pull --prefix=etc/gfwlist2pac git://github.com/clowwindy/gfwlist2pac.git master
 git subtree pull --squash --prefix=etc/autoproxy-gfwlist git://github.com/calfzhou/autoproxy-gfwlist.git master
 git subtree pull --prefix=c_cpp/lib/klib git://github.com/attractivechaos/klib.git master
 git subtree pull --prefix=tools/bioawk git://github.com/lh3/bioawk.git master
