@@ -12,6 +12,7 @@ git subtree pull --prefix=c_cpp/lib/klib git://github.com/attractivechaos/klib.g
 git subtree pull --prefix=tools/bioawk git://github.com/lh3/bioawk.git master
 git subtree pull --prefix=tools/lh3misc https://github.com/lh3/misc.git master
 git subtree pull --prefix=pubdoc/Markdown-Syntax-CN https://gitcafe.com/riku/Markdown-Syntax-CN.git master
+git subtree pull --prefix=etc/whichpm https://github.com/mklement0/whichpm.git master
 git fsck
 git gc --aggressive --prune=now
 
