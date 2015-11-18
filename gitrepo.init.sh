@@ -13,6 +13,11 @@ git remote update
 git submodule init
 git submodule update
 
+git submodule foreach git branch -v
+git submodule foreach git checkout master
+git submodule foreach git pull
+git submodule foreach git branch -v
+
 cd released/pIRS
 git remote add sf ssh://galaxy001@git.code.sf.net/p/pirsim/code
 # git remote add github git@github.com:galaxy001/pirs.git
