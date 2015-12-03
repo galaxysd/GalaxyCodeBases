@@ -1,4 +1,0 @@
-!This is a user defined rule by Galaxy. [See Help](https://github.com/galaxysd/GalaxyCodeBases/blob/master/etc/autoproxy-gfwlist/Galaxy.md#rules)
-||amazonaws.com
-||fonts.googleapis.com
-@@pku.edu.cn
