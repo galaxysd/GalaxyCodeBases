@@ -1,0 +1,1 @@
+$.fn.bsButton=$.fn.button.noConflict();$.fn.bsTooltip=$.fn.tooltip.noConflict()

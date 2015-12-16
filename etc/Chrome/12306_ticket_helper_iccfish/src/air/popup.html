@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="../../libs/jqueryui/jquery-ui.css">
+	<link rel="stylesheet" href="css/common.css">
+	<link rel="stylesheet" href="css/flight.css">
+	<link rel="stylesheet" href="../12306/css/popup.css">
+	<title></title>
+</head>
+<body>
+	<div class="wrap">
+		<div id="mask"></div>
+		<div id="cover" class="cover"></div>
+		<div>
+		</div>
+		<div class="header" _header>
+			<span class="backBtn" _innerdata="_backTo:prevStage|_backWhole:backWhole">返回</span>
+			<span class="stageTitle" _data="title">猎豹抢票党</span>
+			<span class="closeBtn">关闭</span>
+			<div class="radiusShadow"></div>
+		</div>
+
+		<!--抢火车票-->
+		<div class="main intro12306 root" _stage="intro12306">
+			<ul class="menuContainer">
+				<li data-targeturl="http://12306.liebao.cn/">
+					<div class="menuIcon menuIcon12306" _data="menuIcon"></div>
+					<div class="strikingText titleText menuTitle" _data="menuTitle">
+						<strong>订票助手极速版</strong>
+					</div>
+					<div class="normalText bodyText menuIntro" _data="menuIntro">独立的订票功能，更加强大而智能！</div>
+					<div class="goFlag"></div>
+				</li>
+				<li data-targeturl="" id="cn12306Otn" class=" submenu noicon">
+					<div class="strikingText titleText menuTitle" _data="menuTitle">
+						<strong>原版12306订票</strong>
+					</div>
+					<div class="normalText bodyText menuIntro" _data="menuIntro">在原版12306中订票助手依然有效！</div>
+					<div class="goFlag"></div>
+				</li>
+				<!--li class="submenu noicon" data-targeturl="http://app.fishlee.net/12306/">
+					<div class="strikingText titleText menuTitle" _data="menuTitle">订票助手极速版</div>
+					<div class="normalText bodyText menuIntro" _data="menuIntro">为手机访问优化的版本，高峰期慎用</div>
+					<div class="goFlag"></div>
+				</li-->
+				<li class="submenu noicon" id="cn12306Sppeding">
+					<div class="strikingText titleText menuTitle" _data="menuTitle">服务器加速</div>
+					<div class="normalText bodyText menuIntro" _data="menuIntro">通过智能选择最快服务器，保证订票稳定</div>
+					<div class="goFlag"></div>
+				</li>
+				<li class="submenu noicon" id="cn12306About">
+					<div class="strikingText titleText menuTitle" _data="menuTitle">关于订票助手</div>
+					<div class="normalText bodyText menuIntro" _data="menuIntro">告诉作者您有什么不满、需求或建议</div>
+					<div class="goFlag"></div>
+				</li>
+			</ul>
+		</div>
+
+		<!-- 买礼物 -->
+		<div class="main advPop" _stage="advPresent">
+			<div class="advTitle">猎豹提醒您, 中秋回家记得给亲朋带点小礼物!</div>
+			<img class="advImage" width="306" height="190" src="http://www.liebao.cn/ticket/images/present.png" />
+			<input class="longBtn blueBtn advBtn" type="button" value="立即抢购" />
+		</div>
+
+		<!-- 汽车票 -->
+		<div class="main advPop" _stage="advBusTicket">
+			<div class="advTitle">没有抢到火车票? 猎豹推荐您试试汽车票!</div>
+			<img class="advImage" width="306" height="190" src="http://www.liebao.cn/ticket/images/busTicket.png" />
+			<input class="longBtn blueBtn advBtn" type="button" value="抢汽车票" />
+		</div>
+	</div>
+
+	<script src="../libs/jquery.js"></script>
+	<script src="js/baseInfo.js"></script>
+	<script src="js/util/Filler.js"></script>
+	<script src="js/ui/Gallery.js"></script>
+	<script src="js/ui/stage/intro12306.js"></script>
+	<script src="js/init.js"></script>
+</body>
+</html>

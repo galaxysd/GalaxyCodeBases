@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>12306服务器节点切换</title>
+	<link href="../libs/bootstrap/css/bootstrap.css" rel="stylesheet" />
+	<link href="../libs/bootstrap/css/bootstrap.adapter.css" rel="stylesheet" />
+</head>
+<body>
+	<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#nav-1">
+				<span class="sr-only">切换菜单</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#">12306订票助手</a>
+		</div>
+
+		<!-- Collect the nav links, forms, and other content for toggling -->
+		<div class="collapse navbar-collapse" id="nav-1">
+			<ul class="nav navbar-nav">
+				<li class="active">
+					<a href="#">
+						<i class="glyphicon glyphicon-share"></i>
+						服务器加速
+					</a>
+				</li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<i class="glyphicon glyphicon-star"></i>
+						我要订票
+						<i class="caret"></i>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a href="http://12306.liebao.cn/" target="_blank">极速版订票</a></li>
+						<li class="divider"></li>
+						<!--<li><a href="http://dynamic.12306.cn/otsweb/" id="link_o" target="_blank">旧版12306订票</a></li>-->
+						<li><a href="http://kyfw.12306.cn/otn/" id="link_n" target="_blank">官方12306订票</a></li>
+					</ul>
+				</li>
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+						<i class="glyphicon glyphicon-heart"></i>
+						<strong>订票助手网站</strong>
+						<i class="caret"></i>
+					</a>
+					<ul class="dropdown-menu">
+						<li><a href="http://www.fishlee.net/soft/44/" target="_blank">订票助手官网</a></li>
+						<li><a href="http://bbs.fishlee.net/forum.php?gid=1">订票助手官方论坛</a></li>
+						<li class="divider"></li>
+						<li><a href="http://www.liebao.cn/" target="_blank">猎豹浏览器</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="http://www.fishlee.net/soft/44/tour1.html">
+						<i class="glyphicon glyphicon-question-sign"></i>
+						使用手册
+					</a>
+				</li>
+				<li>
+					<a href="about.html">
+						<i class="glyphicon glyphicon-question-sign"></i>
+						关于订票助手
+					</a>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+			</ul>
+		</div><!-- /.navbar-collapse -->
+	</nav>
+	<div class="container margin-top-med rowByRow">
+		<fieldset>
+			<legend>当前服务器状态</legend>
+			<div class="row">
+				<label class="col-xs-3 control-label">kyfw.12306.cn</label>
+				<div class="col-xs-6 form-control-static" id="currentServerOtn">
+					默认
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-xs-3 control-label">当前节点统计</label>
+				<div class="col-xs-6 form-control-static" id="currentServerStorage">
+					--
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-xs-3 control-label">当前备用节点</label>
+				<div class="col-xs-6 form-control-static" id="currentServerValidList">
+					--
+				</div>
+			</div>
+			<div class="row">
+				<label class="col-xs-3 control-label">当前状态</label>
+				<div class="col-xs-6 form-control-static" id="currentStatus">
+					--
+				</div>
+			</div>
+		</fieldset>
+	</div>
+	<div class="container margin-top-xs">
+		<fieldset>
+			<legend>服务器测速状态</legend>
+		</fieldset>
+		<div class="table-responsive">
+			<table class="table table-hover table-striped table-bordered" id="serverList">
+				<tr>
+					<th>节点</th>
+					<th>速度</th>
+					<th>节点</th>
+					<th>速度</th>
+					<th>节点</th>
+					<th>速度</th>
+					<th>节点</th>
+					<th>速度</th>
+				</tr>
+				<tr>
+					<td colspan='8'>当前没有服务器在等待速度测试。</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="container margin-top-med" id="notValid" style="display:none;">
+		<fieldset>
+			<legend>无法使用</legend>
+			<div>
+				<p class="alert alert-danger">
+					<i class="glyphicon glyphicon-ban-circle"></i>
+					很抱歉，服务器加速无法在您的浏览器上使用。请使用猎豹浏览器专版。
+				</p>
+			</div>
+		</fieldset>
+	</div>
+	<div class="container margin-top-med" id="inProxy" style="display:none;">
+		<fieldset>
+			<legend>无法使用</legend>
+			<div>
+				<p class="alert alert-info">
+					<i class="glyphicon glyphicon-ban-circle"></i>
+					亲，貌似您使用了代理服务器，或网络存在问题。服务器加速无法在代理服务器中运行，因此无法使用。
+				</p>
+			</div>
+		</fieldset>
+	</div>
+	<div class="container margin-top-med" id="greenMode" style="display:none;">
+		<fieldset>
+			<legend>无法使用</legend>
+			<div>
+				<p class="alert alert-info">
+					<i class="glyphicon glyphicon-ban-circle"></i>
+					亲，由于您最后使用12306是在一天以前，为了减少您的浏览器速度消耗，服务器加速已被自动关闭。
+				</p>
+			</div>
+		</fieldset>
+	</div>
+
+	<script src="../libs/jquery.js"></script>
+	<script src="../libs/underscore/underscore.js"></script>
+	<script src="../libs/bootstrap/js/bootstrap.js"></script>
+	<script src="../libs/bootstrap/js/bootstrap.adapter.js"></script>
+	<script src="../infobar/scripts/global.js"></script>
+	<script src="scripts/serverstatus.js"></script>
+</body>
+</html>
