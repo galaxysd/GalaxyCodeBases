@@ -10,6 +10,24 @@ do_consensus($opts);
 
 exit;
 
+our %IUP=(A	=> 'A',
+		T	=> 'T',
+		C	=> 'C',
+		G 	=> 'G',
+		AC	=> 'M',
+		AG	=> 'R',
+		AT	=> 'W',
+		CG	=> 'S',
+		CT	=> 'Y',
+		'GT'	=> 'K',
+		ACG	=> 'V',
+		ACT	=> 'H',
+		AGT	=> 'D',
+		CGT	=> 'B',
+		ACGT=> 'N',
+		N	=> 'N'
+		);
+
 #--------------------------------
 
 sub error
@@ -211,8 +229,18 @@ sub apply_variant
             if ( exists($$opts{iupac}) && length($$vline[3])==1 )   # only for SNPs and with -i
             {
                 my @alts;
-                for my $al (@als)
-                {
+				my %GTs;
+                for my $al (@als) {
+					if ( $al eq '.' ) {
+						$alt = '.';
+					} elsif ( $al eq '0' ) {
+						$alt = uc($$vline[3]);
+					} else {
+						$alt = $$opts{vcf}->get_field($$vline[4],$al-1,',');
+						if ( length($alt)!=1 ) { last; }
+					}
+					++$GTs{$alt};	# if $alt ne '.'
+=pod
                     if ( $al eq '.' ) { last; }
                     if ( $al eq '0' ) { push @alts,uc($$vline[3]); }
                     else
@@ -221,7 +249,19 @@ sub apply_variant
                         push @alts, uc($alt);
                         if ( length($alt)!=1 ) { last; }
                     }
+=cut
                 }
+				my $dGT = join('',(sort keys %GTs));
+				if ($dGT eq '') {
+					$alt = undef;
+				} elsif ( $dGT=~ /^\./ ) {
+					$alt = 'N';
+				} else {
+					$alt = $IUP{$dGT};
+					die "$dGT" unless exists $IUP{$dGT};
+					#warn "$alt,$dGT";
+				}
+=pod
                 if ( @alts==2 )
                 {
                     if ( !exists($$opts{iupac}{$alts[0].$alts[1]}) ) { error("No IUPAC code for \"$alts[0]/$alts[1]\"\n"); }
@@ -232,6 +272,7 @@ sub apply_variant
                     if ( !exists($$opts{iupac}{$alts[0].$alts[0]}) ) { error("No IUPAC code for \"$alts[0]/$alts[0]\"\n"); }
                     $alt = $$opts{iupac}{$alts[0].$alts[0]};
                 }
+=cut
             }
             else
             {
