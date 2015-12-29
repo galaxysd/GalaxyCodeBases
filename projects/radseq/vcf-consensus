@@ -5,11 +5,6 @@ use warnings;
 use Carp;
 use Vcf;
 
-my $opts = parse_params();
-do_consensus($opts);
-
-exit;
-
 our %IUP=(A	=> 'A',
 		T	=> 'T',
 		C	=> 'C',
@@ -27,6 +22,11 @@ our %IUP=(A	=> 'A',
 		ACGT=> 'N',
 		N	=> 'N'
 		);
+
+my $opts = parse_params();
+do_consensus($opts);
+
+exit;
 
 #--------------------------------
 
