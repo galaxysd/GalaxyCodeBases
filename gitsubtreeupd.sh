@@ -28,6 +28,8 @@ git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/d
 git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
 git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliDan.git master
 
+git subtree pull --prefix=tools/Crypters/lvdo https://github.com/m13253/lvdo.git master
+
 git fsck
 git gc --aggressive --prune=now
 
