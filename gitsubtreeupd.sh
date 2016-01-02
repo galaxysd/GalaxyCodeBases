@@ -21,6 +21,12 @@ git subtree pull --prefix=pubdoc/Markdown-Syntax-CN https://gitcafe.com/riku/Mar
 git subtree pull --prefix=etc/whichpm https://github.com/mklement0/whichpm.git master
 git subtree pull --prefix=tools/create-dmg https://github.com/andreyvit/create-dmg.git master
 
+git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeHentai.git master
+
+git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/danmaku2ass.git master
+git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
+git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliDan.git master
+
 git fsck
 git gc --aggressive --prune=now
 
