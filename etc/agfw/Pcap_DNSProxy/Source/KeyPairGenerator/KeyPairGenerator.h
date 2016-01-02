@@ -166,25 +166,24 @@
 #endif
 */
 
+
 //////////////////////////////////////////////////
 // Base Header
 // 
 //Preprocessor definitions
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
-	#define ENABLE_LIBSODIUM       //LibSodium is always enable in Windows and Mac OS X.
+	#define ENABLE_LIBSODIUM           //LibSodium is always enable in Windows and Mac OS X.
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
-#include <cstdlib>                 //Several general purpose functions.
-#if !defined(ENABLE_LIBSODIUM)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		#include <cwchar>                  //Wide-Character Support
-	#endif
-#else
-#include <cstring>                 //String support
+#include <cstdlib>                 //Several general purpose functions
+#include <cstring>                 //String support(C-style)
+#include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
+#include <string>                  //String support(C++)
 
+#if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Master include file in Windows
 
@@ -199,6 +198,8 @@
 #elif defined(PLATFORM_LINUX)
 	#include <sodium.h>            //LibSodium header
 #elif defined(PLATFORM_MACX)
+	#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
+
 //LibSodium header and static libraries
 	#include "../LibSodium/sodium.h"
 	#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
@@ -226,7 +227,6 @@
 	typedef char               *PSTR;
 	#define __fastcall
 	#define strnlen_s          strnlen
-	#define wprintf_s          wprintf
 	#define fwprintf_s         fwprintf
 
 //Microsoft source-code annotation language/SAL compatible
@@ -240,7 +240,7 @@
 	#define _Outptr_opt_
 #endif
 
-// Function definitions
+//Function definitions
 #define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
 //DNSCurveHeapBufferTable template class

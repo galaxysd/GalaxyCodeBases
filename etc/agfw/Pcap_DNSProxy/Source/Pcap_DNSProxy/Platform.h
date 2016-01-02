@@ -193,19 +193,17 @@
 //#include <vector>                  //Vector support
 
 #if defined(PLATFORM_WIN)
-//Preprocessor definitions
-#define SODIUM_STATIC              //LibSodium
-#define WPCAP                      //WinPcap
-#define HAVE_REMOTE                //WinPcap
-
 //LibSodium header
 	#define ENABLE_LIBSODIUM         //LibSodium is always enable in Windows.
+	#define SODIUM_STATIC              //LibSodium preprocessor definitions
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
 
 //WinPcap header
 	#define ENABLE_PCAP              //WinPcap is always enable in Windows.
+	#define WPCAP                    //WinPcap preprocessor definitions
+	#define HAVE_REMOTE              //WinPcap preprocessor definitions
 	#if defined(ENABLE_PCAP)
 		#include "WinPcap\\pcap.h"
 	#endif
@@ -254,9 +252,9 @@
 	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Code definitions
-	#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
-	#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
-	#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
+	#define WINSOCK_VERSION_LOW               2                         //Low byte of Winsock version(2.2)
+	#define WINSOCK_VERSION_HIGH              2                         //High byte of Winsock version(2.2)
+	#define SIO_UDP_CONNRESET                 _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#include <cerrno>                  //Error report
 	#include <climits>                 //Data limits
@@ -272,9 +270,11 @@
 		#define __LITTLE_ENDIAN            1234                      //Little Endian
 		#define __BIG_ENDIAN               4321                      //Big Endian
 		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in OS X.
+/* Already define in OS X.
 		#define LITTLE_ENDIAN              __LITTLE_ENDIAN
 		#define BIG_ENDIAN                 __BIG_ENDIAN
 		#define BYTE_ORDER                 __BYTE_ORDER
+*/
 	#endif
 	#include <fcntl.h>                 //Manipulate file descriptor
 	#include <ifaddrs.h>               //Getting network interface addresses
@@ -298,6 +298,7 @@
 	#elif defined(PLATFORM_MACX)
 		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.
 		#define ENABLE_PCAP                //LibPcap is always enable on Mac OS X.
+		#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
 		#include "../LibSodium/sodium.h"
 		#include <pcap/pcap.h>
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
@@ -441,7 +442,6 @@
 	#define sprintf_s                                                    snprintf
 	#define wcsnlen_s                                                    wcsnlen
 	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy(Dst, Src, Size)
-	#define wprintf_s                                                    wprintf
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define fwprintf_s                                                   fwprintf
 	#if defined(PLATFORM_LINUX)
