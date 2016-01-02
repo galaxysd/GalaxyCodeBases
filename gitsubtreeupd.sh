@@ -22,6 +22,7 @@ git subtree pull --prefix=etc/whichpm https://github.com/mklement0/whichpm.git m
 git subtree pull --prefix=tools/create-dmg https://github.com/andreyvit/create-dmg.git master
 
 git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeHentai.git master
+# https://github.com/fffonion/httplib2-plus.git mirrored as https://github.com/galaxy001/httplib2-plus
 
 git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/danmaku2ass.git master
 git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
