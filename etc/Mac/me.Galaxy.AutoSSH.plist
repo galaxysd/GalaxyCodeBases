@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>me.Galaxy.AutoSSH</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>bash</string>
+		<string>-c</string>
+		<string>/opt/Galaxy/myAutoSSH.sh</string>
+	</array>
+	<key>KeepAlive</key>
+	<true/>
+</dict>
+<!--
+### Put me in /Library/LaunchDaemons/ as it is "System-wide daemons provided by the administrator". Remember to "sudo chown root:wheel".
+sudo cp me.Galaxy.AutoSSH.plist /Library/LaunchDaemons/
+sudo launchctl load /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
+cp myAutoSSH.sh /opt/Galaxy/
+-->
+</plist>
