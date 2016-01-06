@@ -4,6 +4,8 @@
 <dict>
 	<key>Label</key>
 	<string>me.Galaxy.AutoSSHem1</string>
+	<key>UserName</key>
+	<string>Galaxy</string>
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>AUTOSSH_POLL</key>
@@ -11,7 +13,7 @@
 		<key>KEYFILE</key>
 		<string>/Users/Galaxy/Dropbox/Galaxy/dotfiles/ssh/GalaxyMini</string>
 		<key>COMMONARG</key>
-		<string>-o ServerAliveInterval=59 -N -f</string>
+		<string>-o ServerAliveInterval=59 -N</string>
 		<key>NoHostKeyCheck</key>
 		<string>-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no</string>
 	</dict>
@@ -24,8 +26,8 @@
 		<string>
 			RandomPort='RANDOM % 64000 + 1024'; \
 			date; \
-			/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@2403:3a00:202:1129:49:212:210:128 -p 26386 -C -D7575 $COMMONARG -i $KEYFILE; \
-			/usr/local/bin/autossh -M $(($RandomPort)) -f luolab@eeb-zhanglab.eeb.lsa.umich.edu -C -D8000 $COMMONARG -i $KEYFILE; \
+			/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@2403:3a00:202:1129:49:212:210:128 -p 26386 -C -D7575 $COMMONARG; \
+			/usr/local/bin/autossh -M $(($RandomPort)) -f luolab@eeb-zhanglab.eeb.lsa.umich.edu -C -D8000 $COMMONARG; \
 			echo 1.;
 		</string>
 	</array>
