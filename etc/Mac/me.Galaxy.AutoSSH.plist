@@ -19,9 +19,15 @@
 <!--
 https://github.com/tjluoma/launchd-keepalive
 
+cp myAutoSSH.sh /opt/Galaxy/
+
 ### Put me in /Library/LaunchDaemons/ as it is "System-wide daemons provided by the administrator". Remember to "sudo chown root:wheel".
 sudo cp me.Galaxy.AutoSSH.plist /Library/LaunchDaemons/
+sudo launchctl unload /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
 sudo launchctl load /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
-cp myAutoSSH.sh /opt/Galaxy/
+sudo launchctl start me.Galaxy.AutoSSH
+sudo launchctl stop me.Galaxy.AutoSSH
+
+ps -ef|grep autossh|awk '{print $2}'|xargs sudo kill -9
 -->
 </plist>
