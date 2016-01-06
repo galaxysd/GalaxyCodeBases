@@ -4,30 +4,38 @@
 <dict>
 	<key>Label</key>
 	<string>me.Galaxy.AutoSSH</string>
+	<key>UserName</key>
+	<string>Galaxy</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
 		<string>-c</string>
 		<string>/opt/Galaxy/myAutoSSH.sh</string>
 	</array>
+	<key>RunAtLoad</key>
+	<true/>
 	<key>KeepAlive</key>
 	<dict>
 		<key>NetworkState</key>
 		<true/>
+		<key>SuccessfulExit</key>
+		<false/>
 	</dict>
 </dict>
 <!--
 https://github.com/tjluoma/launchd-keepalive
 
-cp myAutoSSH.sh /opt/Galaxy/
+sudo cp myAutoSSH.sh /opt/Galaxy/
 
 ### Put me in /Library/LaunchDaemons/ as it is "System-wide daemons provided by the administrator". Remember to "sudo chown root:wheel".
-sudo cp me.Galaxy.AutoSSH.plist /Library/LaunchDaemons/
 sudo launchctl unload /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
+sudo cp me.Galaxy.AutoSSH.plist /Library/LaunchDaemons/
 sudo launchctl load /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
+
+sudo chown root:wheel /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist /opt/Galaxy/myAutoSSH.sh
+
 sudo launchctl start me.Galaxy.AutoSSH
 sudo launchctl stop me.Galaxy.AutoSSH
-
 ps -ef|grep autossh|awk '{print $2}'|xargs sudo kill -9
 -->
 </plist>
