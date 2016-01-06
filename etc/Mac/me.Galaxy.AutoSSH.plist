@@ -11,9 +11,14 @@
 		<string>/opt/Galaxy/myAutoSSH.sh</string>
 	</array>
 	<key>KeepAlive</key>
-	<true/>
+	<dict>
+		<key>NetworkState</key>
+		<true/>
+	</dict>
 </dict>
 <!--
+https://github.com/tjluoma/launchd-keepalive
+
 ### Put me in /Library/LaunchDaemons/ as it is "System-wide daemons provided by the administrator". Remember to "sudo chown root:wheel".
 sudo cp me.Galaxy.AutoSSH.plist /Library/LaunchDaemons/
 sudo launchctl load /Library/LaunchDaemons/me.Galaxy.AutoSSH.plist
