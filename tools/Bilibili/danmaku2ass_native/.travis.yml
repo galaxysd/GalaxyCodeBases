@@ -1,0 +1,38 @@
+language: cpp
+
+compiler:
+  - gcc
+
+sudo: false
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - cmake
+    - g++-4.8
+
+cache:
+  directories:
+  - $HOME/lcov
+
+before_install:
+  - bash ./tests/install_lcov.sh
+
+install:
+  # g++4.8.1
+  - export CXX="g++-4.8"
+  - export GCOV="gcov-4.8"
+  - gem install coveralls-lcov
+
+script:
+  - rm -rf CMakeLists.txt
+  - cp ./tests/CMakeLists.txt ./CMakeLists.txt
+  - $CXX --version
+  - mkdir Build
+  - cd Build
+  - cmake ..
+  - make
+
+after_success: ../tests/test.sh
