@@ -1,0 +1,10 @@
+https://www.cnbeining.com/2014/07/biligrab-0-8-emergency-repair-station-b-api-update-use-your-appkey-this-version-must-upgrade/
+
+appkey='85eb6835b0a1034e';
+secretkey = '2ad42749773c441109bdc0191257a664'
+
+http://blog.softloli.com/archives/112
+从网上找了一个供调试
+http://api.bilibili.com/view?type=xml&appkey=03fc8eb101b091fb&id=270656&page=1
+
+http://www.bilibili.com/account/getapi/
