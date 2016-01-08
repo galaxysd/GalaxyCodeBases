@@ -25,6 +25,7 @@ git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeH
 # https://github.com/fffonion/httplib2-plus.git mirrored as https://github.com/galaxy001/httplib2-plus
 
 git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/danmaku2ass.git master
+git subtree pull --prefix=tools/Bilibili/danmaku2ass_native https://github.com/typcn/danmaku2ass_native.git master
 git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
 git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliDan.git master
 git subtree pull --prefix=tools/Bilibili/You-Get https://github.com/soimort/you-get.git develop
