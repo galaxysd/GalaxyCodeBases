@@ -27,6 +27,7 @@ git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeH
 git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/danmaku2ass.git master
 git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
 git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliDan.git master
+git subtree pull --prefix=tools/Bilibili/You-Get https://github.com/soimort/you-get.git develop
 
 git subtree pull --prefix=tools/Crypters/lvdo https://github.com/m13253/lvdo.git master
 
