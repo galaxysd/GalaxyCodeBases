@@ -163,7 +163,7 @@ sub do_grep($) {
 			while ($Dat1[5] !~ /(\d+)S/g) {
 				$maxSC = $1 if $maxSC < $1;
 			}
-			$flag |= 1 if $maxSC > $minSoftClip;	# 加上SC的话，内存不乐观
+			$flag |= 1 if $maxSC > $main::minSoftClip;	# 加上SC的话，内存不乐观
 			if ($Dat1[6] eq '=') {
 				#$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
@@ -197,7 +197,7 @@ sub do_grep($) {
 			while ($Dat1[5] !~ /(\d+)S/g) {
 				$maxSC = $1 if $maxSC < $1;
 			}
-			$flag |= 1 if $maxSC > $minSoftClip;
+			$flag |= 1 if $maxSC > $main::minSoftClip;
 			if ($Dat1[6] eq '=') {
 				#$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
