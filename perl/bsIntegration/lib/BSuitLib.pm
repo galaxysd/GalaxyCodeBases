@@ -224,15 +224,27 @@ sub do_grep($) {
 		}
 	}
 	for my $tk (keys %ReadsIndex) {
-		my ($flag,%tmp)=(0);
+		my ($flag,%tmpH,%tmpV)=(0);
 		for my $i (1 .. $#{$ReadsIndex{$tk}}) {
-			my $x = join("\t",$ReadsIndex{$tk}->[$i][2],$ReadsIndex{$tk}->[$i][3]);
-			$tmp{$x} = $i;
+			#my $x = join("\t",$ReadsIndex{$tk}->[$i][2],$ReadsIndex{$tk}->[$i][3]);
+			my $x = $ReadsIndex{$tk}->[$i][4];
+			if (exists $main::VirusChrIDs{$ReadsIndex{$tk}->[$i][2]}) {
+				$tmpV{$x} = $i;	# 先认为最高质量的唯一。
+			} else {
+				$tmpH{$x} = $i
+			}
 			$flag |= $ReadsIndex{$tk}->[$i][6];
 		}
-		my @s = sort sortChrPos(keys %tmp);
-		$ReadsIndex{$tk}->[0][0] = $tmp{$s[0]};
-		$ReadsIndex{$tk}->[0][1] = join("\t",$ReadsIndex{$tk}->[$tmp{$s[0]}][2],$ReadsIndex{$tk}->[$tmp{$s[0]}][3]);
+		if ((keys %tmpH) > 0) {	# Select max MapQ as 1st & favors Human to Virus.
+			my @s = sort { $b <=> $a } keys %tmpH;
+			$ReadsIndex{$tk}->[0][0] = $tmpH{$s[0]};
+			$ReadsIndex{$tk}->[0][1] = join("\t",$ReadsIndex{$tk}->[$tmpH{$s[0]}][2],$ReadsIndex{$tk}->[$tmpH{$s[0]}][3]);
+		} else {
+			my @s = sort { $b <=> $a } keys %tmpV;
+			$ReadsIndex{$tk}->[0][0] = $tmpV{$s[0]};
+			$ReadsIndex{$tk}->[0][1] = join("\t",$ReadsIndex{$tk}->[$tmpV{$s[0]}][2],$ReadsIndex{$tk}->[$tmpV{$s[0]}][3]);
+		}
+		#my @s = sort sortChrPos(keys %tmp);
 		$ReadsIndex{$tk}->[0][2] = $flag;
 #ddx $ReadsIndex{$tk};
 # BSuitLib.pm:213: [
