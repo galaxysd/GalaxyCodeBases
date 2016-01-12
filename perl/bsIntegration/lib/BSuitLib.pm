@@ -63,18 +63,37 @@ sub do_pre() {
 sub do_aln() {
 	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	#warn "$Refilename\n";
-	my (%tID);
+	my (%tID,%FQc,%maxReadNum);
 	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
+		@{$FQc{$1}{$2}} = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$_};
+		$maxReadNum{$1} = 0 unless exists $maxReadNum{$1};
+		$maxReadNum{$1} = $2 if $maxReadNum{$1} < $2;
 	}
 	#ddx \%tID;
 	File::Path::make_path("$main::RootPath/${main::ProjectID}_aln",{verbose => 0,mode => 0755});
 	open O,'>',"$main::RootPath/${main::ProjectID}_aln.sh" or die $!;
 	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
+
 	for my $k (keys %tID) {
-		my @FQ1c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{1}};
-		my @FQ2c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{2}};
+		if ($maxReadNum{$k} == 1) {	# SE
+			File::Path::make_path("$main::RootPath/${main::ProjectID}_fq2",{verbose => 0,mode => 0755});
+			my @FQ2c;
+			for my $f1 (@{$FQc{$k}{1}}) {
+				my $fID = basename($f1);
+				my $f2 = "$main::RootPath/${main::ProjectID}_fq2/2_${fID}";
+				push @FQ2c,$f2;
+				print O "$RealBin/bin/genFakeFq2.pl $f1 $f2\n";
+			}
+			@{$FQc{$k}{2}} = @FQ2c;
+		}
+	}
+	#ddx \%FQc;
+	for my $k (keys %tID) {
+		#my @FQ1c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{1}};
+		#my @FQ2c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{2}};
+		my @FQ1c = @{$FQc{$k}{1}}; my @FQ2c = @{$FQc{$k}{2}};
 		die "[x]  DataFiles not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
 		my $cmd;
 		if (@FQ1c == 1) {

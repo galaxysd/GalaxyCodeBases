@@ -89,3 +89,14 @@ ProjectID=SZ2015
 # Description
 
 **BSuit** is a suit to analyse xxx.
+
+## 代码说明
+
+所有输出文件都在`Output.WorkDir`下。
+
+### do_pre()
+
+根据`[RefFiles]`信息，生成bwa-meth的参考序列。并将染色体长度及物种来源信息储存于`Ref/Ref.ini`。
+
+### do_aln()
+
