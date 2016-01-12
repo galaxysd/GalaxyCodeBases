@@ -194,7 +194,7 @@ sub do_grep($) {
 			#next if $Dat1[4]<$CFGminMAPQ;
 			my $flag = 0;
 			my $maxSC=0;
-			while ($Dat1[5] !~ /(\d+)S/g) {
+			while ($Dat1[5] =~ /(\d+)S/g) {
 				$maxSC = $1 if $maxSC < $1;
 			}
 			$flag |= 1 if $maxSC > $main::minSoftClip;
