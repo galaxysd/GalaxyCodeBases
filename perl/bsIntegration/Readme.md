@@ -153,3 +153,29 @@ ProjectID=SZ2015
 * 用修改IDBA/M-Vicuna的在提供参考序列的情况下组装。
 * 通过组装合并3份结果。
 * 比对判断断点。
+
+# Add on
+
+## Find bridge 墩 / 候选簇
+
+* Get all soft-cliped, with 10S is enough. 参数＝(人10S，选出来参与归簇)，(病毒20S，不分析)
+* 确定unmap的，只保留map上的。
+* 3*sd not needed.
+* 按PE归簇
+
+## Analyse
+
+* 组装后前两根contig都得判断。两根得aln到人的两端。 （只看前两根是否分别在两端）
+* 组装只考虑按甲基化处理后三种碱基的情况。
+* 对结果归类到图中那堆分类。对fq用aln到contig的方法归类。 （年后）
+* 分析病毒整合的热点区域。 （年后）
+
+## 甲基化处理
+
+看bam的flag，reverse<=>负链
+read1 正链， C/T
+read1 minus， G/A
+read2 plus， G/A
+read2 minus C/T
+
+SE的同 read1

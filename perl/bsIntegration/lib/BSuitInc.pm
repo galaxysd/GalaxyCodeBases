@@ -358,6 +358,7 @@ sub mergeAln($$) {
 sub warnFileExist(@) {
 	my %NotFound;
 	for (@_) {
+		next if /^\s*$/;
 		++$NotFound{$_} unless -f $_;
 	}
 	my @NF = sort keys %NotFound;

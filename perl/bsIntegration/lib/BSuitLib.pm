@@ -78,13 +78,11 @@ sub do_aln() {
 
 	for my $k (keys %tID) {
 		if ($maxReadNum{$k} == 1) {	# SE
-			File::Path::make_path("$main::RootPath/${main::ProjectID}_fq2",{verbose => 0,mode => 0755});
 			my @FQ2c;
 			for my $f1 (@{$FQc{$k}{1}}) {
-				my $fID = basename($f1);
-				my $f2 = "$main::RootPath/${main::ProjectID}_fq2/2_${fID}";
+				#my $fID = basename($f1);
+				my $f2 = " ";
 				push @FQ2c,$f2;
-				print O "$RealBin/bin/genFakeFq2.pl $f1 $f2\n";
 			}
 			@{$FQc{$k}{2}} = @FQ2c;
 		}
@@ -183,7 +181,7 @@ sub do_grep($) {
 				$r12R1 = 1;
 			} elsif ($Dat1[1] & 0x80) {
 				$r12R1 = 2;
-			} else {die $Dat1[1];}
+			} else {$r12R1 = 1;}
 			#--$r12R1;
 			#my $line2 = <IN>;
 			#die '[x]SAM/BAM file not paired !' unless defined($line2);
