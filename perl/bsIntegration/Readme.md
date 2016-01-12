@@ -134,7 +134,8 @@ ProjectID=SZ2015
 #### 同一$ReadID代表同一对PE，用mergeIn函数按坐标范围一个个叠加，直到断开。
 
 这里只包括符合前面161中条件的那些Read。  
-叠加时，某个ReadID的所有hit，是同时加入叠加的。这条今晚还没确认当时是怎么实现的。
+叠加时，某个ReadID的所有hit，是同时加入叠加的。这条今晚还没确认当时是怎么实现的。  
+**确认目前的block是桥墩，不是整个桥**
 
 得到的block写入`${ProjectID}__grep/blocks.ini`中。
 

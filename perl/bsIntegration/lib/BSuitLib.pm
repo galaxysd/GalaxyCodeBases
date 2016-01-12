@@ -280,7 +280,7 @@ sub do_grep($) {
 				$DatRef = \%hChrRange;
 				$isHost = 1;
 			}
-			while ( mergeIn($isHost,$DatRef,$ReadsIndex{$cid}->[$i],\@Store,$cid,$i) ) {
+			while ( mergeIn($isHost,$DatRef,$ReadsIndex{$cid}->[$i],\@Store,$cid,$i) ) {	# 目前只有桥墩，没有中间部分
 				++$Cnt;
 				print BOUT "[B$Cnt]\nHostRange=",formatChrRange(\%hChrRange),
 					"\nVirusRange=",formatChrRange(\%vChrRange),"\nSamFS=",
