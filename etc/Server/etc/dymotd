@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# File `/etc/dymotd`, being the 1st thing in `/etc/profile`.
+
+PROCCOUNT=`ps -Afl | wc -l`
+PROCCOUNT=`expr $PROCCOUNT - 5`
+GROUPZ=`groups`
+running=`/usr/local/torque/bin/qstat | awk '$5~/R/{print $0 }' | wc -l`
+stat=`/usr/local/torque/bin/qstat | awk '$5~/Q/{print $0 }' | wc -l`
+bad=`/usr/local/torque/bin/qstat | awk '$5~/E/{print $0 }' | wc -l`
+node=`/usr/local/bin/pbsnode| grep -v down | grep  -v iodisk | grep -v BMW | wc -l`
+freecpu=` expr $node \* 12 `
+freecpus=` expr $freecpu - $running `
+mem=`free -g | head -n2 |tail -n1 | awk '{print $4}'`
+whouse=`ps aux | grep -v 'root\|ssh\|rpc\|ntp\|nobody\|dbus\|68\|xfs\|avahi\|bash\|sleep\|vim\|apache\|mysql\|gdm\|login\|cp'  | sed -e  '1d'| awk '{print $1 }'|  sort -k1 | sort -u | awk '{printf  $1" " }'`
+#echo $node $freecpus $running $stat $bad 
+if [[ $GROUPZ == *irc* ]]; then
+ENDSESSION=`cat /etc/security/limits.conf | grep "@irc" | grep maxlogins | awk {'print $4'}`
+PRIVLAGED="IRC Account"
+else
+ENDSESSION="Unlimited"
+PRIVLAGED="Regular User"
+fi
+ 
+echo -e "\033[1;32m :)Welcome to BMW (Biological Modelling Workbench)! 
+\033[0;35m+++++++++++++++++: \033[0;37mSystem Data\033[0;35m :+++++++++++++++++++
++  \033[0;37mHostname \033[0;35m= \033[1;32m`hostname` 162.105.160.6
+\033[0;35m+    \033[0;37mUptime \033[0;35m=\033[1;32m`uptime | sed 's/.*up ([^,]*), .*/1/'|awk -F ","  '{print $1"," $2 ","$3 }'`
+\033[0;35m+    \033[0;37mFree Memory \033[0;35m= \033[1;32m$mem G
+\033[0;35m++++++++++++++++++: \033[0;37mUser Data\033[0;35m :++++++++++++++++++++
++  \033[0;37mUsername \033[0;35m= \033[1;32m`whoami`
+\033[0;35m+  \033[0;37mSessions \033[0;35m= \033[1;32m`who | grep $USER | wc -l` of $ENDSESSION MAX
+\033[0;35m+ \033[0;37mProcesses \033[0;35m= \033[1;32m$PROCCOUNT of `ulimit -u` MAX
+\033[1;32mAny problems please contact:  #ylsrommel@gmail.com 
+#chenfj@cls.pku.edu.cn #dqyu@ctb.pku.edu.cn
+\033[0;35m+++++++++++: \033[0;31mMaintenance Information\033[0;35m :+++++++++++++
+\033[1;32mused cpu=$running +++ free=$freecpus
+waiting=$stat +++  bad task=$bad 
+\033[1;31;5mwarning  rsh bmw or ssh 162.105.160.14 to the bmw node! 
+running in login user  "'"'"$whouse"'"'"\033[0m 
+\033[0;35m+++++++++++++++++++++++++++++++++++++++++++++++++++\033[0m
+"
