@@ -159,19 +159,24 @@ sub do_grep($) {
 		while (my $line = <IN>) {
 			my @Dat1 = split /\t/,$line;
 			my $flag = 0;
+			my $maxSC=0;
+			while ($Dat1[5] !~ /(\d+)S/g) {
+				$maxSC = $1 if $maxSC < $1;
+			}
+			$flag |= 1 if $maxSC > $minSoftClip;	# 加上SC的话，内存不乐观
 			if ($Dat1[6] eq '=') {
-				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
+				#$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
 				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			}
 			next unless $flag;
-			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
+			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;	# 数据只是占位置，所以可以去掉次行
 			my $id = join("\t",$k,$Dat1[0]);
-			$ReadsIndex{$id} = [[0,$Dat1[2],$flag]];
+			$ReadsIndex{$id} = [[0,$Dat1[2],$flag]];	# 初始化，数据只是占位置。
 		}
 		close IN;
-		open IN,'-|',"$main::PathPrefix samtools view $myBamf" or die "Error opening $myBamf: $!\n";
+		open IN,'-|',"$main::PathPrefix samtools view $myBamf" or die "Error opening $myBamf: $!\n";	# `-F768` later
 		while (my $line = <IN>) {
 			#my ($id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize, $seq, $qual, @OPT) = split /\t/,$line;
 			#print "$id, $flag, $ref, $pos, $mapq, $CIGAR, $mref, $mpos, $isize\n";
@@ -188,13 +193,19 @@ sub do_grep($) {
 			#my @Dat2 = split /\t/,$line2;
 			#next if $Dat1[4]<$CFGminMAPQ;
 			my $flag = 0;
+			my $maxSC=0;
+			while ($Dat1[5] !~ /(\d+)S/g) {
+				$maxSC = $1 if $maxSC < $1;
+			}
+			$flag |= 1 if $maxSC > $minSoftClip;
 			if ($Dat1[6] eq '=') {
-				$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
+				#$flag |= 1 if abs(abs($Dat1[8])-$InsMean) > 3*$InsSD;
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
 				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			}
-			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;
+			next unless $flag;
+			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;	# soft-clip
 			my $curpos = tell(GOUT);
 			my $id = join("\t",$k,$Dat1[0]);
 			#warn "$flag $InsSD\t$curpos\n[${line}]\n" if $flag>1;
@@ -225,7 +236,7 @@ sub do_grep($) {
 		$ReadsIndex{$tk}->[0][2] = $flag;
 #ddx $ReadsIndex{$tk};
 # BSuitLib.pm:213: [
-#   [1, "chr15\t20858350", 15],
+#   [1, "chr15\t20858350", 15],	# index, ChrPos, 总flag
 #   [1477321, 1, "chr15", 20858350, 0, "48M42S", 12],
 #   [33704587, 1, "gi|59585|emb|X04615.1|", 652, 0, "45S45M", 11],
 #   [34264944, 2, "gi|59585|emb|X04615.1|", 717, 60, "56M34S", 12],
