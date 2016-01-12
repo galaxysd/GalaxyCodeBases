@@ -2,6 +2,7 @@
 # that require network functionality will fail.
 127.0.0.1       localhost.localdomain localhost
 ::1             localhost6.localdomain6 localhost6
+
 162.105.160.5 ftp
 162.105.160.10  meeting
 162.105.160.3 cqb
@@ -10,6 +11,8 @@
 
 #162.105.160.14 sbl
 #162.105.160.14 iodisk-web
+
+162.105.160.6 iodisk
 
 10.0.0.100      BMW
 10.0.0.100      bmw
