@@ -69,3 +69,22 @@ Thanks!
 #### pbowden-msft commented 7 days ago
 
 @brianjking no, you can either download the suite or individual apps depending on your needs. Nope, you don't need to delete or uninstall - the installer will blindly overwrite whatever you have already.
+
+------
+
+## Other
+
+### 为啥`#9`这种也要别人Push Request ?
+
+#### galaxy001:
+
+严重怀疑 @lovegoodbest 今天身边没苹果电脑…  
+(不会是咱遇上懒虫了吧？  
+https://github.com/goodbest/OfficeThinner/issues/9
+
+#### lovegoodbest:
+
+@galaxy001 一方面是懒，一方面是看有人PR多好...
+
+出自[推特对话](https://twitter.com/galaxy001/status/687302873642708992)
+---
