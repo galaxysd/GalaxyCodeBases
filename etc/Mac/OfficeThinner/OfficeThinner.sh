@@ -34,12 +34,16 @@ appPathArrayPending=( "$ExcelPATH" "$PowerPointPATH" "$OutlookPATH" "$OneNotePAT
 appPathArray=()
 for appPATH in "${appPathArrayPending[@]}";
 do
-    appVersion=$(defaults read "$basePATH$appPATH$versionPATH" $versionKey)
-    if [ $wordVersion == $appVersion ]; then
-        appPathArray+=("$appPATH")
-    else
-        echo "WARNING: WILL NOT deal with ${appPATH/.app/}. It is version $appVersion, but Word is $wordVersion"
-    fi
+	if [ -d "$basePATH$appPATH" ]; then
+		appVersion=$(defaults read "$basePATH$appPATH$versionPATH" $versionKey)
+		if [ $wordVersion == $appVersion ]; then
+			appPathArray+=("$appPATH")
+		else
+			echo "WARNING: WILL NOT deal with ${appPATH/.app/}. It is version $appVersion, but Word is $wordVersion"
+		fi
+	else
+		echo "WARNING: WILL NOT deal with ${appPATH/.app/}. It is NOT installed."
+	fi
 done
 for appPATH in "${appPathArray[@]}";
 do
@@ -53,14 +57,14 @@ if [ ${#appPathArray[@]} -eq 0 ]; then
 fi
 
 # Add y/n choice.
-# read -n1 -r -p "Do you want to continue? y/n..." key
-# if [ "$key" != 'y' ]; then
-#     if [ "$key" != 'Y' ]; then
-#         echo ""
-#         echo "Terminated. Bye"
-#         exit
-#     fi
-# fi
+read -n1 -r -p "Do you want to continue? y/n..." key < /dev/tty
+if [ "$key" != 'y' ]; then
+    if [ "$key" != 'Y' ]; then
+        echo ""
+        echo "Terminated. Bye"
+        exit
+    fi
+fi
 
 # Disk Usage Display
 diskUsage(){
