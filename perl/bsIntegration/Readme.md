@@ -95,7 +95,10 @@ ProjectID=SZ2015
 
 ## 代码说明
 
-所有输出文件都在`Output.WorkDir`下。
+* 所有输出文件都在`Output.WorkDir`下。
+* 无印的`.bam` 是后续分析目前使用的。
+* `.sn.bam` 是 sort by read name，暂时没用。
+* `.snPstat.bam` 就是把`.sn.bam`用`-F256`过滤下，只是用来数数的。
 
 ### do_pre()
 
