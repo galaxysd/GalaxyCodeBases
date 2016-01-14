@@ -159,6 +159,7 @@ ProjectID=SZ2015
 
 ## Find bridge 墩 / 候选簇
 
+* 人的PE，不同染色体的hit直接扔掉不管。
 * Get all soft-cliped, with 10S is enough. 参数＝(人10S，选出来参与归簇)，(病毒20S，不分析)
 * 确定unmap的，只保留map上的。
 * 3*sd not needed.
@@ -180,3 +181,20 @@ read2 plus， G/A
 read2 minus C/T
 
 SE的同 read1
+
+## Formats
+
+### 病毒整合结果文件
+
+````
+Chr	breakpoint	virus-start virus-end virusstrand	how-many-reads-support cluster-name
+Chr1	3000	200	300	+/-	20 cluster1
+````
+
+### 中间contig信息文件
+
+````
+clustername contig-number chrpoint virus-integration
+cluster1	contig1	chr1:3000	virus:+:200-300
+cluster1	contig2	chr2:4000	viurs:-:300-400
+````

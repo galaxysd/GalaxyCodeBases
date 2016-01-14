@@ -120,6 +120,8 @@ CMD
 		$cmd = <<"CMD";
 samtools sort -m 2415919104 -n $main::RootPath/${main::ProjectID}_aln/$k.bam -O bam -T $main::RootPath/${main::ProjectID}_aln/$k.sn >$main::RootPath/${main::ProjectID}_aln/$k.sn.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
 
+samtools view -b -F256 $main::RootPath/${main::ProjectID}_aln/$k.sn.bam >$main::RootPath/${main::ProjectID}_aln/$k.snPstat.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
+
 CMD
 		print O $cmd;
 	}
@@ -169,6 +171,7 @@ sub do_grep($) {
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
 				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
+				$flag &= ~1 if $flag & 4;	# 人的PE，不同染色体的hit直接扔掉不管。
 			}
 			next unless $flag;
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;	# 数据只是占位置，所以可以去掉次行
@@ -203,6 +206,7 @@ sub do_grep($) {
 				$flag |= 2 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
 			} else {
 				$flag |= 4 if exists($main::VirusChrIDs{$Dat1[2]}) or exists($main::VirusChrIDs{$Dat1[6]});
+				$flag &= ~1 if $flag & 4;
 			}
 			next unless $flag;
 			$flag |= 8 if $Dat1[5] !~ /^\d+M$/;	# soft-clip
