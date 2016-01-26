@@ -12,10 +12,12 @@ RandomPort='RANDOM % 64000 + 1024'
 
 /usr/local/bin/autossh -M $(($RandomPort)) -f luolab@eeb-zhanglab.eeb.lsa.umich.edu -C -D8000 $COMMONARG $KEYFILE
 
-/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@lab.luo-lab.org $COMMONARG $KEYFILE \
+/usr/local/bin/autossh -M $(($RandomPort)) -f luolab@lab.luo-lab.org -p222 $COMMONARG $KEYFILE \
 -L8083:192.168.0.83:22 -L8059:192.168.0.83:5900 -L8005:192.168.0.5:22 -L8165:192.168.0.165:22 \
 -L8003:192.168.0.3:22 -L8004:192.168.0.3:2211 -L20548:192.168.0.3:548 -L5000:192.168.0.3:5000 \
 -L8202:192.168.0.202:443 -L8881:192.168.0.1:443 -R9922:localhost:22 -D8632
 
 # ps -ef|grep autossh|awk '{print $2}'|xargs kill
 # ps -ef|grep ssh
+
+# sudo cp myAutoSSH.sh /opt/Galaxy/
