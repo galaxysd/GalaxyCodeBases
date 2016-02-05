@@ -1,0 +1,61 @@
+/**
+ * TagSelect.js Styling
+ */
+
+$blue: #0bf;
+$gray: #f3f4f6;
+$lightGray: #fafbfd;
+$red: #eb756e;
+$lightRed: rgba($red, 0.5);
+
+.tagselect {
+	width: 100%;
+	padding: 5px 5px 0 5px;
+	border: 1px solid $gray;
+	border-radius: 2px;
+
+	.tagselect-fd {
+		padding: 2px 0 7px 5px;
+	}
+	.tagselect-fd-separator {
+		padding-right: 3px;
+	}
+
+	&:not(:focus) {
+		.tagselect-fd {
+			display: inline-block;
+			border-radius: 2px;
+			margin: 0 5px 5px 0;
+			padding: 2px 5px;
+			background: $gray;
+			&:hover { background: $lightGray; }
+			&.invalid { background: $lightRed; }
+		}
+		.tagselect-fd-separator {
+			display: none;
+		}
+	}
+	&:focus {
+		border-color: $blue;
+		outline: none;
+		line-height: 26px;
+		padding-bottom: 5px;
+	}
+}
+
+.tasg-dropdown {
+	position: absolute;
+	top: 24px;
+	z-index: 102;
+	background: white;
+	list-style: none;
+	border: 1px solid $gray;
+
+	display: none;
+	&.visible { display: block; }
+
+	li {
+		padding: 5px;
+		&.active { background: $gray; }
+	}
+}

@@ -1,0 +1,34 @@
+{
+  "name": "TagSelect.js",
+  "main": "dist/TagSelect.min.js",
+  "version": "0.6.1",
+  "homepage": "https://github.com/FindTheBest/TagSelect.js",
+  "authors": [
+    "FindTheBest",
+    "Inc."
+  ],
+  "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
+  "keywords": [
+    "tag",
+    "token",
+    "input",
+    "html5",
+    "form",
+    "textarea",
+    "autocomplete",
+    "autosuggest",
+    "list",
+    "select"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "package.json",
+    "Gruntfile.js",
+    "LICENSE",
+    "*.md",
+    "src"
+  ]
+}
