@@ -32,6 +32,7 @@ git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliD
 git subtree pull --prefix=tools/Bilibili/You-Get https://github.com/soimort/you-get.git develop
 
 git subtree pull --prefix=tools/Crypters/lvdo https://github.com/m13253/lvdo.git master
+git subtree pull --prefix=tools/wtb https://github.com/mariotaku/wtb.git master
 
 git subtree pull --prefix=js/TagSelect.js https://github.com/graphiq/TagSelect.js.git master
 
