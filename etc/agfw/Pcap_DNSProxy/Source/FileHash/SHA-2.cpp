@@ -23,9 +23,9 @@
 //When run on a little-endian CPU we need to perform byte reversal on an array of longwords.
 //SHA-2(256) long reverse process
 static void __fastcall SHA2_256_LongReverse(
-	_Inout_ SHA_INT32 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness)
+	SHA_INT32 *buffer, 
+	int byteCount, 
+	int Endianness)
 {
 	SHA_INT32 value = 0;
 	if (Endianness == PCT_BIG_ENDIAN)
@@ -46,8 +46,8 @@ static void __fastcall SHA2_256_LongReverse(
 /*
 //SHA-2(256) copy process
 static void __fastcall SHA2_256_Copy(
-	_In_ SHA2_256_Object *src, 
-	_Out_ SHA2_256_Object *dest)
+	SHA2_256_Object *src, 
+	SHA2_256_Object *dest)
 {
 	dest->Endianness = src->Endianness;
 	dest->Local = src->Local;
@@ -76,7 +76,7 @@ static void __fastcall SHA2_256_Copy(
 
 //SHA-2(256) transform process
 static void __fastcall SHA2_256_Transform(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	size_t Index = 0;
 	SHA_INT32 S[8U] = {0}, W[64U] = {0}, t0 = 0, t1 = 0;
@@ -182,7 +182,7 @@ static void __fastcall SHA2_256_Transform(
 
 //Initialize the SHA-2(256) digest
 static void __fastcall SHA2_256_Init(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 	sha_info->Digest[0] = 0x6A09E667L;
@@ -203,7 +203,7 @@ static void __fastcall SHA2_256_Init(
 
 //Initialize the SHA-2(224) digest
 static void __fastcall SHA2_224_Init(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 	sha_info->Digest[0] = 0xC1059ED8L;
@@ -224,9 +224,9 @@ static void __fastcall SHA2_224_Init(
 
 //Update the SHA-2(256) digest
 static void __fastcall SHA2_256_Update(
-	_Inout_ SHA2_256_Object *sha_info, 
-	_Inout_ SHA2_256_BYTE *buffer, 
-	_In_ int count)
+	SHA2_256_Object *sha_info, 
+	SHA2_256_BYTE *buffer, 
+	int count)
 {
 	int i = 0;
 	SHA_INT32 clo = 0;
@@ -265,8 +265,8 @@ static void __fastcall SHA2_256_Update(
 
 //Finish computing the SHA-2(256) digest
 static void __fastcall SHA2_256_Final(
-	_Out_ uint8_t digest[SHA2_256_SIZE_DIGEST], 
-	_Inout_ SHA2_256_Object *sha_info)
+	uint8_t digest[SHA2_256_SIZE_DIGEST], 
+	SHA2_256_Object *sha_info)
 {
 	int count = 0;
 	SHA_INT32 lo_bit_count = 0, hi_bit_count = 0;
@@ -333,9 +333,9 @@ static void __fastcall SHA2_256_Final(
 
 //SHA-2(512) long reverse process
 static void __fastcall SHA2_512_LongReverse(
-	_Inout_ SHA_INT64 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness)
+	SHA_INT64 *buffer, 
+	int byteCount, 
+	int Endianness)
 {
 	SHA_INT64 value = 0;
 	if (Endianness == PCT_BIG_ENDIAN)
@@ -363,8 +363,8 @@ static void __fastcall SHA2_512_LongReverse(
 /*
 //SHA-2(512) copy process
 static void __fastcall SHA2_512_Copy(
-	_In_ SHA2_512_Object *src, 
-	_Out_ SHA2_512_Object *dest)
+	SHA2_512_Object *src, 
+	SHA2_512_Object *dest)
 {
 	dest->Endianness = src->Endianness;
 	dest->Local = src->Local;
@@ -393,7 +393,7 @@ static void __fastcall SHA2_512_Copy(
 
 //SHA-2(512) transform process
 static void __fastcall SHA2_512_Transform(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	size_t Index = 0;
 	SHA_INT64 S[8] = {0}, W[80] = {0}, t0 = 0, t1 = 0;
@@ -515,7 +515,7 @@ static void __fastcall SHA2_512_Transform(
 
 //Initialize the SHA-2(512) digest
 static void __fastcall SHA2_512_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x6A09E667F3BCC908);
@@ -536,7 +536,7 @@ static void __fastcall SHA2_512_Init(
 
 //Initialize the SHA-2(384) digest
 static void __fastcall SHA2_384_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0xCBBB9D5DC1059ED8);
@@ -557,7 +557,7 @@ static void __fastcall SHA2_384_Init(
 
 //Initialize the SHA-2(512/256) digest
 static void __fastcall SHA2_512_256_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x22312194FC2BF72C);
@@ -578,7 +578,7 @@ static void __fastcall SHA2_512_256_Init(
 
 //Initialize the SHA-2(512/224) digest
 static void __fastcall SHA2_512_224_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x8C3D37C819544DA2);
@@ -599,9 +599,9 @@ static void __fastcall SHA2_512_224_Init(
 
 //Update the SHA-2(512) digest
 static void __fastcall SHA2_512_Update(
-	_Inout_ SHA2_512_Object *sha_info, 
-	_Inout_ SHA2_512_BYTE *buffer, 
-	_In_ int count)
+	SHA2_512_Object *sha_info, 
+	SHA2_512_BYTE *buffer, 
+	int count)
 {
 	int i = 0;
 	SHA_INT32 clo = 0;
@@ -640,8 +640,8 @@ static void __fastcall SHA2_512_Update(
 
 //Finish computing the SHA-2(512) digest
 static void __fastcall SHA2_512_Final(
-	_Out_ uint8_t digest[SHA2_512_SIZE_DIGEST], 
-	_Inout_ SHA2_512_Object *sha_info)
+	uint8_t digest[SHA2_512_SIZE_DIGEST], 
+	SHA2_512_Object *sha_info)
 {
 	int count = 0;
 	SHA_INT32 lo_bit_count = 0, hi_bit_count = 0;
@@ -749,9 +749,9 @@ static void __fastcall SHA2_512_Final(
 //Read commands(SHA-2)
 bool __fastcall ReadCommand_SHA2(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command)
+	std::wstring &Command)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command)
+	std::string &Command)
 #endif
 {
 //Hash function check
@@ -789,7 +789,7 @@ bool __fastcall ReadCommand_SHA2(
 
 //SHA-2 hash function
 bool __fastcall SHA2_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA2 || Input == nullptr)
@@ -800,43 +800,41 @@ bool __fastcall SHA2_Hash(
 
 //Initialization
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
-	auto HashInstance256 = std::make_shared<SHA2_256_Object>();
-	auto HashInstance512 = std::make_shared<SHA2_512_Object>();
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(HashInstance256.get(), 0, sizeof(SHA2_256_Object));
-	memset(HashInstance512.get(), 0, sizeof(SHA2_512_Object));
+	SHA2_256_Object HashInstance256 = {0};
+	SHA2_512_Object HashInstance512 = {0};
 	size_t ReadLength = 0, DigestSize = 0;
 
 //SHA-2 initialization
 	if (SHA2_HashFunctionID == HASH_ID_SHA2_224) //SHA-2 224 bits
 	{
-		SHA2_224_Init(HashInstance256.get());
+		SHA2_224_Init(&HashInstance256);
 		DigestSize = SHA2_224_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_256) //SHA-2 256 bits
 	{
-		SHA2_256_Init(HashInstance256.get());
+		SHA2_256_Init(&HashInstance256);
 		DigestSize = SHA2_256_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_384) //SHA-2 384 bits
 	{
-		SHA2_384_Init(HashInstance512.get());
+		SHA2_384_Init(&HashInstance512);
 		DigestSize = SHA2_384_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512) //SHA-2 512 bits
 	{
-		SHA2_512_Init(HashInstance512.get());
+		SHA2_512_Init(&HashInstance512);
 		DigestSize = SHA2_512_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512_224) //SHA-2 512/224 bits
 	{
-		SHA2_512_224_Init(HashInstance512.get());
+		SHA2_512_224_Init(&HashInstance512);
 		DigestSize = SHA2_512_224_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512_256) //SHA-2 512/256 bits
 	{
-		SHA2_512_256_Init(HashInstance512.get());
+		SHA2_512_256_Init(&HashInstance512);
 		DigestSize = SHA2_512_256_SIZE_DIGEST;
 	}
 	else {
@@ -855,10 +853,10 @@ bool __fastcall SHA2_Hash(
 		}
 		else {
 			if (SHA2_HashFunctionID == HASH_ID_SHA2_224 || SHA2_HashFunctionID == HASH_ID_SHA2_256)
-				SHA2_256_Update(HashInstance256.get(), (uint8_t *)Buffer.get(), (int)ReadLength);
+				SHA2_256_Update(&HashInstance256, (uint8_t *)Buffer.get(), (int)ReadLength);
 			else if (SHA2_HashFunctionID == HASH_ID_SHA2_384 || SHA2_HashFunctionID == HASH_ID_SHA2_512 || 
 				SHA2_HashFunctionID == HASH_ID_SHA2_512_224 || SHA2_HashFunctionID == HASH_ID_SHA2_512_256)
-					SHA2_512_Update(HashInstance512.get(), (uint8_t *)Buffer.get(), (int)ReadLength);
+					SHA2_512_Update(&HashInstance512, (uint8_t *)Buffer.get(), (int)ReadLength);
 			else 
 				return false;
 		}
@@ -867,10 +865,10 @@ bool __fastcall SHA2_Hash(
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	if (SHA2_HashFunctionID == HASH_ID_SHA2_224 || SHA2_HashFunctionID == HASH_ID_SHA2_256)
-		SHA2_256_Final((uint8_t *)Buffer.get(), HashInstance256.get());
+		SHA2_256_Final((uint8_t *)Buffer.get(), &HashInstance256);
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_384 || SHA2_HashFunctionID == HASH_ID_SHA2_512 || 
 		SHA2_HashFunctionID == HASH_ID_SHA2_512_224 || SHA2_HashFunctionID == HASH_ID_SHA2_512_256)
-			SHA2_512_Final((uint8_t *)Buffer.get(), HashInstance512.get());
+			SHA2_512_Final((uint8_t *)Buffer.get(), &HashInstance512);
 	else 
 		return false;
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), DigestSize) == nullptr)

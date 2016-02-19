@@ -21,10 +21,10 @@
 
 //Convert address strings to binary.
 bool __fastcall AddressStringToBinary(
-	_In_ const char *AddrString, 
-	_In_ const uint16_t Protocol, 
-	_Out_ void *OriginalAddr, 
-	_Out_opt_ SSIZE_T *ErrorCode)
+	const char *AddrString, 
+	const uint16_t Protocol, 
+	void *OriginalAddr, 
+	SSIZE_T *ErrorCode)
 {
 	std::string sAddrString(AddrString);
 	SSIZE_T Result = 0;
@@ -37,8 +37,7 @@ bool __fastcall AddressStringToBinary(
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	auto SockAddr = std::make_shared<sockaddr_storage>();
-	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+	sockaddr_storage SockAddr = {0};
 	int SockLength = 0;
 #endif
 
@@ -80,7 +79,7 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in6);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 			{
 				if (ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
@@ -88,7 +87,7 @@ bool __fastcall AddressStringToBinary(
 				return false;
 			}
 
-			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
+			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
@@ -160,14 +159,14 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 			{
 				if (ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
 				return false;
 			}
 
-			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
+			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
@@ -185,9 +184,9 @@ bool __fastcall AddressStringToBinary(
 
 //Compare two addresses
 size_t __fastcall AddressesComparing(
-	_In_ const void *OriginalAddrBegin, 
-	_In_ const void *OriginalAddrEnd, 
-	_In_ const uint16_t Protocol)
+	const void *OriginalAddrBegin, 
+	const void *OriginalAddrEnd, 
+	const uint16_t Protocol)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -253,10 +252,10 @@ size_t __fastcall AddressesComparing(
 
 //Check IPv4/IPv6 special addresses
 bool __fastcall CheckSpecialAddress(
-	_In_ void *Addr, 
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsPrivateUse, 
-	_In_opt_ const char *Domain)
+	void *Addr, 
+	const uint16_t Protocol, 
+	const bool IsPrivateUse, 
+	const char *Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -537,8 +536,8 @@ StopLoop:
 
 //Check routing of addresses
 bool __fastcall CheckAddressRouting(
-	_In_ const void *Addr, 
-	_In_ const uint16_t Protocol)
+	const void *Addr, 
+	const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
@@ -583,8 +582,8 @@ bool __fastcall CheckAddressRouting(
 
 //Custom Mode address filter
 bool __fastcall CheckCustomModeFilter(
-	_In_ const void *OriginalAddr, 
-	_In_ const uint16_t Protocol)
+	const void *OriginalAddr, 
+	const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6) //IPv6
@@ -764,7 +763,7 @@ bool __fastcall CheckCustomModeFilter(
 
 //Count DNS Query Name length
 size_t __fastcall CheckQueryNameLength(
-	_In_ const char *Buffer)
+	const char *Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
@@ -784,12 +783,12 @@ size_t __fastcall CheckQueryNameLength(
 
 //Check response CNAME resource records
 size_t __fastcall CheckResponseCNAME(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t CNAME_Index, 
-	_In_ const size_t CNAME_Length, 
-	_In_ const size_t BufferSize, 
-	_Out_ size_t &RecordNum)
+	char *Buffer, 
+	const size_t Length, 
+	const size_t CNAME_Index, 
+	const size_t CNAME_Length, 
+	const size_t BufferSize, 
+	size_t &RecordNum)
 {
 //Mark whole DNS query.
 	std::string Domain;
@@ -937,10 +936,10 @@ size_t __fastcall CheckResponseCNAME(
 
 //Check DNS query data
 bool __fastcall CheckQueryData(
-	_Inout_opt_ DNS_PACKET_DATA *Packet, 
-	_Inout_opt_ char *SendBuffer, 
-	_In_ const size_t SendSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	DNS_PACKET_DATA *Packet, 
+	char *SendBuffer, 
+	const size_t SendSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //Check address.
 	if (!(Packet != nullptr && SendBuffer != nullptr && Packet->Protocol == IPPROTO_TCP && Packet->Length >= DNS_PACKET_MINSIZE))
@@ -1118,11 +1117,11 @@ bool __fastcall CheckQueryData(
 
 //Check DNS response results
 size_t __fastcall CheckResponseData(
-	_In_ const size_t ResponseType, 
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t BufferSize, 
-	_Out_opt_ bool *IsMarkHopLimit)
+	const size_t ResponseType, 
+	char *Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
+	bool *IsMarkHopLimit)
 {
 //DNS Options part
 	auto DNS_Header = (pdns_hdr)Buffer;
@@ -1322,10 +1321,10 @@ size_t __fastcall CheckResponseData(
 
 //Check DNSSEC Records
 bool __fastcall CheckDNSSECRecords(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Type, 
-	_In_ const uint16_t BeforeType)
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Type, 
+	const uint16_t BeforeType)
 {
 //DS and CDS Records
 	if (Type == htons(DNS_RECORD_DS) || Type == htons(DNS_RECORD_CDS))

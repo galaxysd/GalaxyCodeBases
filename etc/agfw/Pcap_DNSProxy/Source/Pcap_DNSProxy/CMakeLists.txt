@@ -64,6 +64,9 @@ set(MAIN_SRC_FILES
 		"ReadParameter.cpp"
 		"Service.cpp")
 
+# Libraries linking(Part 1)
+find_package(Threads REQUIRED)
+
 # Compiling and linking flags
 ## C++ 11 standard definitions
 IF (CMAKE_VERSION VERSION_LESS "3.1")
@@ -97,8 +100,8 @@ IF(PLATFORM_OPENWRT)
 	INSTALL(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
 ENDIF(PLATFORM_OPENWRT)
 
-# Libraries linking
-target_link_libraries(Pcap_DNSProxy pthread)
+# Libraries linking(Part 2)
+target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
 IF(ENABLE_PCAP)
 	target_link_libraries(Pcap_DNSProxy pcap)
 ENDIF(ENABLE_PCAP)

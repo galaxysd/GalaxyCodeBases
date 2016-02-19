@@ -178,10 +178,10 @@
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions
-#include <cstring>                 //String support(C-style)
+#include <cstring>                 //String support
 #include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
-#include <string>                  //String support(C++)
+#include <string>                  //String support(STL)
 
 #if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
@@ -227,16 +227,6 @@
 	#define __fastcall
 	#define strnlen_s          strnlen
 	#define fwprintf_s         fwprintf
-
-//Microsoft source-code annotation language/SAL compatible
-	#define _In_
-	#define _Inout_
-	#define _Out_
-	#define _Outptr_
-	#define _In_opt_
-	#define _Inout_opt_
-	#define _Out_opt_
-	#define _Outptr_opt_
 #endif
 
 //Function definitions
@@ -268,9 +258,9 @@ template<typename Ty> using DNSCURVE_HEAP_BUFFER_TABLE = DNSCurveHeapBufferTable
 // Main functions
 // 
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length);
+	const bool IsLowerToUpper, 
+	char *Buffer, 
+	const size_t Length);
 
 
 //////////////////////////////////////////////////

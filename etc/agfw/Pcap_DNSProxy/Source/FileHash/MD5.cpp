@@ -31,7 +31,7 @@ uint8_t PADDING[] =
 
 //Initialize the hash state
 void __fastcall MD5_Init(
-	_Inout_ MD5_CTX *context)
+	MD5_CTX *context)
 {
 	context->State[0] = 0x67452301;
 	context->State[1U] = 0xEFCDAB89;
@@ -43,9 +43,9 @@ void __fastcall MD5_Init(
 
 //Update MD5 status
 void __fastcall MD5_Update(
-	_Inout_ MD5_CTX *context, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int inputlen)
+	MD5_CTX *context, 
+	uint8_t *input, 
+	unsigned int inputlen)
 {
 	unsigned int i = 0, index = 0, partlen = 0;
 	index = (context->Count[0] >> 3U) & 0x3F;
@@ -72,8 +72,8 @@ void __fastcall MD5_Update(
 
 //Finish MD5 process
 void __fastcall MD5_Final(
-	_Inout_ MD5_CTX *context, 
-	_Inout_ uint8_t digest[MD5_SIZE_DIGEST])
+	MD5_CTX *context, 
+	uint8_t digest[MD5_SIZE_DIGEST])
 {
 	unsigned int index = 0, padlen = 0;
 	uint8_t bits[8U] = {0};
@@ -89,9 +89,9 @@ void __fastcall MD5_Final(
 
 //MD5 encode process
 void __fastcall MD5_Encode(
-	_Out_ uint8_t *output, 
-	_In_ unsigned int *input, 
-	_In_ unsigned int len)
+	uint8_t *output, 
+	unsigned int *input, 
+	unsigned int len)
 {
 	unsigned int i = 0, j = 0;
 	while (j < len)
@@ -109,9 +109,9 @@ void __fastcall MD5_Encode(
 
 //MD5 encode process
 void __fastcall MD5_Decode(
-	_Out_ unsigned int *output, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int len)
+	unsigned int *output, 
+	uint8_t *input, 
+	unsigned int len)
 {
 	unsigned int i = 0, j = 0;
 	while (j < len)
@@ -129,8 +129,8 @@ void __fastcall MD5_Decode(
 
 //MD5 transform process
 void __fastcall MD5_Transform(
-	_Inout_ unsigned int state[4U], 
-	_Inout_ uint8_t block[MD5_SIZE_BLOCK])
+	unsigned int state[4U], 
+	uint8_t block[MD5_SIZE_BLOCK])
 {
 	unsigned int a = state[0];
 	unsigned int b = state[1U];
@@ -212,7 +212,7 @@ void __fastcall MD5_Transform(
 
 //MD5 hash function
 bool __fastcall MD5_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_MD5 || Input == nullptr)
@@ -225,12 +225,11 @@ bool __fastcall MD5_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
+	MD5_CTX HashInstance = {0};
 	size_t ReadLength = 0;
-	auto HashInstance = std::make_shared<MD5_CTX>();
-	memset(HashInstance.get(), 0, sizeof(MD5_CTX));
 
 //MD5 initialization
-	MD5_Init(HashInstance.get());
+	MD5_Init(&HashInstance);
 
 //Hash process
 //n * 512 + 448 + 64 = (n + 1) * 512 bits
@@ -244,13 +243,13 @@ bool __fastcall MD5_Hash(
 			return false;
 		}
 		else {
-			MD5_Update(HashInstance.get(), (uint8_t *)Buffer.get(), (unsigned int)ReadLength);
+			MD5_Update(&HashInstance, (uint8_t *)Buffer.get(), (unsigned int)ReadLength);
 		}
 	}
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	MD5_Final(HashInstance.get(), (uint8_t *)Buffer.get());
+	MD5_Final(&HashInstance, (uint8_t *)Buffer.get());
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), MD5_SIZE_DIGEST) == nullptr)
 	{
 		fwprintf_s(stderr, L"Convert binary to hex error.\n");

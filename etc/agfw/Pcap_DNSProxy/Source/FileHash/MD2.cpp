@@ -22,7 +22,7 @@
 #if defined(ENABLE_LIBSODIUM)
 //Initialize the hash state
 void __fastcall MD2_Init(
-	_Inout_ MD2_CTX *md2)
+	MD2_CTX *md2)
 {
 	XMEMSET(md2->X, 0, MD2_X_SIZE);
 	XMEMSET(md2->C, 0, MD2_BLOCK_SIZE);
@@ -34,9 +34,9 @@ void __fastcall MD2_Init(
 
 //Update MD2 status
 void __fastcall MD2_Update(
-	_Inout_ MD2_CTX *md2, 
-	_In_ const uint8_t *data, 
-	_In_ uint32_t len)
+	MD2_CTX *md2, 
+	const uint8_t *data, 
+	uint32_t len)
 {
 	static const uint8_t S[256U] =
 	{
@@ -106,8 +106,8 @@ void __fastcall MD2_Update(
 
 //Finish hash process
 void __fastcall MD2_Final(
-	_Inout_ MD2_CTX *md2, 
-	_Out_ uint8_t *hash)
+	MD2_CTX *md2, 
+	uint8_t *hash)
 {
 	uint8_t padding[MD2_BLOCK_SIZE] = {0};
 	uint32_t padLen = MD2_PAD_SIZE - md2->Count, i = 0;
@@ -125,7 +125,7 @@ void __fastcall MD2_Final(
 
 //MD2 hash function
 bool __fastcall MD2_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_MD2 || Input == nullptr)
@@ -138,12 +138,11 @@ bool __fastcall MD2_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	auto HashInstance = std::make_shared<MD2_CTX>();
-	memset(HashInstance.get(), 0, sizeof(MD2_CTX));
+	MD2_CTX HashInstance = {0};
 	size_t ReadLength = 0;
 
 //MD2 initialization
-	MD2_Init(HashInstance.get());
+	MD2_Init(&HashInstance);
 
 //Hash process
 	while (!feof(Input))
@@ -156,13 +155,13 @@ bool __fastcall MD2_Hash(
 			return false;
 		}
 		else {
-			MD2_Update(HashInstance.get(), (uint8_t *)Buffer.get(), (uint32_t)ReadLength);
+			MD2_Update(&HashInstance, (uint8_t *)Buffer.get(), (uint32_t)ReadLength);
 		}
 	}
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	MD2_Final(HashInstance.get(), (uint8_t *)Buffer.get());
+	MD2_Final(&HashInstance, (uint8_t *)Buffer.get());
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), MD2_DIGEST_SIZE) == nullptr)
 	{
 		fwprintf_s(stderr, L"Convert binary to hex error.\n");

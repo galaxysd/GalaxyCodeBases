@@ -74,8 +74,8 @@ uint32_t __fastcall GetFCS(
 
 //Get Checksum
 uint16_t __fastcall GetChecksum(
-	_In_ const uint16_t *Buffer, 
-	_In_ const size_t Length)
+	const uint16_t *Buffer, 
+	const size_t Length)
 {
 	uint32_t Checksum = CHECKSUM_SUCCESS;
 	size_t InnerLength = Length;
@@ -97,10 +97,10 @@ uint16_t __fastcall GetChecksum(
 
 //Get ICMPv6 checksum
 uint16_t __fastcall GetChecksum_ICMPv6(
-	_In_ const unsigned char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const in6_addr &Destination, 
-	_In_ const in6_addr &Source)
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const in6_addr &Destination, 
+	const in6_addr &Source)
 {
 	std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
@@ -116,10 +116,10 @@ uint16_t __fastcall GetChecksum_ICMPv6(
 
 //Get TCP or UDP checksum
 uint16_t __fastcall GetChecksum_TCP_UDP(
-	_In_ const unsigned char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Protocol_Network, 
-	_In_ const uint16_t Protocol_Transport)
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport)
 {
 //Get checksum.
 	uint16_t Result = EXIT_FAILURE;
@@ -152,9 +152,9 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 
 //Add length data to TCP DNS transmission
 size_t __fastcall AddLengthDataToHeader(
-	_Inout_ char *Buffer, 
-	_In_ const size_t RecvLen, 
-	_In_ const size_t MaxLen)
+	char *Buffer, 
+	const size_t RecvLen, 
+	const size_t MaxLen)
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
@@ -168,8 +168,8 @@ size_t __fastcall AddLengthDataToHeader(
 
 //Convert data from chars to DNS query
 size_t __fastcall CharToDNSQuery(
-	_In_ const char *FName, 
-	_Out_ char *TName)
+	const char *FName, 
+	char *TName)
 {
 //Initialization
 	int Index[]{(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
@@ -196,8 +196,8 @@ size_t __fastcall CharToDNSQuery(
 
 //Convert data from DNS query to string
 size_t __fastcall DNSQueryToChar(
-	_In_ const char *TName, 
-	_Out_ std::string &FName)
+	const char *TName, 
+	std::string &FName)
 {
 //Initialization
 	size_t uIndex = 0;
@@ -237,11 +237,11 @@ size_t __fastcall DNSQueryToChar(
 
 //Convert data from compression DNS query to whole DNS query
 size_t __fastcall MarkWholeDNSQuery(
-	_In_ const char *Packet, 
-	_In_ const size_t Length, 
-	_In_ const char *TName, 
-	_In_ const size_t TNameIndex, 
-	_Inout_ std::string &FName)
+	const char *Packet, 
+	const size_t Length, 
+	const char *TName, 
+	const size_t TNameIndex, 
+	std::string &FName)
 {
 //Length and pointer index check
 	if (FName.length() >= DOMAIN_MAXSIZE || TNameIndex < sizeof(dns_hdr) || TNameIndex >= Length)
@@ -294,7 +294,7 @@ size_t __fastcall MarkWholeDNSQuery(
 
 //Make ramdom domains
 void __fastcall MakeRamdomDomain(
-	_Out_ char *Buffer)
+	char *Buffer)
 {
 //Ramdom number distribution initialization and make ramdom domain length.
 	std::uniform_int_distribution<int> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
@@ -360,7 +360,7 @@ void __fastcall MakeRamdomDomain(
 
 //Make Domain Case Conversion
 void __fastcall MakeDomainCaseConversion(
-	_Inout_ char *Buffer)
+	char *Buffer)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
@@ -388,10 +388,10 @@ void __fastcall MakeDomainCaseConversion(
 
 //Add EDNS options to Additional Resource Records in DNS packet(C-Style string)
 size_t __fastcall AddEDNSLabelToAdditionalRR(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t MaxLen, 
-	_In_opt_ const SOCKET_DATA *LocalSocketData)
+	char *Buffer, 
+	const size_t Length, 
+	const size_t MaxLen, 
+	const SOCKET_DATA *LocalSocketData)
 {
 //Initialization
 	auto DNS_Header = (pdns_hdr)Buffer;
@@ -490,8 +490,8 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 
 //Add EDNS options to Additional Resource Records in DNS packet(DNS packet structure)
 bool __fastcall AddEDNSLabelToAdditionalRR(
-	_Inout_ DNS_PACKET_DATA *Packet, 
-	_In_opt_ const SOCKET_DATA *LocalSocketData)
+	DNS_PACKET_DATA *Packet, 
+	const SOCKET_DATA *LocalSocketData)
 {
 //Initialization
 	auto DNS_Header = (pdns_hdr)Packet->Buffer;
@@ -602,8 +602,8 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 
 //Make Compression Pointer Mutation
 size_t __fastcall MakeCompressionPointerMutation(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length)
+	char *Buffer, 
+	const size_t Length)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 2U);
@@ -690,11 +690,10 @@ size_t __fastcall MakeCompressionPointerMutation(
 		return Length + 1U;
 	}
 	else {
-		auto DNS_Query = std::make_shared<dns_qry>();
-		memset(DNS_Query.get(), 0, sizeof(dns_qry));
-		memcpy_s(DNS_Query.get(), sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
+		dns_qry DNS_Query = {0};
+		memcpy_s((char *)&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
 		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
-		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
+		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), (char *)&DNS_Query, sizeof(dns_qry));
 		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
@@ -710,7 +709,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 			std::uniform_int_distribution<int> RamdomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
-			if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
+			if (DNS_Query.Type == htons(DNS_RECORD_AAAA))
 			{
 				auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);

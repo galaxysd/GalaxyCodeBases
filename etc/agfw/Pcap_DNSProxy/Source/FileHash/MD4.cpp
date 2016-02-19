@@ -22,7 +22,7 @@
 #if defined(ENABLE_LIBSODIUM)
 //Initialize the hash state
 void __fastcall MD4_Init(
-	_Inout_ MD4_CTX *c)
+	MD4_CTX *c)
 {
 	memset(c, 0, sizeof(MD4_CTX));
 	c->A = INIT_DATA_A;
@@ -35,9 +35,9 @@ void __fastcall MD4_Init(
 
 //MD4 Block data order setting
 void __fastcall MD4_BlockDataOrder(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t num)
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t num)
 {
 	const unsigned char *data = (const unsigned char *)data_;
 	register uint32_t A = 0, B = 0, C = 0, D = 0, l = 0;
@@ -117,9 +117,9 @@ void __fastcall MD4_BlockDataOrder(
 
 //Update MD4 status
 void __fastcall MD4_Update(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t len)
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t len)
 {
 	const unsigned char *data = (const unsigned char *)data_;
 	unsigned char *p = nullptr;
@@ -173,8 +173,8 @@ void __fastcall MD4_Update(
 
 //Finish MD4 process
 void __fastcall MD4_Final(
-	_Out_ uint8_t *md, 
-	_Inout_ MD4_CTX *c)
+	uint8_t *md, 
+	MD4_CTX *c)
 {
 	unsigned char *p = (unsigned char *)c->Data;
 	size_t n = c->Num;
@@ -207,7 +207,7 @@ void __fastcall MD4_Final(
 
 //MD4 hash function
 bool __fastcall MD4_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if ((HashFamilyID != HASH_ID_MD4 && HashFamilyID != HASH_ID_ED2K) || Input == nullptr)
@@ -220,20 +220,17 @@ bool __fastcall MD4_Hash(
 	size_t ReadBlockSize = FILE_BUFFER_SIZE, ReadLength = 0, RoundCount = 0;
 	if (HashFamilyID == HASH_ID_ED2K)
 		ReadBlockSize = ED2K_SIZE_BLOCK;
-	std::shared_ptr<char> Buffer(new char[ReadBlockSize]());
-	std::shared_ptr<char> StringBuffer(new char[FILE_BUFFER_SIZE]());
-	std::shared_ptr<char> BufferED2K(new char[MD4_SIZE_DIGEST]());
+	std::shared_ptr<char> Buffer(new char[ReadBlockSize]()), StringBuffer(new char[FILE_BUFFER_SIZE]()), BufferED2K(new char[MD4_SIZE_DIGEST]());
 	memset(Buffer.get(), 0, ReadBlockSize);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(BufferED2K.get(), 0, MD4_SIZE_DIGEST);
-	auto HashInstance = std::make_shared<MD4_CTX>(), HashInstanceED2K = std::make_shared<MD4_CTX>();
-	memset(HashInstance.get(), 0, sizeof(MD4_CTX));
-	memset(HashInstanceED2K.get(), 0, sizeof(MD4_CTX));
+	MD4_CTX HashInstance = {0}, HashInstanceED2K = {0};
+
 
 //MD4 initialization
-	MD4_Init(HashInstance.get());
+	MD4_Init(&HashInstance);
 	if (HashFamilyID == HASH_ID_ED2K)
-		MD4_Init(HashInstanceED2K.get());
+		MD4_Init(&HashInstanceED2K);
 
 //Hash process
 	while (!feof(Input))
@@ -246,13 +243,13 @@ bool __fastcall MD4_Hash(
 			return false;
 		}
 		else {
-			MD4_Update(HashInstance.get(), Buffer.get(), ReadLength);
+			MD4_Update(&HashInstance, Buffer.get(), ReadLength);
 			if (HashFamilyID == HASH_ID_ED2K)
 			{
-				MD4_Final((unsigned char *)Buffer.get(), HashInstance.get());
+				MD4_Final((unsigned char *)Buffer.get(), &HashInstance);
 				memcpy_s(BufferED2K.get(), MD4_SIZE_DIGEST, Buffer.get(), MD4_SIZE_DIGEST);
-				MD4_Update(HashInstanceED2K.get(), Buffer.get(), MD4_SIZE_DIGEST);
-				MD4_Init(HashInstance.get());
+				MD4_Update(&HashInstanceED2K, Buffer.get(), MD4_SIZE_DIGEST);
+				MD4_Init(&HashInstance);
 			}
 
 			++RoundCount;
@@ -263,12 +260,12 @@ bool __fastcall MD4_Hash(
 	memset(Buffer.get(), 0, ReadBlockSize);
 	if (HashFamilyID == HASH_ID_MD4)
 	{
-		MD4_Final((unsigned char *)Buffer.get(), HashInstance.get());
+		MD4_Final((unsigned char *)Buffer.get(), &HashInstance);
 	}
 	else if (HashFamilyID == HASH_ID_ED2K)
 	{
 		if (RoundCount > 1U)
-			MD4_Final((unsigned char *)Buffer.get(), HashInstanceED2K.get());
+			MD4_Final((unsigned char *)Buffer.get(), &HashInstanceED2K);
 		else 
 			memcpy_s(Buffer.get(), MD4_SIZE_DIGEST, BufferED2K.get(), MD4_SIZE_DIGEST);
 	}
