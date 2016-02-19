@@ -41,11 +41,14 @@ for ( split /\,/,$cfgdat ) {
 	next unless exists $CFG{$id};
 	$CFG{$id} = $val;
 }
+die "[!]Bam File [$CFG{'bam'}] NOT found !\n" unless -f $CFG{'bam'};
 my $cfgfile = $CFG{'out'} . '/prj.ini';
-
-unless (-d $CFG{'out'}) {
-	File::Path::make_path($CFG{'out'},{verbose => 0,mode => 0755});
+my $thedir = $CFG{'out'} . 'Project1_aln';
+unless (-d $thedir) {
+	File::Path::make_path($thedir,{verbose => 0,mode => 0755});
 }
+link $CFG{'bam'},$thedir.'/Test.bam';
+
 open O,'>',$cfgfile;
 print O "
 [RefFiles]
