@@ -8,10 +8,10 @@ FLAGs=-std=c++0x
 OMP=-fopenmp
 
 all:
-	mkdir ../bin
+	-mkdir ../bin
 	$(COMPILER) $(OMP) $(FLAGs) -O3 *.cpp -o $(PROG)
-	ln -s ../t.pl ../bin
-	
+	-ln -s ../t.pl ../bin
+
 clean:
 	rm -rf $(PROG)
 	rm -fr ../bin/
