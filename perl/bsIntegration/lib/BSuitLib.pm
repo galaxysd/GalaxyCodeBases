@@ -56,8 +56,10 @@ sub do_pre() {
 	}
 	#ddx \$main::RefConfig;
 	warn "[!] Building index for [$Refile].\n";
-	system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");
-	system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
+	unless ($main::DISABLE_REF_INDEX) {
+		system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");	# unless -s $Refile.'.bwameth.c2t.sa';
+		system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
+	}
 }
 
 sub do_aln() {

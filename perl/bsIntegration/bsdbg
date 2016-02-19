@@ -3,32 +3,17 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-#use FindBin 1.51 qw($RealBin);
-=pod
-http://perl5.git.perl.org/perl.git/commitdiff/ce6c0f31778913bcbf7ccd245ab390dddd8a1361
--$VERSION = "1.50";
-+$VERSION = "1.51";
-Thu, 19 May 2011 04:35:43 +0000 (21:35 -0700)
-The FindBin documentation states as a known bug that it will return a wrong result if a script of the same name as the current one exists in
-$PATH, and is executable.
-Further "discussion": http://www.perlmonks.org/?node_id=41213
-use Cwd 'abs_path';
-my $scriptpath = abs_path($0); # ended with filename
-=cut
 use FindBin qw($RealBin);
 if ($FindBin::VERSION < 1.51) {
 	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
 }
-FindBin::again(); # or FindBin->again; # Require $VERSION = "1.44"; http://perl5.git.perl.org/perl.git/commitdiff/f509412828fa95d62b8d41774f816a14ba046cac
+FindBin::again();
 use lib "$RealBin/lib";
-#print join("\n",$FindBin::Bin,$FindBin::Script,$FindBin::RealBin,$FindBin::RealScript,$0),"\n";
-
 require BSuitLib;
 use Galaxy::IO::INI;
 
 my %Cmd2Fun = (
 	'prepare' => \&do_pre,
-	'aln' => \&do_aln,
 	'grep' => \&do_grep,
 	'analyse' => \&do_analyse,
 );
@@ -38,12 +23,50 @@ sub ShowHelp() {
 }
 my $ShowHelp=0;
 if (@ARGV < 2) {
-	warn "Usage: $0 <command> <config_file>\n";
+	warn "Usage: $0 <command> Human=hg19.fa,Virus=hbv.fa,bam=Sorted.bam,out=./test/\n";
 	ShowHelp();
 }
 my $cmd=lc shift;
-my $cfgfile=shift;
-die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
+my $cfgdat=shift;
+#die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
+my %CFG = (
+	human => '',
+	virus => '',
+	bam => '',
+	out => './test'
+);
+for ( split /\,/,$cfgdat ) {
+	my ($id,$val) = split /=/,$_;
+	$id = lc $id;
+	next unless exists $CFG{$id};
+	$CFG{$id} = $val;
+}
+my $cfgfile = $CFG{'out'} . '/prj.ini';
+
+unless (-d $CFG{'out'}) {
+	File::Path::make_path($CFG{'out'},{verbose => 0,mode => 0755});
+}
+open O,'>',$cfgfile;
+print O "
+[RefFiles]
+HostRef=$CFG{'human'}
+VirusRef=$CFG{'virus'}
+
+[DataFiles]
+Test.1=xx_1.fq
+Test.2=xx_2.fq
+
+[InsertSizes]
+Test=500
+Test.SD=50
+
+[Output]
+WorkDir=$CFG{'out'}
+ProjectID=Project1
+";
+close O;
+
+our $DISABLE_REF_INDEX=1;
 
 unless (exists $Cmd2Fun{$cmd}) {
 	warn "[x]Unknown Command: [$cmd] !\n";
@@ -56,7 +79,6 @@ our $minSoftClip = 10;
 our $methly3BaseErrRate = 0.08;
 our $DEVELOP = 1;
 our $DEBUG = 1;
-our $DISABLE_REF_INDEX=0;
 
 our $idbacmd = '--max_gap 100 --min_region 31 --min_contig 31 --mink 17 --maxk 89 --step 20';
 our $PathPrefix = "PATH=\"$RealBin/bin:\$PATH\";";
@@ -66,6 +88,8 @@ $Config->read($cfgfile);
 #ddx \$Config;
 
 warn "[!]Runing $0 [$cmd].\n";
+
+
 
 our $RootPath = $Config->{'Output'}->{'WorkDir'};
 $RootPath =~ s/[\/\\]+$//g;
@@ -78,6 +102,9 @@ our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 
 our $RefConfig = Galaxy::IO::INI->new();
 our (%RefChrIDs,%VirusChrIDs);
+
+$Cmd2Fun{'prepare'}($cfgfile);
+
 if ($cmd ne 'prepare') {
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
