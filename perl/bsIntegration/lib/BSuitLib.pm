@@ -55,10 +55,12 @@ sub do_pre() {
 		warn "[!] Already Read References Pairs:[$main::HostRefName,$main::VirusRefName].\n";
 	}
 	#ddx \$main::RefConfig;
-	warn "[!] Building index for [$Refile].\n";
 	unless ($main::DISABLE_REF_INDEX) {
+		warn "[!] Building index for [$Refile].\n";
 		system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");	# unless -s $Refile.'.bwameth.c2t.sa';
 		system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
+	} else {
+		warn "[!] Index Building skipped for [$Refile].\n";
 	}
 }
 
