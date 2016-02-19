@@ -43,7 +43,7 @@ for ( split /\,/,$cfgdat ) {
 }
 die "[!]Bam File [$CFG{'bam'}] NOT found !\n" unless -f $CFG{'bam'};
 my $cfgfile = $CFG{'out'} . '/prj.ini';
-my $thedir = $CFG{'out'} . 'Project1_aln';
+my $thedir = $CFG{'out'} . '/Project1_aln';
 unless (-d $thedir) {
 	File::Path::make_path($thedir,{verbose => 0,mode => 0755});
 }
@@ -124,3 +124,5 @@ $Cmd2Fun{$cmd}($cfgfile);	# If use `do $Cmd2Fun{$cmd}();`, the sub MUST return 1
 warn "[!]done !\n";
 
 # overlap = (min(end_mate1,end_mate2) - max(start_mate1,start_mate2)) http://sourceforge.net/p/bio-bwa/mailman/message/27028596/
+
+# rsync -Lav --existing . ~/git/BS-viral-inte/
