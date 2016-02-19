@@ -17,14 +17,16 @@
 
 # Install
 
-You'll need `cmake` and `aclocal, autoconf, automake` and devel-libs, as well as `gcc, g++` to compile all sources.
+You'll need to download the binary from above sites. And put `idba_hybrid` in to `./bin`. Then run `pip install toolshed`.
 
-```
-cd src
-./download.sh
-./install.sh
-pip install toolshed
-```
+Your `bsIntegration/bin/` should be like this:
+````bash
+-rwxr-xr-x   20800 Feb 20 00:32 alnmethly
+-rwxr-xr-x  398860 Feb 20 00:48 bwa
+-rwxr-xr-x   21892 Sep  1 08:37 bwameth.py
+-rwxr-xr-x 1372804 Feb 20 01:14 idba_hybrid
+-rwxr-xr-x  971772 Feb 20 00:48 samtools
+````
 
 # Usage
 
@@ -68,6 +70,25 @@ tSE_X.SD=1
 [Output]
 WorkDir=/share/work/bsvir/bsI
 ProjectID=SZ2015
+```
+
+# Build
+
+You'll need `cmake` and `autoconf, automake` and devel-libs, as well as `gcc, g++` to compile all sources.
+
+For Mac OS X, install [Homebrew](http://brew.sh/) first. Then:
+```bash
+brew install autoconf automake cmake python
+brew install --without-multilib gcc
+````
+
+To Build the binaries:
+```bash
+cd src
+./download.sh
+./install.sh
+
+pip install toolshed
 ```
 
 ## Details
