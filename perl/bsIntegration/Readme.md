@@ -78,6 +78,7 @@ You'll need `cmake` and `autoconf, automake` and devel-libs, as well as `gcc, g+
 
 For Mac OS X, install [Homebrew](http://brew.sh/) first. Then:
 ```bash
+xcode-select --install
 brew install autoconf automake cmake python
 brew install --without-multilib gcc
 ````
