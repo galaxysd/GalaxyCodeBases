@@ -58,10 +58,10 @@ sub do_pre() {
 	unless ($main::DISABLE_REF_INDEX) {
 		warn "[!] Building index for [$Refile].\n";
 		system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");	# unless -s $Refile.'.bwameth.c2t.sa';
-		system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
 	} else {
-		warn "[!] Index Building skipped for [$Refile].\n";
+		warn "[!] Bwameth.py Index Building skipped for [$Refile].\n";
 	}
+	system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
 }
 
 sub do_aln() {
@@ -418,7 +418,7 @@ sub do_analyse {
 			}
 		}
 		for my $id (keys %ReadsbyID) {
-			next unless defined($ReadsbyID{$id}->[1]) and defined($ReadsbyID{$id}->[2]);
+			next unless defined($ReadsbyID{$id}->[1]) or defined($ReadsbyID{$id}->[2]);	# and->or to include SE.
 			next unless defined($ReadsbyID{$id}->[0]);
 			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
 			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
@@ -444,6 +444,7 @@ sub do_analyse {
 			next if $FHO{$fro}->[1] <= 2;
 			my $reff = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Ref$fro.fa";
 			my $readsf = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Reads$fro.fa";
+			next unless -s $readsf;
 			my $outp = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/$fro";
 			system("$RealBin/bin/idba_hybrid $main::idbacmd -r $readsf --reference $reff -o $outp >/dev/null");
 			next unless -s "$outp/scaffold.fa";
