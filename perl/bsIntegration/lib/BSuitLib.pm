@@ -341,6 +341,8 @@ sub do_analyse {
 	if ( -f $BlockINIFN ) {
 		$BlockINI->read($BlockINIFN);
 	} else {die "[x] Grep INI not found ! [$BlockINIFN]\n";}
+	warn "[!] minHostDepth = $main::minHostDepth\n";
+	warn "[!] Running in DEVELOP(chr18 only) mode !\n" if ($main::DEVELOP);
 	open OA,'>',"$main::RootPath/${main::ProjectID}_analyse.txt" or die;
 	for my $Bid (@{$BlockINI->{']'}}) {
 		my @HostRange = split /,/,$BlockINI->{$Bid}->{'HostRange'};
@@ -419,6 +421,8 @@ sub do_analyse {
 		}
 		for my $id (keys %ReadsbyID) {
 			next unless defined($ReadsbyID{$id}->[1]) or defined($ReadsbyID{$id}->[2]);	# and->or to include SE.
+			$ReadsbyID{$id}->[1] = '' unless defined($ReadsbyID{$id}->[1]);
+			$ReadsbyID{$id}->[2] = '' unless defined($ReadsbyID{$id}->[2]);
 			next unless defined($ReadsbyID{$id}->[0]);
 			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
 			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
