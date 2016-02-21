@@ -313,6 +313,8 @@ sub mergeAln($$) {
 			$Result{$1} = [$2,$3];
 		}
 	}
+	waitpid( $pid, 0 );
+	close READER;
 	my @Resu = sort { $Result{$b}->[1] <=> $Result{$a}->[1] } keys %Result;
 	#print join("\n",map {$_->[0]} @Dat),"\n";
 	#ddx $Result{$Resu[0]},$Resu[0];
