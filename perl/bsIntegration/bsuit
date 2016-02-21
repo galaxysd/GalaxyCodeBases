@@ -54,7 +54,7 @@ unless (exists $Cmd2Fun{$cmd}) {
 our $minHostDepth = 30;
 our $minSoftClip = 10;
 our $methly3BaseErrRate = 0.08;
-our $DEVELOP = 1;
+our $DEVELOP = 0;
 our $DEBUG = 1;
 our $DISABLE_REF_INDEX=0;
 
