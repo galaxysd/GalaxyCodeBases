@@ -346,7 +346,7 @@ sub do_analyse {
 		my @HostRange = split /,/,$BlockINI->{$Bid}->{'HostRange'};
 		my @VirusRange = split /,/,$BlockINI->{$Bid}->{'VirusRange'};
 		my @SamFS = split /,/,$BlockINI->{$Bid}->{'SamFS'};
-		next if (@HostRange<1 or @VirusRange<1);	# Need to do assembly
+		next if (@HostRange<1);	# Need to do assembly; @VirusRange<1 skipped
 		my ($maxHostDepth,$maxItem) = (0,-1);
 		for my $i (0 .. $#HostRange) {
 			my ($chr,$range,$depth) = split /:/,$HostRange[$i];
