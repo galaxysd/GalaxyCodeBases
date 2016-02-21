@@ -301,6 +301,7 @@ sub mergeAln($$) {
 		} elsif ($_->[1] eq '2GA') {
 			$_->[0] =~ s/[GA]/R/ig;
 		}
+		$_->[0]='N' if $_->[1] eq 'N';	# 'N' for empty seq.
 	}
 	#ddx \@Dat;
 	print WRITER join("\n",map {$_->[0]} @Dat),"\n";
