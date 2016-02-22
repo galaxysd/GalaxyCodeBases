@@ -118,30 +118,37 @@ sf330_Ref_1806938_1807137_1807337_Vir_-_108_287_R_200_90	353	chr1	98374819	0	50S
 
 ## Need to do
 
+涉及的常数都作参数。
+
 ### Todo 1. Grep Covered Blocks on Each chromosomes
 
 * 用`samtools depth`的方法，统计每条染色体被覆盖的情况。
 * bam文件中，PE中一条在人上，一条在病毒上，保留这一对。分类为A1。
-* bam文件中，Read自身有多条比对记录，既有若干比到人上的，也有若干比到病毒上的，且二者CIAGR为`M`或`I`的部分中，重叠的部分乘以2小于不重叠的部分相加。若干中组合中发生一次，保留这一对。分类为A2。
+* bam文件中，Read自身有多条比对记录，既有若干比到人上的，也有若干比到病毒上的，且二者CIAGR为`M`或`I`的部分中，重叠的部分乘以2小于不重叠的部分相加，且重叠的部分小于20。若干中组合中发生一次，保留这一对中发生了的那些组合。分类为A2。
    * A1,A2 是为了后面方便，算覆盖时不区分。
-* bam文件中，PE都比到人的同一染色体上，且bam文件中的insert size与输入文件中`[InsertSizes]`对应记录相比，超过平均数正负3倍SD的，保留这一对。分类为B。
-* bam文件中，PE只有一条比对上去，另一条unmap，保留这一对。分类为C。现在没有考虑C类，留下以后再说。
+* bam文件中，发生soft-clip的reads，保留这一对。分类为B。
+* bam文件中，PE都比到人的同一染色体上，且bam文件中的insert size与输入文件中`[InsertSizes]`对应记录相比，超过平均数正负3倍SD的，保留这一对。分类为C1。
+* bam文件中，PE只有一条比对上去，另一条unmap，保留这一对。分类为C2。
+   * 现在没有考虑C类，留下以后再说。
 * 扔掉其余的Reads。
-* 将A类深度加B类深度大于0，这样的连续区域定义为一个block。同时得到block在这条人染色体上的覆盖范围，及范围内的平均深度。
+* 在人的染色体上，将A类深度大于0，这样的连续区域定义为一个pre-block。
+* 若B>=3的地方与A>0的地方overlap>5，且没有碰上其他的pre-block，则延伸pre-block直到B<3。相邻pre-block延伸到互不接触的最小B值，然后按下面的条件判断是否合并。
+* 若延伸pre-block过程中遇上其他pre-block，若合并后整个pre-block长度小于`[InsertSizes]`对应记录中平均数加3倍SD，则直接合并。否则保持前面不合并的状态，但记录被哪些B连接。
    * 人最长的一号染色体不到250m，分染色体处理。可以用`struct {uint16_t A_Depth, uint8_t B_Depth, uint8_t C_Depth} []`来分别记录是否unique的reads覆盖的次数，然后`*`过去用`uint32_t Depth []`来统计A+B深度为0，即`Depth[]`大于256的地方。内存开销小于1G。
       * 这样写得注意在编译时按 大/小-endian 分别判断下 byte order。
-* 将block中reads涉及的病毒的部分取出，用来统计在病毒上的覆盖范围，及范围内的平均深度。若有多个范围，按深度降序排列，逗号分隔。
+* 处理完后的pre-block就是block，同时可以得到block在这条人染色体上的覆盖范围，及范围内的平均深度。对前面选择“不合并”的，覆盖范围会有多个。按起点排序，逗号分隔。
+* 将block中reads涉及的病毒的部分取出，用来统计在病毒上的覆盖范围，及范围内的平均深度。若有多个范围，按深度降序排列，逗号分隔坐标，分号分隔染色体（如果病毒有多条染色体）。
 * 输出调试用文件`./simVir4_grep/blocks.txt`
 
 #### Sample of `blocks.txt`
 ````ini
 [B1]
-HostRange=chr1:7603420-7603493:3
-VirusRange=gi|59585|emb|X04615.1|:2722-2799:1
-sf193_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	161	chr1	7603420	0	73M17S	gi|59585|emb|X04615.1|	2722	0	CCTTTACCATTATGTAATGGTCTTCTTTGTCTCTTTTGATCTTTGTTGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACT	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:73	AS:i:73	XS:i:73	RG:Z:Fsimout_m6	YC:Z:GA	YD:Z:r
-sf193_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	81	gi|59585|emb|X04615.1|	2722	60	13S77M	chr1	7603420	0	TTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATTCTATATAAGAGAGAAACTACACGC	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:77	AS:i:77	XS:i:28	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
-sf217_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	593	chr1	7603456	0	37M53S	=	7603396	-97	TGATCTTTGTTGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATT	GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG	NM:i:0	MD:Z:37	AS:i:37	XS:i:39	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
-sf207_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	593	chr1	7603466	0	27M63S	=	7603406	-87	TGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATTCTATATAAGA	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:27	AS:i:27	XS:i:29	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
+HostRange=chr1:7603420-7603493=3,7603520-7603593=2
+VirusRange=gi|59585|emb|X04615.1|:2722-2799=1,2822-2899=1;Virus2:222-233=2
+HostRange1,VirusRange1-1	A1 sf193_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	161	chr1	7603420	0	73M17S	gi|59585|emb|X04615.1|	2722	0	CCTTTACCATTATGTAATGGTCTTCTTTGTCTCTTTTGATCTTTGTTGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACT	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:73	AS:i:73	XS:i:73	RG:Z:Fsimout_m6	YC:Z:GA	YD:Z:r
+HostRange1,VirusRange1-2	A2 sf193_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	81	gi|59585|emb|X04615.1|	2722	60	13S77M	chr1	7603420	0	TTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATTCTATATAAGAGAGAAACTACACGC	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:77	AS:i:77	XS:i:28	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
+HostRange2,VirusRange2-1	B  sf217_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	593	chr1	7603456	0	37M53S	=	7603396	-97	TGATCTTTGTTGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATT	GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG	NM:i:0	MD:Z:37	AS:i:37	XS:i:39	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
+HostRange2,NA	C1 sf207_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	593	chr1	7603466	0	27M63S	=	7603406	-87	TGGTTTAAAGTCTGTTTTATCAGAGACATCATTACTTCAAAACTAGGCATTATTTACATACTCTGTGGAAGGCTGGCATTCTATATAAGA	HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH	NM:i:0	MD:Z:27	AS:i:27	XS:i:29	RG:Z:Fsimout_m6	YC:Z:CT	YD:Z:r
 
 [B2]
 ……省略……
@@ -149,10 +156,20 @@ sf207_Ref_70796427_70796576_70796726_Vir_-_2722_2841_R_150_90	593	chr1	7603466	0
 
 ### Todo 2. Use Pair-End Information to Link Blocks to Bridges
 
-* 选取A2类Reads中满足前面“重叠部分”长度要求的记录，以及B类Reads中`MAPQ`大于40的。用来统计blocks间的连接关系。block为节点，PE关系为边。
-* 
-
+* 选取A2类Reads中满足前面“重叠部分”长度要求的记录，以及B类及C1类Reads中`MAPQ`大于40的。用来统计blocks间的连接关系。block为节点，PE关系为边。
+* 对只有两个block相连的图，记为一个Bridge（定义为只有两个桥墩的桥，如拱桥）。
+* 对前面选择“不合并”的block，根据拱桥是否冲突决定是否合并。
 
 ### Todo 3. Analyse Junction sites on Each Block
 
+* 用IDBA-Hybrid的方法考虑参考序列组装，将上面Block的Range对应的参考序列两边延伸100bp（Reads长度）作为ref，组装reads。
+   * 根据reads判断是有甲基化的四碱基序列，还是没有甲基化的三碱基序列。四碱基的直接装。三碱基的如果能改比对打分矩阵就改它，否则把ref也变成三碱基的。
+      * 正负链与AG／CT的关系高升杰补充下。
+   * 四碱基的结果与三碱基的结果作alignment合并，可以参考修改的M-Vicuna。
+* 将用人作ref得到的组装结果，与用病毒作ref得到的组装结果，作alignment合并。得到完整片段（VirusFragment）。
+   * 结果不唯一就选最长的。为了同时考虑block的覆盖深度，可以把A类深度作权重，即覆盖了最多A区的是对的。权重可以加个系数＝0.8让长度优先。
+   * 优势不明显的话，下面能合并得较好的，是正确的结果。
 
+### Todo 4. Check whether VirusFragment can be aligned between Blocks of same Bridge
+
+* 将拱桥两个block的结果片段（VirusFragment），检查`[InsertSizes]`对应记录看平均数正负3倍SD范围内是否有可能重叠。能重叠就作alignment合并。
