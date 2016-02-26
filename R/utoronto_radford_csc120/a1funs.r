@@ -24,7 +24,8 @@ plot_pairs <- function (mpoints,lpairs,mytitle='',plot=FALSE, wait=TRUE) {
 		xyxy <- mpoints[edge[1:2],]
 		lines(xyxy[,1],xyxy[,2])
 	}
-	title(mytitle)
+	tdis <- total_distance(mpoints,lpairs)
+	title(paste('Total distance',tdis,mytitle))
 }
 
 random_pairings <- function (mpoints) {
@@ -37,8 +38,9 @@ random_pairings <- function (mpoints) {
 }
 
 improve_pairings <- function (mpoints,inpairs,cnt=0,plot=FALSE) {
-	lpairs <- inpairs
-	if (cnt==0) cnt <- length(inpairs)
+	maxcnt <- length(inpairs)
+	lpairs <- inpairs[sample(maxcnt)]
+	if (cnt==0 || cnt > maxcnt) cnt <- maxcnt
 	i <- 1
 	while (i < cnt) {
 		edgeO <- lpairs[c(i,i+1)]
@@ -61,20 +63,23 @@ improve_pairings <- function (mpoints,inpairs,cnt=0,plot=FALSE) {
 				lpairs[i+1] <- axby[2]
 			}
 		}
-		#plot_pairs(mpoints,lpairs,paste('Time(s)',(i+1)/2),plot)
+		#plot_pairs(mpoints,lpairs,paste(',Time(s)',(i+1)/2),plot)
 		i <- i + 2
 	}
 	lpairs
 }
 
-find_pairings <- function (mpoints, tries=1, plot=FALSE) {
+find_pairingsY <- function (mpoints, tries=1, plot=FALSE) {
 	pairs0 <- random_pairings(mpoints)
 	plot_pairs(mpoints,pairs0,'Init.',plot)
+	cnt <- length(pairs0)
+	if (tries > cnt) tries <- cnt
+	if (tries < 1) tries <- 1
 	new_pairs <- improve_pairings(mpoints,pairs0,tries,plot)
 	plot_pairs(mpoints,new_pairs,paste('Time(s)',tries),plot)
 }
 
-find_pairingsY <- function (mpoints, tries=1, plot=FALSE) {
+find_pairings <- function (mpoints, tries=1, plot=FALSE) {
 	pairs0 <- random_pairings(mpoints)
 	plot_pairs(mpoints,pairs0,'Init.',plot)
 	lastpairs <- pairs0
@@ -95,10 +100,8 @@ find_pairingsX <- function (mpoints, tries=1, plot=FALSE) {
 	need_imp <- pairs0[need_id]
 	had_imp <- improve_pairings(mpoints,need_imp)
 	pairs1 <- pairs0
-	for (id in need_id) {
-		t <- 1
-		pairs1[id] <- had_imp[t]
-		t <- t + 1
+	for (i in 1:tries) {
+		pairs1[need_id[i]] <- had_imp[i]
 	}
 	plot_pairs(mpoints,pairs1,paste('Tries(s)',tries),plot)
 }

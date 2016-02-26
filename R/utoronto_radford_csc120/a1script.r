@@ -7,8 +7,10 @@ a1data <- as.matrix(read.table('a1data.txt'))
 
 set.seed(1)
 find_pairings(a1data,1,TRUE)
+set.seed(1)
 find_pairings(a1data,10,TRUE)
 
 set.seed(999612806)
 find_pairings(a1data,1,TRUE)
+set.seed(999612806)
 find_pairings(a1data,10,TRUE)
