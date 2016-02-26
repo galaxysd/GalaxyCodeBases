@@ -43,6 +43,8 @@ improve_pairings <- function (mpoints,inpairs,plot=FALSE) {
 	lpairs <- inpairs
 	for (i in 1:(maxcnt-1)) {
 		for (j in (i+1):maxcnt) {
+		#ti <- 1:maxcnt
+		#for (j in ti[ti!=i]) {
 			edgeO <- lpairs[c(i,j)]
 			abxy <- unlist(edgeO)
 			#xxyy <- simplify2array(edgeO)
