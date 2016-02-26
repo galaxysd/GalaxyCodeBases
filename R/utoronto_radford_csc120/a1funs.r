@@ -78,16 +78,6 @@ improve_pairings <- function (mpoints,inpairs,plot=FALSE) {
 	lpairs
 }
 
-find_pairingsY <- function (mpoints, tries=1, plot=FALSE) {
-	pairs0 <- random_pairings(mpoints)
-	plot_pairs(mpoints,pairs0,'Init.',plot)
-	cnt <- length(pairs0)
-	if (tries > cnt) tries <- cnt
-	if (tries < 1) tries <- 1
-	new_pairs <- improve_pairings(mpoints,pairs0,tries,plot)
-	plot_pairs(mpoints,new_pairs,paste('Time(s)',tries),plot)
-}
-
 find_pairings <- function (mpoints, tries=1, plot=FALSE) {
 	pairs0 <- random_pairings(mpoints)
 	plot_pairs(mpoints,pairs0,'Init.',plot)
