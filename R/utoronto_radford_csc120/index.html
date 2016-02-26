@@ -1,0 +1,227 @@
+<HTML><HEAD>
+
+<TITLE> CSC 120 - Computer Science for the Sciences (R section, L0201)
+</TITLE>
+
+</HEAD><BODY>
+
+<H1> CSC 120 - Computer Science for the Sciences (R section, L0201, 
+     Jan-Apr 2016) </H1>
+
+<B>The handout for Assignment 1 is now available below, and a
+clarifying note is also below.  Note that it is due at the start of
+lecture February 26, three days later than originally scheduled.
+
+<P>Office hours on February 25 will be from 2:30 to 3:30.
+
+<P>Remember that there is a Quiz on February 26!
+
+<P>INSTRUCTION FOR HANDING IN ASSIGNMENT 1:
+
+<P>You should hand in your assignment by emailing it to<BLOCKQUOTE>
+<TT>radford@cdf.utoronto.ca</TT>
+</BLOCKQUOTE>
+
+<P>You should NOT email your assignment to any other email address.
+In particular, you should NOT send it to my regular email address for
+other course correspondence.
+
+<P>Your email should have the following subject line:<BLOCKQUOTE>
+<TT>A1, 9999999999, Lastname, Firstname</TT>
+</BLOCKQUOTE>
+Here, 9999999999 is your student ID number, Lastname is your family name,
+and Firstname is your given name.
+
+<P>The body of your email can be anything.  (It could be
+a note to me if you have some reason to say something.)
+
+<P>Your email should have five attachments:<UL>
+<LI>The R script file containing your function definitions, called a1funs.r
+<LI>The R script file that runs <TT>find_pairings</TT> on the test data,
+    called a1script.r
+<LI>The text output of this script, which should give the total distance
+    found after improving each random pairing, called a1out.txt
+<LI>The PDF file for the plot of pairings obtained using ten random pairings 
+    with the random seed set to 1, called a1plot1.pdf
+<LI>The plot of pairings obtained using one random pairing with the random
+    set to your student ID number, called a1plot2.pdf
+</UL>
+
+<P>You can create a text file with the text output by creating a text
+file with File &gt; New File &gt; Text File in RStudio, then copying
+and pasting into it.
+
+<P>You can create a file with a plot using the Export menu in the RStudio
+plot window (choose "as PDF").  You can move back and forth between 
+multiple plots using the left and right arrows in the plot window.
+
+</B>
+
+<P>CSC 120 L0201 is an introduction to programming using the R language,
+which is widely used for statistical applications.  It is designed for
+students with no programming experience, who are either planning to
+specialize in statistics or who expect to use statistics extensively
+while studying other fields.  
+
+<P>Students in other areas of science may wish to take <A
+HREF="http://www.cs.utoronto.ca/~drosu/csc120-winter2016.html">section
+L0101 of CSC 120</A>, which uses the Python language.  Students who
+plan on taking further courses in CS may wish to take CSC 108 instead
+of CSC 120, and then take CSC 148.  It is possible to take CSC 148
+after CSC 120 without taking CSC 108, but to do so you will have to
+pick up some material on your own.
+
+<P><B>Instructor:</B> <A HREF="http://www.cs.toronto.edu/~radford/">
+Radford Neal</A>, <B>Office:</B> SS6026A / PT384, 
+<B>Email:</B> 
+<A HREF="mailto:radford@cs.utoronto.ca">radford@cs.utoronto.ca</A>
+
+<P><B>Office hours:</B> Thursdays, 2:10 to 3:00, in SS6026A.
+
+<P><B>Lectures and Tutorials/Labs:</B></P>
+<blockquote>
+Lectures: Tuesdays and Fridays, 3:10-4:00pm, MP202. <BR>
+Tutorials/Labs: Wednesdays, 1:10-3:00, CDF lab, room BA3185 (& others).
+
+<P>Labs will start January 13.
+The lab the first week will be to make sure you know how to log
+into the CDF computers, start up R using Rstudio, and do simple things in R.
+If you have a laptop computer, you should bring it, so you can also learn
+how to install R and Rstudio on it.  Later labs will involve
+non-credit excercises, which will prepare you for assignments,
+quizzes, and the exam.
+</blockquote>
+
+<P><B>Evaluation:</B>
+<BLOCKQUOTE>
+  21% - Three 30-minute quizzes (7% each), written during lectures
+        on January 29, February 26, and March 18.<BR>
+  30% - Three assignments (10% each), due at start of lectures
+        on February 26, March 22, and April 8.<BR>
+  49% - Final exam (scheduled by the Faculty).  
+
+<P><B>You must get at least 40% on the final exam to pass the course</B>.
+If you don't, your final grade will be less than 50 regardless of your
+other grades in this course.
+
+<P>Assignments will be done by students individually.
+
+<P>Assignments may be handed in late by the date and time specified 
+   on the handout with a 20% penalty.  Later assignments will not be accepted.
+
+<P>Students with a <B>valid</B> medical or other excuse will of course not 
+   be penalized for late assignments, or for missing a quiz.
+   You must, however, contact the instructor (eg, by email) as soon as possible
+   (preferrably beforehand) if you are not able to hand in an assignment 
+   or write a quiz.
+</BLOCKQUOTE>
+
+<P><B>Getting and Using R:</B>
+<blockquote>
+<P>You will use R via Rstudio on the <A HREF="http://www.cdf.utoronto.ca">CDF
+computer system</A>, on which you should automatically have an account
+if you are registered in this course.  To start Rstudio,
+you need to open a terminal window, and then type "rstudio".
+
+<P>You can also install R and Rstudio (for free) on your own laptop or
+desktop computer.  You can download R from <A
+HREF="http://r-project.org">r-project.org</A>, and
+Rstudio from <A HREF="http://rstudio.com">rstudio.com</A>.
+
+<P>The lab in the first week (January 13, 1:10-3:00pm) will help you get
+started on these things.
+
+</blockquote>
+
+<P><B>Documentation on R:</B>
+<blockquote>
+There is no textbook for this course (lecture slides are below).
+However, here are links to some on-line documentation on R:
+
+<P><A HREF="http://cran.r-project.org/doc/manuals/R-intro.html">
+  Introduction to R (R Core Team)</A>.<BR>
+<A HREF="http://cran.r-project.org/doc/manuals/R-lang.html">
+  R Language Definition (R Core Team)</A>.<BR>
+<A HREF="http://www.r-tutor.com/r-introduction">Introduction to some
+aspects of R (Chi Yau)</A>.<BR>
+<A HREF="http://adv-r.had.co.nz/">Advanced R (Hadley Wickham)</A>.
+
+</blockquote>
+
+<P><B>Lecture Slides:</B>
+
+<blockquote>
+
+<P>Slides for the lectures will be posted here as they become available.
+
+<P><a href="week1.pdf">Week 1</a>: Introduction, numeric and character data, 
+                       arithmetic,
+                       mathematical functions, string functions <I>paste</I> 
+                       and  <I>substring</I>), variables and assignment, 
+                        vectors, <I>c</I>, 
+                       <I>length</I>, vector arithmetic and subscripting, 
+                       plotting vectors. The iris demo program is 
+                       <A HREF="iris-demo.r">here</A>.
+
+<P><a href="week2.pdf">Week 2</a>: R scripts done with <I>source</I>, 
+                       functions <I>scan</I>, <I>mean</I>, <I>sd</I>, 
+                       <I>abline</I>,
+                       defining functions, multiple steps with curly brackets,
+                       input and output with <I>readLines</I> and <I>cat</I>.
+<P><a href="week3.pdf">Week 3</a>: Using <I>if</I>, <I>for</I>, 
+                       and <I>while</I>,
+                       logical data and comparison operations, sequences 
+                       with :.
+<P><a href="week4.pdf">Week 4</a>: Making vectors with <I>rep</I> and 
+                       <I>seq</I>, matrices, matrix indexing, <I>cbind</I> and
+                       <I>rbind</I>, perspective and contour plots, named and
+                       optional arguments, more on plots, random number 
+                       generation,
+                       with <I>runif</I>, <I>sample</I>, and <I>set.seed</I>.
+<P><a href="week5.pdf">Week 5</a>: Lists, using lists to return multiple values,
+                       more on random number generation, random walks.
+<P><a href="week6.pdf">Week 6</a>: Environments, local and global variables
+                       and assignments.
+</blockquote>
+
+<P><B>Lab Exercises:</B>
+<blockquote>
+  January 13: Logging in to CDF, and then starting up R using RStudio.
+              Installing R and RStudio on your laptop (if you bring one).
+              Simple operations in R.<BR>
+  January 20: <A HREF="labex2.pdf">handout</A>.  Solution scripts: 
+  <A HREF="labex2a.r">Part A</A>, <A HREF="labex2b.r">Part B</A>.<BR>
+  January 27: <A HREF="labex3.pdf">handout</A>, 
+              <A HREF="lab3defs.R">solutions</A>.<BR>
+  February 3: <A HREF="labex4.pdf">handout</A>, 
+              <A HREF="lab4defs.r">function definitions</A>, 
+              <A HREF="lab4script.r">script to try them</A>.<BR>
+  February 10: <A HREF="labex5.pdf">handout</A>, 
+               <A HREF="randomwalk.r">random walk function</A>,
+               <A HREF="lab5defs.r">function definitions</A>, 
+               <A HREF="lab5script.r">script to try them</A>.<BR>
+  February 24: <A HREF="labex6.pdf">handout</A>, 
+               <A HREF="dots.R">Part I solution</A>,
+               <A HREF="records.R">Part II solution</A>.
+</blockquote>
+
+<P><B>Assignments:</B>
+<blockquote>
+  Assignment 1: <A HREF="ass1.pdf">handout</A>.  Clarification: Note that the
+  <TT>find_pairings</TT> function should, for each random set of initial
+  pairings, call <TT>improve_pairings</TT> repeatedly (not just once), until 
+  <TT>improve_pairings</TT> is not able to reduce the total distance.
+</blockquote>
+
+<P><B>Quizes:</B>
+<blockquote>
+  Quiz 1: <A HREF="quiz1.pdf">questions</A>, plus 
+          <A HREF="quiz1-ans.pdf">answers</A>.
+</blockquote>
+
+<P><b>Web page for a previous version of the course:</b>
+<blockquote>
+  <a href="../csc120.S15">Spring 2015</A>
+</blockquote>
+ 
+</BODY></HTML>
