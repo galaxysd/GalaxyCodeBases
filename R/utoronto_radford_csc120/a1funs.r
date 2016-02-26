@@ -37,11 +37,10 @@ random_pairings <- function (mpoints) {
 	# lapply(seq_len(ncol(x)), function(i) x[,i])
 }
 
-improve_pairings <- function (mpoints,inpairs,cnt=0,plot=FALSE) {
+improve_pairings <- function (mpoints,inpairs,plot=FALSE) {
 	maxcnt <- length(inpairs)
 	#lpairs <- inpairs[sample(maxcnt)]
 	lpairs <- inpairs
-	if (cnt==0 || cnt > maxcnt) cnt <- maxcnt
 	for (i in 1:(maxcnt-1)) {
 		for (j in (i+1):maxcnt) {
 			edgeO <- lpairs[c(i,j)]
@@ -52,19 +51,26 @@ improve_pairings <- function (mpoints,inpairs,cnt=0,plot=FALSE) {
 			disO <- total_distance(mpoints,edgeO)
 			disaxby <- total_distance(mpoints,axby)
 			disaybx <- total_distance(mpoints,aybx)
+			flag <- 0
 			if (disaxby < disO) {
 				lpairs[i] <- axby[1]
 				lpairs[j] <- axby[2]
+				flag <- 1
 			}
 			if (disaybx < disO) {
 				lpairs[i] <- aybx[1]
 				lpairs[j] <- aybx[2]
+				flag <- 2
 				if (disaxby < disaybx) {
 					lpairs[i] <- axby[1]
 					lpairs[j] <- axby[2]
+					flag <- 3
 				}
 			}
-			#plot_pairs(mpoints,lpairs,paste(i,j),plot,wait=F)
+			if (DEBUG && flag) {
+				plot_pairs(mpoints,lpairs,paste(i,j),plot,wait=F)
+				Sys.sleep(0.7)
+			}
 		}
 	}
 	lpairs
@@ -86,9 +92,10 @@ find_pairings <- function (mpoints, tries=1, plot=FALSE) {
 	lastpairs <- pairs0
 	for (i in 1:tries) {
 		new_pairs <- improve_pairings(mpoints,lastpairs)
-		plot_pairs(mpoints,new_pairs,paste('Time(s)',i),plot)
+		#plot_pairs(mpoints,new_pairs,paste('Time(s)',i),plot)
 		lastpairs <- new_pairs
 	}
+	plot_pairs(mpoints,new_pairs,paste('Time(s)',i),plot)
 }
 
 find_pairingsX <- function (mpoints, tries=1, plot=FALSE) {
