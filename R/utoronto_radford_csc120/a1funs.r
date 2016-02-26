@@ -39,32 +39,33 @@ random_pairings <- function (mpoints) {
 
 improve_pairings <- function (mpoints,inpairs,cnt=0,plot=FALSE) {
 	maxcnt <- length(inpairs)
-	lpairs <- inpairs[sample(maxcnt)]
+	#lpairs <- inpairs[sample(maxcnt)]
+	lpairs <- inpairs
 	if (cnt==0 || cnt > maxcnt) cnt <- maxcnt
-	i <- 1
-	while (i < cnt) {
-		edgeO <- lpairs[c(i,i+1)]
-		abxy <- unlist(edgeO)
-		#xxyy <- simplify2array(edgeO)
-		axby <- list(c(abxy[c(1,3)]),abxy[c(2,4)])
-		aybx <- list(c(abxy[c(1,4)]),abxy[c(2,3)])
-		disO <- total_distance(mpoints,edgeO)
-		disaxby <- total_distance(mpoints,axby)
-		disaybx <- total_distance(mpoints,aybx)
-		if (disaxby < disO) {
-			lpairs[i] <- axby[1]
-			lpairs[i+1] <- axby[2]
-		}
-		if (disaybx < disO) {
-			lpairs[i] <- aybx[1]
-			lpairs[i+1] <- aybx[2]
-			if (disaxby < disaybx) {
+	for (i in 1:(maxcnt-1)) {
+		for (j in (i+1):maxcnt) {
+			edgeO <- lpairs[c(i,j)]
+			abxy <- unlist(edgeO)
+			#xxyy <- simplify2array(edgeO)
+			axby <- list(c(abxy[c(1,3)]),abxy[c(2,4)])
+			aybx <- list(c(abxy[c(1,4)]),abxy[c(2,3)])
+			disO <- total_distance(mpoints,edgeO)
+			disaxby <- total_distance(mpoints,axby)
+			disaybx <- total_distance(mpoints,aybx)
+			if (disaxby < disO) {
 				lpairs[i] <- axby[1]
-				lpairs[i+1] <- axby[2]
+				lpairs[j] <- axby[2]
 			}
+			if (disaybx < disO) {
+				lpairs[i] <- aybx[1]
+				lpairs[j] <- aybx[2]
+				if (disaxby < disaybx) {
+					lpairs[i] <- axby[1]
+					lpairs[j] <- axby[2]
+				}
+			}
+			#plot_pairs(mpoints,lpairs,paste(i,j),plot,wait=F)
 		}
-		#plot_pairs(mpoints,lpairs,paste(',Time(s)',(i+1)/2),plot)
-		i <- i + 2
 	}
 	lpairs
 }
