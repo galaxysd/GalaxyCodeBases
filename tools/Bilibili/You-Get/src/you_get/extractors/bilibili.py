@@ -99,9 +99,12 @@ def bilibili_download_by_cid(cid, title, output_dir='.', merge=True, info_only=F
 
     type_ = ''
     size = 0
-    for url in urls:
-        _, type_, temp = url_info(url)
-        size += temp or 0
+    try:
+        for url in urls:
+            _, type_, temp = url_info(url)
+            size += temp or 0
+    except:
+        log.wtf('[Failed] DNS not resolved. Please change your DNS server settings.')
 
     print_info(site_info, title, type_, size)
     if not info_only:
@@ -112,6 +115,8 @@ def bilibili_download(url, output_dir='.', merge=True, info_only=False, **kwargs
 
     title = r1_of([r'<meta name="title" content="([^<>]{1,999})" />',
                    r'<h1[^>]*>([^<>]+)</h1>'], html)
+    if not title:
+        log.wtf('[Failed] Video does not exist. Try to login with --cookies.')
     title = unescape_html(title)
     title = escape_file_path(title)
 
