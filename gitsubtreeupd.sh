@@ -40,6 +40,7 @@ git subtree pull --prefix=js/ThunderLixianExporter https://github.com/binux/Thun
 git subtree pull --prefix=etc/Chrome/BaiduExporter https://github.com/acgotaku/BaiduExporter.git master
 # git subtree pull --prefix=etc/Chrome/ThunderLixianAssistant https://github.com/ohsc/ThunderLixianAssistant.git master
 # etc/Chrome/ThunderLixianAssistant/src/ThunderLixianExporter -> ../../../../js/ThunderLixianExporter
+git subtree pull --prefix=etc/Chrome/115 https://github.com/acgotaku/115.git master
 
 git fsck
 git gc --aggressive --prune=now
