@@ -35,6 +35,11 @@ git subtree pull --prefix=tools/Crypters/lvdo https://github.com/m13253/lvdo.git
 git subtree pull --prefix=tools/wtb https://github.com/mariotaku/wtb.git master
 
 git subtree pull --prefix=js/TagSelect.js https://github.com/graphiq/TagSelect.js.git master
+git subtree pull --prefix=js/ThunderLixianExporter https://github.com/binux/ThunderLixianExporter.git master
+
+git subtree pull --prefix=etc/Chrome/BaiduExporter https://github.com/acgotaku/BaiduExporter.git master
+# git subtree pull --prefix=etc/Chrome/ThunderLixianAssistant https://github.com/ohsc/ThunderLixianAssistant.git master
+# etc/Chrome/ThunderLixianAssistant/src/ThunderLixianExporter -> ../../../../js/ThunderLixianExporter
 
 git fsck
 git gc --aggressive --prune=now
