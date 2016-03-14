@@ -104,3 +104,5 @@ close INI;
 __END__
 ./simVirusInserts.pl hs_ref_GRCh38.p2_chr18.mfa.gz X04615.fa.gz simout
 
+grep \> simout_*.Ref.fa | sed 's/^simout_m//'|sed 's/.Ref.fa:>/\t/'|sed 's/Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n >simed.lst
+
