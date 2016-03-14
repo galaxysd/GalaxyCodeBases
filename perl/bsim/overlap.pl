@@ -28,9 +28,9 @@ while(<RT>){
 	my @a=split;
 	#print $a[2]."\n";
 	if(/RefCut/){
-	if(exists($hash{$a[2]})){
-		print $_."\n";
-	}
+		if(exists($hash{$a[2]})){
+			print $_."\n";
+		}
 	}
 
 
@@ -38,7 +38,7 @@ while(<RT>){
 close RT;
 
 __END__
-./overlap.pl simed.lst simVir4_analyseAll.txt > simgot.lst
+./overlap.pl simed.lst simVir4_analyseAll.txt >simgot.lst
 
 ./overlap.pl simed.lst simVir4_analyseAll.txt 3|sort|uniq|wc -l
 	142
@@ -48,7 +48,7 @@ __END__
 	186
 ./overlap.pl simed.lst simVir4_analyseAll.txt 10|sort|uniq|wc -l
 	193
-$ ./overlap.pl simed.lst simVir4_analyseAll.txt 20|sort|uniq|wc -l
+./overlap.pl simed.lst simVir4_analyseAll.txt 20|sort|uniq|wc -l
 	200
 
 grep chr18 simVir4_analyseAll.txt|sort|uniq|wc -l
