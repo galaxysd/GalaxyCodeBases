@@ -1,0 +1,1132 @@
+[B180]
+RefCut: chr1 151274746
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B462]
+RefCut: chr10 116628791
+VirusCut: gi|59585|emb|X04615.1| 166 +2
+
+[B555]
+RefCut: chr11 28373639
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B611]
+RefCut: chr11 55568000
+VirusCut: gi|59585|emb|X04615.1| 15 +2
+
+[B868]
+RefCut: chr12 86066654
+VirusCut: gi|59585|emb|X04615.1| 114 +1
+
+[B970]
+RefCut: chr13 18843692
+VirusCut: gi|59585|emb|X04615.1| 5 +166
+
+[B1076]
+RefCut: chr13 100757691
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1356]
+RefCut: chr16 23650612
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1387]
+RefCut: chr16 54790037
+VirusCut: gi|59585|emb|X04615.1| 5 +3
+
+[B1515]
+RefCut: chr17 62166009
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1547]
+RefCut: chr18 138267
+VirusCut: gi|59585|emb|X04615.1| 7 +2
+
+[B1548]
+RefCut: chr18 138266
+VirusCut: gi|59585|emb|X04615.1| 10 +7
+
+[B1549]
+RefCut: chr18 336313
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1553]
+RefCut: chr18 794331
+VirusCut: gi|59585|emb|X04615.1| 4 +198
+
+[B1566]
+RefCut: chr18 1806077
+VirusCut: gi|59585|emb|X04615.1| 6 +3
+
+[B1577]
+RefCut: chr18 1808190
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1580]
+RefCut: chr18 2151414
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1581]
+RefCut: chr18 2152372
+VirusCut: gi|59585|emb|X04615.1| 4 +4
+
+[B1585]
+RefCut: chr18 2416903
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1607]
+RefCut: chr18 4398874
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1618]
+RefCut: chr18 5089714
+VirusCut: gi|59585|emb|X04615.1| 10 +1
+
+[B1630]
+RefCut: chr18 5148914
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1649]
+RefCut: chr18 7370188
+VirusCut: gi|59585|emb|X04615.1| 5 +1
+
+[B1658]
+RefCut: chr18 7650947
+VirusCut: gi|59585|emb|X04615.1| 6 +1
+
+[B1675]
+RefCut: chr18 7695125
+VirusCut: gi|59585|emb|X04615.1| 8 +195
+
+[B1681]
+RefCut: chr18 8236981
+VirusCut: gi|59585|emb|X04615.1| 16 +460
+
+[B1683]
+RefCut: chr18 8381976
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1685]
+RefCut: chr18 8859534
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1742]
+RefCut: chr18 10528685
+VirusCut: gi|59585|emb|X04615.1| 10 +1
+
+[B1746]
+RefCut: chr18 10630284
+VirusCut: gi|59585|emb|X04615.1| 7 +3
+
+[B1752]
+RefCut: chr18 10758600
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1769]
+RefCut: chr18 10930059
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1779]
+RefCut: chr18 11238442
+VirusCut: gi|59585|emb|X04615.1| 10 +1
+
+[B1783]
+RefCut: chr18 11482920
+VirusCut: gi|59585|emb|X04615.1| 5 +197
+
+[B1787]
+RefCut: chr18 11677873
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1793]
+RefCut: chr18 12020620
+VirusCut: gi|59585|emb|X04615.1| 24 +4
+
+[B1796]
+RefCut: chr18 12039471
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1801]
+RefCut: chr18 12345434
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1802]
+RefCut: chr18 12398310
+VirusCut: gi|59585|emb|X04615.1| 10 +4
+
+[B1810]
+RefCut: chr18 12616901
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1823]
+RefCut: chr18 13341061
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1826]
+RefCut: chr18 13422151
+VirusCut: gi|59585|emb|X04615.1| 20 +2
+
+[B1842]
+RefCut: chr18 14000394
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1846]
+RefCut: chr18 14047893
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1851]
+RefCut: chr18 14194322
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1872]
+RefCut: chr18 14535187
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1874]
+RefCut: chr18 14791983
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B1876]
+RefCut: chr18 15050568
+VirusCut: gi|59585|emb|X04615.1| 11 +2
+
+[B1908]
+RefCut: chr18 15482192
+VirusCut: gi|59585|emb|X04615.1| 22 +3
+
+[B1985]
+RefCut: chr18 15637282
+VirusCut: gi|59585|emb|X04615.1| 16 +2
+
+[B2041]
+RefCut: chr18 15739379
+VirusCut: gi|59585|emb|X04615.1| 14 +3
+
+[B2094]
+RefCut: chr18 15819965
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B2234]
+RefCut: chr18 15896387
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B2337]
+RefCut: chr18 15943450
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B2872]
+RefCut: chr18 16197668
+VirusCut: gi|59585|emb|X04615.1| 8 +1
+
+[B3654]
+RefCut: chr18 16777368
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B3932]
+RefCut: chr18 17058257
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4118]
+RefCut: chr18 17225613
+VirusCut: gi|59585|emb|X04615.1| 7 +4
+
+[B4268]
+RefCut: chr18 17358888
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4348]
+RefCut: chr18 17435862
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4409]
+RefCut: chr18 17510934
+VirusCut: gi|59585|emb|X04615.1| 19 +2
+
+[B4554]
+RefCut: chr18 17651462
+VirusCut: gi|59585|emb|X04615.1| 9 +5
+
+[B4634]
+RefCut: chr18 17740752
+VirusCut: gi|59585|emb|X04615.1| 17 +1
+
+[B4693]
+RefCut: chr18 17793341
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4793]
+RefCut: chr18 17887316
+VirusCut: gi|59585|emb|X04615.1| 27 +1
+
+[B4820]
+RefCut: chr18 17916233
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4826]
+RefCut: chr18 17921967
+VirusCut: gi|59585|emb|X04615.1| 6 +1
+
+[B4844]
+RefCut: chr18 17937984
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4868]
+RefCut: chr18 17955563
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B4997]
+RefCut: chr18 18078704
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B5190]
+RefCut: chr18 18253215
+VirusCut: gi|59585|emb|X04615.1| 14 +3
+
+[B5247]
+RefCut: chr18 18300315
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B5334]
+RefCut: chr18 18399936
+VirusCut: gi|59585|emb|X04615.1| 111 +1
+
+[B5455]
+RefCut: chr18 18521562
+VirusCut: gi|59585|emb|X04615.1| 108 +1
+
+[B5545]
+RefCut: chr18 18626597
+VirusCut: gi|59585|emb|X04615.1| 7 +3
+
+[B5556]
+RefCut: chr18 18632648
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B5767]
+RefCut: chr18 18860380
+VirusCut: gi|59585|emb|X04615.1| 5 +2
+
+[B5783]
+RefCut: chr18 18878823
+VirusCut: gi|59585|emb|X04615.1| 75 +3
+
+[B6131]
+RefCut: chr18 19197313
+VirusCut: gi|59585|emb|X04615.1| 11 +1
+
+[B6161]
+RefCut: chr18 19228058
+VirusCut: gi|59585|emb|X04615.1| 106 +1
+
+[B6196]
+RefCut: chr18 19268341
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B6259]
+RefCut: chr18 19333749
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B6272]
+RefCut: chr18 19348138
+VirusCut: gi|59585|emb|X04615.1| 13 +1
+
+[B6317]
+RefCut: chr18 19383896
+VirusCut: gi|59585|emb|X04615.1| 13 +3
+
+[B6478]
+RefCut: chr18 19525826
+VirusCut: gi|59585|emb|X04615.1| 29 +2
+
+[B6494]
+RefCut: chr18 19546145
+VirusCut: gi|59585|emb|X04615.1| 103 +1
+
+[B6505]
+RefCut: chr18 19555637
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B6641]
+RefCut: chr18 19684169
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B6862]
+RefCut: chr18 19885929
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B6943]
+RefCut: chr18 19951940
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B7089]
+RefCut: chr18 20074653
+VirusCut: gi|59585|emb|X04615.1| 20 +2
+
+[B7095]
+RefCut: chr18 20079979
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B7197]
+RefCut: chr18 20147305
+VirusCut: gi|59585|emb|X04615.1| 7 +3
+
+[B7332]
+RefCut: chr18 20220078
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B7369]
+RefCut: chr18 20239725
+VirusCut: gi|59585|emb|X04615.1| 50 +5
+
+[B7435]
+RefCut: chr18 20271553
+VirusCut: gi|59585|emb|X04615.1| 11 +1
+
+[B8076]
+RefCut: chr18 20662511
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B8096]
+RefCut: chr18 20932113
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B8100]
+RefCut: chr18 21068650
+VirusCut: gi|59585|emb|X04615.1| 19 +7
+
+[B8102]
+RefCut: chr18 21498516
+VirusCut: gi|59585|emb|X04615.1| 21 +181
+
+[B8114]
+RefCut: chr18 21556786
+VirusCut: gi|59585|emb|X04615.1| 6 +1
+
+[B8119]
+RefCut: chr18 21890910
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8123]
+RefCut: chr18 22015923
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8145]
+RefCut: chr18 22499809
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8147]
+RefCut: chr18 22506568
+VirusCut: gi|59585|emb|X04615.1| 5 +207
+
+[B8150]
+RefCut: chr18 22848159
+VirusCut: gi|59585|emb|X04615.1| 20 +1
+
+[B8151]
+RefCut: chr18 22852992
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8152]
+RefCut: chr18 23044149
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8155]
+RefCut: chr18 23051832
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8166]
+RefCut: chr18 23429203
+VirusCut: gi|59585|emb|X04615.1| 34 +5
+
+[B8167]
+RefCut: chr18 23429200
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8172]
+RefCut: chr18 23459350
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8180]
+RefCut: chr18 23485849
+VirusCut: gi|59585|emb|X04615.1| 4 +2
+
+[B8230]
+RefCut: chr18 25257594
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8242]
+RefCut: chr18 25382439
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8257]
+RefCut: chr18 25594000
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8269]
+RefCut: chr18 25873771
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8321]
+RefCut: chr18 25968329
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8328]
+RefCut: chr18 26134593
+VirusCut: gi|59585|emb|X04615.1| 48 +2
+
+[B8338]
+RefCut: chr18 26688074
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8346]
+RefCut: chr18 27361816
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8377]
+RefCut: chr18 28205172
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8378]
+RefCut: chr18 28209995
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8379]
+RefCut: chr18 28353312
+VirusCut: gi|59585|emb|X04615.1| 12 +192
+
+[B8382]
+RefCut: chr18 28801068
+VirusCut: gi|59585|emb|X04615.1| 7 +2
+
+[B8385]
+RefCut: chr18 29579614
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8386]
+RefCut: chr18 29745707
+VirusCut: gi|59585|emb|X04615.1| 8 +2
+
+[B8392]
+RefCut: chr18 30414973
+VirusCut: gi|59585|emb|X04615.1| 4 +2
+
+[B8396]
+RefCut: chr18 30689536
+VirusCut: gi|59585|emb|X04615.1| 15 +189
+
+[B8401]
+RefCut: chr18 31386550
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8405]
+RefCut: chr18 31878967
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8407]
+RefCut: chr18 31938816
+VirusCut: gi|59585|emb|X04615.1| 2 +1
+
+[B8424]
+RefCut: chr18 32393708
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8436]
+RefCut: chr18 32495088
+VirusCut: gi|59585|emb|X04615.1| 4 +1
+
+[B8439]
+RefCut: chr18 32685945
+VirusCut: gi|59585|emb|X04615.1| 7 +3
+
+[B8442]
+RefCut: chr18 33024971
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8452]
+RefCut: chr18 33366660
+VirusCut: gi|59585|emb|X04615.1| 15 +1
+
+[B8453]
+RefCut: chr18 33385838
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8457]
+RefCut: chr18 33647405
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8458]
+RefCut: chr18 33704092
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8459]
+RefCut: chr18 33838197
+VirusCut: gi|59585|emb|X04615.1| 14 +2
+
+[B8474]
+RefCut: chr18 34036725
+VirusCut: gi|59585|emb|X04615.1| 18 +1
+
+[B8484]
+RefCut: chr18 34453854
+VirusCut: gi|59585|emb|X04615.1| 18 +6
+
+[B8492]
+RefCut: chr18 35250762
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8494]
+RefCut: chr18 35323098
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8505]
+RefCut: chr18 35980676
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8506]
+RefCut: chr18 35980614
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8516]
+RefCut: chr18 35980670
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8517]
+RefCut: chr18 35980768
+VirusCut: gi|59585|emb|X04615.1| 6 +1
+
+[B8535]
+RefCut: chr18 37466897
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8539]
+RefCut: chr18 37882458
+VirusCut: gi|59585|emb|X04615.1| 12 +188
+
+[B8541]
+RefCut: chr18 38171768
+VirusCut: gi|59585|emb|X04615.1| 14 +1
+
+[B8543]
+RefCut: chr18 38273177
+VirusCut: gi|59585|emb|X04615.1| 8 +1
+
+[B8560]
+RefCut: chr18 39236219
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8575]
+RefCut: chr18 39319751
+VirusCut: gi|59585|emb|X04615.1| 17 +2
+
+[B8594]
+RefCut: chr18 41439109
+VirusCut: gi|59585|emb|X04615.1| 3 +2
+
+[B8595]
+RefCut: chr18 41499442
+VirusCut: gi|59585|emb|X04615.1| 10 +1
+
+[B8598]
+RefCut: chr18 41774697
+VirusCut: gi|59585|emb|X04615.1| 5 +1
+
+[B8603]
+RefCut: chr18 41964100
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B8605]
+RefCut: chr18 42352221
+VirusCut: gi|59585|emb|X04615.1| 11 +8
+
+[B8609]
+RefCut: chr18 42595403
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8618]
+RefCut: chr18 42880941
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8630]
+RefCut: chr18 43370077
+VirusCut: gi|59585|emb|X04615.1| 13 +1
+
+[B8633]
+RefCut: chr18 43536100
+VirusCut: gi|59585|emb|X04615.1| 10 +2
+
+[B8637]
+RefCut: chr18 43889478
+VirusCut: gi|59585|emb|X04615.1| 4 +2
+
+[B8638]
+RefCut: chr18 43989116
+VirusCut: gi|59585|emb|X04615.1| 106 +1
+
+[B8644]
+RefCut: chr18 44784660
+VirusCut: gi|59585|emb|X04615.1| 3 +1
+
+[B8656]
+RefCut: chr18 45693527
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8658]
+RefCut: chr18 45995011
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8665]
+RefCut: chr18 46000633
+VirusCut: gi|59585|emb|X04615.1| 16 +1
+
+[B8680]
+RefCut: chr18 46710263
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8682]
+RefCut: chr18 46752717
+VirusCut: gi|59585|emb|X04615.1| 4 +2
+
+[B8699]
+RefCut: chr18 47666546
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B8704]
+RefCut: chr18 48245110
+VirusCut: gi|59585|emb|X04615.1| 16 +1
+
+[B8709]
+RefCut: chr18 48551170
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8723]
+RefCut: chr18 49273529
+VirusCut: gi|59585|emb|X04615.1| 5 +5
+
+[B8724]
+RefCut: chr18 49273529
+VirusCut: gi|59585|emb|X04615.1| 11 +1
+
+[B8755]
+RefCut: chr18 50103560
+VirusCut: gi|59585|emb|X04615.1| 4 +2
+
+[B8756]
+RefCut: chr18 50217971
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8757]
+RefCut: chr18 50274680
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8761]
+RefCut: chr18 50408421
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B8773]
+RefCut: chr18 50609273
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8791]
+RefCut: chr18 51250847
+VirusCut: gi|59585|emb|X04615.1| 12 +1
+
+[B8793]
+RefCut: chr18 51412535
+VirusCut: gi|59585|emb|X04615.1| 25 +2
+
+[B8802]
+RefCut: chr18 52829174
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8804]
+RefCut: chr18 52868614
+VirusCut: gi|59585|emb|X04615.1| 24 +2
+
+[B8815]
+RefCut: chr18 52976654
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8820]
+RefCut: chr18 53550809
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8821]
+RefCut: chr18 53630998
+VirusCut: gi|59585|emb|X04615.1| 2 +354
+
+[B8866]
+RefCut: chr18 54763176
+VirusCut: gi|59585|emb|X04615.1| 11 +1
+
+[B8874]
+RefCut: chr18 55154884
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8876]
+RefCut: chr18 55557448
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8886]
+RefCut: chr18 56009983
+VirusCut: gi|59585|emb|X04615.1| 8 +3
+
+[B8907]
+RefCut: chr18 56565599
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8923]
+RefCut: chr18 58244888
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8930]
+RefCut: chr18 58720441
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8936]
+RefCut: chr18 58825435
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8945]
+RefCut: chr18 58986286
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B8960]
+RefCut: chr18 59095022
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B8961]
+RefCut: chr18 59170188
+VirusCut: gi|59585|emb|X04615.1| 11 +3
+
+[B8963]
+RefCut: chr18 59170188
+VirusCut: gi|59585|emb|X04615.1| 38 +2
+
+[B8969]
+RefCut: chr18 59432286
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B8970]
+RefCut: chr18 59442249
+VirusCut: gi|59585|emb|X04615.1| 17 +1
+
+[B8994]
+RefCut: chr18 59717649
+VirusCut: gi|59585|emb|X04615.1| 13 +1
+
+[B9000]
+RefCut: chr18 59884890
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9001]
+RefCut: chr18 60011677
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9003]
+RefCut: chr18 60115897
+VirusCut: gi|59585|emb|X04615.1| 21 +1
+
+[B9004]
+RefCut: chr18 60161510
+VirusCut: gi|59585|emb|X04615.1| 42 +1
+
+[B9008]
+RefCut: chr18 60585451
+VirusCut: gi|59585|emb|X04615.1| 3 +354
+
+[B9011]
+RefCut: chr18 60732753
+VirusCut: gi|59585|emb|X04615.1| 18 +1
+
+[B9012]
+RefCut: chr18 60904668
+VirusCut: gi|59585|emb|X04615.1| 3 +200
+
+[B9030]
+RefCut: chr18 61086845
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9033]
+RefCut: chr18 61151626
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9036]
+RefCut: chr18 61308157
+VirusCut: gi|59585|emb|X04615.1| 2 +1
+
+[B9067]
+RefCut: chr18 62912283
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9070]
+RefCut: chr18 63206414
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9089]
+RefCut: chr18 64401625
+VirusCut: gi|59585|emb|X04615.1| 12 +2
+
+[B9108]
+RefCut: chr18 64885932
+VirusCut: gi|59585|emb|X04615.1| 31 +17
+
+[B9113]
+RefCut: chr18 65618236
+VirusCut: gi|59585|emb|X04615.1| 12 +1
+
+[B9115]
+RefCut: chr18 65891065
+VirusCut: gi|59585|emb|X04615.1| 8 +2
+
+[B9117]
+RefCut: chr18 66028096
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9118]
+RefCut: chr18 66074918
+VirusCut: gi|59585|emb|X04615.1| 13 +1
+
+[B9120]
+RefCut: chr18 66130377
+VirusCut: gi|59585|emb|X04615.1| 7 +2
+
+[B9121]
+RefCut: chr18 66185859
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9124]
+RefCut: chr18 66422608
+VirusCut: gi|59585|emb|X04615.1| 17 +1
+
+[B9127]
+RefCut: chr18 66808352
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9134]
+RefCut: chr18 67212772
+VirusCut: gi|59585|emb|X04615.1| 5 +1
+
+[B9217]
+RefCut: chr18 68096334
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9221]
+RefCut: chr18 68229908
+VirusCut: gi|59585|emb|X04615.1| 7 +2
+
+[B9224]
+RefCut: chr18 68520018
+VirusCut: gi|59585|emb|X04615.1| 5 +351
+
+[B9227]
+RefCut: chr18 68670535
+VirusCut: gi|59585|emb|X04615.1| 7 +243
+
+[B9229]
+RefCut: chr18 68760346
+VirusCut: gi|59585|emb|X04615.1| 5 +3
+
+[B9236]
+RefCut: chr18 69280175
+VirusCut: gi|59585|emb|X04615.1| 10 +2
+
+[B9248]
+RefCut: chr18 70182586
+VirusCut: gi|59585|emb|X04615.1| 46 +3
+
+[B9275]
+RefCut: chr18 71159401
+VirusCut: gi|59585|emb|X04615.1| 52 +7
+
+[B9276]
+RefCut: chr18 71159392
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B9310]
+RefCut: chr18 72855879
+VirusCut: gi|59585|emb|X04615.1| 10 +5
+
+[B9315]
+RefCut: chr18 73119501
+VirusCut: gi|59585|emb|X04615.1| 11 +2
+
+[B9323]
+RefCut: chr18 73682471
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9331]
+RefCut: chr18 74657630
+VirusCut: gi|59585|emb|X04615.1| 7 +2
+
+[B9335]
+RefCut: chr18 74814899
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9339]
+RefCut: chr18 75314017
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9351]
+RefCut: chr18 75846884
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9355]
+RefCut: chr18 75846885
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9357]
+RefCut: chr18 75846885
+VirusCut: gi|59585|emb|X04615.1| 3 +1
+
+[B9359]
+RefCut: chr18 75846884
+VirusCut: gi|59585|emb|X04615.1| 11 +1
+
+[B9367]
+RefCut: chr18 75846884
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9370]
+RefCut: chr18 75906930
+VirusCut: gi|59585|emb|X04615.1| 16 +1
+
+[B9380]
+RefCut: chr18 76343801
+VirusCut: gi|59585|emb|X04615.1| 13 +1
+
+[B9381]
+RefCut: chr18 76353477
+VirusCut: gi|59585|emb|X04615.1| 16 +1
+
+[B9382]
+RefCut: chr18 76398337
+VirusCut: gi|59585|emb|X04615.1| 28 +2
+
+[B9386]
+RefCut: chr18 76688792
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B9388]
+RefCut: chr18 76826053
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9394]
+RefCut: chr18 77371566
+VirusCut: gi|59585|emb|X04615.1| 7 +1
+
+[B9398]
+RefCut: chr18 77724684
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9399]
+RefCut: chr18 77910633
+VirusCut: gi|59585|emb|X04615.1| 8 +1
+
+[B9403]
+RefCut: chr18 78577606
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9407]
+RefCut: chr18 79263840
+VirusCut: gi|59585|emb|X04615.1| 49 +3
+
+[B9412]
+RefCut: chr18 79431593
+VirusCut: gi|59585|emb|X04615.1| 2 +1
+
+[B9423]
+RefCut: chr18 79621212
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9428]
+RefCut: chr18 79812360
+VirusCut: gi|59585|emb|X04615.1| 29 +1
+
+[B9432]
+RefCut: chr18 80050465
+VirusCut: gi|59585|emb|X04615.1| 8 +1
+
+[B9433]
+RefCut: chr18 80050465
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9481]
+RefCut: chr19 19798618
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9516]
+RefCut: chr19 41420580
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B9682]
+RefCut: chr2 94843000
+VirusCut: gi|59585|emb|X04615.1| 5 +1
+
+[B9728]
+RefCut: chr2 127776628
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10011]
+RefCut: chr20 53761875
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10034]
+RefCut: chr21 13421111
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10413]
+RefCut: chr3 138867864
+VirusCut: gi|59585|emb|X04615.1| 3 +1
+
+[B10515]
+RefCut: chr4 22172875
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10686]
+RefCut: chr4 143104947
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10705]
+RefCut: chr4 154774431
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10865]
+RefCut: chr5 77474149
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B10924]
+RefCut: chr5 126224658
+VirusCut: gi|59585|emb|X04615.1| 119 +9
+
+[B11053]
+RefCut: chr6 45782503
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B11171]
+RefCut: chr6 115236692
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B11301]
+RefCut: chr7 44818688
+VirusCut: gi|59585|emb|X04615.1| 106 +4
+
+[B11653]
+RefCut: chr8 105791630
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B11687]
+RefCut: chr8 136864978
+VirusCut: gi|59585|emb|X04615.1| 31 +1
+
+[B11725]
+RefCut: chr9 24580372
+VirusCut: gi|59585|emb|X04615.1| 0 +1
+
+[B12178]
+RefCut: chrX 150250334
+VirusCut: gi|59585|emb|X04615.1| 9 +1
+
+[B12240]
+RefCut: chrY 15665315
+VirusCut: gi|59585|emb|X04615.1| 4 +3
+
