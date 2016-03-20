@@ -2,13 +2,23 @@
 
 #KEYFILE="$HOME/Dropbox/Galaxy/dotfiles/ssh/GalaxyMini"
 #KEYFILE='-i /Users/Galaxy/Dropbox/Galaxy/dotfiles/ssh/GalaxyMini'
+PINKPLUS4='-p 22 galaxy@svps.pinkplus.org'
+PINKPLUS6='-p 26386 galaxy@2403:3a00:202:1129:49:212:210:128'
+
 COMMONARG='-o ServerAliveInterval=59 -N -f'
 NoHostKeyCheck='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
 RandomPort='RANDOM % 64000 + 1024'
 
+IPv6=`ifconfig |grep inet6|grep -Ev 'inet6 (fe80::|::1)' || echo not`
+if [[ "$IPv6" == "not" ]]; then
+	PINKPLUS=${PINKPLUS4}
+else
+	PINKPLUS=${PINKPLUS6}
+fi
+
 #/usr/local/bin/autossh -M $(($RANDOM%64000 + 1024)) -f galaxy@svps.pinkplus.org -6 -p 26386 -C -D 7575 $COMMONARG $KEYFILE
 #/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@svps.pinkplus.org -p 22 -C -D 7575 $COMMONARG $KEYFILE
-/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@2403:3a00:202:1129:49:212:210:128 -p 26386 -C -D7575 $COMMONARG $KEYFILE
+/usr/local/bin/autossh -M $(($RandomPort)) -f ${PINKPLUS} -C -D7575 $COMMONARG $KEYFILE
 
 /usr/local/bin/autossh -M $(($RandomPort)) -f luolab@eeb-zhanglab.eeb.lsa.umich.edu -C -D8000 $COMMONARG $KEYFILE
 
