@@ -4,12 +4,17 @@ import filetimes
 import kmsPidGenerator
 import os
 import struct
-import sqlite3
 import sys
 import time
 import uuid
 
 from structure import Structure
+
+# sqlite3 is optional
+try:
+	import sqlite3
+except:
+	pass
 
 class UUID(Structure):
 	commonHdr = ()
@@ -218,8 +223,8 @@ class kmsBase:
 		return padding
 
 	def serverLogic(self, kmsRequest):
-		if self.config['log']:
-			self.dbName = 'log.db'
+		if self.config['sqlite'] and self.config['dbSupport']:
+			self.dbName = 'clients.db'
 			if not os.path.isfile(self.dbName):
 				# Initialize the database.
 				con = None
@@ -274,7 +279,7 @@ class kmsBase:
 			print "   Licence Status: %s" % infoDict["licenseStatus"]
 			print "     Request Time: %s" % local_dt.strftime('%Y-%m-%d %H:%M:%S %Z (UTC%z)')
 
-		if self.config['log']:
+		if self.config['sqlite'] and self.config['dbSupport']:
 			con = None
 			try:
 				con = sqlite3.connect(self.dbName)
@@ -329,7 +334,7 @@ class kmsBase:
 		response['vLActivationInterval'] = self.config["VLActivationInterval"]
 		response['vLRenewalInterval'] = self.config["VLRenewalInterval"]
 
-		if self.config['log']:
+		if self.config['sqlite'] and self.config['dbSupport']:
 			con = None
 			try:
 				con = sqlite3.connect(self.dbName)
