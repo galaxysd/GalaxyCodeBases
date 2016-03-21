@@ -65,8 +65,15 @@ def main():
 		if config['debug']:
 			print "Response:", binascii.b2a_hex(response)
 		parsed = MSRPCRespHeader(response)
-		kmsResp = readKmsResponse(parsed['pduData'], kmsRequest, config)['response']
+		kmsData = readKmsResponse(parsed['pduData'], kmsRequest, config)
+		kmsResp = kmsData['response']
+		try:
+			hwid = kmsData['hwid']
+		except:
+			hwid = None
 		print "KMS Host ePID:", kmsResp['kmsEpid']
+		if hwid is not None:
+			print "KMS Host HWID:", binascii.b2a_hex(hwid).upper()
 		print "KMS Host Current Client Count:", kmsResp['currentClientCount']
 		print "KMS VL Activation Interval:", kmsResp['vLActivationInterval']
 		print "KMS VL Renewal Interval:", kmsResp['vLRenewalInterval']

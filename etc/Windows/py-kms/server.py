@@ -2,6 +2,7 @@ import argparse
 import binascii
 import hashlib
 import random
+import re
 import socket
 import SocketServer
 import struct
@@ -26,7 +27,20 @@ def main():
 	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Use this flag to enable debug output. Implies \"-v\".")
 	parser.add_argument("-s", "--sqlite", dest="sqlite", action="store_const", const=True, default=False, help="Use this flag to store request information from unique clients in an SQLite database.")
 	parser.add_argument("-o", "--log", dest="log", action="store_const", const=True, default=False, help="Use this flag to enable logging to a file.")
+	parser.add_argument("-w", "--hwid", dest="hwid", action="store", default='364F463A8863D35F', help="Use this flag to specify a HWID. The HWID must be an 16-character string of hex characters. The default is \"364F463A8863D35F\".")	
 	config.update(vars(parser.parse_args()))
+	# Sanitize HWID
+	try:
+		config['hwid'] = binascii.a2b_hex(re.sub(r'[^0-9a-fA-F]', '', config['hwid'].strip('0x')))
+		if len(binascii.b2a_hex(config['hwid'])) < 16:
+			print "Error: HWID \"%s\" is invalid. Hex string is too short." % binascii.b2a_hex(config['hwid'])
+			return
+		elif len(binascii.b2a_hex(config['hwid'])) > 16:
+			print "Error: HWID \"%s\" is invalid. Hex string is too long." % binascii.b2a_hex(config['hwid'])
+			return
+	except TypeError:
+		print "Error: HWID \"%s\" is invalid. Odd-length hex string." % binascii.b2a_hex(config['hwid'])
+		return
 	if config['debug']:
 		config['verbose'] = True
 	try:

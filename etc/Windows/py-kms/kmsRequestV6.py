@@ -16,7 +16,7 @@ class kmsRequestV6(kmsRequestV5):
 				('response', ':', kmsBase.kmsResponseStruct),
 				('keys',     '16s'),
 				('hash',     '32s'),
-				('unknown',  '!Q=0x364F463A8863D35F'),
+				('hwid',     '8s'),
 				('xorSalts', '16s'),
 			)
 
@@ -55,6 +55,7 @@ class kmsRequestV6(kmsRequestV5):
 		message['keys'] = str(randomStuff)
 		message['hash'] = result
 		message['xorSalts'] = str(XorSalts)
+		message['hwid'] = self.config['hwid']
 
 		# SaltS
 		SaltS = self.getRandomSalt()
