@@ -6,7 +6,10 @@ import socket
 import SocketServer
 import struct
 import uuid
-import rpcBase, rpcBind, rpcRequest
+import rpcBind, rpcRequest
+
+from dcerpc import MSRPCHeader
+from rpcBase import rpcBase
 
 config = {}
 
@@ -48,13 +51,12 @@ class kmsServer(SocketServer.BaseRequestHandler):
 				break
 			# self.data = bytearray(self.data.strip())
 			# print binascii.b2a_hex(str(self.data))
-			localRpcBase = rpcBase.rpcBase(self.data, config)
-			packetType = localRpcBase.parseHeader(self.data)['packetType']
-			if packetType == localRpcBase.packetType['bindReq']:
+			packetType = MSRPCHeader(self.data)['type']
+			if packetType == rpcBase.packetType['bindReq']:
 				if config['verbose']:
 					print "RPC bind request received."
 				handler = rpcBind.handler(self.data, config)
-			elif packetType == localRpcBase.packetType['request']:
+			elif packetType == rpcBase.packetType['request']:
 				if config['verbose']:
 					print "Received activation request."
 				handler = rpcRequest.handler(self.data, config)
@@ -66,10 +68,10 @@ class kmsServer(SocketServer.BaseRequestHandler):
 			res = str(handler.getResponse())
 			self.connection.send(res)
 
-			if packetType == localRpcBase.packetType['bindReq']:
+			if packetType == rpcBase.packetType['bindReq']:
 				if config['verbose']:
 					print "RPC bind acknowledged."
-			elif packetType == localRpcBase.packetType['request']:
+			elif packetType == rpcBase.packetType['request']:
 				if config['verbose']:
 					print "Responded to activation request."
 				break

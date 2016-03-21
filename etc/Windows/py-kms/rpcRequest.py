@@ -4,65 +4,40 @@ import rpcBase
 import struct
 import uuid
 
+from dcerpc import MSRPCRequestHeader, MSRPCRespHeader
+
 class handler(rpcBase.rpcBase):
 	def parseRequest(self):
-		data = self.data
-		request = self.parseHeader(data)
+		request = MSRPCRequestHeader(self.data)
 
-		request['allocHint'] = struct.unpack_from('<I', str(data), 16)[0]
-		request['contextId'] = struct.unpack_from('<H', str(data), 20)[0]
-		request['opnum'] = struct.unpack_from('<H', str(data), 22)[0]
-		request['data'] = data[24:24 + request['allocHint']]
+		if self.config['debug']:
+			print "RPC Message Request Bytes:", binascii.b2a_hex(self.data)
+			print "RPC Message Request:", request.dump()
 
 		return request
 
 	def generateResponse(self):
-		response = {}
 		request = self.requestData
 
-		response['data'] = kmsBase.generateKmsResponseData(request['data'], self.config)
-		envelopeLength = len(response['data'])
+		responseData = kmsBase.generateKmsResponseData(request['pduData'], self.config)
+		envelopeLength = len(responseData)
 
-		response['version'] = request['version']
-		response['versionMinor'] = request['versionMinor']
-		response['packetType'] = rpcBase.rpcBase.packetType['response']
-		response['packetFlags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag']
-		response['dataRepresentation'] = request['dataRepresentation']
-		response['fragLength'] = envelopeLength + 24
-		response['authLength'] = request['authLength']
-		response['callId'] = request['callId']
+		response = MSRPCRespHeader()
+		response['ver_major'] = request['ver_major']
+		response['ver_minor'] = request['ver_minor']
+		response['type'] = rpcBase.rpcBase.packetType['response']
+		response['flags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag']
+		response['representation'] = request['representation']
+		response['call_id'] = request['call_id']
 
-		response['allocHint'] = envelopeLength
-		response['contextId'] = request['contextId']
-		response['cancelCount'] = 0x00
-		response['opnum'] = request['opnum']
+		response['alloc_hint'] = envelopeLength
+		response['ctx_id'] = request['ctx_id']
+		response['cancel_count'] = 0
+
+		response['pduData'] = responseData
 
 		if self.config['debug']:
-			print "RPC Message Response:", response
+			print "RPC Message Response:", response.dump()
+			print "RPC Message Response Bytes:", binascii.b2a_hex(str(response))
 
 		return response
-
-	def generateResponseArray(self):
-		response = self.responseData
-		responseArray = str()
-		responseArray += struct.pack('B', response['version'])
-		responseArray += struct.pack('B', response['versionMinor'])
-		responseArray += struct.pack('B', response['packetType'])
-		responseArray += struct.pack('B', response['packetFlags'])
-		responseArray += struct.pack('<I', response['dataRepresentation'])
-		responseArray += struct.pack('<H', response['fragLength'])
-		responseArray += struct.pack('<H', response['authLength'])
-		responseArray += struct.pack('<I', response['callId'])
-		responseArray += struct.pack('<I', response['allocHint'])
-		responseArray += struct.pack('<H', response['contextId'])
-		responseArray += struct.pack('B', response['cancelCount'])
-		responseArray += struct.pack('B', 0) # Reserved
-		responseArray += response['data']
-
-		if self.config['debug']:
-			print "RPC Message Response Bytes:", binascii.b2a_hex(str(responseArray))
-
-		return responseArray
-
-	def getResponse(self):
-		return self.responseArray

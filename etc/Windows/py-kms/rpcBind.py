@@ -3,161 +3,118 @@ import rpcBase
 import struct
 import uuid
 
-class rpcBindRequestCtxItem:
-	dataLength = 44
+from dcerpc import MSRPCHeader, MSRPCBindAck
+from structure import Structure
 
-	def __init__(self, data):
-		self.contextId = struct.unpack_from('<H', str(data), 0)[0];
-		self.numTransItems = struct.unpack_from('<H', str(data), 2)[0];
-		self.abstractSyntaxUUID = uuid.UUID(bytes_le=str(data[4:4 + 16]))
-		self.abstractSyntaxVersionMajor = struct.unpack_from('<H', str(data), 20)[0]
-		self.abstractSyntaxVersionMinor = struct.unpack_from('<H', str(data), 22)[0]
-		self.transferSyntaxUUID = uuid.UUID(bytes_le=str(data[24:24 + 16]))
-		self.transferSyntaxVersion = struct.unpack_from('<I', str(data), 40)[0]
+class CtxItem(Structure):
+	structure = (
+		('ContextID',          '<H=0'),
+		('TransItems',         'B=0'),
+		('Pad',                'B=0'),
+		('AbstractSyntaxUUID', '16s=""'),
+		('AbstractSyntaxVer',  '<I=0'),
+		('TransferSyntaxUUID', '16s=""'),
+		('TransferSyntaxVer',  '<I=0'),
+	)
 
-	def toDictionary(self):
-		dictionary = {}
-		dictionary['contextId'] = self.contextId
-		dictionary['numTransItems'] = self.numTransItems
-		dictionary['abstractSyntaxUUID'] = self.abstractSyntaxUUID
-		dictionary['abstractSyntaxVersionMajor'] = self.abstractSyntaxVersionMajor
-		dictionary['abstractSyntaxVersionMinor'] = self.abstractSyntaxVersionMinor
-		dictionary['transferSyntaxUUID'] = self.transferSyntaxUUID
-		dictionary['transferSyntaxVersion'] = self.transferSyntaxVersion
-		return dictionary
+	def ts(self):
+		return uuid.UUID(bytes_le=self['TransferSyntaxUUID'])
 
-	def toByteArray(self):
-		bytes = bytearray()
-		bytes.extend(bytearray(struct.pack('<H', self.contextId)))
-		bytes.extend(bytearray(struct.pack('<H', self.numTransItems)))
-		bytes.extend(self.abstractSyntaxUUID.bytes_le)
-		bytes.extend(bytearray(struct.pack('<H', self.abstractSyntaxVersionMajor)))
-		bytes.extend(bytearray(struct.pack('<H', self.abstractSyntaxVersionMinor)))
-		bytes.extend(self.transferSyntaxUUID.bytes_le)
-		bytes.extend(bytearray(struct.pack('<I', self.transferSyntaxVersion)))
-		return bytes
+class CtxItemResult(Structure):
+	structure = (
+		('Result',             '<H=0'),
+		('Reason',             '<H=0'),
+		('TransferSyntaxUUID', '16s=""'),
+		('TransferSyntaxVer',  '<I=0'),
+	)
 
-class rpcBindResponseCtxItem:
-	def __init__(self, data):
-		self.ackResult = data['ackResult']
-		self.ackReason = data['ackReason']
-		self.transferSyntax = data['transferSyntax']
-		self.syntaxVersion = data['syntaxVersion']
+	def __init__(self, result, reason, tsUUID, tsVer):
+		Structure.__init__(self)
+		self['Result'] = result
+		self['Reason'] = reason
+		self['TransferSyntaxUUID'] = tsUUID.bytes_le
+		self['TransferSyntaxVer'] = tsVer
 
-	def toDictionary(self):
-		dictionary = {}
-		dictionary['ackResult'] = self.ackResult
-		dictionary['ackReason'] = self.ackReason
-		dictionary['transferSyntax'] = self.transferSyntax
-		dictionary['syntaxVersion'] = self.syntaxVersion
-		return dictionary
+class MSRPCBind(Structure):
+	class CtxItemArray:
+		def __init__(self, data):
+			self.data = data
 
-	def toByteArray(self):
-		bytes = bytearray()
-		bytes.extend(bytearray(struct.pack('<H', self.ackResult)))
-		bytes.extend(bytearray(struct.pack('<H', self.ackReason)))
-		bytes.extend(self.transferSyntax.bytes_le)
-		bytes.extend(bytearray(struct.pack('<I', self.syntaxVersion)))
-		return bytes
+		def __len__(self):
+			return len(self.data)
 
+		def __str__(self):
+			return self.data
+
+		def __getitem__(self, i):
+			return CtxItem(self.data[(len(CtxItem()) * i):])
+
+	_CTX_ITEM_LEN = len(CtxItem())
+
+	structure = ( 
+	        ('max_tfrag',   '<H=4280'),
+	        ('max_rfrag',   '<H=4280'),
+	        ('assoc_group', '<L=0'),
+	        ('ctx_num',     'B=0'),
+	        ('Reserved',    'B=0'),
+	        ('Reserved2',   '<H=0'),
+	        ('_ctx_items',  '_-ctx_items', 'self["ctx_num"]*self._CTX_ITEM_LEN'),
+	        ('ctx_items',   ':', CtxItemArray),
+	)
+ 
 class handler(rpcBase.rpcBase):
-	def parseRequest(self):
-		data = self.data
-		request = self.parseHeader(data)
-		request['maxXmitFrag'] = struct.unpack_from('<H', str(data), 16)[0]
-		request['maxRecvFrag'] = struct.unpack_from('<H', str(data), 18)[0]
-		request['assocGroup'] = struct.unpack_from('<I', str(data), 20)[0]
-		request['numCtxItems'] = struct.unpack_from('<I', str(data), 24)[0]
+	uuidNDR32 = uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860')
+	uuidNDR64 = uuid.UUID('71710533-beba-4937-8319-b5dbef9ccc36')
+	uuidTime = uuid.UUID('6cb71c2c-9812-4540-0300-000000000000')
+	uuidEmpty = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
-		request['ctxItems'] = []
-		for i in range(0, request['numCtxItems']):
-			ctxOffset = (i * rpcBindRequestCtxItem.dataLength) + 28
-			localRpcBindRequestCtxItem = rpcBindRequestCtxItem(data[ctxOffset:ctxOffset + rpcBindRequestCtxItem.dataLength])
-			request['ctxItems'].append(localRpcBindRequestCtxItem.toDictionary())
+	def parseRequest(self):
+		request = MSRPCHeader(self.data)
 
 		if self.config['debug']:
-			print "RPC Bind Request:", request
+			print "RPC Bind Request Bytes:", binascii.b2a_hex(self.data)
+			print "RPC Bind Request:", MSRPCBind(request['pduData']).dump()
 
 		return request
 
 	def generateResponse(self):
-		response = {}
+		response = MSRPCBindAck()
 		request = self.requestData
+		bind = MSRPCBind(request['pduData'])
 
-		response['version'] = request['version']
-		response['versionMinor'] = request['versionMinor']
-		response['packetType'] = rpcBase.rpcBase.packetType['bindAck']
-		response['packetFlags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag'] | rpcBase.rpcBase.packetFlags['multiplex']
-		response['dataRepresentation'] = request['dataRepresentation']
-		response['fragLength'] = 36 + request['numCtxItems'] * 24
-		response['authLength'] = request['authLength']
-		response['callId'] = request['callId']
+		response['ver_major'] = request['ver_major']
+		response['ver_minor'] = request['ver_minor']
+		response['type'] = rpcBase.rpcBase.packetType['bindAck']
+		response['flags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag'] | rpcBase.rpcBase.packetFlags['multiplex']
+		response['representation'] = request['representation']
+		response['frag_len'] = 36 + bind['ctx_num'] * 24
+		response['auth_len'] = request['auth_len']
+		response['call_id'] = request['call_id']
 
-		response['maxXmitFrag'] = request['maxXmitFrag']
-		response['maxRecvFrag'] = request['maxRecvFrag']
-		response['assocGroup'] = 0x1063bf3f
+		response['max_tfrag'] = bind['max_tfrag']
+		response['max_rfrag'] = bind['max_rfrag']
+		response['assoc_group'] = 0x1063bf3f
 
-		response['secondaryAddressLength'] = 6
-		response['secondaryAddress'] = bytearray(str(self.config['port']).ljust(6, '\0'))
-		response['numberOfResults'] = request['numCtxItems']
+		port = str(self.config['port'])
+		response['SecondaryAddrLen'] = len(port) + 1
+		response['SecondaryAddr'] = port
+		pad = (4-((response["SecondaryAddrLen"]+MSRPCBindAck._SIZE) % 4))%4
+		response['Pad'] = '\0' * pad
+		response['ctx_num'] = bind['ctx_num']
 
 		preparedResponses = {}
-		preparedResponses[self.uuidNDR32] = rpcBindResponseCtxItem({
-			'ackResult' : 0,
-			'ackReason' : 0,
-			'transferSyntax' : self.uuidNDR32,
-			'syntaxVersion' : 2
-		})
-		preparedResponses[self.uuidNDR64] = rpcBindResponseCtxItem({
-			'ackResult' : 2,
-			'ackReason' : 2,
-			'transferSyntax' : self.uuidEmpty,
-			'syntaxVersion' : 0
-		})
-		preparedResponses[self.uuidTime] = rpcBindResponseCtxItem({
-			'ackResult' : 3,
-			'ackReason' : 3,
-			'transferSyntax' : self.uuidEmpty,
-			'syntaxVersion' : 0
-		})
+		preparedResponses[self.uuidNDR32] = CtxItemResult(0, 0, self.uuidNDR32, 2)
+		preparedResponses[self.uuidNDR64] = CtxItemResult(2, 2, self.uuidEmpty, 0)
+		preparedResponses[self.uuidTime] = CtxItemResult(3, 3, self.uuidEmpty, 0)
 
-		response['ctxItems'] = []
-		for i in range (0, request['numCtxItems']):
-			resp = preparedResponses[request['ctxItems'][i]['transferSyntaxUUID']]
-			response['ctxItems'].append(resp)
+		response['ctx_items'] = ''
+		for i in range (0, bind['ctx_num']):
+			ts_uuid = bind['ctx_items'][i].ts()
+			resp = preparedResponses[ts_uuid]
+			response['ctx_items'] += str(resp)
 
 		if self.config['debug']:
-			print "RPC Bind Response:", response
+			print "RPC Bind Response:", response.dump()
+			print "RPC Bind Response Bytes:", binascii.b2a_hex(str(response))
 
 		return response
-
-	def generateResponseArray(self):
-		response = self.responseData
-		responseArray = bytearray()
-		responseArray.append(response['version'])
-		responseArray.append(response['versionMinor'])
-		responseArray.append(response['packetType'])
-		responseArray.append(response['packetFlags'])
-		responseArray.extend(bytearray(struct.pack('<I', response['dataRepresentation'])))
-		responseArray.extend(bytearray(struct.pack('<H', response['fragLength'])))
-		responseArray.extend(bytearray(struct.pack('<H', response['authLength'])))
-		responseArray.extend(bytearray(struct.pack('<I', response['callId'])))
-
-		responseArray.extend(bytearray(struct.pack('<H', response['maxXmitFrag'])))
-		responseArray.extend(bytearray(struct.pack('<H', response['maxRecvFrag'])))
-		responseArray.extend(bytearray(struct.pack('<I', response['assocGroup'])))
-
-		responseArray.extend(bytearray(struct.pack('<H', response['secondaryAddressLength'])))
-		responseArray.extend(response['secondaryAddress'])
-		responseArray.extend(bytearray(struct.pack('<I', response['numberOfResults'])))
-
-		for i in range(0, len(response['ctxItems'])):
-			responseArray.extend(response['ctxItems'][i].toByteArray())
-
-		if self.config['debug']:
-			print "RPC Bind Response Bytes:", binascii.b2a_hex(str(responseArray))
-
-		return responseArray
-
-	def getResponse(self):
-		return str(self.responseArray)

@@ -35,20 +35,13 @@ class rpcBase:
 		'objectUuid' : 128 # 0x80
 	}
 
-	uuidNDR32 = uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860')
-	uuidNDR64 = uuid.UUID('71710533-beba-4937-8319-b5dbef9ccc36')
-	uuidTime = uuid.UUID('6cb71c2c-9812-4540-0300-000000000000')
-	uuidEmpty = uuid.UUID('00000000-0000-0000-0000-000000000000')
-
 	def __init__(self, data, config):
 		self.data = data
 		self.config = config
 
 	def populate(self):
-		self.requestHeader = self.parseHeader(self.data)
 		self.requestData = self.parseRequest()
 		self.responseData = self.generateResponse()
-		self.responseArray = self.generateResponseArray()
 		return self
 
 	def getConfig(self):
@@ -64,16 +57,4 @@ class rpcBase:
 		return {}
 
 	def getResponse(self):
-		return ''
-
-	def parseHeader(self, data):
-		header = {}
-		header['version'] = struct.unpack_from('B', str(data), 0)[0]
-		header['versionMinor'] = struct.unpack_from('B', str(data), 1)[0]
-		header['packetType'] = struct.unpack_from('B', str(data), 2)[0]
-		header['packetFlags'] = struct.unpack_from('B', str(data), 3)[0]
-		header['dataRepresentation'] = struct.unpack_from('<I', str(data), 4)[0]
-		header['fragLength'] = struct.unpack_from('<H', str(data), 8)[0]
-		header['authLength'] = struct.unpack_from('<H', str(data), 10)[0]
-		header['callId'] = struct.unpack_from('<I', str(data), 12)[0]
-		return header
+		return self.responseData

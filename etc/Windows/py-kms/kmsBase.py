@@ -7,6 +7,15 @@ import uuid
 
 from structure import Structure
 
+class UUID(Structure):
+	commonHdr = ()
+	structure = (
+		('raw', '16s'),
+	)
+
+	def get(self):
+		return uuid.UUID(bytes_le=str(self))
+
 class kmsBase:
 	class kmsRequestStruct(Structure):
 		commonHdr = ()
@@ -16,20 +25,20 @@ class kmsBase:
 			('isClientVm',              '<I'),
 			('licenseStatus',           '<I'),
 			('graceTime',               '<I'),
-			('applicationId',           '16s'),
-			('skuId',                   '16s'),
-			('kmsCountedId' ,           '16s'),
-			('clientMachineId',         '16s'),
+			('applicationId',           ':', UUID),
+			('skuId',                   ':', UUID),
+			('kmsCountedId' ,           ':', UUID),
+			('clientMachineId',         ':', UUID),
 			('requiredClientCount',     '<I'),
 			('requestTime',             '<Q'),
-			('previousClientMachineId', '16s'),
-			('machineName',             '128s'),
+			('previousClientMachineId', ':', UUID),
+			('machineName',             'u'),
+			('_mnPad',                  '_-mnPad', '126-len(machineName)'),
+			('mnPad',                   ':'),
 		)
 
 		def getMachineName(self):
-			data = self['machineName'].rsplit('\0\0')[0]
-			data += (len(data) & 1 and '\0' or '')
-			return data.decode('utf-16le')
+			return self['machineName'].decode('utf-16le')
 
 		def getLicenseStatus(self):
 			return kmsBase.licenseStates[self['licenseStatus']] or "Unknown"
@@ -41,7 +50,7 @@ class kmsBase:
 			('versionMajor',         '<H'),
 			('epidLen',              '<I=len(kmsEpid)+2'),
 			('kmsEpid',              'u'),
-			('clientMachineId',      '16s'),
+			('clientMachineId',      ':', UUID),
 			('responseTime',         '<Q'),
 			('currentClientCount',   '<I'),
 			('vLActivationInterval', '<I'),
@@ -204,18 +213,15 @@ class kmsBase:
 		padding = bytearray(paddingLength)
 		return padding
 
-	def getUUID(self, data):
-		return uuid.UUID(bytes_le=data)
-	
 	def serverLogic(self, kmsRequest):
 		if self.config['debug']:
 			print "KMS Request Bytes:", binascii.b2a_hex(str(kmsRequest))
 			print "KMS Request:", kmsRequest.dump()
 
 		if self.config['verbose']:
-			clientMachineId = self.getUUID(kmsRequest['clientMachineId'])
-			applicationId = self.getUUID(kmsRequest['applicationId'])
-			skuId = self.getUUID(kmsRequest['skuId'])
+			clientMachineId = kmsRequest['clientMachineId'].get()
+			applicationId = kmsRequest['applicationId'].get()
+			skuId = kmsRequest['skuId'].get()
 			requestDatetime = filetimes.filetime_to_dt(kmsRequest['requestTime'])
 
 			# Try and localize the request time, if pytz is available
