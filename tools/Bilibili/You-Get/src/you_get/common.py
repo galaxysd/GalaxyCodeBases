@@ -24,10 +24,12 @@ SITES = {
     'fun'              : 'funshion',
     'google'           : 'google',
     'heavy-music'      : 'heavymusic',
+    'huaban'           : 'huaban',
     'iask'             : 'sina',
     'ifeng'            : 'ifeng',
     'imgur'            : 'imgur',
     'in'               : 'alive',
+    'infoq'            : 'infoq',
     'instagram'        : 'instagram',
     'interest'         : 'interest',
     'iqilu'            : 'iqilu',
@@ -40,7 +42,8 @@ SITES = {
     'ku6'              : 'ku6',
     'kugou'            : 'kugou',
     'kuwo'             : 'kuwo',
-    'letv'             : 'letv',
+    'le'               : 'le',
+    'letv'             : 'le',
     'lizhi'            : 'lizhi',
     'magisto'          : 'magisto',
     'metacafe'         : 'metacafe',
@@ -123,6 +126,10 @@ if sys.stdout.isatty():
     default_encoding = sys.stdout.encoding.lower()
 else:
     default_encoding = locale.getpreferredencoding().lower()
+
+def maybe_print(*s):
+    try: print(*s)
+    except: pass
 
 def tr(s):
     if default_encoding == 'utf-8':
@@ -364,6 +371,7 @@ def url_info(url, faker = False, headers = {}):
         'image/jpeg': 'jpg',
         'image/png': 'png',
         'image/gif': 'gif',
+        'application/pdf': 'pdf',
     }
     if type in mapping:
         ext = mapping[type]
@@ -950,8 +958,8 @@ def print_info(site_info, title, type, size):
     else:
         type_info = "Unknown type (%s)" % type
 
-    print("Site:      ", site_info)
-    print("Title:     ", unescape_html(tr(title)))
+    maybe_print("Site:      ", site_info)
+    maybe_print("Title:     ", unescape_html(tr(title)))
     print("Type:      ", type_info)
     print("Size:      ", round(size / 1048576, 2), "MiB (" + str(size) + " Bytes)")
     print()
@@ -1176,6 +1184,14 @@ def script_main(script_name, download, download_playlist, **kwargs):
             raise
         else:
             sys.exit(1)
+    except UnicodeEncodeError:
+        log.e('[error] oops, the current environment does not seem to support Unicode.')
+        log.e('please set it to a UTF-8-aware locale first,')
+        log.e('so as to save the video (with some Unicode characters) correctly.')
+        log.e('you can do it like this:')
+        log.e('    (Windows)    % chcp 65001 ')
+        log.e('    (Linux)      $ LC_CTYPE=en_US.UTF-8')
+        sys.exit(1)
     except Exception:
         if not traceback:
             log.e('[error] oops, something went wrong.')

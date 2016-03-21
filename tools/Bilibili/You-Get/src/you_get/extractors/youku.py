@@ -150,19 +150,19 @@ class Youku(VideoExtractor):
                 self.download_playlist_by_url(self.url, **kwargs)
                 exit(0)
 
-        api_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % self.vid
-        api_url1 = 'http://play.youku.com/play/get.json?vid=%s&ct=10' % self.vid
+        api_url = 'http://play.youku.com/play/get.json?vid=%s&ct=10' % self.vid
+        api12_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % self.vid
         try:
             meta = json.loads(get_content(
                 api_url,
                 headers={'Referer': 'http://static.youku.com/'}
             ))
-            meta1 = json.loads(get_content(
-                api_url1,
+            meta12 = json.loads(get_content(
+                api12_url,
                 headers={'Referer': 'http://static.youku.com/'}
             ))
             data = meta['data']
-            data1 = meta1['data']
+            data12 = meta12['data']
             assert 'stream' in data
         except AssertionError:
             if 'error' in data:
@@ -171,56 +171,78 @@ class Youku(VideoExtractor):
                     self.password_protected = True
                     self.password = input(log.sprint('Password: ', log.YELLOW))
                     api_url += '&pwd={}'.format(self.password)
-                    api_url1 += '&pwd={}'.format(self.password)
+                    api_url12 += '&pwd={}'.format(self.password)
                     meta = json.loads(get_content(
                         api_url,
                         headers={'Referer': 'http://static.youku.com/'}
                     ))
-                    meta1 = json.loads(get_content(
-                        api_url1,
+                    meta12 = json.loads(get_content(
+                        api_url12,
                         headers={'Referer': 'http://static.youku.com/'}
                     ))
                     data = meta['data']
-                    data1 = meta1['data']
+                    data12 = meta12['data']
                 else:
                     log.wtf('[Failed] ' + data['error']['note'])
             else:
                 log.wtf('[Failed] Video not found.')
 
         self.title = data['video']['title']
-        self.ep = data['security']['encrypt_string']
-        self.ip = data['security']['ip']
+        self.ep = data12['security']['encrypt_string']
+        self.ip = data12['security']['ip']
 
         if 'stream' not in data and self.password_protected:
             log.wtf('[Failed] Wrong password.')
 
         stream_types = dict([(i['id'], i) for i in self.stream_types])
-        self.streams_parameter = {}
-        self.streams_fallback_parameter = {}
-        audio_lang = data1['stream'][0]['audio_lang']
-        for stream in data1['stream']:
-            stream_id = stream['stream_type']
-            if stream_id in stream_types and stream['audio_lang'] == audio_lang:
-                if 'alias-of' in stream_types[stream_id]:
-                    stream_id = stream_types[stream_id]['alias-of']
-                self.streams[stream_id] = {
-                    'container': stream_types[stream_id]['container'],
-                    'video_profile': stream_types[stream_id]['video_profile'],
-                    'size': stream['size']
-                }
-                self.streams_parameter[stream_id] = {
-                    'fileid': stream['stream_fileid'],
-                    'segs': stream['segs']
-                }
+        audio_lang = data['stream'][0]['audio_lang']
+
         for stream in data['stream']:
             stream_id = stream['stream_type']
             if stream_id in stream_types and stream['audio_lang'] == audio_lang:
                 if 'alias-of' in stream_types[stream_id]:
                     stream_id = stream_types[stream_id]['alias-of']
-                self.streams_fallback_parameter[stream_id] = {
-                    'fileid': stream['stream_fileid'],
-                    'segs': stream['segs']
-                }
+
+                if stream_id not in self.streams:
+                    self.streams[stream_id] = {
+                        'container': stream_types[stream_id]['container'],
+                        'video_profile': stream_types[stream_id]['video_profile'],
+                        'size': stream['size'],
+                        'pieces': [{
+                            'fileid': stream['stream_fileid'],
+                            'segs': stream['segs']
+                        }]
+                    }
+                else:
+                    self.streams[stream_id]['size'] += stream['size']
+                    self.streams[stream_id]['pieces'].append({
+                        'fileid': stream['stream_fileid'],
+                        'segs': stream['segs']
+                    })
+
+        self.streams_fallback = {}
+        for stream in data12['stream']:
+            stream_id = stream['stream_type']
+            if stream_id in stream_types and stream['audio_lang'] == audio_lang:
+                if 'alias-of' in stream_types[stream_id]:
+                    stream_id = stream_types[stream_id]['alias-of']
+
+                if stream_id not in self.streams_fallback:
+                    self.streams_fallback[stream_id] = {
+                        'container': stream_types[stream_id]['container'],
+                        'video_profile': stream_types[stream_id]['video_profile'],
+                        'size': stream['size'],
+                        'pieces': [{
+                            'fileid': stream['stream_fileid'],
+                            'segs': stream['segs']
+                        }]
+                    }
+                else:
+                    self.streams_fallback[stream_id]['size'] += stream['size']
+                    self.streams_fallback[stream_id]['pieces'].append({
+                        'fileid': stream['stream_fileid'],
+                        'segs': stream['segs']
+                    })
 
         # Audio languages
         if 'dvd' in data and 'audiolang' in data['dvd']:
@@ -247,40 +269,40 @@ class Youku(VideoExtractor):
         )
         sid, token = e_code.split('_')
 
-        sp = self.streams_parameter
         while True:
             try:
-                segs = sp[stream_id]['segs']
-                streamfileid = sp[stream_id]['fileid']
-
                 ksegs = []
-                for no in range(0, len(segs)):
-                    k = segs[no]['key']
-                    assert k != -1
-                    fileid, ep = self.__class__.generate_ep(no, streamfileid,
-                                                            sid, token)
-                    q = parse.urlencode(dict(
-                        ctype = 12,
-                        ev    = 1,
-                        K     = k,
-                        ep    = parse.unquote(ep),
-                        oip   = str(self.ip),
-                        token = token,
-                        yxon  = 1
-                    ))
-                    u = 'http://k.youku.com/player/getFlvPath/sid/{sid}_00' \
-                        '/st/{container}/fileid/{fileid}?{q}'.format(
-                        sid       = sid,
-                        container = self.streams[stream_id]['container'],
-                        fileid    = fileid,
-                        q         = q
-                    )
-                    # unset_proxy()  also strips cookies,because k.youku.com doesn't need cookies('r') for now
-                    ksegs += [i['server'] for i in json.loads(get_content(u))]
+                pieces = self.streams[stream_id]['pieces']
+                for piece in pieces:
+                    segs = piece['segs']
+                    streamfileid = piece['fileid']
+                    for no in range(0, len(segs)):
+                        k = segs[no]['key']
+                        assert k != -1
+                        fileid, ep = self.__class__.generate_ep(no, streamfileid,
+                                                                sid, token)
+                        q = parse.urlencode(dict(
+                            ctype = 12,
+                            ev    = 1,
+                            K     = k,
+                            ep    = parse.unquote(ep),
+                            oip   = str(self.ip),
+                            token = token,
+                            yxon  = 1
+                        ))
+                        u = 'http://k.youku.com/player/getFlvPath/sid/{sid}_00' \
+                            '/st/{container}/fileid/{fileid}?{q}'.format(
+                                sid       = sid,
+                                container = self.streams[stream_id]['container'],
+                                fileid    = fileid,
+                                q         = q
+                            )
+                        ksegs += [i['server'] for i in json.loads(get_content(u))]
             except error.HTTPError as e:
                 # Use fallback stream data in case of HTTP 404
                 log.e('[Error] ' + str(e))
-                sp = self.streams_fallback_parameter
+                self.streams = {}
+                self.streams = self.streams_fallback
             except KeyError:
                 # Move on to next stream if best quality not available
                 del self.streams_sorted[0]

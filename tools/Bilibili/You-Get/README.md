@@ -319,6 +319,7 @@ Use `--url`/`-u` to get a list of downloadable resource URLs extracted from the 
 | JPopsuki TV | <http://www.jpopsuki.tv/>     |✓| | |
 | Internet Archive | <https://archive.org/>   |✓| | |
 | **Instagram** | <https://instagram.com/>    |✓|✓| |
+| InfoQ       | <http://www.infoq.com/presentations/> |✓| | |
 | Imgur       | <http://imgur.com/>           | |✓| |
 | Heavy Music Archive | <http://www.heavy-music.ru/> | | |✓|
 | **Google+** | <https://plus.google.com/>    |✓|✓| |
@@ -350,7 +351,7 @@ Use `--url`/`-u` to get a list of downloadable resource URLs extracted from the 
 | 酷6网    | <http://www.ku6.com/>          |✓| | |
 | 酷狗音乐 | <http://www.kugou.com/>        | | |✓|
 | 酷我音乐 | <http://www.kuwo.cn/>          | | |✓|
-| 乐视网   | <http://www.letv.com/>         |✓| | |
+| 乐视网   | <http://www.le.com/>           |✓| | |
 | 荔枝FM   | <http://www.lizhi.fm/>         | | |✓|
 | 秒拍     | <http://www.miaopai.com/>      |✓| | |
 | MioMio弹幕网 | <http://www.miomio.tv/>    |✓| | |
@@ -370,6 +371,7 @@ Use `--url`/`-u` to get a list of downloadable resource URLs extracted from the 
 | **Youku<br/>优酷** | <http://www.youku.com/> |✓| | |
 | 战旗TV   | <http://www.zhanqi.tv/lives>   |✓| | |
 | 央视网   | <http://www.cntv.cn/>          |✓| | |
+| 花瓣     | <http://huaban.com/>           | |✓| |
 
 For all other sites not on the list, the universal extractor will take care of finding and downloading interesting resources from the page.
 

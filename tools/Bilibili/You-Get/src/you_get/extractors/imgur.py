@@ -16,7 +16,9 @@ class Imgur(VideoExtractor):
         if re.search(r'imgur\.com/a/', self.url):
             # album
             content = get_content(self.url)
-            album = json.loads(match1(content, r'album\s*:\s*({.*}),'))
+            album = match1(content, r'album\s*:\s*({.*}),') or \
+                    match1(content, r'image\s*:\s*({.*}),')
+            album = json.loads(album)
             count = album['album_images']['count']
             images = album['album_images']['images']
             ext = images[0]['ext']
@@ -37,11 +39,15 @@ class Imgur(VideoExtractor):
 
         elif re.search(r'i\.imgur\.com/', self.url):
             # direct image
-            universal_download(self.url,
-                               output_dir=kwargs['output_dir'],
-                               merge=kwargs['merge'],
-                               info_only=kwargs['info_only'])
-            exit(0) # FIXME!
+            _, container, size = url_info(self.url)
+            self.streams = {
+                'original': {
+                    'src': [self.url],
+                    'size': size,
+                    'container': container
+                }
+            }
+            self.title = r1(r'i\.imgur\.com/([^./]*)', self.url)
 
         else:
             # gallery image
