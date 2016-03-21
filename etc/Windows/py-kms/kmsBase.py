@@ -100,10 +100,6 @@ class kmsBase:
 		'SL_E_VL_MACHINE_NOT_BOUND' : 0xC004F056
 	}
 
-	unknownBytes = bytearray([ 0x00, 0x00, 0x02, 0x00 ])
-
-	unknownDataSize = 8
-
 	def __init__(self, data, config):
 		self.data = data
 		self.config = config
@@ -179,8 +175,8 @@ class kmsBase:
 
 	def parseVersion(self, data):
 		return {
-			'versionMajor' : struct.unpack_from('<H', str(data), self.unknownDataSize + 2)[0],
-			'versionMinor' : struct.unpack_from('<H', str(data), self.unknownDataSize + 0)[0]
+			'versionMajor' : struct.unpack_from('<H', str(data), 8 + 2)[0],
+			'versionMinor' : struct.unpack_from('<H', str(data), 8 + 0)[0]
 		}
 
 import kmsRequestV4, kmsRequestV5, kmsRequestV6, kmsRequestUnknown

@@ -44,21 +44,20 @@ class handler(rpcBase.rpcBase):
 
 	def generateResponseArray(self):
 		response = self.responseData
-		responseArray = bytearray()
-		responseArray.append(response['version'])
-		responseArray.append(response['versionMinor'])
-		responseArray.append(response['packetType'])
-		responseArray.append(response['packetFlags'])
-		responseArray.extend(bytearray(struct.pack('<I', response['dataRepresentation'])))
-		responseArray.extend(bytearray(struct.pack('<H', response['fragLength'])))
-		responseArray.extend(bytearray(struct.pack('<H', response['authLength'])))
-		responseArray.extend(bytearray(struct.pack('<I', response['callId'])))
-
-		responseArray.extend(bytearray(struct.pack('<I', response['allocHint'])))
-		responseArray.append(response['contextId'])
-		responseArray.append(response['cancelCount'])
-		responseArray.extend(bytearray(struct.pack('<H', response['opnum'])))
-		responseArray.extend(response['data'])
+		responseArray = str()
+		responseArray += struct.pack('B', response['version'])
+		responseArray += struct.pack('B', response['versionMinor'])
+		responseArray += struct.pack('B', response['packetType'])
+		responseArray += struct.pack('B', response['packetFlags'])
+		responseArray += struct.pack('<I', response['dataRepresentation'])
+		responseArray += struct.pack('<H', response['fragLength'])
+		responseArray += struct.pack('<H', response['authLength'])
+		responseArray += struct.pack('<I', response['callId'])
+		responseArray += struct.pack('<I', response['allocHint'])
+		responseArray += struct.pack('<H', response['contextId'])
+		responseArray += struct.pack('B', response['cancelCount'])
+		responseArray += struct.pack('B', 0) # Reserved
+		responseArray += response['data']
 
 		if self.config['debug']:
 			print "RPC Message Response Bytes:", binascii.b2a_hex(str(responseArray))
@@ -66,4 +65,4 @@ class handler(rpcBase.rpcBase):
 		return responseArray
 
 	def getResponse(self):
-		return str(self.responseArray)
+		return self.responseArray
