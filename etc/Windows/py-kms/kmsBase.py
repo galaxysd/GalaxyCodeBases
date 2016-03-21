@@ -1,6 +1,5 @@
 import binascii
 import datetime
-import functions
 import kmsPidGenerator
 import struct
 import uuid
@@ -81,15 +80,15 @@ class kmsBase:
 		epidbuffer = bytearray((kmsResponse['kmsEpid']+'\0').encode('utf-16le'))
 
 		responseArray = bytearray()
-		responseArray.extend(functions.to16BitLEArray(kmsRequest['versionMinor']))
-		responseArray.extend(functions.to16BitLEArray(kmsRequest['versionMajor']))
-		responseArray.extend(functions.to32BitLEArray(len(epidbuffer)))
+		responseArray.extend(bytearray(struct.pack('<H', kmsRequest['versionMinor'])))
+		responseArray.extend(bytearray(struct.pack('<H', kmsRequest['versionMajor'])))
+		responseArray.extend(bytearray(struct.pack('<I', len(epidbuffer))))
 		responseArray.extend(epidbuffer)
 		responseArray.extend(kmsResponse['clientMachineId'].bytes_le)
 		responseArray.extend(kmsRequest['requestTime'])
-		responseArray.extend(functions.to32BitLEArray(kmsResponse['currentClientCount']))
-		responseArray.extend(functions.to32BitLEArray(kmsResponse['vLActivationInterval']))
-		responseArray.extend(functions.to32BitLEArray(kmsResponse['vLRenewalInterval']))
+		responseArray.extend(bytearray(struct.pack('<I', kmsResponse['currentClientCount'])))
+		responseArray.extend(bytearray(struct.pack('<I', kmsResponse['vLActivationInterval'])))
+		responseArray.extend(bytearray(struct.pack('<I', kmsResponse['vLRenewalInterval'])))
 		return responseArray
 
 	def createKmsResponse(self, kmsRequest):

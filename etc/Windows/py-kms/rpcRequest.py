@@ -1,5 +1,4 @@
 import binascii
-import functions
 import kmsBase
 import rpcBase
 import struct
@@ -50,15 +49,15 @@ class handler(rpcBase.rpcBase):
 		responseArray.append(response['versionMinor'])
 		responseArray.append(response['packetType'])
 		responseArray.append(response['packetFlags'])
-		responseArray.extend(functions.to32BitLEArray(response['dataRepresentation']))
-		responseArray.extend(functions.to16BitLEArray(response['fragLength']))
-		responseArray.extend(functions.to16BitLEArray(response['authLength']))
-		responseArray.extend(functions.to32BitLEArray(response['callId']))
+		responseArray.extend(bytearray(struct.pack('<I', response['dataRepresentation'])))
+		responseArray.extend(bytearray(struct.pack('<H', response['fragLength'])))
+		responseArray.extend(bytearray(struct.pack('<H', response['authLength'])))
+		responseArray.extend(bytearray(struct.pack('<I', response['callId'])))
 
-		responseArray.extend(functions.to32BitLEArray(response['allocHint']))
+		responseArray.extend(bytearray(struct.pack('<I', response['allocHint'])))
 		responseArray.append(response['contextId'])
 		responseArray.append(response['cancelCount'])
-		responseArray.extend(functions.to16BitLEArray(response['opnum']))
+		responseArray.extend(bytearray(struct.pack('<H', response['opnum'])))
 		responseArray.extend(response['data'])
 
 		if self.config['debug']:

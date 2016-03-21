@@ -1,5 +1,4 @@
 import binascii
-import functions
 import rpcBase
 import struct
 import uuid
@@ -29,13 +28,13 @@ class rpcBindRequestCtxItem:
 
 	def toByteArray(self):
 		bytes = bytearray()
-		bytes.extend(functions.to16BitLEArray(self.contextId))
-		bytes.extend(functions.to16BitLEArray(self.numTransItems))
+		bytes.extend(bytearray(struct.pack('<H', self.contextId)))
+		bytes.extend(bytearray(struct.pack('<H', self.numTransItems)))
 		bytes.extend(self.abstractSyntaxUUID.bytes_le)
-		bytes.extend(functions.to16BitLEArray(self.abstractSyntaxVersionMajor))
-		bytes.extend(functions.to16BitLEArray(self.abstractSyntaxVersionMinor))
+		bytes.extend(bytearray(struct.pack('<H', self.abstractSyntaxVersionMajor)))
+		bytes.extend(bytearray(struct.pack('<H', self.abstractSyntaxVersionMinor)))
 		bytes.extend(self.transferSyntaxUUID.bytes_le)
-		bytes.extend(functions.to32BitLEArray(self.transferSyntaxVersion))
+		bytes.extend(bytearray(struct.pack('<I', self.transferSyntaxVersion)))
 		return bytes
 
 class rpcBindResponseCtxItem:
@@ -55,10 +54,10 @@ class rpcBindResponseCtxItem:
 
 	def toByteArray(self):
 		bytes = bytearray()
-		bytes.extend(functions.to16BitLEArray(self.ackResult))
-		bytes.extend(functions.to16BitLEArray(self.ackReason))
+		bytes.extend(bytearray(struct.pack('<H', self.ackResult)))
+		bytes.extend(bytearray(struct.pack('<H', self.ackReason)))
 		bytes.extend(self.transferSyntax.bytes_le)
-		bytes.extend(functions.to32BitLEArray(self.syntaxVersion))
+		bytes.extend(bytearray(struct.pack('<I', self.syntaxVersion)))
 		return bytes
 
 class handler(rpcBase.rpcBase):
@@ -99,7 +98,7 @@ class handler(rpcBase.rpcBase):
 		response['assocGroup'] = 0x1063bf3f
 
 		response['secondaryAddressLength'] = 6
-		response['secondaryAddress'] = bytearray(functions.stringPad(self.config['port'], '\0', 6, 'right'))
+		response['secondaryAddress'] = bytearray(str(self.config['port']).ljust(6, '\0'))
 		response['numberOfResults'] = request['numCtxItems']
 
 		preparedResponses = {}
@@ -139,18 +138,18 @@ class handler(rpcBase.rpcBase):
 		responseArray.append(response['versionMinor'])
 		responseArray.append(response['packetType'])
 		responseArray.append(response['packetFlags'])
-		responseArray.extend(functions.to32BitLEArray(response['dataRepresentation']))
-		responseArray.extend(functions.to16BitLEArray(response['fragLength']))
-		responseArray.extend(functions.to16BitLEArray(response['authLength']))
-		responseArray.extend(functions.to32BitLEArray(response['callId']))
+		responseArray.extend(bytearray(struct.pack('<I', response['dataRepresentation'])))
+		responseArray.extend(bytearray(struct.pack('<H', response['fragLength'])))
+		responseArray.extend(bytearray(struct.pack('<H', response['authLength'])))
+		responseArray.extend(bytearray(struct.pack('<I', response['callId'])))
 
-		responseArray.extend(functions.to16BitLEArray(response['maxXmitFrag']))
-		responseArray.extend(functions.to16BitLEArray(response['maxRecvFrag']))
-		responseArray.extend(functions.to32BitLEArray(response['assocGroup']))
+		responseArray.extend(bytearray(struct.pack('<H', response['maxXmitFrag'])))
+		responseArray.extend(bytearray(struct.pack('<H', response['maxRecvFrag'])))
+		responseArray.extend(bytearray(struct.pack('<I', response['assocGroup'])))
 
-		responseArray.extend(functions.to16BitLEArray(response['secondaryAddressLength']))
+		responseArray.extend(bytearray(struct.pack('<H', response['secondaryAddressLength'])))
 		responseArray.extend(response['secondaryAddress'])
-		responseArray.extend(functions.to32BitLEArray(response['numberOfResults']))
+		responseArray.extend(bytearray(struct.pack('<I', response['numberOfResults'])))
 
 		for i in range(0, len(response['ctxItems'])):
 			responseArray.extend(response['ctxItems'][i].toByteArray())

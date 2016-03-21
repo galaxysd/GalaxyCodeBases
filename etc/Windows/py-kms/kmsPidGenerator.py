@@ -1,5 +1,4 @@
 import datetime
-import functions
 import random
 import time
 import uuid
@@ -106,20 +105,20 @@ def epidGenerator(appId, version):
 
 	# generate the epid string
 	result = []
-	result.append(functions.stringPad(hostOsDict["type"], "0", 5))
+	result.append(str(hostOsDict["type"]).rjust(5, "0"))
 	result.append("-")
-	result.append(functions.stringPad(keyConfig["GroupID"], "0", 5))
+	result.append(str(keyConfig["GroupID"]).rjust(5, "0"))
 	result.append("-")
-	result.append(functions.stringPad(int(productKeyID / 1000000), "0", 3))
+	result.append(str(productKeyID / 1000000).rjust(3, "0"))
 	result.append("-")
-	result.append(functions.stringPad((productKeyID % 1000000), "0", 6))
+	result.append(str(productKeyID % 1000000).rjust(6, "0"))
 	result.append("-")
-	result.append(functions.stringPad(licenseChannel, "0", 2))
+	result.append(str(licenseChannel).rjust(2, "0"))
 	result.append("-")
 	result.append(str(languageCode))
 	result.append("-")
-	result.append(functions.stringPad(hostOsDict["osBuild"], "0", 4))
+	result.append(str(hostOsDict["osBuild"]).rjust(4, "0"))
 	result.append(".0000-")
-	result.append(functions.stringPad(randomDayNumber, "0", 3))
-	result.append(functions.stringPad(randomDate.year, "0", 4))
+	result.append(str(randomDayNumber).rjust(3, "0"))
+	result.append(str(randomDate.year).rjust(4, "0"))
 	return "".join(result)

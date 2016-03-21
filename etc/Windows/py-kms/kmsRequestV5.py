@@ -1,6 +1,5 @@
 import aes
 import binascii
-import functions
 import hashlib
 import random
 import struct
@@ -109,11 +108,11 @@ class kmsRequestV5(kmsBase):
 	
 	def generateResponseArray(self, data):
 		finalResponse = bytearray()
-		finalResponse.extend(functions.to32BitLEArray(data['bodyLength']))
+		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength'])))
 		finalResponse.extend(data['unknown'])
-		finalResponse.extend(functions.to32BitLEArray(data['bodyLength2']))
-		finalResponse.extend(functions.to16BitLEArray(data['versionMinor']))
-		finalResponse.extend(functions.to16BitLEArray(data['versionMajor']))
+		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength2'])))
+		finalResponse.extend(bytearray(struct.pack('<H', data['versionMinor'])))
+		finalResponse.extend(bytearray(struct.pack('<H', data['versionMajor'])))
 		finalResponse.extend(data['salt'])
 		finalResponse.extend(data['encrypted'])
 		finalResponse.extend(data['padding'])

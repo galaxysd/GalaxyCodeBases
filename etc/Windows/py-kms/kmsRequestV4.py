@@ -1,5 +1,4 @@
 import binascii
-import functions
 import struct
 import time
 from kmsBase import kmsBase
@@ -134,9 +133,9 @@ class kmsRequestV4(kmsBase):
 
 	def generateResponseArray(self, data):
 		finalResponse = bytearray()
-		finalResponse.extend(functions.to32BitLEArray(data['bodyLength']))
+		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength'])))
 		finalResponse.extend(data['unknown'])
-		finalResponse.extend(functions.to32BitLEArray(data['bodyLength2']))
+		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength2'])))
 		finalResponse.extend(data['data'])
 		finalResponse.extend(data['hash'])
 		finalResponse.extend(data['padding'])
