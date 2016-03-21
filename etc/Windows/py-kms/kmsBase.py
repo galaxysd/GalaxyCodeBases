@@ -48,6 +48,16 @@ class kmsBase:
 			('vLRenewalInterval',    '<I'),
 		)
 
+	class GenericRequestHeader(Structure):
+		commonHdr = ()
+		structure = (
+			('bodyLength1',  '<I'),
+			('bodyLength2',  '<I'),
+			('versionMinor', '<H'),
+			('versionMajor', '<H'),
+			('remainder',    '_'),
+		)
+
 	appIds = {
 		uuid.UUID("55C92734-D682-4D71-983E-D6EC3F16059F") : "Windows",
 		uuid.UUID("59A52881-A989-479D-AF46-F275C6370663") : "Office 14 (2010)",
@@ -68,6 +78,9 @@ class kmsBase:
 		uuid.UUID("b92e9980-b9d5-4821-9c94-140f632f6312") : "Windows 7 Professional",
 		uuid.UUID("cfd8ff08-c0d7-452b-9f60-ef5c70c32094") : "Windows Vista Enterprise",
 		uuid.UUID("4f3d1606-3fea-4c01-be3c-8d671c401e3b") : "Windows Vista Business",
+		uuid.UUID("5dc7bf61-5ec9-4996-9ccb-df806a2d0efe") : "Office Project Standard 2010",
+		uuid.UUID("6f327760-8c5c-417c-9b61-836a98287e0c") : "Office Professional Plus 2010",
+		uuid.UUID("92236105-bb67-494f-94c7-7f7a607929bd") : "Office Visio Premium 2010",
 	}
 
 	licenseStates = {
@@ -173,17 +186,10 @@ class kmsBase:
 			print "      Server ePID: %s" % response["kmsEpid"].decode('utf-16le')
 		return response
 
-	def parseVersion(self, data):
-		return {
-			'versionMajor' : struct.unpack_from('<H', str(data), 8 + 2)[0],
-			'versionMinor' : struct.unpack_from('<H', str(data), 8 + 0)[0]
-		}
-
 import kmsRequestV4, kmsRequestV5, kmsRequestV6, kmsRequestUnknown
 
 def generateKmsResponseData(data, config):
-	localKmsBase = kmsBase(data, config)
-	version = localKmsBase.parseVersion(data)['versionMajor']
+	version = kmsBase.GenericRequestHeader(data)['versionMajor']
 	currentDate = datetime.datetime.now().ctime()
 
 	if version == 4:
