@@ -1,8 +1,8 @@
 var CORE=(function(){
     const defaultUA ="netdisk;5.3.4.5;PC;PC-Windows;5.1.2600;WindowsBaiduYunGuanJia";
     const defaultreferer="http://pan.baidu.com/disk/home";
-    const version = "0.6.6";
-    const update_date = "2016/03/09";
+    const version = "0.6.8";
+    const update_date = "2016/03/19";
     var cookies=null;
     var newVersion = typeof manifest == "object" ? true : false;
     return {
@@ -53,30 +53,31 @@ var CORE=(function(){
         },
         //解析 RPC地址 返回验证数据 和地址
         parseAuth:function(url){
-            // we can specify token/user/pass and additional parameters
-            // to be passed to aria2.addUrl as fragment in the RPC URI using query string syntax
-            // like http://token:mysecret@localhost:6800/jsonrpc#max-connection-per-server=5
-            // the DOM based URL parsing is derived from http://www.abeautifulsite.net/parsing-urls-in-javascript/
-            var parser = document.createElement("a"), options = [];
-            parser.href = url;
-            parser.hash.replace(/^#/, "").split("&").forEach(function(item){
-                item = item.split("=");
-                if(item[0].length > 1){
-                    options.push([item[0], item.length == 2 ? item[1] : "enabled"]);
-                }
-            });
-            var auth = parser.username + ":" + parser.password;
-            if(parser.username != "token"){
-                auth = "Basic " + btoa(auth);
+            var auth_str = request_auth(url);
+            var options =[];
+            if (auth_str) {
+                if(auth_str.indexOf('token:') != 0){
+                    auth_str = "Basic " + btoa(auth_str);
+                }  
             }
-            var path = parser.protocol + "//" + parser.host + parser.pathname;
-            if(parser.search.length > 0){
-                if(parser.search.slice(0, 1) != "?"){
-                    path += "?";
-                }
-                path += parser.search;
+            var hash =url.match(/^(?:[^#]*)(?:#(.*))?$/)[1];
+            if(hash){
+                hash.split("&").forEach(function(item){
+                    item = item.split("=");
+                    if(item[0].length > 1){
+                        options.push([item[0], item.length == 2 ? item[1] : "enabled"]);
+                    }
+                });           
             }
-            return [auth, path, options];
+
+            var path=remove_auth(url);
+            function request_auth(url) {
+                return url.match(/^(?:(?![^:@]+:[^:@\/]*@)[^:\/?#.]+:)?(?:\/\/)?(?:([^:@]*(?::[^:@]*)?)?@)?/)[1];
+            }
+            function remove_auth(url) {
+                return url.replace(/^((?![^:@]+:[^:@\/]*@)[^:\/?#.]+:)?(\/\/)?(?:(?:[^:@]*(?::[^:@]*)?)?@)?(.*)/, '$1$2$3');
+            }
+            return [auth_str, path, options];
         },
         //names format  [{"site": "http://pan.baidu.com/", "name": "BDUSS"},{"site": "http://pcs.baidu.com/", "name": "pcsett"}]
         requestCookies:function(names){
@@ -174,6 +175,7 @@ var CORE=(function(){
                     if($("#setting_div").length == 0){
                         CORE.setting.init();
                     }
+                    $("#setting_divtopmsg").html("");
                     $("#setting_div").show();
                 });
                 this.update();
@@ -231,7 +233,9 @@ var CORE=(function(){
                         break;
                     case "apply":
                         self.save();
-                        CORE.addMenu.update();
+                        setTimeout(function(){
+                            CORE.addMenu.update();
+                        },60);
                         $("#setting_divtopmsg").html("设置已保存.");
                         break;
                     case "reset":
@@ -315,11 +319,11 @@ var CORE=(function(){
             };
             var rpc_path = $("#rpc_url_1").val();
             var paths=CORE.parseAuth(rpc_path);
-            if (paths[0]) {
+            if (paths[0] && paths[0].startsWith("token")) {
                 data.params.unshift(paths[0]);
             }
             var parameter = {url: paths[1], dataType: "json", type: "POST", data: JSON.stringify(data)};
-            if(paths[0].startsWith("Basic")){
+            if(paths[0] && paths[0].startsWith("Basic")){
                 parameter["headers"] = {"Authorization": paths[0]};
             }
             CONNECT.sendToBackground("rpc_version",parameter);
@@ -341,6 +345,7 @@ var CORE=(function(){
                             "header": self.getHeader()
                         }]
                     };
+                    console.log(options);
                     if (options.length > 0) {
                         var params =rpc_data.params[rpc_data.params.length -1];
                         options.forEach(function(item){
