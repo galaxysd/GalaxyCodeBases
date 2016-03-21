@@ -55,7 +55,7 @@ pkeyConfigList["office15"] = {
 }
 
 
-def epidGenerator(appId, version):
+def epidGenerator(appId, version, lcid):
 	# Generate Part 1 & 7: Host Type and KMS Server OS Build
 	hostOsType = random.choice(hostOsList.keys())
 	hostOsDict = hostOsList[hostOsType]
@@ -81,7 +81,7 @@ def epidGenerator(appId, version):
 
 	# Generate Part 6: Language - use system default language
 	# 1033 is en-us
-	languageCode = 1033 # C# CultureInfo.InstalledUICulture.LCID
+	languageCode = lcid # C# CultureInfo.InstalledUICulture.LCID
 
 	# Generate Part 8: KMS Host Activation Date
 	# Get Minimum Possible Date: Newer Products first

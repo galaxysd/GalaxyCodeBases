@@ -5,119 +5,89 @@ import hmac
 import random
 import struct
 from kmsBase import kmsBase
+from kmsRequestV5 import kmsRequestV5
+from structure import Structure
 
-class kmsRequestV6(kmsBase):
+class kmsRequestV6(kmsRequestV5):
+	class DecryptedResponse(Structure):
+		class Message(Structure):
+			commonHdr = ()
+			structure = (
+				('response', ':', kmsBase.kmsResponseStruct),
+				('keys',     '16s'),
+				('hash',     '32s'),
+				('unknown',  '!Q=0x364F463A8863D35F'),
+				('xorSalts', '16s'),
+			)
+
+		commonHdr = ()
+		structure = (
+			('message', ':', Message),
+			('hmac',    '16s'),
+		)
+
 	key = bytearray([ 0xA9, 0x4A, 0x41, 0x95, 0xE2, 0x01, 0x43, 0x2D, 0x9B, 0xCB, 0x46, 0x04, 0x05, 0xD8, 0x4A, 0x21 ])
 
-	def executeRequestLogic(self):
-		request = self.parseRequest()
-		self.requestData = request
+	v6 = True
 
-		decrypted = self.decryptRequest(request)
-		self.requestData['SaltS'] = decrypted['SaltS'] # Dirty hack part une
+	ver = 6
 
-		localKmsBase = kmsBase(self.data, self.config)
-		responseBuffer = localKmsBase.serverLogic(decrypted['request'])
-
-		encrypted = self.encryptResponse(request, decrypted, responseBuffer)
-
-		data = self.generateResponse(encrypted['response'])
-
-		self.finalResponse = self.generateResponseArray(data)
-
-	def decryptRequest(self, request):
-		# SaltS
-		SaltS = bytearray(random.getrandbits(8) for i in range(16))
-
-		moo = aes.AESModeOfOperation()
-		moo.aes.v6 = True
-		decrypted = moo.decrypt(SaltS, 16, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], SaltS)
-		#decrypted = aes.strip_PKCS7_padding(decrypted)
-
-		# DSaltS
-		DSaltS = bytearray(decrypted[:16])
-
-		# SaltC
-		iv = request['salt']
-		SaltC = iv
-
-		encrypted = bytearray()
-		encrypted.extend(request['salt'])
-		encrypted.extend(request['encryptedRequest'])
-		encrypted.extend(request['pad'])
-
-		moo = aes.AESModeOfOperation()
-		moo.aes.v6 = True
-		decrypted = moo.decrypt(encrypted, 256, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], SaltC)
-		decrypted = aes.strip_PKCS7_padding(decrypted)
-
-		# DSaltC
-		decryptedSalt = bytearray(decrypted[:16])
-		DSaltC = decryptedSalt
-
-		decryptedRequest = bytearray(decrypted[16:])
-
-		return {
-			'salt' : decryptedSalt,
-			'request' : decryptedRequest,
-			'SaltS' : SaltS,
-			'DSaltS' : DSaltS,
-			'SaltC' : SaltC,
-			'DSaltC' : DSaltC
-		}
-	
 	def encryptResponse(self, request, decrypted, response):
 		randomSalt = self.getRandomSalt()
 		sha256 = hashlib.sha256()
 		sha256.update(str(randomSalt))
 		result = sha256.digest()
 
+		SaltC = bytearray(request['message']['salt'])
+		DSaltC = bytearray(decrypted['salt'])
+
 		randomStuff = bytearray(16)
 		for i in range(0,16):
-			randomStuff[i] = (decrypted['salt'][i] ^ request['salt'][i] ^ randomSalt[i]) & 0xff
-
-		responsedata = bytearray()
-		responsedata.extend(bytearray(response))
-		responsedata.extend(randomStuff)
-		responsedata.extend(bytearray(result))
-
-		# UnknownData
-		unknown = bytearray([0x36,0x4F,0x46,0x3A,0x88,0x63,0xD3,0x5F])
-		responsedata.extend(unknown)
+			randomStuff[i] = (SaltC[i] ^ DSaltC[i] ^ randomSalt[i]) & 0xff
 
 		# XorSalts
 		XorSalts = bytearray(16)
 		for i in range (0, 16):
-			XorSalts[i] = (decrypted['SaltC'][i] ^ decrypted['DSaltC'][i]) & 0xff
-		responsedata.extend(XorSalts)
+			XorSalts[i] = (SaltC[i] ^ DSaltC[i]) & 0xff
 
-		# HMacMsg
-		HMacMsg = bytearray(16 + len(responsedata))
-		for i in range (0, 16):
-			HMacMsg[i] = (decrypted['SaltS'][i] ^ decrypted['DSaltS'][i]) & 0xff
-		for i in range (0, len(responsedata)):
-			HMacMsg[i + 16] = responsedata[i]
+		message = self.DecryptedResponse.Message()
+		message['response'] = response
+		message['keys'] = str(randomStuff)
+		message['hash'] = result
+		message['xorSalts'] = str(XorSalts)
 
-		# HMacKey
-		requestTime = decrypted['request'][-152:-152+8]
-		HMacKey = self.getMACKey(requestTime)
-		HMac = hmac.new(str(HMacKey), str(HMacMsg), hashlib.sha256)
-		digest = HMac.digest()
-		responsedata.extend(bytearray(digest[16:]))
+		# SaltS
+		SaltS = self.getRandomSalt()
 
-		padded = aes.append_PKCS7_padding(responsedata)
 		moo = aes.AESModeOfOperation()
 		moo.aes.v6 = True
-		mode, orig_len, crypted = moo.encrypt(str(padded), moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], decrypted['SaltS'])
+		d = moo.decrypt(SaltS, 16, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], SaltS)
 
-		encryptedResponse = bytearray(crypted)
+		# DSaltS
+		DSaltS = bytearray(d)
 
-		return {
-			'response' : encryptedResponse
-		}
+		# HMacMsg
+		HMacMsg = bytearray(16)
+		for i in range (0, 16):
+			HMacMsg[i] = (SaltS[i] ^ DSaltS[i]) & 0xff
+		HMacMsg.extend(str(message))
 
-	def getMACKey(self, timestamp):
-		t = struct.unpack("<Q", str(timestamp))[0]
+		# HMacKey
+		requestTime = decrypted['request']['requestTime']
+		HMacKey = self.getMACKey(requestTime)
+		HMac = hmac.new(HMacKey, str(HMacMsg), hashlib.sha256)
+		digest = HMac.digest()
+
+		responsedata = self.DecryptedResponse()
+		responsedata['message'] = message
+		responsedata['hmac'] = digest[16:]
+
+		padded = aes.append_PKCS7_padding(str(responsedata))
+		mode, orig_len, crypted = moo.encrypt(str(padded), moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], SaltS)
+
+		return str(SaltS), str(bytearray(crypted))
+
+	def getMACKey(self, t):
 		c1 = 0x00000022816889BD
 		c2 = 0x000000208CBAB5ED
 		c3 = 0x3156CD5AC628477A
@@ -130,57 +100,5 @@ class kmsRequestV6(kmsBase):
 		sha256.update(struct.pack("<Q", seed))
 		digest = sha256.digest()
 
-		return bytearray(digest[16:])
-	
-	def parseRequest(self):
-		data = self.data
-		request = {}
-		request['bodyLength1'] = struct.unpack_from('<I', str(data), 0)[0]
-		request['bodyLength2'] = struct.unpack_from('<I', str(data), 4)[0]
-		request['versionMinor'] = struct.unpack_from('<H', str(data), 8)[0]
-		request['versionMajor'] = struct.unpack_from('<H', str(data), 10)[0]
-		request['salt'] = bytearray(data[12:28])
-		request['encryptedRequest'] = bytearray(data[28:-4])
-		request['pad'] = bytearray(data[-4:])
-		return request
-	
-	def getRandomSalt(self):
-		return bytearray(random.getrandbits(8) for i in range(16))
-	
-	def generateResponse(self, encryptedResponse):
-		localKmsBase = kmsBase(self.data, self.config)
-		bodyLength = 4 + len(self.requestData['SaltS']) + len(encryptedResponse) # Dirty hack part deux
-		response = {
-			'versionMinor' : self.requestData['versionMinor'],
-			'versionMajor' : self.requestData['versionMajor'],
-			'bodyLength' : bodyLength,
-			'unknown' : localKmsBase.unknownBytes,
-			'bodyLength2' : bodyLength,
-			'salt' : self.requestData['SaltS'], # Dirty hack part trois
-			'encrypted' : encryptedResponse,
-			'padding' : localKmsBase.getResponsePadding(bodyLength)
-		}
+		return digest[16:]
 
-		if self.config['debug']:
-			print "KMS V6 Response:", response
-
-		return response
-	
-	def generateResponseArray(self, data):
-		finalResponse = bytearray()
-		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength'])))
-		finalResponse.extend(data['unknown'])
-		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength2'])))
-		finalResponse.extend(bytearray(struct.pack('<H', data['versionMinor'])))
-		finalResponse.extend(bytearray(struct.pack('<H', data['versionMajor'])))
-		finalResponse.extend(data['salt'])
-		finalResponse.extend(data['encrypted'])
-		finalResponse.extend(data['padding'])
-
-		if self.config['debug']:
-			print "KMS V6 Response Bytes:", binascii.b2a_hex(str(finalResponse))
-
-		return finalResponse
-	
-	def getResponse(self):
-		return str(self.finalResponse)

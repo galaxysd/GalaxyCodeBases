@@ -2,6 +2,7 @@ import binascii
 import struct
 import time
 from kmsBase import kmsBase
+from structure import Structure
 
 # Rijndael SBox
 from aes import AES
@@ -66,14 +67,34 @@ def mulx3(bIn):
 	return (mulx2(bIn) ^ bIn)
 
 class kmsRequestV4(kmsBase):
+	class RequestV4(Structure):
+		commonHdr = ()
+		structure = (
+			('bodyLength1', '<I'),
+			('bodyLength2', '<I'),
+			('request',     ':', kmsBase.kmsRequestStruct),
+			('hash',        '16s'),
+			('padding',     ':'),
+		)
+
+	class ResponseV4(Structure):
+		commonHdr = ()
+		structure = (
+			('bodyLength1', '<I=len(response) + len(hash)'),
+			('unknown',     '!I=0x00000200'),
+			('bodyLength2', '<I=len(response) + len(hash)'),
+			('response',    ':', kmsBase.kmsResponseStruct),
+			('hash',        '16s'),
+			('padding',     ':'),
+		)
+
 	def executeRequestLogic(self):
-		self.requestData = self.parseRequest()
+		requestData = self.RequestV4(self.data)
 
-		responseBuffer = self.serverLogic(self.requestData['request'])
-		hash = self.generateHash(responseBuffer)
+		response = self.serverLogic(requestData['request'])
+		hash = self.generateHash(bytearray(str(response)))
 
-		data = self.generateResponse(responseBuffer, hash)
-		self.responseArray = self.generateResponseArray(data)
+		self.responseData = self.generateResponse(response, hash)
 
 		time.sleep(1) # request sent back too quick for Windows 2008 R2, slow it down.
 
@@ -103,49 +124,22 @@ class kmsRequestV4(kmsBase):
 		xorBuffer(lastBlock, 0, hashBuffer)
 		hasher(hashBuffer)
 
-		return bytearray(hashBuffer)
-
-	def parseRequest(self):
-		request = {}
-		data = self.data
-		request['bodyLength1'] = struct.unpack_from('<I', str(data), 0)[0]
-		request['bodyLength2'] = struct.unpack_from('<I', str(data), 4)[0]
-		request['request'] = data[8:-16]
-		request['hash'] = data[-24:-8]
-		return request
+		return str(hashBuffer)
 
 	def generateResponse(self, responseBuffer, hash):
 		bodyLength = len(responseBuffer) + len(hash)
-		response = {
-			'bodyLength' : bodyLength,
-			'unknown' : kmsBase.unknownBytes,
-			'bodyLength2' : bodyLength,
-			'hash' : hash,
-			'data' : responseBuffer,
-			'padding' : self.getResponsePadding(bodyLength)
-		}
+		response = self.ResponseV4()
+		response['response'] = responseBuffer
+		response['hash'] = hash
+		response['padding'] = self.getResponsePadding(bodyLength)
 
 		if self.config['debug']:
-			print "KMS V4 Response:", response
+			print "KMS V4 Response:", response.dump()
+			print "KMS V4 Response Bytes:", binascii.b2a_hex(str(response))
 
-		return response
-
-
-	def generateResponseArray(self, data):
-		finalResponse = bytearray()
-		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength'])))
-		finalResponse.extend(data['unknown'])
-		finalResponse.extend(bytearray(struct.pack('<I', data['bodyLength2'])))
-		finalResponse.extend(data['data'])
-		finalResponse.extend(data['hash'])
-		finalResponse.extend(data['padding'])
-
-		if self.config['debug']:
-			print "KMS V4 Response Bytes:", binascii.b2a_hex(str(finalResponse))
-
-		return finalResponse
+		return str(response)
 
 	def getResponse(self):
-		return str(self.responseArray)
+		return self.responseData
 
 

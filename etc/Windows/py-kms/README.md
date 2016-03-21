@@ -8,6 +8,7 @@ py-kms is a port of node-kms by [markedsword](http://forums.mydigitallife.info/m
 
 # Dependencies
 - Python 2.7.x or Python 2.6.x with the "argparse" module installed.
+- If the "pytz" module is installed, the "Request Time" in the verbose output will be converted into local time. Otherwise, it will be in UTC.
 
 # Usage
 - To start the server, execute `python server.py [listen_address] [port]`. The default listening address is `0.0.0.0` (all interfaces) and the default port is `1688`.
