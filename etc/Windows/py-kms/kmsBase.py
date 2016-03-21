@@ -2,7 +2,11 @@ import binascii
 import datetime
 import filetimes
 import kmsPidGenerator
+import os
 import struct
+import sqlite3
+import sys
+import time
 import uuid
 
 from structure import Structure
@@ -214,30 +218,99 @@ class kmsBase:
 		return padding
 
 	def serverLogic(self, kmsRequest):
+		if self.config['log']:
+			self.dbName = 'log.db'
+			if not os.path.isfile(self.dbName):
+				# Initialize the database.
+				con = None
+				try:
+					con = sqlite3.connect(self.dbName)
+					cur = con.cursor()
+					cur.execute("CREATE TABLE clients(clientMachineId TEXT, machineName TEXT, applicationId TEXT, skuId TEXT, licenseStatus TEXT, lastRequestTime INTEGER, kmsEpid TEXT, requestCount INTEGER)")
+
+				except sqlite3.Error, e:
+					print "Error %s:" % e.args[0]
+					sys.exit(1)
+
+				finally:
+					if con:
+						con.commit()
+						con.close()
+
 		if self.config['debug']:
 			print "KMS Request Bytes:", binascii.b2a_hex(str(kmsRequest))
 			print "KMS Request:", kmsRequest.dump()
 
+		clientMachineId = kmsRequest['clientMachineId'].get()
+		applicationId = kmsRequest['applicationId'].get()
+		skuId = kmsRequest['skuId'].get()
+		requestDatetime = filetimes.filetime_to_dt(kmsRequest['requestTime'])
+
+		# Try and localize the request time, if pytz is available
+		try:
+			import timezones
+			from pytz import utc
+			local_dt = utc.localize(requestDatetime).astimezone(timezones.localtz())
+		except ImportError:
+			local_dt = requestDatetime
+
+		infoDict = {
+			"machineName" : kmsRequest.getMachineName(),
+			"clientMachineId" : str(clientMachineId),
+			"appId" : self.appIds.get(applicationId, str(applicationId)),
+			"skuId" : self.skuIds.get(skuId, str(skuId)),
+			"licenseStatus" : kmsRequest.getLicenseStatus(),
+			"requestTime" : int(time.mktime(requestDatetime.timetuple())),
+			"kmsEpid" : None
+		}
+
+		#print infoDict
+
 		if self.config['verbose']:
-			clientMachineId = kmsRequest['clientMachineId'].get()
-			applicationId = kmsRequest['applicationId'].get()
-			skuId = kmsRequest['skuId'].get()
-			requestDatetime = filetimes.filetime_to_dt(kmsRequest['requestTime'])
-
-			# Try and localize the request time, if pytz is available
-			try:
-				import timezones
-				from pytz import utc
-				local_dt = utc.localize(requestDatetime).astimezone(timezones.localtz())
-			except ImportError:
-				local_dt = requestDatetime
-
-			print "     Machine Name: %s" % kmsRequest.getMachineName()
-			print "Client Machine ID: %s" % str(clientMachineId)
-			print "   Application ID: %s" % self.appIds.get(applicationId, str(applicationId))
-			print "           SKU ID: %s" % self.skuIds.get(skuId, str(skuId))
-			print "   Licence Status: %s" % kmsRequest.getLicenseStatus()
+			print "     Machine Name: %s" % infoDict["machineName"]
+			print "Client Machine ID: %s" % infoDict["clientMachineId"]
+			print "   Application ID: %s" % infoDict["appId"]
+			print "           SKU ID: %s" % infoDict["skuId"]
+			print "   Licence Status: %s" % infoDict["licenseStatus"]
 			print "     Request Time: %s" % local_dt.strftime('%Y-%m-%d %H:%M:%S %Z (UTC%z)')
+
+		if self.config['log']:
+			con = None
+			try:
+				con = sqlite3.connect(self.dbName)
+				cur = con.cursor()
+				cur.execute("SELECT * FROM clients WHERE clientMachineId=:clientMachineId;", infoDict)
+				try:
+					data = cur.fetchone()
+					if not data:
+						#print "Inserting row..."
+						cur.execute("INSERT INTO clients (clientMachineId, machineName, applicationId, skuId, licenseStatus, lastRequestTime, requestCount) VALUES (:clientMachineId, :machineName, :appId, :skuId, :licenseStatus, :requestTime, 1);", infoDict)
+					else:
+						#print "Data:", data
+						if data[1] != infoDict["machineName"]:
+							cur.execute("UPDATE clients SET machineName=:machineName WHERE clientMachineId=:clientMachineId;", infoDict)
+						if data[2] != infoDict["appId"]:
+							cur.execute("UPDATE clients SET applicationId=:appId WHERE clientMachineId=:clientMachineId;", infoDict)
+						if data[3] != infoDict["skuId"]:
+							cur.execute("UPDATE clients SET skuId=:skuId WHERE clientMachineId=:clientMachineId;", infoDict)
+						if data[4] != infoDict["licenseStatus"]:
+							cur.execute("UPDATE clients SET licenseStatus=:licenseStatus WHERE clientMachineId=:clientMachineId;", infoDict)
+						if data[5] != infoDict["requestTime"]:
+							cur.execute("UPDATE clients SET lastRequestTime=:requestTime WHERE clientMachineId=:clientMachineId;", infoDict)
+						# Increment requestCount
+						cur.execute("UPDATE clients SET requestCount=requestCount+1 WHERE clientMachineId=:clientMachineId;", infoDict)
+
+				except sqlite3.Error, e:
+					print "Error %s:" % e.args[0]
+
+			except sqlite3.Error, e:
+				print "Error %s:" % e.args[0]
+				sys.exit(1)
+
+			finally:
+				if con:
+					con.commit()
+					con.close()
 
 		return self.createKmsResponse(kmsRequest)
 
@@ -255,6 +328,33 @@ class kmsBase:
 		response['currentClientCount'] = self.config["CurrentClientCount"]
 		response['vLActivationInterval'] = self.config["VLActivationInterval"]
 		response['vLRenewalInterval'] = self.config["VLRenewalInterval"]
+
+		if self.config['log']:
+			con = None
+			try:
+				con = sqlite3.connect(self.dbName)
+				cur = con.cursor()
+				cur.execute("SELECT * FROM clients WHERE clientMachineId=?;", [str(kmsRequest['clientMachineId'].get())])
+				try:
+					data = cur.fetchone()
+					#print "Data:", data
+					if data[6]:
+						response["kmsEpid"] = data[6].encode('utf-16le')
+					else:
+						cur.execute("UPDATE clients SET kmsEpid=? WHERE clientMachineId=?;", (str(response["kmsEpid"].decode('utf-16le')), str(kmsRequest['clientMachineId'].get())))
+
+				except sqlite3.Error, e:
+					print "Error %s:" % e.args[0]
+
+			except sqlite3.Error, e:
+				print "Error %s:" % e.args[0]
+				sys.exit(1)
+
+			finally:
+				if con:
+					con.commit()
+					con.close()
+
 		if self.config['verbose']:
 			print "      Server ePID: %s" % response["kmsEpid"].decode('utf-16le')
 		return response

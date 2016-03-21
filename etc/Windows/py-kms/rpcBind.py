@@ -119,7 +119,6 @@ class handler(rpcBase.rpcBase):
 
 		return response
 
-class bind(rpcBase.rpcBase):
 	def generateRequest(self):
 		firstCtxItem = CtxItem()
 		firstCtxItem['ContextID'] = 0

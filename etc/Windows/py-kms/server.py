@@ -24,6 +24,7 @@ def main():
 	parser.add_argument("-r", "--renewal-interval", dest="VLRenewalInterval", default=1440 * 7, help="Use this flag to specify the renewal interval (in minutes). Default is 10080 minutes (7 days).", type=int)
 	parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="Use this flag to enable verbose output.")
 	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Use this flag to enable debug output. Implies \"-v\".")
+	parser.add_argument("-o", "--log", dest="log", action="store_const", const=True, default=False, help="Use this flag to enable request logging to an SQLite database.")
 	config.update(vars(parser.parse_args()))
 	if config['debug']:
 		config['verbose'] = True

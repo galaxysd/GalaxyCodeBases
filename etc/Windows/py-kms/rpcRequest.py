@@ -42,7 +42,6 @@ class handler(rpcBase.rpcBase):
 
 		return response
 
-class request(rpcBase.rpcBase):
 	def generateRequest(self):
 		request = MSRPCRequestHeader()
 
@@ -50,10 +49,10 @@ class request(rpcBase.rpcBase):
 		request['ver_minor'] = 0
 		request['type'] = self.packetType['request']
 		request['flags'] = self.packetFlags['firstFrag'] | self.packetFlags['lastFrag']
-		request['representation'] = request['representation']
+		request['representation'] = 0x10
 		request['call_id'] = self.config['call_id']
 		request['alloc_hint'] = len(self.data)
-		request['pduData'] = self.data
+		request['pduData'] = str(self.data)
 
 		if self.config['debug']:
 			print "RPC Message Request:", request.dump()

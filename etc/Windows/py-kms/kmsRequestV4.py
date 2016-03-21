@@ -142,4 +142,20 @@ class kmsRequestV4(kmsBase):
 	def getResponse(self):
 		return self.responseData
 
+	def generateRequest(self, requestBase):
+		hash = str(self.generateHash(bytearray(str(requestBase))))
 
+		bodyLength = len(requestBase) + len(hash)
+
+		request = kmsRequestV4.RequestV4()
+		request['bodyLength1'] = bodyLength
+		request['bodyLength2'] = bodyLength
+		request['request'] = requestBase
+		request['hash'] = hash
+		request['padding'] = self.getResponsePadding(bodyLength)
+
+		if self.config['debug']:
+			print "Request V4 Data:", request.dump()
+			print "Request V4:", binascii.b2a_hex(str(request))
+
+		return request

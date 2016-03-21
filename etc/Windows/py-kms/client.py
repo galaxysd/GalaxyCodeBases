@@ -9,7 +9,11 @@ import sys
 import uuid
 import filetimes, rpcBind, rpcRequest
 
-from dcerpc import MSRPCHeader, MSRPCBindNak
+from dcerpc import MSRPCHeader, MSRPCBindNak, MSRPCRequestHeader, MSRPCRespHeader
+from kmsBase import kmsBase, UUID
+from kmsRequestV4 import kmsRequestV4
+from kmsRequestV5 import kmsRequestV5
+from kmsRequestV6 import kmsRequestV6
 from rpcBase import rpcBase
 
 config = {}
@@ -31,7 +35,7 @@ def main():
 	s.connect((config['ip'], config['port']))
 	if config['verbose']:
 		print "Connection successful!"
-	binder = rpcBind.bind('', config)
+	binder = rpcBind.handler(None, config)
 	RPC_Bind = str(binder.generateRequest())
 	if config['verbose']:
 		print "Sending RPC bind request..."
@@ -51,16 +55,14 @@ def main():
 	if packetType == rpcBase.packetType['bindAck']:
 		if config['verbose']:
 			print "RPC bind acknowledged."
-		#config['call_id'] += 1
-		'''
-		request = CreateRequest()
-		requester = rpcRequest.request(request, config)
-		s.send(request)
+		kmsRequest = createKmsRequest()
+		requester = rpcRequest.handler(kmsRequest, config)
+		s.send(str(requester.generateRequest()))
 		response = s.recv(1024)
 		if config['debug']:
-			print "Response:", binascii.b2a_hex(response), len(response)
-		parsed = ReadResponse(response)
-		'''
+			print "Response:", binascii.b2a_hex(response)
+		parsed = MSRPCRespHeader(response)
+		kmsResp = readKmsResponse(parsed['pduData'], kmsRequest, config)
 	elif packetType == rpcBase.packetType['bindNak']:
 		print MSRPCBindNak(bindResponse).dump()
 		sys.exit()
@@ -118,217 +120,72 @@ def updateConfig():
 		config['KMSClientSkuID'] = "b322da9c-a2e2-4058-9e4e-f59a6970bd69"
 		config['KMSClientKMSCountedID'] = "e6a6f1bf-9d40-40c3-aa9f-c77ba21578c0"
 
-def CreateRequestBase():
-	# Init requestDict
-	requestDict = {}
-
-	# KMS Protocol Version 
-	requestDict['MajorVer'] = config['KMSProtocolMajorVersion']
-	requestDict['MinorVer'] = config['KMSProtocolMinorVersion']
-
-	# KMS Client is NOT a VM
-	requestDict['IsClientVM'] = 0
-
-	# License Status
-	requestDict['LicenseStatus'] = config['KMSClientLicenseStatus']
-
-	# Grace Time
-	requestDict['GraceTime'] = 43200
-
-	# Application ID
-	requestDict['ApplicationId'] = uuid.UUID(config['KMSClientAppID'])
-
-	# SKU ID
-	requestDict['SkuId'] = uuid.UUID(config['KMSClientSkuID'])
-
-	# KMS Counted ID
-	requestDict['KmsCountedId'] = uuid.UUID(config['KMSClientKMSCountedID'])
-
-	# CMID
-	requestDict['ClientMachineId'] = uuid.uuid4()
-
-	# Minimum Clients
-	requestDict['RequiredClientCount'] = config['RequiredClientCount']
-
-	# Current Time
-	requestDict['RequestTime'] = filetimes.dt_to_filetime(datetime.datetime.utcnow())
-
-	# Generate Random Machine Name (Up to 63 Characters)
-	requestDict['MachineName'] = ''.join(random.choice(string.letters + string.digits) for i in range(32))
+def createKmsRequestBase():
+	requestDict = kmsBase.kmsRequestStruct()
+	requestDict['versionMinor'] = config['KMSProtocolMinorVersion']
+	requestDict['versionMajor'] = config['KMSProtocolMajorVersion']
+	requestDict['isClientVm'] = 0
+	requestDict['licenseStatus'] = config['KMSClientLicenseStatus']
+	requestDict['graceTime'] = 43200
+	requestDict['applicationId'] = UUID(uuid.UUID(config['KMSClientAppID']).bytes_le)
+	requestDict['skuId'] = UUID(uuid.UUID(config['KMSClientSkuID']).bytes_le)
+	requestDict['kmsCountedId'] = UUID(uuid.UUID(config['KMSClientKMSCountedID']).bytes_le)
+	requestDict['clientMachineId'] = UUID(uuid.uuid4().bytes_le)
+	requestDict['previousClientMachineId'] = '\0' * 16 #requestDict['clientMachineId'] # I'm pretty sure this is supposed to be a null UUID.
+	requestDict['requiredClientCount'] = config['RequiredClientCount']
+	requestDict['requestTime'] = filetimes.dt_to_filetime(datetime.datetime.utcnow())
+	requestDict['machineName'] = ''.join(random.choice(string.letters + string.digits) for i in range(random.randint(2,63))).encode('utf-16le')
+	requestDict['mnPad'] = '\0'.encode('utf-16le') * (63 - len(requestDict['machineName'].decode('utf-16le')))
 
 	# Debug Stuff
 	if config['debug']:
-		print "Request Base Dictionary:", requestDict
+		print "Request Base Dictionary:", requestDict.dump()
 
-	request = str()
-	request += struct.pack('<H', requestDict['MinorVer'])
-	request += struct.pack('<H', requestDict['MajorVer'])
-	request += struct.pack('<I', requestDict['IsClientVM'])
-	request += struct.pack('<I', requestDict['LicenseStatus'])
-	request += struct.pack('<I', requestDict['GraceTime'])
-	request += requestDict['ApplicationId'].bytes_le
-	request += requestDict['SkuId'].bytes_le
-	request += requestDict['KmsCountedId'].bytes_le
-	request += requestDict['ClientMachineId'].bytes_le
-	request += struct.pack('<I', requestDict['RequiredClientCount'])
-	request += struct.pack('>Q', requestDict['RequestTime'])
-	request += requestDict['ClientMachineId'].bytes_le
-	request += requestDict['MachineName'].encode('utf-16le')
-	request += ('\0' * 32).encode('utf-16le')
-	if config['debug']:
-		print "Request Base:", binascii.b2a_hex(request), len(request)
+	return requestDict
 
-	return request
-
-def CreateRequestV4():
+def createKmsRequest():
 	# Update the call ID
 	config['call_id'] += 1
 
-	# Create KMS Client Request Base
-	requestBase = CreateRequestBase()
-
-	# Create Hash
-	hashed = str(kmsRequestV4.main(bytearray(requestBase)))
-
-	# Generate Request
-	bodyLength = len(requestBase) + len(hashed)
-	if bodyLength % 8 == 0:
-		paddingLength = 0
-	else:
-		paddingLength = 8 - bodyLength % 8
-	v4Data = {
-		"BodyLength" : bodyLength,
-		"BodyLength2" : bodyLength,
-		"Hash" : hashed,
-		"Padding" : str(bytearray(functions.arrayFill([], paddingLength, 0x00)))
-	}
-	if config['debug']:
-		print "Request V4 Data:", v4Data
-	request = str()
-	request += struct.pack('<I',v4Data["BodyLength"])
-	request += struct.pack('<I',v4Data["BodyLength2"])
-	request += requestBase
-	request += v4Data["Hash"]
-	request += v4Data["Padding"]
-	if config['debug']:
-		print "Request V4:", binascii.b2a_hex(request), len(request)
-
-	return request
-
-def CreateRequestV5():
-	# Update the call ID
-	config['call_id'] += 1
-
-	# Generate a Random Salt Key
-	randomSalt = bytearray(random.getrandbits(8) for i in range(16))
-
-	# Set KMS Client Request Base
-	requestBase = CreateRequestBase();
-
-	'''
-	# AES-128 Encrypt
-	ENC = 1
-	DEC = 0
-	key = bytearray([ 0xCD, 0x7E, 0x79, 0x6F, 0x2A, 0xB2, 0x5D, 0xCB, 0x55, 0xFF, 0xC8, 0xEF, 0x83, 0x64, 0xC4, 0x70 ])
-	cipher = M2Crypto.EVP.Cipher(alg='aes_128_cbc', key=str(key), iv=str(randomSalt), op=ENC)
-	crypted = cipher.update(requestBase)
-	'''
-
-	# Generate Request
-	bodyLength = 4 + len(randomSalt) + len(crypted)
-	if bodyLength % 8 == 0:
-		paddingLength = 0
-	else:
-		paddingLength = 8 - bodyLength % 8
-	v5Data = {
-		"Version" : 5,
-		"BodyLength" : bodyLength,
-		"BodyLength2" : bodyLength,
-		"Encrypted" : crypted,
-		"Padding" : str(bytearray(functions.arrayFill(bytearray(), paddingLength, 0x00)))
-	}
-	if config['debug']:
-		print "Request V5 Data:", v5Data
-	request = str()
-	request += struct.pack('<I',v5Data["BodyLength"])
-	request += struct.pack('<I',v5Data["BodyLength2"])
-	request += struct.pack('<H',0)
-	request += struct.pack('<H',v5Data["Version"])
-	request += randomSalt
-	request += crypted
-	request += v5Data["Padding"]
-	if config['debug']:
-		print "Request V5:", binascii.b2a_hex(request), len(request)
-
-	# Return Request
-	return request
-
-def CreateRequest():
 	# KMS Protocol Major Version
 	if config['KMSProtocolMajorVersion'] == 4:
-		request = CreateRequestV4()
+		handler = kmsRequestV4(None, config)
 	elif config['KMSProtocolMajorVersion'] == 5:
-		request = CreateRequestV5()
+		handler = kmsRequestV5(None, config)
+	elif config['KMSProtocolMajorVersion'] == 6:
+		handler = kmsRequestV6(None, config)
 	else:
 		return None
-	return RPCMessageWrapper(request)
 
-def RPCMessageWrapper(request):
-	# Create the dictionary of data
-	wrapperDict = {}
-	wrapperDict['Version'] = '\x05'
-	wrapperDict['VersionMinor'] = '\x00'
-	wrapperDict['PacketType'] = '\x00'
-	wrapperDict['PacketFlags'] = '\x03'
-	wrapperDict['DataRepresentation'] = struct.pack('<I', 0x10)
-	wrapperDict['FragLength'] = struct.pack('<H', len(request) + 24)
-	wrapperDict['AuthLength'] = struct.pack('<H', 0)
-	wrapperDict['CallId'] = struct.pack('<I', config['call_id'])
-	wrapperDict['AllocHint'] = struct.pack('<I', len(request))
-	wrapperDict['ContextId'] = struct.pack('<H', 0)
-	wrapperDict['Opnum'] = struct.pack('<H', 0)
-	if config['debug']:
-		print "RPC Wrapper Dictionary:", wrapperDict
+	requestBase = createKmsRequestBase()
+	return handler.generateRequest(requestBase)
 
-	wrapper = str()
-	wrapper += wrapperDict['Version']
-	wrapper += wrapperDict['VersionMinor']
-	wrapper += wrapperDict['PacketType']
-	wrapper += wrapperDict['PacketFlags']
-	wrapper += wrapperDict['DataRepresentation']
-	wrapper += wrapperDict['FragLength']
-	wrapper += wrapperDict['AuthLength']
-	wrapper += wrapperDict['CallId']
-	wrapper += wrapperDict['AllocHint']
-	wrapper += wrapperDict['ContextId']
-	wrapper += wrapperDict['Opnum']
-	wrapper += request
-	if config['debug']:
-		print "Wrapped Request:", binascii.b2a_hex(wrapper), len(wrapper)
-
-	# Return the wrapped request
-	return wrapper
-
-def ReadResponse(data):
-	unknownDataSize = 8
-	version1 = data[unknownDataSize + 2]
-	version2 = data[unknownDataSize + 0]
-
-	if version1 == 4 and version2 == 0:
+def readKmsResponse(data, request, config):
+	if config['KMSProtocolMajorVersion'] == 4:
 		print "Received V4 response"
-		response = ReadResponseV4(data)
-	elif version1 == 5 and version2 == 0:
+		response = readKmsResponseV4(data, request)
+	elif config['KMSProtocolMajorVersion'] == 5:
 		print "Received V5 response"
-		response = ReadResponseV5(data)
+		response = readKmsResponseV5(data)
+	elif config['KMSProtocolMajorVersion'] == 6:
+		print "Received V6 response"
+		response = readKmsResponseV6(data)
 	else:
-		print "Unhandled response version", version1
+		print "Unhandled response version: %d.%d" % (config['KMSProtocolMajorVersion'], config['KMSProtocolMinorVersion'])
+		print "I'm not even sure how this happened..."
 	return response
 
-def ReadResponseV4(data):
+def readKmsResponseV4(data, request):
+	response = kmsRequestV4.ResponseV4(data)
+	hashed = kmsRequestV4(data, config).generateHash(bytearray(str(response['response'])))
+	print "Response Hash has expected value:", hashed == response['hash']
+	return response
+
+def readKmsResponseV5(data):
 	responseDict = {}
 	return responseDict
 
-def ReadResponseV5(data):
+def readKmsResponseV6(data):
 	responseDict = {}
 	return responseDict
 

@@ -126,3 +126,34 @@ class kmsRequestV5(kmsBase):
 	def getResponse(self):
 		return self.responseData
 
+	def generateRequest(self, requestBase):
+		esalt = self.getRandomSalt()
+
+		moo = aes.AESModeOfOperation()
+		moo.aes.v6 = self.v6
+		dsalt = moo.decrypt(esalt, 16, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], esalt)
+		dsalt = bytearray(dsalt)
+
+		decrypted = self.DecryptedRequest()
+		decrypted['salt'] = str(dsalt)
+		decrypted['request'] = requestBase
+
+		padded = aes.append_PKCS7_padding(str(decrypted))
+		mode, orig_len, crypted = moo.encrypt(padded, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], esalt)
+
+		message = self.RequestV5.Message(str(bytearray(crypted)))
+
+		bodyLength = len(message) + 2 + 2
+
+		request = self.RequestV5()
+		request['bodyLength1'] = bodyLength
+		request['bodyLength2'] = bodyLength
+		request['versionMinor'] = requestBase['versionMinor']
+		request['versionMajor'] = requestBase['versionMajor']
+		request['message'] = message
+
+		if self.config['debug']:
+			print "Request V%d Data: %s" % (self.ver, request.dump())
+			print "Request V%d: %s" % (self.ver, binascii.b2a_hex(str(request)))
+
+		return request
