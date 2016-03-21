@@ -23,9 +23,12 @@ def main():
 	parser.add_argument("ip", action="store", help="The IP address or hostname of the KMS host.", type=str)
 	parser.add_argument("port", nargs="?", action="store", default=1688, help="The port the KMS service is listening on. The default is \"1688\".", type=int)
 	parser.add_argument("-m", "--mode", dest="mode", choices=["WindowsVista","Windows7","Windows8","Windows81","Office2010","Office2013"], default="Windows7")
-	parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="Enable this flag to turn on verbose output.")
-	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Enable this flag to turn on debug output. Implies \"-v\".")
+	parser.add_argument("-c", "--cmid", dest="cmid", default=None, help="Use this flag to manually specify a CMID to use. If no CMID is specified, a random CMID will be generated.", type=str)
+	parser.add_argument("-n", "--name", dest="machineName", default=None, help="Use this flag to manually specify an ASCII machineName to use. If no machineName is specified, a random machineName will be generated.", type=str)
+	parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="Use this flag to enable verbose output.")
+	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Use this flag to enable debug output. Implies \"-v\".")
 	config.update(vars(parser.parse_args()))
+	checkConfig()
 	config['call_id'] = 1
 	if config['debug']:
 		config['verbose'] = True
@@ -69,6 +72,18 @@ def main():
 	else:
 		print "Something went wrong."
 		sys.exit()
+
+def checkConfig():
+	if config['cmid'] is not None:
+		try:
+			uuid.UUID(config['cmid'])
+		except:
+			print "Error: Bad CMID. Exiting..."
+			sys.exit()
+	if config['machineName'] is not None:
+		if len(config['machineName']) < 2 or len(config['machineName']) > 63:
+			print "Error: machineName must be between 2 and 63 characters in length."
+			sys.exit()
 
 def updateConfig():
 	if config['mode'] == 'WindowsVista':
@@ -130,11 +145,11 @@ def createKmsRequestBase():
 	requestDict['applicationId'] = UUID(uuid.UUID(config['KMSClientAppID']).bytes_le)
 	requestDict['skuId'] = UUID(uuid.UUID(config['KMSClientSkuID']).bytes_le)
 	requestDict['kmsCountedId'] = UUID(uuid.UUID(config['KMSClientKMSCountedID']).bytes_le)
-	requestDict['clientMachineId'] = UUID(uuid.uuid4().bytes_le)
+	requestDict['clientMachineId'] = UUID(uuid.UUID(config['cmid']).bytes_le if (config['cmid'] is not None) else uuid.uuid4().bytes_le)
 	requestDict['previousClientMachineId'] = '\0' * 16 #requestDict['clientMachineId'] # I'm pretty sure this is supposed to be a null UUID.
 	requestDict['requiredClientCount'] = config['RequiredClientCount']
 	requestDict['requestTime'] = filetimes.dt_to_filetime(datetime.datetime.utcnow())
-	requestDict['machineName'] = ''.join(random.choice(string.letters + string.digits) for i in range(random.randint(2,63))).encode('utf-16le')
+	requestDict['machineName'] = (config['machineName'] if (config['machineName'] is not None) else ''.join(random.choice(string.letters + string.digits) for i in range(random.randint(2,63)))).encode('utf-16le')
 	requestDict['mnPad'] = '\0'.encode('utf-16le') * (63 - len(requestDict['machineName'].decode('utf-16le')))
 
 	# Debug Stuff
