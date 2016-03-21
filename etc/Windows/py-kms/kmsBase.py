@@ -1,4 +1,5 @@
 import binascii
+import datetime
 import functions
 import kmsPidGenerator
 import struct
@@ -66,10 +67,16 @@ class kmsBase:
 	def serverLogic(self, data):
 		kmsRequest = self.parseKmsRequest(data)
 		if self.config['verbose']:
-			print "Request from \"%s\" with CMID \"%s\"." % (kmsRequest['machineNameString'], str(kmsRequest['clientMachineId']))
+			fileTimeInt = struct.unpack("<Q", str(kmsRequest['requestTime']))[0]
+			posixTimeInt = (fileTimeInt - 116444736000000000)/10000000
+			requestDatetime = datetime.datetime.utcfromtimestamp(posixTimeInt)
+			requestDatetimeString = requestDatetime.strftime('%c (UTC)')
+			print "Machine Name: %s" % kmsRequest['machineNameString']
+			print "CMID: %s" % str(kmsRequest['clientMachineId'])
 			print "Application ID: %s" % str(kmsRequest['applicationId'])
 			print "SKU ID: %s" % str(kmsRequest['skuId'])
-			print "Current licence status: %s" % kmsRequest['licenseStatusString']
+			print "Licence Status: %s" % kmsRequest['licenseStatusString']
+			print "Request Time: %s" % requestDatetimeString
 		kmsResponse = self.createKmsResponse(kmsRequest)
 		epidbuffer = bytearray((kmsResponse['kmsEpid']+'\0').encode('utf-16le'))
 
@@ -137,17 +144,18 @@ import kmsRequestV4, kmsRequestV5, kmsRequestV6, kmsRequestUnknown
 def generateKmsResponseData(data, config):
 	localKmsBase = kmsBase(data, config)
 	version = localKmsBase.parseVersion(data)['versionMajor']
+	currentDate = datetime.datetime.now().ctime()
 
 	if version == 4:
-		print "Received V%d request." % version
+		print "Received V%d request on %s." % (version, currentDate)
 		messagehandler = kmsRequestV4.kmsRequestV4(data, config)
 		messagehandler.executeRequestLogic()
 	elif version == 5:
-		print "Received V%d request." % version
+		print "Received V%d request on %s." % (version, currentDate)
 		messagehandler = kmsRequestV5.kmsRequestV5(data, config)
 		messagehandler.executeRequestLogic()
 	elif version == 6:
-		print "Received V%d request." % version
+		print "Received V%d request on %s." % (version, currentDate)
 		messagehandler = kmsRequestV6.kmsRequestV6(data, config)
 		messagehandler.executeRequestLogic()
 	else:
