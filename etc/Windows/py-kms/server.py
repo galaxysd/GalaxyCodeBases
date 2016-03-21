@@ -22,8 +22,8 @@ def main():
 	parser.add_argument("-c", "--client-count", dest="CurrentClientCount", default=26, help="Use this flag to specify the current client count. Default is 26. A number >25 is required to enable activation.", type=int)
 	parser.add_argument("-a", "--activation-interval", dest="VLActivationInterval", default=120, help="Use this flag to specify the activation interval (in minutes). Default is 120 minutes (2 hours).", type=int)
 	parser.add_argument("-r", "--renewal-interval", dest="VLRenewalInterval", default=1440 * 7, help="Use this flag to specify the renewal interval (in minutes). Default is 10080 minutes (7 days).", type=int)
-	parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="Enable this flag to turn on verbose output.")
-	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Enable this flag to turn on debug output. Implies \"-v\".")
+	parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="Use this flag to enable verbose output.")
+	parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="Use this flag to enable debug output. Implies \"-v\".")
 	config.update(vars(parser.parse_args()))
 	if config['debug']:
 		config['verbose'] = True
@@ -44,10 +44,12 @@ class kmsServer(SocketServer.BaseRequestHandler):
 				self.data = self.connection.recv(1024)
 			except socket.error, e:
 				if e[0] == 104:
+					print "Error: Connection reset by peer."
 					break
 				else:
 					raise
 			if self.data == '' or not self.data:
+				print "No data received!"
 				break
 			# self.data = bytearray(self.data.strip())
 			# print binascii.b2a_hex(str(self.data))

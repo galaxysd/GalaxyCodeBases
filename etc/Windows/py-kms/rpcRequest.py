@@ -25,8 +25,8 @@ class handler(rpcBase.rpcBase):
 		response = MSRPCRespHeader()
 		response['ver_major'] = request['ver_major']
 		response['ver_minor'] = request['ver_minor']
-		response['type'] = rpcBase.rpcBase.packetType['response']
-		response['flags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag']
+		response['type'] = self.packetType['response']
+		response['flags'] = self.packetFlags['firstFrag'] | self.packetFlags['lastFrag']
 		response['representation'] = request['representation']
 		response['call_id'] = request['call_id']
 
@@ -40,4 +40,26 @@ class handler(rpcBase.rpcBase):
 			print "RPC Message Response:", response.dump()
 			print "RPC Message Response Bytes:", binascii.b2a_hex(str(response))
 
+		return response
+
+class request(rpcBase.rpcBase):
+	def generateRequest(self):
+		request = MSRPCRequestHeader()
+
+		request['ver_major'] = 5
+		request['ver_minor'] = 0
+		request['type'] = self.packetType['request']
+		request['flags'] = self.packetFlags['firstFrag'] | self.packetFlags['lastFrag']
+		request['representation'] = request['representation']
+		request['call_id'] = self.config['call_id']
+		request['alloc_hint'] = len(self.data)
+		request['pduData'] = self.data
+
+		if self.config['debug']:
+			print "RPC Message Request:", request.dump()
+			print "RPC Message Request Bytes:", binascii.b2a_hex(str(request))
+
+		return request
+
+	def parseResponse(self):
 		return response

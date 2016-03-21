@@ -12,3 +12,4 @@ py-kms is a port of node-kms by [markedsword](http://forums.mydigitallife.info/m
 
 # Usage
 - To start the server, execute `python server.py [listen_address] [port]`. The default listening address is `0.0.0.0` (all interfaces) and the default port is `1688`.
+- To run the client, use `python client.py server_address [port]`. The default port is `1688`.
