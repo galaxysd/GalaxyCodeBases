@@ -260,7 +260,7 @@ class kmsBase:
 			"appId" : self.appIds.get(applicationId, str(applicationId)),
 			"skuId" : self.skuIds.get(skuId, str(skuId)),
 			"licenseStatus" : kmsRequest.getLicenseStatus(),
-			"requestTime" : int(time.mktime(requestDatetime.timetuple())),
+			"requestTime" : int(time.time()),
 			"kmsEpid" : None
 		}
 
