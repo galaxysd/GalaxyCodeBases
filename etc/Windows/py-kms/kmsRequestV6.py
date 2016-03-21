@@ -93,10 +93,10 @@ class kmsRequestV6(kmsBase):
 		responsedata.extend(XorSalts)
 
 		# HMacMsg
-		HMacMsg = bytearray(230)
+		HMacMsg = bytearray(16 + len(responsedata))
 		for i in range (0, 16):
 			HMacMsg[i] = (decrypted['SaltS'][i] ^ decrypted['DSaltS'][i]) & 0xff
-		for i in range (0, 214):
+		for i in range (0, len(responsedata)):
 			HMacMsg[i + 16] = responsedata[i]
 
 		# HMacKey

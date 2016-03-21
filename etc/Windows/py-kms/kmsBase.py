@@ -65,10 +65,11 @@ class kmsBase:
 
 	def serverLogic(self, data):
 		kmsRequest = self.parseKmsRequest(data)
-		print "Request from \"%s\" with CMID \"%s\"." % (kmsRequest['machineNameString'], str(kmsRequest['clientMachineId']))
-		print "Application ID: %s" % str(kmsRequest['applicationId'])
-		print "SKU ID: %s" % str(kmsRequest['skuId'])
-		print "Current licence status: %s" % kmsRequest['licenseStatusString']
+		if self.config['verbose']:
+			print "Request from \"%s\" with CMID \"%s\"." % (kmsRequest['machineNameString'], str(kmsRequest['clientMachineId']))
+			print "Application ID: %s" % str(kmsRequest['applicationId'])
+			print "SKU ID: %s" % str(kmsRequest['skuId'])
+			print "Current licence status: %s" % kmsRequest['licenseStatusString']
 		kmsResponse = self.createKmsResponse(kmsRequest)
 		epidbuffer = bytearray((kmsResponse['kmsEpid']+'\0').encode('utf-16le'))
 
