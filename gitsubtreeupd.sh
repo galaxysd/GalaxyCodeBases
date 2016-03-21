@@ -15,12 +15,10 @@ git subtree pull --prefix=etc/agfw/Pcap_DNSProxy git://github.com/chengr28/Pcap_
 git subtree pull --prefix=c_cpp/lib/klib git://github.com/attractivechaos/klib.git master
 git subtree pull --prefix=tools/bioawk git://github.com/lh3/bioawk.git master
 git subtree pull --prefix=tools/lh3misc https://github.com/lh3/misc.git master
-git subtree pull --prefix=etc/Mac/OfficeThinner https://github.com/goodbest/OfficeThinner.git master
 
-git subtree pull --prefix=pubdoc/Markdown-Syntax-CN https://gitcafe.com/riku/Markdown-Syntax-CN.git master
+# GitCafe 将于 2016年5月31日 停止所有服务 git subtree pull --prefix=pubdoc/Markdown-Syntax-CN https://gitcafe.com/riku/Markdown-Syntax-CN.git master
 git subtree pull --prefix=etc/whichpm https://github.com/mklement0/whichpm.git master
 git subtree pull --prefix=tools/create-dmg https://github.com/andreyvit/create-dmg.git master
-git subtree pull --prefix=etc/Mac/adobe_case_sensitive_volumes https://github.com/tzvetkoff/adobe_case_sensitive_volumes.git master
 
 git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeHentai.git master
 # https://github.com/fffonion/httplib2-plus.git mirrored as https://github.com/galaxy001/httplib2-plus
@@ -42,6 +40,8 @@ git subtree pull --prefix=etc/Chrome/BaiduExporter https://github.com/acgotaku/B
 # etc/Chrome/ThunderLixianAssistant/src/ThunderLixianExporter -> ../../../../js/ThunderLixianExporter
 git subtree pull --prefix=etc/Chrome/115 https://github.com/acgotaku/115.git master
 
+git subtree pull --prefix=etc/Mac/OfficeThinner https://github.com/goodbest/OfficeThinner.git master
+git subtree pull --prefix=etc/Mac/adobe_case_sensitive_volumes https://github.com/tzvetkoff/adobe_case_sensitive_volumes.git master
 git subtree pull --prefix=etc/Windows/vlmcsd https://github.com/vancepym/vlmcsd.git master
 
 git fsck
