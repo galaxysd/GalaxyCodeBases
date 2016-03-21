@@ -42,6 +42,8 @@ git subtree pull --prefix=etc/Chrome/BaiduExporter https://github.com/acgotaku/B
 # etc/Chrome/ThunderLixianAssistant/src/ThunderLixianExporter -> ../../../../js/ThunderLixianExporter
 git subtree pull --prefix=etc/Chrome/115 https://github.com/acgotaku/115.git master
 
+git subtree pull --prefix=etc/Windows/vlmcsd https://github.com/vancepym/vlmcsd.git master
+
 git fsck
 git gc --aggressive --prune=now
 
