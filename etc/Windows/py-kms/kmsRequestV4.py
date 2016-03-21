@@ -4,9 +4,7 @@ import time
 from kmsBase import kmsBase
 from structure import Structure
 
-# Rijndael SBox
 from aes import AES
-subTable = AES.sbox
 
 # v4 AES Key
 key = [
@@ -24,61 +22,10 @@ key = [
 	0x4A, 0x68, 0xF1, 0xD1, 0x21, 0x7D, 0x57, 0x3B, 0x45, 0xED, 0x08, 0x9D, 0xA9, 0x4D, 0x8F, 0xD6
 ]
 
-# Intern Hash
-def hasher(hashBuffer):
-	i = 0
-
-	while True:
-		xorBuffer(key, i, hashBuffer)
-		i += 16
-		subbytes(hashBuffer)
-		xorBuffer(key, i, hashBuffer)
-		i += 16
-		if ( i >= 6 * 16 * 2 ):
-			break
-		shiftRows(hashBuffer)
-		mixColumns(hashBuffer)
-		subbytes(hashBuffer)
-		shiftRows(hashBuffer)
-		mixColumns(hashBuffer)
-
-	shiftRows(hashBuffer)
-
 # Xor Buffer
 def xorBuffer(source, offset, destination):
 	for i in range(0,16):
 		destination[i] ^= source[i + offset]
-
-# Rijndael SBox
-def subbytes(pbytes):
-	for i in range(0,16):
-		pbytes[i] = subTable[pbytes[i]]
-
-# Rijndael ShiftRows
-def shiftRows(pbytes):
-	bIn = pbytes[0:16]
-	for i in range(0,16):
-		pbytes[i] = bIn[(i + ((i & 3) << 2)) & 0xf]
-
-# Rijndael MixColumns
-def mixColumns(pbytes):
-	bIn = pbytes[0:16]
-	for i in range(0,16,4):
-		pbytes[i] = (mulx2(bIn[i]) ^ mulx3(bIn[i + 1]) ^ bIn[i + 2] ^ bIn[i + 3]) & 0xff
-		pbytes[i + 1] = (bIn[i] ^ mulx2(bIn[i + 1]) ^ mulx3(bIn[i + 2]) ^ bIn[i + 3]) & 0xff
-		pbytes[i + 2] = (bIn[i] ^ bIn[i + 1] ^ mulx2(bIn[i + 2]) ^ mulx3(bIn[i + 3])) & 0xff
-		pbytes[i + 3] = (mulx3(bIn[i]) ^ bIn[i + 1] ^ bIn[i + 2] ^ mulx2(bIn[i + 3])) & 0xff
-
-# Galois Field MUL x 2
-def mulx2(bIn):
-	bOut = (bIn << 1)
-	if ((bIn & 0x80) != 0x00):
-		bOut ^= 0x1B
-	return bOut
-
-# Galois Field MUL x 3
-def mulx3(bIn):
-	return (mulx2(bIn) ^ bIn)
 
 class kmsRequestV4(kmsBase):
 	class RequestV4(Structure):
@@ -113,6 +60,24 @@ class kmsRequestV4(kmsBase):
 		time.sleep(1) # request sent back too quick for Windows 2008 R2, slow it down.
 
 	def generateHash(self, message):
+		"""
+		The KMS v4 hash is a variant of CMAC-AES-128. There are two key differences:
+		* The 'AES' used is modified in particular ways:
+		  * The basic algorithm is Rjindael with a conceptual 160bit key and 128bit blocks.
+		    This isn't part of the AES standard, but it works the way you'd expect.
+		    Accordingly, the algorithm uses 11 rounds and a 192 byte expanded key.
+		  * The key doesn't appear to be a normal Rjindael key - which in this case would
+		    be a 20 byte key expanded to 192 bytes. It could well just be 192 random
+		    bytes.
+		  * Odd numbered rounds use a modified operation order where addRoundKey is
+		    done second, instead of last.
+		* The trailing block is not XORed with a generated subkey, as defined in CMAC.
+		  This is probably because the subkey generation algorithm is only defined for
+		  situations where block and key size are the same.
+		"""
+		aes = AES()
+		aes.v4 = True
+
 		messageSize = len(message)
 		lastBlock = bytearray(16) 
 		hashBuffer = bytearray(16)
@@ -126,7 +91,7 @@ class kmsRequestV4(kmsBase):
 		# Hash
 		for i in range(0,j):
 			xorBuffer(message, i << 4, hashBuffer)
-			hasher(hashBuffer)
+			hashBuffer = aes.encrypt(hashBuffer, key, len(key))
 
 		# Bit Padding
 		ii = 0
@@ -136,9 +101,9 @@ class kmsRequestV4(kmsBase):
 		lastBlock[k] = 0x80
 
 		xorBuffer(lastBlock, 0, hashBuffer)
-		hasher(hashBuffer)
+		hashBuffer = aes.encrypt(hashBuffer, key, len(key))
 
-		return str(hashBuffer)
+		return str(bytearray(hashBuffer))
 
 	def generateResponse(self, responseBuffer, hash):
 		bodyLength = len(responseBuffer) + len(hash)

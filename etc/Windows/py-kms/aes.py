@@ -21,6 +21,7 @@ class AES(object):
     # Very annoying code:  all is for an object, but no state is kept!
     # Should just be plain functions in a AES modlule.
     
+    v4 = False
     v6 = False
 
     # valid key sizes
@@ -270,6 +271,8 @@ class AES(object):
     # applies the 4 operations of the forward round in sequence
     def aes_round(self, state, roundKey, round):
         state = self.subBytes(state, False)
+        if self.v4 and round % 2 == 1:
+            state = self.addRoundKey(state, roundKey)
         state = self.shiftRows(state, False)
         state = self.mixColumns(state, False)
 
@@ -281,7 +284,8 @@ class AES(object):
           if round == 8:
             state[0]^=0xE4
 
-        state = self.addRoundKey(state, roundKey)
+        if not self.v4 or (self.v4 and round % 2 == 0):
+            state = self.addRoundKey(state, roundKey)
         return state
 
     # applies the 4 operations of the inverse round in sequence
@@ -311,9 +315,12 @@ class AES(object):
                                    self.createRoundKey(expandedKey, 16*i), i)
             i += 1
         state = self.subBytes(state, False)
-        state = self.shiftRows(state, False)
+        if not self.v4:
+        	state = self.shiftRows(state, False)
         state = self.addRoundKey(state,
                                  self.createRoundKey(expandedKey, 16*nbrRounds))
+        if self.v4:
+        	state = self.shiftRows(state, False)
         return state
 
     # Perform the initial operations, the standard round, and the final
@@ -342,6 +349,8 @@ class AES(object):
         if size == self.keySize["SIZE_128"]: nbrRounds = 10
         elif size == self.keySize["SIZE_192"]: nbrRounds = 12
         elif size == self.keySize["SIZE_256"]: nbrRounds = 14
+        # The KMS v4 parameters
+        elif size == 192: nbrRounds = 11
         else: return None
 
         # the expanded keySize
