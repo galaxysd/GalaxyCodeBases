@@ -5,10 +5,11 @@ import time
 from kmsBase import kmsBase
 
 # Rijndael SBox
-from v4.subtable import subTable
+from aes import AES
+subTable = AES.sbox
 
 # Complex
-from v4.tablecomplex import tableComplex
+from tablecomplex import tableComplex
 
 # Intern Hash
 def hasher(hashBuffer):
@@ -79,8 +80,8 @@ class kmsRequestV4(kmsBase):
 
 	def generateHash(self, message):
 		messageSize = len(message)
-		lastBlock = functions.arrayFill([], 16, 0x00)
-		hashBuffer = functions.arrayFill([], 16, 0x00)
+		lastBlock = bytearray(16) 
+		hashBuffer = bytearray(16)
 
 		# MessageSize / Blocksize
 		j = messageSize >> 4

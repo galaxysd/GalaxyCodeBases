@@ -5,7 +5,7 @@ import rpcBase
 import struct
 import uuid
 
-class rpcRequestHandler(rpcBase.rpcBase):
+class handler(rpcBase.rpcBase):
 	def parseRequest(self):
 		data = self.data
 		request = self.parseHeader(data)

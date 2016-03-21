@@ -3,15 +3,65 @@ import functions
 import rpcBase
 import struct
 import uuid
-from rpcBindRequestCtxItem import *
-from rpcBindResponseCtxItem import *
 
-class rpcBindHandler(rpcBase.rpcBase):
-	uuidNDR32 = uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860')
-	uuidNDR64 = uuid.UUID('71710533-beba-4937-8319-b5dbef9ccc36')
-	uuidTime = uuid.UUID('6cb71c2c-9812-4540-0300-000000000000')
-	uuidEmpty = uuid.UUID('00000000-0000-0000-0000-000000000000')
+class rpcBindRequestCtxItem:
+	dataLength = 44
 
+	def __init__(self, data):
+		self.contextId = struct.unpack_from('<H', str(data), 0)[0];
+		self.numTransItems = struct.unpack_from('<H', str(data), 2)[0];
+		self.abstractSyntaxUUID = uuid.UUID(bytes_le=str(data[4:4 + 16]))
+		self.abstractSyntaxVersionMajor = struct.unpack_from('<H', str(data), 20)[0]
+		self.abstractSyntaxVersionMinor = struct.unpack_from('<H', str(data), 22)[0]
+		self.transferSyntaxUUID = uuid.UUID(bytes_le=str(data[24:24 + 16]))
+		self.transferSyntaxVersion = struct.unpack_from('<I', str(data), 40)[0]
+
+	def toDictionary(self):
+		dictionary = {}
+		dictionary['contextId'] = self.contextId
+		dictionary['numTransItems'] = self.numTransItems
+		dictionary['abstractSyntaxUUID'] = self.abstractSyntaxUUID
+		dictionary['abstractSyntaxVersionMajor'] = self.abstractSyntaxVersionMajor
+		dictionary['abstractSyntaxVersionMinor'] = self.abstractSyntaxVersionMinor
+		dictionary['transferSyntaxUUID'] = self.transferSyntaxUUID
+		dictionary['transferSyntaxVersion'] = self.transferSyntaxVersion
+		return dictionary
+
+	def toByteArray(self):
+		bytes = bytearray()
+		bytes.extend(functions.to16BitLEArray(self.contextId))
+		bytes.extend(functions.to16BitLEArray(self.numTransItems))
+		bytes.extend(self.abstractSyntaxUUID.bytes_le)
+		bytes.extend(functions.to16BitLEArray(self.abstractSyntaxVersionMajor))
+		bytes.extend(functions.to16BitLEArray(self.abstractSyntaxVersionMinor))
+		bytes.extend(self.transferSyntaxUUID.bytes_le)
+		bytes.extend(functions.to32BitLEArray(self.transferSyntaxVersion))
+		return bytes
+
+class rpcBindResponseCtxItem:
+	def __init__(self, data):
+		self.ackResult = data['ackResult']
+		self.ackReason = data['ackReason']
+		self.transferSyntax = data['transferSyntax']
+		self.syntaxVersion = data['syntaxVersion']
+
+	def toDictionary(self):
+		dictionary = {}
+		dictionary['ackResult'] = self.ackResult
+		dictionary['ackReason'] = self.ackReason
+		dictionary['transferSyntax'] = self.transferSyntax
+		dictionary['syntaxVersion'] = self.syntaxVersion
+		return dictionary
+
+	def toByteArray(self):
+		bytes = bytearray()
+		bytes.extend(functions.to16BitLEArray(self.ackResult))
+		bytes.extend(functions.to16BitLEArray(self.ackReason))
+		bytes.extend(self.transferSyntax.bytes_le)
+		bytes.extend(functions.to32BitLEArray(self.syntaxVersion))
+		return bytes
+
+class handler(rpcBase.rpcBase):
 	def parseRequest(self):
 		data = self.data
 		request = self.parseHeader(data)

@@ -36,7 +36,7 @@ class kmsRequestV6(kmsBase):
 		#decrypted = aes.strip_PKCS7_padding(decrypted)
 
 		# DSaltS
-		DSaltS = functions.bufferToByteArray(decrypted, 0, 16)
+		DSaltS = bytearray(decrypted[:16])
 
 		# SaltC
 		iv = request['salt']
@@ -53,10 +53,10 @@ class kmsRequestV6(kmsBase):
 		decrypted = aes.strip_PKCS7_padding(decrypted)
 
 		# DSaltC
-		decryptedSalt = functions.bufferToByteArray(decrypted, 0, 16)
+		decryptedSalt = bytearray(decrypted[:16])
 		DSaltC = decryptedSalt
 
-		decryptedRequest = functions.bufferToByteArray(decrypted, 16, len(decrypted) - 16)
+		decryptedRequest = bytearray(decrypted[16:])
 
 		return {
 			'salt' : decryptedSalt,
@@ -78,9 +78,9 @@ class kmsRequestV6(kmsBase):
 			randomStuff[i] = (decrypted['salt'][i] ^ request['salt'][i] ^ randomSalt[i]) & 0xff
 
 		responsedata = bytearray()
-		responsedata.extend(functions.bufferToByteArray(response))
+		responsedata.extend(bytearray(response))
 		responsedata.extend(randomStuff)
-		responsedata.extend(functions.bufferToByteArray(result))
+		responsedata.extend(bytearray(result))
 
 		# UnknownData
 		unknown = bytearray([0x36,0x4F,0x46,0x3A,0x88,0x63,0xD3,0x5F])
@@ -104,7 +104,7 @@ class kmsRequestV6(kmsBase):
 		HMacKey = self.getMACKey(requestTime)
 		HMac = hmac.new(str(HMacKey), str(HMacMsg), hashlib.sha256)
 		digest = HMac.digest()
-		responsedata.extend(functions.bufferToByteArray(digest, 16, len(digest) - 16))
+		responsedata.extend(bytearray(digest[16:]))
 
 		padded = aes.append_PKCS7_padding(responsedata)
 		moo = aes.AESModeOfOperation()
@@ -131,7 +131,7 @@ class kmsRequestV6(kmsBase):
 		sha256.update(struct.pack("<Q", seed))
 		digest = sha256.digest()
 
-		return functions.bufferToByteArray(digest, 16, len(digest) - 16)
+		return bytearray(digest[16:])
 	
 	def parseRequest(self):
 		data = self.data
@@ -140,9 +140,9 @@ class kmsRequestV6(kmsBase):
 		request['bodyLength2'] = struct.unpack_from('<I', str(data), 4)[0]
 		request['versionMinor'] = struct.unpack_from('<H', str(data), 8)[0]
 		request['versionMajor'] = struct.unpack_from('<H', str(data), 10)[0]
-		request['salt'] = functions.bufferToByteArray(data, 12, 16)
-		request['encryptedRequest'] = functions.bufferToByteArray(data, 28, len(data) - 8 - 4 - 16 - 4)
-		request['pad'] = functions.bufferToByteArray(data, len(data) - 4, 4)
+		request['salt'] = bytearray(data[12:28])
+		request['encryptedRequest'] = bytearray(data[28:-4])
+		request['pad'] = bytearray(data[-4:])
 		return request
 	
 	def getRandomSalt(self):

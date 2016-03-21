@@ -1,5 +1,6 @@
 import functions
 import struct
+import uuid
 
 class rpcBase:
 	packetType = {
@@ -34,6 +35,11 @@ class rpcBase:
 		'maybe' : 64, # 0x40
 		'objectUuid' : 128 # 0x80
 	}
+
+	uuidNDR32 = uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860')
+	uuidNDR64 = uuid.UUID('71710533-beba-4937-8319-b5dbef9ccc36')
+	uuidTime = uuid.UUID('6cb71c2c-9812-4540-0300-000000000000')
+	uuidEmpty = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
 	def __init__(self, data, config):
 		self.data = data

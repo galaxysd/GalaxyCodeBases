@@ -6,7 +6,7 @@ import socket
 import SocketServer
 import struct
 import uuid
-import rpcBase, rpcBindHandler, rpcRequestHandler
+import rpcBase, rpcBind, rpcRequest
 
 config = {}
 
@@ -52,11 +52,11 @@ class kmsServer(SocketServer.BaseRequestHandler):
 			if packetType == localRpcBase.packetType['bindReq']:
 				if config['verbose']:
 					print "RPC bind request received."
-				handler = rpcBindHandler.rpcBindHandler(self.data, config)
+				handler = rpcBind.handler(self.data, config)
 			elif packetType == localRpcBase.packetType['request']:
 				if config['verbose']:
 					print "Received activation request."
-				handler = rpcRequestHandler.rpcRequestHandler(self.data, config)
+				handler = rpcRequest.handler(self.data, config)
 			else:
 				print "Error: Invalid RPC request type", packetType
 				break

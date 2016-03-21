@@ -37,9 +37,9 @@ class kmsRequestV5(kmsBase):
 		decrypted = moo.decrypt(encrypted, 256, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], iv)
 		decrypted = aes.strip_PKCS7_padding(decrypted)
 
-		decryptedSalt = functions.bufferToByteArray(decrypted, 0, 16)
+		decryptedSalt = bytearray(decrypted[:16])
 
-		decryptedRequest = functions.bufferToByteArray(decrypted, 16, len(decrypted) - 16)
+		decryptedRequest = bytearray(decrypted[16:])
 
 		return {
 			'salt' : decryptedSalt,
@@ -59,9 +59,9 @@ class kmsRequestV5(kmsBase):
 		iv = request['salt']
 
 		responsedata = bytearray()
-		responsedata.extend(functions.bufferToByteArray(response))
+		responsedata.extend(bytearray(response))
 		responsedata.extend(randomStuff)
-		responsedata.extend(functions.bufferToByteArray(result))
+		responsedata.extend(bytearray(result))
 
 		padded = aes.append_PKCS7_padding(responsedata)
 		moo = aes.AESModeOfOperation()
@@ -80,9 +80,9 @@ class kmsRequestV5(kmsBase):
 		request['bodyLength2'] = struct.unpack_from('<I', str(data), 4)[0]
 		request['versionMinor'] = struct.unpack_from('<H', str(data), 8)[0]
 		request['versionMajor'] = struct.unpack_from('<H', str(data), 10)[0]
-		request['salt'] = functions.bufferToByteArray(data, 12, 16)
-		request['encryptedRequest'] = functions.bufferToByteArray(data, 28, len(data) - 8 - 4 - 16 - 4)
-		request['pad'] = functions.bufferToByteArray(data, len(data) - 4, 4)
+		request['salt'] = bytearray(data[12:28])
+		request['encryptedRequest'] = bytearray(data[28:-4])
+		request['pad'] = bytearray(data[-4:])
 		return request
 	
 	def getRandomSalt(self):
@@ -125,4 +125,4 @@ class kmsRequestV5(kmsBase):
 	
 	def getResponse(self):
 		return str(self.finalResponse)
-	
+
