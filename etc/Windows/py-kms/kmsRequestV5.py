@@ -104,6 +104,18 @@ class kmsRequestV5(kmsBase):
 		mode, orig_len, crypted = moo.encrypt(padded, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], iv)
 
 		return str(iv), str(bytearray(crypted))
+
+	def decryptResponse(self, response):
+		paddingLength = response['bodyLength1'] % 8
+		iv = bytearray(response['salt'])
+		encrypted = bytearray(response['encrypted'][:-paddingLength])
+
+		moo = aes.AESModeOfOperation()
+		moo.aes.v6 = self.v6
+		decrypted = moo.decrypt(encrypted, 256, moo.modeOfOperation["CBC"], self.key, moo.aes.keySize["SIZE_128"], iv)
+		decrypted = aes.strip_PKCS7_padding(decrypted)
+
+		return self.DecryptedResponse(decrypted)
 		
 	def getRandomSalt(self):
 		return bytearray(random.getrandbits(8) for i in range(16))

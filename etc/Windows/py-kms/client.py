@@ -65,7 +65,11 @@ def main():
 		if config['debug']:
 			print "Response:", binascii.b2a_hex(response)
 		parsed = MSRPCRespHeader(response)
-		kmsResp = readKmsResponse(parsed['pduData'], kmsRequest, config)
+		kmsResp = readKmsResponse(parsed['pduData'], kmsRequest, config)['response']
+		print "KMS Host ePID:", kmsResp['kmsEpid']
+		print "KMS Host Current Client Count:", kmsResp['currentClientCount']
+		print "KMS VL Activation Interval:", kmsResp['vLActivationInterval']
+		print "KMS VL Renewal Interval:", kmsResp['vLRenewalInterval']
 	elif packetType == rpcBase.packetType['bindNak']:
 		print MSRPCBindNak(bindResponse).dump()
 		sys.exit()
@@ -197,12 +201,15 @@ def readKmsResponseV4(data, request):
 	return response
 
 def readKmsResponseV5(data):
-	responseDict = {}
-	return responseDict
+	response = kmsRequestV5.ResponseV5(data)
+	decrypted = kmsRequestV5(data, config).decryptResponse(response)
+	return decrypted
 
 def readKmsResponseV6(data):
-	responseDict = {}
-	return responseDict
+	response = kmsRequestV6.ResponseV5(data)
+	decrypted = kmsRequestV6(data, config).decryptResponse(response)
+	message = decrypted['message']
+	return message
 
 if __name__ == "__main__":
 	main()
