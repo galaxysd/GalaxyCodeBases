@@ -7,10 +7,10 @@ from rpcBindRequestCtxItem import *
 from rpcBindResponseCtxItem import *
 
 class rpcBindHandler(rpcBase.rpcBase):
-	ctxItemsTransferSyntax = []
-	ctxItemsTransferSyntax.append(uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860'))
-	ctxItemsTransferSyntax.append(uuid.UUID('00000000-0000-0000-0000-000000000000'))
-	ctxItemsTransferSyntax.append(uuid.UUID('00000000-0000-0000-0000-000000000000'))
+	uuidNDR32 = uuid.UUID('8a885d04-1ceb-11c9-9fe8-08002b104860')
+	uuidNDR64 = uuid.UUID('71710533-beba-4937-8319-b5dbef9ccc36')
+	uuidTime = uuid.UUID('6cb71c2c-9812-4540-0300-000000000000')
+	uuidEmpty = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
 	def parseRequest(self):
 		data = self.data
@@ -40,7 +40,7 @@ class rpcBindHandler(rpcBase.rpcBase):
 		response['packetType'] = rpcBase.rpcBase.packetType['bindAck']
 		response['packetFlags'] = rpcBase.rpcBase.packetFlags['firstFrag'] | rpcBase.rpcBase.packetFlags['lastFrag'] | rpcBase.rpcBase.packetFlags['multiplex']
 		response['dataRepresentation'] = request['dataRepresentation']
-		response['fragLength'] = 36 + 3 * 24
+		response['fragLength'] = 36 + request['numCtxItems'] * 24
 		response['authLength'] = request['authLength']
 		response['callId'] = request['callId']
 
@@ -50,30 +50,32 @@ class rpcBindHandler(rpcBase.rpcBase):
 
 		response['secondaryAddressLength'] = 6
 		response['secondaryAddress'] = bytearray(functions.stringPad(self.config['port'], '\0', 6, 'right'))
-		response['numberOfResults'] = 3
+		response['numberOfResults'] = request['numCtxItems']
 
-		response['ctxItems'] = []
-		item0 = rpcBindResponseCtxItem({
+		preparedResponses = {}
+		preparedResponses[self.uuidNDR32] = rpcBindResponseCtxItem({
 			'ackResult' : 0,
 			'ackReason' : 0,
-			'transferSyntax' : self.ctxItemsTransferSyntax[0],
+			'transferSyntax' : self.uuidNDR32,
 			'syntaxVersion' : 2
 		})
-		response['ctxItems'].append(item0)
-		item1 = rpcBindResponseCtxItem({
+		preparedResponses[self.uuidNDR64] = rpcBindResponseCtxItem({
 			'ackResult' : 2,
 			'ackReason' : 2,
-			'transferSyntax' : self.ctxItemsTransferSyntax[1],
+			'transferSyntax' : self.uuidEmpty,
 			'syntaxVersion' : 0
 		})
-		response['ctxItems'].append(item1)
-		item2 = rpcBindResponseCtxItem({
+		preparedResponses[self.uuidTime] = rpcBindResponseCtxItem({
 			'ackResult' : 3,
 			'ackReason' : 3,
-			'transferSyntax' : self.ctxItemsTransferSyntax[2],
+			'transferSyntax' : self.uuidEmpty,
 			'syntaxVersion' : 0
 		})
-		response['ctxItems'].append(item2)
+
+		response['ctxItems'] = []
+		for i in range (0, request['numCtxItems']):
+			resp = preparedResponses[request['ctxItems'][i]['transferSyntaxUUID']]
+			response['ctxItems'].append(resp)
 
 		if self.config['debug']:
 			print "RPC Bind Response:", response

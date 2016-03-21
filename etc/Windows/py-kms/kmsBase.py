@@ -65,6 +65,10 @@ class kmsBase:
 
 	def serverLogic(self, data):
 		kmsRequest = self.parseKmsRequest(data)
+		print "Request from \"%s\" with CMID \"%s\"." % (kmsRequest['machineNameString'], str(kmsRequest['clientMachineId']))
+		print "Application ID: %s" % str(kmsRequest['applicationId'])
+		print "SKU ID: %s" % str(kmsRequest['skuId'])
+		print "Current licence status: %s" % kmsRequest['licenseStatusString']
 		kmsResponse = self.createKmsResponse(kmsRequest)
 		epidbuffer = bytearray((kmsResponse['kmsEpid']+'\0').encode('utf-16le'))
 
@@ -111,16 +115,10 @@ class kmsBase:
 		kmsRequest['requiredClientCount'] = struct.unpack_from('<I', str(data), 80)[0]
 		kmsRequest['requestTime'] = data[84:84 + 8] # data.ReadUInt64()
 		kmsRequest['previousClientMachineId'] = data[92:92 + 16]
-		kmsRequest['machineName'] = ''
-		rawMachineName = str(data[108:108 + 64])
-		for i in range(0,64,2):
-			if rawMachineName[i] + rawMachineName[i+1] != '\0'.encode('utf-16le'):
-				kmsRequest['machineName'] += rawMachineName[i] + rawMachineName[i+1]
-			else:
-				break
+		kmsRequest['machineName'] = data[108:108 + 64]
 
 		# translate to human readable
-		kmsRequest['machineNameString'] = str(kmsRequest['machineName']).decode('utf-16le').strip('\0')
+		kmsRequest['machineNameString'] = str(kmsRequest['machineName']).rsplit('\0\0')[0].decode('utf-16le')
 		kmsRequest['licenseStatusString'] = self.licenseStates[kmsRequest['licenseStatus']] or "Unknown"
 
 		if self.config['debug']:
@@ -140,18 +138,18 @@ def generateKmsResponseData(data, config):
 	version = localKmsBase.parseVersion(data)['versionMajor']
 
 	if version == 4:
-		print "Received V%d request" % version
+		print "Received V%d request." % version
 		messagehandler = kmsRequestV4.kmsRequestV4(data, config)
 		messagehandler.executeRequestLogic()
 	elif version == 5:
-		print "Received V%d request" % version
+		print "Received V%d request." % version
 		messagehandler = kmsRequestV5.kmsRequestV5(data, config)
 		messagehandler.executeRequestLogic()
 	elif version == 6:
-		print "Received V%d request" % version
+		print "Received V%d request." % version
 		messagehandler = kmsRequestV6.kmsRequestV6(data, config)
 		messagehandler.executeRequestLogic()
 	else:
-		print "Unhandled KMS version", version
+		print "Unhandled KMS version.", version
 		messagehandler = kmsRequestUnknown.kmsRequestUnknown(data, config)
 	return messagehandler.getResponse()
