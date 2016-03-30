@@ -13,6 +13,7 @@ cp -av samtools ../../bin/
 cd ..
 
 uname_S=`uname -s 2>/dev/null || echo not`
+has_cmake=`which cmake || echo not`
 
 cd idba
 aclocal
@@ -36,7 +37,12 @@ if [[ "$uname_S" == "Darwin" ]]; then
 	cd methlyAln/src; make
 	cp -av ../bin/alnmethly ../../../bin/
 else
-	cd methlyAln/bin; cmake ..
+	cd methlyAln/bin
+	if [[ "$has_cmake" == "not" ]]; then
+		make -f Makefile.Linux
+	else
+		cmake ..
+	fi
 	cp -av alnmethly ../../../bin/
 fi
 cd ../..
