@@ -45,3 +45,27 @@ Proxy4 = custom,$IP,$PORT,$METHOD,$PASSWORD,$MODULE_URL
 ````
 
 每行两个参数，以空格分隔，第一个是匹配用的正则表达式，第二个是替换的内容。正则的输入字符串是完整的 URL（包含 http://），输出的字符串也必须以 http:// 开头。该功能只对非 https 请求有效。
+
+---
+
+From <https://github.com/kongwy/Surge_Custom_Configuration>:
+
+## What is Surge?
+[Surge](http://surge.run/) is a web developer tool and proxy utility for iOS 9. It can also be used to unlock some special web blocking in some special countries. It is [available on App Store now](https://itunes.apple.com/us/app/surge-web-developer-tool-proxy/id1040100637?mt=8).
+
+## How to config Surge?
+Just see on its [offical manual](http://surge.run/manual/). More community support can be found [here](https://surge.tips/).
+
+## Where is the `SSEncrypt.module` come from?
+It's a custom ShadowSocks module for Surge firstly provided by [Surge official website](http://surge.run/). But as Surge come out on App Store, the auther stop to host `SSEncrypt.module`. I download this copy from [the gist shared by @jason5ng32](https://gist.github.com/jason5ng32/648597df6ca7da5aeb41) and checked the md5 and sha1 value.
+
+````
+  MD5: f7653207090ce3389115e9c88541afe0
+SHA-1: 400603009de8356d66631b166e5b95b95cdf0cf6
+````
+
+## Why there's no proxy config?
+Finding a stable proxy service is your own business.
+
+## Why need this repository?
+Because I need somewhere to track my config file changes and this is the only place.
