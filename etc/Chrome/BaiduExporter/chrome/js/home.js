@@ -191,3 +191,4 @@ var HOME =function(){
 setTimeout(function(){
     HOME.init();
 },600);
+
