@@ -9,6 +9,8 @@ Surge is a web developer tool and proxy utility for iOS 9. This app is designed 
 
 <http://surge.run/config-example/ss-module.conf>
 
+https://github.com/galaxysd/GalaxyCodeBases/raw/master/etc/Surge/SSEncrypt.module
+
 ### Sources
 
 * <https://twitter.com/lovegoodbest/status/649524156589969408>
