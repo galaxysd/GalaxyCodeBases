@@ -27,7 +27,7 @@ while(<RT>){
 	chomp;
 	my @a=split;
 	#print $a[2]."\n";
-	if(/RefCut/){
+	if(/RefCut: chr18/){
 		if(exists($hash{$a[2]})){
 			print $_."\n";
 		}
