@@ -6,3 +6,24 @@ scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I hg18/Homo
 scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F hg18/ -S samtools-0.1.20/
 scripts/mechanism.pl -b merged/simout.bam -R hg18rmsk/rmsk-hg18.txt
 
+exit
+
+# fix merged/simout.isinfo to ins=100
+scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I Ref/GX.fa -A Ref/GX.fa.fai -P cl
+scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F Ref/ -S samtools-0.1.20/
+
+# max_depth = 7971, 12000(?)
+scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b mergedvir/simout.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b mergedvir/simout.bam -F Ref/ -S samtools-0.1.20/
+scripts/mechanism.pl -b mergedvir/simout.bam -R hg18rmsk/rmsk-hg18.txt
+
+
+samtools merge -p simvir/simVir4.bam simVir4_aln/Fsimout_m*.bam
+scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b simvir/simVir4.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b simvir/simVir4.bam -F Ref/ -S samtools-0.1.20/
+scripts/mechanism.pl -b simvir/simVir4.bam -R hg18rmsk/rmsk-hg18.txt
+
+
+scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I hg18/HomoGRCh38 -A hg18/HomoGRCh38.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F hg18/ -S samtools-0.1.20/
+scripts/mechanism.pl -b merged/simout.bam -R hg18rmsk/rmsk-hg18.txt
