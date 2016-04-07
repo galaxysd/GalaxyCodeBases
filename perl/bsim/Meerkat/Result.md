@@ -12,7 +12,7 @@
 * 设置过高的深度上限，没有滤除任何区域（确保`*.blacklist.gz`为空）；
 * FastQ的质量值过滤已关闭（-q 0）。
 * 灵敏度设为最高（-o 0）。
-* 没有进行任何过滤步骤。
+* 没有进行任何过滤步骤。(包括但不限于，没有用somatic_sv.pl to filter out germline events and other artifacts.)
 
 ### 用bwa比对，参考序列为hg18	95 -> 77
 
