@@ -34,6 +34,23 @@ scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b mergedvir/simout.bam -F Ref/ -S 
 scripts/mechanism.pl -b mergedvir/simout.bam -R hg18rmsk/rmsk-hg18.txt
 ````
 
+## New
+
+````bash
+ #scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I hg18/HomoGRCh38 -A hg18/HomoGRCh38.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 3 -s 20 -p 5 -o 0 -t 8 -b merged/simout.bam -F hg18/ -S samtools-0.1.20/
+scripts/mechanism.pl -b merged/simout.bam -R hg18rmsk/rmsk-hg18.txt
+
+ #scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b simvir/simVir4.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 3 -s 20 -p 5 -o 0 -t 8 -b simvir/simVir4.bam -F Ref/ -S samtools-0.1.20/
+scripts/mechanism.pl -b simvir/simVir4.bam -R hg18rmsk/rmsk-hg18.txt
+
+ #scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b mergedvir/simout.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
+scripts/meerkat.pl -d 3 -s 20 -p 5 -o 0 -t 8 -b mergedvir/simout.bam -F Ref/ -S samtools-0.1.20/
+scripts/mechanism.pl -b mergedvir/simout.bam -R hg18rmsk/rmsk-hg18.txt
+
+````
+
 ## Appendex
 
 All `.blacklist.gz` is empty.
