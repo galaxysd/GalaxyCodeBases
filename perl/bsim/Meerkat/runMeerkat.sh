@@ -4,7 +4,7 @@
 
 scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I hg18/HomoGRCh38 -A hg18/HomoGRCh38.fa.fai
 scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F hg18/ -S samtools-0.1.20/
-scripts/mechanism.pl -b merged/simout.bam -R hg18rmsk/rmsk-hg18.txt
+scripts/mechanism.pl -b merged/simout.bam -R hg38rmsk/rmsk.txt
 
 exit
 
@@ -15,15 +15,17 @@ scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F Ref/ -S sam
 # max_depth = 7971, 12000(?)
 scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b mergedvir/simout.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
 scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b mergedvir/simout.bam -F Ref/ -S samtools-0.1.20/
-scripts/mechanism.pl -b mergedvir/simout.bam -R hg18rmsk/rmsk-hg18.txt
+scripts/mechanism.pl -b mergedvir/simout.bam -R hg38rmsk/rmsk.txt
 
 
 samtools merge -p simvir/simVir4.bam simVir4_aln/Fsimout_m*.bam
 scripts/pre_process.pl -s 20 -k 15000 -q 0 -t 8 -b simvir/simVir4.bam -I Ref/GX.fa -A Ref/GX.fa.fai -S samtools-0.1.20/
 scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b simvir/simVir4.bam -F Ref/ -S samtools-0.1.20/
-scripts/mechanism.pl -b simvir/simVir4.bam -R hg18rmsk/rmsk-hg18.txt
+scripts/mechanism.pl -b simvir/simVir4.bam -R hg38rmsk/rmsk.txt
 
 
 scripts/pre_process.pl -s 20 -k 1500 -q 0 -t 8 -b merged/simout.bam -I hg18/HomoGRCh38 -A hg18/HomoGRCh38.fa.fai -S samtools-0.1.20/
 scripts/meerkat.pl -d 5 -s 20 -p 5 -o 3 -t 8 -b merged/simout.bam -F hg18/ -S samtools-0.1.20/
-scripts/mechanism.pl -b merged/simout.bam -R hg18rmsk/rmsk-hg18.txt
+scripts/mechanism.pl -b merged/simout.bam -R hg38rmsk/rmsk.txt
+
+# repertmasker只用来注释，所以结果不变。
