@@ -16,6 +16,10 @@
 # if you want a different location for startup script, change this variable
 SCRIPT_DIR=/usr/local/sbin
 SCRIPT=ram-temp-disks
+
+SCRIPT_DIR=/opt/Galaxy
+SCRIPT=RamDisks
+
 if [ ! -d "$SCRIPT_DIR" ]; then
     echo "$SCRIPT_DIR does not exist.  Either create the directory or change SCRIPT_DIR in this script..."
     exit 1
@@ -56,16 +60,17 @@ RAMDisk() {
 }
 
 # 512 MB for temp directory
-RAMDisk "/private/tmp" 512 "RAM Temp"
+#RAMDisk "/private/tmp" 512 "RAM Temp"
+RAMDisk "/private/tmp" 768 "RAM_Temp"
 
 # 128 MB for run directory
-RAMDisk "/var/run" 128 "RAM Run"
+#RAMDisk "/var/run" 128 "RAM Run"
 
 EOF
 sudo chmod u+x,g+x,o+x "$SCRIPT"
 
 cd /Library/LaunchDaemons
-cat << EOF | sudo tee ram-temp-disks.plist > /dev/null
+cat << EOF | sudo tee me.Galaxy.ramdisk.plist > /dev/null
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
