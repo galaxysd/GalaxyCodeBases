@@ -67,7 +67,7 @@ bcfbychr.lst: $(BYCHR)
 %.csi: $*
 	$(BCFTOOLS) index $*
 
-bychr/_%.bcf: $(BAMS) | bychr/
+bychr/_%.bcf: $(BAMS) bai | bychr/
 	$(CMD) -r "$(call +p,$(*))" $(BAMS) >$@
 
 clean:
