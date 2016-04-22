@@ -1,0 +1,10 @@
+#NEXUS 
+
+Begin trees;  [Treefile saved Fri Apr  1 17:50:01 2016]
+[!>Neighbor-joining search settings:
+>  Ties (if encountered) will be broken systematically
+>  Distance measure = User-input
+>  (Tree is unrooted)
+]
+tree nj = [&U] (Uth01:0.00024,Uth02:0.00048,((Uth03:0.00154,Uth04:0.00173):9.104e-05,Uth05:0.00100):9.157e-05);
+end;

@@ -1,0 +1,32 @@
+#NEXUS
+
+[Distance matrix calculated by p-distance.pl, saved at 2016-04-01 17:49:54]
+
+Begin taxa;
+	Dimensions ntax=5;
+	TaxLabels
+		Uth01
+		Uth02
+		Uth03
+		Uth04
+		Uth05
+		;
+End;
+
+Begin distances;
+	Format triangle=lower labels nodiagonal;
+	Matrix
+Uth01
+Uth02	0.00072780
+Uth03	0.00181951	0.00254360
+Uth04	0.00218341	0.00218023	0.00327035
+Uth05	0.00145560	0.00145349	0.00254360	0.00290698
+	;
+End;
+
+Begin paup;
+	Set autoclose=yes increase=auto warntree=no warnreset=no;
+	Set criterion=distance;
+	Nj brlens=yes treefile=test.tre;
+	Quit;
+End;
