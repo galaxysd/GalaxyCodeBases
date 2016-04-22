@@ -1,0 +1,178 @@
+
+P A U P *
+Portable version 4.0b10 for Unix
+Mon Aug  4 19:13:12 2014
+
+      -----------------------------NOTICE-----------------------------
+        This is a beta-test version.  Please report any crashes,
+        apparent calculation errors, or other anomalous results.
+        There are no restrictions on publication of results obtained
+        with this version, but you should check the WWW site
+        frequently for bug announcements and/or updated versions.  
+        See the README file on the distribution media for details.
+      ----------------------------------------------------------------
+
+Processing of file "/share/users/miaolin/DistMCMC/test.nex" begins...
+
+Data read in DNA format
+
+Data matrix has 8 taxa, 1140 characters
+Valid character-state symbols: ACGT
+Missing data identified by '?'
+Gaps identified by '-'
+"Equate" macros in effect:
+   R,r ==> {AG}
+   Y,y ==> {CT}
+   M,m ==> {AC}
+   K,k ==> {GT}
+   S,s ==> {CG}
+   W,w ==> {AT}
+   H,h ==> {ACT}
+   B,b ==> {CGT}
+   V,v ==> {ACG}
+   D,d ==> {AGT}
+   N,n ==> {ACGT}
+
+Optimality criterion set to distance.
+
+Jukes-Cantor distance matrix
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.12060        -
+  3 NC 003428  0.11342  0.02316        -
+  4 NC 009331  0.09230  0.09528  0.09130        -
+  5 NC 009968  0.10430  0.09130  0.08932  0.09031        -
+  6 NC 009970  0.11649  0.09230  0.08440  0.09627  0.10027        -
+  7 NC 011117  0.09528  0.09827  0.09627  0.00971  0.09329  0.09927        -
+  8 NC 011118  0.09927  0.10430  0.10228  0.01149  0.09927  0.10329  0.01060
+
+Jukes-Cantor distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Kimura 2-parameter distance matrix
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.12542        -
+  3 NC 003428  0.11763  0.02330        -
+  4 NC 009331  0.09503  0.09830  0.09406        -
+  5 NC 009968  0.10778  0.09398  0.09187  0.09301        -
+  6 NC 009970  0.12073  0.09503  0.08665  0.09919  0.10337        -
+  7 NC 011117  0.09830  0.10160  0.09946  0.00974  0.09627  0.10249        -
+  8 NC 011118  0.10239  0.10788  0.10572  0.01151  0.10249  0.10660  0.01062
+
+Kimura 2-parameter distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Jukes-Cantor distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 1
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.13084        -
+  3 NC 003428  0.12245  0.02352        -
+  4 NC 009331  0.09821  0.10159  0.09709        -
+  5 NC 009968  0.11190  0.09709  0.09486  0.09598        -
+  6 NC 009970  0.12602  0.09821  0.08933  0.10273  0.10729        -
+  7 NC 011117  0.10159  0.10500  0.10273  0.00977  0.09934  0.10614        -
+  8 NC 011118  0.10614  0.11190  0.10958  0.01158  0.10614  0.11074  0.01068
+
+Jukes-Cantor distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Jukes-Cantor distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 0.6
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.13831        -
+  3 NC 003428  0.12900  0.02377        -
+  4 NC 009331  0.10244  0.10611  0.10123        -
+  5 NC 009968  0.11737  0.10123  0.09881  0.10001        -
+  6 NC 009970  0.13296  0.10244  0.09283  0.10735  0.11232        -
+  7 NC 011117  0.10611  0.10983  0.10735  0.00982  0.10366  0.11107        -
+  8 NC 011118  0.11107  0.11737  0.11484  0.01164  0.11107  0.11610  0.01073
+
+Jukes-Cantor distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Jukes-Cantor distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 0.2
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.18517        -
+  3 NC 003428  0.16951  0.02504        -
+  4 NC 009331  0.12753  0.13310  0.12570        -
+  5 NC 009968  0.15065  0.12570  0.12209  0.12389        -
+  6 NC 009970  0.17611  0.12753  0.11330  0.13499  0.14269        -
+  7 NC 011117  0.13310  0.13881  0.13499  0.01003  0.12937  0.14075        -
+  8 NC 011118  0.14075  0.15065  0.14664  0.01194  0.14075  0.14863  0.01098
+
+Jukes-Cantor distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Kimura 2-parameter distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 1
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.14194        -
+  3 NC 003428  0.13205  0.02382        -
+  4 NC 009331  0.10430  0.10835  0.10322        -
+  5 NC 009968  0.11976  0.10303  0.10051  0.10195        -
+  6 NC 009970  0.13574  0.10430  0.09428  0.10924  0.11425        -
+  7 NC 011117  0.10835  0.11247  0.10985  0.00982  0.10598  0.11335        -
+  8 NC 011118  0.11314  0.11999  0.11732  0.01162  0.11335  0.11821  0.01072
+
+Kimura 2-parameter distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Kimura 2-parameter distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 0.6
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.15460        -
+  3 NC 003428  0.14299  0.02417        -
+  4 NC 009331  0.11117  0.11582  0.11000        -
+  5 NC 009968  0.12876  0.10973  0.10688  0.10857        -
+  6 NC 009970  0.14716  0.11117  0.09988  0.11671  0.12237        -
+  7 NC 011117  0.11582  0.12058  0.11759  0.00988  0.11318  0.12147        -
+  8 NC 011118  0.12117  0.12908  0.12601  0.01169  0.12147  0.12691  0.01078
+
+Kimura 2-parameter distance matrix (continued)
+
+                     8
+  8 NC 011118        -
+
+Kimura 2-parameter distance matrix
+  Rates assumed to follow gamma distribution with shape parameter = 0.2
+
+                     1        2        3        4        5        6        7
+  1 NC 003426        -
+  2 NC 003427  0.24513        -
+  3 NC 003428  0.21941  0.02603        -
+  4 NC 009331  0.15593  0.16509  0.15414        -
+  5 NC 009968  0.18967  0.15326  0.14802  0.15148        -
+  6 NC 009970  0.22745  0.15593  0.13549  0.16600  0.17652        -
+  7 NC 011117  0.16509  0.17469  0.16889  0.01018  0.16047  0.17560        -
+  8 NC 011118  0.17459  0.19077  0.18459  0.01207  0.17560  0.18551  0.01112
+
+Kimura 2-parameter distance matrix (continued)
+
+                     8
+  8 NC 011118        -
