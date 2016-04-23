@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.11.2/lodash.min.js"></script>
+    <script src="../dist/tagselect.js"></script>
+    <link rel="stylesheet" href="../dist/tagselect.min.css">
+  </head>
+  <body>
+    <div id="my-input" style="width: 400px;"></div>
+    <script>
+var element = document.querySelector('#my-input');
+var tags = new TagSelect(element, {
+  options: ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'Magenta']
+});
+    </script>
+  </body>
+</html>

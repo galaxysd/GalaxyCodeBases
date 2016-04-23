@@ -4,7 +4,7 @@
 
 HTML5-based input for typing lists of tags, tokens, or other discrete values.
 
-The plugin does **not** require jQuery. 2kb gzipped.
+No dependencies required. 11kb minified, 4kb gzipped.
 
 ![screenshot](https://dl.dropboxusercontent.com/u/42869844/LTS/TagSelect.gif)
 
@@ -16,19 +16,17 @@ Features:
 
 Currently, all non-word characters are treated as tag dividers. More separator options may be added in the future.
 
-> **Dependencies:** Lodash or Underscore.
-
 > **Compatibility:** Only modern browsers are supported. Some of the nicer features of this plugin (copy/paste support, native selection and cursor movement) aren't realistic on older browsers.
 
 ***
 
-## Quickstart
+## Quickstart (Scripts)
 
-First, include the files from `dist/` in your project. Example:
+Include the files from `dist/` in your project. Example:
 
 ```html
-<link rel="stylesheet" href="TagSelect.min.css">
-<script src="TagSelect.min.js"></script>
+<link rel="stylesheet" href="tagselect.min.css">
+<script src="tagselect.min.js"></script>
 ```
 
 Next, you can use the plugin in your own JavaScript. If you have an element with the ID 'my-input':
@@ -38,6 +36,25 @@ Next, you can use the plugin in your own JavaScript. If you have an element with
 ```
 
 ```javascript
+var element = document.querySelector('#my-input');
+var tags = new TagSelect(element, {
+    options: ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'Magenta']
+});
+```
+
+## Quickstart (NPM + Browserify / Webpack)
+
+Add the dependency:
+
+```bash
+npm install --save TagSelect.js
+```
+
+And use it in your script:
+
+```javascript
+var TagSelect = require('TagSelect.js');
+
 var element = document.querySelector('#my-input');
 var tags = new TagSelect(element, {
     options: ['Red', 'Green', 'Blue', 'Yellow', 'Orange', 'Magenta']
@@ -74,12 +91,18 @@ To get started, you'll need install the development dependencies:
 npm install
 ```
 
-Development tasks, like compiling [Sass](http://sass-lang.com/) and minifying JavaScript, are handled by [Grunt](http://gruntjs.com/).
+Development tasks, like compiling [Sass](http://sass-lang.com/) and minifying JavaScript, are handled by [NPM scripts](https://docs.npmjs.com/misc/scripts).
 
 ```bash
-# Watch for changes to *.scss files and recompile
-grunt watch
+# Run a local development server, recompiling files on update.
+npm run dev
 
-# Rebuild minified CSS and JS files
-grunt build
+# Rebuild all CSS and JS.
+npm run build
+
+# Rebuild and minify all CSS and JS.
+npm run dist
+
+# Bump the version, commit the dist/, and release on NPM.
+npm version [ major | minor | patch ]
 ```

@@ -4,6 +4,8 @@
  * @author FindTheBest, Inc.
  */
 
+var utils = require('./utils');
+
 /* Constants
 **********************************************/
 
@@ -12,12 +14,14 @@ var UP_KEY = 38,
 	ARROW_KEYS = [UP_KEY, DOWN_KEY],	// Arrow keys
 	HIDE_KEYS = [37, 39],				// Keys that should hide suggestions
 
-	TERM_TPL = _.template(''
-		+ '<li class="<%= ns %>-option<%= active ? " active" : "" %>" '
-		+		'data-insert="<%- match %>">'
-		+	'<%- match %>'
-		+ '</li>'
-	),
+	TERM_TPL = function (item) {
+		var escapedMatch = utils.escape(item.match);
+		return (''
+		+ '<li class="' + item.ns + '-option' + (item.active ? ' active' : '') + '" '
+		+		'data-insert="' + escapedMatch + '">'
+		+	escapedMatch
+		+ '</li>');
+	},
 
 	DEFAULT_SETTINGS = {
 		ns: 'tasg',						// CSS/Event namespace
@@ -32,7 +36,7 @@ var UP_KEY = 38,
 
 var Autocomplete = function (el, options) {
 	this.el = el;
-	this.options = _.merge({}, DEFAULT_SETTINGS, options);
+	this.options = utils.merge({}, DEFAULT_SETTINGS, options);
 	this.o = this.options;
 	this.isVisible = false;
 	this.beginOffset = -1;
@@ -51,7 +55,7 @@ var Autocomplete = function (el, options) {
 Autocomplete.prototype.match = function (input) {
 	if (!input) return [];
 
-	var escapedInput = RegExp.quote(input),
+	var escapedInput = utils.escapeStringRegexp(input),
 		regStart = new RegExp('^' + escapedInput, 'i'),
 		regAll = new RegExp(escapedInput, 'i'),
 		matchedStart = [],
@@ -86,10 +90,10 @@ Autocomplete.prototype.select = function (node) {
 };
 
 Autocomplete.prototype.show = function (matches) {
-	matches = _.map(matches, _.bind(function (match, i) {
+	matches = matches.map(function (match, i) {
 		return { ns: this.o.ns, active: i === 0, match: match };
-	}, this));
-	this.dd.innerHTML = _.map(matches, TERM_TPL).join('');
+	}.bind(this));
+	this.dd.innerHTML = matches.map(TERM_TPL).join('');
 	this.dd.style.left = (this.el.offsetWidth + 1) + 'px';
 	this.dd.classList.add('visible');
 	this.isVisible = true;
@@ -110,25 +114,25 @@ Autocomplete.prototype.setActive = function (direction) {
 };
 
 Autocomplete.prototype.setOptions = function (options) {
-	this.options = _.merge(this.options, options);
+	this.options = utils.merge(this.options, options);
 };
 
 /* Keyboard Events
 **********************************************/
 
 Autocomplete.prototype.bindEvents = function () {
-	this.el.addEventListener('input', _.bind(this.onInput, this));
-	this.el.addEventListener('keydown', _.bind(this.onKeydown, this));
-	this.el.addEventListener('blur', _.bind(this.hide, this));
-	this.dd.addEventListener('mousedown',  _.bind(function (e) {
+	this.el.addEventListener('input', this.onInput.bind(this));
+	this.el.addEventListener('keydown', this.onKeydown.bind(this));
+	this.el.addEventListener('blur', this.hide.bind(this));
+	this.dd.addEventListener('mousedown', function (e) {
 		if (e.target.classList.contains(this.o.ns + '-option')) {
 			this.select(e.target);
 		}
-	}, this));
+	}.bind(this));
 };
 
 Autocomplete.prototype.onInput = function () {
-	this.caretOffset = getCaretCharacterOffsetWithin(this.el);
+	this.caretOffset = utils.getCaretCharacterOffsetWithin(this.el);
 	var text = this.el.textContent;
 
 	// Only make suggestions at the end of a word.
@@ -149,7 +153,7 @@ Autocomplete.prototype.onInput = function () {
 	var word = text.substr(this.beginOffset, this.caretOffset - this.beginOffset),
 		matches = this.match(word);
 
-	if (_.size(matches)) {
+	if (matches.length) {
 		this.show(matches);
 	} else {
 		this.hide();
@@ -159,50 +163,17 @@ Autocomplete.prototype.onInput = function () {
 Autocomplete.prototype.onKeydown = function (e) {
 	if (!this.isVisible) {
 		return;
-	} else if (_.contains(this.o.returnKeys, e.which)) {
+	} else if (this.o.returnKeys.indexOf(e.which) >= 0) {
 		e.preventDefault();
 		e.stopImmediatePropagation();
 		this.select(this.dd.querySelector('.active'));
 		this.hide();
-	} else if (_.contains(ARROW_KEYS, e.which)) {
+	} else if (ARROW_KEYS.indexOf(e.which) >= 0) {
 		e.preventDefault();
 		this.setActive(e.which === UP_KEY ? 'previous' : 'next');
-	} else if (_.contains(HIDE_KEYS, e.which)) {
+	} else if (HIDE_KEYS.indexOf(e.which) >= 0) {
 		this.hide();
 	}
 };
 
-/* Utilities
-**********************************************/
-
-/**
- * Thanks to Tim Down.
- * http://stackoverflow.com/a/4812022/1314762
- *
- * Linebreaks and some CSS are not handled, so if
- *	that becomes an issue we'll likely need to use
- *	the larger (45kb) rangy-core.js plugin.
- */
-function getCaretCharacterOffsetWithin(element) {
-	var caretOffset = 0;
-	var doc = element.ownerDocument || element.document;
-	var win = doc.defaultView || doc.parentWindow;
-	var sel;
-	if (typeof win.getSelection !== 'undefined') {
-		sel = win.getSelection();
-		if (sel.rangeCount > 0) {
-			var range = win.getSelection().getRangeAt(0);
-			var preCaretRange = range.cloneRange();
-			preCaretRange.selectNodeContents(element);
-			preCaretRange.setEnd(range.endContainer, range.endOffset);
-			caretOffset = preCaretRange.toString().length;
-		}
-	} else if ( (sel = doc.selection) && sel.type !== 'Control') {
-		var textRange = sel.createRange();
-		var preCaretTextRange = doc.body.createTextRange();
-		preCaretTextRange.moveToElementText(element);
-		preCaretTextRange.setEndPoint('EndToEnd', textRange);
-		caretOffset = preCaretTextRange.text.length;
-	}
-	return caretOffset;
-}
+module.exports = Autocomplete;
