@@ -7,7 +7,7 @@ SAMTOOLS := samtools
 BCFTOOLS := bcftools
 
 REF := /bak/seqdata/genomes/Felis_catus_80_masked/Felis_catus80_chr.fa
-CMD := $(SAMTOOLS) mpileup -g -d 1000 -t DP,DPR,DV,DP4,SP -f $(REF)
+CMD := $(SAMTOOLS) mpileup -g -d 1000 -t AD,ADF,DP,DPR,DV,DP4,SP -f $(REF)
 
 #BAMS := pti096_clean_aln_pe_rmdup.bam pti183_clean_aln_pe_rmdup.bam pti301_clean_aln_pe_rmdup.bam pti332_clean_aln_pe_rmdup.bam
 BAMS := $(sort $(wildcard *.bam))
@@ -20,7 +20,7 @@ p+ = $(subst |,+,$1)
 CHRS := $(call p+,$(RAWCHRS))
 
 BYCHR = $(addsuffix .bcf,$(addprefix bychr/_,$(CHRS)))
-BYCHRINX = $(addsuffix .csi,$(BYCHR))
+#BYCHRINX = $(addsuffix .csi,$(BYCHR))
 BAIS = $(addsuffix .bai,$(BAMS))
 #GATKBAIS = $(BAMS:.bam=.bai)
 
@@ -48,7 +48,7 @@ list:
 
 bai: $(BAIS)
 
-$(OUT): $(BYCHR) bcfbychr.lst $(BYCHRINX)
+$(OUT): $(BYCHR) bcfbychr.lst
 	$(BCFTOOLS) concat -a -O b -f bcfbychr.lst -o $(OUT)
 
 $(VCF): $(OUT)
@@ -64,11 +64,9 @@ bcfbychr.lst: $(BYCHR)
 %.bai: $*
 	$(SAMTOOLS) index $*
 
-%.csi: $*
-	$(BCFTOOLS) index $*
-
 bychr/_%.bcf: $(BAMS) bai | bychr/
 	$(CMD) -r "$(call +p,$(*))" $(BAMS) >$@
+	$(BCFTOOLS) index $@
 
 clean:
 	-rm -fr bychr
