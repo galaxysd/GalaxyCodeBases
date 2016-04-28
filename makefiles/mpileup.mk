@@ -49,6 +49,7 @@ list:
 bai: $(BAIS)
 
 $(OUT): $(BYCHR) bcfbychr.lst
+	ulimit -n 2048
 	$(BCFTOOLS) concat -a -O b -f bcfbychr.lst -o $(OUT)
 
 $(VCF): $(OUT)
