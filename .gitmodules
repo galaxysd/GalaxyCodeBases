@@ -9,3 +9,6 @@
 [submodule "mydoc"]
 	path = mydoc
 	url = git@bitbucket.org:galaxy001/mydoc.git
+[submodule "tools/crawler/xeHentai/httplib2plus"]
+	path = tools/crawler/xeHentai/httplib2plus
+	url = https://github.com/fffonion/httplib2-plus.git
