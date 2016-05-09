@@ -155,8 +155,10 @@ bool __fastcall SocketSetting(
 				return false;
 			}
 
-			tcp_keepalive Alive_IN = {0};
-			tcp_keepalive Alive_OUT = {0};
+			tcp_keepalive Alive_IN;
+			tcp_keepalive Alive_OUT;
+			memset(&Alive_IN, 0, sizeof(tcp_keepalive));
+			memset(&Alive_OUT, 0, sizeof(tcp_keepalive));
 			Alive_IN.keepalivetime = STANDARD_TIMEOUT;
 			Alive_IN.keepaliveinterval = Parameter.SocketTimeout_Reliable;
 			Alive_IN.onoff = TRUE;
@@ -415,8 +417,11 @@ SSIZE_T __fastcall SocketSelecting(
 	}
 
 //Initialization(Part 2)
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 	SSIZE_T SelectResult = 0;
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
@@ -653,7 +658,7 @@ SSIZE_T __fastcall SelectingResult(
 				}
 				else {
 					memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-					memset(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, 0, (size_t)((RecvSize - RecvLen)));
+					memset(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, 0, (size_t)(RecvSize - RecvLen));
 				}
 			}
 		//UDP length
@@ -712,7 +717,8 @@ void __fastcall MarkPortToList(
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 		OUTPUT_PACKET_TABLE OutputPacketListTemp;
 		memset(&OutputPacketListTemp, 0, sizeof(OUTPUT_PACKET_TABLE));
 
@@ -749,11 +755,11 @@ void __fastcall MarkPortToList(
 		}
 
 	//Mark send time.
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
 		OutputPacketListTemp.Protocol_Network = Protocol;
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
@@ -765,7 +771,7 @@ void __fastcall MarkPortToList(
 		#endif
 		}
 		else { //UDP
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
@@ -778,9 +784,9 @@ void __fastcall MarkPortToList(
 		}
 
 	//Clear timeout data.
-		std::unique_lock<std::mutex> OutputPacketListMutex(OutputPacketListLock);
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		std::lock_guard<std::mutex> OutputPacketListMutex(OutputPacketListLock);
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 		{
 			while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
@@ -969,7 +975,7 @@ bool __fastcall DomainTestRequest(
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0)) //Alternate
 						goto JumpToRetest;
 
 			//Other(Multi)
@@ -984,7 +990,7 @@ bool __fastcall DomainTestRequest(
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0)) //Alternate
 						goto JumpToRetest;
 
 			//Other(Multi)
@@ -1080,7 +1086,8 @@ bool __fastcall ICMPTestRequest(
 	#endif
 
 	//Socket initialization
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 		
 	//Main
 	#if defined(PLATFORM_WIN)
@@ -1171,7 +1178,8 @@ bool __fastcall ICMPTestRequest(
 		ICMP_Header->Checksum = GetChecksum((uint16_t *)Buffer.get(), Length);
 
 	//Socket initialization
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 
 	//Main
 		SocketDataTemp.Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -1287,7 +1295,7 @@ bool __fastcall ICMPTestRequest(
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0)) //Alternate
 						goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr) //Other(Multi)
@@ -1301,7 +1309,7 @@ bool __fastcall ICMPTestRequest(
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0)) //Alternate
 						goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv4_Multi != nullptr) //Other(Multi)
@@ -1406,9 +1414,9 @@ bool __fastcall SelectTargetSocket(
 	{
 	//IPv6
 		if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && 
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0))) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1443,9 +1451,9 @@ bool __fastcall SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0))) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1487,9 +1495,9 @@ bool __fastcall SelectTargetSocket(
 	else {
 	//IPv6
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1524,9 +1532,9 @@ bool __fastcall SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1574,7 +1582,8 @@ bool __fastcall SelectTargetSocketMulti(
 	const uint16_t Protocol)
 {
 //Initialization
-	SOCKET_DATA TargetSocketData = {0};
+	SOCKET_DATA TargetSocketData;
+	memset(&TargetSocketData, 0, sizeof(SOCKET_DATA));
 	uint16_t SocketType = 0;
 	size_t Index = 0;
 	bool *IsAlternate = nullptr;
@@ -1585,9 +1594,9 @@ bool __fastcall SelectTargetSocketMulti(
 
 //IPv6
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP) //TCP
@@ -1675,9 +1684,9 @@ bool __fastcall SelectTargetSocketMulti(
 	}
 //IPv4
 	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP) //TCP

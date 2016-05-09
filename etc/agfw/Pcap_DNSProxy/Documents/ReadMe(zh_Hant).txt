@@ -137,7 +137,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
 * 請求功能變數名稱解析優先順序
   * 使用系統API函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
-  * 直接使用網路介面卡設置進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
+  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
   * 請求遠端DNS伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
 * 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
@@ -324,6 +324,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+  * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
+    * 本功能只對已經確定使用境內伺服器的功能變數名稱請求有效
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
     * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Hosts 和 Local Routing 同時啟用
   * Local Main - 主要境內伺服器請求功能：開啟為 1 /關閉為 0
@@ -371,10 +373,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
   * 注意：
-    * 單個 IPv4 位址格式為 "IPv4 位址:埠"，單個 IPv6 位址格式為"[IPv6 位址]:埠"，帶前置長度位址格式為 "IP 位址/網路前置長度"（均不含引號）
-    * 多個 IPv4 位址格式為 "位址A:埠|位址B:埠|位址C:埠"，多個 IPv6 位址格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號），啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-    * 可填入的伺服器數量為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
-	* 指定埠時可使用服務名稱代替：
+    * 帶埠位址的格式：
+      * 單個 IPv4 為 "IPv4 位址:埠"（均不含引號）
+      * 單個 IPv6 為 "[IPv6 位址]:埠"（均不含引號）
+      * 多個 IPv4 為 "位址A:埠|位址B:埠|位址C:埠"（均不含引號）
+      * 多個 IPv6 為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號）
+      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
+      * 可填入的伺服器數量為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
+    * 帶前置長度位址的格式：
+       * IPv4 為 "IPv4 位址/遮罩長度"（均不含引號）
+       * IPv6 為 "IPv6 位址/前置長度"（均不含引號）
+    * 指定埠時可使用服務名稱代替：
       * TCPMUX/1
       * ECHO/7
       * DISCARD/9
@@ -486,7 +495,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或填 0 表示關閉此功能
     * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
     * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Socket Timeout/Unreliable Socket Timeout 參數決定
-	* 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
+    * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最短間隔時間為5秒
   * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最短間隔時間為 5 秒
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換
@@ -680,6 +689,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Direct Request
 * Default TTL
 * Local Protocol
+* Local Force Request
+* IPv4 Packet TTL
+* IPv6 Packet Hop Limits
 * IPv4 TTL
 * IPv6 HopLimits
 * IPv4 AlternateTTL
@@ -692,6 +704,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Domain Test
 * Multi Request Times
 * Domain Case Conversion
+* IPv4 Do Not Fragment
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
@@ -751,6 +764,7 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並返回使用遠端伺服器解析
   * 從而繞過了下面的條目，不使用 Hosts 的功能
 
+
 * Whitelist Extended - 白名單條目擴展功能
   * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求直接繞過 Hosts 不會使用 Hosts 功能
   * 有效參數格式為 "NULL:DNS類型(| DNS類型) 正則運算式"（不含引號）
@@ -761,6 +775,7 @@ Hosts 設定檔分為多個提供不同功能的區域
 
   * 第一條即直接跳過匹配規則的 A 記錄和 AAAA 記錄的功能變數名稱請求，其它類型的請求則被匹配規則
   * 而第二條則只匹配規則的 NS 記錄和 SOA 記錄的功能變數名稱請求，其它類型的請求則被直接跳過
+
 
 * Banned - 黑名單條目
   * 此類型的條目列出的符合要求的功能變數名稱會直接返回功能變數名稱不存在的功能，避免重定向導致的超時問題
@@ -773,6 +788,7 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
   * 從而繞過了下面的條目，達到遮罩功能變數名稱的目的
 
+
 * Banned Extended - 黑名單條目擴展功能
   * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求進行遮罩或放行
   * 有效參數格式為 "BANNED:DNS類型(| DNS類型) 正則運算式"（不含引號）
@@ -784,9 +800,12 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 第一条即屏蔽匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被放行
   * 而第二条则只放行匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被屏蔽
 
+
 * Hosts/CNAME Hosts - 主要 Hosts 清單/CNAME Hosts 清單
-有效參數格式為 "位址(|位址A|位址B) 正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
   * 主要 Hosts 清單和 CNAME Hosts 清單主要區別是作用範圍不相同，前者的作用範圍為接收到的功能變數名稱解析請求，後者的作用範圍為接收到的功能變數名稱解析結果
+    * 有效參數格式為 "位址(|位址A|位址B) 功能變數名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
+  * 根據來源位址 Hosts 清單，根據接收到的功能變數名稱解析請求的來源位址判斷是否需要進行 Hosts
+    * 有效參數格式為 "來源位址/前置長度(|來源位址A/前置長度A|來源位址B/前置長度B)->位址(|位址A|位址B) 功能變數名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
   * 位址與正則運算式之間的間隔字元可為 Space/半形空格 或者 HT/水準定位符號，間隔長度不限，但切勿輸入全形空格
   * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個功能變數名稱需要同時進行 IPv4/IPv6 的 Hosts，請分為兩個條目輸入
   * 平行位址原理為一次返回多個記錄，而具體使用哪個記錄則由要求者決定，一般為第1個
@@ -799,9 +818,10 @@ Hosts 設定檔分為多個提供不同功能的區域
 
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回，不會再進行其它檢查
     * 請求解析 xxx.localhost 的 A 記錄（IPv4）會返回 127.0.0.4、127.0.0.5 和 127.0.0.6
-    * 請求解析 xxx.localhost 的 AAAA 記錄（IPv6）會返回 ::4、::5和::6
-    * 請求解析 xxx.test.localhost 的 A 記錄（IPv4）會返回 127.0.0.1、127.0.0.2和127.0.0.3
-    * 請求解析 xxx.test.localhost 的 AAAA 記錄（IPv6）會返回 ::1、::2和::3
+    * 請求解析 xxx.localhost 的 AAAA 記錄（IPv6）會返回 ::4、::5 和 ::6
+    * 請求解析 xxx.test.localhost 的 A 記錄（IPv4）會返回 127.0.0.1、127.0.0.2 和 127.0.0.3
+    * 請求解析 xxx.test.localhost 的 AAAA 記錄（IPv6）會返回 ::1、::2 和 ::3
+
 
 * Local Hosts - 境內 DNS 解析功能變數名稱清單
 本區域資料用於為功能變數名稱使用境內 DNS 伺服器解析提高存取速度，使用時請確認境內 DNS 伺服器位址不為空（參見上文 設定檔詳細參數說明 一節）
@@ -815,6 +835,7 @@ Hosts 設定檔分為多個提供不同功能的區域
 
   * 即所有符合以上正則運算式的功能變數名稱請求都將使用境內 DNS 伺服器解析
 
+
 * Address Hosts - 解析結果位址其他清單
   * 本區域資料用於替換解析結果中的位址，提供更精確的 Hosts 自訂能力
   * 例如有一個 [Address Hosts] 下有效資料區域：
@@ -824,6 +845,7 @@ Hosts 設定檔分為多個提供不同功能的區域
 
   * 解析結果的位址範圍為 127.0.0.0 到 127.255.255.255 時將被替換為 127.0.0.1 或 127.0.0.2
   * 解析結果的位址範圍為 :: 到 ::FFFF 時將被替換為 ::1
+
 
 * Stop - 臨時停止讀取標籤
   * 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
@@ -868,11 +890,13 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
   * 位址與正則運算式之間的間隔字元可為 Space/半形空格 或者 HT/水準定位符號，間隔長度不限，但切勿輸入全形空格
   * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個功能變數名稱需要同時進行 IPv4/IPv6 位址的過濾，請分為兩個條目輸入
 
+
 * IPFilter - 位址過濾區域
 位址過濾黑名單或白名單由設定檔的 IPFilter Type 值決定，Deny 禁止/黑名單和 Permit 允許/白名單
 有效參數格式為 "開始位址 - 結束位址, 過濾等級, 條目簡介注釋"（不含引號）
   * 同時支援 IPv4 和 IPv6 位址，但填寫時請分開為2個條目
   * 同一類型的位址位址段有重複的條目將會被自動合併
+
 
 * Local Routing - 境內路由表區域
 當 Local Routing 為開啟時，將檢查本清單的路由表是否命中，檢查與否與功能變數名稱請求是否使用 Local 伺服器有關，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
@@ -880,8 +904,9 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
   * 本路由表支援 IPv4 和 IPv6 協定
   * IPv4 時網路前置長度範圍為 1-32，IPv6 時網路前置長度範圍為 1-128
 
+
 * Stop - 臨時停止讀取標籤
-在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
+  * 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
   * 具體情況參見上文的介紹
 
 

@@ -30,13 +30,16 @@ bool __fastcall CheckEmptyBuffer(
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return false;
-
-//Scan all data.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-		if (((uint8_t *)Buffer)[Index] != 0)
-			return false;
+		return false;
+	}
+	else {
+	//Scan all data.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+			if (((uint8_t *)Buffer)[Index] != 0)
+				return false;
+		}
 	}
 
 	return true;
@@ -123,9 +126,10 @@ bool __fastcall MBSToWCSString(
 		return false;
 	}
 	else {
-		Target = TargetPTR.get();
-		if (Target.empty())
+		if (wcsnlen(TargetPTR.get(), Length + 1U) == 0)
 			return false;
+		else 
+			Target = TargetPTR.get();
 	}
 
 	return true;
@@ -139,17 +143,20 @@ void __fastcall CaseConvert(
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return;
-
-//Convert words.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-	//Lowercase to uppercase
-		if (IsLowerToUpper)
-			Buffer[Index] = (char)toupper(Buffer[Index]);
-	//Uppercase to lowercase
-		else 
-			Buffer[Index] = (char)tolower(Buffer[Index]);
+		return;
+	}
+	else {
+	//Convert words.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+		//Lowercase to uppercase
+			if (IsLowerToUpper)
+				Buffer[Index] = (char)toupper(Buffer[Index]);
+		//Uppercase to lowercase
+			else 
+				Buffer[Index] = (char)tolower(Buffer[Index]);
+		}
 	}
 
 	return;
@@ -307,7 +314,8 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	timeval CurrentTime = {0};
+	timeval CurrentTime;
+	memset(&CurrentTime, 0, sizeof(timeval));
 	if (gettimeofday(&CurrentTime, nullptr) == 0)
 		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
 
@@ -320,8 +328,9 @@ uint64_t GetCurrentSystemTime(
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {
-	OSVERSIONINFOEXW OSVI = {0};
+	OSVERSIONINFOEXW OSVI;
 	DWORDLONG dwlConditionMask = 0;
+	memset(&OSVI, 0, sizeof(OSVERSIONINFOEXW));
 
 //Initialization
 	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
@@ -343,7 +352,7 @@ BOOL WINAPI IsGreaterThanVista(
 BOOL WINAPI GetFunctionPointer(
 	const size_t FunctionType)
 {
-//GetTickCount64() function
+//GetTickCount64 function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
 		GlobalRunningStatus.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
@@ -360,7 +369,7 @@ BOOL WINAPI GetFunctionPointer(
 			}
 		}
 	}
-//inet_ntop() function
+//inet_ntop function
 	else if (FunctionType == FUNCTION_INET_NTOP)
 	{
 		GlobalRunningStatus.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
@@ -377,7 +386,7 @@ BOOL WINAPI GetFunctionPointer(
 			}
 		}
 	}
-//inet_pton() function
+//inet_pton function
 	else if (FunctionType == FUNCTION_INET_PTON)
 	{
 		GlobalRunningStatus.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");

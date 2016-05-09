@@ -1,4 +1,25 @@
-﻿Pcap_DNSProxy 0.4.5.1-0.4.5.6 更新日誌(2016-04-07)：
+﻿Pcap_DNSProxy 0.4.6.1-0.4.6.2 更新日誌(2016-05-02)：
+
+* 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
+* 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
+* 添加遺漏的 DNS 投毒污染黑名單位址
+* 修復抓包模組錯誤判斷正確資料包的問題
+* 修復抓包模組對 IPv6 資料包識別錯誤的問題
+* 檔校驗碼(0.4.6.2)
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> E669EE62E07DF3A24A2D9AD57EA2678206513E77
+    * Windows/Pcap_DNSProxy_x86.exe -> DDE98B27C85260E01ABD9AB30238C2F0FD3B87B9
+    * Mac/Pcap_DNSProxy -> CEA5F5B80D1E66877DC665539DE177353734BD26
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> 18B2C1D442652070BEE4763BAA35812E028ECA40677AC07B7639503378E2CD5A
+    * Windows/Pcap_DNSProxy_x86.exe -> 095F8D1C5F8E3F3F837C997604AB2D35B6A80F6E7B5494A42849D541DAD5A8C9
+    * Mac/Pcap_DNSProxy -> 42AED984AB1DC28850FDEE561969995009D9D8877D2483B104976C8DB9CC014B
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.5.1-0.4.6.0 更新日誌(2016-04-23)：
 
 * 為 FileHash 工具添加 Hash 演算法支援
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -8,17 +29,17 @@
     * CRC-32 family: Normal + JamCRC + C + D + BZIP2 + MPEG2 + POSIX + K + Q
     * CRC-64 family: Normal + 1B + WE + Jones
   * Checksum: Internet Protocol Checksum
-  * SHA family: SHA-2(384) + SHA-2(512) SHA-2(512/224) + SHA-2(512/256)
+  * SHA family: SHA-2(384) + SHA-2(512) + SHA-2(512/224) + SHA-2(512/256)
   * MD family: MD2 + MD4 + eD2k Hash + MD5
 * 添加抓包模組對 Virtual Bridged LAN/IEEE 802.1Q 標籤的支援
-* 添加 IPv4 Packet TTL 和 IPv6 Hop Limits 參數，支援指定和隨機化的 TTL/Hop Limits 值
+* 添加 IPv4 Packet TTL 和 IPv6 Packet Hop Limits 參數，支援指定和隨機化的 TTL/Hop Limits 值
 * 添加 Update_WhiteList 工具，可自動更新白名單功能變數名稱清單 [dgeibi]
 * 添加錯誤日誌輸出分級功能，並將 Print Error 參數更名為 Print Log Level [smounives]
 * 添加 IPv4 Do Not Fragment 參數，支援指定 Do Not Fragment 標誌 (Windows/Linux)
 * 添加 Update_Routing 工具的自動更新腳本 (Linux/Mac)
 * 通過外部命令清除程式內部 DNS 緩存的過程，現在將能無延遲地立即完成
 * 增強對 EDNS Label 的精細化控制
-* LibSodium 庫更新到 1.0.9 (Windows/Mac)
+* LibSodium 庫更新到 1.0.10 (Windows/Mac)
 * Visual Studio 更新到 2015 (Windows)
 * Xcode 更新到 7.2 (Mac)
 * IPv4 TTL 參數更名為 IPv4 DNS TTL
@@ -32,18 +53,19 @@
 * 修復 Additional Path 失效的問題 [jzp820927]
 * 修復 Additional Path/Hosts File Name/IPFilter File Name 參數大小寫和空格相容問題
 * 修復使用 Win10Pcap 時抓包模組不能工作的問題 (Windows) [smounives]
+* 修復在抓包模式下 CNAME Hosts 格式錯誤的問題 [debugzxcv]
 * 修復程式內部 DNS 緩存被錯誤自動清除的問題 (Linux/Mac)
 * 修復 Update_Routing 工具在 ICMP/ICMPv6 協定被遮罩的網路下不能工作的問題 (Windows) [w48325832/wongsyrone]
 * 修復重啟服務間隔時間過短可能導致的崩潰問題 (Windows)
 * 檔校驗碼(0.4.5.6)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> E817F13324E298F566BBBFEAEABFC59D79650069
-    * Windows/Pcap_DNSProxy_x86.exe -> 90FB5DF6521508504585495B977F2C76BAFC8EE7
-    * Mac/Pcap_DNSProxy -> 81844492F334C3F26E0ECD566ACEDCB69E7564B0
+    * Windows/Pcap_DNSProxy.exe -> 8805389165915A4611458B28A5C98303F7A6BC6F
+    * Windows/Pcap_DNSProxy_x86.exe -> 27C6219FFB2A225A56E6D3186B7BE299535DF1F7
+    * Mac/Pcap_DNSProxy -> 14B86B5CA6BF38D7A242279C2164F53E383CAC52
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> AF0B9F06A30A6E3CB0178D969651F3E1B5AF3BDFC4DF67C7A0B54C5824B60EFF
-    * Windows/Pcap_DNSProxy_x86.exe -> BCBC1991C1873AC635A987A585362514FFF3F870230284CE3FCA9BFD64C02D68
-    * Mac/Pcap_DNSProxy -> 6D8E8C5B90E871FDB16480C9708801EF1A2CA81F59BE1BFA592DEC9EA9E68E9A
+    * Windows/Pcap_DNSProxy.exe -> 72930EBF627021684C10C4BBC0988BBBF9CC3F38BE53E93DC4152494CEF88D7F
+    * Windows/Pcap_DNSProxy_x86.exe -> 04DF32B593D26019545AF121F8551B1632905A7A85506D11E8F83BD174A8C188
+    * Mac/Pcap_DNSProxy -> 0091474FAEB8CAB2FEF225BCA646A3D46DC0E957FF8AF6F49B8E4FCB9990C1C1
 
 
 -------------------------------------------------------------------------------

@@ -53,19 +53,19 @@ bool __fastcall ReadIPFilterData(
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
+		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
+		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
+		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
+		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
 	#endif
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 
@@ -193,8 +193,8 @@ bool __fastcall ReadBlacklistData(
 
 //String length check.
 	if (Data.length() < READ_IPFILTER_BLACKLIST_MINSIZE || 
-		Data.find(ASCII_MINUS) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && 
-		Data.find(ASCII_MINUS) < Separated && Data.find(ASCII_VERTICAL) < Separated && Data.find(ASCII_MINUS) < Data.find(ASCII_VERTICAL))
+		(Data.find(ASCII_MINUS) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && 
+		Data.find(ASCII_MINUS) < Separated && Data.find(ASCII_VERTICAL) < Separated && Data.find(ASCII_MINUS) < Data.find(ASCII_VERTICAL)))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -203,7 +203,8 @@ bool __fastcall ReadBlacklistData(
 //Initialization
 	RESULT_BLACKLIST_TABLE ResultBlacklistTableTemp;
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, 0, Separated);
 	SSIZE_T Result = 0;
@@ -392,8 +393,10 @@ bool __fastcall ReadLocalRoutingData(
 	}
 	for (auto StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || StringIter > ASCII_COLON && 
-			StringIter < ASCII_UPPERCASE_A || StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A || StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || 
+			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
+			StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -402,14 +405,16 @@ bool __fastcall ReadLocalRoutingData(
 
 //Initialization
 	AddressRoutingTable AddressRoutingTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	SSIZE_T Result = 0;
 
 //IPv6
 	if (Data.find(":") != std::string::npos) 
 	{
-		in6_addr BinaryAddr = {0};
+		in6_addr BinaryAddr;
+		memset(&BinaryAddr, 0, sizeof(in6_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -488,7 +493,8 @@ bool __fastcall ReadLocalRoutingData(
 	}
 //IPv4
 	else {
-		in_addr BinaryAddr = {0};
+		in_addr BinaryAddr;
+		memset(&BinaryAddr, 0, sizeof(in_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -561,8 +567,10 @@ bool __fastcall ReadAddressPrefixBlock(
 	}
 	for (auto StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || StringIter > ASCII_COLON && 
-			StringIter < ASCII_UPPERCASE_A || StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A || StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || 
+			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
+			StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -570,7 +578,8 @@ bool __fastcall ReadAddressPrefixBlock(
 	}
 
 //Initialization
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	Data.erase(0, Data.find("/") + 1U);
 	SSIZE_T Result = 0;
@@ -689,11 +698,12 @@ bool __fastcall ReadMainIPFilterData(
 			Data.replace(Data.find(",0"), strlen(",0"), (","));
 
 	//Mark ipfilter level.
-		char Level[ADDR_STRING_MAXSIZE] = {0};
+		char Level[ADDR_STRING_MAXSIZE];
+		memset(Level, 0, ADDR_STRING_MAXSIZE);
 		memcpy_s(Level, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		_set_errno(0);
 		Result = strtoul(Level, nullptr, 0);
-		if (Result == 0 && errno == 0 || Result > 0 && Result < UINT16_MAX)
+		if ((Result == 0 && errno == 0) || (Result > 0 && Result < UINT16_MAX))
 		{
 			AddressRangeTableTemp.Level = (size_t)Result;
 		}
@@ -780,7 +790,8 @@ bool __fastcall ReadMainIPFilterData(
 	}
 
 //Read data.
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
 	{
 	//Begin address

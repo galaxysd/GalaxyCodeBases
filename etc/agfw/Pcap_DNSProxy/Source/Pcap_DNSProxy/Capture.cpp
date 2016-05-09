@@ -25,14 +25,14 @@ void __fastcall CaptureInit(
 	void)
 {
 //Initialization and capture filter initialization
-	char ErrBuffer[PCAP_ERRBUF_SIZE] = {0};
+	char ErrBuffer[PCAP_ERRBUF_SIZE];
+	memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 	std::wstring wErrBuffer;
 	std::vector<std::string>::iterator CaptureIter;
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	auto IsErrorFirstPrint = true;
 	CaptureFilterRulesInit(PcapFilterRules);
-	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-	CaptureMutex.unlock();
+	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Capture Monitor
 	for (;;)
@@ -117,7 +117,7 @@ void __fastcall CaptureFilterRulesInit(
 
 //IPv6
 	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0) //Non-IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	//Main
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
@@ -169,7 +169,7 @@ void __fastcall CaptureFilterRulesInit(
 
 //IPv4
 	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) //Non-IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	//Main
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
@@ -220,14 +220,16 @@ void __fastcall CaptureFilterRulesInit(
 	}
 
 //Initialization(Part 2)
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
 	
-//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	sockaddr_storage SockAddr = {0};
+//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista(Windows XP with SP3 support). [Roy Tam]
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
 #endif
 
@@ -242,7 +244,7 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDR_STRING_MAXSIZE);
@@ -267,7 +269,7 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDR_STRING_MAXSIZE);
@@ -386,11 +388,12 @@ DevicesNotSkip:
 	}
 
 //Compile the string into a filter program.
-	bpf_program BPF_Code = {0};
+	bpf_program BPF_Code;
+	memset(&BPF_Code, 0, sizeof(bpf_program));
 #if defined(PLATFORM_WIN)
-	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, (bpf_u_int32)pDrive->addresses->netmask) == PCAP_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, 0) == PCAP_ERROR)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, PCAP_NETMASK_UNKNOWN) == PCAP_ERROR)
 #endif
 	{
 		std::wstring ErrBuffer;
@@ -422,13 +425,13 @@ DevicesNotSkip:
 	}
 
 //Initialization(Part 2)
-	CAPTURE_HANDLER_PARAM ParamList = {0};
+	CAPTURE_HANDLER_PARAM ParamList;
+	memset(&ParamList, 0, sizeof(CAPTURE_HANDLER_PARAM));
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
 	ParamList.BufferSize = LARGE_PACKET_MAXSIZE + sizeof(uint16_t);
 	SSIZE_T Result = 0;
-	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-	CaptureMutex.unlock();
+	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Start monitor.
 	for (;;)
@@ -536,9 +539,9 @@ void CaptureHandler(
 	}
 
 //LAN, WLAN and IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
-	if ((Protocol == htons(OSI_L2_IPV6) || Protocol == htons(PPP_IPV6)) && Length > sizeof(ipv6_hdr) || //IPv6
-		(Protocol == htons(OSI_L2_IPV4) || Protocol == htons(PPP_IPV4)) && Length > sizeof(ipv4_hdr)) //IPv4
-			CaptureNetworkLayer(ParamList->Buffer, Length, ParamList->BufferSize, Protocol);
+	if (((Protocol == htons(OSI_L2_IPV6) || Protocol == htons(PPP_IPV6)) && Length > sizeof(ipv6_hdr)) || //IPv6
+		((Protocol == htons(OSI_L2_IPV4) || Protocol == htons(PPP_IPV4)) && Length > sizeof(ipv4_hdr))) //IPv4
+			CaptureNetworkLayer(ParamList->Buffer, Length, ParamList->BufferSize, ntohs(Protocol));
 
 	return;
 }
@@ -631,13 +634,14 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(
+				auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP, 
 					(char *)Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), 
 					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
 					BufferSize, 
-					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-						return false;
+					&IsMarkHopLimit);
+				if (DataLength < DNS_PACKET_MINSIZE)
+					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -645,11 +649,13 @@ bool __fastcall CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.DNSCurve && 
 				//Main(IPv6)
-					(DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0 || 
+					((DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr && 
+					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv6)
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0))
+					(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr && 
+					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
 			#endif
 
@@ -657,14 +663,15 @@ bool __fastcall CaptureNetworkLayer(
 				if ((size_t)IPv6_Header->HopLimit + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.HopLimit && 
 					(size_t)IPv6_Header->HopLimit < (size_t)PacketSource->HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation)
 				{
-					MatchPortToSend(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), BufferSize, AF_INET6, UDP_Header->DstPort);
+					MatchPortToSend(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DataLength, BufferSize, AF_INET6, UDP_Header->DstPort);
 					return true;
 				}
 			}
 		}
 	}
 //IPv4
-	else {
+	else if (Protocol == PPP_IPV4 || Protocol == OSI_L2_IPV4)
+	{
 		auto IPv4_Header = (pipv4_hdr)Buffer;
 
 	//Validate IPv4 header.
@@ -753,13 +760,14 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(
+				auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP, 
 					(char *)Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), 
 					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
 					BufferSize, 
-					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-						return false;
+					&IsMarkHopLimit);
+				if (DataLength < DNS_PACKET_MINSIZE)
+					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
@@ -767,11 +775,13 @@ bool __fastcall CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.DNSCurve && 
 				//Main(IPv4)
-					(DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr &&  
-					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0 || 
+					((DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr &&  
+					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv4)
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0))
+					(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr && 
+					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
 			#endif
 
@@ -779,11 +789,14 @@ bool __fastcall CaptureNetworkLayer(
 				if ((size_t)IPv4_Header->TTL + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.TTL && 
 					(size_t)IPv4_Header->TTL < (size_t)PacketSource->HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
 				{
-					MatchPortToSend(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), BufferSize, AF_INET, UDP_Header->DstPort);
+					MatchPortToSend(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DataLength, BufferSize, AF_INET, UDP_Header->DstPort);
 					return true;
 				}
 			}
 		}
+	}
+	else {
+		return false;
 	}
 
 	return true;
@@ -825,8 +838,8 @@ bool __fastcall CaptureCheck_TCP(
 	//ECE bit is set.
 		(ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_ECE) > 0 || 
 	//SYN and ACK bits are set, PSH bit is not set and header options are not empty.
-		(ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL && (ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK || 
-		(ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U == TCP_STANDARD_IHL && 
+		((ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL && (ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK) || 
+		((ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U == TCP_STANDARD_IHL && 
 	//ACK bit is set and header options are empty.
 		((ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_ACK || 
 	//PSH and ACK bits are set, header options are empty.
@@ -834,7 +847,7 @@ bool __fastcall CaptureCheck_TCP(
 	//FIN and ACK bits are set and header options are empty.
 		(ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_FIN_ACK || 
 	//RST bit is set, PSH and ACK bits are not set, Window size is zero and header options are empty.
-		(ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_RST && ((ptcp_hdr)Buffer)->Acknowledge == 0 && ((ptcp_hdr)Buffer)->Windows == 0))
+		((ntohs(((ptcp_hdr)Buffer)->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_RST && ((ptcp_hdr)Buffer)->Acknowledge == 0 && ((ptcp_hdr)Buffer)->Windows == 0))))
 			return true;
 
 	return false;
@@ -849,7 +862,8 @@ bool __fastcall MatchPortToSend(
 	const uint16_t Port)
 {
 //Initialization
-	SOCKET_DATA SocketData_Input = {0};
+	SOCKET_DATA SocketData_Input;
+	memset(&SocketData_Input, 0, sizeof(SOCKET_DATA));
 	uint16_t SystemProtocol = 0;
 	size_t ReceiveIndex = 0;
 
@@ -859,18 +873,18 @@ bool __fastcall MatchPortToSend(
 	{
 		for (auto &SocketDataIter:PortTableIter.SocketData_Output)
 		{
-			if (PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
+			if ((PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
 				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
-				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port || //IPv6
-				Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
-				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port) //IPv4
+				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port) || //IPv6
+				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
+				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port)) //IPv4
 			{
 				if (Parameter.ReceiveWaiting > 0)
 				{
 					++PortTableIter.ReceiveIndex;
 					ReceiveIndex = PortTableIter.ReceiveIndex;
 
-					OutputPacketListLock.unlock();
+					OutputPacketListMutex.unlock();
 					goto StopLoop;
 				}
 				else {
@@ -891,16 +905,16 @@ bool __fastcall MatchPortToSend(
 //Jump here to stop loop, wait receiving and match port again.
 StopLoop:
 	Sleep(Parameter.ReceiveWaiting);
-	OutputPacketListLock.lock();
+	OutputPacketListMutex.lock();
 	for (auto &PortTableIter:OutputPacketList)
 	{
 		for (auto &SocketDataIter:PortTableIter.SocketData_Output)
 		{
-			if (PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
+			if ((PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
 				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
-				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port || //IPv6
-				Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
-				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port) //IPv4
+				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port) || //IPv6
+				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
+				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port)) //IPv4
 			{
 				if (PortTableIter.ReceiveIndex == ReceiveIndex)
 				{
@@ -921,8 +935,8 @@ StopLoop:
 
 //Jump here to stop loop and clear timeout data.
 ClearOutputPacketListData:
-//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 	{
 		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))

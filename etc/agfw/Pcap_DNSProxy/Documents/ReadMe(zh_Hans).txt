@@ -41,7 +41,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 6.特别注意：
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
     * 以管理员身份运行 cmd
-	* 输入 ipv6 install 并回车
+    * 输入 ipv6 install 并回车
   * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
     * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
     * Local Hosts = 1 开启境内域名白名单功能
@@ -135,7 +135,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
 * 请求域名解析优先级
   * 使用系统 API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
-  * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
+  * 直接从网络适配器设置内读取 DNS 服务器地址进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 请求远程 DNS 服务器的优先级：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
 * 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
   * DNSCurve 协议为 Streamlined/精简类型
@@ -322,6 +322,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+  * Local Force Request - 强制使用境内服务器进行解析：开启为 1 /关闭为 0
+    * 本功能只对已经确定使用境内服务器的域名请求有效
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
     * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
   * Local Main - 主要境内服务器请求功能：开启为 1 /关闭为 0
@@ -330,7 +332,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Routing - Local 路由表识别功能：开启为 1 /关闭为 0
     * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
     * 本功能只能在 Local Main 为启用状态时才能启用
-    
+
 * Addresses - 普通模式地址区域
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用
     * 支持多个地址
@@ -369,10 +371,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
   * 注意：
-    * 单个 IPv4 地址格式为 "IPv4 地址:端口"，单个 IPv6 地址格式为"[IPv6 地址]:端口"，带前缀长度地址格式为 "IP 地址/网络前缀长度"（均不含引号）
-    * 多个 IPv4 地址格式为 "地址A:端口|地址B:端口|地址C:端口"，多个 IPv6 地址格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号），启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-    * 可填入的服务器数量为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
-	* 指定端口时可使用服务名称代替：
+    * 带端口地址的格式：
+      * 单个 IPv4 为 "IPv4 地址:端口"（均不含引号）
+	  * 单个 IPv6 为 "[IPv6 地址]:端口"（均不含引号）
+      * 多个 IPv4 为 "地址A:端口|地址B:端口|地址C:端口"（均不含引号）
+	  * 多个 IPv6 为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号）
+      * 启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+      * 可填入的服务器数量为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
+    * 带前缀长度地址的格式：
+      * IPv4 为 "IPv4 地址/掩码长度"（均不含引号）
+      * IPv6 为 "IPv6 地址/前缀长度"（均不含引号）
+    * 指定端口时可使用服务名称代替：
       * TCPMUX/1
       * ECHO/7
       * DISCARD/9
@@ -517,7 +526,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
   * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0
     * 本参数可只指定部分的请求过程使用 EDNS 标签，以下可用的参数可随意删减以实现此功能
-	* 可用的参数：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 可用的参数：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 客户端子网转发功能，开启后将为来自非私有网络地址的所有请求添加其请求时所使用的地址的 EDNS 子网地址：开启为 1 /关闭为 0
     * 本功能要求启用 EDNS Label 参数
     * 本参数优先级比 IPv4/IPv6 EDNS Client Subnet Address 参数高，故需要添加 EDNS 子网地址时将优先添加本参数的地址
@@ -678,6 +687,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Direct Request
 * Default TTL
 * Local Protocol
+* Local Force Request
+* IPv4 Packet TTL
+* IPv6 Packet Hop Limits
 * IPv4 TTL
 * IPv6 HopLimits
 * IPv4 AlternateTTL
@@ -690,6 +702,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Domain Test
 * Multi Request Times
 * Domain Case Conversion
+* IPv4 Do Not Fragment
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
@@ -749,6 +762,7 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
   * 从而绕过了下面的条目，不使用 Hosts 的功能
 
+
 * Whitelist Extended - 白名单条目扩展功能
   * 此类型的条目还支持对符合规则的特定类型域名请求直接绕过 Hosts 不会使用 Hosts 功能
   * 有效参数格式为 "NULL:DNS类型(|DNS类型) 正则表达式"（不含引号）
@@ -760,6 +774,7 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 第一条即直接跳过匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被匹配规则
   * 而第二条则只匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被直接跳过
 
+
 * Banned - 黑名单条目
   * 此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
   * 有效参数格式为 "BANNED 正则表达式"（不含引号）
@@ -770,7 +785,8 @@ Hosts 配置文件分为多个提供不同功能的区域
 
   * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
   * 从而绕过了下面的条目，达到屏蔽域名的目的
-  
+
+
 * Banned Extended - 黑名单条目扩展功能
   * 此类型的条目还支持对符合规则的特定类型域名请求进行屏蔽或放行
   * 有效参数格式为 "BANNED:DNS类型(|DNS类型) 正则表达式"（不含引号）
@@ -782,11 +798,14 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 第一条即屏蔽匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被放行
   * 而第二条则只放行匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被屏蔽
 
-* Hosts/CNAME Hosts - 主要 Hosts 列表/CNAME Hosts 列表
-有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
+
+* Hosts/CNAME Hosts/Source Hosts - 主要 Hosts 列表/CNAME Hosts 列表/根据来源地址 Hosts 列表
   * 主要 Hosts 列表和 CNAME Hosts 列表主要区别是作用范围不相同，前者的作用范围为接收到的域名解析请求，后者的作用范围为接收到的域名解析结果
+    * 有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
+  * 根据来源地址 Hosts 列表，根据接收到的域名解析请求的来源地址判断是否需要进行 Hosts
+    * 有效参数格式为 "来源地址/前缀长度(|来源地址A/前缀长度A|来源地址B/前缀长度B)->地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
   * 地址与正则表达式之间的间隔字符可为 Space/半角空格 或者 HT/水平定位符号，间隔长度不限，但切勿输入全角空格
-  * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行 IPv4/IPv6 的Hosts，请分为两个条目输入
+  * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行 IPv4/IPv6 的 Hosts，请分为两个条目输入
   * 平行地址原理为一次返回多个记录，而具体使用哪个记录则由请求者决定，一般为第1个
   * 例如有一个 [Hosts] 下有效数据区域：
 
@@ -801,6 +820,7 @@ Hosts 配置文件分为多个提供不同功能的区域
     * 请求解析 xxx.test.localhost 的 A 记录（IPv4）会返回 127.0.0.1、127.0.0.2 和 127.0.0.3
     * 请求解析 xxx.test.localhost 的 AAAA 记录（IPv6）会返回 ::1、::2 和 ::3
 
+
 * Local Hosts - 境内 DNS 解析域名列表
 本区域数据用于为域名使用境内 DNS 服务器解析提高访问速度，使用时请确认境内 DNS 服务器地址不为空（参见上文 配置文件详细参数说明 一节）
 有效参数格式为 "正则表达式"（不含引号）
@@ -812,7 +832,8 @@ Hosts 配置文件分为多个提供不同功能的区域
     .*\.localhost
 
   * 即所有符合以上正则表达式的域名请求都将使用境内 DNS 服务器解析
-  
+
+
 * Address Hosts - 解析结果地址替换列表
   * 本区域数据用于替换解析结果中的地址，提供更精确的 Hosts 自定义能力
   * 例如有一个 [Address Hosts] 下有效数据区域：
@@ -822,6 +843,7 @@ Hosts 配置文件分为多个提供不同功能的区域
 
   * 解析结果的地址范围为 127.0.0.0 到 127.255.255.255 时将被替换为 127.0.0.1 或 127.0.0.2
   * 解析结果的地址范围为 :: 到 ::FFFF 时将被替换为 ::1
+
 
 * Stop - 临时停止读取标签
   * 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
@@ -866,20 +888,23 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
   * 地址与正则表达式之间的间隔字符可为 Space/半角空格 或者 HT/水平定位符号，间隔长度不限，但切勿输入全角空格
   * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行 IPv4/IPv6 地址的过滤，请分为两个条目输入
 
+
 * IPFilter - 地址过滤区域
 地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
 有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
   * 同时支持 IPv4 和 IPv6 地址，但填写时请分开为2个条目
   * 同一类型的地址地址段有重复的条目将会被自动合并
-  
+
+
 * Local Routing - 境内路由表区域
 当 Local Routing 为开启时，将检查本列表的路由表是否命中，检查与否与域名请求是否使用 Local 服务器有关，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
 有效参数格式为 "地址块/网络前缀长度"（不含引号）
   * 本路由表支持 IPv4 和 IPv6 协议
   * IPv4 时网络前缀长度范围为 1-32，IPv6 时网络前缀长度范围为 1-128
-  
+
+
 * Stop - 临时停止读取标签
-在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
+  * 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
   * 具体情况参见上文的介绍
 
 

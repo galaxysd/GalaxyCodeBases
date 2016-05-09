@@ -39,26 +39,26 @@ static char Base64_EncodeTable_Initialization[] =
 //ASCII order for BASE 64 decode, -1 in unused character.
 static signed char Base64_DecodeTable_Initialization[] = 
 {
-	/* '+', ',', '-', '.', '/', '0', '1', '2', 
-		62,  -1,  -1,  -1,  63,  52,  53,  54, 
-	/* '3', '4', '5', '6', '7', '8', '9', ':', 
-		55,  56,  57,  58,  59,  60,  61,  -1, 
-	/* ';', '<', '=', '>', '?', '@', 'A', 'B', 
-		-1,  -1,  -1,  -1,  -1,  -1,   0,  1, 
-	/* 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
-		2,   3,   4,   5,   6,   7,   8,   9, 
-	/* 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
-		10,  11,  12,  13,  14,  15,  16,  17, 
-	/* 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
-		18,  19,  20,  21,  22,  23,  24,  25, 
-	/* '[', '\', ']', '^', '_', '`', 'a', 'b', 
-		-1,  -1,  -1,  -1,  -1,  -1,  26,  27, 
-	/* 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
-		28,  29,  30,  31,  32,  33,  34,  35, 
-	/* 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 
-		36,  37,  38,  39,  40,  41,  42,  43, 
-	/* 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
-		44,  45,  46,  47,  48,  49,  50,  51
+	'+', ',', '-', '.', '/', '0', '1', '2', 
+	62,  -1,  -1,  -1,  63,  52,  53,  54, 
+	'3', '4', '5', '6', '7', '8', '9', ':', 
+	55,  56,  57,  58,  59,  60,  61,  -1, 
+	';', '<', '=', '>', '?', '@', 'A', 'B', 
+	-1,  -1,  -1,  -1,  -1,  -1,   0,  1, 
+	'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+	2,   3,   4,   5,   6,   7,   8,   9, 
+	'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
+	10,  11,  12,  13,  14,  15,  16,  17, 
+	'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+	18,  19,  20,  21,  22,  23,  24,  25, 
+	'[', '\', ']', '^', '_', '`', 'a', 'b', 
+	-1,  -1,  -1,  -1,  -1,  -1,  26,  27, 
+	'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
+	28,  29,  30,  31,  32,  33,  34,  35, 
+	'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 
+	36,  37,  38,  39,  40,  41,  42,  43, 
+	's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+	44,  45,  46,  47,  48,  49,  50,  51
 };
 */
 
@@ -90,7 +90,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 		LocalFQDN_Response = new char[DOMAIN_MAXSIZE]();
 		LocalFQDN_String = new std::string();
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
 
@@ -140,7 +140,7 @@ ConfigurationTable::ConfigurationTable(
 		delete LocalFQDN_String;
 		LocalFQDN_Response = nullptr;
 		LocalFQDN_String = nullptr;
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		delete[] LocalServer_Response;
 		LocalServer_Response = nullptr;
 	#endif
@@ -179,7 +179,7 @@ void __fastcall ConfigurationTableSetting(
 	memset(ConfigurationParameter->DomainTest_Data, 0, DOMAIN_MAXSIZE);
 #endif
 	memset(ConfigurationParameter->LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
 
@@ -286,7 +286,7 @@ ConfigurationTable::~ConfigurationTable(
 	delete LocalFQDN_String;
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
 #endif
@@ -347,7 +347,7 @@ void ConfigurationTable::SetToMonitorItem(
 	delete LocalFQDN_String;
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
 #endif
@@ -372,7 +372,7 @@ void ConfigurationTable::SetToMonitorItem(
 #endif
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	LocalServer_Response = nullptr;
 #endif
 
@@ -404,6 +404,7 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Local DNS] block
 	ConfigurationParameter->LocalProtocol_Network = LocalProtocol_Network;
 	ConfigurationParameter->LocalProtocol_Transport = LocalProtocol_Transport;
+	ConfigurationParameter->LocalForce = LocalForce;
 
 //[Values] block
 #if defined(ENABLE_PCAP)
@@ -514,6 +515,7 @@ void ConfigurationTable::MonitorItemReset(
 //[Local DNS] block
 	LocalProtocol_Network = 0;
 	LocalProtocol_Transport = 0;
+	LocalForce = false;
 
 //[Values] block
 #if defined(ENABLE_PCAP)
@@ -598,7 +600,7 @@ GlobalStatus::GlobalStatus(
 	#endif
 		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
 		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
 		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
 	#endif
@@ -631,7 +633,7 @@ GlobalStatus::GlobalStatus(
 		delete[] LocalAddress_Response[1U];
 		LocalAddress_Response[0] = nullptr;
 		LocalAddress_Response[1U] = nullptr;
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		delete LocalAddress_ResponsePTR[0];
 		delete LocalAddress_ResponsePTR[1U];
 		LocalAddress_ResponsePTR[0] = nullptr;
@@ -663,7 +665,7 @@ void __fastcall GlobalStatusSetting(
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 	GetFunctionPointer(FUNCTION_INET_NTOP);
 	GetFunctionPointer(FUNCTION_INET_PTON);
@@ -691,7 +693,7 @@ GlobalStatus::~GlobalStatus(
 
 //Free libraries.
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	if (FunctionLibrary_GetTickCount64 != nullptr)
 	{
 		FreeLibrary(FunctionLibrary_GetTickCount64);
@@ -736,7 +738,7 @@ GlobalStatus::~GlobalStatus(
 	delete[] LocalAddress_Response[1U];
 	LocalAddress_Response[0] = nullptr;
 	LocalAddress_Response[1U] = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete LocalAddress_ResponsePTR[0];
 	delete LocalAddress_ResponsePTR[1U];
 	LocalAddress_ResponsePTR[0] = nullptr;

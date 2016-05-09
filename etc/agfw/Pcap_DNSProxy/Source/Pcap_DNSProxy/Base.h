@@ -34,7 +34,7 @@
 #define CODEPAGE_UTF_32_BE                           12001U                       //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 
 #if defined(PLATFORM_WIN)
-	#define MBSTOWCS_NULLTERMINATE                         (-1)                       //MultiByteToWideChar() find null-terminate.
+	#define MBSTOWCS_NULLTERMINATE                         (-1)                       //MultiByteToWideChar function find null-terminate.
 #endif
 #if defined(ENABLE_LIBSODIUM)
 	#define LIBSODIUM_ERROR                                (-1)
@@ -106,8 +106,8 @@
 
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
-#define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.6"
+#define CONFIG_VERSION                                0.4                         //Current configuration file version
+#define FULL_VERSION                                  L"0.4.6.2"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -163,18 +163,17 @@
 
 //Code definitions
 #if defined(PLATFORM_WIN)
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define SYSTEM_SOCKET                                 int
 #endif
 #if defined(ENABLE_PCAP)
-//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live function has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
 //	#define PCAP_READ_SUCCESS                             1                            //Pcap packets has been read without problems.
 	#define PCAP_LOOP_INFINITY                            (-1)                         //Pcap packets are processed until another ending condition occurs.
 	#define PCAP_COMPILE_OPTIMIZE                         1                            //Pcap optimization on the resulting code is performed.
 #endif
-//#define SHA3_512_SIZE                               64U                         //SHA3-512 instance as specified in the FIPS 202(http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                              0                           //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                              1024U                       //Well-known port is from 1 to 1023.
 
@@ -183,7 +182,7 @@
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 millisecond)
 #define STANDARD_TIMEOUT                              1000U                       //Standard timeout, 1000 ms(1 second)
 #define LOOP_MAX_TIMES                                16U                         //Maximum of loop times, 8 times
-#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay), 10 ms
+#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay mode), 10 ms
 #define LOOP_INTERVAL_TIME_MONITOR                    10000U                      //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 #if defined(PLATFORM_WIN)
 	#define UPDATE_SERVICE_TIME                           3000U                       //Update service timeout, 3000 ms(3 seconds)
@@ -280,7 +279,7 @@
 
 //Function Type definitions
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 
 	#define FUNCTION_GETTICKCOUNT64                       1U
 	#define FUNCTION_INET_NTOP                            2U
@@ -341,6 +340,7 @@
 #define HOSTS_TYPE_NORMAL                             3U
 #define HOSTS_TYPE_LOCAL                              4U
 #define HOSTS_TYPE_CNAME                              5U
+#define HOSTS_TYPE_SOURCE                             6U
 #define CACHE_TYPE_TIMER                              1U
 #define CACHE_TYPE_QUEUE                              2U
 #define SOCKET_SETTING_INVALID_CHECK                  0
@@ -374,7 +374,7 @@
 
 //Function Pointer definitions
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
 	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
 	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
@@ -401,44 +401,44 @@
 //File Data structure
 typedef struct _file_data_
 {
-	std::wstring             FileName;
+	std::wstring                         FileName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string              sFileName;
+	std::string                          sFileName;
 #endif
-	time_t                   ModificationTime;
+	time_t                               ModificationTime;
 }FileData, FILE_DATA, *PFileData, *PFILE_DATA;
 
 //Socket Data structure
 typedef struct _socket_data_
 {
-	SYSTEM_SOCKET            Socket;
-	sockaddr_storage         SockAddr;
-	socklen_t                AddrLen;
+	SYSTEM_SOCKET                        Socket;
+	sockaddr_storage                     SockAddr;
+	socklen_t                            AddrLen;
 }SocketData, SOCKET_DATA, *PSocketData, *PSOCKET_DATA;
 
 //Address Prefix Block structure
 typedef struct _address_prefix_block_
 {
-	sockaddr_storage         Address;
-	size_t                   Prefix;
+	sockaddr_storage                     Address;
+	size_t                               Prefix;
 }AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
 
 //Address Union Data structure
 typedef union _address_union_data_
 {
-	sockaddr_storage     Storage;
-	sockaddr_in6         IPv6;
-	sockaddr_in          IPv4;
+	sockaddr_storage                     Storage;
+	sockaddr_in6                         IPv6;
+	sockaddr_in                          IPv4;
 }AddressUnionData, ADDRESS_UNION_DATA, *PAddressUnionData, *PADDRESS_UNION_DATA;
 
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
-	AddressUnionData         AddressData;
+	AddressUnionData                     AddressData;
 #if defined(ENABLE_PCAP)
 	union _hoplimit_data_ {
-		uint8_t              TTL;
-		uint8_t              HopLimit;
+		uint8_t                          TTL;
+		uint8_t                          HopLimit;
 	}HopLimitData;
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
@@ -446,9 +446,9 @@ typedef struct _dns_server_data_
 //Socket Selecting Data structure
 typedef struct _socket_selecting_data_
 {
-	std::shared_ptr<char>    RecvBuffer;
-	size_t                   Length;
-	bool                     PacketIsSend;
+	std::shared_ptr<char>                RecvBuffer;
+	size_t                               Length;
+	bool                                 PacketIsSend;
 }SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
 
 //DNS Packet Data structure
@@ -471,37 +471,37 @@ typedef struct _dns_packet_data_
 //DNS Cache Data structure
 typedef struct _dns_cache_data_
 {
-	std::string              Domain;
-	std::shared_ptr<char>    Response;
-	size_t                   Length;
-	uint16_t                 RecordType;
-	uint64_t                 ClearCacheTime;
+	std::string                          Domain;
+	std::shared_ptr<char>                Response;
+	size_t                               Length;
+	uint16_t                             RecordType;
+	uint64_t                             ClearCacheTime;
 }DNSCacheData, DNS_CACHE_DATA, *PDNSCacheData, *PDNS_CACHE_DATA;
 
 //DNSCurve Server Data structure
 #if defined(ENABLE_LIBSODIUM)
 typedef struct _dnscurve_server_data_
 {
-	ADDRESS_UNION_DATA       AddressData;
-	char                     *ProviderName;          //Server Provider Name
-	uint8_t                  *PrecomputationKey;     //DNSCurve Precomputation Keys
-	uint8_t                  *ServerPublicKey;       //Server Public Keys
-	uint8_t                  *ServerFingerprint;     //Server Fingerprints
-	char                     *ReceiveMagicNumber;    //Receive Magic Number(Same from server receive)
-	char                     *SendMagicNumber;       //Server Magic Number(Send to server)
+	ADDRESS_UNION_DATA                   AddressData;
+	char                                 *ProviderName;          //Server Provider Name
+	uint8_t                              *PrecomputationKey;     //DNSCurve Precomputation Keys
+	uint8_t                              *ServerPublicKey;       //Server Public Keys
+	uint8_t                              *ServerFingerprint;     //Server Fingerprints
+	char                                 *ReceiveMagicNumber;    //Receive Magic Number(Same from server receive)
+	char                                 *SendMagicNumber;       //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
 
 //DNSCurve Socket Selecting Data structure
 typedef struct _dnscurve_socket_selecting_data_
 {
-	size_t                   ServerType;
-	uint8_t                  *PrecomputationKey;
-	char                     *ReceiveMagicNumber;
-	char                     *SendBuffer;
-	size_t                   SendSize;
-	std::shared_ptr<char>    RecvBuffer;
-	size_t                   Length;
-	bool                     PacketIsSend;
+	size_t                               ServerType;
+	uint8_t                              *PrecomputationKey;
+	char                                 *ReceiveMagicNumber;
+	char                                 *SendBuffer;
+	size_t                               SendSize;
+	std::shared_ptr<char>                RecvBuffer;
+	size_t                               Length;
+	bool                                 PacketIsSend;
 }DNSCurveSocketSelectingData, DNSCURVE_SOCKET_SELECTING_DATA, *PDNSCurveSocketSelectingData, *PDNSCURVE_SOCKET_SELECTING_DATA;
 #endif
 
@@ -541,6 +541,7 @@ public:
 //[Local DNS] block
 	size_t                               LocalProtocol_Network;
 	size_t                               LocalProtocol_Transport;
+	bool                                 LocalForce;
 	bool                                 LocalMain;
 	bool                                 LocalHosts;
 	bool                                 LocalRouting;
@@ -631,7 +632,7 @@ public:
 	std::string                          *LocalFQDN_String;
 	char                                 *LocalFQDN_Response;
 	size_t                               LocalFQDN_Length;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	char                                 *LocalServer_Response;
 	size_t                               LocalServer_Length;
 #endif
@@ -730,12 +731,12 @@ public:
 //Local address status
 	char                                 *LocalAddress_Response[NETWORK_LAYER_PARTNUM];
 	size_t                               LocalAddress_Length[NETWORK_LAYER_PARTNUM];
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	HINSTANCE                            FunctionLibrary_GetTickCount64;
 	HINSTANCE                            FunctionLibrary_InetNtop;
 	HINSTANCE                            FunctionLibrary_InetPton;
@@ -755,9 +756,9 @@ public:
 typedef class AddressRangeTable
 {
 public:
-	sockaddr_storage         Begin;
-	sockaddr_storage         End;
-	size_t                   Level;
+	sockaddr_storage                     Begin;
+	sockaddr_storage                     End;
+	size_t                               Level;
 
 //Member functions
 	AddressRangeTable(
@@ -768,12 +769,13 @@ public:
 typedef class HostsTable
 {
 public:
-	std::vector<ADDRESS_UNION_DATA>   AddrList;
-	std::regex                        Pattern;
-	std::string                       PatternString;
-	std::vector<uint16_t>             RecordTypeList;
-	size_t                            PermissionType;
-	bool                              PermissionOperation;
+	std::vector<ADDRESS_PREFIX_BLOCK>    SourceList;
+	std::vector<ADDRESS_UNION_DATA>      AddrList;
+	std::regex                           Pattern;
+	std::string                          PatternString;
+	std::vector<uint16_t>                RecordTypeList;
+	size_t                               PermissionType;
+	bool                                 PermissionOperation;
 
 //Member functions
 	HostsTable(
@@ -784,8 +786,8 @@ public:
 typedef class AlternateSwapTable
 {
 public:
-	bool                     IsSwap[ALTERNATE_SERVERNUM];
-	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
+	bool                                 IsSwap[ALTERNATE_SERVERNUM];
+	size_t                               TimeoutTimes[ALTERNATE_SERVERNUM];
 
 //Member functions
 	AlternateSwapTable(
@@ -796,17 +798,17 @@ public:
 typedef class ResultBlacklistTable
 {
 public:
-	std::vector<AddressRangeTable>   Addresses;
-	std::regex                       Pattern;
-	std::string                      PatternString;
+	std::vector<AddressRangeTable>       Addresses;
+	std::regex                           Pattern;
+	std::string                          PatternString;
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
 typedef class AddressHostsTable
 {
 public:
-	std::vector<sockaddr_storage>    Address_Target;
-	std::vector<AddressRangeTable>   Address_Source;
+	std::vector<sockaddr_storage>        Address_Target;
+	std::vector<AddressRangeTable>       Address_Source;
 }ADDRESS_HOSTS_TABLE;
 
 //Address routing table class
@@ -827,12 +829,12 @@ public:
 typedef class OutputPacketTable
 {
 public:
-	std::vector<SOCKET_DATA>   SocketData_Output;
-	SOCKET_DATA                SocketData_Input;
-	uint16_t                   Protocol_Network;
-	uint16_t                   Protocol_Transport;
-	unsigned long long         ClearPortTime;
-	size_t                     ReceiveIndex;
+	std::vector<SOCKET_DATA>             SocketData_Output;
+	SOCKET_DATA                          SocketData_Input;
+	uint16_t                             Protocol_Network;
+	uint16_t                             Protocol_Transport;
+	unsigned long long                   ClearPortTime;
+	size_t                               ReceiveIndex;
 
 //Member functions
 	OutputPacketTable(
@@ -844,10 +846,10 @@ public:
 typedef class DiffernetFileSetIPFilter
 {
 public:
-	std::vector<ADDRESS_RANGE_TABLE>          AddressRange;
-	std::vector<RESULT_BLACKLIST_TABLE>       ResultBlacklist;
-	std::vector<ADDRESS_ROUTING_TABLE>        LocalRoutingList;
-	size_t                                    FileIndex;
+	std::vector<ADDRESS_RANGE_TABLE>      AddressRange;
+	std::vector<RESULT_BLACKLIST_TABLE>   ResultBlacklist;
+	std::vector<ADDRESS_ROUTING_TABLE>    LocalRoutingList;
+	size_t                                FileIndex;
 
 //Member functions
 	DiffernetFileSetIPFilter(
@@ -858,11 +860,12 @@ public:
 typedef class DiffernetFileSetHosts
 {
 public:
-	std::vector<HOSTS_TABLE>           HostsList_Normal;
-	std::vector<HOSTS_TABLE>           HostsList_Local;
-	std::vector<HOSTS_TABLE>           HostsList_CNAME;
-	std::vector<ADDRESS_HOSTS_TABLE>   AddressHostsList;
-	size_t                             FileIndex;
+	std::vector<HOSTS_TABLE>             HostsList_Normal;
+	std::vector<HOSTS_TABLE>             HostsList_Local;
+	std::vector<HOSTS_TABLE>             HostsList_CNAME;
+	std::vector<HOSTS_TABLE>             HostsList_Source;
+	std::vector<ADDRESS_HOSTS_TABLE>     AddressHostsList;
+	size_t                               FileIndex;
 
 //Member functions
 	DiffernetFileSetHosts(
@@ -875,8 +878,8 @@ public:
 template<typename Ty> class DNSCurveHeapBufferTable
 {
 public:
-	Ty                         *Buffer;
-	size_t                     BufferSize;
+	Ty                                   *Buffer;
+	size_t                               BufferSize;
 
 //Member functions
 	DNSCurveHeapBufferTable(
@@ -898,28 +901,28 @@ typedef class DNSCurveConfigurationTable
 {
 public:
 //[DNSCurve] block
-	size_t                     DNSCurvePayloadSize;
-	size_t                     DNSCurveProtocol_Network;
-	size_t                     DNSCurveProtocol_Transport;
+	size_t                               DNSCurvePayloadSize;
+	size_t                               DNSCurveProtocol_Network;
+	size_t                               DNSCurveProtocol_Transport;
 #if defined(PLATFORM_WIN)
-	int                        DNSCurve_SocketTimeout_Reliable;
-	int                        DNSCurve_SocketTimeout_Unreliable;
+	int                                  DNSCurve_SocketTimeout_Reliable;
+	int                                  DNSCurve_SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	timeval                    DNSCurve_SocketTimeout_Reliable;
-	timeval                    DNSCurve_SocketTimeout_Unreliable;
+	timeval                              DNSCurve_SocketTimeout_Reliable;
+	timeval                              DNSCurve_SocketTimeout_Unreliable;
 #endif
-	bool                       IsEncryption;
-	bool                       IsEncryptionOnly;
-	bool                       ClientEphemeralKey;
-	size_t                     KeyRecheckTime;
+	bool                                 IsEncryption;
+	bool                                 IsEncryptionOnly;
+	bool                                 ClientEphemeralKey;
+	size_t                               KeyRecheckTime;
 //[DNSCurve Addresses] block
-	uint8_t                    *Client_PublicKey;
-	uint8_t                    *Client_SecretKey;
+	uint8_t                              *Client_PublicKey;
+	uint8_t                              *Client_SecretKey;
 	struct _dnscurve_target_ {
-		DNSCURVE_SERVER_DATA   IPv6;
-		DNSCURVE_SERVER_DATA   Alternate_IPv6;
-		DNSCURVE_SERVER_DATA   IPv4;
-		DNSCURVE_SERVER_DATA   Alternate_IPv4;
+		DNSCURVE_SERVER_DATA             IPv6;
+		DNSCURVE_SERVER_DATA             Alternate_IPv6;
+		DNSCURVE_SERVER_DATA             IPv4;
+		DNSCURVE_SERVER_DATA             Alternate_IPv4;
 	}DNSCurveTarget;
 
 //Member functions
@@ -984,7 +987,7 @@ uint64_t GetCurrentSystemTime(
 	void);
 #endif
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 BOOL WINAPI IsGreaterThanVista(
 	void);
 BOOL WINAPI GetFunctionPointer(
@@ -1163,7 +1166,8 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 size_t __fastcall CheckHostsProcess(
 	DNS_PACKET_DATA *Packet, 
 	char *Result, 
-	const size_t ResultSize);
+	const size_t ResultSize, 
+	const SOCKET_DATA &LocalSocketData);
 bool __fastcall SendToRequester(
 	char *RecvBuffer, 
 	const size_t RecvSize, 
