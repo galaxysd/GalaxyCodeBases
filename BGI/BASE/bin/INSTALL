@@ -1,0 +1,35 @@
+************************************INSTALL************************************
+download base.tar.gz from github
+
+tar xfz base.tar.gz
+
+##compile BASE
+cd base
+make
+
+##complie 2BWT_Builder
+cd 2bwt
+##If GPU is provided in your machine, please run:
+make use_gpu=1
+
+##If GPU is not provided, please run:
+make
+
+cd ../
+
+************************************SIMPLE RUN*********************************
+##to build 2bwt:
+./2bwt/2bwt_builder_gpu read_library read_length prefix 24 >2bwt.log 2>2bwt.err
+or 
+./2bwt/2bwt_builder_cpu read_library read_length prefix 24 >2bwt.log 2>2bwt.err
+
+##convert the format of 2bwt:
+./2bwt/AsiicBWT2BWT prefix prefix.qual.bit read_length < prefix.f.bwt.ascii
+./2bwt/AsiicBWT2BWT prefix < prefix.r.bwt.ascii
+
+##assemble with base:
+./base -l 2bwt_index -o test -E 30 -P 24 >base.log 2>base.err
+
+##final result:
+test.contig.fa
+

@@ -1,0 +1,19 @@
+1. How to specify the memory size in BWT building?
+./2bwt/2bwt_builder_cpu read_library read_length prefix 24 MaxMemory >2bwt.log 2>2bwt.err
+or
+./2bwt/2bwt_builder_gpu read_library read_length prefix 24 MaxMemory >2bwt.log 2>2bwt.err
+
+2. How to specify the GPU memory in BWT building?
+./2bwt/2bwt_builder_gpu read_library read_length prefix 24 MaxMemory GPUMemory >2bwt.log 2>2bwt.err
+If you want to set the GPUMemory only, then:
+./2bwt/2bwt_builder_gpu read_library read_length prefix 24 0 GPUMemory >2bwt.log 2>2bwt.err
+
+3. How to calculate "Expected depth" for BASE? 
+Simply, you need to estimate the genome size, kmerfreq + gce are suggested to be used here.
+Expected_depth = total_base_number/estimated_genome_size.
+
+This argument must be set to run BASE.
+
+4. How to set "Low depth threshold" for BASE?
+If the Expected depth is less than 60X, it is suggested to use 3, or else you can increase to 4.
+
