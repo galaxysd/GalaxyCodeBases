@@ -2,9 +2,22 @@
   "name": "TagSelect.js",
   "version": "0.6.1",
   "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
-  "main": "dist/TagSelect.min.js",
+  "main": "src/TagSelect.js",
+  "config": {
+    "lite": "-i array-equal -i array-to-map -i array-uniq -i escape-html -i object-assign"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "budo browser.js:bundle.js --onupdate 'npm run build'",
+    "build": "npm run build:css && npm run build:full && npm run build:lite",
+    "build:css": "node-sass src/*.scss dist/tagselect.min.css --output-style compact",
+    "build:full": "browserify -t [ envify --BUILD full ] browser.js -o dist/tagselect.js",
+    "build:lite": "browserify -t [ envify --BUILD lite ] $npm_package_config_lite browser.js -o dist/tagselect.lite.js",
+    "uglify": "npm run uglify:full && npm run uglify:lite",
+    "uglify:full": "uglifyjs dist/tagselect.js -o dist/tagselect.min.js",
+    "uglify:lite": "uglifyjs dist/tagselect.lite.js -o dist/tagselect.lite.min.js",
+    "dist": "rm dist/* && npm run build && npm run uglify",
+    "version": "npm run dist && git add -A dist",
+    "postversion": "git push && git push --tags && npm publish"
   },
   "repository": {
     "type": "git",
@@ -28,15 +41,19 @@
     "url": "https://github.com/FindTheBest/TagSelect.js/issues"
   },
   "homepage": "https://github.com/FindTheBest/TagSelect.js",
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-bump": "0.0.16",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-sass": "^0.8.1",
-    "grunt-contrib-uglify": "^0.7.0",
-    "grunt-contrib-watch": "^0.6.1"
-  },
   "dependencies": {
-    "lodash": "^2.4.1"
+    "array-equal": "^1.0.0",
+    "array-to-map": "^1.0.3",
+    "array-uniq": "^1.0.2",
+    "escape-html": "^1.0.3",
+    "escape-string-regexp": "^1.0.5",
+    "object-assign": "^4.1.0"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "budo": "^8.2.2",
+    "envify": "^3.4.0",
+    "node-sass": "^3.7.0",
+    "uglifyjs": "^2.4.10"
   }
 }
