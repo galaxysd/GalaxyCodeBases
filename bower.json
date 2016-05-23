@@ -2,10 +2,9 @@
   "name": "TagSelect.js",
   "main": "dist/tagselect.min.js",
   "version": "0.6.1",
-  "homepage": "https://github.com/FindTheBest/TagSelect.js",
+  "homepage": "https://github.com/graphiq/TagSelect.js",
   "authors": [
-    "FindTheBest",
-    "Inc."
+    "Graphiq Inc.",
   ],
   "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
   "keywords": [
