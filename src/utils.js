@@ -10,11 +10,11 @@ if (process.env.BUILD === 'lite') {
   };
 } else {
   utils = {
-    escape: require('escape-html'),
-    invert: require('array-to-map'),
-    isEqual: require('array-equal'),
-    merge: require('object-assign'),
-    uniq: require('array-uniq')
+    escape: require('lodash/escape'),
+    invert: require('lodash/invert'),
+    isEqual: require('lodash/isEqual'),
+    merge: require('lodash/merge'),
+    uniq: require('lodash/uniq')
   };
 }
 

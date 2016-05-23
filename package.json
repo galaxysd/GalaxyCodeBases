@@ -8,15 +8,14 @@
   },
   "scripts": {
     "dev": "budo browser.js:bundle.js --onupdate 'npm run build'",
-    "build": "npm run build:css && npm run build:full && npm run build:lite",
+    "build": "run-p build:**",
     "build:css": "node-sass src/*.scss dist/tagselect.min.css --output-style compact",
-    "build:full": "browserify -t [ envify --BUILD full ] browser.js -o dist/tagselect.js",
-    "build:lite": "browserify -t [ envify --BUILD lite ] $npm_package_config_lite browser.js -o dist/tagselect.lite.js",
-    "uglify": "npm run uglify:full && npm run uglify:lite",
-    "uglify:full": "uglifyjs dist/tagselect.js -o dist/tagselect.min.js",
-    "uglify:lite": "uglifyjs dist/tagselect.lite.js -o dist/tagselect.lite.min.js",
-    "dist": "rm dist/* && npm run build && npm run uglify",
-    "version": "npm run dist && git add -A dist",
+    "build:full": "webpack --output-filename dist/tagselect.js",
+    "build:full:min": "webpack --minify --output-filename dist/tagselect.min.js",
+    "build:lite": "webpack --lite --output-filename dist/tagselect.lite.js",
+    "build:lite:min": "webpack --lite --minify --output-filename dist/tagselect.lite.min.js",
+    "dist": "npm run build",
+    "version": "npm run build && git add -A dist",
     "postversion": "git push && git push --tags && npm publish"
   },
   "repository": {
@@ -42,18 +41,16 @@
   },
   "homepage": "https://github.com/graphiq/TagSelect.js",
   "dependencies": {
-    "array-equal": "^1.0.0",
-    "array-to-map": "^1.0.3",
-    "array-uniq": "^1.0.2",
-    "escape-html": "^1.0.3",
     "escape-string-regexp": "^1.0.5",
-    "object-assign": "^4.1.0"
+    "lodash": "^4.13.0"
   },
   "devDependencies": {
-    "browserify": "^13.0.1",
     "budo": "^8.2.2",
     "envify": "^3.4.0",
+    "lodash-webpack-plugin": "^0.8.0",
     "node-sass": "^3.7.0",
-    "uglifyjs": "^2.4.10"
+    "npm-run-all": "^2.1.1",
+    "transform-loader": "^0.2.3",
+    "webpack": "^1.13.1"
   }
 }
