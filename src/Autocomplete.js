@@ -44,7 +44,7 @@ var Autocomplete = function (el, options) {
 
 	this.dd = document.createElement('ul');
 	this.dd.classList.add(this.o.ns + '-dropdown');
-	this.el.insertAdjacentElement('afterend', this.dd);
+	this.el.parentNode.insertBefore(this.dd, this.el.nextSibling);
 
 	this.bindEvents();
 };
