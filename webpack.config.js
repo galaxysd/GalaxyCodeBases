@@ -16,15 +16,6 @@ if (process.argv.indexOf('--minify') !== -1) {
 module.exports = {
 	'entry': './browser.js',
 	'module': {
-		'loaders': [{
-			'loader': 'babel',
-			'test': /\.js$/,
-			'exclude': /node_modules/,
-			'query': {
-				'plugins': ['lodash'],
-				'presets': ['es2015']
-			}
-		}],
 		'postLoaders': [{
 			loader: 'transform?envify'
 		}]

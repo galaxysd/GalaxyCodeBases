@@ -41,26 +41,16 @@
   },
   "homepage": "https://github.com/FindTheBest/TagSelect.js",
   "dependencies": {
-    "array-equal": "^1.0.0",
-    "array-to-map": "^1.0.3",
-    "array-uniq": "^1.0.2",
-    "escape-html": "^1.0.3",
     "escape-string-regexp": "^1.0.5",
-    "object-assign": "^4.1.0"
+    "lodash": "^4.13.0"
   },
   "devDependencies": {
-    "babel-core": "^6.9.0",
-    "babel-loader": "^6.2.4",
-    "babel-plugin-lodash": "^3.1.4",
-    "babel-preset-es2015": "^6.9.0",
-    "browserify": "^13.0.1",
     "budo": "^8.2.2",
     "envify": "^3.4.0",
     "lodash-webpack-plugin": "^0.8.0",
     "node-sass": "^3.7.0",
     "npm-run-all": "^2.1.1",
     "transform-loader": "^0.2.3",
-    "uglifyjs": "^2.4.10",
     "webpack": "^1.13.1"
   }
 }
