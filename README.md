@@ -100,9 +100,6 @@ npm run dev
 # Rebuild all CSS and JS.
 npm run build
 
-# Rebuild and minify all CSS and JS.
-npm run dist
-
 # Bump the version, commit the dist/, and release on NPM.
 npm version [ major | minor | patch ]
 ```
