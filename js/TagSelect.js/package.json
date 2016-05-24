@@ -2,13 +2,25 @@
   "name": "TagSelect.js",
   "version": "0.6.1",
   "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
-  "main": "dist/TagSelect.min.js",
+  "main": "src/TagSelect.js",
+  "config": {
+    "lite": "-i array-equal -i array-to-map -i array-uniq -i escape-html -i object-assign"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "budo browser.js:bundle.js --onupdate 'npm run build'",
+    "build": "run-p build:**",
+    "build:css": "node-sass src/*.scss dist/tagselect.min.css --output-style compact",
+    "build:full": "webpack --output-filename dist/tagselect.js",
+    "build:full:min": "webpack --minify --output-filename dist/tagselect.min.js",
+    "build:lite": "webpack --lite --output-filename dist/tagselect.lite.js",
+    "build:lite:min": "webpack --lite --minify --output-filename dist/tagselect.lite.min.js",
+    "dist": "npm run build",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags && npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/FindTheBest/TagSelect.js.git"
+    "url": "git://github.com/graphiq/TagSelect.js.git"
   },
   "keywords": [
     "tag",
@@ -22,21 +34,23 @@
     "list",
     "select"
   ],
-  "author": "FindTheBest, Inc.",
+  "author": "Graphiq, Inc.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/FindTheBest/TagSelect.js/issues"
+    "url": "https://github.com/graphiq/TagSelect.js/issues"
   },
-  "homepage": "https://github.com/FindTheBest/TagSelect.js",
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-bump": "0.0.16",
-    "grunt-contrib-jshint": "^0.10.0",
-    "grunt-contrib-sass": "^0.8.1",
-    "grunt-contrib-uglify": "^0.7.0",
-    "grunt-contrib-watch": "^0.6.1"
-  },
+  "homepage": "https://github.com/graphiq/TagSelect.js",
   "dependencies": {
-    "lodash": "^2.4.1"
+    "escape-string-regexp": "^1.0.5",
+    "lodash": "^4.13.0"
+  },
+  "devDependencies": {
+    "budo": "^8.2.2",
+    "envify": "^3.4.0",
+    "lodash-webpack-plugin": "^0.8.0",
+    "node-sass": "^3.7.0",
+    "npm-run-all": "^2.1.1",
+    "transform-loader": "^0.2.3",
+    "webpack": "^1.13.1"
   }
 }
