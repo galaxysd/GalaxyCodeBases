@@ -1,7 +1,7 @@
 /**
  * TagSelect.js
  *
- * @author FindTheBest, Inc.
+ * @author Graphiq, Inc.
  */
 
 var utils = require('./utils'),

@@ -2991,7 +2991,7 @@
 	/**
 	 * Autocomplete.js
 	 *
-	 * @author FindTheBest, Inc.
+	 * @author Graphiq, Inc.
 	 */
 
 	var utils = __webpack_require__(23);
@@ -3176,7 +3176,7 @@
 	/**
 	 * TagSelect.js
 	 *
-	 * @author FindTheBest, Inc.
+	 * @author Graphiq, Inc.
 	 */
 
 	var utils = __webpack_require__(23),
