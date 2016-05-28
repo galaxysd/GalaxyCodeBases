@@ -1,6 +1,6 @@
 {
   "name": "TagSelect.js",
-  "version": "0.6.1",
+  "version": "1.0.0",
   "description": "HTML5-based input for typing lists of tags, tokens, or other discrete values.",
   "main": "src/TagSelect.js",
   "config": {
