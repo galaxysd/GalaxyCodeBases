@@ -11,14 +11,13 @@ if (process.env.BUILD === 'lite') {
 } else {
   utils = {
     escape: require('lodash/escape'),
+    escapeRegExp: require('lodash/escapeRegExp'),
     invert: require('lodash/invert'),
     isEqual: require('lodash/isEqual'),
     merge: require('lodash/merge'),
     uniq: require('lodash/uniq')
   };
 }
-
-utils.escapeStringRegexp = require('escape-string-regexp');
 
 /**
  * Thanks to Tim Down.

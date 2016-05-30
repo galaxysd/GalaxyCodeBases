@@ -1,7 +1,7 @@
 /**
  * Autocomplete.js
  *
- * @author FindTheBest, Inc.
+ * @author Graphiq, Inc.
  */
 
 var utils = require('./utils');
@@ -55,7 +55,7 @@ var Autocomplete = function (el, options) {
 Autocomplete.prototype.match = function (input) {
 	if (!input) return [];
 
-	var escapedInput = utils.escapeStringRegexp(input),
+	var escapedInput = utils.escapeRegExp(input),
 		regStart = new RegExp('^' + escapedInput, 'i'),
 		regAll = new RegExp(escapedInput, 'i'),
 		matchedStart = [],

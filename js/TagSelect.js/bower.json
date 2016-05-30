@@ -1,7 +1,7 @@
 {
   "name": "TagSelect.js",
   "main": "dist/tagselect.min.js",
-  "version": "0.6.1",
+  "version": "1.0.0",
   "homepage": "https://github.com/graphiq/TagSelect.js",
   "authors": [
     "Graphiq Inc.",
