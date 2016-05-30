@@ -178,25 +178,29 @@ sub doAlign($$$) {
 	my $HostResult = mergeAln( $retHost->[1],$result->[0] );
 	#ddx $HostResult;
 	my @RefInfo = split /[:-]/,$retHost->[0];
-	my ($RefCut,$Left,$Insert)=(0);
+	my ($RefCut,$Left,$Insert,@Rcuts,@Vcuts)=(0);
 	if ($HostResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
 		(undef,$Left,$Insert) = ($1,$2,$3);
-		$RefCut = $RefInfo[1] + length($Left)+1;
-	} elsif ($HostResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
-		($Left,undef,undef) = ($1,$2,$3);
-		$RefCut = $RefInfo[1] + length($Left)+1;
+		push @Rcuts,($RefInfo[1] + length($Left)+1);
 	}
+	if ($HostResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
+		($Left,$Insert,undef) = ($1,$2,$3);
+		push @Rcuts,($RefInfo[1] + length($Left) + length($Insert)+1);
+	}
+	$RefCut = join(';',@Rcuts);
 	my $VirusResult = mergeAln( $retVirus->[1],$result->[0] );
 	my @VirusInfo = split /[:-]/,$retVirus->[0];
 	my ($VirCut,$VirLeft,$VirInsert)=(0,0,0);
 	if ($VirusResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
 		(undef,$VirLeft,$VirInsert) = ($1,$2,$3);
-		$VirCut = $VirusInfo[1] + length($VirLeft)+1;
-	} elsif ($VirusResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
-		($Left,undef,undef) = ($1,$2,$3);
-		$VirCut = $VirusInfo[1] + length($Left)+1;
+		push @Vcuts,($VirusInfo[1] + length($VirLeft)+1);
+	}
+	if ($VirusResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
+		($Left,$Insert,undef) = ($1,$2,$3);
+		push @Vcuts,($VirusInfo[1] + length($Left) + length($Insert)+1);
 	}
 	#ddx $VirusResult;
+	$VirCut = join(';',@Vcuts);
 	return [$RefInfo[0],$RefCut,$VirusInfo[0],$VirCut,length($VirInsert)];
 }
 sub dynAln($$$) { # 废弃 {
