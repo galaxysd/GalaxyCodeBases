@@ -182,6 +182,9 @@ sub doAlign($$$) {
 	if ($HostResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
 		(undef,$Left,$Insert) = ($1,$2,$3);
 		$RefCut = $RefInfo[1] + length($Left)+1;
+	} elsif ($HostResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
+		($Left,undef,undef) = ($1,$2,$3);
+		$RefCut = $RefInfo[1] + length($Left)+1;
 	}
 	my $VirusResult = mergeAln( $retVirus->[1],$result->[0] );
 	my @VirusInfo = split /[:-]/,$retVirus->[0];
@@ -189,6 +192,9 @@ sub doAlign($$$) {
 	if ($VirusResult->[1] =~ /^(D*)([MmR]+)(I+)/) {
 		(undef,$VirLeft,$VirInsert) = ($1,$2,$3);
 		$VirCut = $VirusInfo[1] + length($VirLeft)+1;
+	} elsif ($VirusResult->[1] =~ /^(I*)([MmR]+)(D+)/) {
+		($Left,undef,undef) = ($1,$2,$3);
+		$VirCut = $VirusInfo[1] + length($Left)+1;
 	}
 	#ddx $VirusResult;
 	return [$RefInfo[0],$RefCut,$VirusInfo[0],$VirCut,length($VirInsert)];
