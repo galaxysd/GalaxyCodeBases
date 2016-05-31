@@ -407,7 +407,8 @@ sub do_analyse {
 			my $strlen = length $str;
 			$maxReadLen = $strlen if $maxReadLen < $strlen;
 			my @dat = split /\t/,$str;
-			next if $dat[1] & 256;
+			next if $dat[1] & 256;	# FLAG, s  | 0x0100 | the alignment is not primary
+			next if $dat[4] < 30;	# MAPQ
 			my $seq = $dat[9];
 			$seq = revcom($seq) if $dat[1] & 16;
 			if ($dat[1] & 64) {
