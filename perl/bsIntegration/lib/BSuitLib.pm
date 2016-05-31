@@ -424,6 +424,15 @@ sub do_analyse {
 			$ReadsbyID{$id}->[1] = '' unless defined($ReadsbyID{$id}->[1]);
 			$ReadsbyID{$id}->[2] = '' unless defined($ReadsbyID{$id}->[2]);
 			next unless defined($ReadsbyID{$id}->[0]);
+			if ($main::FORCE_UNMETH) {
+				if ($id =~ /^sf/) {
+					$ReadsbyID{$id}->[1] =~ tr/gG/aA/;
+					$ReadsbyID{$id}->[2] =~ tr/cC/tT/;
+				} else {
+					$ReadsbyID{$id}->[1] =~ tr/cC/tT/;
+					$ReadsbyID{$id}->[2] =~ tr/gG/aA/;
+				}
+			}
 			my $type = guessMethyl( $ReadsbyID{$id}->[1] . revcom($ReadsbyID{$id}->[2]) );
 			my $str = join("\n",">$id/1",$ReadsbyID{$id}->[1],">$id/2",$ReadsbyID{$id}->[2],'');
 			my $FH;
