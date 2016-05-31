@@ -6,13 +6,15 @@ use Cwd 'abs_path';
 
 use FindBin 1.51 qw($RealBin);
 use lib "$RealBin";
-use simVirusInserts;
+#use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
+use simVirusInsertsOld;	# 只输出100%甲基化的reads（四种碱基的）
 
 my $RefNratioMax = 0.02;
 
-die "Usage: $0 <Host> <Virus> <Outprefix>\n" if @ARGV <3;
+die "Usage: $0 <Host> <Virus> <Outprefix> [ReadLen=90]\n" if @ARGV <3;
 
-my ($Reff,$Virf,$outp)=@ARGV;
+my ($Reff,$Virf,$outp,$ReadLen)=@ARGV;
+$ReadLen = 90 unless defined $ReadLen;
 
 #$Reff='hs_ref_GRCh38.p2_chr18.mfa.gz';
 #$Virf='HBV.AJ507799.2.fa.gz';
@@ -43,7 +45,7 @@ my %fqFiles;
 
 my %Para = (
 	PEinsertLen => 200,
-	SeqReadLen => 90,
+	SeqReadLen => $ReadLen,
 	RefNratioMax => $RefNratioMax,
 	RefLen => $RefLen,
 	VirLen => $VirLen,
