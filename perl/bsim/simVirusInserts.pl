@@ -43,50 +43,56 @@ CONTENT
 
 my %fqFiles;
 
+my $ShortLen = int(0.5 + $ReadLen/2);
+my $LongLen = int(0.5 + $ReadLen*4/3);
+my @PEins = (100,150,200,420);
+@PEins = (150,220,350,500) if $ReadLen > 96;
+@PEins = (60,80,120,250) if $ReadLen < 77;
+
 my %Para = (
-	PEinsertLen => 200,
+	PEinsertLen => $PEins[2],
 	SeqReadLen => $ReadLen,
 	RefNratioMax => $RefNratioMax,
 	RefLen => $RefLen,
 	VirLen => $VirLen,
-	VirFrag => 2 * 90,
+	VirFrag => 2 * $ReadLen,
 	OutPrefix => $outp . '_m13FG',
 );
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 200;
-$Para{VirFrag} = 45;
+$Para{PEinsertLen} = $PEins[2];
+$Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m2D';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 420;
-$Para{VirFrag} = 120;
+$Para{PEinsertLen} = $PEins[3];
+$Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m458AE';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 200;
-$Para{VirFrag} = 120;
+$Para{PEinsertLen} = $PEins[2];
+$Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m9';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 150;
-$Para{VirFrag} = 120;
+$Para{PEinsertLen} = $PEins[1];
+$Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m6';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 150;
-$Para{VirFrag} = 45;
+$Para{PEinsertLen} = $PEins[1];
+$Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m7C';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
-$Para{PEinsertLen} = 100;
-$Para{VirFrag} = 45;
+$Para{PEinsertLen} = $PEins[0];
+$Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_mB';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
