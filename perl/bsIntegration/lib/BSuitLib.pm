@@ -460,7 +460,7 @@ sub do_analyse {
 			my $readsf = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/Reads$fro.fa";
 			next unless -s $readsf;
 			my $outp = "$main::RootPath/${main::ProjectID}_analyse/idba/$Bid/$fro";
-			system("$RealBin/bin/idba_hybrid $main::idbacmd -r $readsf --reference $reff -o $outp >/dev/null");
+			system("$RealBin/bin/idba_hybrid $main::idbacmd $idbaRead $readsf --reference $reff -o $outp >/dev/null");
 			next unless -s "$outp/scaffold.fa";
 			my ($tFH,@asm);
 			open $tFH,'<',"$outp/scaffold.fa" or die $!;
