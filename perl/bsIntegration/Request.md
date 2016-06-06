@@ -3,9 +3,47 @@
 ## References
 
  * sam/bam 文件的访问 <https://github.com/samtools/samtools>, <https://github.com/samtools/htslib>
+   * sam/bam 文件的格式 <http://samtools.github.io/hts-specs/>
  * 考虑参考序列的组装 IDBA-Hybrid from: <https://github.com/loneknightpy/idba>
- * 动态规划比对 <https://github.com/yesimon/M-Vicuna>
+ * 动态规划比对(align) <https://github.com/yesimon/M-Vicuna>
    * 修改成甲基化的版本 <https://github.com/gaosjlucky/BS-viral-inte/tree/master/src/methlyAln/src>
+
+## Input
+
+ * bam file, sorted and with index.
+ * Reference File of _both_ Human and Virus, with samtools fasta index. 
+ * Virus ChrIDs split with comma
+
+## Tasks
+
+### task1
+
+ * 从`bam`文件中提取部分 align 到人上，或者部分 align 到病毒上的reads。按出现过的 Read_ID 提取 alignment。
+ * 根据 alignment 的坐标，按照最小 overlap＝2，将相同 Read_ID 的所有 alignment 分类成簇。
+
+以下分析对每个“簇”独立处理。
+
+### task2
+
+#### BS-Seq 的 CT_GA 转换的说明
+
+ * Ref: 原始参考序列
+ * Watson/Forward: 将`Ref`中大部分的`C`换成`T`.
+ * Crick/Reverse: 将`Ref`中大部分的`G`换成`A`.
+
+alignment 后部有`YD:Z:f`/`YD:Z:r`的 tag，其中`f`表示这条记录是 align 到 Forward 链上的；`r`则对应 Reverse 链。
+
+#### 简化的OLC组装
+
+> 根据 alignment 坐标，把每个“簇”中，人和病毒的参考序列被覆盖的区域挑出，两侧延伸 100 bp。
+
+ * 根据 alignment 坐标，把每个“簇”中，覆盖了人、病毒的 reads 分别 layout（摞） 到一起，统计得到 consensus。记录两条 consensus 与参考序列不同，且不符合 CT_GA 转换的点。
+ * 把人和病毒的参考序列被覆盖的区域挑出，两侧延伸 100 bp。按照 CT_GA 转换与上一步人与病毒的两个 consensus 结果作align，得到未知区域的来源。
+ * 两条 consensus 做align合并。并确定断点。
+
+
+
+---
 
 ## Input
 
