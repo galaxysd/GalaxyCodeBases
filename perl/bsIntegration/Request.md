@@ -4,6 +4,7 @@
 
  * sam/bam 文件的访问 <https://github.com/samtools/samtools>, <https://github.com/samtools/htslib>
    * sam/bam 文件的格式 <http://samtools.github.io/hts-specs/>
+   * 测试用的 bam 文件 <https://github.com/gaosjlucky/BS-viral-inte/tree/master/example18/simVir4_aln>
  * 考虑参考序列的组装 IDBA-Hybrid from: <https://github.com/loneknightpy/idba>
  * 动态规划比对(align) <https://github.com/yesimon/M-Vicuna>
    * 修改成甲基化的版本 <https://github.com/gaosjlucky/BS-viral-inte/tree/master/src/methlyAln/src>
