@@ -36,8 +36,6 @@ alignment 后部有`YD:Z:f`/`YD:Z:r`的 tag，其中`f`表示这条记录是 ali
 
 #### 简化的OLC组装
 
-> 根据 alignment 坐标，把每个“簇”中，人和病毒的参考序列被覆盖的区域挑出，两侧延伸 100 bp。
-
  * 根据 alignment 坐标，把每个“簇”中，覆盖了人、病毒的 reads 分别 layout（摞） 到一起，统计得到 consensus。记录两条 consensus 与参考序列不同，且不符合 CT_GA 转换的点。
  * 把人和病毒的参考序列被覆盖的区域挑出，两侧延伸 100 bp。按照 CT_GA 转换与上一步人与病毒的两个 consensus 结果作align，得到未知区域的来源。
  * 两条 consensus 做align合并。并确定断点。
