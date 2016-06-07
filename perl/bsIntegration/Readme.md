@@ -39,6 +39,30 @@ Your `bsIntegration/bin/` should be like this:
 ./bsuit analyse prj.ini
 ```
 
+# Reference Files
+
+ * Human: <ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz>
+ * HBV: [gi|59585|emb|X04615.1| Hepatitis B virus genome, subtype ayr](http://www.ncbi.nlm.nih.gov/nuccore/X04615.1?report=GenBank)
+
+## GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
+
+A gzipped file that contains FASTA format sequences for the [following](ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/README_analysis_sets.txt):
+
+1. chromosomes from the GRCh38 Primary Assembly unit.  
+   Note: the two PAR regions on chrY have been hard-masked with Ns.   
+   The chromosome Y sequence provided therefore has the same 
+   coordinates as the GenBank sequence but it is not identical to the
+   GenBank sequence. Similarly, duplicate copies of centromeric arrays
+   and WGS on chromosomes 5, 14, 19, 21 & 22 have been hard-masked 
+   with Ns (locations of the unmasked copies are given below). 
+2. mitochondrial genome from the GRCh38 non-nuclear assembly unit.
+3. unlocalized scaffolds from the GRCh38 Primary Assembly unit.
+4. unplaced scaffolds from the GRCh38 Primary Assembly unit.
+5. Epstein-Barr virus (EBV) sequence  
+   Note: The EBV sequence is not part of the genome assembly but is 
+   included in the analysis set as a sink for alignment of reads that
+   are often present in sequencing samples.
+
 # Format of `config_file`
 
 ## An example
