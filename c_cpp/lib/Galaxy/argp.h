@@ -9,6 +9,11 @@
  * version 2.1 of the License, or (at your option) any later version.
  *
  * <http://pjd-notes.blogspot.jp/2011/06/gnu-argp-for-osx.html>
+GNU Argp for OSX
+
+After using optparse in Python, I've become spoiled and never want to go back to getopt/getopt_long for C code. The only package I've found for C that handles both options and help strings in a reasonable fashion seems to be GNU Argp, but it's non-standard and works on my Linux machines but not my Mac. A quick try at pulling Argp from the glibc source and porting to the Mac was leading to more work than I wanted, so the solution was this quick-and-dirty replacement.
+
+And yes, it commits the cardinal sin of including code in a header file, but it works fine if you're only including it from main.c, and keeps your source compatible between systems. (just put it in the local directory, add "-I ." to your compile flags, and you're done.)
  */
 #ifndef __ARGP_H__
 
