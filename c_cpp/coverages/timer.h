@@ -21,11 +21,11 @@ struct rusage __g_resource_usage;
         timersub(&__g_resource_usage_tmp,&__g_resource_usage.ru_stime,&__g_resource_usage_other_time);\
     } while (0)
 
-#define G_TIMER_PRINT \
+#define __G_TIMER_PRINT(__sustype__) \
     fprintf(stderr,"\n--------------------------------------------------------------------------------\n"\
         "Resource Usage Measures:\n"\
-        "   User: %ld.%06ld(s), System: %ld.%06ld(s). Real: %ld.%06ld(s).\n"\
-        "   Sleep: %ld.%06ld(s). Block I/O times: %ld/%ld. MaxRSS: %ld kiB.\n"\
+        "   User: %ld."__sustype__"(s), System: %ld."__sustype__"(s). Real: %ld."__sustype__"(s).\n"\
+        "   Sleep: %ld."__sustype__"(s). Block I/O times: %ld/%ld. MaxRSS: %ld kiB.\n"\
         "   Wait(s): %ld(nvcsw) + %ld(nivcsw). "\
         "Page Fault(s): %ld(minflt) + %ld(majflt).\n",\
         __g_resource_usage.ru_utime.tv_sec, __g_resource_usage.ru_utime.tv_usec,\
@@ -36,5 +36,13 @@ struct rusage __g_resource_usage;
         __g_resource_usage.ru_maxrss,\
         __g_resource_usage.ru_nvcsw, __g_resource_usage.ru_nivcsw,\
         __g_resource_usage.ru_minflt, __g_resource_usage.ru_majflt)
+
+#ifdef __linux__
+	#define G_TIMER_PRINT __G_TIMER_PRINT("%06ld")
+#elif __APPLE__
+	#define G_TIMER_PRINT __G_TIMER_PRINT("%06d")
+#else
+#   error "Unknown compiler !"
+#endif
 
 #endif /* timer.h */
