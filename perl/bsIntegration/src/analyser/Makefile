@@ -1,7 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -pipe -march=core2 -mtune=generic
+CFLAGS = -std=gnu11 -Wall -pipe -march=core2 -mtune=generic
 LDFLAGS = -lz -lm -lhts -lbam
 OPT = -O3
+
+exefiles = bsanalyser
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
@@ -16,17 +18,16 @@ cobjects =
 c99objects = 
 mainobjects = ./objects/main.o
 objects = $(cobjects) $(c99objects)
-exefiles = constator
 
 all: $(objects) $(exefiles)
 
-constator: $(objects) $(mainobjects)
-	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o bsanalyser $(mainobjects) $(objects)
+$(exefiles): $(objects) $(mainobjects)
+	$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o $(exefiles) $(mainobjects) $(objects)
 
-$(cobjects): $(OBJDIR)%.o: %.c tmpdir
+$(cobjects) $(mainobjects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) $(MAKEARG) -c $< -o $@
 
-$(c99objects) $(mainobjects): $(OBJDIR)%.o: %.c tmpdir
+$(c99objects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) $(MAKEARG) -c $< -o $@
 
 debug: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
