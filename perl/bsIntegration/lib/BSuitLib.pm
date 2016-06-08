@@ -144,6 +144,32 @@ sub do_grep($) {
 	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
 	File::Path::make_path("$main::RootPath/${main::ProjectID}_grep",{verbose => 0,mode => 0755});
+	my $WorkINI = Galaxy::IO::INI->new();
+	$WorkINI->{'Output'} = $main::Config->{'Output'};
+	$WorkINI->{'Ref'} = $main::RefConfig->{$main::RefFilesSHA};
+	$WorkINI->{'InsertSizes'} = $main::Config->{'InsertSizes'};
+	my %BamFiles;
+	for my $k (keys %tID) {
+		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/$k.bam";
+		$BamFiles{$k} = $myBamf;
+	}
+	$WorkINI->{'BamFiles'} = \%BamFiles;
+	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
+	my $cli = "$RealBin/bin/bsanalyser grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
+	print "[$cli]\n";
+	#system("$cli");
+}
+
+sub do_grep0($) {
+	my $cfgfile = $_[0];
+	my (%tID,%tFH);
+	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
+	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
+	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_grep",{verbose => 0,mode => 0755});
 	my $GrepResult = Galaxy::IO::INI->new();
 	my %ReadsIndex;
 	for my $k (keys %tID) {
