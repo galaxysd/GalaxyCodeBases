@@ -14,7 +14,7 @@ OBJDIR = ./objects/
 
 MAKEARG = $(CFLAGS) $(OPT)
 
-cobjects =
+cobjects = ./objects/ini.o
 c99objects = 
 mainobjects = ./objects/main.o
 objects = $(cobjects) $(c99objects)

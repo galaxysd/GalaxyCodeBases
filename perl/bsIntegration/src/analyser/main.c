@@ -8,6 +8,7 @@
 #include <math.h>
 #include <bam/sam.h>
 #include "uthash/utarray.h"
+#include "ini.h"
 #include "getch.h"
 #include "timer.h"
 
