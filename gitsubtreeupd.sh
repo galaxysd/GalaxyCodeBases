@@ -15,7 +15,6 @@ git subtree pull --prefix=etc/agfw/genpac https://github.com/JinnLynn/genpac.git
 git subtree pull --squash --prefix=etc/agfw/autoproxy-gfwlist git://github.com/calfzhou/autoproxy-gfwlist.git master
 git subtree pull --prefix=etc/agfw/Pcap_DNSProxy git://github.com/chengr28/Pcap_DNSProxy.git master
 
-git subtree pull --prefix=c_cpp/lib/klib git://github.com/attractivechaos/klib.git master
 git subtree pull --prefix=tools/bioawk git://github.com/lh3/bioawk.git master
 git subtree pull --prefix=tools/lh3misc https://github.com/lh3/misc.git master
 
