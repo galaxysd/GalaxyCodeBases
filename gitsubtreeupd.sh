@@ -8,6 +8,7 @@ git subtree pull --prefix=c_cpp/lib/cstring git://github.com/cloudwu/cstring.git
 git subtree pull --prefix=c_cpp/lib/htslib git://github.com/samtools/htslib.git master
 git subtree pull --prefix=c_cpp/lib/uthash https://github.com/troydhanson/uthash.git master
 git subtree pull --prefix=c_cpp/lib/inih https://github.com/benhoyt/inih.git master
+git subtree pull --prefix=c_cpp/lib/klib https://github.com/attractivechaos/klib.git master
 
 # 已被和谐 git subtree pull --prefix=etc/gfwlist2pac git://github.com/clowwindy/gfwlist2pac.git master
 git subtree pull --prefix=etc/agfw/genpac https://github.com/JinnLynn/genpac.git master

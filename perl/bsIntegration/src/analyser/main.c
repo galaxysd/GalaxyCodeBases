@@ -7,7 +7,8 @@
 #include <argp.h>
 #include <math.h>
 //#include <bam/sam.h>
-#include "uthash/utarray.h"
+#include "uthash/uthash.h"
+//#include "uthash/utarray.h"
 #include "ini.h"
 #include "getch.h"
 #include "timer.h"
@@ -54,7 +55,7 @@ struct arguments {
 	uint_fast8_t isSAM, interactive;
 	uint16_t overlap;
 	char *deplstStr;
-	UT_array *deplst;
+//	UT_array *deplst;
 	char **args;
 	char const* programme;
 	char const* infile;
@@ -99,14 +100,14 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 			break;
 
 		case ARGP_KEY_END:
+			if (arguments->programme == NULL)
+				errx(2,"-p must be specified as either \"grep\" or \"analyse\" !");
 			if (state->arg_num != 1) {
 				errx(2,"There can be only one input file, found [%d] !",state->arg_num);
 				//argp_usage (state);
 				argp_state_help (state,stderr,ARGP_HELP_STD_HELP);
-		   } else
+			} else
 				arguments->infile = arguments->args[0];
-			if (arguments->programme == NULL)
-				errx(2,"-p must be specified as either \"grep\" or \"analyse\" !");
 			break;
 
 		default:
@@ -118,9 +119,19 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+static int dumper(void* user, const char* section, const char* name,
+                  const char* value)
+{
+    static char prev_section[50] = "";
 
-
-
+    if (strcmp(section, prev_section)) {
+        printf("%s[%s]\n", (prev_section[0] ? "\n" : ""), section);
+        strncpy(prev_section, section, sizeof(prev_section));
+        prev_section[sizeof(prev_section) - 1] = '\0';
+    }
+    printf("%s = %s\n", name, value);
+    return 1;
+}
 
 int main (int argc, char **argv) {
 	struct arguments arguments;
@@ -140,8 +151,18 @@ int main (int argc, char **argv) {
 	}
 
 	G_TIMER_START;
-
 	free(arguments.args);
+
+	int error;
+	error = ini_parse(arguments.infile, dumper, NULL);
+	if (error < 0) {
+	    printf("Can't read '%s'!\n", arguments.infile);
+	    return 2;
+	}
+	else if (error) {
+	    printf("Bad config file (first error on line %d)!\n", error);
+	    return 3;
+	}
 
 	G_TIMER_END;
 	G_TIMER_PRINT;
