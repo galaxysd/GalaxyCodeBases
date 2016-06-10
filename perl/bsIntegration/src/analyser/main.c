@@ -3,15 +3,33 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <err.h>
 #include <argp.h>
 #include <math.h>
 //#include <bam/sam.h>
-#include "uthash/uthash.h"
+#include "klib/khash.h"
+#include "klib/kvec.h"
 //#include "uthash/utarray.h"
 #include "ini.h"
 #include "getch.h"
 #include "timer.h"
+
+typedef struct {
+	int8_t isHum;
+	uint32_t ChrLen;
+} __attribute__ ((__packed__)) ChrInfo_t;
+
+KHASH_INIT(chrNFO, kh_cstr_t, ChrInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
+khash_t(chrNFO) *chrNFOp;	// kh_##name##_t -> kh_chrNFO_t
+//kh_chrNFO_t *chrNFOp = kh_init(chrNFO);
+/*
+error: initializer element is not a compile-time constant
+全局变量是保存在静态存储区的，因此在编译的时候只能用常量进行初始化，而不能用变量进行初始化。需要在执行时确定（如：在main函数里赋值）
+g++编译器会先把全局变量保存到.bss段中，而且默认值为0，但是会在main函数之前添加一条赋值语句，也就是相当于局部变量进行处理了。
+ */
+kvec_t(char*) aRefChrIDs, aVirusChrIDs;
+const char * RefileName;
 
 const char *argp_program_version =
 	"bsuit Analyser 0.1 @"__TIME__ "," __DATE__;
@@ -28,13 +46,6 @@ static char doc[] =
 	" (Test Version)"
 #endif
 ;
-
-int UT_array_intsort(const void *a,const void*b) {
-	int _a = *(int*)a;
-	int _b = *(int*)b;
-	return _a - _b;
-}
-//struct ChrData_hash_struct *ChrData = NULL;	/* important! initialize to NULL */
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "<Grep INI file>";
@@ -75,7 +86,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 			if (tmpArgValue>=1 && tmpArgValue < UINT16_MAX) {   // k=l+1, so not == UINT16_MAX
 			   arguments->overlap = tmpArgValue;
 			} else {
-			   errx(2,"-%c \"%s\"=%i is not a integer of [1,%u] !",key,arg,tmpArgValue,UINT16_MAX-1);
+			   errx(2,"[x]-%c \"%s\"=%i is not a integer of [1,%u] !",key,arg,tmpArgValue,UINT16_MAX-1);
 			}
 			break;
 		case 'p':
@@ -84,7 +95,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 			} else if ( arg[0] == 'a' || arg[0] == 'A' ) {
 				arguments->programme = "analyse";
 			} else {
-				errx(2,"-%c \"%s\" must be either \"grep\" or \"analyse\" !",key,arg);
+				errx(2,"[x]-%c \"%s\" must be either \"grep\" or \"analyse\" !",key,arg);
 			}
 			//arguments->programme = arg;
 			break;
@@ -101,9 +112,9 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 
 		case ARGP_KEY_END:
 			if (arguments->programme == NULL)
-				errx(2,"-p must be specified as either \"grep\" or \"analyse\" !");
+				errx(2,"[x]-p must be specified as either \"grep\" or \"analyse\" !");
 			if (state->arg_num != 1) {
-				errx(2,"There can be only one input file, found [%d] !",state->arg_num);
+				errx(2,"[x]There can be only one input file, found [%d] !",state->arg_num);
 				//argp_usage (state);
 				argp_state_help (state,stderr,ARGP_HELP_STD_HELP);
 			} else
@@ -133,6 +144,55 @@ static int dumper(void* user, const char* section, const char* name,
     return 1;
 }
 
+static int ReadGrepINI(void* user, const char* section, const char* name, const char* value) {
+	khash_t(chrNFO) *pchrnfo = user;
+	khiter_t ki;
+	ChrInfo_t tmp; tmp.isHum = 9;	// We'll check whether T/F cover all items later, baka ⑨.
+	int absent;
+	char *word, *strtok_lasts;
+	char *sep = ",;";
+	//#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+	if (strcmp(section, "Ref") == 0) {
+		if (strcmp(name, "RefChrIDs") == 0) {
+			for (word = strtok_r( (char*)value, sep, &strtok_lasts);
+				word;	// We need to alter this 'const char *' of `value`.
+				word = strtok_r(NULL, sep, &strtok_lasts))
+			{	//printf("-[%s]-",word);
+				kv_push(char*, aRefChrIDs, strdup(word));
+			}
+			/*
+			putchar('\n');
+			for (size_t i=0; i<kv_size(aRefChrIDs);++i) {
+				printf("=[%s]=",kv_A(aRefChrIDs, i));
+			}
+			putchar('\n');
+			//printf("<%s>\n",value);
+			*/
+		} else if (strcmp(name, "VirusChrIDs") == 0) {
+			for (word = strtok_r( (char*)value, sep, &strtok_lasts);
+				word;	// We need to alter this 'const char *' of `value`.
+				word = strtok_r(NULL, sep, &strtok_lasts))
+				kv_push(char*, aVirusChrIDs, strdup(word));
+		} else if (strcmp(name, "Refilename") == 0) {
+			RefileName = strdup(value);
+		} else {
+			tmp.ChrLen = atol(value);
+			ki = kh_put(chrNFO, pchrnfo, name, &absent);
+ 			if (absent) kh_key(pchrnfo, ki) = strdup(name);
+			kh_value(pchrnfo, ki) = tmp;
+	   	}
+	} else if (strcmp(section, "BamFiles") == 0) {
+		;
+	} else if (strcmp(section, "InsertSizes") == 0) {
+		;
+	} else if (strcmp(section, "Output") == 0) {
+		;
+	} else {
+		return 0;
+	}
+	return 1;
+}
+
 int main (int argc, char **argv) {
 	struct arguments arguments;
 	arguments.args=calloc(sizeof(size_t),argc);
@@ -153,17 +213,67 @@ int main (int argc, char **argv) {
 	G_TIMER_START;
 	free(arguments.args);
 
+	chrNFOp = kh_init(chrNFO);
+	kv_init(aRefChrIDs);
+	kv_init(aVirusChrIDs);
 	int error;
 	error = ini_parse(arguments.infile, dumper, NULL);
+	error = ini_parse(arguments.infile, ReadGrepINI, chrNFOp);
 	if (error < 0) {
-	    printf("Can't read '%s'!\n", arguments.infile);
+	    printf("[x]Can't read '%s'!\n", arguments.infile);
 	    return 2;
 	}
 	else if (error) {
-	    printf("Bad config file (first error on line %d)!\n", error);
+	    printf("[x]Bad config file (first error on line %d)!\n", error);
 	    return 3;
 	}
-
+	ChrInfo_t * tmp;
+	kh_cstr_t ChrID;
+	khiter_t ki;
+	for (size_t i=0; i<kv_size(aRefChrIDs);++i) {
+		ChrID = kv_A(aRefChrIDs, i);
+		ki = kh_get(chrNFO, chrNFOp, ChrID);
+		if (ki == kh_end(chrNFOp)) {
+			errx(3,"Cannot find Human ChrLen for [%s] !",ChrID);
+		}
+		tmp = &kh_value(chrNFOp, ki);
+		tmp->isHum = true;
+		free((char*)ChrID);
+	}
+	for (size_t i=0; i<kv_size(aVirusChrIDs);++i) {
+		ChrID = kv_A(aVirusChrIDs, i);
+		ki = kh_get(chrNFO, chrNFOp, ChrID);
+		if (ki == kh_end(chrNFOp)) {
+			errx(3,"[x]Cannot find Virus ChrLen for [%s] !",ChrID);
+		}
+		tmp = &kh_value(chrNFOp, ki);
+		tmp->isHum = false;
+		free((char*)ChrID);
+	}
+	kv_destroy(aRefChrIDs);
+	kv_destroy(aVirusChrIDs);
+	for (ki = kh_begin(chrNFOp); ki != kh_end(chrNFOp); ++ki)
+		if (kh_exist(chrNFOp, ki)) {
+			tmp = &kh_value(chrNFOp, ki);
+			ChrID = kh_key(chrNFOp, ki);
+			if (tmp->isHum == 9) {
+				warnx("[!]Extra ChrLen exists [%s] !",ChrID);
+			}
+		}
+	printf("------------\n");
+	;
+	for (ki = kh_begin(chrNFOp); ki != kh_end(chrNFOp); ++ki) {
+		if (kh_exist(chrNFOp, ki)) {
+			ChrID = kh_key(chrNFOp, ki);
+#ifdef DEBUGa
+			tmp = &kh_value(chrNFOp, ki);
+			printf("%u [%s]=%d %u\n",ki,ChrID,tmp->ChrLen,tmp->isHum);
+#endif
+			free((char*)ChrID);
+		}
+	}
+	kh_destroy(chrNFO, chrNFOp);
+	free((char*)RefileName);	// not const anymore
 	G_TIMER_END;
 	G_TIMER_PRINT;
 

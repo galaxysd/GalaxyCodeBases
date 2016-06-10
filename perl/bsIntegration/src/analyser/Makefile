@@ -1,4 +1,4 @@
-CC = gcc
+CC ?= gcc
 CFLAGS = -std=gnu11 -Wall -pipe -march=core2 -mtune=generic
 LDFLAGS = -lz -lm -lhts -lbam
 OPT = -O3
@@ -37,8 +37,12 @@ tmpdir:
 	-mkdir ./objects
 
 test: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
-test: constator
-	valgrind --leak-check=yes ./bsanalyser t.bam
+test: $(exefiles)
+	valgrind --leak-check=yes ./$(exefiles) -p g ToGrep.ini
+
+pp:
+	$(CC) -E main.c | indent > mm.c
+	-mate mm.c 
 
 .PHONY : clean
 clean:
