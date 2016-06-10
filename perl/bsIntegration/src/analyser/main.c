@@ -19,9 +19,16 @@ typedef struct {
 	int8_t isHum;
 	uint32_t ChrLen;
 } __attribute__ ((__packed__)) ChrInfo_t;
+typedef struct {
+	const char * Filename;
+	uint16_t insertSize;
+	uint16_t SD;
+} __attribute__ ((__packed__)) BamInfo_t;
 
 KHASH_INIT(chrNFO, kh_cstr_t, ChrInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
+KHASH_INIT(bamNFO, kh_cstr_t, BamInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
 khash_t(chrNFO) *chrNFOp;	// kh_##name##_t -> kh_chrNFO_t
+khash_t(bamNFO) *bamNFOp;
 //kh_chrNFO_t *chrNFOp = kh_init(chrNFO);
 /*
 error: initializer element is not a compile-time constant
@@ -29,7 +36,12 @@ error: initializer element is not a compile-time constant
 g++编译器会先把全局变量保存到.bss段中，而且默认值为0，但是会在main函数之前添加一条赋值语句，也就是相当于局部变量进行处理了。
  */
 kvec_t(char*) aRefChrIDs, aVirusChrIDs;
-const char * RefileName;
+typedef struct {
+	const char * ProjectID;
+	const char * WorkDir;
+	const char * RefileName;
+} __attribute__ ((__packed__)) Config_t;
+Config_t myConfig;
 
 const char *argp_program_version =
 	"bsuit Analyser 0.1 @"__TIME__ "," __DATE__;
@@ -145,7 +157,6 @@ static int dumper(void* user, const char* section, const char* name,
 }
 
 static int ReadGrepINI(void* user, const char* section, const char* name, const char* value) {
-	khash_t(chrNFO) *pchrnfo = user;
 	khiter_t ki;
 	ChrInfo_t tmp; tmp.isHum = 9;	// We'll check whether T/F cover all items later, baka ⑨.
 	int absent;
@@ -174,12 +185,12 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 				word = strtok_r(NULL, sep, &strtok_lasts))
 				kv_push(char*, aVirusChrIDs, strdup(word));
 		} else if (strcmp(name, "Refilename") == 0) {
-			RefileName = strdup(value);
+			myConfig.RefileName = strdup(value);
 		} else {
 			tmp.ChrLen = atol(value);
-			ki = kh_put(chrNFO, pchrnfo, name, &absent);
- 			if (absent) kh_key(pchrnfo, ki) = strdup(name);
-			kh_value(pchrnfo, ki) = tmp;
+			ki = kh_put(chrNFO, chrNFOp, name, &absent);
+ 			if (absent) kh_key(chrNFOp, ki) = strdup(name);
+			kh_value(chrNFOp, ki) = tmp;
 	   	}
 	} else if (strcmp(section, "BamFiles") == 0) {
 		;
@@ -214,11 +225,12 @@ int main (int argc, char **argv) {
 	free(arguments.args);
 
 	chrNFOp = kh_init(chrNFO);
+	bamNFOp = kh_init(bamNFO);
 	kv_init(aRefChrIDs);
 	kv_init(aVirusChrIDs);
 	int error;
 	error = ini_parse(arguments.infile, dumper, NULL);
-	error = ini_parse(arguments.infile, ReadGrepINI, chrNFOp);
+	error = ini_parse(arguments.infile, ReadGrepINI, NULL);
 	if (error < 0) {
 	    printf("[x]Can't read '%s'!\n", arguments.infile);
 	    return 2;
@@ -273,7 +285,8 @@ int main (int argc, char **argv) {
 		}
 	}
 	kh_destroy(chrNFO, chrNFOp);
-	free((char*)RefileName);	// not const anymore
+	kh_destroy(bamNFO, bamNFOp);
+	free((char*)myConfig.RefileName);	// not const anymore
 	G_TIMER_END;
 	G_TIMER_PRINT;
 
