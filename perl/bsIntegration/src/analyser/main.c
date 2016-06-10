@@ -20,9 +20,9 @@ typedef struct {
 	uint32_t ChrLen;
 } __attribute__ ((__packed__)) ChrInfo_t;
 typedef struct {
-	const char * fileName;
 	uint16_t insertSize;
 	uint16_t SD;
+	const char * fileName;
 } __attribute__ ((__packed__)) BamInfo_t;
 
 KHASH_INIT(chrNFO, kh_cstr_t, ChrInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
@@ -204,7 +204,25 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 			pbam->fileName = strdup(value);
 		}
 	} else if (strcmp(section, "InsertSizes") == 0) {
-		;
+		char * id = strdup(name);
+		uint16_t *pt;
+		size_t offset = 0;
+		if (strspn(".SD",name)==3) {
+			size_t idLen = strlen(name);
+			id[idLen-3] = '\0';
+			offset = 1;
+		}
+		ki = kh_put(bamNFO, bamNFOp, id, &absent);
+		if (absent) {
+			kh_key(bamNFOp, ki) = id;
+			pt = (void*) &tbam;
+			*(pt+offset) = atol(value);
+			kh_value(bamNFOp, ki) = tbam;
+		} else {
+			free(id);
+			pt = (void*) &kh_value(bamNFOp, ki);
+			*(pt+offset) = atol(value);
+		}
 	} else if (strcmp(section, "Output") == 0) {
 		;
 	} else {
