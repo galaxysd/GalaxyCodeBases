@@ -20,7 +20,7 @@ typedef struct {
 	uint32_t ChrLen;
 } __attribute__ ((__packed__)) ChrInfo_t;
 typedef struct {
-	const char * Filename;
+	const char * fileName;
 	uint16_t insertSize;
 	uint16_t SD;
 } __attribute__ ((__packed__)) BamInfo_t;
@@ -159,6 +159,7 @@ static int dumper(void* user, const char* section, const char* name,
 static int ReadGrepINI(void* user, const char* section, const char* name, const char* value) {
 	khiter_t ki;
 	ChrInfo_t tmp; tmp.isHum = 9;	// We'll check whether T/F cover all items later, baka ⑨.
+	BamInfo_t tbam, *pbam;
 	int absent;
 	char *word, *strtok_lasts;
 	char *sep = ",;";
@@ -193,7 +194,15 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 			kh_value(chrNFOp, ki) = tmp;
 	   	}
 	} else if (strcmp(section, "BamFiles") == 0) {
-		;
+		ki = kh_put(bamNFO, bamNFOp, name, &absent);
+		if (absent) {
+			kh_key(bamNFOp, ki) = strdup(name);
+			tbam.fileName = strdup(value);
+			kh_value(bamNFOp, ki) = tbam;
+		} else {
+			pbam = &kh_value(bamNFOp, ki);
+			pbam->fileName = strdup(value);
+		}
 	} else if (strcmp(section, "InsertSizes") == 0) {
 		;
 	} else if (strcmp(section, "Output") == 0) {
@@ -240,7 +249,8 @@ int main (int argc, char **argv) {
 	    return 3;
 	}
 	ChrInfo_t * tmp;
-	kh_cstr_t ChrID;
+	BamInfo_t * pbam;
+	kh_cstr_t ChrID, BamID;
 	khiter_t ki;
 	for (size_t i=0; i<kv_size(aRefChrIDs);++i) {
 		ChrID = kv_A(aRefChrIDs, i);
@@ -282,6 +292,17 @@ int main (int argc, char **argv) {
 			printf("%u [%s]=%d %u\n",ki,ChrID,tmp->ChrLen,tmp->isHum);
 #endif
 			free((char*)ChrID);
+		}
+	}
+	for (ki = kh_begin(bamNFOp); ki != kh_end(bamNFOp); ++ki) {
+		if (kh_exist(bamNFOp, ki)) {
+			BamID = kh_key(bamNFOp, ki);
+#ifdef DEBUGa
+			pbam = &kh_value(bamNFOp, ki);
+			printf("%u [%s]=%s\t%u %u\n",ki,BamID,pbam->fileName,pbam->insertSize,pbam->SD);
+#endif
+			free((char*)BamID);
+			free((char*)pbam->fileName);
 		}
 	}
 	kh_destroy(chrNFO, chrNFOp);
