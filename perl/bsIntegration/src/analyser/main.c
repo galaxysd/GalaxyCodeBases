@@ -2,6 +2,7 @@
 #include <stdlib.h> //EXIT_FAILURE
 #include <stdio.h>
 #include <stdint.h>
+#include <stddef.h> //offsetof
 #include <string.h>
 #include <stdbool.h>
 #include <err.h>
@@ -205,23 +206,25 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 		}
 	} else if (strcmp(section, "InsertSizes") == 0) {
 		char * id = strdup(name);
-		uint16_t *pt;
-		size_t offset = 0;
+		BamInfo_t *pt;
+		size_t offset;
 		if (strspn(".SD",name)==3) {
 			size_t idLen = strlen(name);
 			id[idLen-3] = '\0';
-			offset = 1;
+			offset = offsetof(BamInfo_t, SD);
+		} else {	// http://stackoverflow.com/questions/37757902/in-c-how-to-point-to-different-members-with-offset-at-run-time
+			offset = offsetof(BamInfo_t, insertSize);
 		}
 		ki = kh_put(bamNFO, bamNFOp, id, &absent);
 		if (absent) {
 			kh_key(bamNFOp, ki) = id;
-			pt = (void*) &tbam;
-			*(pt+offset) = atol(value);
+			pt = &tbam;
+			*(uint16_t*)((void*)pt+offset) = atol(value);
 			kh_value(bamNFOp, ki) = tbam;
 		} else {
 			free(id);
-			pt = (void*) &kh_value(bamNFOp, ki);
-			*(pt+offset) = atol(value);
+			pt = &kh_value(bamNFOp, ki);
+			*(uint16_t*)((void*)pt+offset) = atol(value);
 		}
 	} else if (strcmp(section, "Output") == 0) {
 		if (strcmp(name, "ProjectID") == 0)
