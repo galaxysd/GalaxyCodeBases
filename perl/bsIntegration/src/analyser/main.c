@@ -224,7 +224,10 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 			*(pt+offset) = atol(value);
 		}
 	} else if (strcmp(section, "Output") == 0) {
-		;
+		if (strcmp(name, "ProjectID") == 0)
+			myConfig.ProjectID = strdup(value);
+		else if (strcmp(name, "WorkDir") == 0)
+			myConfig.WorkDir = strdup(value);
 	} else {
 		return 0;
 	}
@@ -302,6 +305,9 @@ int main (int argc, char **argv) {
 		}
 	printf("------------\n");
 	;
+#ifdef DEBUGa
+	printf("[!]ProjectID:[%s], WorkDir:[%s]\nRefileName:[%s]\n",myConfig.ProjectID,myConfig.WorkDir,myConfig.RefileName);
+#endif
 	for (ki = kh_begin(chrNFOp); ki != kh_end(chrNFOp); ++ki) {
 		if (kh_exist(chrNFOp, ki)) {
 			ChrID = kh_key(chrNFOp, ki);
@@ -325,6 +331,8 @@ int main (int argc, char **argv) {
 	}
 	kh_destroy(chrNFO, chrNFOp);
 	kh_destroy(bamNFO, bamNFOp);
+	free((char*)myConfig.ProjectID);
+	free((char*)myConfig.WorkDir);
 	free((char*)myConfig.RefileName);	// not const anymore
 	G_TIMER_END;
 	G_TIMER_PRINT;
