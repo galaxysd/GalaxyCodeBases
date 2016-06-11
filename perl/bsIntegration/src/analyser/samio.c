@@ -1,6 +1,10 @@
 #include "functions.h"
 #include <htslib/sam.h>
 
+#ifdef DEBUGa
+#include "getch.h"
+#endif
+
 int do_grep() {
 #ifdef DEBUGa
 	printf("[!]do_grep\n");
@@ -50,6 +54,23 @@ int do_grep() {
 				return 1;
 			}
 			while ((r = sam_read1(in, h, b)) >= 0) {
+				const bam1_core_t *c = &b->core;
+				if (c->n_cigar) {
+					uint32_t *cigar = bam_get_cigar(b);
+					for (int i = 0; i < c->n_cigar; ++i) {
+						if (bam_cigar_opchr(cigar[i])=='S') {	// soft clipping
+							if ( bam_cigar_oplen(cigar[i]) >= myConfig.minGrepSlen ) {
+								if (c->mtid < 0) {
+									;
+								} else {
+									char *nrname = h->target_name[c->mtid];
+									int32_t mpos = c->mpos;	// from 0
+								}
+							}
+						}
+					}
+				}
+				char *qname = bam_get_qname(b);
 				if (sam_write1(out, h, b) < 0) {
 					fprintf(stderr, "[x]Error writing output.\n");
 					exit_code = 1;
@@ -61,6 +82,10 @@ int do_grep() {
 				fprintf(stderr, "Error closing output.\n");
 				exit_code = 1;
 			}
+#ifdef DEBUGa
+			fflush(NULL);
+			pressAnyKey();
+#endif
 			bam_destroy1(b);
 			bam_hdr_destroy(h);
 			r = sam_close(in);

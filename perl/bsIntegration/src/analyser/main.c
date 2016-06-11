@@ -214,6 +214,7 @@ int main (int argc, char **argv) {
 	arguments.isSAM = 0;
 	arguments.interactive = 0;
 	arguments.overlap = 25;
+	myConfig.minGrepSlen = 5;
 
 	// Parse our arguments; every option seen by parse_opt will be reflected in arguments.
 	argp_parse (&argp, argc, argv, 0, 0, &arguments);

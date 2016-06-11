@@ -8,7 +8,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-inline int mygetch ( void ) {
+static inline int mygetch ( void ) {
   int ch;
   struct termios oldt, newt;
 
@@ -22,7 +22,7 @@ inline int mygetch ( void ) {
   return ch;
 }
 
-int pressAnyKey (void) {
+static inline int pressAnyKey (void) {
   if ( !isatty(STDIN_FILENO) )
     return -2;	// # define EOF (-1) in <stdio.h>
 // other errno in /usr/include/asm-generic/errno-base.h

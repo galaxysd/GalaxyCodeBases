@@ -13,6 +13,7 @@ typedef struct {
 	const char * ProjectID;
 	const char * WorkDir;
 	const char * RefileName;
+	uint16_t minGrepSlen;
 } __attribute__ ((__packed__)) Config_t;
 
 Config_t myConfig;
