@@ -1,13 +1,6 @@
 #define _GNU_SOURCE
-#include <stdlib.h> //EXIT_FAILURE
-#include <stdio.h>
-#include <stdint.h>
-#include <stddef.h> //offsetof
-#include <string.h>
-#include <stdbool.h>
 #include <err.h>
 #include <argp.h>
-#include <math.h>
 //#include <bam/sam.h>
 #include "klib/khash.h"
 #include "klib/kvec.h"
@@ -15,34 +8,9 @@
 #include "ini.h"
 #include "getch.h"
 #include "timer.h"
+#include "functions.h"
 
-typedef struct {
-	int8_t isHum;
-	uint32_t ChrLen;
-} __attribute__ ((__packed__)) ChrInfo_t;
-typedef struct {
-	uint16_t insertSize;
-	uint16_t SD;
-	const char * fileName;
-} __attribute__ ((__packed__)) BamInfo_t;
-
-KHASH_INIT(chrNFO, kh_cstr_t, ChrInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
-KHASH_INIT(bamNFO, kh_cstr_t, BamInfo_t, 1, kh_str_hash_func, kh_str_hash_equal)
-khash_t(chrNFO) *chrNFOp;	// kh_##name##_t -> kh_chrNFO_t
-khash_t(bamNFO) *bamNFOp;
-//kh_chrNFO_t *chrNFOp = kh_init(chrNFO);
-/*
-error: initializer element is not a compile-time constant
-全局变量是保存在静态存储区的，因此在编译的时候只能用常量进行初始化，而不能用变量进行初始化。需要在执行时确定（如：在main函数里赋值）
-g++编译器会先把全局变量保存到.bss段中，而且默认值为0，但是会在main函数之前添加一条赋值语句，也就是相当于局部变量进行处理了。
- */
 kvec_t(char*) aRefChrIDs, aVirusChrIDs;
-typedef struct {
-	const char * ProjectID;
-	const char * WorkDir;
-	const char * RefileName;
-} __attribute__ ((__packed__)) Config_t;
-Config_t myConfig;
 
 const char *argp_program_version =
 	"bsuit Analyser 0.1 @"__TIME__ "," __DATE__;
@@ -143,11 +111,9 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 /* Our argp parser. */
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
-static int dumper(void* user, const char* section, const char* name,
-                  const char* value)
-{
+#ifdef DEBUGa
+static int dumper(void* user, const char* section, const char* name, const char* value) {
     static char prev_section[50] = "";
-
     if (strcmp(section, prev_section)) {
         printf("%s[%s]\n", (prev_section[0] ? "\n" : ""), section);
         strncpy(prev_section, section, sizeof(prev_section));
@@ -156,6 +122,7 @@ static int dumper(void* user, const char* section, const char* name,
     printf("%s = %s\n", name, value);
     return 1;
 }
+#endif
 
 static int ReadGrepINI(void* user, const char* section, const char* name, const char* value) {
 	khiter_t ki;
@@ -163,15 +130,17 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 	BamInfo_t tbam, *pbam;
 	int absent;
 	char *word, *strtok_lasts;
-	char *sep = ",;";
+	char *sep = ", ;";
 	//#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 	if (strcmp(section, "Ref") == 0) {
 		if (strcmp(name, "RefChrIDs") == 0) {
-			for (word = strtok_r( (char*)value, sep, &strtok_lasts);
-				word;	// We need to alter this 'const char *' of `value`.
-				word = strtok_r(NULL, sep, &strtok_lasts))
-			{	//printf("-[%s]-",word);
-				kv_push(char*, aRefChrIDs, strdup(word));
+			while((word = strsep((char**)&value, sep)) != NULL) {
+				if (*word) {
+#ifdef DEBUGa
+					printf("-[%s]-",word);
+#endif
+					kv_push(char*, aRefChrIDs, strdup(word));
+				}
 			}
 			/*
 			putchar('\n');
@@ -208,9 +177,9 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 		char * id = strdup(name);
 		BamInfo_t *pt;
 		size_t offset;
-		if (strspn(".SD",name)==3) {
-			size_t idLen = strlen(name);
-			id[idLen-3] = '\0';
+		char *ptr = strstr(id,".SD");
+		if (ptr) {
+			*ptr = '\0';
 			offset = offsetof(BamInfo_t, SD);
 		} else {	// http://stackoverflow.com/questions/37757902/in-c-how-to-point-to-different-members-with-offset-at-run-time
 			offset = offsetof(BamInfo_t, insertSize);
@@ -262,7 +231,9 @@ int main (int argc, char **argv) {
 	kv_init(aRefChrIDs);
 	kv_init(aVirusChrIDs);
 	int error;
+#ifdef DEBUGa
 	error = ini_parse(arguments.infile, dumper, NULL);
+#endif
 	error = ini_parse(arguments.infile, ReadGrepINI, NULL);
 	if (error < 0) {
 	    printf("[x]Can't read '%s'!\n", arguments.infile);
@@ -272,6 +243,9 @@ int main (int argc, char **argv) {
 	    printf("[x]Bad config file (first error on line %d)!\n", error);
 	    return 3;
 	}
+#ifdef DEBUGa
+	printf("------------\n");
+#endif
 	ChrInfo_t * tmp;
 	BamInfo_t * pbam;
 	kh_cstr_t ChrID, BamID;
@@ -306,8 +280,11 @@ int main (int argc, char **argv) {
 				warnx("[!]Extra ChrLen exists [%s] !",ChrID);
 			}
 		}
-	printf("------------\n");
-	;
+	if (strcmp(arguments.programme,"grep")==0) {
+		error = do_grep();
+	} else if (strcmp(arguments.programme,"analyse")==0) {
+		error = do_analyse();
+	}
 #ifdef DEBUGa
 	printf("[!]ProjectID:[%s], WorkDir:[%s]\nRefileName:[%s]\n",myConfig.ProjectID,myConfig.WorkDir,myConfig.RefileName);
 #endif
