@@ -39,6 +39,8 @@ tmpdir:
 test: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
 test: $(exefiles)
 	valgrind --leak-check=yes ./$(exefiles) -p g ToGrep.ini
+run: $(exefiles)
+	valgrind --leak-check=yes ./$(exefiles) -p g ToGrep.ini
 
 pp:
 	$(CC) -E main.c | indent > mm.c

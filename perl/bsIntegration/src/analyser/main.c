@@ -219,12 +219,12 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 		if (absent) {
 			kh_key(bamNFOp, ki) = id;
 			pt = &tbam;
-			*(uint16_t*)((void*)pt+offset) = atol(value);
+			*(uint16_t*)((char*)pt+offset) = atol(value);	// http://stackoverflow.com/questions/3523145/pointer-arithmetic-for-void-pointer-in-c
 			kh_value(bamNFOp, ki) = tbam;
 		} else {
 			free(id);
 			pt = &kh_value(bamNFOp, ki);
-			*(uint16_t*)((void*)pt+offset) = atol(value);
+			*(uint16_t*)((char*)pt+offset) = atol(value);	// thus use (char*) instead of (void*)
 		}
 	} else if (strcmp(section, "Output") == 0) {
 		if (strcmp(name, "ProjectID") == 0)
@@ -324,8 +324,8 @@ int main (int argc, char **argv) {
 	for (ki = kh_begin(bamNFOp); ki != kh_end(bamNFOp); ++ki) {
 		if (kh_exist(bamNFOp, ki)) {
 			BamID = kh_key(bamNFOp, ki);
-#ifdef DEBUGa
 			pbam = &kh_value(bamNFOp, ki);
+#ifdef DEBUGa
 			printf("%u [%s]=%s\t%u %u\n",ki,BamID,pbam->fileName,pbam->insertSize,pbam->SD);
 #endif
 			free((char*)BamID);
