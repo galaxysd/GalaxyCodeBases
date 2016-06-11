@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include "klib/khash.h"
+#include "klib/kstring.h"
 
 typedef struct {
 	const char * ProjectID;
