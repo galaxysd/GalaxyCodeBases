@@ -1,5 +1,5 @@
 CC ?= gcc
-CFLAGS = -std=gnu11 -Wall -pipe -march=core2 -mtune=generic
+CFLAGS = -std=gnu11 -Wall -pedantic -pipe -march=core2 -mtune=generic
 LDFLAGS = -lz -lm -lhts -lbam
 OPT = -O3
 
