@@ -63,8 +63,21 @@ int do_grep() {
 								if (c->mtid < 0) {
 									;
 								} else {
-									char *nrname = h->target_name[c->mtid];
-									int32_t mpos = c->mpos;	// from 0
+									//char *nrname = h->target_name[c->mtid];
+									//int32_t mpos = c->mpos;	// from 0
+									hts_itr_t *iter;
+									if ((iter = sam_itr_queryi(idx, c->mtid, c->mpos, c->mpos)) == 0) {
+										fprintf(stderr, "[E::%s] fail to parse region '%s(%d):%d'\n", __func__, h->target_name[c->mtid], c->mtid, c->mpos);
+										continue;
+									}
+									while ((r = sam_itr_next(in, iter, b)) >= 0) {
+										if (sam_write1(out, h, b) < 0) {
+											fprintf(stderr, "Error writing output.\n");
+											exit_code = 1;
+											break;
+										}
+									}
+									hts_itr_destroy(iter);
 								}
 							}
 						}
