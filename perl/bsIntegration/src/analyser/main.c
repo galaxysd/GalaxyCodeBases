@@ -1,9 +1,6 @@
 #define _GNU_SOURCE
-#include <err.h>
 #include <argp.h>
 //#include <bam/sam.h>
-#include "klib/khash.h"
-#include "klib/kvec.h"
 //#include "uthash/utarray.h"
 #include "ini.h"
 #include "getch.h"

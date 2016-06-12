@@ -35,9 +35,21 @@ int do_grep() {
 				return EXIT_FAILURE;
 			}
 			h = sam_hdr_read(in);
+			int8_t *ChrIsHum = malloc(h->n_targets * sizeof(int8_t));
 			if (h == NULL) {
 				fprintf(stderr, "[x]Couldn't read header for \"%s\"\n", pbam->fileName);
 				return EXIT_FAILURE;
+			} else {
+				for (int32_t i=0; i < h->n_targets; ++i) {
+					ChrIsHum[i] = -1;
+					ki = kh_get(chrNFO, chrNFOp, h->target_name[i]);
+					if (ki == kh_end(chrNFOp)) {
+						errx(4,"[x]Cannot find ChrID for [%s] !",h->target_name[i]);
+					} else {
+						ChrInfo_t * tmp = &kh_value(chrNFOp, ki);
+						ChrIsHum[i] = tmp->isHum;
+					}
+				}
 			}
 			h->ignore_sam_err = 0;
 			b = bam_init1();
@@ -70,6 +82,7 @@ int do_grep() {
 					}
 				}
 				if (flag) {
+					flag = false;	// recycle
 					kstring_t ks = { 0, 0, NULL };
 					if (sam_format1(h, b, &ks) < 0) {
 						fprintf(stderr, "Error writing output.\n");
@@ -134,6 +147,7 @@ int do_grep() {
 				exit_code = 1;
 			}
 		}
+		free(ChrIsHum);
 	}
 	return exit_code;
 }

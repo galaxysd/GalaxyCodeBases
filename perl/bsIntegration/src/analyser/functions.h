@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include <stdlib.h> //EXIT_FAILURE
+#include <err.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h> //offsetof
@@ -8,6 +9,7 @@
 #include <math.h>
 
 #include "klib/khash.h"
+#include "klib/kvec.h"
 #include "klib/kstring.h"
 
 typedef struct {
@@ -22,6 +24,7 @@ Config_t myConfig;
 typedef struct {
 	int8_t isHum;
 	uint32_t ChrLen;
+	//int32_t tid;	// bam1_core_t.tid; https://github.com/samtools/htslib/blob/f58922d3ad64185890cd01cdf99cc649919afcfa/htslib/sam.h#L150
 } __attribute__ ((__packed__)) ChrInfo_t;
 typedef struct {
 	uint16_t insertSize;
