@@ -115,6 +115,7 @@ int do_grep() {
 						while ((r = sam_itr_next(in2, iter, d)) >= 0) {	// 存在 第一个左端点符合的
 							uint16_t flag2 = (d->core).flag & (BAM_FREAD1 | BAM_FREAD2);
 							if ( (flag1 + flag2) != (flag1 | flag2) ) continue;	// Read1 with Read2 only. Read12互补
+							if (c->mpos != (d->core).pos) continue;
 							char *qname2 = bam_get_qname(d);
 							if (strcmp(qname,qname2) != 0) continue;	// qname一致
 							//if (sam_write1(out, h, b) < 0)
@@ -132,7 +133,7 @@ int do_grep() {
 						}
 						hts_itr_destroy(iter);
 					}
-					if (flag == 333) {
+					if (flag == 3) {
 						printf(">[%s]\n",ks_str(&ks1));
 						printf("-[%s]\n",ks_str(&ks2));
 						printf("<--\n");
