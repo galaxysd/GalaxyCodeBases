@@ -12,6 +12,8 @@ int do_grep() {
 	BamInfo_t *pbam;
 	kh_cstr_t BamID;
 	khiter_t ki;
+	kstring_t ks1 = { 0, 0, NULL };
+	kstring_t ks2 = { 0, 0, NULL };
 
 	samFile *in, *in2;
 	bam_hdr_t *h;
@@ -41,13 +43,14 @@ int do_grep() {
 				return EXIT_FAILURE;
 			} else {
 				for (int32_t i=0; i < h->n_targets; ++i) {
-					ChrIsHum[i] = -1;
+					//ChrIsHum[i] = -1;
 					ki = kh_get(chrNFO, chrNFOp, h->target_name[i]);
 					if (ki == kh_end(chrNFOp)) {
 						errx(4,"[x]Cannot find ChrID for [%s] !",h->target_name[i]);
 					} else {
 						ChrInfo_t * tmp = &kh_value(chrNFOp, ki);
 						ChrIsHum[i] = tmp->isHum;
+						printf(">>> %d Chr:%s %d\n",i,h->target_name[i],ChrIsHum[i]);
 					}
 				}
 			}
@@ -68,7 +71,7 @@ int do_grep() {
 				return 1;
 			}
 			while ((r = sam_read1(in, h, b)) >= 0) {
-				bool flag = false;
+				int8_t flag = false;
 				const bam1_core_t *c = &b->core;
 				char *qname = bam_get_qname(b);
 				if (c->n_cigar) {
@@ -83,15 +86,15 @@ int do_grep() {
 				}
 				if (flag) {
 					flag = false;	// recycle
-					kstring_t ks = { 0, 0, NULL };
-					if (sam_format1(h, b, &ks) < 0) {
+					//kstring_t ks = { 0, 0, NULL };
+					if (sam_format1(h, b, &ks1) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
 					} else {
-						printf(">[%s]\n",ks_str(&ks));
+						printf(">[%s]\n",ks_str(&ks1));
 					}
-					free(ks.s);
+					//free(ks.s);
 					if (c->mtid < 0) {
 						printf("-[*]\n");
 					} else if (c->mtid == c->tid) {	// Only grep those mapped on same ChrID. <---须加上一方在病毒的情况
@@ -107,15 +110,15 @@ int do_grep() {
 							char *qname2 = bam_get_qname(d);
 							if (strcmp(qname,qname2) != 0) continue;
 							//if (sam_write1(out, h, b) < 0)
-							kstring_t ks = { 0, 0, NULL };
-							if (sam_format1(h, d, &ks) < 0) {
+							//kstring_t ks = { 0, 0, NULL };
+							if (sam_format1(h, d, &ks2) < 0) {
 								fprintf(stderr, "Error writing output.\n");
 								exit_code = 1;
 								break;
 							} else {
-								printf("-[%s]\n",ks_str(&ks));
+								printf("-[%s]\n",ks_str(&ks2));
 							}
-							free(ks.s);
+							//free(ks.s);
 						}
 						hts_itr_destroy(iter);
 					}
@@ -146,8 +149,10 @@ int do_grep() {
 				fprintf(stderr, "Error closing input.\n");
 				exit_code = 1;
 			}
+			free(ChrIsHum);
 		}
-		free(ChrIsHum);
 	}
+	free(ks1.s);
+	free(ks2.s);
 	return exit_code;
 }
