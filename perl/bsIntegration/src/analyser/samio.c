@@ -38,7 +38,6 @@ int do_grep() {
 				return EXIT_FAILURE;
 			}
 			h = sam_hdr_read(in);
-
 /*			out = hts_open("-", "w");
 			if (out == NULL) {
 				fprintf(stderr, "[x]Error opening standard output\n");
@@ -49,11 +48,12 @@ int do_grep() {
 				exit_code = 1;
 			}
 */
-			int8_t *ChrIsHum = malloc(h->n_targets * sizeof(int8_t));
+			int8_t *ChrIsHum;
 			if (h == NULL) {
 				fprintf(stderr, "[x]Couldn't read header for \"%s\"\n", pbam->fileName);
 				return EXIT_FAILURE;
 			} else {
+				ChrIsHum = malloc(h->n_targets * sizeof(int8_t));
 				for (int32_t i=0; i < h->n_targets; ++i) {
 					//ChrIsHum[i] = -1;
 					ki = kh_get(chrNFO, chrNFOp, h->target_name[i]);

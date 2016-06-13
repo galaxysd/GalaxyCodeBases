@@ -19,6 +19,7 @@ typedef struct {
 	const char * WorkDir;
 	const char * RefileName;
 	uint16_t minGrepSlen;
+	uint16_t minHumMapQ;
 } __attribute__ ((__packed__)) Config_t;
 
 Config_t myConfig;
@@ -45,6 +46,19 @@ error: initializer element is not a compile-time constant
 全局变量是保存在静态存储区的，因此在编译的时候只能用常量进行初始化，而不能用变量进行初始化。需要在执行时确定（如：在main函数里赋值）
 g++编译器会先把全局变量保存到.bss段中，而且默认值为0，但是会在main函数之前添加一条赋值语句，也就是相当于局部变量进行处理了。
  */
+
+typedef struct {
+	int32_t tid;
+	int32_t pos;
+	int32_t endpos;
+	uint8_t qual;
+} __attribute__ ((__packed__)) chrRange_t;
+typedef struct {
+	chrRange_t HumanRange;
+	chrRange_t VirusRange;
+	kvec_t(bam1_t) Reads;
+} __attribute__ ((__packed__)) pierCluster_t;
+// int32_t bam_endpos(const bam1_t *b); or overlap_push()
 
 //int do_grep(const Config_t *pConfig, const khash_t(chrNFO) *chrNFOp, const khash_t(bamNFO) *bamNFOp);
 int do_grep();
