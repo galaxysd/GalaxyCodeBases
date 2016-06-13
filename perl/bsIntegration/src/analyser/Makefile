@@ -45,6 +45,9 @@ run: $(exefiles)
 pp:
 	$(CC) -E main.c | indent > mm.c
 	-mate mm.c 
+sign: $(exefiles)
+	codesign -s "Mac Developer" -v $(exefiles)
+	codesign -d -v $(exefiles)
 
 .PHONY : clean
 clean:

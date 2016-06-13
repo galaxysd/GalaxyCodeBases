@@ -14,11 +14,12 @@ int do_grep() {
 	khiter_t ki, bami;
 	kstring_t ks1 = { 0, 0, NULL };
 	kstring_t ks2 = { 0, 0, NULL };
+	kstring_t ks3 = { 0, 0, NULL };
 
 	samFile *in;
 	bam_hdr_t *h;
 	hts_idx_t *idx;
-	bam1_t *b, *d;
+	bam1_t *b, *d, *d2;
 	//htsFile *out;
 	//hts_opt *in_opts = NULL, *out_opts = NULL;
 	int r = 0, exit_code = 0;
@@ -68,6 +69,7 @@ int do_grep() {
 			h->ignore_sam_err = 0;
 			b = bam_init1();
 			d = bam_init1();
+			d2 = bam_init1();
 			if ((idx = sam_index_load(in, pbam->fileName)) == 0) {
 				fprintf(stderr, "[E::%s] fail to load the BAM index\n", __func__);
 				return 1;
@@ -101,15 +103,30 @@ int do_grep() {
 						continue;
 					} else {
 						flag |= 2;
+						if (c->flag & BAM_FSECONDARY) {
+							if (getPairedSam(in, idx, d, d2) == 0) {
+								sam_format1(h, d2, &ks3);
+								flag |= 4;
+							}
+						}
 					}
+/*
+对于 BAM_FSECONDARY(256) 的 Read，跳两次 与 读 SA 项，效果一样。
+>[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	353	chr2	13996555	0	50S40M	chr18	48245109	0ACACAACAATGTTCCGGAGACTCTAAGGCCTCCCGATACAGAGCAGAGGCCACACACACACACACCATGGAATACTATTCAGCCAAAAAA	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:40	AS:i:40	XS:i:40	RG:Z:Fsimout_mB	SA:Z:rgi|59585|emb|X04615.1|,2000,-,40S46M4S,60,0;	YC:Z:CT	YD:Z:f]
+-[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	177	chr18	48245109	9	40S50M	gi|59585|emb|X04615.1|2000	0	GTTCCGGAGACTCTAAGGCCTCCCGATACAGAGCAGAGGCCACACACACACACACCATGGAATACTATTCAGCCAAAAAAAGGAATTCAA	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:50	AS:i:50	XS:i:46	RG:Z:Fsimout_mB	SA:Z:rgi|59585|emb|X04615.1|,2000,+,50S40M,9,0;	YC:Z:GA	YD:Z:f]
++[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	113	gi|59585|emb|X04615.1|	2000	60	40S46M4S	chr18	48245109	0	TTTTTTGGCTGAATAGTATTCCATGGTGTGTGTGTGTGTGGCCTCTGCTCTGTATCGGGAGGCCTTAGAGTCTCCGGAACATTGTTGTGT	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:46	AS:i:46	XS:i:27	RG:Z:Fsimout_mB	SA:Z:fchr2,13996555,+,50S40M,0,0;	YC:Z:CT	YD:Z:r]
+*/
 					if (sam_format1(h, d, &ks2) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
 					}
-					if (flag == 3) {
+					if ((flag & 3) == 3) {
 						printf(">[%s]\n",ks_str(&ks1));
 						printf("-[%s]\n",ks_str(&ks2));
+						if (flag & 4) {
+							printf("+[%s]\n",ks_str(&ks3));
+						}
 						printf("<--\n");
 					}
 				}
@@ -129,6 +146,7 @@ int do_grep() {
 			hts_idx_destroy(idx);
 			bam_destroy1(b);
 			bam_destroy1(d);
+			bam_destroy1(d2);
 			bam_hdr_destroy(h);
 			r = sam_close(in);
 			free(ChrIsHum);
@@ -143,5 +161,6 @@ int do_grep() {
 	//printf("---[%d]---\n",exit_code);
 	ks_release(&ks1);
 	ks_release(&ks2);
+	ks_release(&ks3);
 	return exit_code;
 }
