@@ -109,7 +109,7 @@ parse_opt (int key, char *arg, struct argp_state *state) {
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef DEBUGa
-static int dumper(void* user, const char* section, const char* name, const char* value) {
+/*static int dumper(void* user, const char* section, const char* name, const char* value) {
     static char prev_section[50] = "";
     if (strcmp(section, prev_section)) {
         printf("%s[%s]\n", (prev_section[0] ? "\n" : ""), section);
@@ -118,7 +118,7 @@ static int dumper(void* user, const char* section, const char* name, const char*
     }
     printf("%s = %s\n", name, value);
     return 1;
-}
+}*/
 #endif
 
 static int ReadGrepINI(void* user, const char* section, const char* name, const char* value) {
@@ -230,7 +230,7 @@ int main (int argc, char **argv) {
 	kv_init(aVirusChrIDs);
 	int error;
 #ifdef DEBUGa
-	error = ini_parse(arguments.infile, dumper, NULL);
+	//error = ini_parse(arguments.infile, dumper, NULL);
 #endif
 	error = ini_parse(arguments.infile, ReadGrepINI, NULL);
 	if (error < 0) {
@@ -283,6 +283,7 @@ int main (int argc, char **argv) {
 	} else if (strcmp(arguments.programme,"analyse")==0) {
 		error = do_analyse();
 	}
+	printf("[!]main\n");
 #ifdef DEBUGa
 	printf("[!]ProjectID:[%s], WorkDir:[%s]\nRefileName:[%s]\n",myConfig.ProjectID,myConfig.WorkDir,myConfig.RefileName);
 #endif

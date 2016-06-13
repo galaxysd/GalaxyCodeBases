@@ -12,6 +12,8 @@
 #include "klib/kvec.h"
 #include "klib/kstring.h"
 
+#include <htslib/sam.h>
+
 typedef struct {
 	const char * ProjectID;
 	const char * WorkDir;
@@ -48,3 +50,4 @@ g++编译器会先把全局变量保存到.bss段中，而且默认值为0，但
 int do_grep();
 int do_analyse();
 
+int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d);

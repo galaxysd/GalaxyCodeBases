@@ -15,30 +15,30 @@ int do_grep() {
 	kstring_t ks1 = { 0, 0, NULL };
 	kstring_t ks2 = { 0, 0, NULL };
 
-	samFile *in, *in2;
+	samFile *in;
 	bam_hdr_t *h;
 	hts_idx_t *idx;
 	bam1_t *b, *d;
-	htsFile *out;
+	//htsFile *out;
 	//hts_opt *in_opts = NULL, *out_opts = NULL;
 	int r = 0, exit_code = 0;
 
 	for (bami = kh_begin(bamNFOp); bami != kh_end(bamNFOp); ++bami) {
+		//printf(">[%d]:\n",bami);
 		if (kh_exist(bamNFOp, bami)) {
+			//printf("-[%d]:\n",bami);
 			BamID = kh_key(bamNFOp, bami);
 			pbam = &kh_value(bamNFOp, bami);
-#ifdef DEBUGa
 			fprintf(stderr, "%u [%s]=%s\t%u %u\n",bami,BamID,pbam->fileName,pbam->insertSize,pbam->SD);
-#endif
+
 			in = sam_open(pbam->fileName, "r");
-			in2 = sam_open(pbam->fileName, "r");
 			if (in == NULL) {
 				fprintf(stderr, "[x]Error opening \"%s\"\n", pbam->fileName);
 				return EXIT_FAILURE;
 			}
 			h = sam_hdr_read(in);
 
-			out = hts_open("-", "w");
+/*			out = hts_open("-", "w");
 			if (out == NULL) {
 				fprintf(stderr, "[x]Error opening standard output\n");
 				return EXIT_FAILURE;
@@ -47,7 +47,7 @@ int do_grep() {
 				fprintf(stderr, "[!]Error writing output header.\n");
 				exit_code = 1;
 			}
-
+*/
 			int8_t *ChrIsHum = malloc(h->n_targets * sizeof(int8_t));
 			if (h == NULL) {
 				fprintf(stderr, "[x]Couldn't read header for \"%s\"\n", pbam->fileName);
@@ -75,7 +75,6 @@ int do_grep() {
 			while ((r = sam_read1(in, h, b)) >= 0) {
 				int8_t flag = false;
 				const bam1_core_t *c = &b->core;
-				char *qname = bam_get_qname(b);
 				if (c->n_cigar) {
 					uint32_t *cigar = bam_get_cigar(b);
 					for (int i = 0; i < c->n_cigar; ++i) {
@@ -97,41 +96,16 @@ int do_grep() {
 						//printf(">[%s]\n",ks_str(&ks1));
 						flag |= 1;
 					}
-					//free(ks.s);
-					if (c->mtid < 0) {
-						//printf("-[*]\n");
-						//printf("~~~ %d ",flag);
+					if (getPairedSam(in, idx, b, d) != 0) {
 						flag &= ~1;
-						//printf("%d\n",flag);
-					} else if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
-						//char *nrname = h->target_name[c->mtid];
-						//int32_t mpos = c->mpos;	// from 0
-						uint16_t flag1 = c->flag & (BAM_FREAD1 | BAM_FREAD2);
-						hts_itr_t *iter;
-						if ((iter = sam_itr_queryi(idx, c->mtid, c->mpos, c->mpos+1)) == 0) {
-							fprintf(stderr, "[E::%s] fail to parse region '%s(%d):%d'\n", __func__, h->target_name[c->mtid], c->mtid, c->mpos);
-							continue;
-						}
-						while ((r = sam_itr_next(in2, iter, d)) >= 0) {	// 存在 第一个左端点符合的
-							uint16_t flag2 = (d->core).flag & (BAM_FREAD1 | BAM_FREAD2);
-							if ( (flag1 + flag2) != (flag1 | flag2) ) continue;	// Read1 with Read2 only. Read12互补
-							if (c->mpos != (d->core).pos) continue;
-							char *qname2 = bam_get_qname(d);
-							if (strcmp(qname,qname2) != 0) continue;	// qname一致
-							//if (sam_write1(out, h, b) < 0)
-							//kstring_t ks = { 0, 0, NULL };
-							if (sam_format1(h, d, &ks2) < 0) {
-								fprintf(stderr, "Error writing output.\n");
-								exit_code = 1;
-								break;
-							} else {
-								//printf("-[%s]\n",ks_str(&ks2));
-								if (flag & 2) fprintf(stdout, "Multiple Read2 found for [%s] !\n",qname);	// can find itself.
-								flag |= 2;
-							}
-							//free(ks.s);
-						}
-						hts_itr_destroy(iter);
+						continue;
+					} else {
+						flag |= 2;
+					}
+					if (sam_format1(h, d, &ks2) < 0) {
+						fprintf(stderr, "Error writing output.\n");
+						exit_code = 1;
+						break;
 					}
 					if (flag == 3) {
 						printf(">[%s]\n",ks_str(&ks1));
@@ -146,29 +120,28 @@ int do_grep() {
 					break;
 				}*/
 			}
-			//r = sam_close(out);	// stdout can only be closed once
+/*			r = sam_close(out);   // stdout can only be closed once
 			if (r < 0) {
 				fprintf(stderr, "Error closing output.\n");
 				exit_code = 1;
 			}
+*/
 			hts_idx_destroy(idx);
 			bam_destroy1(b);
 			bam_destroy1(d);
 			bam_hdr_destroy(h);
 			r = sam_close(in);
-			r = sam_close(in2);
-			if (r < 0) {
-				fprintf(stderr, "Error closing input.\n");
-				exit_code = 1;
-			}
 			free(ChrIsHum);
 #ifdef DEBUGa
 			fflush(NULL);
 			pressAnyKey();
 #endif
 		}
+		//printf("<[%d]:\n",bami);
 	}
-	free(ks1.s);
-	free(ks2.s);
+	getPairedSam(NULL, NULL, NULL, NULL);	// sam_close(fp2);
+	//printf("---[%d]---\n",exit_code);
+	ks_release(&ks1);
+	ks_release(&ks2);
 	return exit_code;
 }
