@@ -136,7 +136,7 @@ int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d) {
 }
 
 int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid) {
-	static last_tid;
+	static int32_t last_tid;
 	const bam1_core_t *c = &b->core;
 	if (save_tid) {
 		last_tid = c->tid;
@@ -153,4 +153,52 @@ int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid) {
 		return 1;
 	}
 	return 0;
+}
+
+// 时间紧迫，先这样写了。以后有空再考虑换成 bam_plp_init 那套。
+
+pierCluster_t *sam_plp_init() {
+	pierCluster_t *p = calloc(1, sizeof(pierCluster_t));
+	kv_init(p->quals);
+	kv_init(p->Reads);
+	return p;
+}
+
+int sam_plp_push(int8_t *ChrIsHum, pierCluster_t *pierCluster,  bam1_t *b) {
+	const bam1_core_t *c = &b->core;
+	size_t offsetHum = offsetof(pierCluster_t, HumanRange);
+	size_t offsetVir = offsetof(pierCluster_t, VirusRange);
+	size_t thisOffset;
+	if (ChrIsHum[c->tid]) {
+		thisOffset = offsetHum;
+	} else {
+		thisOffset = offsetVir;
+	}
+	chrRange_t *pCR;
+	pCR = (chrRange_t*)((char*)pierCluster + thisOffset);
+	int32_t end_b = bam_endpos(b);
+	if (pCR->endpos == 0) {
+		pCR->tid = c->tid;
+		pCR->pos = c->pos;
+		pCR->endpos = end_b;
+		pCR->maxqual = c->qual;
+	} else {
+		if (pCR->tid != c->tid) {
+			return 1;
+		}
+		if ((pCR->pos <= c->pos) && (c->pos <= pCR->endpos)) {	// 按sort后的顺序。
+			if (end_b > pCR->endpos) {
+				pCR->endpos = end_b;
+			}
+			if (pCR->maxqual < c->qual) {
+				pCR->maxqual = c->qual;
+			}
+		}
+	}
+	return 0;
+}
+
+void sam_plp_dectroy(pierCluster_t *p) {
+	kv_destroy(p->quals);
+	kv_destroy(p->Reads);
 }

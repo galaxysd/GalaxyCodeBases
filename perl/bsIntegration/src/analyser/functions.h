@@ -52,13 +52,13 @@ typedef struct {
 	int32_t tid;
 	int32_t pos;
 	int32_t endpos;
-	uint8_t qual;
+	uint8_t maxqual;
 } __attribute__ ((__packed__)) chrRange_t;
 typedef struct {
 	chrRange_t HumanRange;
 	chrRange_t VirusRange;
 	kvec_t(uint8_t) quals;
-	kvec_t(bam1_t) Reads;
+	kvec_t(bam1_t*) Reads;
 } __attribute__ ((__packed__)) pierCluster_t;
 // int32_t bam_endpos(const bam1_t *b); or overlap_push()
 
