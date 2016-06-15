@@ -213,6 +213,7 @@ int main (int argc, char **argv) {
 	arguments.overlap = 25;
 	myConfig.minGrepSlen = 5;
 	myConfig.minHumMapQ = 30;
+	myConfig.samples = 1;
 
 	// Parse our arguments; every option seen by parse_opt will be reflected in arguments.
 	argp_parse (&argp, argc, argv, 0, 0, &arguments);

@@ -19,14 +19,21 @@ int do_grep() {
 	samFile *in;
 	bam_hdr_t *h;
 	hts_idx_t *idx;
-	bam1_t *b, *d, *d2;
+	bam1_t *b, *d, *d2, *bR1, *bR2, *bR3;
+	bR1 = bam_init1(); bR2 = bam_init1(); bR3 = bam_init1();
 	//htsFile *out;
 	//hts_opt *in_opts = NULL, *out_opts = NULL;
 	int r = 0, exit_code = 0;
 
+	kvec_t(samdat_t) R1, R2, RV;
+	samdat_t tmp_samdat;
+
 	for (bami = kh_begin(bamNFOp); bami != kh_end(bamNFOp); ++bami) {
 		//printf(">[%d]:\n",bami);
 		if (kh_exist(bamNFOp, bami)) {
+			kv_init(R1); kv_init(R2); kv_init(RV);
+			tmp_samdat = (const samdat_t){ 0 };
+			//memset(&tmp_samdat,0,sizeof(samdat_t));
 			//printf("-[%d]:\n",bami);
 			BamID = kh_key(bamNFOp, bami);
 			pbam = &kh_value(bamNFOp, bami);
@@ -88,15 +95,25 @@ int do_grep() {
 					}
 				}
 				if (flag) {
+					//bam_copy1(bR1, b);
 					flag = 0;	// recycle
 					//kstring_t ks = { 0, 0, NULL };
 					if (sam_format1(h, b, &ks1) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
-					} else {
+					} else if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
 						//printf(">[%s]\n",ks_str(&ks1));
 						flag |= 1;
+						//tmp_samdat.b = bam_dup1(b);
+						//kv_push(samdat_t,R1,tmp_samdat);
+					}
+					int enoughMapQ = 0;
+					if (checkMapQ(ChrIsHum, b)) {
+						++enoughMapQ;
+					}
+					if (checkMapQ(ChrIsHum, d)) {
+						++enoughMapQ;
 					}
 					if (getPairedSam(in, idx, b, d) != 0) {
 						flag &= ~1;
@@ -108,6 +125,9 @@ int do_grep() {
 								sam_format1(h, d2, &ks3);
 								flag |= 4;
 							}
+						}
+						if (checkMapQ(ChrIsHum, d2)) {
+							++enoughMapQ;
 						}
 					}
 /*
@@ -121,7 +141,8 @@ int do_grep() {
 						exit_code = 1;
 						break;
 					}
-					if ((flag & 3) == 3) {
+					if (((flag & 3) == 3) && enoughMapQ >= myConfig.samples) {
+					//if ((flag & 3) == 3) {
 						printf(">[%s]\n",ks_str(&ks1));
 						printf("-[%s]\n",ks_str(&ks2));
 						if (flag & 4) {
@@ -159,6 +180,7 @@ int do_grep() {
 	}
 	getPairedSam(NULL, NULL, NULL, NULL);	// sam_close(fp2);
 	//printf("---[%d]---\n",exit_code);
+	bam_destroy1(bR1); bam_destroy1(bR2); bam_destroy1(bR3);
 	ks_release(&ks1);
 	ks_release(&ks2);
 	ks_release(&ks3);

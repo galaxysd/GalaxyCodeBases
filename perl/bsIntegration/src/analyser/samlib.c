@@ -134,3 +134,11 @@ int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d) {
 	hts_itr_destroy(iter);
 	return ret;
 }
+
+int checkMapQ(int8_t *ChrIsHum, bam1_t *b) {
+	const bam1_core_t *c = &b->core;
+	if (ChrIsHum[c->tid] && (c->qual >= myConfig.minHumMapQ)) {
+		return 1;
+	}
+	return 0;
+}

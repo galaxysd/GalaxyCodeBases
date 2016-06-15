@@ -20,6 +20,7 @@ typedef struct {
 	const char * RefileName;
 	uint16_t minGrepSlen;
 	uint16_t minHumMapQ;
+	uint8_t samples;
 } __attribute__ ((__packed__)) Config_t;
 
 Config_t myConfig;
@@ -56,12 +57,22 @@ typedef struct {
 typedef struct {
 	chrRange_t HumanRange;
 	chrRange_t VirusRange;
+	kvec_t(uint8_t) quals;
 	kvec_t(bam1_t) Reads;
 } __attribute__ ((__packed__)) pierCluster_t;
 // int32_t bam_endpos(const bam1_t *b); or overlap_push()
+
+typedef struct {
+	bam1_t b;
+	const char * sam1txt;
+	//int8_t has2ndhit;
+	int32_t beg, end;
+	uint8_t qual;
+} __attribute__ ((__packed__)) samdat_t;
 
 //int do_grep(const Config_t *pConfig, const khash_t(chrNFO) *chrNFOp, const khash_t(bamNFO) *bamNFOp);
 int do_grep();
 int do_analyse();
 
 int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d);
+int checkMapQ(int8_t *ChrIsHum, bam1_t *b);
