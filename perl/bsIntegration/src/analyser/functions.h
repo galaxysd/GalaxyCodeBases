@@ -75,4 +75,4 @@ int do_grep();
 int do_analyse();
 
 int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d);
-int checkMapQ(int8_t *ChrIsHum, bam1_t *b);
+int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid);

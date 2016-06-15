@@ -135,8 +135,20 @@ int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d) {
 	return ret;
 }
 
-int checkMapQ(int8_t *ChrIsHum, bam1_t *b) {
+int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid) {
+	static last_tid;
 	const bam1_core_t *c = &b->core;
+	if (save_tid) {
+		last_tid = c->tid;
+	} else {
+		if (ChrIsHum[last_tid]) {
+			if (ChrIsHum[c->tid] && (last_tid != c->tid)) {
+				return 0;
+			}
+		} else {
+			last_tid = c->tid;
+		}
+	}
 	if (ChrIsHum[c->tid] && (c->qual >= myConfig.minHumMapQ)) {
 		return 1;
 	}
