@@ -153,8 +153,8 @@ int do_grep() {
 						printf("<--%d\n",enoughMapQ);*/
 						if (sam_plp_push(ChrIsHum, pierCluster, b) == 0) {
 							//printf("--HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
-							if (!ChrIsHum[(d->core).tid]) sam_plp_push(ChrIsHum, pierCluster, d);
-							if (!ChrIsHum[(d2->core).tid]) sam_plp_push(ChrIsHum, pierCluster, d2);
+							if ((!ChrIsHum[(d->core).tid]) && (flag & 2)) sam_plp_push(ChrIsHum, pierCluster, d);
+							if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) sam_plp_push(ChrIsHum, pierCluster, d2);
 						} else {
 							//print
 							fprintf(fs,"[%s]\nHumRange=%s:%d-%d\n", BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
