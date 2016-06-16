@@ -6,8 +6,8 @@ use Cwd 'abs_path';
 
 use FindBin 1.51 qw($RealBin);
 use lib "$RealBin";
-#use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
-use simVirusInsertsOld;	# 只输出100%甲基化的reads（四种碱基的）
+use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
+#use simVirusInsertsOld;	# 只输出100%甲基化的reads（四种碱基的）
 
 my $RefNratioMax = 0.02;
 
@@ -44,6 +44,7 @@ CONTENT
 my %fqFiles;
 
 my $ShortLen = int(0.5 + $ReadLen/2);
+my $TinyLen = int(10.5 + $ReadLen/20);
 my $LongLen = int(0.5 + $ReadLen*4/3);
 my @PEins = (100,150,200,420);
 @PEins = (150,220,350,500) if $ReadLen > 96;
@@ -64,6 +65,12 @@ $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m2D';
+dosim($Refstr,$Virstr,\%Para);
+$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+
+$Para{PEinsertLen} = $PEins[2];
+$Para{VirFrag} = $TinyLen;
+$Para{OutPrefix} = $outp . '_m2Dty';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 

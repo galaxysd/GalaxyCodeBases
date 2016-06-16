@@ -145,7 +145,7 @@ sub dosim($$$) {
 		my @newSeqs = ($RawNewSeq,$RawNewSeq,$RawNewSeq);
 		$newSeqs[1] =~ tr /Cc/Tt/;	# 100% un-methylation F
 		$newSeqs[2] =~ tr /Gg/Aa/;	# 100% un-methylation R
-		for my $mt (0 .. $#newSeqs) {
+		for my $mt (1 .. $#newSeqs) {	# skip 0, only of 100% un-methylation.
 			my $newSeq = $newSeqs[$mt];
 			my $tID = join('_','Methyl',$mt,'Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
 			print O '>',$tID,"\n$newSeq\n\n";
