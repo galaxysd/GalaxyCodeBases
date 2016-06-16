@@ -83,6 +83,7 @@ int do_grep() {
 				fprintf(stderr, "[E::%s] fail to load the BAM index\n", __func__);
 				return 1;
 			}
+			pierCluster = sam_plp_init();
 			while ((r = sam_read1(in, h, b)) >= 0) {
 				int8_t flag = false;
 				const bam1_core_t *c = &b->core;
@@ -144,13 +145,33 @@ int do_grep() {
 						break;
 					}
 					if (((flag & 3) == 3) && enoughMapQ >= myConfig.samples) {
-					//if ((flag & 3) == 3) {
-						printf(">%d[%s]\n",checkMapQ(ChrIsHum, b, true),ks_str(&ks1));
+						/*printf(">%d[%s]\n",checkMapQ(ChrIsHum, b, true),ks_str(&ks1));
 						printf("-%d[%s]\n",checkMapQ(ChrIsHum, d, false),ks_str(&ks2));
 						if (flag & 4) {
 							printf("+%d[%s]\n",checkMapQ(ChrIsHum, d2, false),ks_str(&ks3));
 						}
-						printf("<--%d\n",enoughMapQ);
+						printf("<--%d\n",enoughMapQ);*/
+						if (sam_plp_push(ChrIsHum, pierCluster, b) == 0) {
+							//printf("--HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+						} else {
+							//print
+							fprintf(fs,"HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							fprintf(fs,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
+							for (size_t i=0; i<kv_size(pierCluster->Reads);++i) {
+								bam1_t *bi = kv_A(pierCluster->Reads, i);
+								if (sam_format1(h, bi, &ks1) < 0) {
+									fprintf(stderr, "Error writing output.\n");
+									exit_code = 1;
+									break;
+								} else {
+									fprintf(fs,"%s\n",ks1.s);
+								}
+							}
+							printf("HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							fflush(fs);
+							sam_plp_dectroy(pierCluster);
+							pierCluster = sam_plp_init();
+						}
 					}
 				}
 				/*char *qname = bam_get_qname(b);
@@ -159,7 +180,7 @@ int do_grep() {
 					exit_code = 1;
 					break;
 				}*/
-				}
+			}
 /*			r = sam_close(out);   // stdout can only be closed once
 			if (r < 0) {
 				fprintf(stderr, "Error closing output.\n");
@@ -177,8 +198,9 @@ int do_grep() {
 			fflush(NULL);
 			pressAnyKey();
 #endif
+			sam_plp_dectroy(pierCluster);
+			//printf("<[%d]:\n",bami);
 		}
-		//printf("<[%d]:\n",bami);
 	}
 	fclose(fs);
 	getPairedSam(NULL, NULL, NULL, NULL);	// sam_close(fp2);

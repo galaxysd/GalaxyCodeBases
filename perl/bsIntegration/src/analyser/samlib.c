@@ -158,6 +158,7 @@ int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid) {
 // 时间紧迫，先这样写了。以后有空再考虑换成 bam_plp_init 那套。
 
 pierCluster_t *sam_plp_init() {
+	//fprintf(stderr,"[c]\n");
 	pierCluster_t *p = calloc(1, sizeof(pierCluster_t));
 	kv_init(p->quals);
 	kv_init(p->Reads);
@@ -203,6 +204,7 @@ int sam_plp_push(int8_t *ChrIsHum, pierCluster_t *pierCluster,  bam1_t *b) {
 }
 
 void sam_plp_dectroy(pierCluster_t *p) {
+	//fprintf(stderr,"[x]\n");
 	kv_destroy(p->quals);
 	for (size_t i=0; i<kv_size(p->Reads);++i) {
 		bam1_t *b = kv_A(p->Reads, i);
