@@ -117,10 +117,14 @@ CMD
 			my $theBamsJ = join(' ',@theBams);
 			$cmd = <<"CMD";
 samtools merge -n -l 9 $main::RootPath/${main::ProjectID}_aln/$k.bam $theBamsJ
-samtools index $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			print O $cmd;
 		}
+		$cmd = <<"CMD";
+$RealBin/bin/bamfilter.pl $main::RootPath/${main::ProjectID}_aln/$k.bam $main::RootPath/${main::ProjectID}_aln/S_${k}.bam
+samtools sort -l 9 -m 2G $main::RootPath/${main::ProjectID}_aln/S_${k}.bam -T $main::RootPath/${main::ProjectID}_aln/P_${k} -o $main::RootPath/${main::ProjectID}_aln/P_${k}.bam
+samtools index $main::RootPath/${main::ProjectID}_aln/P_${k}.bam
+CMD
 =pod
 		$cmd = <<"CMD";
 samtools sort -m 2415919104 -n $main::RootPath/${main::ProjectID}_aln/$k.bam -O bam -T $main::RootPath/${main::ProjectID}_aln/$k.sn >$main::RootPath/${main::ProjectID}_aln/$k.sn.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
