@@ -59,8 +59,10 @@ sub getticks($$$$$) {
 		my $str0 = substr $Refstr,($pos0-$PEinsertLen),2*$PEinsertLen;
 		my $seq = $str0;
 		my $N = $seq=~tr/Nn//;
-		next if $N > 2*$PEinsertLen*$RefNratioMax;
-		push @theticks,$pos0
+		next if $N > 2*$PEinsertLen*$RefNratioMax;	# strlen is 2*$PEinsertLen
+		my $lc = $seq=~tr/atcg//;
+		next if $lc > 2*$PEinsertLen*$RefMratioMax;
+		push @theticks,$pos0;
 	}
 	@theticks = sort {$a<=>$b} @theticks;
 	#warn "$RefBorder,$RefLen";
