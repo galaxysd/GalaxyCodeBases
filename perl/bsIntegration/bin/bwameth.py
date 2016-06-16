@@ -272,7 +272,7 @@ def as_bam(pfile, fa, prefix, calmd=False, set_as_failed=None):
     set_as_failed: None, 'f', or 'r'. If 'f'. Reads mapping to that strand
                       are given the sam flag of a failed QC alignment (0x200).
     """
-    view = "samtools view -bS - | samtools sort -m 2415919104 - -T {bam} -o "
+    view = "samtools view -bS - | samtools sort -n -m 2415919104 - -T {bam} -o "
     if calmd:
         cmds = [
             view + "{bam}.tmp",

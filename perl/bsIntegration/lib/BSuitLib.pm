@@ -116,17 +116,19 @@ CMD
 			}
 			my $theBamsJ = join(' ',@theBams);
 			$cmd = <<"CMD";
-samtools merge -l 9 $main::RootPath/${main::ProjectID}_aln/$k.bam $theBamsJ
+samtools merge -n -l 9 $main::RootPath/${main::ProjectID}_aln/$k.bam $theBamsJ
 samtools index $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			print O $cmd;
 		}
+=pod
 		$cmd = <<"CMD";
 samtools sort -m 2415919104 -n $main::RootPath/${main::ProjectID}_aln/$k.bam -O bam -T $main::RootPath/${main::ProjectID}_aln/$k.sn >$main::RootPath/${main::ProjectID}_aln/$k.sn.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
 
 samtools view -b -F256 $main::RootPath/${main::ProjectID}_aln/$k.sn.bam >$main::RootPath/${main::ProjectID}_aln/$k.snPstat.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
 
 CMD
+=cut
 		print O $cmd;
 	}
 	close O;
