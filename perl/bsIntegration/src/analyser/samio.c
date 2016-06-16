@@ -87,6 +87,7 @@ int do_grep() {
 			while ((r = sam_read1(in, h, b)) >= 0) {
 				int8_t flag = false;
 				const bam1_core_t *c = &b->core;
+				if (c->flag & BAM_FSECONDARY) continue;
 				if (c->n_cigar) {
 					uint32_t *cigar = bam_get_cigar(b);
 					for (int i = 0; i < c->n_cigar; ++i) {
@@ -102,11 +103,11 @@ int do_grep() {
 					flag = 0;	// recycle
 					int enoughMapQ = 0;
 					//kstring_t ks = { 0, 0, NULL };
-					if (sam_format1(h, b, &ks1) < 0) {
+					/*if (sam_format1(h, b, &ks1) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
-					} else if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
+					} else*/ if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
 						//printf(">[%s]\n",ks_str(&ks1));
 						flag |= 1;
 						//tmp_samdat.b = bam_dup1(b);
@@ -123,15 +124,15 @@ int do_grep() {
 						if (checkMapQ(ChrIsHum, d, false)) {
 							++enoughMapQ;
 						}
-						if (c->flag & BAM_FSECONDARY) {
+						/*if (c->flag & BAM_FSECONDARY) {
 							if (getPairedSam(in, idx, d, d2) == 0) {
-								sam_format1(h, d2, &ks3);
+								//sam_format1(h, d2, &ks3);
 								flag |= 4;
 								if (checkMapQ(ChrIsHum, d2, false)) {
 									++enoughMapQ;
 								}
 							}
-						}
+						}*/
 					}
 /*
 对于 BAM_FSECONDARY(256) 的 Read，跳两次 与 读 SA 项，效果一样。
@@ -139,11 +140,11 @@ int do_grep() {
 -[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	177	chr18	48245109	9	40S50M	gi|59585|emb|X04615.1|2000	0	GTTCCGGAGACTCTAAGGCCTCCCGATACAGAGCAGAGGCCACACACACACACACCATGGAATACTATTCAGCCAAAAAAAGGAATTCAA	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:50	AS:i:50	XS:i:46	RG:Z:Fsimout_mB	SA:Z:rgi|59585|emb|X04615.1|,2000,+,50S40M,9,0;	YC:Z:GA	YD:Z:f]
 +[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	113	gi|59585|emb|X04615.1|	2000	60	40S46M4S	chr18	48245109	0	TTTTTTGGCTGAATAGTATTCCATGGTGTGTGTGTGTGTGGCCTCTGCTCTGTATCGGGAGGCCTTAGAGTCTCCGGAACATTGTTGTGT	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:46	AS:i:46	XS:i:27	RG:Z:Fsimout_mB	SA:Z:fchr2,13996555,+,50S40M,0,0;	YC:Z:CT	YD:Z:r]
 */
-					if (sam_format1(h, d, &ks2) < 0) {
+					/*if (sam_format1(h, d, &ks2) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
-					}
+					}*/
 					if (((flag & 3) == 3) && enoughMapQ >= myConfig.samples) {
 						/*printf(">%d[%s]\n",checkMapQ(ChrIsHum, b, true),ks_str(&ks1));
 						printf("-%d[%s]\n",checkMapQ(ChrIsHum, d, false),ks_str(&ks2));
@@ -154,7 +155,7 @@ int do_grep() {
 						if (sam_plp_push(ChrIsHum, pierCluster, b) == 0) {
 							//printf("--HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
 							if ((!ChrIsHum[(d->core).tid]) && (flag & 2)) sam_plp_push(ChrIsHum, pierCluster, d);
-							if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) sam_plp_push(ChrIsHum, pierCluster, d2);
+							//if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) sam_plp_push(ChrIsHum, pierCluster, d2);
 						} else {
 							//print
 							fprintf(fs,"[%s]\nHumRange=%s:%d-%d\n", BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
@@ -170,8 +171,8 @@ int do_grep() {
 								}
 							}
 							fprintf(fs,"\n");
-							printf("HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
-							fflush(fs);
+							//printf("HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							//fflush(fs);
 							sam_plp_dectroy(pierCluster);
 							pierCluster = sam_plp_init();
 						}
