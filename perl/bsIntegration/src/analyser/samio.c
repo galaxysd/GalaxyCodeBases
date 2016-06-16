@@ -97,7 +97,7 @@ int do_grep() {
 						}
 					}
 				}
-				if (flag) {
+				if (flag && ChrIsHum[c->tid]) {	// Now, skip Virus items.
 					//bam_copy1(bR1, b);
 					flag = 0;	// recycle
 					int enoughMapQ = 0;
@@ -153,9 +153,11 @@ int do_grep() {
 						printf("<--%d\n",enoughMapQ);*/
 						if (sam_plp_push(ChrIsHum, pierCluster, b) == 0) {
 							//printf("--HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							if (!ChrIsHum[(d->core).tid]) sam_plp_push(ChrIsHum, pierCluster, d);
+							if (!ChrIsHum[(d2->core).tid]) sam_plp_push(ChrIsHum, pierCluster, d2);
 						} else {
 							//print
-							fprintf(fs,"HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							fprintf(fs,"[%s]\nHumRange=%s:%d-%d\n", BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
 							fprintf(fs,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
 							for (size_t i=0; i<kv_size(pierCluster->Reads);++i) {
 								bam1_t *bi = kv_A(pierCluster->Reads, i);
@@ -167,6 +169,7 @@ int do_grep() {
 									fprintf(fs,"%s\n",ks1.s);
 								}
 							}
+							fprintf(fs,"\n");
 							printf("HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
 							fflush(fs);
 							sam_plp_dectroy(pierCluster);
@@ -196,7 +199,7 @@ int do_grep() {
 			free(ChrIsHum);
 #ifdef DEBUGa
 			fflush(NULL);
-			pressAnyKey();
+			//pressAnyKey();
 #endif
 			sam_plp_dectroy(pierCluster);
 			//printf("<[%d]:\n",bami);
