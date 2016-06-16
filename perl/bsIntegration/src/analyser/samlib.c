@@ -193,12 +193,20 @@ int sam_plp_push(int8_t *ChrIsHum, pierCluster_t *pierCluster,  bam1_t *b) {
 			if (pCR->maxqual < c->qual) {
 				pCR->maxqual = c->qual;
 			}
+		} else {
+			return 1;
 		}
 	}
+	kv_push(uint8_t,pierCluster->quals,c->qual);
+	kv_push(bam1_t*,pierCluster->Reads,bam_dup1(b));
 	return 0;
 }
 
 void sam_plp_dectroy(pierCluster_t *p) {
 	kv_destroy(p->quals);
+	for (size_t i=0; i<kv_size(p->Reads);++i) {
+		bam1_t *b = kv_A(p->Reads, i);
+		bam_destroy1(b);
+	}
 	kv_destroy(p->Reads);
 }

@@ -25,14 +25,16 @@ int do_grep() {
 	//hts_opt *in_opts = NULL, *out_opts = NULL;
 	int r = 0, exit_code = 0;
 
-	kvec_t(samdat_t) R1, R2, RV;
-	samdat_t tmp_samdat;
+	kvec_t(bam1_t) R1, R2, RV;
+	pierCluster_t *pierCluster;
+	//samdat_t tmp_samdat;
+	FILE *fs = fopen("./test.txt","w");
 
 	for (bami = kh_begin(bamNFOp); bami != kh_end(bamNFOp); ++bami) {
 		//printf(">[%d]:\n",bami);
 		if (kh_exist(bamNFOp, bami)) {
 			kv_init(R1); kv_init(R2); kv_init(RV);
-			tmp_samdat = (const samdat_t){ 0 };
+			//tmp_samdat = (const samdat_t){ 0 };
 			//memset(&tmp_samdat,0,sizeof(samdat_t));
 			//printf("-[%d]:\n",bami);
 			BamID = kh_key(bamNFOp, bami);
@@ -157,7 +159,7 @@ int do_grep() {
 					exit_code = 1;
 					break;
 				}*/
-			}
+				}
 /*			r = sam_close(out);   // stdout can only be closed once
 			if (r < 0) {
 				fprintf(stderr, "Error closing output.\n");
@@ -178,6 +180,7 @@ int do_grep() {
 		}
 		//printf("<[%d]:\n",bami);
 	}
+	fclose(fs);
 	getPairedSam(NULL, NULL, NULL, NULL);	// sam_close(fp2);
 	//printf("---[%d]---\n",exit_code);
 	bam_destroy1(bR1); bam_destroy1(bR2); bam_destroy1(bR3);

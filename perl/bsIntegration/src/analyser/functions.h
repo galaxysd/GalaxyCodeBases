@@ -76,3 +76,6 @@ int do_analyse();
 
 int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d);
 int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid);
+pierCluster_t *sam_plp_init();
+void sam_plp_dectroy(pierCluster_t *p);
+int sam_plp_push(int8_t *ChrIsHum, pierCluster_t *pierCluster,  bam1_t *b);
