@@ -61,7 +61,7 @@ sub getticks($$$$$) {
 		my $N = $seq=~tr/Nn//;
 		next if $N > 2*$PEinsertLen*$RefNratioMax;	# strlen is 2*$PEinsertLen
 		my $lc = $seq=~tr/atcg//;
-		next if $lc > 2*$PEinsertLen*$RefMratioMax;
+		next if $lc > 2*$PEinsertLen*$main::RefMratioMax;
 		push @theticks,$pos0;
 	}
 	@theticks = sort {$a<=>$b} @theticks;

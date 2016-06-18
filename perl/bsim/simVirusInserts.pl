@@ -10,7 +10,7 @@ use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
 #use simVirusInsertsOld;	# 只输出100%甲基化的reads（四种碱基的）
 
 my $RefNratioMax = 0.01;	# /Nn/
-my $RefMratioMax = 0.02;	# masked as lower case in *.mfa.gz
+our $RefMratioMax = 0.02;	# masked as lower case in *.mfa.gz
 
 die "Usage: $0 <Host> <Virus> <Outprefix> [ReadLen=90]\n" if @ARGV <3;
 
