@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Data::Dump qw(ddx);
-use Cwd 'abs_path';
+use Cwd qw(abs_path getcwd);
 
 use FindBin 1.51 qw($RealBin);
 use lib "$RealBin";
