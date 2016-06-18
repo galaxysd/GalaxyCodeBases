@@ -31,10 +31,12 @@ close $Virfh;
 $Virstr .= $Virstr;	# circle
 
 open INI,'>',$outp.'.ini' or die $!;
-print INI <<CONTENT;
+my $Refabsf = abs_path($Reff);
+my $Virabsf = abs_path($Virf);
+print INI <<"CONTENT";
 [RefFiles]
-HostRef=/bak/seqdata/genomes/HomoGRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
-VirusRef=/share/users/huxs/work/bsvir/X04615.fa.gz
+HostRef=$Refabsf
+VirusRef=$Virabsf
 
 [Output]
 WorkDir=/share/users/huxs/work/bsvir/bsI
@@ -113,7 +115,7 @@ for my $i (0 .. $#fps) {
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=1\n";
+	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=$i\n";
 }
 close INI;
 
