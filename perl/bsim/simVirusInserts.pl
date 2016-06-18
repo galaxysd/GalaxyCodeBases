@@ -33,6 +33,7 @@ $Virstr .= $Virstr;	# circle
 open INI,'>',$outp.'.ini' or die $!;
 my $Refabsf = abs_path($Reff);
 my $Virabsf = abs_path($Virf);
+my $Cwdabs = abs_path(getcwd());
 print INI <<"CONTENT";
 [RefFiles]
 HostRef=$Refabsf
@@ -40,7 +41,7 @@ VirusRef=$Virabsf
 
 [Output]
 WorkDir=/share/users/huxs/work/bsvir/bsI
-ProjectID=simVir
+ProjectID=$outp
 
 CONTENT
 
@@ -115,7 +116,7 @@ for my $i (0 .. $#fps) {
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=$i\n";
+	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=",$i+1,"\n";
 }
 close INI;
 
