@@ -12,7 +12,7 @@ use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
 my $RefNratioMax = 0.01;	# /Nn/
 our $RefMratioMax = 0.02;	# masked as lower case in *.mfa.gz
 
-die "Usage: $0 <Host> <Virus> <Outprefix> [ReadLen=90]\n" if @ARGV <3;
+die "Usage: $0 <Host> <Virus> <Outprefix> [ReadLen=90]\nInvoke as: mkdir sim90 && cd sim90 && $0 && cd ..\n" if @ARGV <3;
 
 my ($Reff,$Virf,$outp,$ReadLen)=@ARGV;
 $ReadLen = 90 unless defined $ReadLen;
@@ -33,7 +33,7 @@ $Virstr .= $Virstr;	# circle
 open INI,'>',$outp.'.ini' or die $!;
 my $Refabsf = abs_path($Reff);
 my $Virabsf = abs_path($Virf);
-my $Cwdabs = abs_path(getcwd());
+my $Cwdabs = abs_path(getcwd()."/../run");
 print INI <<"CONTENT";
 [RefFiles]
 HostRef=$Refabsf
