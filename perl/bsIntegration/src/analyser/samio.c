@@ -100,36 +100,36 @@ int do_grep() {
 				if (flag && ChrIsHum[c->tid]) {	// Now, skip Virus items.
 					//bam_copy1(bR1, b);
 					flag = 0;	// recycle
-					int enoughMapQ = 0;
+					//int enoughMapQ = 0;
 					//kstring_t ks = { 0, 0, NULL };
-					if (sam_format1(h, b, &ks1) < 0) {
+					/*if (sam_format1(h, b, &ks1) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
-					} else if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
+					} else */if ((c->mtid == c->tid && ChrIsHum[c->tid]) || (ChrIsHum[c->tid] ^ ChrIsHum[c->mtid])) {	// Only grep those mapped on same Human ChrID, or diff species/一方在病毒的情况.
 						//printf(">[%s]\n",ks_str(&ks1));
 						flag |= 1;
 						//tmp_samdat.b = bam_dup1(b);
 						//kv_push(samdat_t,R1,tmp_samdat);
-						if (checkMapQ(ChrIsHum, b, true)) {
+						/*if (checkMapQ(ChrIsHum, b, true)) {
 							++enoughMapQ;
-						}
+						}*/
 					}
 					if (getPairedSam(in, idx, b, d) != 0) {
 						flag &= ~1;
 						continue;
 					} else {
 						flag |= 2;
-						if (checkMapQ(ChrIsHum, d, false)) {
+						/*if (checkMapQ(ChrIsHum, d, false)) {
 							++enoughMapQ;
-						}
+						}*/
 						if (c->flag & BAM_FSECONDARY) {
 							if (getPairedSam(in, idx, d, d2) == 0) {
 								sam_format1(h, d2, &ks3);
 								flag |= 4;
-								if (checkMapQ(ChrIsHum, d2, false)) {
+								/*if (checkMapQ(ChrIsHum, d2, false)) {
 									++enoughMapQ;
-								}
+								}*/
 							}
 						}
 					}
@@ -139,12 +139,12 @@ int do_grep() {
 -[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	177	chr18	48245109	9	40S50M	gi|59585|emb|X04615.1|2000	0	GTTCCGGAGACTCTAAGGCCTCCCGATACAGAGCAGAGGCCACACACACACACACCATGGAATACTATTCAGCCAAAAAAAGGAATTCAA	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:50	AS:i:50	XS:i:46	RG:Z:Fsimout_mB	SA:Z:rgi|59585|emb|X04615.1|,2000,+,50S40M,9,0;	YC:Z:GA	YD:Z:f]
 +[sf95_Ref_48245009_48245108_48245208_Vir_-_2000_2044_R_100_90	113	gi|59585|emb|X04615.1|	2000	60	40S46M4S	chr18	48245109	0	TTTTTTGGCTGAATAGTATTCCATGGTGTGTGTGTGTGTGGCCTCTGCTCTGTATCGGGAGGCCTTAGAGTCTCCGGAACATTGTTGTGT	CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC	NM:i:0	MD:Z:46	AS:i:46	XS:i:27	RG:Z:Fsimout_mB	SA:Z:fchr2,13996555,+,50S40M,0,0;	YC:Z:CT	YD:Z:r]
 */
-					if (sam_format1(h, d, &ks2) < 0) {
+					/*if (sam_format1(h, d, &ks2) < 0) {
 						fprintf(stderr, "Error writing output.\n");
 						exit_code = 1;
 						break;
-					}
-					if (((flag & 3) == 3) && enoughMapQ >= myConfig.samples) {
+					}*/
+					if (((flag & 3) == 3) /*&& enoughMapQ >= myConfig.samples*/) {
 						/*printf(">%d[%s]\n",checkMapQ(ChrIsHum, b, true),ks_str(&ks1));
 						printf("-%d[%s]\n",checkMapQ(ChrIsHum, d, false),ks_str(&ks2));
 						if (flag & 4) {
