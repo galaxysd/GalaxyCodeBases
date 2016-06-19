@@ -429,8 +429,11 @@
 //Function definitions(Part 1)
 	#define __fastcall
 	#define closesocket                                                  close
+	#if defined(PLATFORM_LINUX)
+		#define _fcloseall                                                   fcloseall
+	#endif
 	#define fwprintf_s                                                   fwprintf
-	#define sprintf_s                                                    snprintf
+//	#define sprintf_s                                                    snprintf
 	#define strnlen_s                                                    strnlen
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno

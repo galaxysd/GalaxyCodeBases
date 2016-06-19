@@ -41,6 +41,8 @@ void __fastcall CaptureInit(
 		{
 			if (MBSToWCSString(ErrBuffer, PCAP_ERRBUF_SIZE, wErrBuffer))
 				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, wErrBuffer.c_str(), 0, nullptr, 0);
+			else 
+				PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 			memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
@@ -74,22 +76,6 @@ void __fastcall CaptureInit(
 				{
 					if (pDrive->name != nullptr)
 					{
-/* Old version(2016-05-19)
-						for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
-						{
-							if (*CaptureIter == pDrive->name)
-							{
-								break;
-							}
-							else if (CaptureIter + 1U == PcapRunningList.end())
-							{
-								std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
-								CaptureThread.detach();
-
-								break;
-							}				
-						}
-*/
 						IsFound = true;
 						for (auto CaptureIter:PcapRunningList)
 						{
@@ -100,7 +86,7 @@ void __fastcall CaptureInit(
 							}
 						}
 						
-					//Start a new capture monitor.
+					//Start a capture monitor.
 						if (IsFound)
 						{
 							std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
@@ -262,11 +248,6 @@ void __fastcall CaptureFilterRulesInit(
 			RepeatingItem = true;
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
-				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDR_STRING_MAXSIZE);
-			else 
-*/
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr.ss_family = AF_INET6;
 			((PSOCKADDR_IN6)&SockAddr)->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
@@ -286,11 +267,6 @@ void __fastcall CaptureFilterRulesInit(
 			RepeatingItem = true;
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
-				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDR_STRING_MAXSIZE);
-			else 
-*/
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr.ss_family = AF_INET;
 			((PSOCKADDR_IN)&SockAddr)->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
@@ -383,6 +359,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(Buffer.get(), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		return false;
 	}
@@ -414,6 +392,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
 		return false;
@@ -425,6 +405,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_freecode(&BPF_Code);
 		pcap_close(DeviceHandle);
@@ -460,14 +442,9 @@ DevicesNotSkip:
 			for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
 			{
 				if (*CaptureIter == CaptureDevice)
-				{
 					CaptureIter = PcapRunningList.erase(CaptureIter);
-					if (CaptureIter == PcapRunningList.end())
-						break;
-				}
-				else {
+				else 
 					++CaptureIter;
-				}
 			}
 			CaptureMutex.unlock();
 
@@ -951,35 +928,6 @@ StopLoop:
 ClearOutputPacketListData:
 //Minimum supported system of GetTickCount64 function is Windows Vista.
 #if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-	if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-	{
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
-		{
-		//Mark timeout.
-			if (OutputPacketList.front().ClearPortTime > 0)
-			{
-				if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-						++AlternateSwapList.TimeoutTimes[0];
-					else //UDP
-						++AlternateSwapList.TimeoutTimes[2U];
-				}
-				else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-						++AlternateSwapList.TimeoutTimes[1U];
-					else //UDP
-						++AlternateSwapList.TimeoutTimes[3U];
-				}
-			}
-
-			OutputPacketList.pop_front();
-		}
-	}
-	else {
-*/
 	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
 	{
 	//Mark timeout.

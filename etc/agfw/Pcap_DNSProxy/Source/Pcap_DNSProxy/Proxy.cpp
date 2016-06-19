@@ -20,7 +20,6 @@
 #include "Proxy.h"
 
 /* SOCKS Protocol version 4
-
 ** Client -> Server: TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
@@ -35,7 +34,6 @@
 ** Client <-> Server: Data stream...
 
 * SOCKS Protocol version 4a
-
 ** Client -> Server(1): TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
@@ -51,7 +49,6 @@
 ** Client <-> Server: Data stream...
 
 * SOCKS Protocol version 5
-
 ** Client authentication
 *** Client -> Server(1): Client authentication request
   *  1 bytes: SOCKS version
@@ -120,7 +117,6 @@
 *** TCP connection between client and server must be kept alive until UDP transmission is finished.
 
 * HTTP CONNECT tunnel
-
 ** Client -> Server: HTTP CONNECT method request
   * CONNECT TargetDomain:Port HTTP/version\r\n
   * Host: TargetDomain:Port\r\n
@@ -583,9 +579,7 @@ size_t __fastcall SOCKSTCPRequest(
 	char *OriginalRecv, 
 	const size_t RecvSize)
 {
-//Initialization
-	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+//Initialization(Part 1)
 	SOCKET_DATA TCPSocketData;
 	memset(&TCPSocketData, 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
@@ -642,6 +636,10 @@ size_t __fastcall SOCKSTCPRequest(
 	memset(&Timeout, 0, sizeof(timeval));
 	memset(&ReadFDS, 0, sizeof(fd_set));
 	memset(&WriteFDS, 0, sizeof(fd_set));
+
+//Initialization(Part 2)
+	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 
 //Selection exchange process
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5)
@@ -729,9 +727,7 @@ size_t __fastcall SOCKSUDPRequest(
 	char *OriginalRecv, 
 	const size_t RecvSize)
 {
-//Initialization
-	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+//Initialization(Part 1)
 	SOCKET_DATA TCPSocketData, LocalSocketData, UDPSocketData;
 	memset(&TCPSocketData, 0, sizeof(SOCKET_DATA));
 	memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
@@ -832,6 +828,10 @@ size_t __fastcall SOCKSUDPRequest(
 	memset(&Timeout, 0, sizeof(timeval));
 	memset(&ReadFDS, 0, sizeof(fd_set));
 	memset(&WriteFDS, 0, sizeof(fd_set));
+
+//Initialization(Part 2)
+	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 
 //UDP transmission of standard SOCKS protocol must connect with TCP to server at first.
 	if (!Parameter.SOCKS_UDP_NoHandshake)
@@ -1243,8 +1243,10 @@ bool __fastcall HTTP_CONNECTRequest(
 	{
 		std::wstring wErrBuffer;
 		HTTPString.erase(HTTPString.find("\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
-		MBSToWCSString(HTTPString.c_str(), HTTPString.length(), wErrBuffer);
-		PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, wErrBuffer.c_str(), 0, nullptr, 0);
+		if (!MBSToWCSString(HTTPString.c_str(), HTTPString.length(), wErrBuffer))
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, wErrBuffer.c_str(), 0, nullptr, 0);
 
 		return false;
 	}

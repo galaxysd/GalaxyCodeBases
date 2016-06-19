@@ -446,8 +446,7 @@ bool __fastcall UDPMonitor(
 	}
 
 //Initialization
-	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
-	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]());
+	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]()), SendBuffer(new char[PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	SOCKET_DATA ClientData;
@@ -472,11 +471,6 @@ bool __fastcall UDPMonitor(
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-		else 
-*/
 		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
@@ -494,11 +488,6 @@ bool __fastcall UDPMonitor(
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
@@ -507,11 +496,6 @@ bool __fastcall UDPMonitor(
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
@@ -520,6 +504,7 @@ bool __fastcall UDPMonitor(
 
 	//Reset parameters.
 		memset(RecvBuffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
+		memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 		memcpy_s(&Timeout, sizeof(timeval), &OriginalTimeout, sizeof(timeval));
 		memcpy_s(&ClientData, sizeof(SOCKET_DATA), &LocalSocketData, sizeof(SOCKET_DATA));
 		FD_ZERO(&ReadFDS);
@@ -638,11 +623,6 @@ bool __fastcall TCPMonitor(
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-		else 
-*/
 		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
@@ -660,11 +640,6 @@ bool __fastcall TCPMonitor(
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
@@ -673,11 +648,6 @@ bool __fastcall TCPMonitor(
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
@@ -849,16 +819,13 @@ bool __fastcall TCPReceiveProcess(
 		Packet.Protocol = IPPROTO_TCP;
 
 	//Check DNS query data.
-		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		if (!CheckQueryData(&Packet, SendBuffer.get(), LARGE_PACKET_MAXSIZE, LocalSocketData))
+		char SendBuffer[LARGE_PACKET_MAXSIZE];
+		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
+		if (!CheckQueryData(&Packet, SendBuffer, LARGE_PACKET_MAXSIZE, LocalSocketData))
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 			return false;
-		}
-		else {
-			SendBuffer.reset();
 		}
 		
 	//Main request process
@@ -900,16 +867,8 @@ void __fastcall AlternateServerMonitor(
 		{
 		//Reset TimeoutTimes out of alternate time range.
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= RangeTimer[Index]) || 
-*/
 			if (GetTickCount() >= RangeTimer[Index])
 			{
-/* Old version(2016-05-29)
-				if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-					RangeTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
-				else 
-*/
 				RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
 			if (GetTickCount64() >= RangeTimer[Index])
@@ -924,9 +883,6 @@ void __fastcall AlternateServerMonitor(
 			if (AlternateSwapList.IsSwap[Index])
 			{
 			#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-				if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= SwapTimer[Index]) || 
-*/
 				if (GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
@@ -944,11 +900,6 @@ void __fastcall AlternateServerMonitor(
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
 				#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-					if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-						SwapTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateResetTime);
-					else 
-*/
 					SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
 				#else
 					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
