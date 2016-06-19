@@ -13,7 +13,7 @@ while (<HEAD>) {
 }
 close HEAD;
 
-open(IN,"-|","samtools view -F 256 $in") or die "Error opening $in: $!\n";
+open(IN,"-|","samtools view $in") or die "Error opening $in: $!\n";
 my ($lastid,@Reads);
 while(<IN>) {
 	my @Dat = split /\t/;
