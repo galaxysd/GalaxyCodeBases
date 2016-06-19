@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use IO::Unread;
+#use IO::Unread;
 
 die "Usage: $0 <min MapQ> <min softClip> <in.bam> <out.bam>\n" if @ARGV <3;
 my ($minMAPQ,$minS,$in,$out) = @ARGV;

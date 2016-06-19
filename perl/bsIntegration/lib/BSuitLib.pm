@@ -48,7 +48,7 @@ sub do_pre() {
 			$main::RefConfig->{$main::RefFilesSHA}->{$$ret[0]} = $len;
 			push @ChrIDs,$$ret[0];
 		}
-		$main::RefConfig->{RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
+		$main::RefConfig->{$main::RefFilesSHA}->{VirusChrIDs} = join(',',@ChrIDs);
 		close $FH;
 		$main::RefConfig->write("$main::RootPath/Ref/Ref.ini");
 	} else {
@@ -156,7 +156,7 @@ sub do_grep($) {
 	$WorkINI->{'InsertSizes'} = $main::Config->{'InsertSizes'};
 	my %BamFiles;
 	for my $k (keys %tID) {
-		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/$k.bam";
+		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/P_$k.bam";
 		$BamFiles{$k} = $myBamf;
 	}
 	$WorkINI->{'BamFiles'} = \%BamFiles;
