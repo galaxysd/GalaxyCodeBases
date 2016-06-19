@@ -10,7 +10,6 @@ import re
 import base64
 import json
 import time
-import shutil
 import urlparse
 import urllib
 import pkgutil
@@ -19,10 +18,10 @@ from .pysocks.socks import PROXY_TYPES as _proxy_types
 from .pysocks.sockshandler import SocksiPyHandler
 from .publicsuffix import PublicSuffixList
 
-__version__ = '1.3.1'
+__version__ = '1.4.0'
 __author__ = 'JinnLynn <eatfishlin@gmail.com>'
 __license__ = 'The MIT License'
-__copyright__ = 'Copyright 2013-2015 JinnLynn'
+__copyright__ = 'Copyright 2013-2016 JinnLynn'
 
 __all__ = ['main']
 
@@ -65,17 +64,21 @@ def replace(content, replaces):
 
 
 def parse_args():
+    # 如果某选项同时可以在配置文件和命令行中设定，则必须使default=None
+    # 以避免命令行中即使没指定该参数，也会覆盖配置文件中的值
+    # 原因见parse_config() -> update(name, key, default=None)
     parser = argparse.ArgumentParser(prog='genpac', add_help=False)
     parser.add_argument('-p', '--proxy')
     parser.add_argument('--gfwlist-url', default=None)
     parser.add_argument('--gfwlist-proxy')
     parser.add_argument('--gfwlist-local')
-    parser.add_argument('--update-gfwlist-local', action='store_true')
+    parser.add_argument('--update-gfwlist-local', action='store_true',
+                        default=None)
     parser.add_argument('--gfwlist-disabled', action='store_true',
                         default=None)
     parser.add_argument('--user-rule', action='append')
     parser.add_argument('--user-rule-from', action='append')
-    parser.add_argument('--precise', action='store_true', default=None)
+    parser.add_argument('-P', '--precise', action='store_true', default=None)
     parser.add_argument('-o', '--output')
     parser.add_argument('-c', '--config-from')
     parser.add_argument('-z', '--compress', action='store_true', default=None)
@@ -131,12 +134,12 @@ def parse_config():
             args.output = update('output', 'output')
             args.compress = conv_bool(update('compress', 'compress', False))
             args.precise = conv_bool(update('precise', 'precise', False))
-            if not args.gfwlist_url:
-                args.gfwlist_url = GFWLIST_URL
         except:
             error('read config file fail.', exit=True)
     args.user_rule = list_v(args.user_rule)
     args.user_rule_from = list_v(args.user_rule_from)
+    if not args.gfwlist_url:
+        args.gfwlist_url = GFWLIST_URL
     return args
 
 
@@ -215,7 +218,8 @@ def fetch_gfwlist():
 
     if not content:
         if _cfg.gfwlist_url != '-' or _cfg.gfwlist_local:
-            error('fetch gfwlist fail.', exit=True)
+            error('fetch gfwlist fail. online: {} local: {}'.format(
+                    _cfg.gfwlist_url, _cfg.gfwlist_local), exit=True)
         else:
             gfwlist_from = '-'
 
@@ -243,7 +247,7 @@ def fetch_user_rules():
                 file_rules = fp.read().splitlines()
                 rules.extend(file_rules)
         except:
-            error('read user rule file fail. ', f)
+            error('read user rule file fail. ', f, exit=True)
     return rules
 
 
@@ -331,7 +335,6 @@ def surmise_domain(rule):
 def clear_asterisk(rule):
     if rule.find('*') < 0:
         return rule
-    org_rule = rule
     rule = rule.strip('*')
     rule = rule.replace('/*.', '/')
     rule = re.sub(r'/([a-zA-Z0-9]+)\*\.', '/', rule)
@@ -384,6 +387,9 @@ def get_pac_tpl():
 
 
 def generate():
+    if not _cfg.proxy:
+        error('PAC requires a proxy value, SEE option --proxy.', exit=True)
+
     gfwlist_rules, gfwlist_from, gfwlist_modified = fetch_gfwlist()
     user_rules = fetch_user_rules()
 
@@ -404,8 +410,11 @@ def generate():
 
     if not _cfg.output or _cfg.output == '-':
         return sys.stdout.write(content)
-    with codecs.open(abspath(_cfg.output), 'w', 'utf-8') as fp:
-        fp.write(content)
+    try:
+        with codecs.open(abspath(_cfg.output), 'w', 'utf-8') as fp:
+            fp.write(content)
+    except Exception:
+        error('write output file fail. {}'.format(_cfg.output), exit=True)
 
 
 def main():
