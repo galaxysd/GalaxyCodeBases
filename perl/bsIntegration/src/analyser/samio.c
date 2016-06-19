@@ -101,7 +101,7 @@ int do_grep() {
 				if (flag && ChrIsHum[c->tid]) {	// Now, skip Virus items.
 					//bam_copy1(bR1, b);
 					flag = 0;	// recycle
-					int enoughMapQ = 0;
+					//int enoughMapQ = 0;
 					//kstring_t ks = { 0, 0, NULL };
 					/*if (sam_format1(h, b, &ks1) < 0) {
 						fprintf(stderr, "Error writing output.\n");
@@ -112,18 +112,18 @@ int do_grep() {
 						flag |= 1;
 						//tmp_samdat.b = bam_dup1(b);
 						//kv_push(samdat_t,R1,tmp_samdat);
-						if (checkMapQ(ChrIsHum, b, true)) {
+						/*if (checkMapQ(ChrIsHum, b, true)) {
 							++enoughMapQ;
-						}
+						}*/
 					}
 					if (getPairedSam(in, idx, b, d) != 0) {
 						flag &= ~1;
 						continue;
 					} else {
 						flag |= 2;
-						if (checkMapQ(ChrIsHum, d, false)) {
+						/*if (checkMapQ(ChrIsHum, d, false)) {
 							++enoughMapQ;
-						}
+						}*/
 						/*if (c->flag & BAM_FSECONDARY) {
 							if (getPairedSam(in, idx, d, d2) == 0) {
 								//sam_format1(h, d2, &ks3);
@@ -145,7 +145,7 @@ int do_grep() {
 						exit_code = 1;
 						break;
 					}*/
-					if (((flag & 3) == 3) && enoughMapQ >= myConfig.samples) {
+					if (((flag & 3) == 3) /*&& enoughMapQ >= myConfig.samples*/) {
 						/*printf(">%d[%s]\n",checkMapQ(ChrIsHum, b, true),ks_str(&ks1));
 						printf("-%d[%s]\n",checkMapQ(ChrIsHum, d, false),ks_str(&ks2));
 						if (flag & 4) {
