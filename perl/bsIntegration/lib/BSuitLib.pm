@@ -122,7 +122,7 @@ CMD
 		}
 		$cmd = <<"CMD";
 $RealBin/bin/bamfilter.pl 30 5 $main::RootPath/${main::ProjectID}_aln/$k.bam $main::RootPath/${main::ProjectID}_aln/S_${k}.bam
-samtools sort -l 9 -m 2G $main::RootPath/${main::ProjectID}_aln/S_${k}.bam -T $main::RootPath/${main::ProjectID}_aln/P_${k} -o $main::RootPath/${main::ProjectID}_aln/P_${k}.bam
+samtools sort -l 0 -m 2G $main::RootPath/${main::ProjectID}_aln/S_${k}.bam -T $main::RootPath/${main::ProjectID}_aln/P_${k} -o $main::RootPath/${main::ProjectID}_aln/P_${k}.bam
 samtools index $main::RootPath/${main::ProjectID}_aln/P_${k}.bam
 CMD
 =pod

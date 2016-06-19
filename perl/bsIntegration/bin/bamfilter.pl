@@ -7,7 +7,7 @@ die "Usage: $0 <min MapQ> <min softClip> <in.bam> <out.bam>\n" if @ARGV <3;
 my ($minMAPQ,$minS,$in,$out) = @ARGV;
 
 open(HEAD,"-|","samtools view -H $in") or die "Error opening $in: $!\n";
-open(OUT,"|-","samtools view -bu - >$out") or die "Error opening $out: $!\n";
+open(OUT,"|-","samtools view -b - >$out") or die "Error opening $out: $!\n";
 while (<HEAD>) {
 	print OUT $_;
 }
