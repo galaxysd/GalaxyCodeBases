@@ -17,9 +17,7 @@ open(IN,"-|","samtools view -F 256 $in") or die "Error opening $in: $!\n";
 my ($lastid,@Reads);
 while(<IN>) {
 	my @Dat = split /\t/;
-	if ($lastid and ($lastid eq $Dat[0])) {
-		push @Reads,\@Dat;
-	} elsif ($lastid) {
+	if ($lastid and ($lastid ne $Dat[0])) {
 		my ($flag,$maxSC) = (0,0);
 		for (@Reads) {
 			my $MAPQ = $_->[4];
@@ -39,8 +37,9 @@ while(<IN>) {
 		$lastid = $Dat[0];
 	} else {
 		$lastid = $Dat[0];
-		push @Reads,\@Dat;
+		#push @Reads,\@Dat;
 	}
+	push @Reads,\@Dat;
 }
 
 close IN;
