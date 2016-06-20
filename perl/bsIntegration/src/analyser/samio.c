@@ -29,6 +29,7 @@ int do_grep() {
 	pierCluster_t *pierCluster;
 	//samdat_t tmp_samdat;
 	FILE *fs = fopen("./test.txt","w");
+	uint32_t blockid = 0;
 
 	for (bami = kh_begin(bamNFOp); bami != kh_end(bamNFOp); ++bami) {
 		//printf(">[%d]:\n",bami);
@@ -125,7 +126,7 @@ int do_grep() {
 						}*/
 						if (c->flag & BAM_FSECONDARY) {
 							if (getPairedSam(in, idx, d, d2) == 0) {
-								sam_format1(h, d2, &ks3);
+								//sam_format1(h, d2, &ks3);
 								flag |= 4;
 								/*if (checkMapQ(ChrIsHum, d2, false)) {
 									++enoughMapQ;
@@ -156,11 +157,13 @@ int do_grep() {
 							if ((!ChrIsHum[(d->core).tid]) && (flag & 2)) sam_plp_push(ChrIsHum, pierCluster, d);
 							if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) sam_plp_push(ChrIsHum, pierCluster, d2);
 						} else {
+							++blockid;
 							//print
-							fprintf(fs,"[%s]\nHumRange=%s:%d-%d\n", BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							fprintf(fs,"[%u %s]\nHumRange=%s:%d-%d\n", blockid, BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
 							fprintf(fs,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
 							for (size_t i=0; i<kv_size(pierCluster->Reads);++i) {
 								bam1_t *bi = kv_A(pierCluster->Reads, i);
+								bam_aux_append(bi, "Zc", 'i', sizeof(uint32_t), (uint8_t*)&blockid);
 								if (sam_format1(h, bi, &ks1) < 0) {
 									fprintf(stderr, "Error writing output.\n");
 									exit_code = 1;
