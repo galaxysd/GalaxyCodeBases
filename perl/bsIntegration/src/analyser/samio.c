@@ -32,7 +32,14 @@ int do_grep() {
 	kvec_t(bam1_t) R1, R2, RV;
 	pierCluster_t *pierCluster;
 	//samdat_t tmp_samdat;
-	FILE *fs = fopen("./test.txt","w");
+#ifdef DEBUGa
+	kstr.l = 0;
+	ksprintf(&kstr, "%s/%s_grep/Greped.dump", myConfig.WorkDir, myConfig.ProjectID);
+	FILE *fsdump = fopen(ks_str(&kstr),"w");
+#endif
+	kstr.l = 0;
+	ksprintf(&kstr, "%s/%s_grep/Greped.ini", myConfig.WorkDir, myConfig.ProjectID);
+	FILE *fs = fopen(ks_str(&kstr),"w");
 	uint32_t blockid = 0;
 
 	for (bami = kh_begin(bamNFOp); bami != kh_end(bamNFOp); ++bami) {
@@ -52,10 +59,11 @@ int do_grep() {
 				return EXIT_FAILURE;
 			}
 			h = sam_hdr_read(in);
+			kstr.l = 0;
 			ksprintf(&kstr, "%s/%s_grep/%s.bam", myConfig.WorkDir, myConfig.ProjectID, BamID);
 			out = hts_open(ks_str(&kstr), "wb");
 			if (out == NULL) {
-				fprintf(stderr, "[x]Error opening standard output\n");
+				fprintf(stderr, "[x]Error opening [%s]\n",ks_str(&kstr));
 				return EXIT_FAILURE;
 			}
 			if (sam_hdr_write(out, h) < 0) {
@@ -164,27 +172,33 @@ int do_grep() {
 						} else {
 							++blockid;
 							//print
-							fprintf(fs,"[%u %s]\nHumRange=%s:%d-%d\n", blockid, BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
-							fprintf(fs,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
+#ifdef DEBUGa
+							fprintf(fsdump,"[%u %s]\nHumRange=%s:%d-%d\n", blockid, BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							fprintf(fsdump,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
+#endif
 							for (size_t i=0; i<kv_size(pierCluster->Reads);++i) {
 								bam1_t *bi = kv_A(pierCluster->Reads, i);
 								bam_aux_append(bi, "Zc", 'i', sizeof(uint32_t), (uint8_t*)&blockid);
+#ifdef DEBUGa
 								if (sam_format1(h, bi, &ks1) < 0) {
 									fprintf(stderr, "Error writing output.\n");
 									exit_code = 1;
 									break;
 								} else {
-									fprintf(fs,"%s\n",ks1.s);
-									if (sam_write1(out, h, bi) < 0) {
-										fprintf(stderr, "[x]Error writing output.\n");
-										exit_code = 1;
-										break;
-									}
+									fprintf(fsdump,"%s\n",ks1.s);
+								}
+#endif
+								if (sam_write1(out, h, bi) < 0) {
+									fprintf(stderr, "[x]Error writing output.\n");
+									exit_code = 1;
+									break;
 								}
 							}
-							fprintf(fs,"\n");
+#ifdef DEBUGa
+							fprintf(fsdump,"\n");
 							printf("HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
-							fflush(fs);
+							//fflush(fs);
+#endif
 							sam_plp_dectroy(pierCluster);
 							pierCluster = sam_plp_init();
 						}
@@ -206,13 +220,16 @@ int do_grep() {
 			r = sam_close(in);
 			free(ChrIsHum);
 #ifdef DEBUGa
-			fflush(NULL);
+			//fflush(NULL);
 			//pressAnyKey();
 #endif
 			sam_plp_dectroy(pierCluster);
 			//printf("<[%d]:\n",bami);
 		}
 	}
+#ifdef DEBUGa
+	fclose(fsdump);
+#endif
 	fclose(fs);
 	getPairedSam(NULL, NULL, NULL, NULL);	// sam_close(fp2);
 	//printf("---[%d]---\n",exit_code);
