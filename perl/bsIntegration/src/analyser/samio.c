@@ -15,13 +15,17 @@ int do_grep() {
 	kstring_t ks1 = { 0, 0, NULL };
 	kstring_t ks2 = { 0, 0, NULL };
 	kstring_t ks3 = { 0, 0, NULL };
+	kstring_t kstr = { 0, 0, NULL };
+	//ksprintf(kstr, "%s/%s_grep/", myConfig.WorkDir, myConfig.ProjectID);
+	//const char *filePrefix = strdup(ks_str(kstr));
+	//kputs(myConfig.WorkDir,kstr);
 
 	samFile *in;
 	bam_hdr_t *h;
 	hts_idx_t *idx;
 	bam1_t *b, *d, *d2, *bR1, *bR2, *bR3;
 	bR1 = bam_init1(); bR2 = bam_init1(); bR3 = bam_init1();
-	//htsFile *out;
+	htsFile *out;
 	//hts_opt *in_opts = NULL, *out_opts = NULL;
 	int r = 0, exit_code = 0;
 
@@ -48,7 +52,8 @@ int do_grep() {
 				return EXIT_FAILURE;
 			}
 			h = sam_hdr_read(in);
-/*			out = hts_open("-", "w");
+			ksprintf(&kstr, "%s/%s_grep/%s.bam", myConfig.WorkDir, myConfig.ProjectID, BamID);
+			out = hts_open(ks_str(&kstr), "wb");
 			if (out == NULL) {
 				fprintf(stderr, "[x]Error opening standard output\n");
 				return EXIT_FAILURE;
@@ -57,7 +62,7 @@ int do_grep() {
 				fprintf(stderr, "[!]Error writing output header.\n");
 				exit_code = 1;
 			}
-*/
+
 			int8_t *ChrIsHum;
 			if (h == NULL) {
 				fprintf(stderr, "[x]Couldn't read header for \"%s\"\n", pbam->fileName);
@@ -170,6 +175,11 @@ int do_grep() {
 									break;
 								} else {
 									fprintf(fs,"%s\n",ks1.s);
+									if (sam_write1(out, h, bi) < 0) {
+										fprintf(stderr, "[x]Error writing output.\n");
+										exit_code = 1;
+										break;
+									}
 								}
 							}
 							fprintf(fs,"\n");
@@ -180,19 +190,14 @@ int do_grep() {
 						}
 					}
 				}
-				/*char *qname = bam_get_qname(b);
-				if (sam_write1(out, h, b) < 0) {
-					fprintf(stderr, "[x]Error writing output.\n");
-					exit_code = 1;
-					break;
-				}*/
+				//char *qname = bam_get_qname(b);
 			}
-/*			r = sam_close(out);   // stdout can only be closed once
+			r = sam_close(out);   // stdout can only be closed once
 			if (r < 0) {
 				fprintf(stderr, "Error closing output.\n");
 				exit_code = 1;
 			}
-*/
+
 			hts_idx_destroy(idx);
 			bam_destroy1(b);
 			bam_destroy1(d);
@@ -215,5 +220,7 @@ int do_grep() {
 	ks_release(&ks1);
 	ks_release(&ks2);
 	ks_release(&ks3);
+	ks_release(&kstr);
+	//free((char*)filePrefix);
 	return exit_code;
 }
