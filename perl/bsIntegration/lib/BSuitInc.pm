@@ -440,18 +440,20 @@ sub grepmerge($) {
 		}
 		if ($flag) {
 			push @clipReads,$i;
-			$minLeft = $i->[3] if $minLeft > $i->[3];
+			my $left = $i->[3];
 			if ($cigar[0] =~ /(\d+)S/) {
 				$maxLS = $1 if $maxLS < $1;
+				$left -= $1;
 			}
+			$minLeft = $left if $minLeft > $left;
 		}
 	}
 	return undef unless @clipReads;
-	$minLeft -= $maxLS;
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
+	my (@ReadsCIGAR,%ReadsMPos2Ref);
+print "$minLeft\n";
 	for my $i (@clipReads) {
-		my (@ReadsCIGAR,%ReadsMPos2Ref);
 		my $deltraPos = $i->[3] - $minLeft;
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $pos = $i->[3];
@@ -472,12 +474,9 @@ sub grepmerge($) {
 			} elsif ($2 eq 'M') {
 				$cursorQ += $1;
 				$seqCIGAR .= $2 x $1;
-				for my $i ( ($cursorQ-$1) .. ($cursorQ-1) ) {
-					my $refpos = $pos + $cursorR + $i;
-					# if (exists $ReadsMPos2Ref{$i}) {
-					# 	die $ReadsMPos2Ref{$i},"\t$refpos" if $ReadsMPos2Ref{$i} != $refpos;
-					# }
-					$ReadsMPos2Ref{$i} = $refpos;
+				for my $p ( ($cursorQ-$1) .. ($cursorQ-1) ) {
+					my $refpos = $pos + $cursorR + $p;
+					$ReadsMPos2Ref{$i->[0].$i->[1]}{$p} = $refpos;
 				}
 				$cursorR += $1;
 			} elsif ($2 eq 'I') {
@@ -487,10 +486,19 @@ sub grepmerge($) {
 				$cursorR += $1;
 			} else {die;}
 		}
+		getDeriv("M",$seqCIGAR);
+print "@cigar\t$offset\t@{$i}[0..4]\n$seqCIGAR\n";
+print 'B' x ($offset-$tmp),$i->[9],"\n";
 		push @ReadsCIGAR,$seqCIGAR;
-		print "@cigar\t$offset\n$seqCIGAR\n";
 	}
+print '-' x 75,"\n";
 	#ddx \@ReadsCIGAR;
 }
+sub getDeriv($$) {
+	my ($interest,$str) = @_;
+	my $len = length $str;
+	;
+}
+
 
 1;

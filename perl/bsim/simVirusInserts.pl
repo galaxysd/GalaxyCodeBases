@@ -123,6 +123,8 @@ close INI;
 __END__
 ./simVirusInserts.pl hs_ref_GRCh38.p2_chr18.mfa.gz X04615.fa.gz simout
 
-grep \> *_m*.Ref.fa | sed 's/^simout_m//'|sed 's/.Ref.fa:>/\t/'|sed 's/Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n >simed.lst
+grep -h \> *_m*.Ref.fa | sed 's/^simout_m//'|sed 's/.Ref.fa:>/\t/'|sed 's/Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n >simed.lst
 
 ~/git/toGit/perl/bsim/simVirusInserts.pl ~/nas/Ref/GRCh38_no_alt_analysis_set.fna.gz ~/nas/Ref/HBV.X04615.fa.gz s150 150
+
+grep -h \>Methyl_1_ /nas/RD_12A/gaoshengjie/huxs/sim/sim150/*_m*.Ref.fa |sed 's/^>Methyl_1_//'|sed 's/Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n
