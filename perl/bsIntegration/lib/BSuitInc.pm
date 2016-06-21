@@ -383,4 +383,114 @@ sub warnFileExist(@) {
 }
 # http://perldoc.perl.org/perlfaq4.html#How-do-I-expand-function-calls-in-a-string%3f
 
+=pod
+#define BAM_CIGAR_STR   "MIDNSHP=XB"
+/* bam_cigar_type returns a bit flag with:
+ *   bit 1 set if the cigar operation consumes the query
+ *   bit 2 set if the cigar operation consumes the reference
+ *
+ * For reference, the unobfuscated truth table for this function is:
+ * BAM_CIGAR_TYPE  QUERY  REFERENCE
+ * --------------------------------
+ * BAM_CMATCH      1      1
+ * BAM_CINS        1      0
+ * BAM_CDEL        0      1
+ * BAM_CREF_SKIP   0      1
+ * BAM_CSOFT_CLIP  1      0
+ * BAM_CHARD_CLIP  0      0
+ * BAM_CPAD        0      0
+ * BAM_CEQUAL      1      1
+ * BAM_CDIFF       1      1
+ * BAM_CBACK       0      0
+ * --------------------------------
+ */
+=cut
+sub bam_cigar2rlen($) {
+	my @cigar = $_[0] =~ /(\d+\w)/g;
+	my $pos = 0;
+	for (@cigar) {
+		if (/(\d+)([MDN=X])/) {
+			$pos += $1;
+		}
+	}
+	return $pos;
+}
+sub bam_cigar2qlen($) {
+	my @cigar = $_[0] =~ /(\d+\w)/g;
+	#ddx \@cigar;
+	my $pos = 0;
+	for (@cigar) {
+		#/(\d+)([MIS=X])/ or die $_[0],",$_";
+		if (/(\d+)([MIS=X])/) {
+			$pos += $1;
+		}
+	}
+	return $pos;
+}
+sub grepmerge($) {
+	my ($minLeft,$maxLS,@clipReads)=(5000000000,0);
+	for my $i (@{$_[0]}) {
+		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
+		my $flag = 0;
+		#ddx \@cigar; die $i->[5];
+		for (@cigar) {
+			if (/(\d+)S/) {
+				$flag = 1 if $1 >= $main::minSoftClip;
+			}
+		}
+		if ($flag) {
+			push @clipReads,$i;
+			$minLeft = $i->[3] if $minLeft > $i->[3];
+			if ($cigar[0] =~ /(\d+)S/) {
+				$maxLS = $1 if $maxLS < $1;
+			}
+		}
+	}
+	return undef unless @clipReads;
+	$minLeft -= $maxLS;
+	#ddx \@clipReads;
+	#my (@b2pCIGAR,@b2pDeriv);
+	for my $i (@clipReads) {
+		my (@ReadsCIGAR,%ReadsMPos2Ref);
+		my $deltraPos = $i->[3] - $minLeft;
+		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
+		my $pos = $i->[3];
+		my $offset = $pos - $minLeft;
+		#my $cigar2qlen = bam_cigar2qlen($i->[5]);
+		my ($cursorQ,$cursorR) = (0,0);
+		my $seqCIGAR = 'B' x $offset;
+		#die $offset;
+		for (@cigar) {
+			/(\d+)([MIDNSHP=XB])/ or die;
+			if ($2 eq 'S') {
+				if ($cursorQ == 0) {
+					substr $seqCIGAR,-$1,$1,$2 x $1;
+				} else {
+					$cursorQ += $1;
+					$seqCIGAR .= $2 x $1;
+				}
+			} elsif ($2 eq 'M') {
+				$cursorQ += $1;
+				$seqCIGAR .= $2 x $1;
+				for my $i ( ($cursorQ-$1) .. ($cursorQ-1) ) {
+					my $refpos = $pos + $cursorR + $i;
+					# if (exists $ReadsMPos2Ref{$i}) {
+					# 	die $ReadsMPos2Ref{$i},"\t$refpos" if $ReadsMPos2Ref{$i} != $refpos;
+					# }
+					$ReadsMPos2Ref{$i} = $refpos;
+				}
+				$cursorR += $1;
+			} elsif ($2 eq 'I') {
+				$cursorQ += $1;
+				$seqCIGAR .= $2 x $1;
+			} elsif ($2 eq 'D') {
+				$cursorR += $1;
+			} else {die;}
+		}
+		push @ReadsCIGAR,$seqCIGAR;
+		print "@cigar\t$offset\n$seqCIGAR\n";
+	}
+	#ddx \@ReadsCIGAR;
+}
+
 1;

@@ -165,21 +165,49 @@ sub do_grep($) {
 	}
 	#   "780_T" => { 1 => "780_T.1", 2 => "780_T.2" },
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
-	File::Path::make_path("$main::RootPath/${main::ProjectID}_grep",{verbose => 0,mode => 0755});
-	my $WorkINI = Galaxy::IO::INI->new();
-	$WorkINI->{'Output'} = $main::Config->{'Output'};
-	$WorkINI->{'Ref'} = $main::RefConfig->{$main::RefFilesSHA};
-	$WorkINI->{'InsertSizes'} = $main::Config->{'InsertSizes'};
-	my %BamFiles;
 	for my $k (keys %tID) {
-		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/P_$k.bam";
-		$BamFiles{$k} = $myBamf;
+		my $myBamf = "$main::RootPath/${main::ProjectID}_grep/$k.bam";
+		print "[$myBamf]\n";
+		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
+		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
+		my ($lastgid,@fhReads,@rhReads,,@fvReads,@rvReads);
+		while (<IN>) {
+			chomp;
+			my @dat = split /\t/;
+			/\tZc:i:(\d)+\b/ or die "[x]TAG:Zc:i not found.\n";
+			my $thisGroup = $1;
+			#print $thisGroup,"\t",join("][",@dat),"\n";
+			if ($lastgid and ($lastgid != $thisGroup)) {
+				grepmerge(\@fhReads);
+				grepmerge(\@rhReads);
+				if ($main::GrepMergeBetter) {
+					;
+				}
+				@fhReads=(); @rhReads=();
+				@fvReads=(); @rvReads=();
+				$lastgid = $thisGroup;;
+			} else {
+				$lastgid = $thisGroup;
+			}
+			if (/\bYD:Z:f\b/) {
+				if (/\bZd:Z:H\b/) {
+					push @fhReads,\@dat;
+				} elsif (/\bZd:Z:V\b/) {
+					push @fvReads,\@dat;
+				}
+			} elsif (/\bYD:Z:r\b/) {
+				if (/\bZd:Z:H\b/) {
+					push @rhReads,\@dat;
+				} elsif (/\bZd:Z:V\b/) {
+					push @rvReads,\@dat;
+				}
+			} else {
+				die "[x]";
+			}
+		}
+		close IN;
+		close OUT;
 	}
-	$WorkINI->{'BamFiles'} = \%BamFiles;
-	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
-	my $cli = "$RealBin/bin/bsanalyser -p grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
-	print "[$cli]\n";
-	#system("$cli");
 }
 
 sub do_grep0($) {

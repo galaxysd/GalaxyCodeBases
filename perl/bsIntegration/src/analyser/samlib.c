@@ -200,6 +200,7 @@ int sam_plp_push(int8_t *ChrIsHum, pierCluster_t *pierCluster,  bam1_t *b) {
 	}
 	kv_push(uint8_t,pierCluster->quals,c->qual);
 	kv_push(bam1_t*,pierCluster->Reads,bam_dup1(b));
+	// 如果PE对都在同一簇内，会push两次。所以，应该换成khash来实现，以 QNAME加FLAG 为key。
 	return 0;
 }
 

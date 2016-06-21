@@ -58,6 +58,7 @@ our $DEVELOP = 0;	# chr18 only
 our $DEBUG = 1;
 our $DISABLE_REF_INDEX=0;
 our $FORCE_UNMETH=1;	# Crick/F->G2A, Watson/R->C2T
+our $GrepMergeBetter = 1;
 
 our $idbacmd = '--max_gap 100 --min_region 31 --min_contig 31 --mink 17 --maxk 89 --step 20';
 our $PathPrefix = "PATH=\"$RealBin/bin:\$PATH\";";
