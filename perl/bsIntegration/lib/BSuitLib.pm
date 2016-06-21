@@ -135,6 +135,22 @@ CMD
 =cut
 		print O $cmd;
 	}
+# Grep step0 Begin
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_grep",{verbose => 0,mode => 0755});
+	my $WorkINI = Galaxy::IO::INI->new();
+	$WorkINI->{'Output'} = $main::Config->{'Output'};
+	$WorkINI->{'Ref'} = $main::RefConfig->{$main::RefFilesSHA};
+	$WorkINI->{'InsertSizes'} = $main::Config->{'InsertSizes'};
+	my %BamFiles;
+	for my $k (keys %tID) {
+		my $myBamf = "$main::RootPath/${main::ProjectID}_aln/P_$k.bam";
+		$BamFiles{$k} = $myBamf;
+	}
+	$WorkINI->{'BamFiles'} = \%BamFiles;
+	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
+	my $cli = "$RealBin/bin/bsanalyser -p grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
+	print O "\n$cli\n";
+# Grep step0 End
 	close O;
 	chmod 0755,"$main::RootPath/${main::ProjectID}_aln.sh";
 	warn "[!] Please run [$main::RootPath/${main::ProjectID}_aln.sh] to do the aln.\n"
@@ -161,7 +177,7 @@ sub do_grep($) {
 	}
 	$WorkINI->{'BamFiles'} = \%BamFiles;
 	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
-	my $cli = "$RealBin/bin/bsanalyser grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
+	my $cli = "$RealBin/bin/bsanalyser -p grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
 	print "[$cli]\n";
 	#system("$cli");
 }
