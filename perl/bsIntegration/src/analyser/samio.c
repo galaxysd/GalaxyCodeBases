@@ -165,10 +165,17 @@ int do_grep() {
 							printf("+%d[%s]\n",checkMapQ(ChrIsHum, d2, false),ks_str(&ks3));
 						}
 						printf("<--%d\n",enoughMapQ);*/
+						bam_aux_append(b, "Zd", 'Z', 2, (uint8_t*)"H");
 						if (sam_plp_push(ChrIsHum, pierCluster, b) == 0) {
 							//printf("--HumRange=%s:%d-%d\n", h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
-							if ((!ChrIsHum[(d->core).tid]) && (flag & 2)) sam_plp_push(ChrIsHum, pierCluster, d);
-							if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) sam_plp_push(ChrIsHum, pierCluster, d2);
+							if ((!ChrIsHum[(d->core).tid]) && (flag & 2)) {
+								bam_aux_append(d, "Zd", 'Z', 2, (uint8_t*)"V");
+								sam_plp_push(ChrIsHum, pierCluster, d);
+							}
+							if ((!ChrIsHum[(d2->core).tid]) && (flag & 4)) {
+								bam_aux_append(d2, "Zd", 'Z', 2, (uint8_t*)"V");
+								sam_plp_push(ChrIsHum, pierCluster, d2);
+							}
 						} else {
 							++blockid;
 							//print
