@@ -454,6 +454,7 @@ sub grepmerge($) {
 	my (@ReadsCIGAR,%ReadsMPos2Ref);
 print "$minLeft\n";
 	for my $i (@clipReads) {
+my $tmp = 0;
 		my $deltraPos = $i->[3] - $minLeft;
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $pos = $i->[3];
@@ -467,6 +468,7 @@ print "$minLeft\n";
 			if ($2 eq 'S') {
 				if ($cursorQ == 0) {
 					substr $seqCIGAR,-$1,$1,$2 x $1;
+$tmp = $1;
 				} else {
 					$cursorQ += $1;
 					$seqCIGAR .= $2 x $1;
@@ -486,9 +488,18 @@ print "$minLeft\n";
 				$cursorR += $1;
 			} else {die;}
 		}
-		getDeriv("M",$seqCIGAR);
+		my @Poses = getDeriv("M",$seqCIGAR);
 print "@cigar\t$offset\t@{$i}[0..4]\n$seqCIGAR\n";
 print 'B' x ($offset-$tmp),$i->[9],"\n";
+my $tmpstr = ' ' x length($seqCIGAR);
+for my $p (@Poses) {
+	if ($p>=0) {
+		substr $tmpstr,$p,1,']';
+	} else {
+		substr $tmpstr,-$p,1,'[';
+	}
+}
+print $tmpstr,"\n";
 		push @ReadsCIGAR,$seqCIGAR;
 	}
 print '-' x 75,"\n";
@@ -497,7 +508,21 @@ print '-' x 75,"\n";
 sub getDeriv($$) {
 	my ($interest,$str) = @_;
 	my $len = length $str;
-	;
+	my @interestedPoses;	# define as gap after index, which is from 0. Thus cmp between this & next.
+	for my $i (0 .. $len-2) {
+		my $thischar = substr $str,$i,1;
+		my $nextchar = substr $str,$i+1,1;
+		if ($thischar eq $nextchar) {
+			next;
+		} elsif ($thischar eq $interest) {	# MS -> HV
+			push @interestedPoses,$i;
+		} elsif ($nextchar eq $interest) {	# SM -> VH
+			push @interestedPoses,-($i+1);
+		} else {
+			next;
+		}
+	}
+	return @interestedPoses;
 }
 
 
