@@ -170,7 +170,8 @@ sub do_grep($) {
 		print "[$myBamf]\n";
 		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
 		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
-		my ($lastgid,@fhReads,@rhReads,,@fvReads,@rvReads);
+		my ($lastgid,@hReads,@vReads);
+		my ($fhReads,$rhReads,$fvReads,$rvReads)=(0,0,0,0);	# /\bYD:Z:f\b/
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
@@ -180,41 +181,30 @@ sub do_grep($) {
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
 				if ($main::GrepMergeBetter) {
-					$skipflag = 1 if (@fhReads < 1 or @rhReads < 1);
+					$skipflag = 1 if ($fhReads < 1 or $rhReads < 1);
 				} else {
-					$skipflag = 1 if (@fhReads + @rhReads) < 2;
+					$skipflag = 1 if @hReads < 2;
 				}
 				unless ($skipflag) {
-					my ($PfabsPoses,$PfabsPosesFR) = grepmerge(\@fhReads);
-					my ($PrabsPoses,$PrabsPosesFR) = grepmerge(\@rhReads);
-					my (%absPoses,%absPosesFR);
-					mergehash(\%absPoses,$PfabsPoses);
-					mergehash(\%absPoses,$PrabsPoses);
-					mergehash(\%absPosesFR,$PfabsPosesFR);
-					mergehash(\%absPosesFR,$PrabsPosesFR);
-					ddx (\%absPosesFR,\%absPoses);
+					my ($PabsPoses,$PabsPosesFR) = grepmerge(\@hReads);
+					#my (%absPoses,%absPosesFR);
+					ddx ($PabsPoses,$PabsPosesFR);
 					die;
 				}
-				@fhReads=(); @rhReads=();
-				@fvReads=(); @rvReads=();
+				@hReads=();
+				@vReads=();
 				$lastgid = $thisGroup;;
 			} else {
 				$lastgid = $thisGroup;
 			}
-			if (/\bYD:Z:f\b/) {
-				if (/\bZd:Z:H\b/) {
-					push @fhReads,\@dat;
-				} elsif (/\bZd:Z:V\b/) {
-					push @fvReads,\@dat;
-				}
-			} elsif (/\bYD:Z:r\b/) {
-				if (/\bZd:Z:H\b/) {
-					push @rhReads,\@dat;
-				} elsif (/\bZd:Z:V\b/) {
-					push @rvReads,\@dat;
-				}
-			} else {
-				die "[x]";
+			if (/\bZd:Z:H\b/) {
+				push @hReads,\@dat;
+				if (/\bYD:Z:f\b/) {++$fhReads}
+				else {++$rhReads;}
+			} elsif (/\bZd:Z:V\b/) {
+				push @vReads,\@dat;
+				if (/\bYD:Z:f\b/) {++$fvReads}
+				else {++$rvReads;}
 			}
 		}
 		close IN;
