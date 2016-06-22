@@ -190,7 +190,6 @@ sub do_grep($) {
 				unless ($skipflag) {
 					my ($PabsPoses,$PabsPosesFR) = grepmerge(\@hReads);
 					#my (%absPoses,%absPosesFR);
-					ddx ($PabsPoses,$PabsPosesFR);
 					die;
 				}
 				@hReads=();

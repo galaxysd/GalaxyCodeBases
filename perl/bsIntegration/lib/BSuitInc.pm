@@ -427,6 +427,44 @@ sub bam_cigar2qlen($) {
 	}
 	return $pos;
 }
+sub getSeqCIGAR($$) {
+	my ($minLeft,$i) = @_;
+	my $firstSC=0;
+	my $deltraPos = $i->[3] - $minLeft;
+	my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
+	my $pos = $i->[3];
+	my $offset = $pos - $minLeft;
+	#my $cigar2qlen = bam_cigar2qlen($i->[5]);
+	my ($cursorQ,$cursorR) = (0,0);
+	my $seqCIGAR = 'B' x $offset;
+	#die $offset;
+	for (@cigar) {
+		/(\d+)([MIDNSHP=XB])/ or die;
+		if ($2 eq 'S') {
+			if ($cursorQ == 0) {
+				substr $seqCIGAR,-$1,$1,$2 x $1;
+				$firstSC = $1;
+			} else {
+				$cursorQ += $1;
+				$seqCIGAR .= $2 x $1;
+			}
+		} elsif ($2 eq 'M') {
+			$cursorQ += $1;
+			$seqCIGAR .= $2 x $1;
+			for my $p ( ($cursorQ-$1) .. ($cursorQ-1) ) {
+				my $refpos = $pos + $cursorR + $p;
+				#$ReadsMPos2Ref{$p} = $refpos;
+			}
+			$cursorR += $1;
+		} elsif ($2 eq 'I') {
+			$cursorQ += $1;
+			$seqCIGAR .= $2 x $1;
+		} elsif ($2 eq 'D') {
+			$cursorR += $1;
+		} else {die;}
+	}
+	return ($firstSC,$seqCIGAR);
+}
 sub grepmerge($) {
 my $DEBGUHERE = 1;
 	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
@@ -461,41 +499,9 @@ print " $i->[2]:$i->[3]:$i->[-1]\n" if $DEBGUHERE;
 	my @ReadsCIGAR;
 print "$minLeft\n" if $DEBGUHERE;
 	for my $i (@clipReads) {
-my $tmp = 0;
 		#my %ReadsMPos2Ref;
-		my $deltraPos = $i->[3] - $minLeft;
-		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
-		my $pos = $i->[3];
-		my $offset = $pos - $minLeft;
-		#my $cigar2qlen = bam_cigar2qlen($i->[5]);
-		my ($cursorQ,$cursorR) = (0,0);
-		my $seqCIGAR = 'B' x $offset;
-		#die $offset;
-		for (@cigar) {
-			/(\d+)([MIDNSHP=XB])/ or die;
-			if ($2 eq 'S') {
-				if ($cursorQ == 0) {
-					substr $seqCIGAR,-$1,$1,$2 x $1;
-$tmp = $1;
-				} else {
-					$cursorQ += $1;
-					$seqCIGAR .= $2 x $1;
-				}
-			} elsif ($2 eq 'M') {
-				$cursorQ += $1;
-				$seqCIGAR .= $2 x $1;
-				for my $p ( ($cursorQ-$1) .. ($cursorQ-1) ) {
-					my $refpos = $pos + $cursorR + $p;
-					#$ReadsMPos2Ref{$p} = $refpos;
-				}
-				$cursorR += $1;
-			} elsif ($2 eq 'I') {
-				$cursorQ += $1;
-				$seqCIGAR .= $2 x $1;
-			} elsif ($2 eq 'D') {
-				$cursorR += $1;
-			} else {die;}
-		}
+		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
+		my $offset = $i->[3] - $minLeft;
 		my @Poses = getDeriv("M","B",$seqCIGAR);
 		for (@Poses) {
 			++$relPosesFR{$_};
@@ -515,8 +521,8 @@ if ($DEBGUHERE) {
 			push @absPoses,($minLeft + $_);
 		}
 	}
-	print "@cigar\t$offset\t@{$i}[0..4]; @Poses, @thePoses -> @absPoses\n$seqCIGAR\n";
-	print 'B' x ($offset-$tmp),$i->[9],"\n";
+	print "$i->[5]\t$offset\t@{$i}[0..4]; @Poses, @thePoses -> @absPoses\n$seqCIGAR\n";
+	print 'B' x ($offset-$firstSC),$i->[9],"\n";
 	my $tmpstr = ' ' x length($seqCIGAR);
 	for my $p (@Poses) {
 		if ($p>=0) {
@@ -529,27 +535,47 @@ if ($DEBGUHERE) {
 }
 		push @ReadsCIGAR,$seqCIGAR;
 	}
-print '-' x 75,"\n" if $DEBGUHERE;
-	my (%absPoses,%absPosesFR);
-	for (keys %relPoses) {
-		$absPoses{$minLeft + $_} = $relPoses{$_};
-	}
-	for (keys %relPosesFR) {
-		if ($_ > 0) {
-			$absPosesFR{$_ + $minLeft} = $relPosesFR{$_};
-		} else {
-			$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
+	my @thePosesA = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
+	my $thePos = int($thePosesA[0]);
+	my @usingPoses;
+	for my $p ( ($thePos-$main::posAround) .. ($thePos+$main::posAround) ) {
+		if (exists $relPosesFR{$p}) {
+			push @usingPoses,$p;
+		} elsif (exists $relPosesFR{1-$p}) {
+			push @usingPoses,-$p;
 		}
 	}
-	return (\%absPoses,\%absPosesFR);
+	for my $i (@clipReads) {
+		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
+		for my $p (@usingPoses) {
+			;
+		}
+	}
+print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
+	# my (%absPoses,%absPosesFR);
+	# for (keys %relPoses) {
+	# 	$absPoses{$minLeft + $_} = $relPoses{$_};
+	# }
+	# for (keys %relPosesFR) {
+	# 	if ($_ > 0) {
+	# 		$absPosesFR{$_ + $minLeft} = $relPosesFR{$_};
+	# 	} else {
+	# 		$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
+	# 	}
+	# }
+	# return (\%absPoses,\%absPosesFR);
 }
 sub getDeriv($$$) {
 	my ($interest,$bypass,$str) = @_;
 	my $len = length $str;
+	my $Inserted = 0; # I 与 D 会造成 QSEQ 与 REF 的不同步，必须改成返回两套坐标才行。时间紧迫，先无视。
+	my $Deleted = 0; # 现在的 $seqCIGAR 不含‘D’，在遇到D时会左偏。
 	my @interestedPoses;	# define as gap after index, which is from 0. Thus cmp between this & next.
 	for my $i (0 .. $len-2) {
 		my $thischar = substr $str,$i,1;
 		my $nextchar = substr $str,$i+1,1;
+		#++$Inserted if $thischar eq 'I';
+		#++$Deleted if $thischar eq 'D';
 		if ($thischar eq $nextchar or $thischar=~/[$bypass]/) {
 			next;
 		} elsif ($thischar eq $interest) {	# MS -> HV
