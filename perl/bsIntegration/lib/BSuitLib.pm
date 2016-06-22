@@ -187,6 +187,13 @@ sub do_grep($) {
 				unless ($skipflag) {
 					my ($PfabsPoses,$PfabsPosesFR) = grepmerge(\@fhReads);
 					my ($PrabsPoses,$PrabsPosesFR) = grepmerge(\@rhReads);
+					my (%absPoses,%absPosesFR);
+					mergehash(\%absPoses,$PfabsPoses);
+					mergehash(\%absPoses,$PrabsPoses);
+					mergehash(\%absPosesFR,$PfabsPosesFR);
+					mergehash(\%absPosesFR,$PrabsPosesFR);
+					ddx (\%absPosesFR,\%absPoses);
+					die;
 				}
 				@fhReads=(); @rhReads=();
 				@fvReads=(); @rvReads=();

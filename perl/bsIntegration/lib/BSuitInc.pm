@@ -448,7 +448,7 @@ sub grepmerge($) {
 			$minLeft = $left if $minLeft > $left;
 		}
 	}
-	return undef unless @clipReads;
+	return ([],[]) unless @clipReads;
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
 	my @ReadsCIGAR;
@@ -492,7 +492,7 @@ $tmp = $1;
 		my @Poses = getDeriv("M","B",$seqCIGAR);
 		for (@Poses) {
 			++$relPosesFR{$_};
-			if ($_ > 0) {
+			if ($_ >= 0) {
 				++$relPoses{$_+0.5};
 			} else {
 				++$relPoses{-$_-0.5};
@@ -554,5 +554,17 @@ sub getDeriv($$$) {
 	return @interestedPoses;
 }
 
+sub mergehash($$) {
+	my ($sink,$in) = @_;
+	return unless ref($in);
+	return unless ref($in) eq "HASH";
+	for my $k (keys %{$in}) {
+		if (exists $sink->{$k}) {
+			$sink->{$k} += $in->{$k};
+		} else {
+			$sink->{$k} = $in->{$k};
+		}
+	}
+}
 
 1;
