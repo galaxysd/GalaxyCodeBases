@@ -488,7 +488,7 @@ $tmp = $1;
 				$cursorR += $1;
 			} else {die;}
 		}
-		my @Poses = getDeriv("M",$seqCIGAR);
+		my @Poses = getDeriv("M","B",$seqCIGAR);
 print "@cigar\t$offset\t@{$i}[0..4]\n$seqCIGAR\n";
 print 'B' x ($offset-$tmp),$i->[9],"\n";
 my $tmpstr = ' ' x length($seqCIGAR);
@@ -505,14 +505,14 @@ print $tmpstr,"\n";
 print '-' x 75,"\n";
 	#ddx \@ReadsCIGAR;
 }
-sub getDeriv($$) {
-	my ($interest,$str) = @_;
+sub getDeriv($$$) {
+	my ($interest,$bypass,$str) = @_;
 	my $len = length $str;
 	my @interestedPoses;	# define as gap after index, which is from 0. Thus cmp between this & next.
 	for my $i (0 .. $len-2) {
 		my $thischar = substr $str,$i,1;
 		my $nextchar = substr $str,$i+1,1;
-		if ($thischar eq $nextchar) {
+		if ($thischar eq $nextchar or $thischar=~/[$bypass]/) {
 			next;
 		} elsif ($thischar eq $interest) {	# MS -> HV
 			push @interestedPoses,$i;

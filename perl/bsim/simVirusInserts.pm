@@ -161,7 +161,8 @@ sub dosim($$$) {
 		}
 		my $RawNewSeq = join('',uc $seqR1,lc $seqV,uc $seqR2);
 		my @newSeqs = ($RawNewSeq,$RawNewSeq,$RawNewSeq);
-# 根据 http://www.bioinformatics.babraham.ac.uk/training/Methylation_Course/BS-Seq%20theory%20and%20QC%20lecture.pdf ，bisulfite sequencing 按照回收接头种类分，有三种建库方式。常见的 Directional libraries是OT与OB，PBAT ~ 是CTOT与CTOB，Non-directional ~ 是四种都有。这里模拟的算是Non-directional的。下次有空再分出 Directional 与 PBAT。
+# 根据 http://www.bioinformatics.babraham.ac.uk/training/Methylation_Course/BS-Seq%20theory%20and%20QC%20lecture.{pdf,pptx}，bisulfite sequencing 按照回收接头种类分，有三种建库方式。常见的 Directional libraries是OT与OB，PBAT ~ 是CTOT与CTOB，Non-directional ~ 是四种都有。这里模拟的算是Non-directional的。下次有空再分出 Directional 与 PBAT。
+# 现在已修改为最常见的 Directional 的，即bwa-meth所针对的。
 		$newSeqs[1] =~ tr /Cc/Tt/;	# 100% un-methylation F
 		$newSeqs[2] =~ tr /Gg/Aa/;	# 100% un-methylation R
 		#for my $mt (1 .. $#newSeqs) {	# skip 0, only of 100% un-methylation.
