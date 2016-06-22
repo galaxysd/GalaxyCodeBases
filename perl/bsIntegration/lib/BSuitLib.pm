@@ -175,8 +175,9 @@ sub do_grep($) {
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
-			/\tZc:i:(\d)+\b/ or die "[x]TAG:Zc:i not found.\n";
+			/\tZc:i:(\d+)\b/ or die "[x]TAG:Zc:i not found.\n";
 			my $thisGroup = $1;
+#print "$lastgid <- $thisGroup\n";
 			#print $thisGroup,"\t",join("][",@dat),"\n";
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
@@ -185,6 +186,7 @@ sub do_grep($) {
 				} else {
 					$skipflag = 1 if @hReads < 2;
 				}
+#print "$skipflag $lastgid <- $thisGroup\n";
 				unless ($skipflag) {
 					my ($PabsPoses,$PabsPosesFR) = grepmerge(\@hReads);
 					#my (%absPoses,%absPosesFR);
@@ -193,7 +195,8 @@ sub do_grep($) {
 				}
 				@hReads=();
 				@vReads=();
-				$lastgid = $thisGroup;;
+				$lastgid = $thisGroup;
+				($fhReads,$rhReads,$fvReads,$rvReads)=(0,0,0,0);
 			} else {
 				$lastgid = $thisGroup;
 			}

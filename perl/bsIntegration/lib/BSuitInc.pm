@@ -428,7 +428,8 @@ sub bam_cigar2qlen($) {
 	return $pos;
 }
 sub grepmerge($) {
-	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR)=(5000000000,0);
+my $DEBGUHERE = 1;
+	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
 	for my $i (@{$_[0]}) {
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $flag = 0;
@@ -439,6 +440,12 @@ sub grepmerge($) {
 			}
 		}
 		if ($flag) {
+			unless (defined $chr) {
+				$chr = $i->[2];
+			} else {
+				next if $chr ne $i->[2];
+			}
+print " $i->[2]:$i->[3]:$i->[-1]\n" if $DEBGUHERE;
 			push @clipReads,$i;
 			my $left = $i->[3];
 			if ($cigar[0] =~ /(\d+)S/) {
@@ -452,7 +459,7 @@ sub grepmerge($) {
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
 	my @ReadsCIGAR;
-print "$minLeft\n";
+print "$minLeft\n" if $DEBGUHERE;
 	for my $i (@clipReads) {
 my $tmp = 0;
 		#my %ReadsMPos2Ref;
@@ -498,29 +505,31 @@ $tmp = $1;
 				++$relPoses{-$_-0.5};
 			}
 		}
-my @thePoses = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
-my @absPoses;
-for (@Poses,@thePoses) {
-	if ($_ < 0) {
-		push @absPoses,-($minLeft - $_);
-	} else {
-		push @absPoses,($minLeft + $_);
+if ($DEBGUHERE) {
+	my @thePoses = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
+	my @absPoses;
+	for (@Poses,@thePoses) {
+		if ($_ < 0) {
+			push @absPoses,-($minLeft - $_);
+		} else {
+			push @absPoses,($minLeft + $_);
+		}
 	}
-}
-print "@cigar\t$offset\t@{$i}[0..4]; @Poses, @thePoses -> @absPoses\n$seqCIGAR\n";
-print 'B' x ($offset-$tmp),$i->[9],"\n";
-my $tmpstr = ' ' x length($seqCIGAR);
-for my $p (@Poses) {
-	if ($p>=0) {
-		substr $tmpstr,$p,1,']';
-	} else {
-		substr $tmpstr,-$p,1,'[';
+	print "@cigar\t$offset\t@{$i}[0..4]; @Poses, @thePoses -> @absPoses\n$seqCIGAR\n";
+	print 'B' x ($offset-$tmp),$i->[9],"\n";
+	my $tmpstr = ' ' x length($seqCIGAR);
+	for my $p (@Poses) {
+		if ($p>=0) {
+			substr $tmpstr,$p,1,']';
+		} else {
+			substr $tmpstr,-$p,1,'[';
+		}
 	}
+	print $tmpstr,"\n";
 }
-print $tmpstr,"\n";
 		push @ReadsCIGAR,$seqCIGAR;
 	}
-print '-' x 75,"\n";
+print '-' x 75,"\n" if $DEBGUHERE;
 	my (%absPoses,%absPosesFR);
 	for (keys %relPoses) {
 		$absPoses{$minLeft + $_} = $relPoses{$_};
