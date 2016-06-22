@@ -48,7 +48,9 @@ CONTENT
 my %fqFiles;
 
 my $ShortLen = int(0.5 + $ReadLen/2);
-my $TinyLen = int(10.5 + $ReadLen/20);
+my $TinyLen1 = 5;
+my $TinyLen2 = 10;
+my $TinyLen3 = 20;
 my $LongLen = int(0.5 + $ReadLen*4/3);
 my @PEins = (100,150,200,420);
 @PEins = (150,220,350,500) if $ReadLen > 96;
@@ -73,8 +75,20 @@ dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
 $Para{PEinsertLen} = $PEins[2];
-$Para{VirFrag} = $TinyLen;
-$Para{OutPrefix} = $outp . '_m2Dty';
+$Para{VirFrag} = $TinyLen1;
+$Para{OutPrefix} = $outp . '_m2Dty1';
+dosim($Refstr,$Virstr,\%Para);
+$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+
+$Para{PEinsertLen} = $PEins[2];
+$Para{VirFrag} = $TinyLen2;
+$Para{OutPrefix} = $outp . '_m2Dty2';
+dosim($Refstr,$Virstr,\%Para);
+$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+
+$Para{PEinsertLen} = $PEins[2];
+$Para{VirFrag} = $TinyLen3;
+$Para{OutPrefix} = $outp . '_m2Dty3';
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
