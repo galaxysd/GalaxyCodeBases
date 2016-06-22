@@ -291,7 +291,7 @@ def as_bam(pfile, fa, prefix, calmd=False, set_as_failed=None):
     else:
         cmds = [view + "{bam}.bam"]
 
-    cmds.append("samtools index {bam}.bam")
+    #cmds.append("samtools index {bam}.bam")
     cmds = [c.format(bam=prefix, fa=fa) for c in cmds]
 
     sys.stderr.write("writing to:\n%s\n" % cmds[0])
