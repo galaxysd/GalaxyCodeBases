@@ -428,7 +428,7 @@ sub bam_cigar2qlen($) {
 	return $pos;
 }
 sub grepmerge($) {
-	my ($minLeft,$maxLS,@clipReads)=(5000000000,0);
+	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR)=(5000000000,0);
 	for my $i (@{$_[0]}) {
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $flag = 0;
@@ -451,10 +451,11 @@ sub grepmerge($) {
 	return undef unless @clipReads;
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
-	my (@ReadsCIGAR,%ReadsMPos2Ref);
+	my @ReadsCIGAR;
 print "$minLeft\n";
 	for my $i (@clipReads) {
 my $tmp = 0;
+		#my %ReadsMPos2Ref;
 		my $deltraPos = $i->[3] - $minLeft;
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $pos = $i->[3];
@@ -478,7 +479,7 @@ $tmp = $1;
 				$seqCIGAR .= $2 x $1;
 				for my $p ( ($cursorQ-$1) .. ($cursorQ-1) ) {
 					my $refpos = $pos + $cursorR + $p;
-					$ReadsMPos2Ref{$i->[0].$i->[1]}{$p} = $refpos;
+					#$ReadsMPos2Ref{$p} = $refpos;
 				}
 				$cursorR += $1;
 			} elsif ($2 eq 'I') {
@@ -489,7 +490,24 @@ $tmp = $1;
 			} else {die;}
 		}
 		my @Poses = getDeriv("M","B",$seqCIGAR);
-print "@cigar\t$offset\t@{$i}[0..4]\n$seqCIGAR\n";
+		for (@Poses) {
+			++$relPosesFR{$_};
+			if ($_ > 0) {
+				++$relPoses{$_+0.5};
+			} else {
+				++$relPoses{-$_-0.5};
+			}
+		}
+my @thePoses = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
+my @absPoses;
+for (@Poses,@thePoses) {
+	if ($_ < 0) {
+		push @absPoses,-($minLeft - $_);
+	} else {
+		push @absPoses,($minLeft + $_);
+	}
+}
+print "@cigar\t$offset\t@{$i}[0..4]; @Poses, @thePoses -> @absPoses\n$seqCIGAR\n";
 print 'B' x ($offset-$tmp),$i->[9],"\n";
 my $tmpstr = ' ' x length($seqCIGAR);
 for my $p (@Poses) {
@@ -503,7 +521,18 @@ print $tmpstr,"\n";
 		push @ReadsCIGAR,$seqCIGAR;
 	}
 print '-' x 75,"\n";
-	#ddx \@ReadsCIGAR;
+	my (%absPoses,%absPosesFR);
+	for (keys %relPoses) {
+		$absPoses{$minLeft + $_} = $relPoses{$_};
+	}
+	for (keys %relPosesFR) {
+		if ($_ > 0) {
+			$absPosesFR{$_ + $minLeft} = $relPosesFR{$_};
+		} else {
+			$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
+		}
+	}
+	return (\%absPoses,\%absPosesFR);
 }
 sub getDeriv($$$) {
 	my ($interest,$bypass,$str) = @_;

@@ -178,10 +178,15 @@ sub do_grep($) {
 			my $thisGroup = $1;
 			#print $thisGroup,"\t",join("][",@dat),"\n";
 			if ($lastgid and ($lastgid != $thisGroup)) {
-				grepmerge(\@fhReads);
-				grepmerge(\@rhReads);
+				my $skipflag = 0;
 				if ($main::GrepMergeBetter) {
-					;
+					$skipflag = 1 if (@fhReads < 1 or @rhReads < 1);
+				} else {
+					$skipflag = 1 if (@fhReads + @rhReads) < 2;
+				}
+				unless ($skipflag) {
+					my ($PfabsPoses,$PfabsPosesFR) = grepmerge(\@fhReads);
+					my ($PrabsPoses,$PrabsPosesFR) = grepmerge(\@rhReads);
 				}
 				@fhReads=(); @rhReads=();
 				@fvReads=(); @rvReads=();
