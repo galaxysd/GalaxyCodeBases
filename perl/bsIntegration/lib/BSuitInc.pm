@@ -483,7 +483,7 @@ my $DEBGUHERE = 1;
 			} else {
 				next if $chr ne $i->[2];
 			}
-print " $i->[2]:$i->[3]:$i->[-1]\n" if $DEBGUHERE;
+#print " $i->[2]:$i->[3]:$i->[-1]\n" if $DEBGUHERE;
 			push @clipReads,$i;
 			my $left = $i->[3];
 			if ($cigar[0] =~ /(\d+)S/) {
@@ -545,12 +545,42 @@ if ($DEBGUHERE) {
 			push @usingPoses,-$p;
 		}
 	}
+	my %Bases;
 	for my $i (@clipReads) {
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
+		my $offset = $i->[3] - $minLeft - $firstSC;
 		for my $p (@usingPoses) {
-			;
+			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
+			if (substr($seqCIGAR,abs($p),1) eq 'M') {
+				if ($p > 0 and substr($seqCIGAR,$p+1,1) ne 'M') {	# ]
+					$tmp = substr($seqCIGAR,$p+1);
+					$tmp =~ /^(S+)/;
+					if (defined $1) {
+						$tlen = length $1;
+						$t = $p+1 -$offset;
+						$vseq = substr $i->[9],$t,$tlen;
+						$vqual = substr $i->[10],$t,$tlen;
+					}
+				} elsif ($p < 0 and substr($seqCIGAR,-$p-2,1) ne 'M') {	# [
+					$tmp = substr($seqCIGAR,0,-$p-1);
+					$tmp =~ /(S+)$/;
+					if (defined $1) {
+						$tlen = length $1;
+						$t = -$p-1 - $tlen -$offset;
+						$vseq = substr $i->[9],$t,$tlen;
+						$vqual = substr $i->[10],$t,$tlen;
+					}
+				}
+				if ($vseq) {
+					push @{$Bases{$p}},[$vseq,$vqual];
+				}
+print ">>>$tlen, $tmp, $p\n$vseq\n$vqual\n";
+print substr($seqCIGAR,$p,8),"\n" if $p>0;
+print substr($seqCIGAR,-$p-2,8),"\n" if $p<0;
+			}
 		}
 	}
+	ddx \%Bases;
 print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# my (%absPoses,%absPosesFR);
 	# for (keys %relPoses) {
