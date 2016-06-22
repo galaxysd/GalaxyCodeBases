@@ -120,6 +120,22 @@ sub getype($$) {
 	return $type;
 }
 
+sub base2qual($) {
+	my $len = length $_[0];
+	my $qual;
+	for my $i (0 .. $len-1) {
+		my $base = substr $_[0],$i,1;
+		if ($base=~/[A-Z]/) {
+			$qual .= 'H';
+		} elsif ($base=~/[a-z]/) {
+			$qual .= 'B';
+		} else {
+			die;
+		}
+	}
+	return $qual;
+}
+
 sub dosim($$$) {
 	my ($Refstr,$Virstr,$Paras)=@_;
 	my $PEinsertLen = $Paras->{PEinsertLen};
@@ -148,35 +164,36 @@ sub dosim($$$) {
 # 根据 http://www.bioinformatics.babraham.ac.uk/training/Methylation_Course/BS-Seq%20theory%20and%20QC%20lecture.pdf ，bisulfite sequencing 按照回收接头种类分，有三种建库方式。常见的 Directional libraries是OT与OB，PBAT ~ 是CTOT与CTOB，Non-directional ~ 是四种都有。这里模拟的算是Non-directional的。下次有空再分出 Directional 与 PBAT。
 		$newSeqs[1] =~ tr /Cc/Tt/;	# 100% un-methylation F
 		$newSeqs[2] =~ tr /Gg/Aa/;	# 100% un-methylation R
-		for my $mt (1 .. $#newSeqs) {	# skip 0, only of 100% un-methylation.
-			my $newSeq = $newSeqs[$mt];
-			my $tID = join('_','Methyl',$mt,'Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
-			print O '>',$tID,"\n$newSeq\n\n";
-			my $maxP = length($newSeq) - $PEinsertLen;
+		#for my $mt (1 .. $#newSeqs) {	# skip 0, only of 100% un-methylation.
+		#	my $newSeq = $newSeqs[$mt];
+			my $tID = join('_','Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
+			print O '>',$tID,"\n$RawNewSeq\n\n";
+			my $maxP = length($RawNewSeq) - $PEinsertLen;
 			#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
 			for my $p (0 .. $maxP) {
 				#last if $p > $maxP;
-				my $PE = substr $newSeq,$p,$PEinsertLen;
-				my $R1 = substr $PE,0,$SeqReadLen;
-				my $R2 = substr $PE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
-				my $revR2 = revcom($R2);
-				my $type = getype($R1,$R2);
+				my $fPE = substr $newSeqs[1],$p,$PEinsertLen;
+				my $rPE = revcom(substr $newSeqs[2],$p,$PEinsertLen);
+				my $fR1 = substr $fPE,0,$SeqReadLen;
+				my $fR2 = substr $fPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
+				my $revfR2 = revcom($fR2);
+				my $type = getype($fR1,$fR2);
 				$type = '0' if $p == 0 or $p == $maxP;
 				my ($Part1,$Part2);
-				my $Qual = $type x $SeqReadLen;
 				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,1);
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
-				print R1 "\@sf${p}_${tID}/1 ${Part1} $type\n$R1\n+\n$Qual\n";
-				print R2 "\@sf${p}_${tID}/2 ${Part2} $type\n$revR2\n+\n$Qual\n";
-				my $revR1 = revcom($R1);
+				print R1 "\@sf${p}_${type}_${tID}/1 ${Part1}\n$fR1\n+\n",base2qual($fR1),"\n";
+				print R2 "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revfR2\n+\n",base2qual($revfR2),"\n";
+				my $rR1 = substr $rPE,0,$SeqReadLen;
+				my $rR2 = substr $rPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
+				my $revrR2 = revcom($rR2);
 				$type =~ tr/123456789ABCDEFGH/GDFA5HCE94B728316/;	# 反向后的对应关系
-				$Qual = $type x $SeqReadLen;
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,2);
 				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,1);
-				print R2 "\@sr${p}_${tID}/2 ${Part2} $type\n$revR1\n+\n$Qual\n";
-				print R1 "\@sr${p}_${tID}/1 ${Part1} $type\n$R2\n+\n$Qual\n";
+				print R1 "\@sr${p}_${type}_${tID}/1 ${Part1}\n$rR1\n+\n",base2qual($rR1),"\n";
+				print R2 "\@sr${p}_${type}_${tID}/2 ${Part2}\n$revrR2\n+\n",base2qual($revrR2),"\n";
 			}
-		}
+		#}
 	}
 	close O;
 	close R1; close R2;
