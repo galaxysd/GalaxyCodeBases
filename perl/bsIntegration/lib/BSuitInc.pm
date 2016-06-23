@@ -585,13 +585,21 @@ if ($DEBGUHERE) {
 			if ($vseq and length($vseq) >= $main::minVirLen) {
 				push @{$Bases{$p}},[$vseq,$vqual];
 			}
-print ">>>$tlen, $tmp, $p\n$vseq\n$vqual\n";
-print substr($seqCIGAR,$p,8),"\n" if $p>0;
-print substr($seqCIGAR,-$p-2,8),"\n" if $p<0;
+# print ">>>$tlen, $tmp, $p\n$vseq\n$vqual\n";
+# print substr($seqCIGAR,$p,8),"\n" if $p>0;
+# print substr($seqCIGAR,-$p-2,8),"\n" if $p<0;
 			# }
 		}
 	}
-	ddx \%Bases;
+	my @usabsPoses;
+	for (@usingPoses) {
+		if ($_ > 0) {
+			push @usabsPoses,($_ + $minLeft);
+		} else {
+			push @usabsPoses,($_ - $minLeft);
+		}
+	}
+	ddx \%relPoses,\%relPosesFR,\@usingPoses,\@usabsPoses,\%Bases;
 print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# my (%absPoses,%absPosesFR);
 	# for (keys %relPoses) {
@@ -604,7 +612,7 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# 		$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
 	# 	}
 	# }
-	# return (\%absPoses,\%absPosesFR);
+	return (\@usabsPoses);
 }
 sub getDeriv($$$) {
 	my ($interest,$bypass,$str) = @_;
