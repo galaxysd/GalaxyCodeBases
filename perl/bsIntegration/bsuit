@@ -55,6 +55,7 @@ our $minHostDepth = 10;
 our $minSoftClip = 10;
 our $methly3BaseErrRate = 0.08;
 our $posAround = 3;
+our $minVirLen = 5;
 our $DEVELOP = 0;	# chr18 only
 our $DEBUG = 0;
 our $DISABLE_REF_INDEX=0;
