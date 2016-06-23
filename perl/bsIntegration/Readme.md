@@ -1,3 +1,7 @@
+# Attention
+
+For directional libraries only. PBAT and indirectional libraries are _NOT_ supported.
+
 # Dependencies
 
 `bwa-meth` depends on 

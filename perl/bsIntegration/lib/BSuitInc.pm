@@ -607,29 +607,28 @@ if ($DEBGUHERE) {
 			# }
 		}
 	}
-	my @usabsPoses;
-	for (@usingPoses) {
-		if ($_ > 0) {
-			push @usabsPoses,($_ + $minLeft);
-		} else {
-			push @usabsPoses,($_ - $minLeft);
-		}
-	}
-	ddx \%relPoses,\%relPosesFR,\@usingPoses,\@usabsPoses,\%Bases;
+	ddx \%relPoses,\%relPosesFR,\@usingPoses,\%Bases if $DEBGUHERE;
+	my %Results;
 	for my $p (@usingPoses) {
-		my @theReads;
+		my (@theReads,$absPos);
 		if ($p<0) {
+			$absPos = $p - $minLeft;
 			for (@{$Bases{$p}}) {
 				my $x = reverse $_->[0];
 				my $y = reverse $_->[1];
 				push @theReads,[$x,$y,$_->[2]];
 			}
 		} else {
+			$absPos = $p + $minLeft;
 			@theReads = @{$Bases{$p}};
 		}
-		mergeStr(\@theReads);
+		my $mergstr = mergeStr(\@theReads);
+		$mergstr = reverse $mergstr if $p < 0;
 		#ddx \@theReads;
 		#ddx $Bases{$p};
+		my $depth = @theReads;
+		#print "$p,$depth\t$mergstr\n";
+		$Results{$absPos} = [$depth,$mergstr];
 	}
 print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# my (%absPoses,%absPosesFR);
@@ -643,7 +642,7 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# 		$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
 	# 	}
 	# }
-	return (\@usabsPoses);
+	return (\%Results);
 }
 sub mergeStr($) {
 	my @Strs = @{$_[0]};
@@ -691,8 +690,9 @@ sub mergeStr($) {
 			}
 		}
 		$merged .= $res;
-ddx \%Col,\%ColBp,$res,\@Bps;
+# ddx \%Col,\%ColBp,$res,\@Bps;
 	}
+	return $merged;
 }
 
 sub getDeriv($$$) {

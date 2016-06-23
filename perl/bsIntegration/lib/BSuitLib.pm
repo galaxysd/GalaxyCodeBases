@@ -188,8 +188,8 @@ sub do_grep($) {
 				}
 #print "$skipflag $lastgid <- $thisGroup\n";
 				unless ($skipflag) {
-					my ($PabsPoses,$PabsPosesFR) = grepmerge(\@hReads);
-					#my (%absPoses,%absPosesFR);
+					my $MergedHds = grepmerge(\@hReads);
+					ddx $MergedHds;
 					#die;
 				}
 				@hReads=();
