@@ -559,6 +559,22 @@ if ($DEBGUHERE) {
 	}
 	my %Bases;
 	for my $i (@clipReads) {
+		my ($YC) = grep /^YC:Z:/,@$i;
+		my $mtype;
+		if ($i->[1] & 16) {	# r
+			if ($YC eq 'YC:Z:CT') {
+				$mtype = 'GA';	# R
+			} elsif ($YC eq 'YC:Z:GA') {
+				$mtype = 'CT';	# Y
+			} else {die;}
+		} else {	# f
+			if ($YC eq 'YC:Z:CT') {
+				$mtype = 'CT';
+			} elsif ($YC eq 'YC:Z:GA') {
+				$mtype = 'GA';
+			} else {die;}
+		}
+#print "$mtype $i->[9] $YC\n";
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
 		my $offset = $i->[3] - $minLeft - $firstSC;
 		for my $p (@usingPoses) {
@@ -583,7 +599,7 @@ if ($DEBGUHERE) {
 				}
 			}
 			if ($vseq and length($vseq) >= $main::minVirLen) {
-				push @{$Bases{$p}},[$vseq,$vqual];
+				push @{$Bases{$p}},[$vseq,$vqual,$mtype];
 			}
 # print ">>>$tlen, $tmp, $p\n$vseq\n$vqual\n";
 # print substr($seqCIGAR,$p,8),"\n" if $p>0;
@@ -600,6 +616,21 @@ if ($DEBGUHERE) {
 		}
 	}
 	ddx \%relPoses,\%relPosesFR,\@usingPoses,\@usabsPoses,\%Bases;
+	for my $p (@usingPoses) {
+		my @theReads;
+		if ($p<0) {
+			for (@{$Bases{$p}}) {
+				my $x = reverse $_->[0];
+				my $y = reverse $_->[1];
+				push @theReads,[$x,$y,$_->[2]];
+			}
+		} else {
+			@theReads = @{$Bases{$p}};
+		}
+		mergeStr(\@theReads);
+		ddx \@theReads;
+		ddx $Bases{$p};
+	}
 print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# my (%absPoses,%absPosesFR);
 	# for (keys %relPoses) {
@@ -614,6 +645,31 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# }
 	return (\@usabsPoses);
 }
+sub mergeStr($) {
+	my @Strs = @{$_[0]};
+	my ($maxLen,@Col)=(0);
+	for (@Strs) {
+		my $l = length $_->[0];
+		$maxLen = $l if $maxLen < $l;
+	}
+	for my $p (0 .. ($maxLen-1)) {
+		@Col = ();
+		for (@Strs) {
+			my $str = $_->[0];
+			if ($p < length($str)) {
+				my $c = substr $str,$p,1;
+				if ($_->[2] eq 'CT' and $c eq 'T') {
+					$c = 'Y';
+				} elsif ($_->[2] eq 'GA' and $c eq 'A') {
+					$c = 'R';
+				}
+				push @Col,$c;
+			}
+		}
+print "-> @Col\n";
+	}
+}
+
 sub getDeriv($$$) {
 	my ($interest,$bypass,$str) = @_;
 	my $len = length $str;
