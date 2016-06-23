@@ -536,14 +536,26 @@ if ($DEBGUHERE) {
 		push @ReadsCIGAR,$seqCIGAR;
 	}
 	my @thePosesA = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
-	my $thePos = int($thePosesA[0]);
+	my $thePos = int($thePosesA[0]);	# $thePos = $thePosesA[0] - 0.5
 	my @usingPoses;
-	for my $p ( ($thePos-$main::posAround) .. ($thePos+$main::posAround) ) {
-		if (exists $relPosesFR{$p}) {
-			push @usingPoses,$p;
-		} elsif (exists $relPosesFR{1-$p}) {
-			push @usingPoses,-$p;
-		}
+	push @usingPoses,$thePos if exists $relPosesFR{$thePos};
+	push @usingPoses,-1-$thePos if exists $relPosesFR{-1-$thePos};
+	if (@usingPoses == 1) {	# 先找最值处的']'&'['，若没有成对，再在对侧找成对的。只提最近的取一对。
+		if ($usingPoses[0] < 0) {
+			for my $p ( ($thePos-$main::posAround) .. ($thePos-1) ) {
+				if (exists $relPosesFR{$p}) {
+					push @usingPoses,$p;
+				}
+			}
+			@usingPoses = @usingPoses[0,-1] if @usingPoses > 2;
+		} elsif ($usingPoses[0] > 0) {
+			for my $p ( ($thePos+1) .. ($thePos+$main::posAround+1) ) {
+				if (exists $relPosesFR{-1-$p}) {
+					push @usingPoses,-1-$p;
+				}
+			}
+			@usingPoses = @usingPoses[0,1] if @usingPoses > 2;
+		}	# 坐标需要核实下。
 	}
 	my %Bases;
 	for my $i (@clipReads) {
