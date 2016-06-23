@@ -542,7 +542,7 @@ if ($DEBGUHERE) {
 	push @usingPoses,-1-$thePos if exists $relPosesFR{-1-$thePos};
 	if (@usingPoses == 1) {	# 先找最值处的']'&'['，若没有成对，再在对侧找成对的。只提最近的取一对。
 		if ($usingPoses[0] < 0) {
-			for my $p ( ($thePos-$main::posAround) .. ($thePos-1) ) {
+			for my $p ( ($thePos-$main::posAround) .. $thePos ) {
 				if (exists $relPosesFR{$p}) {
 					push @usingPoses,$p;
 				}
@@ -550,12 +550,12 @@ if ($DEBGUHERE) {
 			@usingPoses = @usingPoses[0,-1] if @usingPoses > 2;
 		} elsif ($usingPoses[0] > 0) {
 			for my $p ( ($thePos+1) .. ($thePos+$main::posAround+1) ) {
-				if (exists $relPosesFR{-1-$p}) {
-					push @usingPoses,-1-$p;
+				if (exists $relPosesFR{-$p}) {
+					push @usingPoses,-$p;
 				}
 			}
 			@usingPoses = @usingPoses[0,1] if @usingPoses > 2;
-		}	# 坐标需要核实下。
+		}	# 坐标需要核实下。done.
 	}
 	my %Bases;
 	for my $i (@clipReads) {
