@@ -24,6 +24,7 @@ use lib "$RealBin/lib";
 
 require BSuitLib;
 use Galaxy::IO::INI;
+use Galaxy::Data;
 use Data::Dump qw(ddx);
 
 my %Cmd2Fun = (
@@ -81,7 +82,7 @@ our $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
 our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
 
 our $RefConfig = Galaxy::IO::INI->new();
-our (%RefChrIDs,%VirusChrIDs);
+our (%RefChrIDs,%VirusChrIDs,%Qual2LgP);
 if ($cmd ne 'prepare') {
 	if ( -f "$RootPath/Ref/Ref.ini" ) {
 		$RefConfig->read("$RootPath/Ref/Ref.ini");
@@ -92,6 +93,19 @@ if ($cmd ne 'prepare') {
 		$RefChrIDs{$_} = $RefConfig->{$RefFilesSHA}->{$_};
 	}
 	$VirusChrIDs{$_} = $RefConfig->{$RefFilesSHA}->{$_} for @VirusChrID;
+
+	for my $q (1 .. 40) {
+		my $qchr = chr(33 + $q);
+		my $err = 10 ** (-$q/10);
+		my $p = 1 - $err;
+		my $lgp = log($p)/log(10);
+		my $lgtq = log($err/3)/log(10);
+		my $lgbp = log($p/2)/log(10);
+		my $lgbq = log($err/2)/log(10);
+		my ($v1,$v2,$v3,$v4) = (-10*$lgp, -10*$lgtq, -10*$lgbp, -10*$lgbq);
+		$Qual2LgP{$qchr} = [$q, $v1-$v2, $v2, $v3, $v4];
+	}
+	#ddx \%Qual2LgP;
 }
 
 $Cmd2Fun{$cmd}($cfgfile);	# If use `do $Cmd2Fun{$cmd}();`, the sub MUST return 1;

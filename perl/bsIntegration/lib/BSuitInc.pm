@@ -628,8 +628,8 @@ if ($DEBGUHERE) {
 			@theReads = @{$Bases{$p}};
 		}
 		mergeStr(\@theReads);
-		ddx \@theReads;
-		ddx $Bases{$p};
+		#ddx \@theReads;
+		#ddx $Bases{$p};
 	}
 print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# my (%absPoses,%absPosesFR);
@@ -647,26 +647,51 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 }
 sub mergeStr($) {
 	my @Strs = @{$_[0]};
-	my ($maxLen,@Col)=(0);
+	my ($maxLen,$merged)=(0);
 	for (@Strs) {
 		my $l = length $_->[0];
 		$maxLen = $l if $maxLen < $l;
 	}
 	for my $p (0 .. ($maxLen-1)) {
-		@Col = ();
+		my (%Col,%ColBp) = ();
 		for (@Strs) {
 			my $str = $_->[0];
+			my $qual = $_->[1];
 			if ($p < length($str)) {
 				my $c = substr $str,$p,1;
+				my $q = substr $qual,$p,1;
 				if ($_->[2] eq 'CT' and $c eq 'T') {
 					$c = 'Y';
 				} elsif ($_->[2] eq 'GA' and $c eq 'A') {
 					$c = 'R';
 				}
-				push @Col,$c;
+				++$ColBp{$c};
+				if ($c eq 'Y') {	# CT
+					$Col{$_} += $main::Qual2LgP{$q}->[4] for qw(G A);
+					$Col{$_} += $main::Qual2LgP{$q}->[3] for qw(C T);
+				} elsif ($c eq 'R') {	# GA
+					$Col{$_} += $main::Qual2LgP{$q}->[4] for qw(C T);
+					$Col{$_} += $main::Qual2LgP{$q}->[3] for qw(G A);
+				} else {
+					$Col{$_} += $main::Qual2LgP{$q}->[2] for qw(A T C G);
+					$Col{$c} += $main::Qual2LgP{$q}->[1];
+				}
 			}
 		}
-print "-> @Col\n";
+		my ($res,@Bps);
+		if (keys(%ColBp)==1) {
+			$res = (keys(%ColBp))[0];
+		} else {
+			@Bps = sort { $Col{$a} <=> $Col{$b} } keys %Col;	# choose the smaller one.
+			if ( $Col{$Bps[1]} - $Col{$Bps[0]} < 0.02 ) {	# q=3时，-10*($lgbp-$lgbq)=0.020624399283,最小。
+				my @t = sort { $a cmp $b } @Bps[0,1];
+				$res = $REV_IUB{$t[0].$t[1]};
+			} else {
+				$res = $Bps[0];
+			}
+		}
+		$merged .= $res;
+ddx \%Col,\%ColBp,$res,\@Bps;
 	}
 }
 
