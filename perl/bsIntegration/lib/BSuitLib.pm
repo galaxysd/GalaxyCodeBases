@@ -190,7 +190,17 @@ sub do_grep($) {
 				unless ($skipflag) {
 					my $MergedHds = grepmerge(\@hReads);
 					#ddx $MergedHds;
-					print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
+					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
+					if (@Keys == 1) {
+						if ($Keys[0] > 0) {
+							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N'),"\n";
+						} else {
+							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}}),"\n";
+						}
+					} elsif (@Keys == 2) {
+						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}}),"\n";
+					}
+					#print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
 					#die;
 				}
 				@hReads=();
