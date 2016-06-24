@@ -591,7 +591,7 @@ if ($DEBGUHERE) {
 		my $offset = $i->[3] - $minLeft - $firstSC;
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
-			if ($p > 0) {	# M]S
+			if ($p > 0 and $p < length($seqCIGAR)) {	# M]S
 				$tmp = substr($seqCIGAR,$p+1) or next;
 				# unless ($tmp) {
 				# 	ddx $i;
@@ -608,7 +608,7 @@ if ($DEBGUHERE) {
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
 				}
-			} else {	# S[M
+			} elsif ($p < 0 and (-$p-1) < length($seqCIGAR)) {	# S[M
 				$tmp = substr($seqCIGAR,0,-$p-1) or next;
 				$tmp =~ /(S+)$/;
 				if (defined $1) {
