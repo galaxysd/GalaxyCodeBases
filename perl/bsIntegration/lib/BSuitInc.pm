@@ -581,6 +581,9 @@ if ($DEBGUHERE) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
 			if ($p > 0) {	# M]S
 				$tmp = substr($seqCIGAR,$p+1);
+				unless ($tmp) {
+					ddx $i;
+				}
 				$tmp =~ /^(S+)/;
 				if (defined $1) {
 					$tlen = length $1;
@@ -589,7 +592,7 @@ if ($DEBGUHERE) {
 					$vqual = substr $i->[10],$t,$tlen;
 				}
 			} else {	# S[M
-				$tmp = substr($seqCIGAR,0,-$p-1);
+				$tmp = substr($seqCIGAR,0,-$p-1) or next;
 				$tmp =~ /(S+)$/;
 				if (defined $1) {
 					$tlen = length $1;
