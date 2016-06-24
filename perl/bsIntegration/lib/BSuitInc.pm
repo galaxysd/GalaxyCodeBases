@@ -547,14 +547,26 @@ if ($DEBGUHERE) {
 					push @usingPoses,$p;
 				}
 			}
-			@usingPoses = @usingPoses[0,-1] if @usingPoses > 2;
+			#@usingPoses = @usingPoses[0,-1] if @usingPoses > 2;
+			if (@usingPoses > 2) {
+				my @t = @usingPoses;
+				shift @t;
+				@t = sort {$relPosesFR{$b} <=> $relPosesFR{$a} || $b <=> $a } @t;
+				@usingPoses = ($usingPoses[0],$t[0]);
+			}
 		} elsif ($usingPoses[0] > 0) {
 			for my $p ( ($thePos+1) .. ($thePos+$main::posAround+1) ) {
 				if (exists $relPosesFR{-$p}) {
 					push @usingPoses,-$p;
 				}
 			}
-			@usingPoses = @usingPoses[0,1] if @usingPoses > 2;
+			#@usingPoses = @usingPoses[0,1] if @usingPoses > 2;
+			if (@usingPoses > 2) {
+				my @t = @usingPoses;
+				shift @t;
+				@t = sort {$relPosesFR{$b} <=> $relPosesFR{$a} || $a <=> $b } @t;
+				@usingPoses = ($usingPoses[0],$t[0]);
+			}
 		}	# 坐标需要核实下。done.
 	}
 	my %Bases;
