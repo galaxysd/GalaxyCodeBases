@@ -580,10 +580,15 @@ if ($DEBGUHERE) {
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
 			if ($p > 0) {	# M]S
-				$tmp = substr($seqCIGAR,$p+1);
-				unless ($tmp) {
-					ddx $i;
-				}
+				$tmp = substr($seqCIGAR,$p+1) or next;
+				# unless ($tmp) {
+				# 	ddx $i;
+				# }
+=pod
+11860 sf340_A_Ref_61780248_61780667_61781087_Vir_+_701_820_R_420_90   99      chr1    61780588        60      83M7S   =       61780798        300
+11861 sf450_F_Ref_61780248_61780667_61781087_Vir_+_701_820_R_420_90   609     chr1    61780588        0       53S37M  =       61780908        410	Fs90_m458AE.bam，原因不明。MapQ＝0.
+11862 sf10_1_Ref_61780248_61780667_61781087_Vir_+_701_820_R_420_90    147     chr1    61780588        60      83M7S   =       61780258        -413
+=cut
 				$tmp =~ /^(S+)/;
 				if (defined $1) {
 					$tlen = length $1;
