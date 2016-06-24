@@ -201,13 +201,17 @@ sub do_grep($) {
 				$lastgid = $thisGroup;
 			}
 			if (/\bZd:Z:H\b/) {
-				push @hReads,\@dat;
-				if (/\bYD:Z:f\b/) {++$fhReads}
-				else {++$rhReads;}
+				if ($dat[5] !~ /[IDH]/) {	# ignore [IDH] until 我有空写好 getDeriv()。
+					push @hReads,\@dat;
+					if (/\bYD:Z:f\b/) {++$fhReads}
+					else {++$rhReads;}
+				}
 			} elsif (/\bZd:Z:V\b/) {
-				push @vReads,\@dat;
-				if (/\bYD:Z:f\b/) {++$fvReads}
-				else {++$rvReads;}
+				if ($dat[5] !~ /[IDH]/) {
+					push @vReads,\@dat;
+					if (/\bYD:Z:f\b/) {++$fvReads}
+					else {++$rvReads;}
+				}
 			}
 		}
 		close IN;
