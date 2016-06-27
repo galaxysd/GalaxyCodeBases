@@ -468,6 +468,7 @@ sub getSeqCIGAR($$) {
 sub grepmerge($) {
 my $DEBGUHERE = 0;
 	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
+	my %Results;
 	for my $i (@{$_[0]}) {
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $flag = 0;
@@ -493,7 +494,7 @@ my $DEBGUHERE = 0;
 			$minLeft = $left if $minLeft > $left;
 		}
 	}
-	return ([],[]) unless @clipReads;
+	return \%Results unless @clipReads;
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
 	my @ReadsCIGAR;
@@ -628,7 +629,7 @@ if ($DEBGUHERE) {
 		}
 	}
 	ddx \%relPoses,\%relPosesFR,\@usingPoses,\%Bases if $DEBGUHERE;
-	my %Results;
+	#my %Results;
 	for my $p (@usingPoses) {
 		my (@theReads,$absPos);
 		if ($p<0) {
