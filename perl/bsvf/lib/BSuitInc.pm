@@ -297,23 +297,49 @@ sub getmax($$$) { # 废弃 {
 	return [$mv,$mi,$mj];
 }
 
-sub doAln($$) {
-	my ($ref,$query) = @_;
-	my  $pid = open2( \*READER, \*WRITER, "$RealBin/bin/alnmethly" );
-	WRITER->autoflush(); # default here, actually
-	my @Dat = ($query,revcom($query));
-	my $toAln = join("\n", @Dat, $ref);
-	print "[$toAln]\n";
-	print WRITER $toAln,"\n";
-	my %Result;
-	while(<READER>) {
-		chomp;
-		if (/^Path(\d): ([IDMmR]+),(\d+)$/) {
-			#print "[$_] [$1] [$2] [$3]\n";
-			$Result{$1} = [$2,$3];
+sub getMaxM(@) {
+	my %Dat;
+	for my $c (@_) {
+		my @cigar = $c =~ /(\d+)(\w)/g;
+		my $maxM = 0;
+		while (@cigar) {
+			my ($len,$op) = splice(@cigar,0,2);
+			if ($op eq 'M') {
+				$maxM = $len if $maxM < $len;
+			}
 		}
+		push @{$Dat{$maxM}},$c;
 	}
-	ddx \%Result;
+	my @keys = sort { $b <=> $a } keys %Dat;
+	return $Dat{$keys[0]};
+}
+sub doAln($$$) {
+	my ($refile,$query,$dir) = @_;
+	#my  $pid = open2( \*READER, \*WRITER, "$RealBin/bin/needle" );
+	#WRITER->autoflush(); # default here, actually
+	my $str = "$RealBin/bin/water $refile <(echo $query) -scircular2 -gapopen 10 -gapextend 0.5 stdout -aformat3 sam";
+	my $revstr = "$RealBin/bin/water $refile <(echo $query) -sreverse1 -scircular2 -gapopen 10 -gapextend 0.5 stdout -aformat3 sam";
+	#print "[$str]\n";
+	#print WRITER $toAln,"\n";
+	my %Result;
+	my @Ret = `bash -c \'$str\' 2>/dev/null`;
+	my @tmp = split /\t/,$Ret[2];	# 没空，认为第一个结果最好。
+	$tmp[0] = '+';
+	push @{$Result{$tmp[5]}},[@tmp];
+	@Ret = `bash -c \'$revstr\' 2>/dev/null`;
+	@tmp = split /\t/,$Ret[2];
+	$tmp[0] = '-';
+	push @{$Result{$tmp[5]}},[@tmp];
+	#ddx \%Result;
+	my $t = getMaxM(keys %Result);
+	my $k = $t->[0]; # 先就按一个来了。
+	my $ret;
+	#if ($dir == 1) {	# 不考虑
+		if ($k =~ /(\d+)M/ and $1 > 4) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
+			$ret = [$Result{$k}->[0][0],$Result{$k}->[0][3]];	# 假设病毒只有一根，而且比对没hard-clip。读通时右端的人的序列无视。
+		}
+	#}
+	return $ret;
 }
 
 sub mergeAln($$) {
