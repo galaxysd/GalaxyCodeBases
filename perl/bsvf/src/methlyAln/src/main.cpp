@@ -27,15 +27,15 @@ int main (int argc, char** argv){
 	double start_time = timing;
 	
 	bio::global_alignment galnF (2, -3, -5, -2, 1, true);
-	//bio::global_alignment galnR (2, -3, -5, -2, 1, false);
+	bio::global_alignment galnR (2, -3, -5, -2, 1, false);
 	galnF.set_alignment_type(1);
-	//galnR.set_alignment_type(1);
+	galnR.set_alignment_type(1);
 
 	galnF (s0, s1);
 	std::cout << "Path1: " << galnF.path() << "\n";
 
-	//galnR (s0, s2);
-	//std::cout << "Path2: " << galnR.path() << "\n";
+	galnR (s0, s2);
+	std::cout << "Path2: " << galnR.path() << "\n";
 
 	std::cout << "s0: " << s0 << "\ns1: " << s1 << "\n";//s2: " << s2 << "\n";
 

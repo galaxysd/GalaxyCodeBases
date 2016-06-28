@@ -297,6 +297,25 @@ sub getmax($$$) { # 废弃 {
 	return [$mv,$mi,$mj];
 }
 
+sub doAln($$) {
+	my ($ref,$query) = @_;
+	my  $pid = open2( \*READER, \*WRITER, "$RealBin/bin/alnmethly" );
+	WRITER->autoflush(); # default here, actually
+	my @Dat = ($query,revcom($query));
+	my $toAln = join("\n", @Dat, $ref);
+	print "[$toAln]\n";
+	print WRITER $toAln,"\n";
+	my %Result;
+	while(<READER>) {
+		chomp;
+		if (/^Path(\d): ([IDMmR]+),(\d+)$/) {
+			#print "[$_] [$1] [$2] [$3]\n";
+			$Result{$1} = [$2,$3];
+		}
+	}
+	ddx \%Result;
+}
+
 sub mergeAln($$) {
 	my ($ref,$query) = @_;
 	my  $pid = open2( \*READER, \*WRITER, "$RealBin/bin/alnmethly" );

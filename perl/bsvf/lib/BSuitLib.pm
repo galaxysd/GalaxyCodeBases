@@ -423,6 +423,37 @@ sub do_analyse {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
+	File::Path::make_path("$main::RootPath/${main::ProjectID}_analyse",{verbose => 0,mode => 0755});
+	my @retVirus;
+	my $FH = openfile($main::Config->{'RefFiles'}->{'VirusRef'});
+	while (my $ret = FastaReadNext($FH)) {
+		push @retVirus,$ret;
+	}
+	close $FH;
+	for my $k (keys %tID) {
+		my $myGrepf = "$main::RootPath/${main::ProjectID}_grep/$k.bam.grep";
+		print "[$myGrepf]\n";
+		my $outf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
+		open IN,'<',$myGrepf or die;
+		open OUT,'>',$outf or die;
+		while (<IN>) {
+			chomp;
+			my @LineDat = split /\t/,$_;
+			ddx \@LineDat;
+			my $query = @LineDat[5,7];
+			doAln($retVirus[0],$LineDat[5]);	# 时间有限，病毒只支持第一条染色体
+			#doAln($retVirus[0],$LineDat[7]);
+		}
+	}
+}
+
+sub do_analyse0 {
+	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
+	my (%tID,%tFH);
+	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
 	my %ReadsIndex;
 	for my $k (keys %tID) {
 		my $GrepResult = "$main::RootPath/${main::ProjectID}_grep/$k.sam";
