@@ -1,11 +1,11 @@
 # BSVF
 Bisulfite Sequencing Virus integration Finder
 
-# Attention
+## Attention
 
 For directional libraries only. PBAT and indirectional libraries are _NOT_ supported.
 
-# Dependencies
+## Dependencies
 
 `bwa-meth` depends on 
 
@@ -20,22 +20,21 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
  + bwa mem from: https://github.com/lh3/bwa
 
- + IDBA-Hybrid from: https://github.com/loneknightpy/idba
+ + EMBOSS from: http://emboss.sourceforge.net/
 
-# Install
+## Install
 
 You'll need to download the binary from above sites. And put `idba_hybrid` in to `./bin`. Then run `pip install toolshed`.
 
 Your `bsIntegration/bin/` should be like this:
 ````bash
--rwxr-xr-x   20800 Feb 20 00:32 alnmethly
 -rwxr-xr-x  398860 Feb 20 00:48 bwa
 -rwxr-xr-x   21892 Sep  1 08:37 bwameth.py
--rwxr-xr-x 1372804 Feb 20 01:14 idba_hybrid
+-rwxr-xr-x   27040 Feb 20 01:14 water
 -rwxr-xr-x  971772 Feb 20 00:48 samtools
 ````
 
-# Usage
+## Usage
 
 ```
 ./bsuit <command> <config_file>
@@ -46,12 +45,16 @@ Your `bsIntegration/bin/` should be like this:
 ./bsuit analyse prj.ini
 ```
 
-# Reference Files
+## Reference Files
 
  * Human: <ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz>
  * HBV: [gi|59585|emb|X04615.1| Hepatitis B virus genome, subtype ayr](http://www.ncbi.nlm.nih.gov/nuccore/X04615.1?report=GenBank)
 
-## GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
+## Simulation
+
+    ./simVirusInserts.pl GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz HBV.X04615.fa sim150 150
+
+### GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz
 
 A gzipped file that contains FASTA format sequences for the [following](ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/README_analysis_sets.txt):
 
@@ -70,9 +73,9 @@ A gzipped file that contains FASTA format sequences for the [following](ftp://ft
    included in the analysis set as a sink for alignment of reads that
    are often present in sequencing samples.
 
-# Format of `config_file`
+## Format of `config_file`
 
-## An example
+### An example
 
 ```ini
 [RefFiles]
@@ -103,7 +106,7 @@ WorkDir=/share/work/bsvir/bsI
 ProjectID=SZ2015
 ```
 
-# Build
+## Build
 
 You'll need `cmake` and `autoconf, automake` and devel-libs, as well as `gcc, g++` to compile all sources.
 
@@ -123,7 +126,7 @@ cd src
 pip install toolshed
 ```
 
-## Details
+### Details
 
  + For comment lines, use `;` as the first character.
 
@@ -142,22 +145,22 @@ pip install toolshed
    - `WorkDir` is the output directory.
    - `ProjectID` is an **unique ID** for this analyse defined in the `config_file`.
 
-# Description
+## Description
 
 **BSuit** is a suit to analyse xxx.
 
-## 代码说明
+### 代码说明
 
 * 所有输出文件都在`Output.WorkDir`下。
 * 无印的`.bam` 是后续分析目前使用的。
 * `.sn.bam` 是 sort by read name，暂时没用。
 * `.snPstat.bam` 就是把`.sn.bam`用`-F256`过滤下，只是用来数数的。
 
-### do_pre()
+#### do_pre()
 
 根据`[RefFiles]`信息，生成bwa-meth的参考序列。并将染色体长度及物种来源信息储存于`Ref/Ref.ini`。
 
-### do_aln()
+#### do_aln()
 
 生成`${ProjectID}_aln.sh`
 
@@ -165,29 +168,29 @@ pip install toolshed
 2. `samtools merge`同一id的。所以必须先排序才能merge。
 3. `samtools sort -m 2415919104 -n` -> `${id}.sn.bam`
 
-### do_grep()
+#### do_grep()
 
 `config_file`的设定是没种生物学样品取一个名字，内部文件用逗号隔开。  
 即上面例子中有`780_T`, `s01_P`, `tSE_X`三个生物学上不同的样品，三者分开分析。
 
-#### 161@BSuitLib.pm: 在**按染色体坐标排序的**bam文件中，寻找满足下列条件的：
+##### 161@BSuitLib.pm: 在**按染色体坐标排序的**bam文件中，寻找满足下列条件的：
 
 * bam文件第7列为"="即比到同一染色体上,且第9列的Ins_Size与`config_file`中均值的差大于3倍SD。	`$flag |= 1`
 * bam文件第3列为病毒染色体或者第7列为病毒染色体。	`$flag |= 4`
 
 将符合条件的bam行写到sam文件中，列表信息在`${ProjectID}_grep.ini`中。
 
-#### 同时记录 ％ReadsIndex ，每个生物学样品记录一个。
+##### 同时记录 ％ReadsIndex ，每个生物学样品记录一个。
 
 173: %ReadsIndex: {$ReadID} = [[0,$RefChr,$flag]]
 
 204: push @{$ReadsIndex{$ReadID}},[$sam文件指针,$r12R1,[Chr,Pos,MapQ,CIGAR],$flag];  
 
-#### 对 ％ReadsIndex 的key，按染色体坐标排序，保证病毒排前面。
+##### 对 ％ReadsIndex 的key，按染色体坐标排序，保证病毒排前面。
 
 得到 @IDsorted of $ReadID。
 
-#### 同一$ReadID代表同一对PE，用mergeIn函数按坐标范围一个个叠加，直到断开。
+##### 同一$ReadID代表同一对PE，用mergeIn函数按坐标范围一个个叠加，直到断开。
 
 这里只包括符合前面161中条件的那些Read。  
 叠加时，某个ReadID的所有hit，是同时加入叠加的。这条今晚还没确认当时是怎么实现的。  
@@ -195,14 +198,14 @@ pip install toolshed
 
 得到的block写入`${ProjectID}__grep/blocks.ini`中。
 
-### do_analyse
+#### do_analyse
 
-#### 过滤block
+##### 过滤block
 
 * sam文件中比对到多个地方的
 * 覆盖深度太低的
 
-#### 组装
+##### 组装
 
 * 提取被覆盖的参考序列
 * 将Reads按照 原样、tr /Cc/Tt/、tr /Gg/Aa/ 处理成3份。
@@ -211,9 +214,9 @@ pip install toolshed
 * 通过组装合并3份结果。
 * 比对判断断点。
 
-# Add on
+## Add on
 
-## Find bridge 墩 / 候选簇
+### Find bridge 墩 / 候选簇
 
 * 人的PE，不同染色体的hit直接扔掉不管。
 * Get all soft-cliped, with 10S is enough. 参数＝(人10S，选出来参与归簇)，(病毒20S，不分析)
@@ -221,14 +224,14 @@ pip install toolshed
 * 3*sd not needed.
 * 按PE归簇
 
-## Analyse
+### Analyse
 
 * 组装后前两根contig都得判断。两根得aln到人的两端。 （只看前两根是否分别在两端）
 * 组装只考虑按甲基化处理后三种碱基的情况。
 * 对结果归类到图中那堆分类。对fq用aln到contig的方法归类。 （年后）
 * 分析病毒整合的热点区域。 （年后）
 
-## 甲基化处理
+### 甲基化处理
 
 看bam的flag，reverse<=>负链
 read1 正链， C/T
@@ -238,16 +241,16 @@ read2 minus C/T
 
 SE的同 read1
 
-## Formats
+### Formats
 
-### 病毒整合结果文件
+#### 病毒整合结果文件
 
 ````
 Chr	breakpoint	virus-start virus-end virusstrand	how-many-reads-support cluster-name
 Chr1	3000	200	300	+/-	20 cluster1
 ````
 
-### 中间contig信息文件
+#### 中间contig信息文件
 
 ````
 clustername contig-number chrpoint virus-integration
