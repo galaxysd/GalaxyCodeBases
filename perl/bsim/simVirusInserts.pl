@@ -141,4 +141,4 @@ grep -h \> *_m*.Ref.fa | sed 's/^simout_m//'|sed 's/.Ref.fa:>/\t/'|sed 's/Ref_/R
 
 ~/git/toGit/perl/bsim/simVirusInserts.pl ~/nas/Ref/GRCh38_no_alt_analysis_set.fna.gz ~/nas/Ref/HBV.X04615.fa.gz s150 150
 
-grep -h \>Methyl_1_ /nas/RD_12A/gaoshengjie/huxs/sim/sim150/*_m*.Ref.fa |sed 's/^>Methyl_1_//'|sed 's/Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n
+grep -h \> ../../sim90/*.Ref.fa |sed 's/>Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n

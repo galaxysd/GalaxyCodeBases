@@ -451,16 +451,26 @@ sub do_analyse {
 				my $ta = doAln($VirusFN,$LineDat[5],1);
 				if (defined $ta) {
 					$strand = $ta->[0];
-					$left = $ta->[1];
-					$right = $ta->[1] + $ta->[2];
+					if ($strand eq '+') {
+						$left = $ta->[1];
+						$right = $ta->[1] + $ta->[2];
+					} else {
+						$right = $ta->[1];
+						$left = $ta->[1] - $ta->[2];
+					}
 				}
 			}
 			if ($LineDat[7] ne 'N') {
 				my $tb = doAln($VirusFN,$LineDat[7],-1);
 				if (defined $b) {
 					$strand = $tb->[0];
-					$left = $tb->[1] unless defined $left;
-					$right = $tb->[1] + $tb->[2];
+					if ($strand eq '+') {
+						$left = $tb->[1] unless defined $left;
+						$right = $tb->[1] + $tb->[2];
+					} else {
+						$right = $tb->[1] unless defined $right;;
+						$left = $tb->[1] - $tb->[2];	# 负链还是有问题
+					}
 				}
 			}
 			next unless defined $strand;
