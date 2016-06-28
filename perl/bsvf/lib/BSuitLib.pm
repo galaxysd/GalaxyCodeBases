@@ -446,17 +446,25 @@ sub do_analyse {
 			#ddx \@LineDat;
 			my $query = @LineDat[5,7];
 			#ddx \@retVirus;
-			my $ta = doAln($VirusFN,$LineDat[5],1) if $LineDat[5] ne 'N';	# 时间有限，病毒只支持第一条染色体
-			my $tb = doAln($VirusFN,$LineDat[7],-1) if $LineDat[7] ne 'N';
-			my %res;
-			++$res{$ta->[0]}{$ta->[1]} if $ta;	# 没空，不区分病毒的左右端点顺序了。
-			++$res{$tb->[0]}{$tb->[1]} if $tb;
-			my @tk = sort keys(%res);
-			next if @tk > 1 or @tk < 1;	# 不能为空，正负方向必须唯一。有空就改成服从多数。
-			my @ttk = sort {$a <=> $b} keys(%{$res{$tk[0]}});
-			next if @ttk < 1;
-			#ddx \%res;
-			print OUT join("\t",@LineDat[0..3],'Virus',$tk[0],@ttk),"\n";
+			my ($left,$right,$strand);
+			if ($LineDat[5] ne 'N') {	# 时间有限，病毒只支持第一条染色体
+				my $ta = doAln($VirusFN,$LineDat[5],1);
+				if (defined $ta) {
+					$strand = $ta->[0];
+					$left = $ta->[1];
+					$right = $ta->[1] + $ta->[2];
+				}
+			}
+			if ($LineDat[7] ne 'N') {
+				my $tb = doAln($VirusFN,$LineDat[7],-1);
+				if (defined $b) {
+					$strand = $tb->[0];
+					$left = $tb->[1] unless defined $left;
+					$right = $tb->[1] + $tb->[2];
+				}
+			}
+			next unless defined $strand;
+			print OUT join("\t",@LineDat[0..3],'Virus',$strand,$left,$right),"\n";
 		}
 	}
 }

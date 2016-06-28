@@ -311,6 +311,7 @@ sub getMaxM(@) {
 		push @{$Dat{$maxM}},$c;
 	}
 	my @keys = sort { $b <=> $a } keys %Dat;
+	# 可以再加上 totalM 最大，然后是 Gap－Open 最少。
 	return $Dat{$keys[0]};
 }
 sub doAln($$$) {
@@ -334,11 +335,19 @@ sub doAln($$$) {
 	my $t = getMaxM(keys %Result);
 	my $k = $t->[0]; # 先就按一个来了。
 	my $ret;
-	#if ($dir == 1) {	# 不考虑
-		if ($k =~ /(\d+)M/ and $1 > 4) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
-			$ret = [$Result{$k}->[0][0],$Result{$k}->[0][3]];	# 假设病毒只有一根，而且比对没hard-clip。读通时右端的人的序列无视。
+	if ($dir == 1) {
+		if ((($Result{$k}->[0][0] eq '+' and $k =~ /^(\d+)M/) or ($Result{$k}->[0][0] eq '-' and $k =~ /(\d+)M$/)) and $1 >= $main::minVirMapLen) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
+			my $p = $Result{$k}->[0][3];
+			# bam_cigar2rlen
+			$ret = [$Result{$k}->[0][0],$p,$1];	# 假设病毒只有一根，而且比对没hard-clip。读通时右端的人的序列无视。
 		}
-	#}
+	} else {
+		if ((($Result{$k}->[0][0] eq '+' and $k =~ /(\d+)M$/) or ($Result{$k}->[0][0] eq '-' and $k =~ /^(\d+)M/)) and $1 >= $main::minVirMapLen) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
+			my $p = $Result{$k}->[0][3];
+			# bam_cigar2rlen
+			$ret = [$Result{$k}->[0][0],$p,$1];	# 假设病毒只有一根，而且比对没hard-clip。读通时右端的人的序列无视。
+		}
+	}	# 假设病毒左端点正确；右端无通读的人的序列（这个应该已经处理对了）。
 	return $ret;
 }
 
