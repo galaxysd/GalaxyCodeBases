@@ -247,8 +247,8 @@ namespace bio {
       std::vector<char> matrix(256 * 256, s);
       for (unsigned int i = 0; i < 256; ++i) matrix[(i << 8) + i] = m;
 	if (meth != 0) {
-		//unsigned char methlybases[2][7] = {"CTYcty","GARgar"};
-		unsigned char methlybases[2][7] = {"CYcy","GRgr"};
+		unsigned char methlybases[4][5] = {"CTct","Yy","GAga","Rr"};
+		//unsigned char methlybases[2][7] = {"CYcy","GRgr"};
 		int x;
 		if (strainF) {
 			x = 0;
@@ -256,9 +256,12 @@ namespace bio {
 			x = 1;
 		}
 		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				if (i != j) {
-					matrix[(methlybases[x][i] << 8) + methlybases[x][j]] = meth;
+			for (int j = 0; j < 2; j++) {
+				if ( i != j) {
+					for (int p = 0; p <= 2; p+=2) {
+						matrix[(methlybases[p][i] << 8) + methlybases[p+1][j]] = meth;
+						matrix[(methlybases[p+1][j] << 8) + methlybases[p][i]] = meth;
+					}
 				}
 			}
 		}

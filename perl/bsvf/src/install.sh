@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ ! -d "./idba" ]; then
+if [ ! -d "./htslib" ]; then
 	./download.sh
 fi
 
@@ -15,22 +15,9 @@ cd ..
 uname_S=`uname -s 2>/dev/null || echo not`
 has_cmake=`which cmake || echo not`
 
-cd idba
-aclocal
-autoconf
-automake --add-missing
-if [[ "$uname_S" == "Darwin" ]]; then
-	gcc5_S=`which g++-5 || echo not`
-	if [[ "$gcc5_S" == "not" ]]; then
-		brew install --without-multilib gcc
-	fi
-	CXX=g++-5 ./configure
-else
-	./configure
-fi
-#make clean
-make -j
-cp -av bin/idba_hybrid ../../bin/
+cd analyser
+make
+cp -av analyser/bsanalyser ../../bin/
 cd ..
 
 if [[ "$uname_S" == "Darwin" ]]; then
