@@ -21,9 +21,12 @@ cp -av analyser/bsanalyser ../../bin/
 cd ..
 
 cd emboss
-./configure
+aclocal -I m4
+autoconf
+automake -a
+./configure --disable-debug --enable-64 --with-thread --without-x --without-java --without-mysql --without-postgresql
 make
-
+cp -av emboss/water ../../bin/
 cd ..
 
 # if [[ "$uname_S" == "Darwin" ]]; then
