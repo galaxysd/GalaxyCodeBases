@@ -24,7 +24,8 @@ cd emboss
 aclocal -I m4
 autoconf
 automake -a
-./configure --disable-debug --enable-64 --with-thread --without-x --without-java --without-mysql --without-postgresql
+# https://github.com/ebi-pf-team/interproscan/wiki/CompilingBinaries
+./configure --disable-debug --enable-64 --with-thread --without-x --without-java --without-mysql --without-postgresql --disable-shared --without-hpdf --without-pngdriver
 make
 cp -av emboss/water ../../bin/
 cd ..
