@@ -1,0 +1,38 @@
+{
+  "name": "sthelper",
+  "version": "0.0.6",
+  "description": "torrent helper for snowPT",
+  "keywords": [
+    "Torrent",
+    "PT",
+    "CRC32",
+    "mktorrent"
+  ],
+  "author": {
+    "name": "scientihark",
+    "email": "scientihark@qq.com"
+  },
+  "main": "main.js",
+  "engines": {
+    "node": ">=4.4.0"
+  },
+  "bin": {
+    "sthelper": "bin/sthelper"
+  },
+  "dependencies": {
+    "cli-color": "0.2.2",
+    "optimist": "0.6.0",
+    "crc-hash": "0.2.2",
+    "async": "^1.4.2",
+    "bncode": "~0.5.2",
+    "buffers": "~0.1.1",
+    "memorystream": "~0.3.1",
+    "ordered-emitter": "~0.1.0",
+    "streamin": "~0.2.2",
+    "streamspeed": "~0.2.0",
+    "underscore": "^1.6.0"
+  },
+  "licence": "MIT",
+  "readme": "# sthelper.\r\ntorrent helper for snowPT\r\n\r\n",
+  "readmeFilename": "README.md"
+}

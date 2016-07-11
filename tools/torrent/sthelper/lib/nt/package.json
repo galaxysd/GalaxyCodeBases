@@ -1,0 +1,70 @@
+{
+  "name": "nt",
+  "description": "Read, make, write, and hash check torrent files",
+  "keywords": [
+    "torrent",
+    "bittorremt",
+    "file"
+  ],
+  "version": "0.5.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fent/node-torrent.git"
+  },
+  "author": {
+    "name": "Roly Fentanes",
+    "url": "https://github.com/fent"
+  },
+  "main": "./lib/index.js",
+  "directories": {
+    "lib": "./lib"
+  },
+  "scripts": {
+    "test": "vows test/*-test.js --spec"
+  },
+  "dependencies": {
+    "async": "^1.4.2",
+    "bncode": "~0.5.2",
+    "buffers": "~0.1.1",
+    "memorystream": "~0.3.1",
+    "ordered-emitter": "~0.1.0",
+    "streamin": "~0.2.2",
+    "streamspeed": "~0.2.0",
+    "underscore": "^1.6.0"
+  },
+  "devDependencies": {
+    "vows": "*",
+    "nock": "*"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/fent/node-torrent/raw/master/LICENSE"
+    }
+  ],
+  "gitHead": "3647c44a7c0bd047134b868ff113ef8ea2800ef8",
+  "bugs": {
+    "url": "https://github.com/fent/node-torrent/issues"
+  },
+  "homepage": "https://github.com/fent/node-torrent#readme",
+  "_id": "nt@0.5.1",
+  "_shasum": "4d53284fc10fcc5b347914bf8085c60929e0a102",
+  "_from": "nt@",
+  "_npmVersion": "2.14.4",
+  "_nodeVersion": "4.1.1",
+  "_npmUser": {
+    "name": "fent",
+    "email": "roly426@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "fent",
+      "email": "roly426@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "4d53284fc10fcc5b347914bf8085c60929e0a102",
+    "tarball": "http://registry.npmjs.org/nt/-/nt-0.5.1.tgz"
+  },
+  "_resolved": "https://registry.npmjs.org/nt/-/nt-0.5.1.tgz"
+}
