@@ -24,7 +24,11 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
 ## Install
 
-You'll need to download the binary from above sites. And put `idba_hybrid` in to `./bin`. Then run `pip install toolshed`.
+Run `pip install toolshed`.
+
+Run `src/install.sh`.
+
+In case EMBOSS failed to install, you'll need to download the binary from above sites. And put `water` of EMBOSS in to `./bin`.
 
 Your `bsIntegration/bin/` should be like this:
 ````bash
