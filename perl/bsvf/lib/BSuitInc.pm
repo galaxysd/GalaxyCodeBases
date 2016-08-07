@@ -336,9 +336,9 @@ sub doAln($$$) {
 	my $k = $t->[0]; # 先就按一个来了。
 	my $ret;
 	if ($dir == 1) {
-		if ( 0 and (($Result{$k}->[0][0] eq '+' and $k =~ /^(\d+)M/) or ($Result{$k}->[0][0] eq '-' and $k =~ /(\d+)M$/)) and $1 >= $main::minVirMapLen) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
+		if ((($Result{$k}->[0][0] eq '+' and $k =~ /^(\d+)M/) or ($Result{$k}->[0][0] eq '-' and $k =~ /(\d+)M$/)) and $1 >= $main::minVirMapLen) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
 			my $p = $Result{$k}->[0][3];
-			if ($Result{$k}->[0][0] eq '-') {
+			if (0 and $Result{$k}->[0][0] eq '-') {
 				my $rlen = bam_cigar2rlen($k);
 				$p += $rlen; die;
 			}
