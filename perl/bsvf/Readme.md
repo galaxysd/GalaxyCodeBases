@@ -28,7 +28,7 @@ Run `pip install toolshed`.
 
 Run `src/install.sh`.
 
-In case EMBOSS failed to install, you'll need to download the binary from above sites. And put `water` of EMBOSS in to `./bin`.
+In case EMBOSS failed to install, you'll need to download the binary from above sites. And put `water` of EMBOSS in to `./bin`. Or, just link `water` to `./bin`.
 
 Your `bsIntegration/bin/` should be like this:
 ````bash

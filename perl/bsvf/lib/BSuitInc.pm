@@ -338,10 +338,10 @@ sub doAln($$$) {
 	if ($dir == 1) {
 		if ((($Result{$k}->[0][0] eq '+' and $k =~ /^(\d+)M/) or ($Result{$k}->[0][0] eq '-' and $k =~ /(\d+)M$/)) and $1 >= $main::minVirMapLen) {	# water的sam格式使用 H 表示前面比不上的，这里先不管这种情况。故 $Result{$k}->[0][0] 也就不用管了。
 			my $p = $Result{$k}->[0][3];
-			if (0 and $Result{$k}->[0][0] eq '-') {
-				my $rlen = bam_cigar2rlen($k);
-				$p += $rlen; die;
-			}
+#			if (0 and $Result{$k}->[0][0] eq '-') {
+#				my $rlen = bam_cigar2rlen($k);
+#				$p += $rlen; die;
+#			}
 			$ret = [$Result{$k}->[0][0],$p,$1];	# 假设病毒只有一根，而且比对没hard-clip。读通时右端的人的序列无视。
 		}
 	} else {
