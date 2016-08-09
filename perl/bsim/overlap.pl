@@ -10,26 +10,39 @@ my $shift=shift;
 $shift = 10 unless defined $shift;
 open TT,$total or die $!;
 open RT,$result or die $!;
-my %hash;
+my (%hash,%vir);
 
 while(<TT>){
 	chop;
 	my @a=split;
 	#print $a[3]."\n";
 	next unless(/\w/);
-	for( my $kk=$a[3]-$shift;$kk<$a[3]+$shift;$kk++){
+	my $tmp = $a[2];
+	for ( my $kk=$tmp-$shift;$kk<$tmp+$shift;$kk++) {
 		$hash{$kk}=1;
+	}
+	for my $kk ($a[5] .. $a[6]) {
+		++$vir{$kk};
 	}
 
 }
 close TT;
+
+my $chrid = 'gi|568815597|ref|NC_000001.11|';
 while(<RT>){
 	chomp;
 	my @a=split;
 	#print $a[2]."\n";
-	if(/RefCut: chr18/){
-		if(exists($hash{$a[2]})){
-			print $_."\n";
+	my $flag=0;
+	if(/\t$chrid\t/){
+		for my $i ($a[2] .. $a[3]) {
+			$flag |=1 if exists $hash{$i};
+		}
+		for my $i ($a[6] .. $a[7]) {
+			$flag |=2 if exists $vir{$i};
+		}
+		if($flag){
+			print "$flag\t$_\n";
 		}
 	}
 
@@ -38,6 +51,12 @@ while(<RT>){
 close RT;
 
 __END__
+grep -h \> ../sim90/*.Ref.fa |sed 's/>Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n > s90.lst
+cat s90_analyse/*.analyse > s90_analyse.lst
+
+
+
+
 ./overlap.pl simed.lst simVir4_analyseAll.txt >simgot.lst
 
 ./overlap.pl simed.lst simVir4_analyseAll.txt 3|sort|uniq|wc -l
