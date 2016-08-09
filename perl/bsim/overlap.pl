@@ -35,7 +35,7 @@ while(<RT>){
 	#print $a[2]."\n";
 	my $flag=0;
 	if(/\t$chrid\t/){
-		$a[3] = $a[2] + 50 if $a[3] == -1;
+		$a[3] = $a[2] if $a[3] == -1;
 		for my $i ($a[2] .. $a[3]) {
 			$flag |=1 if exists $hum{$i};
 		}
