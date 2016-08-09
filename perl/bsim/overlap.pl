@@ -42,12 +42,10 @@ while(<RT>){
 			$flag |=2 if exists $vir{$i};
 		}
 		if($flag){
-			++$stat{$flag};
 			print "$flag\t$_\n";
 		}
 	}
-
-
+	++$stat{$flag};
 }
 close RT;
 
