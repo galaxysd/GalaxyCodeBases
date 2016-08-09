@@ -10,7 +10,7 @@ my $shift=shift;
 $shift = 10 unless defined $shift;
 open TT,$total or die $!;
 open RT,$result or die $!;
-my (%hash,%vir);
+my (%hum,%vir,%stat);
 
 while(<TT>){
 	chop;
@@ -19,7 +19,7 @@ while(<TT>){
 	next unless(/\w/);
 	my $tmp = $a[2];
 	for ( my $kk=$tmp-$shift;$kk<$tmp+$shift;$kk++) {
-		$hash{$kk}=1;
+		$hum{$kk}=1;
 	}
 	for my $kk ($a[5] .. $a[6]) {
 		++$vir{$kk};
@@ -36,12 +36,13 @@ while(<RT>){
 	my $flag=0;
 	if(/\t$chrid\t/){
 		for my $i ($a[2] .. $a[3]) {
-			$flag |=1 if exists $hash{$i};
+			$flag |=1 if exists $hum{$i};
 		}
 		for my $i ($a[6] .. $a[7]) {
 			$flag |=2 if exists $vir{$i};
 		}
 		if($flag){
+			++$stat{$flag};
 			print "$flag\t$_\n";
 		}
 	}
@@ -49,6 +50,10 @@ while(<RT>){
 
 }
 close RT;
+
+for my $k (sort {$a <=> $b} keys %stat) {
+	print "\t$k: $stat{$k}\n";
+}
 
 __END__
 grep -h \> ../sim90/*.Ref.fa |sed 's/>Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n > s90.lst
