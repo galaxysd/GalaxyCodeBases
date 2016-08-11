@@ -10,7 +10,7 @@ my $shift=shift;
 $shift = 10 unless defined $shift;
 open TT,$total or die $!;
 open RT,$result or die $!;
-my (%hum,%vir,%stat);
+my (%humvir,%stat);
 
 while(<TT>){
 	chop;
@@ -18,13 +18,11 @@ while(<TT>){
 	#print $a[3]."\n";
 	next unless(/\w/);
 	my $tmp = $a[2];
-	for ( my $kk=$tmp-$shift;$kk<$tmp+$shift;$kk++) {
-		$hum{$kk}=1;
+	for ( my $ki=$tmp-$shift;$ki<$tmp+$shift;$ki++) {
+		for my $kj (($a[5]-$shift) .. ($a[6]+$shift)) {
+			++$humvir{$ki}{$kj};
+		}
 	}
-	for my $kk ($a[5] .. $a[6]) {
-		++$vir{$kk};
-	}
-
 }
 close TT;
 
@@ -34,13 +32,21 @@ while(<RT>){
 	my @a=split;
 	#print $a[2]."\n";
 	my $flag=0;
+	my $href;
 	if(/\t$chrid\t/){
 		$a[3] = $a[2] if $a[3] == -1;
 		for my $i ($a[2] .. $a[3]) {
-			$flag |=1 if exists $hum{$i};
+			if (exists $humvir{$i}) {
+				$flag |=1;
+				$href = $humvir{$i};
+				last;
+			}
 		}
 		for my $i ($a[6] .. $a[7]) {
-			$flag |=2 if exists $vir{$i};
+			if (exists $href->{$i}) {
+				$flag |=2;
+				last;
+			}
 		}
 		if($flag){
 			print "$flag\t$_\n";
@@ -58,7 +64,7 @@ __END__
 grep -h \> ../sim90/*.Ref.fa |sed 's/>Ref_/Ref:/g'|sed 's/Vir_/Vir:/'|sed 's/R_/R:/'|sed 's/_/ /g'|cat -n > s90.lst
 cat s90_analyse/*.analyse > s90_analyse.lst
 
-
+病毒的覆盖不是稀疏的，所以必须按二维处理。
 
 
 ./overlap.pl simed.lst simVir4_analyseAll.txt >simgot.lst
