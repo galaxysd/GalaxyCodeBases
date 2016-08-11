@@ -10,17 +10,18 @@ my $shift=shift;
 $shift = 10 unless defined $shift;
 open TT,$total or die $!;
 open RT,$result or die $!;
-my (%humvir,%stat);
+my (%humvir,%stat,@Lines);
 
 while(<TT>){
-	chop;
+	chomp;
+	push @Lines,$_;
 	my @a=split;
 	#print $a[3]."\n";
 	next unless(/\w/);
 	my $tmp = $a[2];
 	for ( my $ki=$tmp-$shift;$ki<$tmp+$shift;$ki++) {
 		for my $kj (($a[5]-$shift) .. ($a[6]+$shift)) {
-			++$humvir{$ki}{$kj};
+			$humvir{$ki}{$kj} = scalar(@Lines) -1;
 		}
 	}
 }
@@ -42,14 +43,20 @@ while(<RT>){
 				last;
 			}
 		}
-		for my $i ($a[6] .. $a[7]) {
-			if (exists $href->{$i}) {
-				$flag |=2;
-				last;
+		if ($href) {
+			for my $i ($a[6] .. $a[7]) {
+				if (exists $href->{$i}) {
+					$flag |=2;
+					last;
+				}
 			}
 		}
 		if($flag){
-			print "$flag\t$_\n";
+			print "$flag\t$_\n" if $flag != 3;
+			if ($flag != 3) {
+				my ($t) = values %{$href};
+				print join("\t",$flag,$Lines[$t],$_),"\n";
+			}
 		}
 	}
 	++$stat{$flag};
