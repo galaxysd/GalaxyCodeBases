@@ -52,10 +52,9 @@ while(<RT>){
 			}
 		}
 		if($flag){
-			print "$flag\t$_\n" if $flag != 3;
 			if ($flag != 3) {
 				my ($t) = values %{$href};
-				print join("\t",$flag,$Lines[$t],$_),"\n";
+				print join(", ",$flag,$Lines[$t],$_),"\n";
 			}
 		}
 	}
