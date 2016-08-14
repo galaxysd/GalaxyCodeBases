@@ -21,12 +21,19 @@ cp -av analyser/bsanalyser ../../bin/
 cd ..
 
 cd emboss
+#cd EMBOSS-6.6.0/
+mv configure.in configure.ac
+cat ../patches/*.patch | patch -p1
+
+libtoolize --install --copy --force --automake
 aclocal -I m4
-autoconf
-automake -a
-# https://github.com/ebi-pf-team/interproscan/wiki/CompilingBinaries
-./configure --disable-debug --enable-64 --with-thread --without-x --without-java --without-mysql --without-postgresql --disable-shared --without-hpdf --without-pngdriver
-make
+autoconf --force
+autoheader
+automake --add-missing --copy --force-missing
+
+# https://github.com/ebi-pf-team/interproscan/wiki/CompilingBinaries . Also Gentoo for `--enable-systemlibs --enable-static`
+./configure --disable-debug --enable-64 --with-thread --without-x --without-java --without-mysql --without-postgresql --disable-shared --without-hpdf --without-pngdriver --enable-systemlibs --enable-static
+make -j
 cp -av emboss/water ../../bin/
 cd ..
 
