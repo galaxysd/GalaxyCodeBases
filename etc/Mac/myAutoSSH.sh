@@ -18,7 +18,7 @@ fi
 
 #/usr/local/bin/autossh -M $(($RANDOM%64000 + 1024)) -f galaxy@svps.pinkplus.org -6 -p 26386 -C -D 7575 $COMMONARG $KEYFILE
 #/usr/local/bin/autossh -M $(($RandomPort)) -f galaxy@svps.pinkplus.org -p 22 -C -D 7575 $COMMONARG $KEYFILE
-/usr/local/bin/autossh -M $(($RandomPort)) -f ${PINKPLUS} -C -D7575 $COMMONARG $KEYFILE
+#/usr/local/bin/autossh -M $(($RandomPort)) -f ${PINKPLUS} -C -D7575 $COMMONARG $KEYFILE
 
 /usr/local/bin/autossh -M $(($RandomPort)) -f luolab@eeb-zhanglab.eeb.lsa.umich.edu -C -D8000 $COMMONARG $KEYFILE
 
