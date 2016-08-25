@@ -12,9 +12,9 @@ use simVirusInserts;	# 同时输出甲基化与非甲基化的结果。
 my $RefNratioMax = 0.01;	# /Nn/
 our $RefMratioMax = 0.02;	# masked as lower case in *.mfa.gz
 
-die "Simulate Directional libraries of Bisulfite-Sequencing data.\nUsage: $0 <Host> <Virus> <Outprefix> [ReadLen=90]\nInvoke as: mkdir sim90 && cd sim90 && $0 && cd ..\n" if @ARGV <3;
+die "Simulate Directional libraries of Bisulfite-Sequencing data.\nUsage: $0 <Host> <Virus> <Outprefix> [ReadLen=90 [Ticks.ini]]\nInvoke as: mkdir sim90 && cd sim90 && $0 && cd ..\n" if @ARGV <3;
 
-my ($Reff,$Virf,$outp,$ReadLen)=@ARGV;
+my ($Reff,$Virf,$outp,$ReadLen,$TicksINI)=@ARGV;
 $ReadLen = 90 unless defined $ReadLen;
 
 #$Reff='hs_ref_GRCh38.p2_chr18.mfa.gz';
@@ -73,10 +73,31 @@ my %Para = (
 	OutPrefix => $outp . '_m13FG',
 );
 
-my $SeqReadLen = $Para{SeqReadLen};
-my $RefBorder = $maxPEins + 1000;
-my $pRefticks = getticks($RefBorder,$Refstr,$RefLen,$maxPEins,$RefNratioMax);
-my $pVirticks = getticks($Para{VirFrag},$Virstr,$VirLen,int(0.9+ 0.5*$Para{VirFrag}),$RefNratioMax);
+my ($pRefticks,$pVirticks);
+if (defined $TicksINI and -f $TicksINI) {
+	print STDERR "Loading Ticks from [$TicksINI]: ";
+	my $inih = openfile($TicksINI);
+	while (<$inih>) {
+		chomp;
+		if (/^Refticks=\d/) {
+			my @dat = split /=/,$_;
+			@dat = split /,/,$dat[1];
+			$pRefticks = \@dat;
+			print STDERR "Ref:",scalar @dat,', ';
+		} elsif (/^Virticks=\d/) {
+			my @dat = split /=/,$_;
+			@dat = split /,/,$dat[1];
+			$pVirticks = \@dat;
+			print STDERR "Vir:",scalar @dat,', ';
+		}
+	}
+	print STDERR "\b\b.\n";
+} else {
+	my $SeqReadLen = $Para{SeqReadLen};
+	my $RefBorder = $maxPEins + 1000;
+	$pRefticks = getticks($RefBorder,$Refstr,$RefLen,$maxPEins,$RefNratioMax);
+	$pVirticks = getticks($Para{VirFrag},$Virstr,$VirLen,int(0.9+ 0.5*$Para{VirFrag}),$RefNratioMax);
+}
 $Para{pRefticks} = $pRefticks;
 $Para{pVirticks} = $pVirticks;
 
