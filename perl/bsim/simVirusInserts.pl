@@ -53,8 +53,15 @@ my $TinyLen2 = 10;
 my $TinyLen3 = 20;
 my $LongLen = int(0.5 + $ReadLen*4/3);
 my @PEins = (100,150,200,420);
-@PEins = (150,220,350,500) if $ReadLen > 96;
-@PEins = (60,80,120,250) if $ReadLen < 77;
+my $maxPEins;
+if ($ReadLen > 96) {
+	@PEins = (150,220,350,500);
+	$maxPEins = 500;
+}
+if ($ReadLen < 77) {
+	@PEins = (60,80,120,250);
+	$maxPEins = 250;
+}
 
 my %Para = (
 	PEinsertLen => $PEins[2],
@@ -65,6 +72,14 @@ my %Para = (
 	VirFrag => 2 * $ReadLen,
 	OutPrefix => $outp . '_m13FG',
 );
+
+my $SeqReadLen = $Para{SeqReadLen};
+my $RefBorder = $maxPEins + 1000;
+my $pRefticks = getticks($RefBorder,$Refstr,$RefLen,$maxPEins,$RefNratioMax);
+my $pVirticks = getticks($Para{VirFrag},$Virstr,$VirLen,int(0.9+ 0.5*$Para{VirFrag}),$RefNratioMax);
+$Para{pRefticks} = $pRefticks;
+$Para{pVirticks} = $pVirticks;
+
 dosim($Refstr,$Virstr,\%Para);
 $fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
 
@@ -132,6 +147,9 @@ print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
 	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=",$i+1,"\n";
 }
+print INI "\n[Simed]\n";
+print INI 'Refticks=',join(',',@$pRefticks),"\n";
+print INI 'Virticks=',join(',',@$pVirticks),"\n";
 close INI;
 
 __END__
