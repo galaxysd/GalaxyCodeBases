@@ -131,6 +131,8 @@ samtools sort -m 2415919104 -n $main::RootPath/${main::ProjectID}_aln/$k.bam -O 
 
 samtools view -b -F256 $main::RootPath/${main::ProjectID}_aln/$k.sn.bam >$main::RootPath/${main::ProjectID}_aln/$k.snPstat.bam 2>>$main::RootPath/${main::ProjectID}_aln/$k.log
 
+sync
+
 CMD
 =cut
 		print O $cmd;
