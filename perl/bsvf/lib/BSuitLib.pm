@@ -538,13 +538,14 @@ sub do_check {
 					my ($va,$vb) = @{$VirFragSE{$k}->[$Refticksh{$p}]};
 					if (($vp1<=$vb) and ($vp2>=$va)) {
 						$flag |= 2;
+						print join(',',$Refticks[$Refticksh{$p}],$va,$vb);
 					} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
 						$flag |= 4;
 					}
 					last if $flag > 1;
 				}
 			}
-			print "$flag\t$_\n";
+			print ".$flag\t$_\n";
 		}
 		close ANA;
 	}
