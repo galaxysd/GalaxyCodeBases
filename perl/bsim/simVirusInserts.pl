@@ -62,7 +62,7 @@ if ($ReadLen < 77) {
 	@PEins = (60,80,120,250);
 	$maxPEins = 250;
 }
-warn "ReadLen:$ReadLen, PE_ins:@PEins.\n";
+warn "ReadLen:$ReadLen, PE_ins:@PEins, maxPEins:$maxPEins.\n";
 
 my %Para = (
 	PEinsertLen => $PEins[2],
