@@ -33,15 +33,24 @@ my %Cmd2Fun = (
 	'grep' => \&do_grep,
 	'analyse' => \&do_analyse,
 );
+my %CmdOrder = (
+	'prepare' => 0,
+	'aln' => 1,
+	'grep' => 2,
+	'analyse' => 3,
+);
 
 sub ShowHelp() {
-	die '[!]Available Commands are: [',join('],[',sort keys %Cmd2Fun),"], case insensitive.\n";
+	die '[!]Available Commands are: [',join('],[',sort { $CmdOrder{$a} <=> $CmdOrder{$b} } keys %Cmd2Fun),"], case insensitive.\n";
 }
 my $ShowHelp=0;
 if (@ARGV < 2) {
 	warn "Usage: $0 <command> <config_file>\n";
 	ShowHelp();
 }
+
+$Cmd2Fun{'check'} = \&do_check;
+
 my $cmd=lc shift;
 my $cfgfile=shift;
 die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
