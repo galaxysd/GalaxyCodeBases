@@ -518,7 +518,7 @@ sub do_check {
 	$bias = 10 unless (defined $bias and $bias >= 0);
 	ddx \%VirFrag; warn 'Load @Refticks:',scalar(@Refticks),', @Virticks',scalar(@Virticks),". Bias_Allowed=$bias\n";
 
-	my (%tID,%tFH);
+	my (%tID,%Result);
 	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
@@ -556,9 +556,12 @@ sub do_check {
 				}
 			}
 			print "$flag\t$_\n";
+			++$Result{$k}{$flag};
+			++$Result{'=Sum='}{$flag};
 		}
 		close ANA;
 	}
+	ddx \%Result;
 }
 
 sub do_analyse0 {
