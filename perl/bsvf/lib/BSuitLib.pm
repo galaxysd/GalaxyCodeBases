@@ -525,9 +525,9 @@ sub do_check {
 	for my $k (keys %tID) {
 		my $myAnaf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
 		print "[$myAnaf]\n";
-		my $flag = 0;
 		open ANA,'<',$myAnaf or die;
 		while (<ANA>) {
+			my $flag = 0;
 			chomp;
 			my @dat = split /\t/;
 			my (undef,$chr,$pos1,$pos2,undef,$strand,$vp1,$vp2) = @dat;
