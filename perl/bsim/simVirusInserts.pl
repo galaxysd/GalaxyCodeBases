@@ -53,7 +53,7 @@ my $TinyLen2 = 10;
 my $TinyLen3 = 20;
 my $LongLen = int(0.5 + $ReadLen*4/3);
 my @PEins = (100,150,200,420);
-my $maxPEins;
+my $maxPEins = 750;
 if ($ReadLen > 96) {
 	@PEins = (150,220,350,500);
 	$maxPEins = 500;
@@ -62,6 +62,7 @@ if ($ReadLen < 77) {
 	@PEins = (60,80,120,250);
 	$maxPEins = 250;
 }
+warn "ReadLen:$ReadLen, PE_ins:@PEins.\n";
 
 my %Para = (
 	PEinsertLen => $PEins[2],
