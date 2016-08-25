@@ -506,8 +506,8 @@ sub do_check {
 			push @VirFragStartEnd,[$st,$ed];
 		}
 		$VirFragSE{$k} = \@VirFragStartEnd;
-		if ($bias<0) {
-			for my $i (0 .. @Refticks) {
+		if ( (! defined $bias) or $bias<0 ) {
+			for my $i (0 .. $#Refticks) {
 				print "$k $i:\t$Refticks[$i], ",join('-',@{$VirFragStartEnd[$i]}),"\n";
 			}
 		}
