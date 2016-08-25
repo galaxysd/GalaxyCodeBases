@@ -102,61 +102,61 @@ $Para{pRefticks} = $pRefticks;
 $Para{pVirticks} = $pVirticks;
 
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m2D';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen1;
 $Para{OutPrefix} = $outp . '_m2Dty1';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen2;
 $Para{OutPrefix} = $outp . '_m2Dty2';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen3;
 $Para{OutPrefix} = $outp . '_m2Dty3';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[3];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m458AE';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m9';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[1];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m6';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[1];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m7C';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[0];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_mB';
 dosim($Refstr,$Virstr,\%Para);
-$fqFiles{$Para{OutPrefix}} = $Para{PEinsertLen};
+$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 my @fps = sort keys %fqFiles;
 print INI "[DataFiles]\n";
@@ -166,9 +166,12 @@ for my $i (0 .. $#fps) {
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i]=",$fqFiles{$fps[$i]},"\nF$fps[$i].SD=",$i+1,"\n";
+	print INI "F$fps[$i]=",$fqFiles{$fps[$i]}->[0],"\nF$fps[$i].SD=",$i+1,"\n";
 }
 print INI "\n[Simed]\n";
+for my $i (0 .. $#fps) {
+	print INI "F$fps[$i].VirFrag=",$fqFiles{$fps[$i]}->[1],"\n";
+}
 print INI 'Refticks=',join(',',@$pRefticks),"\n";
 print INI 'Virticks=',join(',',@$pVirticks),"\n";
 close INI;
