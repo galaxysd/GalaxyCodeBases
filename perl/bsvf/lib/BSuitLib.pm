@@ -535,17 +535,19 @@ sub do_check {
 			for my $p ( ($pos1-$bias)..($pos2+$bias) ) {
 				if (exists $Refticksh{$p}) {
 					$flag |= 1;
+					print 'h',$Refticks[$Refticksh{$p}],",";
 					my ($va,$vb) = @{$VirFragSE{$k}->[$Refticksh{$p}]};
 					if (($vp1<=$vb) and ($vp2>=$va)) {
 						$flag |= 2;
-						print join(',',$Refticks[$Refticksh{$p}],$va,$vb);
+						print "v$va-$vb,";
 					} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
 						$flag |= 4;
+						print "x$va-$vb,";
 					}
 					last if $flag > 1;
 				}
 			}
-			print ".$flag\t$_\n";
+			print "$flag\t$_\n";
 		}
 		close ANA;
 	}
