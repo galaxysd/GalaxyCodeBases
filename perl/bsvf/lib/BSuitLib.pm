@@ -498,11 +498,13 @@ sub do_check {
 			@Virticks = split /,/,$main::Config->{'Simed'}->{$_} or die;
 		}
 	}
+	my %Refticksh = map { $Refticks[$_] => $_ } 0..$#Refticks;	# http://stackoverflow.com/a/2957903/159695
 	for my $k (keys %VirFrag) {
 		my (@VirFragStartEnd);
 		for my $pVir (@Virticks) {
 			my $st = $pVir-int(0.5*$VirFrag{$k});
 			my $ed = $st + $VirFrag{$k};
+			++$st;
 			push @VirFragStartEnd,[$st,$ed];
 		}
 		$VirFragSE{$k} = \@VirFragStartEnd;
@@ -530,6 +532,19 @@ sub do_check {
 			my @dat = split /\t/;
 			my (undef,$chr,$pos1,$pos2,undef,$strand,$vp1,$vp2) = @dat;
 			$pos2 = $pos1 if $pos2 == -1;
+			for my $p ( ($pos1-$bias)..($pos2+$bias) ) {
+				if (exists $Refticksh{$p}) {
+					$flag |= 1;
+					my ($va,$vb) = @{$VirFragSE{$k}->[$Refticksh{$p}]};
+					if (($vp1<=$vb) and ($vp2>=$va)) {
+						$flag |= 2;
+					} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
+						$flag |= 4;
+					}
+					last if $flag > 1;
+				}
+			}
+			print "$flag\t$_\n";
 		}
 		close ANA;
 	}
