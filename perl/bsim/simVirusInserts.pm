@@ -157,6 +157,7 @@ sub dosim($$$) {
 		my $startV = $pVir-int(0.5*$Paras->{VirFrag});
 		my $seqV = substr $Virstr,$startV,$Paras->{VirFrag};
 		my $isReverse = int(rand(2));
+		$isReverse = $pRef % 2;	# fixed upon odd/even
 		my $strand = '+';
 		if ($isReverse) {
 			$seqV = revcom($seqV);
