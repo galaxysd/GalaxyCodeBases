@@ -477,6 +477,7 @@ sub do_analyse {
 				}
 			}
 			next unless defined $strand;
+			$LineDat[3] = -1 if $LineDat[3] == $LineDat[2] + 1;	# 貌似正负链加减一没统一？
 			print OUT join("\t",@LineDat[0..3],'Virus',$strand,$left,$right),"\n";
 		}
 	}
