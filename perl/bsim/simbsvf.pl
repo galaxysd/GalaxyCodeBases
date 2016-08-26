@@ -98,38 +98,46 @@ for my $vf (@VirFragLens) {
 			);
 			dosim($Refstr,$Virstr,\%Para);
 			$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
-			push @{$Merge{$vf}},$Para{OutPrefix};
+			push @{$Merge{$pi}{$vf}},$Para{OutPrefix};
 		}
 	}
 }
 
 my @fps = sort keys %fqFiles;
-my @vfs = sort keys %Merge;
 print INI "[DataFiles]\n";
 for my $i (0 .. $#fps) {
 	print INI "F$fps[$i].1=",abs_path($fps[$i].'.1.fq.gz'),"\n";
 	print INI "F$fps[$i].2=",abs_path($fps[$i].'.2.fq.gz'),"\n";
 }
-for my $vf (@vfs) {
-	my @OutPrefix = @{$Merge{$vf}};
-	print INI "Mv${vf}.1=",join(',',(map {abs_path($_.'.1.fq.gz')} @OutPrefix)),"\n";
-	print INI "Mv${vf}.2=",join(',',(map {abs_path($_.'.2.fq.gz')} @OutPrefix)),"\n";
+for my $pi (@PEins) {
+	for my $vf (@VirFragLens) {
+		next unless exists $Merge{$pi}{$vf};
+		my @OutPrefix = @{$Merge{$pi}{$vf}};
+		print INI "Mv${vf}i${pi}.1=",join(',',(map {abs_path($_.'.1.fq.gz')} @OutPrefix)),"\n";
+		print INI "Mv${vf}i${pi}.2=",join(',',(map {abs_path($_.'.2.fq.gz')} @OutPrefix)),"\n";
+	}
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
 	print INI "F$fps[$i]=",$fqFiles{$fps[$i]}->[0],"\nF$fps[$i].SD=",10+$i/100,"\n";
 }
 my $i=0;
-for my $vf (@vfs) {
-	++$i;
-	print INI "Mv${vf}=",500,"\nMv${vf}.SD=",$i/10,"\n";
+for my $pi (@PEins) {
+	for my $vf (@VirFragLens) {
+		next unless exists $Merge{$pi}{$vf};
+		++$i;
+		print INI "Mv${vf}i${pi}=",500,"\nMv${vf}.SD=",$i/10,"\n";
+	}
 }
 print INI "\n[Simed]\n";
 for my $i (0 .. $#fps) {
 	print INI "F$fps[$i].VirFrag=",$fqFiles{$fps[$i]}->[1],"\n";
 }
-for my $vf (@vfs) {
-	print INI "Mv${vf}.VirFrag=$vf\n";
+for my $pi (@PEins) {
+	for my $vf (@VirFragLens) {
+		next unless exists $Merge{$pi}{$vf};
+		print INI "Mv${vf}i${pi}.VirFrag=$vf\n";
+	}
 }
 print INI 'Refticks=',join(',',@$pRefticks),"\n";
 print INI 'Virticks=',join(',',@$pVirticks),"\n";

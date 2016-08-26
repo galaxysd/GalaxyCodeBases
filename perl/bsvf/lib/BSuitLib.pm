@@ -523,9 +523,11 @@ sub do_check {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
+	open OUT,'>',"$main::RootPath/${main::ProjectID}_check.log" or die;
 	for my $k (keys %tID) {
 		my $myAnaf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
 		print "[$myAnaf]\n";
+		print OUT "[$myAnaf]\n";
 		open ANA,'<',$myAnaf or die;
 		while (<ANA>) {
 			my $flag = 0;
@@ -539,23 +541,23 @@ sub do_check {
 					if (exists $Refticksh{$p}) {
 						$flag |= 1;
 						my $idx = $Refticksh{$p};
-						print 'h',$Refticks[$idx],",";
+						print OUT 'h',$Refticks[$idx],",";
 						($va,$vb) = @{$VirFragSE{$k}->[$idx]};
 						if (($vp1<=$vb) and ($vp2>=$va)) {
 							$flag |= 2;
-							print "v$va-$vb,";
+							print OUT "v$va-$vb,";
 						} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
 							$flag |= 4;
-							print "m$va-$vb,";
+							print OUT "m$va-$vb,";
 						}
 						last if $flag > 1;
 					}
 				}
 				if ($flag==1) {
-					print "x$va-$vb,";
+					print OUT "x$va-$vb,";
 				}
 			}
-			print "$flag\t$_\n";
+			print OUT "$flag\t$_\n";
 			++$Result{$k}{$flag};
 			++$Result{'=Sum='}{$flag};
 		}
