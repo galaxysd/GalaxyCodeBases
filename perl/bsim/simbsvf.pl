@@ -82,7 +82,7 @@ if (defined $TicksINI and -f $TicksINI) {
 #$Para{pRefticks} = $pRefticks;
 #$Para{pVirticks} = $pVirticks;
 
-my $pm = Parallel::ForkManager->new(8);
+my $pm = Parallel::ForkManager->new(8);	# https://metacpan.org/pod/Parallel::ForkManager#Data-structure-retrieval
 #@ReadLen = (50, 90); @VirFragLens = (10, 20); @PEins = (250, 500);
 
 # data structure retrieval and handling
@@ -91,7 +91,7 @@ $pm -> run_on_finish ( # called BEFORE the first call to start()
 		my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_structure_reference) = @_;
 		# retrieve data structure from child
 		if (defined($data_structure_reference)) {  # children are not forced to send anything
-			my @Dat = @{$data_structure_reference};  # child passed a string reference
+			my @Dat = @{$data_structure_reference};  # child passed a array reference
 			#print ":@Dat\n";
 			$fqFiles{$Dat[0]} = [$Dat[1],$Dat[2]];
 			push @{$Merge{$Dat[3]}{$Dat[4]}},$Dat[0];
