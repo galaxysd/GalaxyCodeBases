@@ -1,6 +1,7 @@
 package main;
 use strict;
 use warnings;
+use IO::Zlib;
 
 sub revcom($) {
 	my $str = $_[0];
@@ -142,8 +143,10 @@ sub dosim($$$) {
 	my $SeqReadLen = $Paras->{SeqReadLen};
 	my $RefBorder = $PEinsertLen + 1000;
 	open O,'>',$Paras->{OutPrefix}.'.Ref.fa';
-	open R1,'>',$Paras->{OutPrefix}.'.1.fq';
-	open R2,'>',$Paras->{OutPrefix}.'.2.fq';
+	#open R1,'>',$Paras->{OutPrefix}.'.1.fq';
+	#open R2,'>',$Paras->{OutPrefix}.'.2.fq';
+	tie *R1, 'IO::Zlib', $Paras->{OutPrefix}.'.1.fq.gz', "wb9";
+	tie *R2, 'IO::Zlib', $Paras->{OutPrefix}.'.2.fq.gz', "wb9";
 	#my @Refticks = @{getticks($RefBorder,$Refstr,$Paras->{RefLen},$PEinsertLen,$Paras->{RefNratioMax})};
 	#my @Virticks = @{getticks($Paras->{VirFrag},$Virstr,$Paras->{VirLen},int(0.9+ 0.5*$Paras->{VirFrag}),$Paras->{RefNratioMax})};
 	my @Refticks = @{$Paras->{pRefticks}};	# made a copy

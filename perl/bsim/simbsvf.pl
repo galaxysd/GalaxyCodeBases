@@ -45,11 +45,11 @@ ProjectID=$outp
 
 CONTENT
 
-my (%fqFiles,%Para);
+my (%fqFiles,%Para,%Merge);
 
 my @ReadLen = qw(50 90 150);
 my @VirFragLens = qw(5 10 15 20 30 50 75 90 100 120 150 180 200 250 280 300 350 400 450 500 550 600);
-my @PEins = qw(150 240 360 500 750);
+my @PEins = qw(250 500 750);
 
 my $maxPEins = 750;
 
@@ -84,7 +84,7 @@ if (defined $TicksINI and -f $TicksINI) {
 for my $vf (@VirFragLens) {
 	for my $rl (@ReadLen) {
 		for my $pi (@PEins) {
-			next if $pi < $rl *3/2;
+			next if $pi < $rl *4/3;
 			%Para = (
 				PEinsertLen => $pi,
 				SeqReadLen => $rl,
@@ -98,23 +98,38 @@ for my $vf (@VirFragLens) {
 			);
 			dosim($Refstr,$Virstr,\%Para);
 			$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
+			push @{$Merge{$vf}},$Para{OutPrefix};
 		}
 	}
 }
 
 my @fps = sort keys %fqFiles;
+my @vfs = sort keys %Merge;
 print INI "[DataFiles]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i].1=",abs_path($fps[$i].'.1.fq'),"\n";
-	print INI "F$fps[$i].2=",abs_path($fps[$i].'.2.fq'),"\n";
+	print INI "F$fps[$i].1=",abs_path($fps[$i].'.1.fq.gz'),"\n";
+	print INI "F$fps[$i].2=",abs_path($fps[$i].'.2.fq.gz'),"\n";
+}
+for my $vf (@vfs) {
+	my @OutPrefix = @{$Merge{$vf}};
+	print INI "Mv${vf}.1=",join(',',(map {abs_path($_.'.1.fq.gz')} @OutPrefix)),"\n";
+	print INI "Mv${vf}.2=",join(',',(map {abs_path($_.'.2.fq.gz')} @OutPrefix)),"\n";
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i]=",$fqFiles{$fps[$i]}->[0],"\nF$fps[$i].SD=",$i+1,"\n";
+	print INI "F$fps[$i]=",$fqFiles{$fps[$i]}->[0],"\nF$fps[$i].SD=",10+$i/100,"\n";
+}
+my $i=0;
+for my $vf (@vfs) {
+	++$i;
+	print INI "Mv${vf}=",500,"\nMv${vf}.SD=",$i/10,"\n";
 }
 print INI "\n[Simed]\n";
 for my $i (0 .. $#fps) {
 	print INI "F$fps[$i].VirFrag=",$fqFiles{$fps[$i]}->[1],"\n";
+}
+for my $vf (@vfs) {
+	print INI "Mv${vf}.VirFrag=$vf\n";
 }
 print INI 'Refticks=',join(',',@$pRefticks),"\n";
 print INI 'Virticks=',join(',',@$pVirticks),"\n";
