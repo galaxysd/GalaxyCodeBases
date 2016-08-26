@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 use Cwd qw(abs_path getcwd);
+use Parallel::ForkManager;
 
 use FindBin 1.51 qw($RealBin);
 use lib "$RealBin";
@@ -81,8 +82,28 @@ if (defined $TicksINI and -f $TicksINI) {
 #$Para{pRefticks} = $pRefticks;
 #$Para{pVirticks} = $pVirticks;
 
+my $pm = Parallel::ForkManager->new(8);
+#@ReadLen = (50, 90); @VirFragLens = (10, 20); @PEins = (250, 500);
+
+# data structure retrieval and handling
+$pm -> run_on_finish ( # called BEFORE the first call to start()
+	sub {
+		my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_structure_reference) = @_;
+		# retrieve data structure from child
+		if (defined($data_structure_reference)) {  # children are not forced to send anything
+			my @Dat = @{$data_structure_reference};  # child passed a string reference
+			#print ":@Dat\n";
+			$fqFiles{$Dat[0]} = [$Dat[1],$Dat[2]];
+			push @{$Merge{$Dat[3]}{$Dat[4]}},$Dat[0];
+		} else {  # problems occurring during storage or retrieval will throw a warning
+			print qq|[x]No message received from child process $pid!\n|;
+		}
+	}
+);
+
 for my $vf (@VirFragLens) {
 	for my $rl (@ReadLen) {
+		DOIT:
 		for my $pi (@PEins) {
 			next if $pi < $rl *4/3;
 			%Para = (
@@ -96,12 +117,15 @@ for my $vf (@VirFragLens) {
 				pRefticks => $pRefticks,
 				pVirticks => $pVirticks,
 			);
+			$pm->start and next DOIT;
 			dosim($Refstr,$Virstr,\%Para);
-			$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
-			push @{$Merge{$pi}{$vf}},$Para{OutPrefix};
+			#$fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
+			#push @{$Merge{$pi}{$vf}},$Para{OutPrefix};
+			$pm->finish(0, [$Para{OutPrefix},$Para{PEinsertLen},$Para{VirFrag},$pi,$vf]);
 		}
 	}
 }
+$pm->wait_all_children;
 
 my @fps = sort keys %fqFiles;
 print INI "[DataFiles]\n";
@@ -126,7 +150,7 @@ for my $pi (@PEins) {
 	for my $vf (@VirFragLens) {
 		next unless exists $Merge{$pi}{$vf};
 		++$i;
-		print INI "Mv${vf}i${pi}=",500,"\nMv${vf}.SD=",$i/10,"\n";
+		print INI "Mv${vf}i${pi}=",500,"\nMv${vf}i${pi}.SD=",$i/10,"\n";
 	}
 }
 print INI "\n[Simed]\n";

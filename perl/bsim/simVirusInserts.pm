@@ -152,7 +152,7 @@ sub dosim($$$) {
 	my @Refticks = @{$Paras->{pRefticks}};	# made a copy
 	my @Virticks = @{$Paras->{pVirticks}};
 	#ddx $Paras;
-	print STDERR "$Paras->{OutPrefix}:\tPE_Ins:$PEinsertLen, Vir_Frag:$Paras->{VirFrag}, ...";
+	print STDERR "$Paras->{OutPrefix}:\tPE_Ins:$PEinsertLen, Vir_Frag:$Paras->{VirFrag}.\n";
 	for my $pRef (@Refticks) {
 		my $seqR1 = substr $Refstr,($pRef-$PEinsertLen),$PEinsertLen;
 		my $seqR2 = substr $Refstr,$pRef,$PEinsertLen;
@@ -205,7 +205,7 @@ sub dosim($$$) {
 	}
 	close O;
 	close R1; close R2;
-	print STDERR "\b\b\bdone.\n";
+	#print STDERR "\b\b\bdone.\n";
 }
 
 sub cigar2rpos($$) {
