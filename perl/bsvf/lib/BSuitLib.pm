@@ -501,6 +501,7 @@ sub do_check {
 		}
 	}
 	my %Refticksh = map { $Refticks[$_] => $_ } 0..$#Refticks;	# http://stackoverflow.com/a/2957903/159695
+	open OUT,'>',"$main::RootPath/${main::ProjectID}_check.log" or die;
 	for my $k (keys %VirFrag) {
 		my (@VirFragStartEnd);
 		for my $pVir (@Virticks) {
@@ -512,7 +513,7 @@ sub do_check {
 		$VirFragSE{$k} = \@VirFragStartEnd;
 		if ( (! defined $bias) or $bias<0 ) {
 			for my $i (0 .. $#Refticks) {
-				print "$k $i:\t$Refticks[$i], ",join('-',@{$VirFragStartEnd[$i]}),"\n";
+				print OUT "$k $i:\t$Refticks[$i], ",join('-',@{$VirFragStartEnd[$i]}),"\n";
 			}
 		}
 	}
@@ -524,7 +525,6 @@ sub do_check {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
-	open OUT,'>',"$main::RootPath/${main::ProjectID}_check.log" or die;
 	for my $k (keys %tID) {
 		my $myAnaf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
 		print "[$myAnaf]\n";
