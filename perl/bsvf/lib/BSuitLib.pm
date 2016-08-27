@@ -518,7 +518,8 @@ sub do_check {
 		}
 	}
 	$bias = 10 unless (defined $bias and $bias >= 0);
-	ddx \%VirFrag; warn 'Load @Refticks:',scalar(@Refticks),', @Virticks',scalar(@Virticks),". Bias_Allowed=$bias\n";
+	#ddx \%VirFrag;
+	warn 'Load @Refticks:',scalar(@Refticks),', @Virticks',scalar(@Virticks),". Bias_Allowed=$bias\n";
 
 	my (%tID,%Result);
 	for (@{$main::Config->{'DataFiles'}->{'='}}) {
