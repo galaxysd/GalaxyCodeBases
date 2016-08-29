@@ -520,6 +520,10 @@ sub do_check {
 	$bias = 10 unless (defined $bias and $bias >= 0);
 	#ddx \%VirFrag;
 	warn 'Load @Refticks:',scalar(@Refticks),', @Virticks',scalar(@Virticks),". Bias_Allowed=$bias\n";
+	my %VirChrP;
+	for my $p (@Virticks) {
+		$VirChrP{$_}=1 for ($p-$bias)..($p+$bias);
+	}
 
 	my (%tID,%Result);
 	for (@{$main::Config->{'DataFiles'}->{'='}}) {
@@ -551,8 +555,15 @@ sub do_check {
 						} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
 							$flag |= 4;
 							print OUT "m$va-$vb,";
+						} else {
+							for my $p ($vp1 .. $vp2) {
+								if (exists $VirChrP{$p}) {
+									$flag |= 8;
+									last;
+								}
+							}
 						}
-						last if $flag > 1;
+						last if $flag & 7;
 					}
 				}
 				if ($flag==1) {
