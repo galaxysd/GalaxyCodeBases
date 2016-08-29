@@ -94,7 +94,7 @@ $pm -> run_on_finish ( # called BEFORE the first call to start()
 			my @Dat = @{$data_structure_reference};  # child passed a array reference
 			#print ":@Dat\n";
 			$fqFiles{$Dat[0]} = [$Dat[1],$Dat[2]];
-			push @{$Merge{$Dat[3]}{$Dat[4]}},$Dat[0];
+#取消混合的			push @{$Merge{$Dat[3]}{$Dat[4]}},$Dat[0];
 		} else {  # problems occurring during storage or retrieval will throw a warning
 			print qq|[x]No message received from child process $pid!\n|;
 		}
