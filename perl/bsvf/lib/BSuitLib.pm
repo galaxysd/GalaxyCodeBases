@@ -551,9 +551,12 @@ sub do_check {
 						($va,$vb) = @{$VirFragSE{$k}->[$idx]};
 						if (($vp1<=$vb) and ($vp2>=$va)) {
 							$flag |= 2;
+							$flag &= ~4;
+							$flag &= ~8;
 							print OUT "v$va-$vb,";
 						} elsif (($vp1 <= $vb+$bias) and ($vp2 >= $va-$bias)) {
 							$flag |= 4;
+							$flag &= ~8;
 							print OUT "m$va-$vb,";
 						} else {
 							for my $p ($vp1 .. $vp2) {
@@ -563,7 +566,7 @@ sub do_check {
 								}
 							}
 						}
-						last if $flag & 7;
+						last if $flag == 3;
 					}
 				}
 				if ($flag==1) {
