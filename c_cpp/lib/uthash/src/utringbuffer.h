@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2008-2014, Troy D. Hanson   http://troydhanson.github.com/uthash/
+Copyright (c) 2008-2016, Troy D. Hanson   http://troydhanson.github.com/uthash/
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,6 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #ifndef UTRINGBUFFER_H
 #define UTRINGBUFFER_H
+
+#define UTRINGBUFFER_VERSION 2.0.1
  
 #include <stdlib.h>
 #include <string.h>
@@ -42,17 +44,19 @@ typedef struct {
   memset(a, 0, sizeof(UT_ringbuffer));                                    \
   (a)->icd = *(_icd);                                                     \
   (a)->n = (_n);                                                          \
-  if ((a)->n) { (a)->d = malloc((a)->n * (_icd)->sz); }                   \
+  if ((a)->n) { (a)->d = (char*)malloc((a)->n * (_icd)->sz); }            \
 } while(0)
  
 #define utringbuffer_clear(a) do {                                        \
   if ((a)->icd.dtor) {                                                    \
     if ((a)->f) {                                                         \
-      for (unsigned _ut_i=0; _ut_i < (a)->n; _ut_i++) {                   \
+      unsigned _ut_i;                                                     \
+      for (_ut_i = 0; _ut_i < (a)->n; ++_ut_i) {                          \
         (a)->icd.dtor(utringbuffer_eltptr(a, _ut_i));                     \
       }                                                                   \
     } else {                                                              \
-      for (unsigned _ut_i=0; _ut_i < (a)->i; _ut_i++) {                   \
+      unsigned _ut_i;                                                     \
+      for (_ut_i = 0; _ut_i < (a)->i; ++_ut_i) {                          \
         (a)->icd.dtor(utringbuffer_eltptr(a, _ut_i));                     \
       }                                                                   \
     }                                                                     \
@@ -89,11 +93,11 @@ typedef struct {
 #define utringbuffer_full(a) ((a)->f != 0)
  
 #define _utringbuffer_real_idx(a,j) ((a)->f ? ((j) + (a)->i) % (a)->n : (j))
-#define _utringbuffer_internalptr(a,j) ((void*)((char*)((a)->d + ((a)->icd.sz * (j)))))
+#define _utringbuffer_internalptr(a,j) ((void*)((a)->d + ((a)->icd.sz * (j))))
 #define utringbuffer_eltptr(a,j) ((0 <= (j) && (j) < utringbuffer_len(a)) ? _utringbuffer_internalptr(a,_utringbuffer_real_idx(a,j)) : NULL)
  
 #define _utringbuffer_fake_idx(a,j) ((a)->f ? ((j) + (a)->n - (a)->i) % (a)->n : (j))
-#define _utringbuffer_internalidx(a,e) (((char*)(e) >= (char*)(a)->d) ? (((char*)(e) - (char*)(a)->d)/(size_t)(a)->icd.sz) : -1)
+#define _utringbuffer_internalidx(a,e) (((char*)(e) >= (a)->d) ? (((char*)(e) - (a)->d)/(a)->icd.sz) : -1)
 #define utringbuffer_eltidx(a,e) _utringbuffer_fake_idx(a, _utringbuffer_internalidx(a,e))
  
 #define utringbuffer_front(a) utringbuffer_eltptr(a,0)

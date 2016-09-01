@@ -4,16 +4,16 @@ FUNCS = BER SAX FNV OAT JEN SFH
 SPECIAL_FUNCS = MUR
 UTILS = emit_keys
 PROGS = test1 test2 test3 test4 test5 test6 test7 test8 test9   \
-		    test10 test11 test12 test13 test14 test15 test16 test17 \
+        test10 test11 test12 test13 test14 test15 test16 test17 \
         test18 test19 test20 test21 test22 test23 test24 test25 \
         test26 test27 test28 test29 test30 test31 test32 test33 \
         test34 test35 test36 test37 test38 test39 test40 test41 \
         test42 test43 test44 test45 test46 test47 test48 test49 \
-				test50 test51 test52 test53 test54 test55 test56 test57 \
+        test50 test51 test52 test53 test54 test55 test56 test57 \
         test58 test59 test60 test61 test62 test63 test64 test65 \
         test66 test67 test68 test69 test70 test71 test72 test73 \
         test74 test75 test76 test77 test78 test79 test80 test81 \
-        test82 test83 test84 test85 test86
+        test82 test83 test84 test85 test86 test87 test88 test89
 CFLAGS += -I$(HASHDIR)
 #CFLAGS += -DHASH_BLOOM=16
 #CFLAGS += -O2
@@ -29,7 +29,7 @@ CFLAGS += -DHASH_DEBUG=1
 endif
 
 ifeq ($(HASH_PEDANTIC),1)
-CFLAGS += -pedantic 
+CFLAGS += -pedantic
 endif
 
 TEST_TARGET=run_tests
@@ -71,6 +71,9 @@ all: $(PROGS) $(UTILS) $(PLAT_UTILS) $(FUNCS) $(SPECIAL_FUNCS) $(TEST_TARGET)
 
 tests_only: $(PROGS) $(TEST_TARGET)
 
+GITIGN = .gitignore
+MKGITIGN = [ -f "$(GITIGN)" ] || echo "$(GITIGN)" > $(GITIGN); grep -q '^\$@$$' $(GITIGN) || echo "$@" >> $(GITIGN)
+
 debug:
 	$(MAKE) all HASH_DEBUG=1
 
@@ -85,12 +88,15 @@ example: example.c $(HASHDIR)/uthash.h
 
 $(PROGS) $(UTILS) : $(HASHDIR)/uthash.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $(@).c
+	@$(MKGITIGN)
 
 hashscan : $(HASHDIR)/uthash.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(MUR_CFLAGS) $(LDFLAGS) -o $@ $(@).c
+	@$(MKGITIGN)
 
 sleep_test : $(HASHDIR)/uthash.h 
 	$(CC) $(CPPFLAGS) $(CFLAGS) -DHASH_BLOOM=16 $(LDFLAGS) -o $@ $(@).c
+	@$(MKGITIGN)
 
 $(FUNCS) : $(HASHDIR)/uthash.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -DHASH_FUNCTION=HASH_$@ \
@@ -112,5 +118,5 @@ astyle:
 .PHONY: clean astyle
 
 clean:	
-	rm -f $(UTILS) $(PLAT_UTILS) $(PROGS) test*.out keystat.??? example *.exe
+	rm -f $(UTILS) $(PLAT_UTILS) $(PROGS) test*.out keystat.??? example hashscan sleep_test *.exe $(GITIGN)
 	rm -rf *.dSYM
