@@ -22,4 +22,6 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
-extern std::mutex ScreenLock, ErrorLogLock;
+extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
+extern std::mutex ScreenLock;
+std::mutex ErrorLogLock;

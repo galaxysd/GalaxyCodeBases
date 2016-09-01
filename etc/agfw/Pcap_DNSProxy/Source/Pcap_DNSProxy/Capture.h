@@ -20,12 +20,12 @@
 #include "Base.h"
 
 #if defined(ENABLE_PCAP)
-//Structures
+//Structure definitions
 typedef struct _capture_handler_param_
 {
-	uint16_t   DeviceType;
-	char       *Buffer;
-	size_t     BufferSize;
+	uint16_t      DeviceType;
+	uint8_t       *Buffer;
+	size_t        BufferSize;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
 
 //Global variables
@@ -33,7 +33,7 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;
@@ -41,28 +41,28 @@ std::string PcapFilterRules;
 std::list<std::string> PcapRunningList;
 
 //Functions
-void __fastcall CaptureFilterRulesInit(
+void CaptureFilterRulesInit(
 	std::string &FilterRules);
-bool __fastcall CaptureModule(
+bool CaptureModule(
 	const pcap_if *pDrive, 
 	const bool IsCaptureList);
 void CaptureHandler(
-	unsigned char *Param, 
-	const struct pcap_pkthdr *PacketHeader, 
-	const unsigned char *PacketData);
-bool __fastcall CaptureNetworkLayer(
-	const char *Buffer, 
+	uint8_t *Param, 
+	const pcap_pkthdr *PacketHeader, 
+	const uint8_t *PacketData);
+bool CaptureNetworkLayer(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Protocol);
-bool __fastcall CaptureCheck_ICMP(
-	const char *Buffer, 
+bool CaptureCheck_ICMP(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const uint16_t Protocol);
-bool __fastcall CaptureCheck_TCP(
-	const char *Buffer);
-bool __fastcall MatchPortToSend(
-	const char *Buffer, 
+bool CaptureCheck_TCP(
+	const uint8_t *Buffer);
+bool MatchPortToSend(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Protocol, 

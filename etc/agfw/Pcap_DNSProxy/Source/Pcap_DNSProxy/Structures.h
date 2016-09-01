@@ -619,7 +619,7 @@ typedef struct _ipv4_hdr_
 	uint8_t                IHL:4;
 #endif
 	union {
-		uint8_t            ECN_DSCP;                //Type of service, but RFC 2474 redefine it to DSCP/DiffServ and ECN/Explicit Congestion Notification.
+		uint8_t            ECN_DSCP;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ECN:2;
@@ -752,7 +752,7 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut ON in Linux and Mac OS X.
+//ICMP Timestamp option is defalut set ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -786,7 +786,7 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut ON in Linux and Mac OS X.
+//ICMPv6 Timestamp option is defalut set ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -1337,8 +1337,8 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_GET_BIT_CD                0x0010     //Get Checking Disabled bit in DNS flags.
 #define DNS_GET_BIT_RCODE             0x000F     //Get RCode in DNS flags.
 #define DNS_SET_R                     0x8000     //Set Response bit.
-#define DNS_SET_RTC                   0x8200     //Set Response bit and Truncated bit.
-#define DNS_SER_RA                    0x8580     //Set Response bit and Authoritative bit.
+#define DNS_SET_R_TC                  0x8200     //Set Response bit and Truncated bit.
+#define DNS_SER_R_A                   0x8580     //Set Response bit and Authoritative bit.
 #define DNS_SET_R_FE                  0x8001     //Set Response bit and Format Error RCode.
 #define DNS_SET_R_SNH                 0x8003     //Set Response bit and No Such Name RCode.
 #define DNS_POINTER_8_BITS            0xC0       //DNS compression pointer(11000000)
@@ -1487,7 +1487,7 @@ typedef struct _ipv6_psd_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNS_PACKET_MAXSIZE_TRADITIONAL 512U   //Traditional DNS packet maximum size(512 bytes)
+#define DNS_PACKET_MAXSIZE_TRADITIONAL   512U   //Traditional DNS packet maximum size(512 bytes)
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;
@@ -1770,7 +1770,7 @@ typedef struct _dns_record_ptr_
 typedef struct _dns_record_mx_
 {
 	uint16_t              Preference;
-//	uint8_t                MailExchangeName;
+//	uint8_t               MailExchangeName;
 }dns_record_mx, *pdns_record_mx;
 
 /* Domain Name System/DNS Test Strings/TXT Records
@@ -1875,18 +1875,18 @@ typedef struct _dns_record_srv_
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
-	uint16_t              Type;                  //Additional RRs Type
+	uint16_t              Type;
 	uint16_t              UDPPayloadSize;
 	uint8_t               Extended_RCode;
-	uint8_t               Version;               //EDNS Version
+	uint8_t               Version;
 	union {
 		uint16_t          Z_Field;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved_First:7;
-			uint8_t       DO:1;                      //DO bit
+			uint8_t       DO:1;
 		#else //BIG_ENDIAN
-			uint8_t       DO:1;                      //DO bit
+			uint8_t       DO:1;
 			uint8_t       Reserved_First:7;
 		#endif
 			uint8_t       Reserved_Second;
@@ -1896,7 +1896,7 @@ typedef struct _dns_record_opt_
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
-* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1915,11 +1915,11 @@ typedef struct _dns_record_opt_
 #define EDNS_CODE_UL                  0x0002   //Update lease
 #define EDNS_CODE_NSID                0x0003   //Name Server Identifier (RFC 5001)
 #define EDNS_CODE_OWNER               0x0004   //Owner, reserved
-#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC6975)
-#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC6975)
-#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC6975)
+#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC 6975)
 #define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
-#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC7314)
+#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC 7314)
 
 //About Address Family Numbers, see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define ADDRESS_FAMILY_IPV4           0x0001
@@ -2056,17 +2056,17 @@ typedef struct _dns_record_dnskey_
 		uint16_t          Flags;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
-			uint8_t       ZoneKey:1;         //Zone Key bit
+			uint8_t       ZoneKey:1;
 			uint8_t       Zero_A:7;
-			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+			uint8_t       KeySigningKey:1;
 			uint8_t       Zero_B:6;
-			uint8_t       KeyRevoked:1;      //Key Revoked bit
+			uint8_t       KeyRevoked:1;
 		#else //BIG_ENDIAN
 			uint8_t       Zero_A:7;
-			uint8_t       ZoneKey:1;         //Zone Key bit
-			uint8_t       KeyRevoked:1;      //Key Revoked bit
+			uint8_t       ZoneKey:1;
+			uint8_t       KeyRevoked:1;
 			uint8_t       Zero_B:6;
-			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+			uint8_t       KeySigningKey:1;
 		#endif
 		}FlagsBits;
 	};
@@ -2210,13 +2210,15 @@ typedef struct _dns_record_caa_
 
 //Domain Name System Curve/DNSCurve part
 #if defined(ENABLE_LIBSODIUM)
-// About DNSCurve standards: 
-// DNSCurve: Usable security for DNS(http://dnscurve.org)
+// About DNSCurve standards:
+// DNSCurve: Usable security for DNS(https://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN          8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
+#define DNSCRYPT_PADDING_SIGN             0x80
+#define DNSCRYPT_PADDING_SIGN_STRING      ('\x80')
 #define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
 #define crypto_sign_open                  crypto_sign_ed25519_open
@@ -2313,13 +2315,13 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS_COMMAND_BIND                         2U
 #define SOCKS_COMMAND_UDP_ASSOCIATE                3U
 #define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
-#define SOCKS5_ADDRESS_IPV4                        1U
-#define SOCKS5_ADDRESS_DOMAIN                      3U
-#define SOCKS5_ADDRESS_IPV6                        4U
 #define SOCKS4_REPLY_GRANTED                       0x5A         //Request granted
 #define SOCKS4_REPLY_REJECTED                      0x5B         //Request rejected or failed
 #define SOCKS4_REPLY_NOT_IDENTD                    0x5C         //Request failed because client is not running identd(or not reachable from the server).
 #define SOCKS4_REPLY_NOT_CONFIRM                   0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
+#define SOCKS5_ADDRESS_IPV4                        1U
+#define SOCKS5_ADDRESS_DOMAIN                      3U
+#define SOCKS5_ADDRESS_IPV6                        4U
 #define SOCKS5_REPLY_SUCCESS                       0
 #define SOCKS5_REPLY_SERVER_FAILURE                1U
 #define SOCKS5_REPLY_NOT_ALLOWED                   2U
@@ -2345,8 +2347,8 @@ typedef struct _socks_client_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Methods_Number;
-	uint8_t               Methods_A;               //Usually is 0(NO_AUTHENTICATION_REQUIRED)
-	uint8_t               Methods_B;               //Usually is 2(USERNAME/PASSWORD)
+	uint8_t               Methods_A;
+	uint8_t               Methods_B;
 }socks_client_selection, *psocks_client_selection;
 
 //SOCKS server method selection message

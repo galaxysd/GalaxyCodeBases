@@ -1,25 +1,67 @@
-﻿Pcap_DNSProxy 0.4.6.1-0.4.6.5 更新日誌(2016-06-15)：
+﻿Pcap_DNSProxy 0.4.7.1-0.4.7.2 更新日誌(2016-09-01)：
+
+* 添加對 Dnsmasq 的 Address 和 Server 相容格式設定檔的支援
+  * 支援使用 Address 和 Server 相容格式的非正則運算式模式對功能變數名稱查詢進行字串匹配
+  * 支援使用 Server 相容格式指定特定境內 DNS 目標伺服器以及指定目標伺服器請求的埠
+  * 附帶的 WhiteList.txt 切換到 Dnsmasq Server 相容格式以降低啟用境內白名單功能時的資源佔用
+* 添加 CMake 系統並行多執行緒編譯支援 (Linux/Mac)
+* 添加伺服器端 TCP Fast Open 屬性的實驗性支援 (Windows)
+* 修復通訊端不正確的關閉有可能造成的系統資源耗盡問題 [AVC A]
+* 修復 IPv6 協定通訊端參數錯誤的問題 [gaoyan1234]
+* 修復 dig 請求權威根功能變數名稱伺服器的問題
+* 修復 CR + LF 換行格式下行數統計錯誤的問題
+* 修復通訊端 TCP Fast Open 屬性不生效的問題 (Linux)
+* 檔校驗碼(0.4.7.2)
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> 407693A27A0CFC01E256E1FE97963218F1A5AE4D
+    * Windows/Pcap_DNSProxy_x86.exe -> 2BD6F3B506FF8F9B00E5FD5539D85A53362F5FE8
+    * Windows/Pcap_DNSProxy_XP.exe -> 46F10EE4F921591CAA5E737DA5872567F7641884
+    * Mac/Pcap_DNSProxy -> 17416777FDDABC87F4CF6116C25B0CC7CC4C0C27
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> BE38D5059AEBB14556894CC38B0A14E07DB271BCE11E4A33706CCAB0C4BEAFF9
+    * Windows/Pcap_DNSProxy_x86.exe -> A08F40721D1D89BC10E52F1BEC4B5A5779E9C360E4AAF468D7808D7E071C9840
+    * Windows/Pcap_DNSProxy_XP.exe -> 567257FDEC91CC782ABE15FCBEBD229E1314990FB9BCF4D21938FAC5DA314D45
+    * Mac/Pcap_DNSProxy -> 6175674D9252C3B8414C15EEC4F697DB83CF8577746BEE3250CCCEA86C4AC1A7
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.6.1-0.4.7.0 更新日誌(2016-08-22)：
 
 * 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
 * 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
 * 添加 --flush-dns 參數指定功能變數名稱功能，可清除特定功能變數名稱的緩存
 * 添加遺漏的 DNS 投毒污染黑名單位址
-* 合併 KeyPairGenerator 工具到主程式
-* 分離 32 位版本對 Windows XP/2003 的支援 (Windows)
+* 添加實驗性的執行緒池支援，並將 Buffer Queue Limits 參數更名為 Thread Pool Maximum Number
+* 添加對刷新系統緩存的時間間隔限制 [Syrone Wong]
+* 添加 CMake 的 Clang 編譯器支援 (Mac)
+* LibSodium 庫更新到 1.0.11 (Windows/Mac)
+* Multi Request Times 參數更名為 Multiple Request Times
+* Alternate Multi Request 參數更名為 Alternate Multiple Request
+* 合併 KeyPairGenerator 工具到主程式，作為支援參數使用
+* 分離 32 位版本對 XP/2003 系統的支援 (Windows)
+* 修復資料包過濾模組過於嚴格導致無法使用部分正常 DNS 伺服器的問題 [muink]
+* 修復批次處理在 2003 系統下無法正常工作的問題 (Windows) [wuxiao2522]
 * 修復抓包模組錯誤判斷正確資料包的問題
 * 修復抓包模組對 IPv6 資料包識別錯誤的問題
-* 移除附帶的 FileHash 工具，其將分離至新的獨立的專案繼續開發
-* 檔校驗碼(0.4.6.5)
+* 修復 Pcap Devices Blacklist 參數工作不正常的問題
+* 修復 Hop Limits/TTL 參數讀取不正常的問題
+* 修復 Hop Limits/TTL 參數指定的值被覆蓋的問題
+* 修復由於部分通訊端被過早清理造成系統協定棧返回 ICMP/ICMPv6 埠不可達資訊的問題
+* 移除附帶的 FileHash 工具，其將分離至 https://github.com/chengr28/Toolkit 專案繼續開發
+* 移除對舊版設定檔的相容
+* 檔校驗碼(0.4.7.0)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 0777D79204667A6FD04DCEE3E0D41262FFE44CC6
-    * Windows/Pcap_DNSProxy_x86.exe -> B793030187CD075FAE84821E132F4997BEB9E194
-    * Windows/Pcap_DNSProxy_XP.exe -> B793030187CD075FAE84821E132F4997BEB9E194
-    * Mac/Pcap_DNSProxy -> D2390606215EAD89D0605EFC15365F06A06EADB2
+    * Windows/Pcap_DNSProxy.exe -> DA363FB8F5E3906A1FB65464A0E1343C747DA72C
+    * Windows/Pcap_DNSProxy_x86.exe -> 96F508BBDB48DD16B0B13D7B58D42F333042F198
+    * Windows/Pcap_DNSProxy_XP.exe -> 07DB9B0D32E5314E8D46A13F02014D712CD1761D
+    * Mac/Pcap_DNSProxy -> 9B5EF5662DF6697E0FA5DC66B000EA56996FE30C
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 6213B872B1618B5C1B29F51EEFCE77F78641EF638D0072F4D7BD856F04F99934
-    * Windows/Pcap_DNSProxy_x86.exe -> 9D52031F60FBC02452A9D24028C512484BEBDDFD5420A008F5BAE997B4126DDC
-    * Windows/Pcap_DNSProxy_XP.exe -> 9D52031F60FBC02452A9D24028C512484BEBDDFD5420A008F5BAE997B4126DDC
-    * Mac/Pcap_DNSProxy -> 13DAE520C8F2293733A180D8A8BE6FE877F43243BB4B2BB28C155A3CCD157F76
+    * Windows/Pcap_DNSProxy.exe -> E51761D6A7F5EDC505CC6281CF880D70EC2828904BC34A133C89875A31499B47
+    * Windows/Pcap_DNSProxy_x86.exe -> D50D4218D14C8C62F67F3BE845B4D668994D807A8A85C2D8D432C50BEB7E1709
+    * Windows/Pcap_DNSProxy_XP.exe -> D7342D887B52C4FA87402FF9C4273E7C6F6461CA01FDCADC92253D06FD8E8072
+    * Mac/Pcap_DNSProxy -> DBF31E10FD8BBA080D16256F2DB062B106A157831C3B9DE2824C61890A63A429
 
 
 -------------------------------------------------------------------------------

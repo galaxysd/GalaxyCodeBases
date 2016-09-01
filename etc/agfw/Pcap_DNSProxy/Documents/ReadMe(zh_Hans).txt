@@ -12,7 +12,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安装方法（需要以管理员身份进行）：
 
-1.访问 http://www.winpcap.org/install/default.htm 下载并以管理员权限安装 WinPcap
+1.访问 https://www.winpcap.org/install/default.htm 下载并以管理员权限安装 WinPcap
   * WinPcap 只需要安装一次，以前安装过最新版本或以后更新本工具时请从第2步开始操作
   * 如果 WinPcap 提示已安装旧版本无法继续时，参见 FAQ 中 运行结果分析 一节
   * 安装时自启动选项对工具的运行没有影响，因为本工具直接调用 WinPcap API，不需要经过服务器程序
@@ -39,12 +39,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 6.特别注意：
-  * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
+  * Windows XP 如出现 10022/WSAEINVAL 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
     * 以管理员身份运行 cmd
     * 输入 ipv6 install 并回车
-  * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
-    * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
-    * Local Hosts = 1 开启境内域名白名单功能
   * 如需让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
     * Direct Request = IPv4
     * Direct Request = IPv6
@@ -71,6 +68,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 安全模式下的使用方法（需要以管理员身份进行）：
 * 程序具备在安全模式下运行的能力，在安全模式下右键以管理员身份直接运行程序
 * 直接运行模式有控制台窗口，关闭程序时直接关闭控制台窗口即可
+
 
 卸载方法（需要以管理员身份进行）：
 1.按照 安装方法 中第6步还原 DNS 域名服务器地址配置
@@ -113,7 +111,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
 * 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
 * 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
-* 由于本人水平有限，程序编写难免会出现差错疏漏，如有问题可至项目页面提出，望谅解 v_v
+* 由于本人水平有限，程序编写难免会出现差错疏漏，遇到问题请先更新到最新版本，如有问题可至项目页面提出，望谅解 v_v
 
 
 -------------------------------------------------------------------------------
@@ -151,7 +149,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNS 缓存类型
   * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
-  * Queue/队列型：默认缓存时间 15 分钟，可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
+  * Queue/队列型：可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
   * 强烈建议打开 DNS 缓存功能！
 * 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
@@ -161,7 +159,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
   * 将目标服务器的请求端口改为非标准 DNS 端口：例如 OpenDNS 支持 53 标准端口和 5353 非标准端口的请求
     * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
-  * Multi Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
+  * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
     * 此功能用于对抗网络丢包比较严重的情况，对系统和网络资源的占用都比较高，但在网络环境恶劣的情况下能提高获得解析结果的可靠性
   * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve/DNSCrypt 非加密模式请求域名解析
     * 此组合等于使用非标准 DNS 端口请求，域名解析可靠性比较高，详细情况参见上文
@@ -181,13 +179,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改
-  * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为 5 秒
+  * File Refresh Time - 文件刷新间隔时间：单位为秒，最小为 5
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：请填入目录的绝对路径
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取
 
 * Log - 日志参数区域
-  * Print Log Level - 指定日志输出级别：默认为 3，如果留空则为 3
+  * Print Log Level - 指定日志输出级别：留空为 3
     * 0 为关闭日志输出功能
     * 1 为输出重大错误
     * 2 为输出一般错误
@@ -200,9 +198,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此参数关闭后程序会自动切换为直连模式
     * 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
   * Pcap Devices Blacklist - 指定不对含有此名称的网络适配器进行抓包，名称或简介里含有此字符串的网络适配器将被直接忽略
-    * 本参数支持指定多个名称，大小写不敏感，格式为 "网络适配器的名称(|网络适配器的名称)"（不含引号）
+    * 本参数支持指定多个名称，大小写不敏感，格式为 "网络适配器的名称(|网络适配器的名称)"（不含引号，括号内为可选项目）
     * 以抓包模块从系统中获取的名称或简介为准，与其它网络配置程序所显示的不一定相同
-  * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最短间隔时间为10毫秒
+  * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最小为 10
     * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
   * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
@@ -372,15 +370,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 支持使用服务名称代替端口号
   * 注意：
     * 带端口地址的格式：
-      * 单个 IPv4 为 "IPv4 地址:端口"（均不含引号）
-	  * 单个 IPv6 为 "[IPv6 地址]:端口"（均不含引号）
-      * 多个 IPv4 为 "地址A:端口|地址B:端口|地址C:端口"（均不含引号）
-	  * 多个 IPv6 为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号）
-      * 启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-      * 可填入的服务器数量为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
+      * 单个 IPv4 为 "IPv4 地址:端口"（不含引号）
+      * 单个 IPv6 为 "[IPv6 地址]:端口"（不含引号）
+      * 多个 IPv4 为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
+      * 多个 IPv6 为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
+      * 启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multiple Request 参数（参见下文）
+      * 可填入的服务器数量为：填入主要/备用服务器的数量
+      * Multiple Request Times = 总请求的数值，此数值不能超过 64
     * 带前缀长度地址的格式：
-      * IPv4 为 "IPv4 地址/掩码长度"（均不含引号）
-      * IPv6 为 "IPv6 地址/前缀长度"（均不含引号）
+      * IPv4 为 "IPv4 地址/掩码长度"（不含引号）
+      * IPv6 为 "IPv6 地址/前缀长度"（不含引号）
     * 指定端口时可使用服务名称代替：
       * TCPMUX/1
       * ECHO/7
@@ -470,14 +469,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TELNETS/992
 
 * Values - 扩展参数值区域
-  * Buffer Queue Limits - 数据缓冲区队列数量限制：单位为个，最小为 8 最大为 1488095
+  * Thread Pool Base Number - 线程池基础最低保持线程数量：最小为 8 设置为 0 则关闭线程池的功能
+  * Thread Pool Maximum Number - 线程池最大线程数量以及缓冲区队列数量限制：最小为 8
+    * 线程池最大线程数量功能暂时未有实际用途
     * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
-    * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量，由于内存数据的复制比网络 I/O 快超过一个数量级，故此情况下不需要设置太多缓冲区
-  * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，设置为 0 时关闭此功能
+    * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量
+  * Thread Pool Reset Time - 暂时未有实际用途
+  * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，最小为 5 设置为 0 时关闭此功能
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)
-  * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1-255 之间，默认为 32 - 255
+  * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1-255 之间
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
-  * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：：0 为由操作系统自动决定，取值为 1-255 之间，默认为 32 - 255
+  * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：：0 为由操作系统自动决定，取值为 1-255 之间
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
   * IPv4 DNS TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
@@ -488,20 +490,21 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Alternate DNS Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
-  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
-  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：最小为 500，可留空，留空时为 2000，单位为毫秒
+  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议：单位为毫秒，最小为 500 可留空，留空时为 3000
+  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，最小为 500 可留空，留空时为 2000，
   * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或填 0 表示关闭此功能
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
     * 本参数启用后虽然本身只决定抓包模块的接收等待时间，但同时会影响到非抓包模块的请求。非抓包模块会自动切换为等待超时时间后发回最后收到的回复，默认为接受最先到达的正确的回复，而它们的超时时间由 Reliable Socket Timeout/Unreliable Socket Timeout 参数决定
     * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
-  * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最短间隔时间为5秒
-  * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒
-  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换
-  * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒
-  * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒
-  * Multi Request Times - 一次向同一个远程服务器发送并行域名解析请求：0 和 1 时为收到一个请求时请求 1 次，2 时为收到一个请求时请求 2 次，3 时为收到一个请求时请求 3 次……以此类推
+  * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最小为 5 填 0 表示关闭此功能
+  * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最小为 5 填 0 表示关闭此功能
+  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：单位为次
+  * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，最小为 5
+  * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，最小为 5
+  * Multiple Request Times - 一次向同一个远程服务器发送并行域名解析请求：0 和 1 时为收到一个请求时请求 1 次，2 时为收到一个请求时请求 2 次，3 时为收到一个请求时请求 3 次……以此类推
     * 此值将应用到 Local Hosts 外对所有远程服务器所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
-    * 可填入的最大数值为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
+    * 可填入的最大数值为：填入主要/备用服务器的数量
+  * Multiple Request Times = 总请求的数值，此数值不能超过 64
     * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
   * 注意：
     * IPv4 协议使用多 TTL 值的格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
@@ -541,7 +544,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本功能要求启用 EDNS Label、DNSSEC Request 和 DNSSEC Validation 参数
     * 此功能不具备完整的 DNSSEC 记录检验的能力，单独开启理论上不能避免 DNS 投毒污染的问题
     * 警告：由于现时已经部署 DNSSEC 的域名数量极少，未部署 DNSSEC 的域名解析没有 DNSSEC 记录，这将导致所有未部署 DNSSEC 的域名解析失败，现阶段切勿开启本功能！
-  * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为 1 /关闭为 0
+  * Alternate Multiple Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为 1 /关闭为 0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
   * IPv4 Do Not Fragment - IPv4 数据包头部 Do Not Fragment 标志：开启为 1 /关闭为 0
     * 目前本功能不支持 Mac OS X 平台，此平台将直接忽略此参数
@@ -567,8 +570,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向 SOCKS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 UDP 因为 TCP 为 SOCKS 最先支持以及最普遍支持的标准网络层协议，所以即使填入 UDP 请求失败时也会使用 TCP 请求
-  * SOCKS Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 6000，单位为毫秒
-  * SOCKS Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * SOCKS Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：单位为毫秒，最小为 500 可留空，留空时为 6000，
+  * SOCKS Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：单位为毫秒， 最小为 500 可留空，留空时为 3000
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，开启后将不进行 TCP 握手直接发送 UDP 转发请求：开启为 1 /关闭为 0
     * SOCKS 协议的标准流程使用 UDP 转发功能前必须使用 TCP 连接交换握手信息，否则 SOCKS 服务器将直接丢弃转发请求
     * 部分 SOCKS 本地代理可以直接进行 UDP 转发而不需要使用 TCP 连接交换握手信息，启用前请务必确认 SOCKS 服务器的支持情况
@@ -588,7 +591,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP Protocol - 发送 HTTP 协议请求所使用的协议：可填入 IPv4 和 IPv6
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 时，只使用指定协议向 HTTP 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-  * HTTP Socket Timeout - HTTP 协议端口超时时间：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * HTTP Socket Timeout - HTTP 协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 3000
   * HTTP Proxy Only - 只使用 HTTP 协议代理模式，所有请求将只通过 HTTP 协议进行：开启为 1 /关闭为 0
   * HTTP IPv4 Address - HTTP 协议 IPv4 主要 HTTP 服务器地址：需要输入一个带端口格式的地址
     * 不支持多个地址，只能填入单个地址
@@ -612,13 +615,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)
-  * DNSCurve Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
-  * DNSCurve Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：最小为 500，可留空，留空时为 2000，单位为毫秒
+  * DNSCurve Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：单位为毫秒，最小为 500 可留空，留空时为 3000
+  * DNSCurve Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：单位为毫秒，最小为 500 可留空，留空时为 2000
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为 1 /关闭为 0
   * Encryption Only - 只使用加密模式，所有请求将只通过 DNCurve 加密模式进行：开启为 1 /关闭为 0
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
   * Client Ephemeral Key - 一次性客户端密钥对模式：每次请求解析均使用随机生成的一次性客户端密钥对：开启为 1 /关闭为 0
-  * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最短为 10 秒
+  * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最小为 10
 
 * DNSCurve Addresses - DNSCurve 协议地址区域
   * DNSCurve IPv4 DNS Address - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址
@@ -688,6 +691,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Default TTL
 * Local Protocol
 * Local Force Request
+* Thread Pool Reset Time
 * IPv4 Packet TTL
 * IPv6 Packet Hop Limits
 * IPv4 TTL
@@ -700,7 +704,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Receive Waiting
 * ICMP Test
 * Domain Test
-* Multi Request Times
+* Multiple Request Times
 * Domain Case Conversion
 * IPv4 Do Not Fragment
 * IPv4 Data Filter
@@ -765,8 +769,8 @@ Hosts 配置文件分为多个提供不同功能的区域
 
 * Whitelist Extended - 白名单条目扩展功能
   * 此类型的条目还支持对符合规则的特定类型域名请求直接绕过 Hosts 不会使用 Hosts 功能
-  * 有效参数格式为 "NULL:DNS类型(|DNS类型) 正则表达式"（不含引号）
-  * 只允许特定类型域名请求，有效参数格式为 "NULL(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号）
+  * 有效参数格式为 "NULL:DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
+  * 只允许特定类型域名请求，有效参数格式为 "NULL(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
 
     NULL:A|AAAA .*\.test.localhost
     NULL(Deny):NS|SOA .*\.localhost
@@ -789,8 +793,8 @@ Hosts 配置文件分为多个提供不同功能的区域
 
 * Banned Extended - 黑名单条目扩展功能
   * 此类型的条目还支持对符合规则的特定类型域名请求进行屏蔽或放行
-  * 有效参数格式为 "BANNED:DNS类型(|DNS类型) 正则表达式"（不含引号）
-  * 只允许特定类型域名请求，有效参数格式为 "BANNED(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号）
+  * 有效参数格式为 "BANNED:DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
+  * 只允许特定类型域名请求，有效参数格式为 "BANNED(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
 
     BANNED:A|AAAA .*\.test.localhost
     BANNED(Permit):NS|SOA .*\.localhost
@@ -869,6 +873,51 @@ Hosts 配置文件分为多个提供不同功能的区域
     [Local Hosts]
     .*\.test\.localhost
     .*\.localhost
+
+
+* Dnsmasq Address - Dnsmasq 兼容格式
+  * Address 兼容格式适用于 Hosts/CNAME Hosts - 主要 Hosts 列表/CNAME Hosts 列表
+  * 有效参数格式：
+    * 前缀支持 --Address=/ 或 --address=/ 或 Address=/ 或 address=/
+    * 普通域名字符串匹配模式为 "Address=/域名后缀/(地址)"（不含引号，括号内为可选项目），域名后缀如果只填入 "#" 则表示匹配所有域名
+    * 正则表达式模式为 "Address=/:正则表达式:/(地址)"（不含引号，括号内为可选项目）
+    * 地址部分如果留空不填，则相当于 Banned - 黑名单条目
+  * 例如以下 [Hosts] 条目是完全等价的：
+
+    Address=/:.*\blocalhost:/127.0.0.1
+    Address=/localhost/127.0.0.1
+
+  * 匹配所有域名的解析结果到 ::1
+
+    Address=/#/::1
+
+  * 对符合规则的域名返回域名不存在信息
+
+    Address=/localhost/
+
+
+* Dnsmasq Server - Dnsmasq 兼容格式
+  * 要使用本功能，必须将配置文件内的 Local Hosts 选项打开！
+  * Server 兼容格式适用于 Local Hosts - 境内 DNS 解析域名列表
+  * 有效参数格式：
+    * 前缀支持 --Server=/ 或 --server=/ 或 Server=/ 或 server=/
+    * 普通域名字符串匹配模式为 "Server=/(域名后缀)/(指定进行解析的 DNS 地址(#端口))"（不含引号，括号内为可选项目）
+    * 正则表达式模式为 "Address=/(:正则表达式:)/(指定进行解析的 DNS 地址(#端口))"（不含引号，括号内为可选项目）
+    * 域名后缀或者 :正则表达式: 部分留空不填，相当于匹配不符合标准的域名，例如没有任何 . 的域名
+    * 指定进行解析的 DNS 地址如果留空不填，则相当于使用程序配置文件指定的默认 DNS 服务器进行解析
+    * 指定进行解析的 DNS 地址部分只填入 "#" 相当于 Whitelist - 白名单条目
+  * 例如以下 [Local Hosts] 条目是完全等价的：
+
+    Server=/:.*\blocalhost:/::1#53
+    Server=/localhost/::
+
+  * 对符合规则的域名使用程序配置文件指定的默认 DNS 服务器进行解析
+
+    Server=/localhost/
+
+  * 不符合标准的域名全部发往 127.0.0.1 进行解析
+
+    Server=//127.0.0.1
 
 
 -------------------------------------------------------------------------------

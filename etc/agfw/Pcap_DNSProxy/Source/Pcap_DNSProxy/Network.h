@@ -23,29 +23,32 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 #if defined(ENABLE_PCAP)
-	extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
-	extern std::mutex OutputPacketListLock;
+extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+extern std::mutex OutputPacketListLock;
 #endif
+extern std::mutex SocketMarkingLock;
 
 //Functions
-bool __fastcall SelectTargetSocket(
+bool SelectTargetSocket(
 	const size_t RequestType, 
 	SOCKET_DATA *TargetSocketData, 
 	bool **IsAlternate, 
 	size_t **AlternateTimeoutTimes, 
-	const uint16_t Protocol);
-bool __fastcall SelectTargetSocketMulti(
+	const uint16_t Protocol, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData);
+bool SelectTargetSocketMultiple(
 	std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	const uint16_t Protocol);
-SSIZE_T __fastcall SelectingResult(
+ssize_t SelectingResult(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-void __fastcall MarkPortToList(
+void MarkPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA *LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList);

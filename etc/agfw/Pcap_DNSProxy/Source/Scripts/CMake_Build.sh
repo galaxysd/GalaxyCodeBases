@@ -19,7 +19,13 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Back to main directory and make a Release directory.
+# Set variables and create release directories.
+CMakeShell="cmake "
+if (uname -s | grep -iq "Darwin"); then
+	ThreadNum=`sysctl -n hw.ncpu`
+else
+	ThreadNum=`grep "processor" /proc/cpuinfo | sort -u | wc -l`
+fi
 cd ..
 rm -Rrf Object
 mkdir Release
@@ -27,7 +33,6 @@ mkdir Release
 # Build Pcap_DNSProxy.
 mkdir Object
 cd Object
-CMakeShell="cmake "
 if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
 	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
 fi
@@ -39,23 +44,19 @@ if (echo "$*" | grep -iq -e "--enable-static"); then
 fi
 CMakeShell="${CMakeShell}../Pcap_DNSProxy"
 ${CMakeShell}
-make
+make -j${ThreadNum}
 cd ..
 mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
 
 # Program settings
-chmod 755 Release/Pcap_DNSProxy
-chmod 755 Scripts/Linux_Install.Systemd.sh
-chmod 755 Scripts/Linux_Install.SysV.sh
-chmod 755 Scripts/Linux_Uninstall.Systemd.sh
-chmod 755 Scripts/Linux_Uninstall.SysV.sh
-chmod 755 Scripts/Update_Routing.sh
-chmod 755 Scripts/Update_WhiteList.sh
 cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
+cp ExampleConfig/pcap_dnsproxy.service.plist Release/pcap_dnsproxy.service.plist
 cp ExampleConfig/Config.ini Release/Config.conf
 cp ExampleConfig/Hosts.ini Release/Hosts.conf
 cp ExampleConfig/IPFilter.ini Release/IPFilter.conf
 cp ExampleConfig/Routing.txt Release/Routing.txt
 cp ExampleConfig/WhiteList.txt Release/WhiteList.txt
+chmod -R 755 Release
+chmod -R 755 Scripts
