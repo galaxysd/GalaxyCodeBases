@@ -45,6 +45,7 @@ git subtree pull --prefix=etc/Chrome/115 https://github.com/acgotaku/115.git mas
 git subtree pull --prefix=etc/Mac/OfficeThinner https://github.com/goodbest/OfficeThinner.git master
 git subtree pull --prefix=etc/Mac/adobe_case_sensitive_volumes https://github.com/tzvetkoff/adobe_case_sensitive_volumes.git master
 #git subtree pull --prefix=etc/Windows/vlmcsd https://github.com/vancepym/vlmcsd.git master
+git subtree pull --prefix=etc/Windows/vlmcsd https://github.com/Wind4/vlmcsd.git master
 
 # BioInfo
 git subtree pull --prefix=BioInfo/BS-Seq/bwa-meth https://github.com/brentp/bwa-meth.git master
