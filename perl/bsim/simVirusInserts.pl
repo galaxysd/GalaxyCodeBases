@@ -93,6 +93,16 @@ if (defined $TicksINI and -f $TicksINI) {
 			print STDERR "Vir:",scalar @dat,', ';
 		}
 	}
+	if ($#$pVirticks < $#$pRefticks) {
+		for my $i ( (1+$#$pVirticks) .. $#$pRefticks ) {
+			my $j = $i - $#$pVirticks;
+			while ( abs($j)>$#$pVirticks ) {
+				$j = abs($j) - $#$pVirticks;
+			}
+			$pVirticks->[$i] = $pVirticks->[$j];
+		}
+		print STDERR "Vir padded. ";
+	}
 	print STDERR "\b\b.\n";
 } else {
 	my $SeqReadLen = $Para{SeqReadLen};
