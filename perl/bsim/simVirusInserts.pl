@@ -96,7 +96,7 @@ if (defined $TicksINI and -f $TicksINI) {
 	my $virtickmax = $#$pVirticks;
 	if ($virtickmax < $#$pRefticks) {
 		for my $i ( (1+$virtickmax) .. $#$pRefticks ) {
-			my $j = $i - 0.8*$virtickmax;	# must use `$virtickmax` instead of `$#$pVirticks` !
+			my $j = int($i - 0.8*$virtickmax);	# must use `$virtickmax` instead of `$#$pVirticks` !
 			while ( abs($j)>$virtickmax ) {
 				$j = abs($j) - $virtickmax;
 			}
