@@ -93,11 +93,12 @@ if (defined $TicksINI and -f $TicksINI) {
 			print STDERR "Vir:",scalar @dat,', ';
 		}
 	}
-	if ($#$pVirticks < $#$pRefticks) {
-		for my $i ( (1+$#$pVirticks) .. $#$pRefticks ) {
-			my $j = $i - $#$pVirticks;
-			while ( abs($j)>$#$pVirticks ) {
-				$j = abs($j) - $#$pVirticks;
+	my $virtickmax = $#$pVirticks;
+	if ($virtickmax < $#$pRefticks) {
+		for my $i ( (1+$virtickmax) .. $#$pRefticks ) {
+			my $j = $i - 0.8*$virtickmax;	# must use `$virtickmax` instead of `$#$pVirticks` !
+			while ( abs($j)>$virtickmax ) {
+				$j = abs($j) - $virtickmax;
 			}
 			$pVirticks->[$i] = $pVirticks->[$j];
 		}
