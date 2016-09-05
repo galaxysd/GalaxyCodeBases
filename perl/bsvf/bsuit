@@ -53,7 +53,7 @@ my $cmd=lc shift;
 my $cfgfile=shift;
 die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
 
-unless (exists $Cmd2Fun{$cmd}) {
+unless (exists $Cmd2Fun{$cmd} or $cmd eq 'check') {
 	warn "[x]Unknown Command: [$cmd] !\n";
 	ShowHelp();
 }
