@@ -88,7 +88,7 @@ our $ProjectID = $Config->{'Output'}->{'ProjectID'};
 warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
 
 if (grep /^sv1$/i,@ARGV) {
-	my @SDs = grep /\.SD$/,keys($Config->{'InsertSizes'});
+	my @SDs = grep /\.SD$/,keys(%{$Config->{'InsertSizes'}});
 	for (@SDs) {
 		$Config->{'InsertSizes'}->{$_} = 1;
 	}
