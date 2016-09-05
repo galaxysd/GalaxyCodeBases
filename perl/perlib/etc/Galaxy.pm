@@ -3,11 +3,11 @@ use strict;
 use 5.010;
 require Exporter;
 our @ISA   =qw(Exporter);
-our @EXPORT    =qw(commify colormap);
+our @EXPORT    =qw(commify colormap alphanum);
 our @EXPORT_OK   =qw(colormap);
 our $VERSION   = v1.0.0;
 
-sub commify {	# http://www.perlmonks.org/?node_id=653
+sub commify {	# http://www.perlmonks.org/?node_id=653 给数字加逗号
 	my $input = shift;
 	$input = reverse $input;
 	$input =~ s<(\d\d\d)(?=\d)(?!\d*\.)><$1,>g;
@@ -44,5 +44,48 @@ sub _getColorMap {
 	}
 }
 
+# http://www.davekoelle.com/alphanum.html
+# usage:
+#my @sorted = sort { alphanum($a,$b) } @strings;
+sub alphanum {
+  # split strings into chunks
+  my @a = chunkify($_[0]);
+  my @b = chunkify($_[1]);
+  # while we have chunks to compare.
+  while (@a && @b) {
+    my $a_chunk = shift @a;
+    my $b_chunk = shift @b;
+    my $test =
+        (($a_chunk =~ /\d/) && ($b_chunk =~ /\d/)) ? # if both are numeric
+            $a_chunk <=> $b_chunk : # compare as numbers
+            $a_chunk cmp $b_chunk ; # else compare as strings
+    # return comparison if not equal.
+    return $test if $test != 0;
+  }
+  # return longer string.
+  return @a <=> @b;
+}
+# split on numeric/non-numeric transitions
+sub chunkify {
+  my @chunks = split m{ # split on
+    (?= # zero width
+      (?<=\D)\d | # digit preceded by a non-digit OR
+      (?<=\d)\D # non-digit preceded by a digit
+    )
+  }x, $_[0];
+  return @chunks;
+}
 
 1;
+
+__END__
+
+# Tips:
+
+## http://stackoverflow.com/questions/2957879/perl-map-need-to-map-an-array-into-a-hash-as-arrayelement-array-index
+%hash = map { $arr[$_] => $_ } 0..$#arr;
+
+## http://stackoverflow.com/questions/2700302/how-do-i-get-a-slice-from-an-array-reference/2702033#2702033
+my @slice =   @   array   [1,3,2];
+my @slice =   @ { $aref } [1,3,2];
+my $slice_ref = [ @$aref[1,3,2] ];
