@@ -45,6 +45,7 @@ sub _getColorMap {
 }
 
 # http://www.davekoelle.com/alphanum.html
+# See also <https://github.com/galaxysd/GalaxyCodeBases/tree/master/c_cpp/lib/natsort/state_machine>
 # usage:
 #my @sorted = sort { alphanum($a,$b) } @strings;
 sub alphanum {
