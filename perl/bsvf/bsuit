@@ -49,8 +49,6 @@ if (@ARGV < 2) {
 	ShowHelp();
 }
 
-$Cmd2Fun{'check'} = \&do_check;
-
 my $cmd=lc shift;
 my $cfgfile=shift;
 die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
@@ -59,6 +57,8 @@ unless (exists $Cmd2Fun{$cmd}) {
 	warn "[x]Unknown Command: [$cmd] !\n";
 	ShowHelp();
 }
+
+$Cmd2Fun{'check'} = \&do_check;
 
 #our $CFGminMAPQ = 30;
 our $minHostDepth = 10;
