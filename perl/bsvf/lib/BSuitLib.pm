@@ -550,10 +550,10 @@ sub do_check {
 				for my $p ( ($pos1-$bias)..($pos2+$bias) ) {
 					if (exists $Refticksh{$p}) {
 						$flag |= 1;
-						goto NOVIR if $strand eq 'NA';
 						my $idx = $Refticksh{$p};
 						print OUT 'h',$Refticks[$idx],",";
 						($va,$vb) = @{$VirFragSE{$k}->[$idx]};
+						goto NOVIR if $strand eq 'NA';
 						if (($vp1<=$vb) and ($vp2>=$va)) {
 							$flag |= 2;
 							$flag &= ~4;
