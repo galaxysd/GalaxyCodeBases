@@ -478,7 +478,7 @@ sub do_analyse {
 			}
 			#next unless defined $strand;
 			unless (defined $strand) {	# Well, we need more poistive.
-				print OUT join("\t",@LineDat[0..3],'Virus','NA','-1','-1'),"\n";
+				print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
 				next;
 			}
 			$LineDat[3] = -1 if $LineDat[3] == $LineDat[2] + 1;	# 貌似正负链加减一没统一？
@@ -550,6 +550,7 @@ sub do_check {
 				for my $p ( ($pos1-$bias)..($pos2+$bias) ) {
 					if (exists $Refticksh{$p}) {
 						$flag |= 1;
+						last if $strand eq 'n';
 						my $idx = $Refticksh{$p};
 						print OUT 'h',$Refticks[$idx],",";
 						($va,$vb) = @{$VirFragSE{$k}->[$idx]};
