@@ -481,7 +481,11 @@ sub do_analyse {
 			#next unless defined $strand;
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
-				$OutDat{$LineDat[1]}{$LineDat[3]} = [$LineDat[0],$LineDat[2],'Virus','NA','0','0'];	# 忘了为啥第三列才非 -1。
+				if ($LineDat[2] == -1) {
+					$OutDat{$LineDat[1]}{$LineDat[3]} = [$LineDat[0],$LineDat[2],'Virus','NA','0','0'];	# 忘了为啥会是第三列非 -1。
+				} else {
+					$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA','0','0'];
+				}
 				++$OutCnt[1];
 				next;
 			}
@@ -497,6 +501,7 @@ sub do_analyse {
 					$lastL = $pos;
 					$lastR = $pos;
 				} elsif (($pos - $lastR) < $main::ResultMergeRange) {
+					warn "-> $pos - ($lastL,$lastR)\n";
 					$lastR = $pos;	# 暂时只考虑左端点的合并
 				} else {
 					if ($lastL != -1) {
