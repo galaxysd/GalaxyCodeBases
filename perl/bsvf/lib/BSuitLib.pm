@@ -481,7 +481,7 @@ sub do_analyse {
 			#next unless defined $strand;
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
-				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA','0','0'];
+				$OutDat{$LineDat[1]}{$LineDat[3]} = [$LineDat[0],$LineDat[2],'Virus','NA','0','0'];	# 忘了为啥第三列才非 -1。
 				++$OutCnt[1];
 				next;
 			}
