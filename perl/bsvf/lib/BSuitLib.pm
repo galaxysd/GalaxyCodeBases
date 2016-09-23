@@ -511,7 +511,7 @@ sub do_analyse {
 						++$OutCnt[2];
 						print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 					}
-					($lastL,$lastR) = (-1,-1);
+					($lastL,$lastR) = ($pos,$pos);
 				}
 			}
 			if ($lastL != -1) {
