@@ -500,7 +500,7 @@ sub do_analyse {
 				if ($lastL == -1) {
 					$lastL = $pos;
 					$lastR = $pos;
-					print STDERR ">>> $pos\n";
+					#print STDERR ">>> $pos\n";
 				} elsif (($pos - $lastR) <= $main::ResultMergeRange) {
 					print STDERR "-> $pos - ($lastL,$lastR)\n";
 					$lastR = $pos;	# 暂时只考虑左端点的合并
@@ -509,7 +509,7 @@ sub do_analyse {
 						my @Dat = @{$OutDat{$chr}{$lastL}};	# 假设第一条的病毒结果最准确（其实应该是中间某个；最好前期打分）
 						print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 						++$OutCnt[2];
-						print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
+						#print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 					}
 					($lastL,$lastR) = ($pos,$pos);
 				}
