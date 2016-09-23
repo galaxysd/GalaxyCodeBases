@@ -520,7 +520,7 @@ sub do_analyse {
 				++$OutCnt[2];
 			}
 		}
-		warn "[!]Output: $OutCnt[0] + $OutCnt[1] => $OutCnt[2] in [$k], diff=",$OutCnt[2]-$OutCnt[0]-$OutCnt[1]," .\n";
+		warn "[!]O: $OutCnt[0]+$OutCnt[1] => $OutCnt[2] in [$k], merged=",$OutCnt[2]-$OutCnt[0]-$OutCnt[1],".\n";
 	}
 }
 
