@@ -502,7 +502,7 @@ sub do_analyse {
 					$lastR = $pos;
 					#print STDERR ">>> $pos\n";
 				} elsif (($pos - $lastR) <= $main::ResultMergeRange) {
-					print STDERR "-> $pos - ($lastL,$lastR)\n";
+					#print STDERR "-> $pos - ($lastL,$lastR)\n";
 					$lastR = $pos;	# 暂时只考虑左端点的合并
 				} else {
 					if ($lastL != -1) {
@@ -520,7 +520,7 @@ sub do_analyse {
 				++$OutCnt[2];
 			}
 		}
-		warn "[!]Output: $OutCnt[0] + $OutCnt[1] => $OutCnt[2] in [$k].\n";
+		warn "[!]Output: $OutCnt[0] + $OutCnt[1] => $OutCnt[2] in [$k], diff=",$OutCnt[2]-$OutCnt[0]-$OutCnt[1]," .\n";
 	}
 }
 
