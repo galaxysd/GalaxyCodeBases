@@ -500,8 +500,9 @@ sub do_analyse {
 				if ($lastL == -1) {
 					$lastL = $pos;
 					$lastR = $pos;
-				} elsif (($pos - $lastR) < $main::ResultMergeRange) {
-					warn "-> $pos - ($lastL,$lastR)\n";
+					print STDERR ">>> $pos\n";
+				} elsif (($pos - $lastR) <= $main::ResultMergeRange) {
+					print STDERR "-> $pos - ($lastL,$lastR)\n";
 					$lastR = $pos;	# 暂时只考虑左端点的合并
 				} else {
 					if ($lastL != -1) {
@@ -510,6 +511,7 @@ sub do_analyse {
 						++$OutCnt[2];
 					}
 					($lastL,$lastR) = (-1,-1);
+					print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";;
 				}
 			}
 			if ($lastL != -1) {
