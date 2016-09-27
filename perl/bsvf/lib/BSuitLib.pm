@@ -590,7 +590,10 @@ sub do_check {
 						my $idx = $Refticksh{$p};
 						print OUT 'h',$Refticks[$idx],",";
 						($va,$vb) = @{$VirFragSE{$k}->[$idx]};
-						goto NOVIR if $strand eq 'NA';
+						if ($strand eq 'NA') {
+							$flag |= 6;
+							goto NOVIR;
+						}
 						if (($vp1<=$vb) and ($vp2>=$va)) {
 							$flag |= 2;
 							$flag &= ~4;
@@ -613,7 +616,6 @@ sub do_check {
 				}
 				NOVIR:
 				if ($flag==1) {
-					$flag |= 6;
 					print OUT "x$va-$vb,";
 				}
 			}
