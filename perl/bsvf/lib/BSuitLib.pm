@@ -613,6 +613,7 @@ sub do_check {
 				}
 				NOVIR:
 				if ($flag==1) {
+					$flag |= 6;
 					print OUT "x$va-$vb,";
 				}
 			}
