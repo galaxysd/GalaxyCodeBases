@@ -478,18 +478,18 @@ sub do_analyse {
 					}
 				}
 			}
+			if ($LineDat[2] == -1) {
+				$LineDat[2] = $LineDat[3];
+				$LineDat[3] = -1;
+			}
+			$LineDat[3] = -1 if $LineDat[3] == $LineDat[2] + 1;	# 貌似正负链加减一没统一？
 			#next unless defined $strand;
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
-				if ($LineDat[2] == -1) {
-					$OutDat{$LineDat[1]}{$LineDat[3]} = [$LineDat[0],$LineDat[2],'Virus','NA','0','0'];	# 忘了为啥会是第三列非 -1。
-				} else {
-					$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA','0','0'];
-				}
+				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA','0','0'];
 				++$OutCnt[1];
 				next;
 			}
-			$LineDat[3] = -1 if $LineDat[3] == $LineDat[2] + 1;	# 貌似正负链加减一没统一？
 			#print OUT join("\t",@LineDat[0..3],'Virus',$strand,$left,$right),"\n";
 			$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus',$strand,$left,$right];
 			++$OutCnt[0];
@@ -512,7 +512,7 @@ sub do_analyse {
 						++$OutCnt[2];
 						#print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 					}
-					($lastL,$lastR) = ($pos,$pos);
+					($lastL,$lastR) = ($pos,$pos);	# 下一轮初值。
 				}
 			}
 			if ($lastL != -1) {
