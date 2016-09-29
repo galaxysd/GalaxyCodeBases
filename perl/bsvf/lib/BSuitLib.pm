@@ -507,6 +507,7 @@ sub do_analyse {
 				} else {
 					if ($lastL != -1) {
 						my @Dat = @{$OutDat{$chr}{$lastL}};	# 假设第一条的病毒结果最准确（其实应该是中间某个；最好前期打分）
+						$Dat[1] = -1 if $Dat[1] == $lastL + 1;
 						print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 						++$OutCnt[2];
 						#print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
