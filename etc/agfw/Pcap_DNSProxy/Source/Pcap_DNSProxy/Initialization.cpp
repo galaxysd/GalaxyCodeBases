@@ -196,14 +196,14 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->OperationMode = LISTEN_MODE_PROXY;
 
 	//[DNS] block
-	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_UDP;
-	ConfigurationParameter->DirectRequest = DIRECT_REQUEST_MODE_NONE;
+	ConfigurationParameter->DirectRequest = REQUEST_MODE_DIRECT_NONE;
 	ConfigurationParameter->CacheType = CACHE_TYPE_NONE;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	//[Local DNS] block
-	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->LocalProtocol_Transport = REQUEST_MODE_UDP;
 
 	//[Values] block
@@ -261,7 +261,7 @@ void ConfigurationTableSetting(
 
 	//[Proxy] block
 	ConfigurationParameter->SOCKS_Version = SOCKS_VERSION_5;
-	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
@@ -270,7 +270,7 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
-	ConfigurationParameter->HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->HTTP_Protocol = REQUEST_MODE_BOTH;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -382,30 +382,6 @@ void ConfigurationTable::SetToMonitorItem(
 	LocalFQDN_String = nullptr;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
-	LocalServer_Response = nullptr;
-#endif
-
-//Reset pointers.
-//[Listen] block
-#if defined(ENABLE_PCAP)
-	PcapDevicesBlacklist = nullptr;
-#endif
-	ListenPort = nullptr;
-//[Addresses] block
-	ListenAddress_IPv6 = nullptr;
-	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet_IPv6 = nullptr;
-	LocalhostSubnet_IPv4 = nullptr;
-	Target_Server_IPv6_Multiple = nullptr;
-	Target_Server_IPv4_Multiple = nullptr;
-//[Data] block
-#if defined(ENABLE_PCAP)
-	ICMP_PaddingData = nullptr;
-	DomainTest_Data = nullptr;
-#endif
-	LocalFQDN_Response = nullptr;
-	LocalFQDN_String = nullptr;
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	LocalServer_Response = nullptr;
 #endif
 
@@ -551,7 +527,7 @@ void ConfigurationTable::MonitorItemReset(
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 //[Local DNS] block
-	LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	LocalProtocol_Network = REQUEST_MODE_BOTH;
 	LocalProtocol_Transport = REQUEST_MODE_UDP;
 	LocalForce = false;
 
@@ -642,11 +618,11 @@ GlobalStatus::GlobalStatus(
 		sFileList_Hosts = new std::vector<std::string>();
 		sFileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[0] = new uint8_t[PACKET_MAXSIZE]();
-		LocalAddress_Response[1U] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_IPV6] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_IPV4] = new uint8_t[PACKET_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
-		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
+		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = new std::vector<std::string>();
+		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = new std::vector<std::string>();
 	#endif
 	}
 	catch (std::bad_alloc)
@@ -674,15 +650,15 @@ GlobalStatus::GlobalStatus(
 		sFileList_Hosts = nullptr;
 		sFileList_IPFilter = nullptr;
 	#endif
-		delete[] LocalAddress_Response[0];
-		delete[] LocalAddress_Response[1U];
-		LocalAddress_Response[0] = nullptr;
-		LocalAddress_Response[1U] = nullptr;
+		delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
+		delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];
+		LocalAddress_Response[NETWORK_LAYER_IPV6] = nullptr;
+		LocalAddress_Response[NETWORK_LAYER_IPV4] = nullptr;
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		delete LocalAddress_ResponsePTR[0];
-		delete LocalAddress_ResponsePTR[1U];
-		LocalAddress_ResponsePTR[0] = nullptr;
-		LocalAddress_ResponsePTR[1U] = nullptr;
+		delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6];
+		delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4];
+		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = nullptr;
+		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = nullptr;
 	#endif
 
 		exit(EXIT_FAILURE);
@@ -706,8 +682,8 @@ void GlobalStatusSetting(
 	GlobalRunningStatusParameter->Base64_EncodeTable = Base64_EncodeTable_Initialization;
 //	GlobalRunningStatusParameter->Base64_DecodeTable = Base64_DecodeTable_Initialization;
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
 
 	return;
 }
@@ -729,7 +705,7 @@ GlobalStatus::~GlobalStatus(
 	fcloseall();
 #endif
 
-//Free pointer.
+//Delete and reset pointers.
 	delete LocalListeningSocket;
 	delete RamdomEngine;
 	delete Path_Global;
@@ -752,15 +728,15 @@ GlobalStatus::~GlobalStatus(
 	sFileList_Hosts = nullptr;
 	sFileList_IPFilter = nullptr;
 #endif
-	delete[] LocalAddress_Response[0];
-	delete[] LocalAddress_Response[1U];
-	LocalAddress_Response[0] = nullptr;
-	LocalAddress_Response[1U] = nullptr;
+	delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
+	delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];
+	LocalAddress_Response[NETWORK_LAYER_IPV6] = nullptr;
+	LocalAddress_Response[NETWORK_LAYER_IPV4] = nullptr;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	delete LocalAddress_ResponsePTR[0];
-	delete LocalAddress_ResponsePTR[1U];
-	LocalAddress_ResponsePTR[0] = nullptr;
-	LocalAddress_ResponsePTR[1U] = nullptr;
+	delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6];
+	delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4];
+	LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = nullptr;
+	LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = nullptr;
 #endif
 
 	return;
@@ -986,7 +962,7 @@ void DNSCurveConfigurationTableSetting(
 
 //Default settings
 	//[DNSCurve] block
-	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
 	DNSCurveConfigurationParameter->DNSCurveProtocol_Transport = REQUEST_MODE_UDP;
 	DNSCurveConfigurationParameter->DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
 #if defined(PLATFORM_WIN)
@@ -1070,13 +1046,11 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(
 void DNSCurveConfigurationTable::SetToMonitorItem(
 	void)
 {
-//Delete pointers.
+//Delete and reset pointers.
 	delete[] DNSCurve_Target_Server_IPv4.ProviderName;
 	delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
 	delete[] DNSCurve_Target_Server_IPv6.ProviderName;
 	delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
-
-//Reset pointers.
 	DNSCurve_Target_Server_IPv4.ProviderName = nullptr;
 	DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
 	DNSCurve_Target_Server_IPv6.ProviderName = nullptr;

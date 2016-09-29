@@ -87,13 +87,15 @@ bool DNSCurveVerifyKeypair(
 
 //Keypair, Nonce and validation data
 	if (crypto_box_keypair(
-		Test_PublicKey, 
-		Test_SecretKey.Buffer) != 0)
-			return false;
+			Test_PublicKey, 
+			Test_SecretKey.Buffer) != 0)
+				return false;
 	else 
 		memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
+
+//Make DNSCurve Test Nonce, 0x00 - 0x23(ASCII).
 	uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
-	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index) //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
+	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index)
 		*(Nonce + Index) = (uint8_t)Index;
 
 //Verify keys
@@ -118,11 +120,11 @@ bool DNSCurveVerifyKeypair(
 
 //DNSCurve select socket data of DNS target
 size_t DNSCurveSelectTargetSocket(
+	const uint16_t Protocol, 
 	SOCKET_DATA *TargetSocketData, 
 	DNSCURVE_SERVER_DATA **PacketTarget, 
 	bool **IsAlternate, 
-	size_t **AlternateTimeoutTimes, 
-	const uint16_t Protocol)
+	size_t **AlternateTimeoutTimes)
 {
 //Socket initialization
 	size_t ServerType = 0;
@@ -135,7 +137,7 @@ size_t DNSCurveSelectTargetSocket(
 
 //IPv6
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -206,7 +208,7 @@ size_t DNSCurveSelectTargetSocket(
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -282,15 +284,15 @@ size_t DNSCurveSelectTargetSocket(
 
 //DNSCurve select socket data of DNS target(Multiple threading)
 bool DNSCurveSelectTargetSocketMultiple(
+	const uint16_t Protocol, 
 	bool &IsIPv6, 
-	bool **IsAlternate, 
-	const uint16_t Protocol)
+	bool **IsAlternate)
 {
 	IsIPv6 = false;
 
 //IPv6
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -304,7 +306,7 @@ bool DNSCurveSelectTargetSocketMultiple(
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -371,13 +373,12 @@ bool DNSCurvePrecomputationKeySetting(
 		sodium_memzero(Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 	}
 
-//Make a client ephemeral key pair.
+//Make a client ephemeral key pair and a precomputation key.
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Client_SecretKey(crypto_box_SECRETKEYBYTES);
-	if (crypto_box_keypair(Client_PublicKey, Client_SecretKey.Buffer) != 0)
-		return false;
-
-//Make a precomputation key.
-	if (crypto_box_beforenm(
+	if (crypto_box_keypair(
+			Client_PublicKey, 
+			Client_SecretKey.Buffer) != 0 || 
+		crypto_box_beforenm(
 			PrecomputationKey, 
 			ServerFingerprint, 
 			Client_SecretKey.Buffer) != 0)
@@ -405,7 +406,7 @@ void DNSCurveSocketPrecomputation(
 //Selecting check
 	bool *IsAlternate = nullptr;
 	auto IsIPv6 = false;
-	if (!DNSCurveSelectTargetSocketMultiple(IsIPv6, &IsAlternate, Protocol))
+	if (!DNSCurveSelectTargetSocketMultiple(Protocol, IsIPv6, &IsAlternate))
 		return;
 
 //Initialization
@@ -792,7 +793,6 @@ ssize_t DNSCurvePacketDecryption(
 	const size_t RecvSize, 
 	const ssize_t Length)
 {
-//Initialization
 	ssize_t DataLength = Length;
 
 //Encryption mode
@@ -848,6 +848,7 @@ ssize_t DNSCurveSocketSelecting(
 	const size_t RecvSize, 
 	ssize_t *ErrorCode)
 {
+//Initialization
 	size_t Index = 0;
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
@@ -1138,20 +1139,16 @@ ssize_t DNSCurveSelectingResult(
 					SocketMarkingDataTemp.first = SocketDataIter.Socket;
 					if (Protocol == IPPROTO_TCP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
 					#endif
 					}
 					else if (Protocol == IPPROTO_UDP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
 					#endif
@@ -1167,7 +1164,7 @@ ssize_t DNSCurveSelectingResult(
 			SocketMarkingMutex.unlock();
 
 		//Mark DNS cache.
-			if (Parameter.CacheType > 0)
+			if (Parameter.CacheType > CACHE_TYPE_NONE)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
 			return RecvLen;
@@ -1190,7 +1187,7 @@ void DNSCurveInit(
 	{
 	//Main(IPv6)
 		if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
 			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1202,7 +1199,7 @@ void DNSCurveInit(
 
 	//Main(IPv4)
 		if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
 			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1214,7 +1211,7 @@ void DNSCurveInit(
 
 	//Alternate(IPv6)
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
 			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1226,7 +1223,7 @@ void DNSCurveInit(
 
 	//Alternate(IPv4)
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
 			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1240,7 +1237,7 @@ void DNSCurveInit(
 //DNSCurve signature request UDP Mode
 //Main(IPv6)
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
 		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1252,7 +1249,7 @@ void DNSCurveInit(
 
 //Main(IPv4)
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
 		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1264,7 +1261,7 @@ void DNSCurveInit(
 
 //Alternate(IPv6)
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
 		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1276,7 +1273,7 @@ void DNSCurveInit(
 
 //Alternate(IPv4)
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
 		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
 		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
@@ -1659,12 +1656,12 @@ bool DNSCruveGetSignatureData(
 	const uint8_t *Buffer, 
 	const size_t ServerType)
 {
-	if (((pdns_record_txt)Buffer)->Name == htons(DNS_POINTER_QUERY) && 
-		((pdns_record_txt)Buffer)->Length == htons(((pdns_record_txt)Buffer)->TXT_Length + 1U) && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
+	if (ntohs(((pdns_record_txt)Buffer)->Name) == DNS_POINTER_QUERY && 
+		ntohs(((pdns_record_txt)Buffer)->Length) == ((pdns_record_txt)Buffer)->TXT_Length + 1U && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
 	{
 		if (sodium_memcmp(&((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
-			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && 
-			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion == DNSCURVE_VERSION_MINOR)
+			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion) == DNSCURVE_VERSION_MAJOR && 
+			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion) == DNSCURVE_VERSION_MINOR)
 		{
 			unsigned long long SignatureLength = 0;
 
@@ -1757,7 +1754,7 @@ size_t DNSCurveTCPRequest(
 	auto SendBuffer = OriginalRecv;
 
 //Socket initialization
-	TCPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
+	TCPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(IPPROTO_TCP, &TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes);
 	if (TCPSocketSelectingData.ServerType == 0)
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -1934,7 +1931,7 @@ size_t DNSCurveUDPRequest(
 	auto SendBuffer = OriginalRecv;
 
 //Socket initialization
-	UDPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
+	UDPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(IPPROTO_UDP, &UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes);
 	if (UDPSocketSelectingData.ServerType == 0)
 	{
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
