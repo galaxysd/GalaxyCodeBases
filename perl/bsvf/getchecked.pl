@@ -1,8 +1,14 @@
 #!/usr/bin/perl -w
 use strict;
 
-open IN, " $ARGV[0]" or die $!;
-open OUT, " >$ARGV[1] " or die $!;
+if (@ARGV < 2) {
+	die "Usage: $0 <divisor> <in> [out]\n";
+}
+
+$ARGV[2] = '-' if (@ARGV == 2);
+
+open IN, $ARGV[1] or die $!;
+open OUT, ">$ARGV[2]" or die $!;
 
 while(<IN>){
 	chomp;
@@ -17,7 +23,7 @@ while(<IN>){
 	my $num=$1+1;
 	$one[2]=~/\D+(\d+)/;
 #	print $1;exit;
-	my $last=$1/700;
+	my $last=$1/$ARGV[0];
 	$clum[$num]=$last;
 	my $n=1;
 	while($n<$len){
@@ -28,7 +34,7 @@ while(<IN>){
 		#print $two[1];exit;
 		$two[1]=~/\D+(\d+)/;
 		#print $1;exit;
-		my $last=$1/700;
+		my $last=$1/$ARGV[0];
 		$clum[$num]=$last;
 		$n++;
 	}
@@ -37,4 +43,3 @@ while(<IN>){
 
 close IN;
 close OUT;
-
