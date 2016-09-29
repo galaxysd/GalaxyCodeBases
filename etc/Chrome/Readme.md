@@ -13,9 +13,13 @@ by [雪月秋水](https://blog.icehoney.me/)
 > 谷歌也直接甩锅让我自己联系。。。  百度真是给我面子
 > ![https://pbs.twimg.com/media/Cp8WJl_UsAAkICu.jpg](img/BaiduExporter1.jpg)
 
-
 #### [下午6:05 - 2016年9月1日](https://twitter.com/acgotaku311/status/771287819604074500)
 
 > GG  谷歌也不是从前那个不作恶的谷歌了。。。
 > ![https://pbs.twimg.com/media/Cp8WJl_UsAAkICu.jpg](img/BaiduExporter2.jpg)
 
+#### [上午11:35 - 2016年9月29日](https://twitter.com/acgotaku311/status/781336692850499585)
+
+> 厉害了，我的哥！
+> Firefox的插件都多少年不更新了还给发了 DMCA 6666
+> ![https://pbs.twimg.com/media/Ctfdc-LVMAAGUR0.jpg](img/BaiduExporter3.jpg)
