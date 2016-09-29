@@ -467,7 +467,7 @@ sub do_analyse {
 			}
 			if ($LineDat[7] ne 'N') {
 				my $tb = doAln($VirusFN,$LineDat[7],-1);
-				if (defined $b) {
+				if (defined $tb) {
 					$strand = $tb->[0];
 					if ($strand eq '+') {
 						$left = $tb->[1] unless defined $left;
