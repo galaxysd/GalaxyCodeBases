@@ -1,6 +1,6 @@
 var CORE = (function () {
-    const version = "0.8.4";
-    const update_date = "2016/07/22";
+    const version = "0.8.6";
+    const update_date = "2016/08/08";
     const defaultUA = "netdisk;5.3.4.5;PC;PC-Windows;5.1.2600;WindowsBaiduYunGuanJia";
     const defaultreferer = "http://pan.baidu.com/disk/home";
     var cookies = null;
@@ -339,9 +339,12 @@ var CORE = (function () {
                 return header;
             } else if (type == "idm_txt") {
                 for (i = 0; i < addheader.length; i++) {
-                    header += " header=" + (addheader[i]) + " \n";
+                    if(addheader[i].indexOf("Referer") != 0){
+                        header +=  (addheader[i].split(": ")[0].toLowerCase()+": "+addheader[i].split(": ")[1]) + "\n";
+                    }
                 }
-                return header;
+                
+                return header.replace(/\n$/, "");
             } else {
                 return addheader;
             }
@@ -392,7 +395,7 @@ var CORE = (function () {
                 content_ui.empty();
                 var download_menu = $("<div>").css({ "margin-bottom": "10px" }).appendTo(content_ui);
                 $("<a>").attr("id", "aria2c_btn").attr({ "download": "aria2c.down", "target": "_blank" }).addClass("save-button ").html('<em class="global-icon-download"></em><b>存为aria2文件</b>').appendTo(download_menu);
-                $("<a>").attr("id", "idm_btn").attr({ "download": "idm.txt", "target": "_blank" }).addClass("save-button ").html('<em class="global-icon-download"></em><b>存为IDM文件</b>').appendTo(download_menu);
+                $("<a>").attr("id", "idm_btn").attr({ "download": "idm.ef2", "target": "_blank" }).addClass("save-button ").html('<em class="global-icon-download"></em><b>存为IDM文件</b>').appendTo(download_menu);
                 $("<a>").attr("id", "download_txt_btn").attr({ "download": "download_link.txt", "target": "_blank" }).addClass("save-button ").html('<em class="global-icon-download"></em><b>保存下载链接</b>').appendTo(download_menu);
                 $("<a>").attr("id", "copy_txt_btn").attr({ "href": "javascript:void(0);", "data": "" }).addClass("save-button ").html('<em class="global-icon-download"></em><b>拷贝下载链接</b>').appendTo(download_menu);
                 // Disable spellcheck and resize for textarea.
@@ -456,9 +459,9 @@ var CORE = (function () {
                         idm_txt.push([
                             "<",
                             file_list[i].link,
-                            " cookie: " + CORE.getHeader("idm_txt"),
-                            " out=" + file_list[i].name,
-                            " >"
+                            CORE.getHeader("idm_txt"),
+                            "out=" + file_list[i].name,
+                            ">"
                         ].join("\r\n"));
                         down_txt.push(file_list[i].link + "\n");
                     }
@@ -470,7 +473,7 @@ var CORE = (function () {
                     }
                     else {
                         $("#aria2c_btn").attr("href", $("#aria2c_btn").attr("href") + encodeURIComponent(aria2c_txt.join("")));
-                        $("#idm_btn").attr("href", $("#idm_btn").attr("href") + encodeURIComponent(idm_txt.join("")));
+                        $("#idm_btn").attr("href", $("#idm_btn").attr("href") + encodeURIComponent(idm_txt.join("\r\n")));
                         $("#download_txt_btn").attr("href", $("#download_txt_btn").attr("href") + encodeURIComponent(down_txt.join("")));
                     }
                     $("#copy_txt_btn").attr("data", $("#copy_txt_btn").attr("data") + down_txt.join(""));
