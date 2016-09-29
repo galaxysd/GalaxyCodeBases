@@ -33,7 +33,7 @@ except ImportError: # python3
     maketrans = str.maketrans
 from toolshed import nopen, reader, is_newer_b
 
-__version__ = "0.20"
+__version__ = "0.2.0"
 
 def checkX(cmd):
     for p in os.environ['PATH'].split(":"):
@@ -429,6 +429,7 @@ def main(args=sys.argv[1:]):
             " reads to align to the original-bottom (OB) strand and will flag"
             " as failed those aligning to the forward, or original top (OT).",
         default=None, choices=('f', 'r'))
+    p.add_argument('--version', action='version', version='bwa-meth.py {}'.format(__version__))
 
     p.add_argument("fastqs", nargs="+", help="bs-seq fastqs to align. Run"
             "multiple sets separated by commas, e.g. ... a_R1.fastq,b_R1.fastq"
