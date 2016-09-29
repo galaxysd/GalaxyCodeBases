@@ -444,7 +444,7 @@ sub do_analyse {
 		my $outf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
 		open IN,'<',$myGrepf or die;
 		open OUT,'>',$outf or die;
-		my (%OutDat,@OutCnt);
+		my (@OutCnt,%OutDat)=(0,0,0);
 		while (<IN>) {
 			chomp;
 			my @LineDat = split /\t/,$_;
@@ -516,11 +516,12 @@ sub do_analyse {
 			}
 			if ($lastL != -1) {
 				my @Dat = @{$OutDat{$chr}{$lastL}};	# 假设第一条的病毒结果最准确（其实应该是中间某个；最好前期打分）
+				$Dat[1] = -1 if $Dat[1] == $lastL + 1;
 				print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 				++$OutCnt[2];
 			}
 		}
-		warn "[!]O: $OutCnt[0]+$OutCnt[1] => $OutCnt[2] in [$k], merged=",$OutCnt[2]-$OutCnt[0]-$OutCnt[1],".\n";
+		warn "[!]O: $OutCnt[0]+$OutCnt[1] => $OutCnt[2] in [$k], merged=",$OutCnt[0]+$OutCnt[1]-$OutCnt[2],".\n";
 	}
 }
 
