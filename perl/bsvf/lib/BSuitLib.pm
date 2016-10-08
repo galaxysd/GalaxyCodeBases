@@ -582,10 +582,16 @@ sub do_check {
 		while (<IN>) {
 			chomp;
 			my @LineDat = split /\t/,$_;
-			my $flen1 = length $LineDat[5];
-			my $flen2 = length $LineDat[7];
-			++$FragLength{$k}{$flen1}; ++$FragLength{$k}{$flen2};
-			++$FragLength{'_._'}{$flen1}; ++$FragLength{'_._'}{$flen2};
+			if ($LineDat[5] ne 'N') {
+				my $flen1 = length $LineDat[5];
+				++$FragLength{$k}{$flen1};
+				++$FragLength{'_._'}{$flen1};
+			}
+			if ($LineDat[7] ne 'N') {
+				my $flen2 = length $LineDat[7];
+				++$FragLength{$k}{$flen2};
+				++$FragLength{'_._'}{$flen2};
+			}
 		}
 		close IN;
 		open ANA,'<',$myAnaf or die;
