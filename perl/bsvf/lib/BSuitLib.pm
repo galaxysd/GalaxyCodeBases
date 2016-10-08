@@ -585,12 +585,12 @@ sub do_check {
 			if ($LineDat[5] ne 'N') {
 				my $flen1 = length $LineDat[5];
 				++$FragLength{$k}{$flen1};
-				++$FragLength{'_._'}{$flen1};
+				++$FragLength{'=Sum='}{$flen1};
 			}
 			if ($LineDat[7] ne 'N') {
 				my $flen2 = length $LineDat[7];
 				++$FragLength{$k}{$flen2};
-				++$FragLength{'_._'}{$flen2};
+				++$FragLength{'=Sum='}{$flen2};
 			}
 		}
 		close IN;
@@ -646,6 +646,32 @@ sub do_check {
 	}
 	ddx \%FragLength;
 	ddx \%Result;
+	open P,'>',"$main::RootPath/${main::ProjectID}_plot.dat" or die;
+	open PH,'>',"$main::RootPath/${main::ProjectID}_plot.sh" or die;
+	print PH "#!/usr/bin/env\ngnuplot -persist <<-EOFP1
+	set xlabel \"Length\"
+	set ylabel 'Count'
+	set title 'Histgram of Identified Fragments'
+	set term pdf
+	set output \"$main::RootPath/${main::ProjectID}_plot.pdf\"
+	plot '$main::RootPath/${main::ProjectID}_plot.dat' ";
+	my @IDs = sort sortWsum keys %FragLength;
+	for my $k (0 .. $#IDs) {
+		for my $i (sort {$a <=> $b} keys %{$FragLength{$IDs[$k]}}) {
+			print P "$i\t$FragLength{$IDs[$k]}{$i}\n";
+			if ($k != 0) {
+				print PH "'' "
+			}
+			print PH "index $k with linespoints";
+			if ($k != $#IDs) {
+				print PH ",\\\n";
+			}
+		}
+		print P "\n";
+	}
+	close P;
+	print PH "EOFP1\n";
+	close PH;
 }
 
 sub do_analyse0 {

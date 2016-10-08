@@ -816,4 +816,10 @@ sub mergehash($$) {
 	}
 }
 
+sub sortWsum {
+    if ($a eq '=Sum=') { return -1; }
+    elsif ($b eq '=Sum=') { return 1; }
+    else { return $a cmp $b; }
+}
+
 1;
