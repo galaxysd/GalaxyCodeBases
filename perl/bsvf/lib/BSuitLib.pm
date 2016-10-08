@@ -648,7 +648,7 @@ sub do_check {
 	ddx \%Result;
 	open P,'>',"$main::RootPath/${main::ProjectID}_plot.dat" or die;
 	open PH,'>',"$main::RootPath/${main::ProjectID}_plot.sh" or die;
-	print PH "#!/bin/bash\ngnuplot -persist <<-EOFP1
+	print PH "#!/bin/bash\ngnuplot -persist <<-'EOFP1'
 	set xlabel \"Length\"
 	set ylabel 'Count'
 	set title 'Histgram of Identified Fragments'
@@ -661,21 +661,19 @@ sub do_check {
 	blocks = STATS_blocks
 
 	set print tempfile
-
 	first_y = ""
 	first_x = ""
 	do for[i=0:blocks-1] {
 	    stats infile index i u (first_x=($0==1)?sprintf("%s %f",first_x,$1):first_x,first_y=($0==1)?sprintf("%s %f",first_y,$2):first_y,$1):2 nooutput
 	    print sprintf("%f %f",STATS_pos_max_y,STATS_max_y) 
 	}
-
 	print ""
 	print ""
 	do for[i=1:blocks] {
 	    print sprintf("%s %s",word(first_x,i),word(first_y,i))
 	}
 	set print
-
+	set logscale y
 	plot for[i=0:blocks-1] infile i i u 1:2 w lines title columnheader(1),\
 	     for[i=0:1] tempfile i i u 1:2:($0+1) w points pt (i==0?7:9) lc variable not
 	';
@@ -687,12 +685,7 @@ sub do_check {
 		for my $i (sort {$a <=> $b} keys %{$FragLength{$IDs[$k]}}) {
 			print P "$i\t$FragLength{$IDs[$k]}{$i}\n";
 		}
-		if ($k != 0) {
-			print PH "'' "
-		}
-		#print PH "index $k title '$IDs[$k]' with linespoints";
 		if ($k != $#IDs) {
-			print PH ",\\\n";
 			print P "\n\n";
 		}
 	}
