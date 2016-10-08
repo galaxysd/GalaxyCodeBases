@@ -670,8 +670,9 @@ sub do_check {
 		}
 	}
 	close P;
-	print PH "EOFP1\n";
+	print PH "\nEOFP1\n";
 	close PH;
+	chmod 0755,"$main::RootPath/${main::ProjectID}_plot.sh"; 
 }
 
 sub do_analyse0 {
