@@ -652,8 +652,8 @@ sub do_check {
 	set xlabel \"Length\"
 	set ylabel 'Count'
 	set title 'Histgram of Identified Fragments'
-	set term pdf
-	set output \"$main::RootPath/${main::ProjectID}_plot.pdf\"
+	set term svg
+	set output \"$main::RootPath/${main::ProjectID}_plot.svg\"
 	plot '$main::RootPath/${main::ProjectID}_plot.dat' ";
 	my @IDs = sort sortWsum keys %FragLength;
 	for my $k (0 .. $#IDs) {
