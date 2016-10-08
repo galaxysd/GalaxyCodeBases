@@ -673,6 +673,8 @@ sub do_check {
 	    print sprintf("%s %s",word(first_x,i),word(first_y,i))
 	}
 	set print
+	set key outside;
+	set key right top;
 	set logscale y
 	plot for[i=0:blocks-1] infile i i u 1:2 w lines title columnheader(1),\
 	     for[i=0:1] tempfile i i u 1:2:($0+1) w points pt (i==0?7:9) lc variable not
