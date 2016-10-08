@@ -648,7 +648,7 @@ sub do_check {
 	ddx \%Result;
 	open P,'>',"$main::RootPath/${main::ProjectID}_plot.dat" or die;
 	open PH,'>',"$main::RootPath/${main::ProjectID}_plot.sh" or die;
-	print PH "#!/usr/bin/env\ngnuplot -persist <<-EOFP1
+	print PH "#!/bin/bash\ngnuplot -persist <<-EOFP1
 	set xlabel \"Length\"
 	set ylabel 'Count'
 	set title 'Histgram of Identified Fragments'
@@ -663,7 +663,7 @@ sub do_check {
 		if ($k != 0) {
 			print PH "'' "
 		}
-		print PH "index $k with linespoints";
+		print PH "index $k title '$IDs[$k]' with linespoints";
 		if ($k != $#IDs) {
 			print PH ",\\\n";
 			print P "\n";
