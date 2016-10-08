@@ -56,7 +56,7 @@ my $LongLen = int(0.5 + $ReadLen*4/3);
 my @PEins = (100,150,200,420);
 my $maxPEins = 750;	# [77,96]
 if ($ReadLen > 96) {
-	@PEins = (150,220,350,500);
+	@PEins = (150,220,350,530);
 	$maxPEins = 500;
 }
 if ($ReadLen < 77) {
