@@ -654,9 +654,36 @@ sub do_check {
 	set title 'Histgram of Identified Fragments'
 	set term svg
 	set output \"$main::RootPath/${main::ProjectID}_plot.svg\"
-	plot '$main::RootPath/${main::ProjectID}_plot.dat' ";
+
+	infile = '$main::RootPath/${main::ProjectID}_plot.dat'
+	tempfile = '$main::RootPath/${main::ProjectID}_plot.tmp'\n",
+	'stats infile u 1:2 nooutput
+	blocks = STATS_blocks
+
+	set print tempfile
+
+	first_y = ""
+	first_x = ""
+	do for[i=0:blocks-1] {
+	    stats infile index i u (first_x=($0==1)?sprintf("%s %f",first_x,$1):first_x,first_y=($0==1)?sprintf("%s %f",first_y,$2):first_y,$1):2 nooutput
+	    print sprintf("%f %f",STATS_pos_max_y,STATS_max_y) 
+	}
+
+	print ""
+	print ""
+	do for[i=1:blocks] {
+	    print sprintf("%s %s",word(first_x,i),word(first_y,i))
+	}
+	set print
+
+	plot for[i=0:blocks-1] infile i i u 1:2 w lines title columnheader(1),\
+	     for[i=0:1] tempfile i i u 1:2:($0+1) w points pt (i==0?7:9) lc variable not
+	';
 	my @IDs = sort sortWsum keys %FragLength;
 	for my $k (0 .. $#IDs) {
+		my $id = $IDs[$k];
+		$id =~ s/=//g;
+		print P "'$id'\n";
 		for my $i (sort {$a <=> $b} keys %{$FragLength{$IDs[$k]}}) {
 			print P "$i\t$FragLength{$IDs[$k]}{$i}\n";
 		}
