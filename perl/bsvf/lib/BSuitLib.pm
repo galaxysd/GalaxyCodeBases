@@ -690,10 +690,10 @@ sub do_check {
 		if ($k != 0) {
 			print PH "'' "
 		}
-		print PH "index $k title '$IDs[$k]' with linespoints";
+		#print PH "index $k title '$IDs[$k]' with linespoints";
 		if ($k != $#IDs) {
 			print PH ",\\\n";
-			print P "\n";
+			print P "\n\n";
 		}
 	}
 	close P;
