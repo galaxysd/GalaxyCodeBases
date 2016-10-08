@@ -568,7 +568,7 @@ sub do_check {
 		$VirChrP{$_}=1 for ($p-$bias)..($p+$bias);
 	}
 
-	my (%tID,%Result);
+	my (%tID,%Result,%FragLength);
 	for (@{$main::Config->{'DataFiles'}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
@@ -578,7 +578,6 @@ sub do_check {
 		my $myGrepf = "$main::RootPath/${main::ProjectID}_grep/$k.bam.grep";
 		print "[$myAnaf]\n";
 		print OUT "[$myAnaf]\n";
-		my %FragLength;
 		open IN,'<',$myGrepf or die;
 		while (<IN>) {
 			chomp;
