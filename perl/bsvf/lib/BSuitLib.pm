@@ -659,15 +659,15 @@ sub do_check {
 	for my $k (0 .. $#IDs) {
 		for my $i (sort {$a <=> $b} keys %{$FragLength{$IDs[$k]}}) {
 			print P "$i\t$FragLength{$IDs[$k]}{$i}\n";
-			if ($k != 0) {
-				print PH "'' "
-			}
-			print PH "index $k with linespoints";
-			if ($k != $#IDs) {
-				print PH ",\\\n";
-			}
 		}
 		print P "\n";
+		if ($k != 0) {
+			print PH "'' "
+		}
+		print PH "index $k with linespoints";
+		if ($k != $#IDs) {
+			print PH ",\\\n";
+		}
 	}
 	close P;
 	print PH "EOFP1\n";
