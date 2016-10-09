@@ -171,7 +171,7 @@ sub do_grep($) {
 	#   "s01_P" => { 1 => "s01_P.1", 2 => "s01_P.2" },
 	for my $k (keys %tID) {
 		my $myBamf = "$main::RootPath/${main::ProjectID}_grep/$k.bam";
-		print "[$myBamf]\n";
+		print "[$myBamf] ";	# 内部有错误示意。换行后移
 		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
 		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
 		my ($lastgid,@hReads,@vReads);
@@ -230,6 +230,7 @@ sub do_grep($) {
 		}
 		close IN;
 		close OUT;
+		print "\n";
 	}
 }
 
