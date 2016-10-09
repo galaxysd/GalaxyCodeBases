@@ -684,7 +684,7 @@ if ($DEBGUHERE) {
 				if (defined $1) {
 					$tlen = length $1;
 					$t = -$p-1 - $tlen -$offset;
-					my $tl = $readlen - $t;
+					my $tl = - $t;	# 负的
 					if ($tlen > $tl) {
 						ddx $i; print "->Off:$offset, Start:$t, Len:$tlen\n";
 						$tlen = $tl;
