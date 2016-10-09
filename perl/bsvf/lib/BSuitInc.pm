@@ -672,7 +672,7 @@ if ($DEBGUHERE) {
 					$t = $p+1 -$offset;
 					my $tl = $readlen - $t;
 					if ($tlen > $tl) {
-						ddx $i; print "->Off:$offset, Start:$t, Len:$tlen\n";
+						ddx $i; print "-+->Off:$offset, Start:$t, Len:$tlen\n";
 						$tlen = $tl;
 					}
 					$vseq = substr $i->[9],$t,$tlen;
@@ -686,7 +686,7 @@ if ($DEBGUHERE) {
 					$t = -$p-1 - $tlen -$offset;
 					my $tl = - $t;	# 负的
 					if ($tlen > $tl) {
-						ddx $i; print "->Off:$offset, Start:$t, Len:$tlen\n";
+						ddx $i; print "--->Off:$offset, Start:$t, Len:$tlen\n";
 						$tlen = $tl;
 					}
 					$vseq = substr $i->[9],$t,$tlen;
