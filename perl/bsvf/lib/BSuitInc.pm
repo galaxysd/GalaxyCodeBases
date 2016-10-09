@@ -672,8 +672,9 @@ if ($DEBGUHERE) {
 					$t = $p+1 -$offset;
 					my $tl = $readlen - $t;
 					if ($tlen > $tl) {
-						ddx $i; print "-+->Off:$offset, Start:$t, Len:$tlen\n";
-						$tlen = $tl;
+						#ddx $i; print "-+->Off:$offset, Start:$t, Len:$tlen\n";
+						#$tlen = $tl;
+						next;	# CNS部分，不容有失，这个偶发问题暂时跳过
 					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
@@ -685,7 +686,7 @@ if ($DEBGUHERE) {
 					$tlen = length $1;
 					$t = -$p-1 - $tlen -$offset;
 					if (-$t > $readlen) {
-						ddx $i; print "--->Off:$offset, Start:$t, Len:$tlen\n";
+						#ddx $i; print "--->Off:$offset, Start:$t, Len:$tlen\n";
 						next;	# 不想倒着算了
 					}
 					$vseq = substr $i->[9],$t,$tlen;
