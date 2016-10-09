@@ -671,7 +671,7 @@ if ($DEBGUHERE) {
 					$tlen = length $1;
 					$t = $p+1 -$offset;
 					my $tl = $readlen - $t;
-					if ($tlen > $tl) {
+					if ($t > $readlen or $tlen > $tl) {
 						#ddx $i; print "-+->Off:$offset, Start:$t, Len:$tlen\n";
 						#$tlen = $tl;
 						next;	# CNS部分，不容有失，这个偶发问题暂时跳过
