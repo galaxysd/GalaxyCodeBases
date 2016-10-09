@@ -655,6 +655,7 @@ if ($DEBGUHERE) {
 		my $offset = $i->[3] - $minLeft - $firstSC;
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
+			my $readlen = length $i->[9];
 			if ($p > 0 and $p < length($seqCIGAR)) {	# M]S
 				$tmp = substr($seqCIGAR,$p+1) or next;
 				# unless ($tmp) {
@@ -669,6 +670,11 @@ if ($DEBGUHERE) {
 				if (defined $1) {
 					$tlen = length $1;
 					$t = $p+1 -$offset;
+					my $tl = $readlen - $t;
+					if ($tlen > $tl) {
+						ddx $i; print "->Off:$offset, Start:$t, Len:$tlen\n";
+						$tlen = $tl;
+					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
 				}
@@ -678,6 +684,11 @@ if ($DEBGUHERE) {
 				if (defined $1) {
 					$tlen = length $1;
 					$t = -$p-1 - $tlen -$offset;
+					my $tl = $readlen - $t;
+					if ($tlen > $tl) {
+						ddx $i; print "->Off:$offset, Start:$t, Len:$tlen\n";
+						$tlen = $tl;
+					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
 				}
