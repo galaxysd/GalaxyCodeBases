@@ -21,6 +21,7 @@ git subtree pull --prefix=tools/lh3misc https://github.com/lh3/misc.git master
 # GitCafe 将于 2016年5月31日 停止所有服务 git subtree pull --prefix=pubdoc/Markdown-Syntax-CN https://gitcafe.com/riku/Markdown-Syntax-CN.git master
 git subtree pull --prefix=etc/whichpm https://github.com/mklement0/whichpm.git master
 git subtree pull --prefix=tools/create-dmg https://github.com/andreyvit/create-dmg.git master
+git subtree pull --prefix=tools/distribution https://github.com/philovivero/distribution.git master
 
 git subtree pull --prefix=tools/crawler/xeHentai https://github.com/fffonion/xeHentai.git master
 # https://github.com/fffonion/httplib2-plus.git mirrored as https://github.com/galaxy001/httplib2-plus
