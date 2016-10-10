@@ -653,7 +653,7 @@ if ($DEBGUHERE) {
 #print "$mtype $i->[9] $YC\n";
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
 		my $offset = $i->[3] - $minLeft - $firstSC;
-		no warnings 'substr';
+		no warnings 'substr';	# 嘛，就酱suppress掉,反正咱给后人留错误提示了 http://perldoc.perl.org/warnings.html#Category-Hierarchy
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
 			my $readlen = length $i->[9];
