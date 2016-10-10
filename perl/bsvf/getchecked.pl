@@ -45,5 +45,6 @@ close IN;
 close OUT;
 
 __END__
+./bsuit check j150/k150.ini |tail -n11|head -n10 | ./getchecked.pl 1 -
 ./bsuit check sj/j90.ini |tail -n11|head -n10 > x90.txt
 ./getchecked.pl 1 x90.txt
