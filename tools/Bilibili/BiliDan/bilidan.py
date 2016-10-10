@@ -96,6 +96,11 @@ def biligrab(url, *, debug=False, verbose=False, media=None, comment=None, cooki
         req_args = {'type': 'json', 'appkey': codecs.decode(APPKEY,'rot13'), 'id': aid, 'page': pid}
         req_args['sign'] = bilibili_hash(req_args)
         _, response = fetch_url(url_get_metadata+urllib.parse.urlencode(req_args), user_agent=USER_AGENT_API, cookie=cookie)
+        # A naive fix (judge if it is -404, I choose '-' :)
+        if(response[8] == 45):
+            req_args = {'type': 'json', 'appkey': codecs.decode(APPKEY,'rot13'), 'id': aid, 'page': 1}
+            req_args['sign'] = bilibili_hash(req_args)
+            _, response = fetch_url(url_get_metadata+urllib.parse.urlencode(req_args), user_agent=USER_AGENT_API, cookie=cookie)
         try:
             response = dict(json.loads(response.decode('utf-8', 'replace')))
         except (TypeError, ValueError):
@@ -216,7 +221,7 @@ def biligrab(url, *, debug=False, verbose=False, media=None, comment=None, cooki
                 if k in d2aflags:
                     d2a_args[k] = j(d2aflags[k])
         try:
-            danmaku2ass.Danmaku2ASS(input_files=[comment_in], output_file=comment_out, **d2a_args)
+            danmaku2ass.Danmaku2ASS(input_files=[comment_in], input_format='Bilibili', output_file=comment_out, **d2a_args)
         except Exception as e:
             log_or_raise(e, debug=debug)
             logging.error('Danmaku2ASS failed, comments are disabled.')
