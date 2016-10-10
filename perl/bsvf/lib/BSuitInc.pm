@@ -675,7 +675,8 @@ if ($DEBGUHERE) {
 						#ddx $i; print "-+->Off:$offset, Start:$t, Len:$tlen\n";
 						#$tlen = $tl;
 						print STDERR ']';
-						next;	# CNS部分，不容有失，这个偶发问题暂时跳过
+						#next;	# CNS部分，不容有失，这个偶发问题暂时跳过
+						$t = -$readlen;	# 修改后Fk150_m2D的TP下降，是故，冒烟吧。
 					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
@@ -689,7 +690,8 @@ if ($DEBGUHERE) {
 					if (abs($t) >= $readlen) {
 						#ddx $i; print "--->Off:$offset, Start:$t, Len:$tlen\n";
 						print STDERR '[';
-						next;	# 不想倒着算了
+						#next;	# 不想倒着算了
+						$t = $readlen-1;
 					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
