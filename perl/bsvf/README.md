@@ -49,6 +49,25 @@ Your `bsIntegration/bin/` should be like this:
 ./bsuit analyse prj.ini
 ```
 
+## Test Run
+
+```
+mkdir sim90 && cd sim90 && ./simVirusInserts.pl GRCh38_no_alt_analysis_set.fna.gz X04615.fa.gz s90 && cd ..
+mkdir sim50 && cd sim50 && ./simVirusInserts.pl GRCh38_no_alt_analysis_set.fna.gz X04615.fa.gz s50 50 ../sim90/s90.ini && cd ..
+
+./bsuit prepare sim90/s90.ini
+
+./bsuit aln sim90/s90.ini
+./run/s90_aln.sh
+./bsuit grep sim90/s90.ini
+./bsuit analyse sim90/s90.ini
+
+./bsuit aln sim50/s50.ini
+./run/s50_aln.sh
+./bsuit grep sim50/s50.ini
+./bsuit analyse sim50/s50.ini
+```
+
 ## Reference Files
 
  * Human: <ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz>
