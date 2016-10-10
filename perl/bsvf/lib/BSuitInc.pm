@@ -653,6 +653,7 @@ if ($DEBGUHERE) {
 #print "$mtype $i->[9] $YC\n";
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
 		my $offset = $i->[3] - $minLeft - $firstSC;
+		no warnings 'substr';
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
 			my $readlen = length $i->[9];
@@ -677,7 +678,6 @@ if ($DEBGUHERE) {
 						print STDERR ']';
 						#next;	# CNS部分，不容有失，这个偶发问题暂时跳过
 						#$t = -$readlen;	# 修改后Fk150_m2D的TP下降，是故，冒烟吧。
-						no warnings 'substr';
 					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
@@ -693,7 +693,6 @@ if ($DEBGUHERE) {
 						print STDERR '[';
 						#next;	# 不想倒着算了
 						#$t = $readlen-1;
-						no warnings 'substr';
 					}
 					$vseq = substr $i->[9],$t,$tlen;
 					$vqual = substr $i->[10],$t,$tlen;
