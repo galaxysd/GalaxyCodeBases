@@ -1,6 +1,6 @@
 var CORE = (function () {
-    const version = "0.8.6";
-    const update_date = "2016/08/08";
+    const version = "0.8.7";
+    const update_date = "2016/10/10";
     const defaultUA = "netdisk;5.3.4.5;PC;PC-Windows;5.1.2600;WindowsBaiduYunGuanJia";
     const defaultreferer = "http://pan.baidu.com/disk/home";
     var cookies = null;
@@ -130,19 +130,22 @@ var CORE = (function () {
                 $("<a>").text("导出下载").addClass("g-button-menu").attr("id", "aria2_download").appendTo(list);
                 var config = $("<a>").text("设置").addClass("g-button-menu").appendTo(list);
                 if (type == "home") {
-                    aria2_btn.addClass("g-dropdown-button button-open").prepend($("<a>").addClass("g-button").append($("<span>").addClass("g-button-right").append($("<em>").addClass("icon icon-device-tool"), $("<span>").addClass("text").text("导出下载"))));
+                    aria2_btn.addClass("g-dropdown-button").prepend($("<a>").addClass("g-button").append($("<span>").addClass("g-button-right").append($("<em>").addClass("icon icon-download"), $("<span>").addClass("text").text("导出下载"))));
                     $(".g-dropdown-button").eq(3).after(aria2_btn);
                 } else if (type == "share") {
-                    aria2_btn.addClass("save-button").append('<em class="global-icon-download"></em><b>导出下载</b>');
-                    $('span a[class="new-dbtn"]').parent().prepend(aria2_btn);
+                    // aria2_btn.addClass("save-button").append('<em class="global-icon-download"></em><b>导出下载</b>');
+                    aria2_btn.addClass("g-dropdown-button").prepend($("<a>").addClass("g-button").append($("<span>").addClass("g-button-right").append($("<em>").addClass("icon icon-download"), $("<span>").addClass("text").text("导出下载"))));
+                    $('a[data-button-id="b3"]').parent().prepend(aria2_btn);
                 } else if (type == "album") {
                     aria2_btn.addClass("save-button").append('<em class="global-icon-download"></em><b>导出下载</b>');
                     $("#albumFileSaveKey, #emphsizeButton").parent().prepend(aria2_btn);
                 }
                 aria2_btn.mouseenter(function () {
+                    aria2_btn.toggleClass("button-open");
                     list.show();
                 });
                 aria2_btn.mouseleave(function () {
+                    aria2_btn.toggleClass("button-open");
                     list.hide();
                 });
                 config.click(function () {
@@ -223,7 +226,7 @@ var CORE = (function () {
                             break;
                         case "add_rpc":
                             var num = $(".rpc_list").length + 1;
-                            var row = '<tr class="rpc_list"><td width="100"><input id="rpc_name_' + num + '" type="text" value="ARIA2 RPC ' + num + '" class="input-medium">：</td><td><input id="rpc_url_' + num + '" type="text" class="input-large"></td></tr>';
+                            var row = '<tr class="rpc_list"><td><input id="rpc_name_' + num + '" type="text" value="ARIA2 RPC ' + num + '" class="input-medium">：</td><td><input id="rpc_url_' + num + '" type="text" class="input-large"></td></tr>';
                             $(row).insertAfter($(".rpc_list").eq(num - 2));
                             break;
                         default:
@@ -274,7 +277,7 @@ var CORE = (function () {
                 for (var i in rpc_list) {
                     var num = (+i) + 1;
                     var addBtn = 1 == num ? '<a id="add_rpc" href="javascript:;" >ADD RPC</a>' : "";
-                    var row = '<tr class="rpc_list"><td width="100"><input id="rpc_name_' + num + '" type="text" value="' + rpc_list[i]["name"] + '" class="input-medium">：</td><td><input id="rpc_url_' + num + '" type="text" class="input-large" value="' + rpc_list[i]["url"] + '">' + addBtn + "</td></tr>";
+                    var row = '<tr class="rpc_list"><td><input id="rpc_name_' + num + '" type="text" value="' + rpc_list[i]["name"] + '" class="input-medium">：</td><td><input id="rpc_url_' + num + '" type="text" class="input-large" value="' + rpc_list[i]["url"] + '">' + addBtn + "</td></tr>";
                     if ($(".rpc_list").length > 0) {
                         $(row).insertAfter($(".rpc_list").eq(num - 2));
                     } else {
@@ -453,7 +456,8 @@ var CORE = (function () {
                             " out=" + file_list[i].name,
                             " continue=true",
                             " max-connection-per-server=10",
-                            "  split=10",
+                            " split=10",
+                            " min-split-size=1M",
                             "\n"
                         ].join("\n"));
                         idm_txt.push([
