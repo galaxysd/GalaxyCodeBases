@@ -1,0 +1,1 @@
+<html><body>You are being <a href="https://raw.githubusercontent.com/samangh/homebrew-core/master/Formula/gptfdisk.rb">redirected</a>.</body></html>
