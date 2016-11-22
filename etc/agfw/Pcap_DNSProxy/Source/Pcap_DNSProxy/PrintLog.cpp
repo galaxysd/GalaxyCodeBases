@@ -70,7 +70,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Notice] ");
 		}break;
 	//System Error
-	//About System Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
+	//About System Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
 		case LOG_ERROR_SYSTEM:
 		{
 			ErrorMessage.append(L"[System Error] ");
@@ -91,7 +91,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Hosts Error] ");
 		}break;
 	//Network Error
-	//About Windows Sockets Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_NETWORK:
 		{
 		//Block error messages when getting Network Unreachable and Host Unreachable error.
@@ -123,11 +123,18 @@ bool PrintError(
 		{
 			ErrorMessage.append(L"[SOCKS Error] ");
 		}break;
-	//HTTP Error
-		case LOG_ERROR_HTTP:
+	//HTTP CONNECT Error
+		case LOG_ERROR_HTTP_CONNECT:
 		{
-			ErrorMessage.append(L"[HTTP Error] ");
+			ErrorMessage.append(L"[HTTP CONNECT Error] ");
 		}break;
+	//TLS Error
+	#if defined(ENABLE_TLS)
+		case LOG_ERROR_TLS:
+		{
+			ErrorMessage.append(L"[TLS Error] ");
+		}break;
+	#endif
 		default:
 		{
 			return false;
@@ -136,7 +143,7 @@ bool PrintError(
 
 //Add error message, error code details, file name and its line number.
 	ErrorMessage.append(Message);
-	ErrorCodeToMessage(ErrorCode, ErrorMessage);
+	ErrorCodeToMessage(ErrorType, ErrorCode, ErrorMessage);
 	if (!FileNameString.empty())
 		ErrorMessage.append(FileNameString);
 	ErrorMessage.append(L".\n");
@@ -157,7 +164,7 @@ bool WriteScreenAndFile(
 	const auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(&TimeStructure, &TimeValues) != 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
 		return false;
@@ -232,7 +239,7 @@ bool WriteScreenAndFile(
 				return false;
 		}
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
 	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
@@ -248,7 +255,7 @@ bool WriteScreenAndFile(
 #if defined(PLATFORM_WIN)
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	auto FileHandle = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
 	if (FileHandle != nullptr)
 #endif
@@ -332,6 +339,7 @@ void PrintToScreen(
 
 //Print more details about error code
 void ErrorCodeToMessage(
+	const size_t ErrorType, 
 	const ssize_t ErrorCode, 
 	std::wstring &Message)
 {
@@ -345,7 +353,7 @@ void ErrorCodeToMessage(
 #if defined(PLATFORM_WIN)
 	wchar_t *InnerMessage = nullptr;
 	if (FormatMessageW(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS|FORMAT_MESSAGE_MAX_WIDTH_MASK, 
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, 
 		nullptr, 
 		(DWORD)ErrorCode, 
 		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), 
@@ -353,19 +361,49 @@ void ErrorCodeToMessage(
 		0, 
 		nullptr) == 0)
 	{
-		Message.append(L"%d");
+	//Define error code format.
+	#if defined(ENABLE_TLS)
+		#if defined(PLATFORM_WIN)
+			if (ErrorType == LOG_ERROR_TLS)
+				Message.append(L"0x%x");
+			else 
+		#endif
+	#endif
+		if (ErrorType == LOG_MESSAGE_NOTICE || ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || 
+			ErrorType == LOG_ERROR_HTTP_CONNECT)
+				Message.append(L"%u");
+		else 
+			Message.append(L"%d");
+
+	//Free pointer.
+		if (InnerMessage != nullptr)
+			LocalFree(InnerMessage);
 	}
 	else {
+	//Write error code message.
 		Message.append(InnerMessage);
-		Message.pop_back(); //Delete space.
-		Message.pop_back(); //Delete period.
-		Message.append(L"[%d]");
-	}
+		if (Message.back() == ASCII_SPACE)
+			Message.pop_back(); //Delete space.
+		if (Message.back() == ASCII_PERIOD)
+			Message.pop_back(); //Delete period.
 
-//Free pointer.
-	if (InnerMessage != nullptr)
+	//Define error code format.
+	#if defined(ENABLE_TLS)
+		#if defined(PLATFORM_WIN)
+			if (ErrorType == LOG_ERROR_TLS)
+				Message.append(L"[0x%x]");
+			else 
+		#endif
+	#endif
+		if (ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || ErrorType == LOG_ERROR_HTTP_CONNECT)
+			Message.append(L"[%u]");
+		else 
+			Message.append(L"[%d]");
+
+	//Free pointer.
 		LocalFree(InnerMessage);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	}
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::wstring InnerMessage;
 	auto ErrorMessage = strerror((int)ErrorCode);
 	if (ErrorMessage == nullptr || !MBSToWCSString((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))

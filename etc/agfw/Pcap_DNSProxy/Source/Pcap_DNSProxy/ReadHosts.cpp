@@ -24,8 +24,7 @@ bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
-	const size_t Line, 
-	bool &IsLabelComments)
+	const size_t Line)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -42,8 +41,8 @@ bool ReadHostsData(
 	if (Data.empty())
 		return true;
 
-//Multiple line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
-	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+//Delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
+	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 	if (Data.rfind(" //") != std::string::npos)
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -53,7 +52,7 @@ bool ReadHostsData(
 		return true;
 
 //[Local Hosts] block(A part)
-	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
+	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family > 0) && 
 		(CompareStringReversed(L"whitelist.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true) || 
 		CompareStringReversed(L"white_list.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true)))
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
@@ -122,7 +121,7 @@ bool ReadHostsData(
 			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED_EXTENDED;
 	if (LabelTypeTemp > 0)
 	{
-		if (LabelType == LABEL_HOSTS_TYPE_LOCAL && (!Parameter.LocalHosts || (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0)))
+		if (LabelType == LABEL_HOSTS_TYPE_LOCAL && (!Parameter.LocalHosts || (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0)))
 		{
 			return true;
 		}
@@ -140,7 +139,7 @@ bool ReadHostsData(
 	else if (LabelType == LABEL_HOSTS_TYPE_LOCAL)
 	{
 		if (!Parameter.LocalHosts || Parameter.LocalMain || 
-			(Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0))
+			(Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))
 				return true;
 		else 
 			return ReadLocalHostsData(Data, FileIndex, Line);
@@ -910,7 +909,7 @@ bool ReadMainHostsData(
 		//Mark all data in list.
 			for (const auto &StringIter:SourceListData)
 			{
-				if (!ReadAddressPrefixBlock(StringIter, 0, Protocol, &AddressPrefix, FileIndex, Line))
+				if (!ReadAddressPrefixBlock(Protocol, StringIter, 0, &AddressPrefix, FileIndex, Line))
 					return false;
 				else 
 					HostsTableTemp.SourceList.push_back(AddressPrefix);
@@ -961,7 +960,7 @@ bool ReadMainHostsData(
 			return false;
 		}
 		else {
-			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_AAAA));
+			HostsTableTemp.RecordTypeList.push_back(htons(DNS_TYPE_AAAA));
 		}
 	}
 	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A records(IPv4)
@@ -972,7 +971,7 @@ bool ReadMainHostsData(
 			return false;
 		}
 		else {
-			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_A));
+			HostsTableTemp.RecordTypeList.push_back(htons(DNS_TYPE_A));
 		}
 	}
 	else {
@@ -993,7 +992,7 @@ bool ReadMainHostsData(
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
 		//AAAA records(IPv6)
-			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
@@ -1002,7 +1001,7 @@ bool ReadMainHostsData(
 				}
 			}
 		//A records(IPv4)
-			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
@@ -1025,7 +1024,7 @@ bool ReadMainHostsData(
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
 		//AAAA records(IPv6)
-			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
@@ -1034,7 +1033,7 @@ bool ReadMainHostsData(
 				}
 			}
 		//A records(IPv4)
-			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{

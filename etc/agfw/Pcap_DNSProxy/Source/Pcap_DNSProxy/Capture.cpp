@@ -123,11 +123,11 @@ bool CaptureFilterRulesInit(
 
 //IPv6
 	if (Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	//Main
-		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0)
-			AddrList.push_back(&Parameter.Target_Server_IPv6);
+		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0)
+			AddrList.push_back(&Parameter.Target_Server_Main_IPv6);
 
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
@@ -176,11 +176,11 @@ bool CaptureFilterRulesInit(
 
 //IPv4
 	if (Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	//Main
-		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0)
-			AddrList.push_back(&Parameter.Target_Server_IPv4);
+		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0)
+			AddrList.push_back(&Parameter.Target_Server_Main_IPv4);
 
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
@@ -290,7 +290,7 @@ bool CaptureModule(
 		return false;
 #if defined(PLATFORM_WIN)
 	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->addresses->netmask == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
 #endif
 		goto SkipDevices;
@@ -333,8 +333,8 @@ SkipDevices:
 DevicesNotSkip:
 
 //Initialization(Part 1)
-	std::shared_ptr<uint8_t> Buffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	std::shared_ptr<uint8_t> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	pcap_t *DeviceHandle = nullptr;
 	CaptureDevice.clear();
 	CaptureDevice.append(pDrive->name);
@@ -342,9 +342,9 @@ DevicesNotSkip:
 
 //Open device
 #if defined(PLATFORM_WIN)
-	if ((DeviceHandle = pcap_open(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get())) == nullptr)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if ((DeviceHandle = pcap_open_live(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get())) == nullptr)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	if ((DeviceHandle = pcap_open_live(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get())) == nullptr)
 #endif
 	{
 		std::wstring Message;
@@ -378,7 +378,7 @@ DevicesNotSkip:
 	memset(&BPF_Code, 0, sizeof(BPF_Code));
 #if defined(PLATFORM_WIN)
 	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, 0) == PCAP_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, PCAP_NETMASK_UNKNOWN) == PCAP_ERROR)
 #endif
 	{
@@ -419,7 +419,7 @@ DevicesNotSkip:
 	memset(&ParamList, 0, sizeof(ParamList));
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
-	ParamList.BufferSize = LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES;
+	ParamList.BufferSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
 	ssize_t Result = 0;
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
@@ -466,7 +466,7 @@ void CaptureHandler(
 {
 //Initialization
 	const auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
-	memset(ParamList->Buffer, 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(ParamList->Buffer, 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	size_t Length = PacketHeader->caplen;
 	uint16_t Protocol = 0;
 
@@ -475,7 +475,7 @@ void CaptureHandler(
 	{
 		if (Length <= sizeof(eth_hdr))
 			return;
-		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
+		memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
 		Protocol = ((peth_hdr)PacketData)->Type;
 		Length -= sizeof(eth_hdr);
 	}
@@ -483,7 +483,7 @@ void CaptureHandler(
 	{
 		if (Length <= sizeof(ieee_1394_hdr))
 			return;
-		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
+		memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
 		Protocol = ((pieee_1394_hdr)PacketData)->Type;
 		Length -= sizeof(ieee_1394_hdr);
 	}
@@ -497,7 +497,7 @@ void CaptureHandler(
 		if (Length > sizeof(ieee_8021q_hdr))
 		{
 			Protocol = ((pieee_8021q_hdr)ParamList->Buffer)->Type;
-			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
+			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
 			Length -= sizeof(ieee_8021q_hdr);
 		}
 		else {
@@ -511,7 +511,7 @@ void CaptureHandler(
 		if (Length > sizeof(ppp_hdr))
 		{
 			Protocol = ((pppp_hdr)ParamList->Buffer)->Protocol;
-			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
+			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
 			Length -= sizeof(ppp_hdr);
 		}
 		else {
@@ -548,9 +548,9 @@ bool CaptureNetworkLayer(
 			return false;
 
 	//Mark source of packet.
-		if (memcmp(&IPv6_Header->Source, &Parameter.Target_Server_IPv6.AddressData.IPv6.sin6_addr, sizeof(IPv6_Header->Source)) == 0)
+		if (memcmp(&IPv6_Header->Source, &Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, sizeof(IPv6_Header->Source)) == 0)
 		{
-			PacketSource = &Parameter.Target_Server_IPv6;
+			PacketSource = &Parameter.Target_Server_Main_IPv6;
 		}
 		else if (memcmp(&IPv6_Header->Source, &Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(IPv6_Header->Source)) == 0)
 		{
@@ -631,9 +631,9 @@ bool CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
 				//Main(IPv6)
-					((DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-					DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
+					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber != nullptr && 
+					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv6)
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr && 
@@ -667,9 +667,9 @@ bool CaptureNetworkLayer(
 				return false;
 
 	//Mark source of packet.
-		if (IPv4_Header->Source.s_addr == Parameter.Target_Server_IPv4.AddressData.IPv4.sin_addr.s_addr)
+		if (IPv4_Header->Source.s_addr == Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr.s_addr)
 		{
-			PacketSource = &Parameter.Target_Server_IPv4;
+			PacketSource = &Parameter.Target_Server_Main_IPv4;
 		}
 		else if (IPv4_Header->Source.s_addr == Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr)
 		{
@@ -762,9 +762,9 @@ bool CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
 				//Main(IPv4)
-					((DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-					DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber != nullptr &&  
-					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
+					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr &&  
+					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv4)
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr && 
