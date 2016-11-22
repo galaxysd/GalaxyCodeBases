@@ -5,7 +5,7 @@
 // @encoding           utf-8
 // @include     http://*.115.com/*
 // @run-at       document-end
-// @version 0.1.4
+// @version 0.1.5
 // ==/UserScript==
 var pan_115 = function(cookies) {
     var version = "0.1.4";
@@ -192,7 +192,7 @@ var pan_115 = function(cookies) {
                     var main_setting_div=$("<a>").text("插件设置").attr("href","javascript:;");
                     main_setting_div.attr("id","main_setting_div");
                     setting_div.appendTo($(root).find(".tup-logout"));
-                    if(!document.querySelector("a[id='main_setting_div']")){
+                    if(!document.querySelector("a[id='main_setting_div']")&&document.querySelector("iframe[rel='wangpan']").src.indexOf('ct=rb&is_wl_tpl=1')<0){
                         main_setting_div.appendTo($(document.querySelector("div[id='js_main_container']")).find(".tup-logout"));
                         main_setting_div.on('click',function(){
                             $("#setting_div").show();
@@ -205,13 +205,15 @@ var pan_115 = function(cookies) {
                         $("#setting_divtopmsg").html("");
                         self.set_center($("#setting_div"));
                     });
-                    $(root).find(".file-path").after($("<div>").text("RPC下载").addClass("btn-aria2c").on('click',function(){
-                        self.aria2_export(true);
-                    }));
-                    $(root).find(".file-path").after($("<div>").text("导出下载").addClass("btn-txt").on('click',function(){
-                        self.aria2_download();
-                        self.aria2_export(false);
-                    }));
+                    if(!root.querySelector("a[menu='clear']")){
+                        $(root).find(".file-path").after($("<div>").text("RPC下载").addClass("btn-aria2c").on('click',function(){
+                            self.aria2_export(true);
+                        }));
+                        $(root).find(".file-path").after($("<div>").text("导出下载").addClass("btn-txt").on('click',function(){
+                            self.aria2_download();
+                            self.aria2_export(false);
+                        }));
+                    }
                     var style = document.createElement('style');
                     style.setAttribute('type', 'text/css');
                     style.textContent = css;
@@ -442,7 +444,7 @@ var pan_115 = function(cookies) {
             set_down_url:function(){
                 var self=this;
                 DownBridge={};
-                  $('<iframe>').attr('src', 'http://web.api.115.com/bridge_2.0.html?namespace=DownBridge&api=jQuery').css({
+                  $('<iframe>').attr('src', '//webapi.115.com/bridge_2.0.html?namespace=DownBridge&api=jQuery').css({
                     width: 0,
                     height: 0,
                     border: 0,
@@ -452,12 +454,12 @@ var pan_115 = function(cookies) {
                     top: '-99999px'
                   }).one('load',function(){
                     window.DownBridge.getFileUrl=function(pickcode,callback){
-                    this.jQuery.get('http://web.api.115.com/files/download?pickcode=' + pickcode, function (data) {
+                    this.jQuery.get('//webapi.115.com/files/download?pickcode=' + pickcode, function (data) {
                              callback(data);
                             }, 'json');                        
                     };
                     window.DownBridge.getFileList=function(cate_id,callback){
-                    this.jQuery.get('http://web.api.115.com/files?aid=1&limit=1000&show_dir=1&cid=' + cate_id, function (data) {
+                    this.jQuery.get('//webapi.115.com/files?aid=1&limit=1000&show_dir=1&cid=' + cate_id, function (data) {
                              callback(data);
                             }, 'json');                        
                     };
