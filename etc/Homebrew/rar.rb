@@ -14,7 +14,7 @@ class Rar < Formula
   end
 
   def install
-    bin.install "rar", "unrar"
+    bin.install "rar"
     lib.install "default.sfx"
     etc.install "rarfiles.lst"
     doc.install "acknow.txt", "order.htm", "rar.txt", "whatsnew.txt"
