@@ -1,6 +1,6 @@
 var CORE = (function () {
-    const version = "0.8.7";
-    const update_date = "2016/10/10";
+    const version = "0.8.8";
+    const update_date = "2016/11/04";
     const defaultUA = "netdisk;5.3.4.5;PC;PC-Windows;5.1.2600;WindowsBaiduYunGuanJia";
     const defaultreferer = "http://pan.baidu.com/disk/home";
     var cookies = null;
@@ -134,6 +134,7 @@ var CORE = (function () {
                     $(".g-dropdown-button").eq(3).after(aria2_btn);
                 } else if (type == "share") {
                     // aria2_btn.addClass("save-button").append('<em class="global-icon-download"></em><b>导出下载</b>');
+                    $(".bar").css("position","absolute");
                     aria2_btn.addClass("g-dropdown-button").prepend($("<a>").addClass("g-button").append($("<span>").addClass("g-button-right").append($("<em>").addClass("icon icon-download"), $("<span>").addClass("text").text("导出下载"))));
                     $('a[data-button-id="b3"]').parent().prepend(aria2_btn);
                 } else if (type == "album") {
@@ -465,7 +466,7 @@ var CORE = (function () {
                             file_list[i].link,
                             CORE.getHeader("idm_txt"),
                             "out=" + file_list[i].name,
-                            ">"
+                            ">\r\n"
                         ].join("\r\n"));
                         down_txt.push(file_list[i].link + "\n");
                     }
