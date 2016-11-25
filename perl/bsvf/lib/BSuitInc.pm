@@ -550,8 +550,8 @@ sub grepmerge($) {
 	#       "Zd:Z:H",
 	#       "Zc:i:117",
 	#     ],
-	#     [同上，另一条Read],
-	#   ],
+	#     [同上，另一条Read], ...
+	#   ]
 my $DEBGUHERE = 0;
 	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
 	my %Results;
@@ -676,7 +676,6 @@ if ($DEBGUHERE) {
 #print "$mtype $i->[9] $YC\n";
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
 		my $offset = $i->[3] - $minLeft - $firstSC;
-		#no warnings 'substr';	# 嘛，就酱suppress掉,反正咱给后人留错误提示了 http://perldoc.perl.org/warnings.html#Category-Hierarchy
 		for my $p (@usingPoses) {
 			my ($tlen,$tmp,$vseq,$vqual,$t)=(0);
 			my $readlen = length $i->[9];
@@ -773,8 +772,7 @@ sub mergeStr($) {
 	#     ["CTTATTAACAAAAATC", "BBBBBBBBBBBBBBBB", "GA"],
 	#     ["TTTGTTGATAAGAATTTTTATAATATTATAGAGTTTAGA", ("B" x 39), "CT"],
 	#     ["TTTGTTGATAAGAATTTTTATAATATTATAGAGTTTAGATTT", ("B" x 42), "CT"],
-	#   ],
-	# ]
+	#   ]
 	my @Strs = @{$_[0]};
 	my ($maxLen,$merged)=(0);
 	for (@Strs) {
