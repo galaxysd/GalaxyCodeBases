@@ -529,6 +529,29 @@ sub getSeqCIGAR($$) {
 	return ($firstSC,$seqCIGAR);
 }
 sub grepmerge($) {
+	#   [
+	#     [
+	#       "sf167_E_Ref_727851_728000_728150_Vir_+_214_333_R_150_90",
+	#       145,
+	#       "chr1",
+	#       137890,
+	#       0,
+	#       "40S50M",
+	#       "gi|59585|emb|X04615.1|",
+	#       231,
+	#       0,
+	#       "TTATGTGTTTTGGTTAAAATTTGTAGTTTTTAATTTTTAATTAATTAGGAAGAAGAGTTGGGTTTGGAGAGAATGTTTGGAGGGTGTAAG",
+	#       "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+	#       "AS:i:85",
+	#       "XS:i:24",
+	#       "RG:Z:Fn90_m13FG",
+	#       "YC:Z:CT",
+	#       "YD:Z:r",
+	#       "Zd:Z:H",
+	#       "Zc:i:117",
+	#     ],
+	#     [同上，另一条Read],
+	#   ],
 my $DEBGUHERE = 0;
 	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
 	my %Results;
@@ -745,6 +768,13 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	return (\%Results);
 }
 sub mergeStr($) {
+	#   [
+	#     ["TTTGTTGATAA", "BBBBBBBBBBB", "CT"],
+	#     ["CTTATTAACAAAAATC", "BBBBBBBBBBBBBBBB", "GA"],
+	#     ["TTTGTTGATAAGAATTTTTATAATATTATAGAGTTTAGA", ("B" x 39), "CT"],
+	#     ["TTTGTTGATAAGAATTTTTATAATATTATAGAGTTTAGATTT", ("B" x 42), "CT"],
+	#   ],
+	# ]
 	my @Strs = @{$_[0]};
 	my ($maxLen,$merged)=(0);
 	for (@Strs) {
