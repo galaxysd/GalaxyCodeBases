@@ -600,7 +600,7 @@ if ($DEBGUHERE) {
 		push @ReadsCIGAR,$seqCIGAR;
 	}
 	my @thePosesA = sort {$relPoses{$b} <=> $relPoses{$a}} keys %relPoses;
-	my $thePos = int($thePosesA[0]);	# $thePos = $thePosesA[0] - 0.5
+	my $thePos = int($thePosesA[0]);	# $thePos = $thePosesA[0] - 0.5, 目前只考虑最多的clip位置。
 	my @usingPoses;
 	push @usingPoses,$thePos if exists $relPosesFR{$thePos};
 	push @usingPoses,-1-$thePos if exists $relPosesFR{-1-$thePos};
