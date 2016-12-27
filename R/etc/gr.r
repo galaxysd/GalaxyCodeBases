@@ -18,7 +18,7 @@ pdf('gr.pdf')
 
 for(i in types) {
 	sdat[[i]] <- subset(dat[datacol], dat[,3] == i)
-  boxplot(sdat[[i]],use.cols=T,outline=F,varwidth=T,xlab='k bp',ylab='Meth %',main=i)
+  boxplot(sdat[[i]],use.cols=T,outline=F,varwidth=T,xlab='Zones',ylab='Meth %',main=i)
 }
 
 dev.off()
