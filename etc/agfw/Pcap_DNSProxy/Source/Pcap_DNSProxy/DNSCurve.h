@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_DNSCURVE_H
+#define PCAP_DNSPROXY_DNSCURVE_H
+
 #include "Base.h"
 
 #if defined(ENABLE_LIBSODIUM)
@@ -29,12 +32,14 @@ extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 extern std::mutex SocketMarkingLock;
 
 //Functions
-ssize_t DNSCurvePaddingData(
-	const bool SetPadding, 
+size_t DNSCurvePaddingData(
+	const bool IsSetPadding, 
 	uint8_t * const Buffer, 
-	const ssize_t Length);
+	const size_t Length, 
+	const size_t BufferSize);
 bool DNSCurveSelectTargetSocket(
 	const uint16_t Protocol, 
 	bool &IsIPv6, 
 	bool ** const IsAlternate);
+#endif
 #endif

@@ -50,6 +50,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 如果啟動服務時提示 "服務沒有及時回應啟動或者控制請求" 請留意是否有錯誤報表生成，詳細的錯誤資訊參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節
   * 目錄和程式的名稱可以隨意更改，但請務必在進行安裝方法第4步前完成。如果服務註冊後需移動工具目錄的路徑，參見上文 卸載方法 第2步的注意事項
   * Windows XP 如出現 10022 錯誤，需要先啟用系統的 IPv6 支援（以管理員身份運行 cmd 輸入 ipv6 install 並回車，一次性操作），再重新開機服務
+  * 本專案僅對最新版本提供技術支援，在新版本發佈後舊版本的支援會即時停止，回饋前請先務必升級到最新版本
 
 
 -------------------------------------------------------------------------------
@@ -245,7 +246,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0 為不啟用過濾，如果留空則為 0
-  * Accept Type - 禁止或只允許所列 DNS 類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目），所有可用的 DNS 類型清單：
+  * Accept Type - 禁止或只允許所列 DNS 類型的請求，格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目），所有可用的 DNS 類型清單：
     * A/1
     * NS/2
     * MD/3
@@ -372,11 +373,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 EDNS Client Subnet Address - IPv4 用戶端子網位址，輸入後將為所有請求添加此位址的 EDNS 子網資訊：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
     * 本功能要求啟用 EDNS Label 參數
     * EDNS Client Subnet Relay 參數優先順序比此參數高，啟用後將優先添加 EDNS Client Subnet Relay 參數的 EDNS 子網位址
+    * RFC 標準建議 IPv4 位址的首碼長度為 24 位，IPv6 位址為 56 位
   * IPv4 Main DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
-    * 支援多個位址
+    * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
   * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
-    * 支援多個位址
+    * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
   * IPv4 Local Main DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
@@ -391,10 +393,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本功能要求啟用 EDNS Label 參數
     * EDNS Client Subnet Relay 參數優先順序比此參數高，啟用後將優先添加 EDNS Client Subnet Relay 參數的 EDNS 子網位址
   * IPv6 Main DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
-    * 支援多個位址
+    * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
   * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
-    * 支援多個位址
+    * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
   * IPv6 Local Main DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
@@ -559,7 +561,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 目前本功能只支援 Linux 平臺，Windows 和 macOS 平臺將直接忽略此參數，其中：
       * IPv4 需要 3.7 以及更新版本的內核支援
       * IPv6 需要 3.16 以及更新版本的內核支援
-      * 切勿在不受支援的內核版本上開啟本功能，否則可能導致程式無法正常收發資料包！
+      * 警告：切勿在不受支援的內核版本上開啟本功能，否則可能導致程式無法正常收發資料包！
     * 開啟系統對本功能的支援：
       * 臨時支援：需要在擁有 ROOT 許可權的終端執行 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
       * 長期支援：
@@ -595,6 +597,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
   * Blacklist Filter - 解析結果黑名單過濾：開啟為 1 /關閉為 0
+  * Strict Resource Record TTL Filter - 嚴格的資源記錄存留時間過濾，標準要求同一名稱和類型的資源記錄必須具有相同的存留時間：開啟為 1/關閉為 0
 
 * Data - 資料區域
   * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
@@ -663,13 +666,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
-  * DNSCurve Payload Size - DNSCurve EDNS 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)
+  * DNSCurve Payload Size - DNSCurve 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：單位為位元組
+    * 最小為 DNS 協定實現要求的 512，留空則為 512
+    * 最大為 1500 減去 DNSCurve 頭長度，建議不要超過 1220
+    * DNSCurve 協定要求此值必須為 64 的倍數
   * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500，可留空，留空時為 3000
   * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500，可留空，留空時為 2000
   * DNSCurve Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為 1 /關閉為 0
   * DNSCurve Encryption Only - 只使用加密模式，所有請求將只通過 DNCurve 加密模式進行：開啟為 1 /關閉為 0
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
-  * DNSCurve Client Ephemeral Key - 一次性用戶端金鑰組模式：每次請求解析均使用隨機生成的一次性用戶端金鑰組：開啟為 1 /關閉為 0
+  * DNSCurve Client Ephemeral Key - 一次性用戶端金鑰組模式，每次請求解析均使用隨機生成的一次性用戶端金鑰組，提供前向安全性：開啟為 1 /關閉為 0
   * DNSCurve Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10
 
 * DNSCurve Addresses - DNSCurve 協定位址區域
@@ -819,23 +825,32 @@ Hosts 設定檔分為多個提供不同功能的區域
 
 * Address Hosts - 解析結果位址其他清單
   * 本區域資料用於替換解析結果中的位址，提供更精確的 Hosts 自訂能力
+  * 目標位址區域支援使用網路首碼格式，可根據指定的前置長度替換解析結果中位址的首碼資料
+    * 使用網路首碼格式時第一個目標位址條目必須指定前置長度，其它目標位址可省略不寫也可全部寫上
+    * 網路首碼格式指定後將應用到所有目標位址上，注意整個條目只能指定同一個前置長度
   * 例如有一個 [Address Hosts] 下有效資料區域：
 
     127.0.0.1|127.0.0.2 127.0.0.0-127.255.255.255
+    255.255.255.255/24 255.254.253.252
     ::1 ::-::FFFF
+    FFFF:EEEE::/64|FFFF:EEEE:: FFFF::EEEE|FFFF::EEEF-FFFF::FFFF
 
   * 解析結果的位址範圍為 127.0.0.0 到 127.255.255.255 時將被替換為 127.0.0.1 或 127.0.0.2
+  * 解析結果的位址為 255.254.253.252 時將被替換為 255.255.255.252
   * 解析結果的位址範圍為 :: 到 ::FFFF 時將被替換為 ::1
+  * 解析結果的位址範圍為 FFFF::EEEE 或 FFFF::EEEF 到 FFFF::FFFF 時將被替換為 FFFF:FFFF::EEEE 或 FFFF:FFFF::xxxx:xxxx:xxxx:xxxx 或 FFFF:EEEE::EEEE 或 FFFF:EEEE::xxxx:xxxx:xxxx:xxxx
 
 
 * Stop - 臨時停止讀取標籤
-  * 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
+  * 在需要停止讀取的資料前添加 "[Stop]" 和資料後添加 "[Stop End]"（均不含引號）標籤即可在中途停止對檔的讀取
+  * 臨時停止讀取生效後需要遇到臨時停止讀取終止標籤或其它標籤時才會重新開始讀取
   * 例如有一片資料區域：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     [Stop]
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    [Stop End]
     ::1|::2|::3 .*\.test\.test
     ::4|::5|::6 .*\.test
 
@@ -843,21 +858,22 @@ Hosts 設定檔分為多個提供不同功能的區域
     .*\.test\.test
     .*\.test
 
-  * 則從 [Stop] 一行開始，下面到 [Local Hosts] 之間的資料都將不會被讀取
+  * 則從 [Stop] 一行開始，下面到 [Stop End] 之間的資料都將不會被讀取
   * 即實際有效的資料區域是：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
     [Local Hosts]
     .*\.test\.test
     .*\.test
 
 
-* Dnsmasq Address - Dnsmasq 相容格式
+* Dnsmasq Address - Dnsmasq 相容地址格式
   * Address 相容格式適用于 Hosts/CNAME Hosts - 主要 Hosts 清單/CNAME Hosts 清單
   * 有效參數格式：
-    * 首碼支援 --Address=/ 或 --address=/ 或 Address=/ 或 address=/
+    * 首碼支援 --ADDRESS=/ 或 --Address=/ 或 --address=/ 或 ADDRESS=/ 或 Address=/ 或 address=/
     * 普通功能變數名稱字串匹配模式為 "Address=/功能變數名稱尾碼/(位址)"（不含引號，括弧內為可選項目），功能變數名稱尾碼如果只填入 "#" 則表示匹配所有功能變數名稱
     * 正則運算式模式為 "Address=/:正則運算式:/(位址)"（不含引號，括弧內為可選項目）
     * 位址部分如果留空不填，則相當於 Banned - 黑名單條目
@@ -875,20 +891,20 @@ Hosts 設定檔分為多個提供不同功能的區域
     Address=/test/
 
 
-* Dnsmasq Server - Dnsmasq 相容格式
+* Dnsmasq Server - Dnsmasq 相容伺服器格式
   * 要使用本功能，必須將設定檔內的 Local Hosts 選項打開！
   * Server 相容格式適用于 Local Hosts - 境內 DNS 解析功能變數名稱清單
   * 有效參數格式：
-    * 首碼支援 --Server=/ 或 --server=/ 或 Server=/ 或 server=/
+    * 首碼支援 --SERVER=/ 或 --Server=/ 或 --server=/ 或 SERVER=/ 或 Server=/ 或 server=/
     * 普通功能變數名稱字串匹配模式為 "Server=/(功能變數名稱尾碼)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
-    * 正則運算式模式為 "Address=/(:正則運算式:)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
+    * 正則運算式模式為 "Server=/(:正則運算式:)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
     * 功能變數名稱尾碼或者 :正則運算式: 部分留空不填，相當於匹配不符合標準的功能變數名稱，例如沒有任何 . 的功能變數名稱
     * 指定進行解析的 DNS 位址部分如果留空不填，則相當於使用程式設定檔指定的預設 DNS 伺服器進行解析
     * 指定進行解析的 DNS 位址部分只填入 "#" 相當於 Whitelist - 白名單條目
   * 例如以下 [Local Hosts] 條目是完全等價的：
 
     Server=/:.*\btest:/::1#53
-    Server=/test/::
+    Server=/test/::1
 
   * 對符合規則的功能變數名稱使用程式設定檔指定的預設 DNS 伺服器進行解析
 
@@ -921,7 +937,6 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 位址過濾黑名單或白名單由設定檔的 IPFilter Type 值決定，Deny 禁止/黑名單和 Permit 允許/白名單
 有效參數格式為 "開始位址 - 結束位址, 過濾等級, 條目簡介注釋"（不含引號）
   * 同時支援 IPv4 和 IPv6 位址，但填寫時請分開為2個條目
-  * 同一類型的位址位址段有重複的條目將會被自動合併
 
 
 * Local Routing - 境內路由表區域
@@ -932,8 +947,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 
 
 * Stop - 臨時停止讀取標籤
-  * 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
-  * 具體情況參見上文的介紹
+  * 更詳細的介紹參見上文對本功能的介紹
 
 
 -------------------------------------------------------------------------------
@@ -976,6 +990,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
+* Strict Resource Record TTL Filter
 * SOCKS Target Server
 * SOCKS Username
 * SOCKS Password

@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PLATFORM_H
+#define PCAP_DNSPROXY_PLATFORM_H
+
 //////////////////////////////////////////////////
 // Operating system selection
 // 
@@ -421,7 +424,7 @@
 		#include <sspi.h>                  //Security Support Provider Interface
 	#endif
 
-//Static libraries
+//Library linking
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 	#if defined(ENABLE_HTTP)
@@ -456,9 +459,9 @@
 	#define BIG_ENDIAN                 __BIG_ENDIAN
 	#define BYTE_ORDER                 __BYTE_ORDER
 
-//Code definitions
-	#define WINSOCK_VERSION_LOW        2                            //Low byte of Winsock version(2.2)
-	#define WINSOCK_VERSION_HIGH       2                            //High byte of Winsock version(2.2)
+//Winsock definitions
+	#define WINSOCK_VERSION_LOW_BYTE    2                           //Low byte of Winsock version 2.2
+	#define WINSOCK_VERSION_HIGH_BYTE   2                           //High byte of Winsock version 2.2
 
 //TCP Fast Open support
 	#ifndef TCP_FASTOPEN
@@ -481,9 +484,9 @@
 	#if defined(PLATFORM_LINUX)
 		#include <endian.h>                    //Endian support
 	#elif defined(PLATFORM_MACOS)
-		#define __LITTLE_ENDIAN            1234                         //Little Endian
-		#define __BIG_ENDIAN               4321                         //Big Endian
-		#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in macOS.
+		#define __LITTLE_ENDIAN                1234                         //Little Endian
+		#define __BIG_ENDIAN                   4321                         //Big Endian
+		#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in macOS.
 	#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
@@ -577,81 +580,18 @@
 
 		//Conditional define for TCP_FASTOPEN
 			#ifndef TCP_FASTOPEN
-				#define TCP_FASTOPEN   23
+				#define TCP_FASTOPEN       23
 			#endif
 
 		//Conditional define for MSG_FASTOPEN
 			#ifndef MSG_FASTOPEN
-				#define MSG_FASTOPEN   0x20000000
+				#define MSG_FASTOPEN       0x20000000
 			#endif
 		#endif
 
 	//A hint value for the Linux Kernel with TCP Fast Open
 		#define TCP_FASTOPEN_HINT      5
 	#endif
-
-//Internet Protocol version 4/IPv4 Address
-	typedef struct _in_addr_windows_
-	{
-		union {
-			union {
-				struct {
-					uint8_t    s_b1, s_b2, s_b3, s_b4;
-				}S_un_b;
-				struct {
-					uint16_t   s_w1, s_w2;
-				}S_un_w;
-				uint32_t       S_addr;
-			}S_un;
-			uint32_t           s_addr;
-		};
-	}in_addr_Windows;
-//	#define s_addr             S_un.S_addr
-	#define s_host             S_un.S_un_b.s_b2
-	#define s_net              S_un.S_un_b.s_b1
-	#define s_imp              S_un.S_un_w.s_w2
-	#define s_impno            S_un.S_un_b.s_b4
-	#define s_lh               S_un.S_un_b.s_b3
-
-//Internet Protocol version 6/IPv6 Address
-	typedef struct _in6_addr_windows_
-	{
-		union {
-			union {
-				uint8_t        Byte[16U];
-				uint16_t       Word[8U];
-			}u;
-			union {
-				uint8_t	       __u6_addr8[16U];
-				uint16_t       __u6_addr16[8U];
-				uint32_t       __u6_addr32[4U];
-			};
-		};
-	}in6_addr_Windows;
-//	#define _S6_un             u
-//	#define _S6_u8             Byte
-//	#define s6_addr            _S6_un._S6_u8
-	#define s6_bytes           u.Byte
-	#define s6_words           u.Word
-
-//Internet Protocol version 4/IPv4 Socket Address
-	typedef struct _sockaddr_in_windows_
-	{
-		sa_family_t       sin_family;          //Address family: AF_INET
-		in_port_t         sin_port;            //Port in network byte order
-		in_addr_Windows   sin_addr;            //Internet address
-		uint8_t           sin_zero[8U];        //Zero
-	}sockaddr_in_Windows;
-
-//Internet Protocol version 6/IPv6 Socket Address
-	typedef struct _sockaddr_in6_windows_ 
-	{
-		sa_family_t        sin6_family;        //AF_INET6
-		in_port_t          sin6_port;          //Port number
-		uint32_t           sin6_flowinfo;      //IPv6 flow information
-		in6_addr_Windows   sin6_addr;          //IPv6 address
-		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
-	}sockaddr_in6_Windows;
 
 //Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0
@@ -668,12 +608,6 @@
 	#define WSAENETUNREACH           ENETUNREACH
 	#define WSAENOTSOCK              ENOTSOCK
 	#define WSAETIMEDOUT             ETIMEDOUT
-	#define in_addr                  in_addr_Windows
-	#define in6_addr                 in6_addr_Windows
-	#define sockaddr_in              sockaddr_in_Windows
-	#define sockaddr_in6             sockaddr_in6_Windows
-	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
-	#define in6addr_any              *(in6_addr *)&in6addr_any
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
@@ -688,13 +622,11 @@
 	#define vfwprintf_s                                                  vfwprintf
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno
-	#define _set_errno(Value)                                            errno = Value
+	#define _set_errno(Value)                                            errno = (Value)
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)
 	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)
 	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy(Dst, Src, Size)
 #endif
-
-//Memory alignment: 1 bytes = 8 bits
-#pragma pack(1)
+#endif

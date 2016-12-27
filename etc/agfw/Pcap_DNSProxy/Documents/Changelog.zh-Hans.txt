@@ -1,5 +1,44 @@
-﻿Pcap_DNSProxy 0.4.7.7-0.4.7.8 更新日志(2016-11-17)：
+﻿Pcap_DNSProxy 0.4.8.1-0.4.8.3 更新日志(2016-12-24)：
 
+* 添加 Address Hosts 的前缀长度支持 [LGA1150]
+* 添加 Strict Resource Record TTL Filter 参数以支持 RFC 2181 标准所要求的资源记录 TTL 检查
+* 添加一组 Pcap Devices Blacklist 非必要抓包黑名单 (macOS)
+* 标准化 EDNS Client Subnet 的行为
+* 改进的 Domain Case Conversion 功能
+* 改进在启用手动版本选择时所指定使用的 Ciphers Suites (Linux/macOS)
+* 修改多行注释区域的标签要求 [Monoremonton/wx0]
+* 修复内存对齐可能造成的性能问题 [Syrone Wong]
+* 修复 Operation Mode 参数指定为 Proxy 和 Server 模式时工作不正常的问题 [Syrone Wong/wang20150419]
+* 修复预编译二进制版本无法正确运行的错误 (macOS) [fysly]
+* 修复 IPv6 地址的 Local Routing 在指定部分前缀长度时可能出现的崩溃问题
+* 修复 IPv6 地址实际地址与前缀长度所指定的地址不一致的问题
+* 修复多行注释区域无法通过其它非多行注释区域标签重置的问题
+* 修复 TCP 模式下 SOCKS Proxy 和 HTTP CONNECT Proxy 工作不正常的问题
+* 修复 Local Force Request 参数在启用 Local Main 或 Local Routing 功能时工作不正常的问题
+* 修复反查本地 IPv6 地址 PTR 记录的问题 (Windows/Linux)
+* 修复 32 位系统下可能出现的计算文件占用空间错误的问题 (Windows)
+* 修复使用低于 OpenSSL 1.0.1 版本时指定过于严格的规则导致没有任何 Ciphers Suites 可用的问题 (Linux/macOS)
+* 修复内存对齐方式不一致可能导致的运行出错的问题 (Linux/macOS)
+* 修复在启用 TCP Fast Open 的情况下有几率出现的请求发送失败的问题 (Linux)
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: E2D2E4C5921CADE5295087774E3D5DE95E185C9ED1B916EA1BAA590A2B8DF9C4
+    * Windows/Pcap_DNSProxy_x86.exe: A356A00FF99675530D6191F4CCD3D6EF74D0630B2C97E7644C3C9C86F0D8D4F4
+    * Windows/Pcap_DNSProxy_XP.exe: 9BB6B68FB76837EFBF91A5D7CA184937CDFAB4A8992542A1558E85091A5C6571
+    * macOS/Pcap_DNSProxy: 298444DE7C84718883995A73D3FC330C564B067654BA89CC8B254810E7D71923
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 56357C58AF62FF768A342AEB2F110117C1E0C2197A0A2E335E7E457FEE2D0293
+    * Windows/Pcap_DNSProxy_x86.exe: AACCC71A957CE5C4D6A38605E6785E1660F529CDC333C90520CE91F22E1A54E6
+    * Windows/Pcap_DNSProxy_XP.exe: 5D9923C2E996A2676EC920549FCDF49378CB8276FC5BB1DAA9F94FDA75B7D930
+    * macOS/Pcap_DNSProxy: E077CA975041469E1A5637AAA8517C860BF9E4B90A58C7B53E32C4AED521ECE5
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.7.7-0.4.8.0 更新日志(2016-11-23)：
+
+* 添加 Include Guard Macros 的支持 [Syrone Wong]
 * 添加 Large Buffer Size 参数，用于指定大型数据缓冲区的固定长度
 * 添加串行请求通讯模块，重写部分网络请求协议
   * 重写 SOCKS Proxy 以及 HTTP CONNECT Proxy 协议实现，解除传输数据量受一次性请求通讯模块固定缓冲区的长度限制
@@ -20,6 +59,7 @@
   * 添加 HTTP CONNECT TLS Version 参数，用于指定所使用的 TLS 版本
   * 添加 HTTP CONNECT TLS Validation 参数，用于选择是否验证 TLS 服务器证书链
   * 添加 HTTP CONNECT TLS Server Name Indication 参数，用于指定 TLS 握手时所使用的域名
+* 添加 IPFilter 和 Hosts 文件临时停止读取标签的区块化支持
 * 配置文件版本要求升级到 0.45
   * Protocol 改名为 Output Protocol
   * IPv4 DNS Address 改名为 IPv4 Main DNS Address
@@ -52,26 +92,28 @@
   * IPv4 Alternate DNS Magic Number 改名为 DNSCurve IPv4 Alternate DNS Magic Number
   * IPv6 DNS Magic Number 改名为 DNSCurve IPv6 Main DNS Magic Number
   * IPv6 Alternate DNS Magic Number 改名为 DNSCurve IPv6 Alternate DNS Magic Number
+* 修复普通格式 Local Hosts 列表读取错误的问题 [muink]
+* 修复 Custom 模式下自定义 IPFilter 不能工作的问题
 * 修复 SOCKS 4/4a 协议不能工作的问题
 * 修复 HTTP CONNECT Proxy 无法正确进行 Basic 验证的问题
 * 修复错误报告提供的错误代码格式错误的问题
-* 修复程序由于系统 Signal 导致的意外退出问题 (Linux/macOS)
 * 修复 CMake 的缺陷造成的错误依赖问题 (Linux/macOS) [Syrone Wong]
+* 修复程序由于系统 Signal 导致的意外退出问题 (Linux/macOS)
 * 修复错误详细信息有时可能缺少最后一个字符的问题 (Windows)
 * 修复 CMake 编译提示宏重定义的问题 (macOS)
 * 移除对 Hosts 文件和 IPFilter 文件的多行注释支持
 * 提供 SHA-2(256)/SHA256 文件校验值，淘汰 SHA-1 算法
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: AE95B9AC3B3EF005ACBDD2D225768A21B98DAFB6E31E40F707A8C8E64496BB14
-    * Windows/Pcap_DNSProxy_x86.exe: 91A4E440B05043A2E6921891F22B04848E4435140B6F913A83FA9E18F986F8AE
-    * Windows/Pcap_DNSProxy_XP.exe: F6F50F7C26203817D1A7EC3A53CCE22382D26135D206536A13A24CF48D8DA556
-    * macOS/Pcap_DNSProxy: 878C79920F40836E75E213E19F2EBEE41F9B8FFDACDE3AC515B71AC55B4E7F26
+    * Windows/Pcap_DNSProxy.exe: 65F41F53AAAD9C18828216EC614D276ADE589CBF877B54D7FC7987C05806021D
+    * Windows/Pcap_DNSProxy_x86.exe: D84318648F8EFA3DC8667B002DA5211AC2598D6B28D99A95D2DECB84213E898D
+    * Windows/Pcap_DNSProxy_XP.exe: C35A23EC22DD3C0ABC0805E2AF7DE8457D7610EAA6E8E9ECAF2931C1C6E6EF96
+    * macOS/Pcap_DNSProxy: 7E26203D5F0388ED5D396D2C665FE50E44725BF85CAA6C41088D9A060E5B40E2
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: E124F58EBA9A25C19141889A0A636A51C676574768282756A4D679C41746B6EF
-    * Windows/Pcap_DNSProxy_x86.exe: 2CE9DA2DAA7D0261B1650BDAF3DF597DFF6DFF304439EF694CCF5FA411173721
-    * Windows/Pcap_DNSProxy_XP.exe: 79BF5CB3BFF408CE74CE6529DF91DBBC7DE029CF1B72565E3C14F0ED9060E1BE
-    * macOS/Pcap_DNSProxy: 2C79676D861FF7B84FA4AE159480787BBED8631C69345324F3E18C6869BE0CB1
+    * Windows/Pcap_DNSProxy.exe: 3626D21FD0674830F1D13776EB79626D79F653C65108041F8042CA4DDA62B299
+    * Windows/Pcap_DNSProxy_x86.exe: 76EC284B340FD7FFA585E8B9DA7E92F54F72AB3FFEA3F9DC1CEAE13B49005266
+    * Windows/Pcap_DNSProxy_XP.exe: C4744E588BEE4C15E3BD3B77F1A71E55F8B8C9677F43D6E8691D8B41885AF602
+    * macOS/Pcap_DNSProxy: 8C87587D30F6BB6BEE84F6AF07EA27AB77F110BF905CFFDD890ABAB10492F955
 
 
 -------------------------------------------------------------------------------

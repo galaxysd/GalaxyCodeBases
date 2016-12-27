@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_SERVICE_H
+#define PCAP_DNSPROXY_SERVICE_H
+
 #include "Base.h"
 
 //Global variables
@@ -32,22 +35,25 @@ static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 #endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t LastFlushDNSTime = 0;
+#endif
 
 //Functions
 #if defined(PLATFORM_WIN)
 size_t WINAPI ServiceControl(
-	const DWORD dwControlCode);
-BOOL WINAPI ExecuteService(
+	const DWORD ControlCode);
+HANDLE WINAPI ExecuteService(
 	void);
 void WINAPI TerminateService(
 	void);
 DWORD WINAPI ServiceProc(
-	PVOID lpParameter);
+	PVOID ProcParameter);
 BOOL WINAPI UpdateServiceStatus(
-	const DWORD dwCurrentState, 
-	const DWORD dwWin32ExitCode, 
-	const DWORD dwServiceSpecificExitCode, 
-	const DWORD dwCheckPoint, 
-	const DWORD dwWaitHint);
+	const DWORD CurrentState, 
+	const DWORD WinExitCode, 
+	const DWORD ServiceSpecificExitCode, 
+	const DWORD CheckPoint, 
+	const DWORD WaitHint);
+#endif
 #endif

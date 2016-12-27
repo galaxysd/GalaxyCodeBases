@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PROCESS_H
+#define PCAP_DNSPROXY_PROCESS_H
+
 #include "Base.h"
 
 //Global variables
@@ -28,7 +31,7 @@ extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::deque<DNS_CACHE_DATA> DNSCacheList;
-extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
+extern std::mutex LocalAddressLock[], HostsFileLock, DNSCacheListLock;
 
 //Functions
 bool LocalRequestProcess(
@@ -43,7 +46,7 @@ bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	const bool DirectRequest);
+	const bool IsDirectRequest);
 #if defined(ENABLE_LIBSODIUM)
 bool DNSCurveRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
@@ -60,5 +63,6 @@ void UDP_RequestProcess(
 #endif
 uint16_t SelectNetworkProtocol(
 	void);
-void AutoClearDNSCache(
+void AutoClear_DNS_Cache(
 	void);
+#endif

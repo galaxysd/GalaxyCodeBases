@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_MAIN_H
+#define PCAP_DNSPROXY_MAIN_H
+
 #include "Base.h"
 
 //Global variables
@@ -25,15 +28,16 @@ extern std::mutex ScreenLock;
 
 //Functions in ReadCommand.cpp
 #if defined(PLATFORM_WIN)
-bool ReadCommands(
+bool ReadCommand(
 	int argc, 
 	wchar_t *argv[]);
 bool FileNameInit(
 	const wchar_t * const OriginalPath);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-bool ReadCommands(
+bool ReadCommand(
 	int argc, 
 	char *argv[]);
 bool FileNameInit(
 	const char * const OriginalPath);
+#endif
 #endif

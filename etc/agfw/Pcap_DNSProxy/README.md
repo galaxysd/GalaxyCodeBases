@@ -3,7 +3,7 @@
 A local DNS server based on WinPcap and LibPcap
 
 ### Updated
-**0.4.7.8**
+**0.4.8.3**
 
 ### Usage
 **说明文档参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**
@@ -25,14 +25,14 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的�
   * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
 * Linux
   * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
-* Mac
-  * **支持 64 位平台 Mac OS X 10.8(Mountain Lion) 以及更新的版本**
-  * Mac OS X 平台可通过 Homebrew 安装正式版本
+* macOS
+  * **支持 64 位 Mac OS X 10.8(Mountain Lion) 以及更新的 macOS 版本**
+  * 可通过 Homebrew 安装正式版本
 * OpenWrt/LEDE
   * **参见 [openwrt-Pcap_DNSProxy 项目](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)**
 * 本工具**抓包模块**所支持的网络类型
   * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
-  * 原生 IPv4/PPPoE 网络和原生 IPv6/PPPoEv6 网络
+  * 原生 IPv4/PPPoE 和 IPv6/PPPoEv6 网络
 
 ### License
 GNU General Public License/GNU GPL v2

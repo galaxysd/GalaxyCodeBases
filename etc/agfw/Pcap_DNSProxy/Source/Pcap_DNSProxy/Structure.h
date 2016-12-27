@@ -17,7 +17,14 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_STRUCTURE_H
+#define PCAP_DNSPROXY_STRUCTURE_H
+
 #include "Platform.h"
+
+//Memory alignment settings
+#pragma pack(push) //Push current alignment to stack.
+#pragma pack(1) //Set alignment to 1 byte boundary.
 
 //////////////////////////////////////////////////
 // Protocol Header structures
@@ -1100,6 +1107,9 @@ typedef struct _icmpv6_hdr_
 #ifndef IPPORT_AODV
 	#define IPPORT_AODV                 654U
 #endif
+#ifndef IPPORT_DNS_TLS
+	#define IPPORT_DNS_TLS              853U
+#endif
 #ifndef IPPORT_FTPSDATA
 	#define IPPORT_FTPSDATA             989U
 #endif
@@ -1898,7 +1908,7 @@ typedef struct _dns_record_a_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-	in_addr               Addr;
+	in_addr               Address;
 }dns_record_a, *pdns_record_a;
 
 /* Domain Name System/DNS Canonical Name/CNAME Records
@@ -1987,7 +1997,7 @@ typedef struct _dns_record_soa_
 */
 typedef struct _dns_record_ptr_
 {
-	uint16_t              PTR;
+	uint16_t              Pointer;
 	uint16_t              Type;
 	uint16_t              Classes;
 	uint32_t              TTL;
@@ -2068,7 +2078,7 @@ typedef struct _dns_record_aaaa_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-	in6_addr              Addr;
+	in6_addr              Address;
 }dns_record_aaaa, *pdns_record_aaaa;
 
 /* Domain Name System/DNS Server Selection/SRV Resource Records
@@ -2137,7 +2147,7 @@ typedef struct _dns_record_opt_
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
-* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08)
+* RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2152,19 +2162,23 @@ typedef struct _dns_record_opt_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_CODE_LLQ                 0x0001   //Long-lived query
-#define EDNS_CODE_UL                  0x0002   //Update lease
-#define EDNS_CODE_NSID                0x0003   //Name Server Identifier (RFC 5001)
-#define EDNS_CODE_OWNER               0x0004   //Owner, reserved
-#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC 6975)
-#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC 6975)
-#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC 6975)
-#define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
-#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC 7314)
+#define EDNS_CODE_LLQ                            0x0001   //Long-lived query
+#define EDNS_CODE_UL                             0x0002   //Update lease
+#define EDNS_CODE_NSID                           0x0003   //Name Server Identifier (RFC 5001)
+#define EDNS_CODE_OWNER                          0x0004   //Owner, reserved
+#define EDNS_CODE_DAU                            0x0005   //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU                            0x0006   //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U                            0x0007   //DSEC3 Hash Understood (RFC 6975)
+#define EDNS_CODE_CSUBNET                        0x0008   //Client subnet as assigned by IANA
+#define EDNS_CODE_EDNS_EXPIRE                    0x0009   //EDNS Expire (RFC 7314)
 
 //About Address Family Numbers, visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
-#define ADDRESS_FAMILY_IPV4           0x0001
-#define ADDRESS_FAMILY_IPV6           0x0002
+#define ADDRESS_FAMILY_IPV4                      0x0001
+#define ADDRESS_FAMILY_IPV6                      0x0002
+
+//Netmask Source bits
+#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6   56U
+#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4   24U
 typedef struct _edns_client_subnet_
 {
 	uint16_t              Code;
@@ -2456,6 +2470,7 @@ typedef struct _dns_record_caa_
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN          8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
+#define DNSCURVE_PAYLOAD_MULTIPLE_TIME    64U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
 #define DNSCRYPT_PADDING_SIGN             0x80
@@ -2481,8 +2496,9 @@ typedef struct _dns_record_caa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_VERSION_MAJOR     0x0001    //Latest major version of DNSCurve
-#define DNSCURVE_VERSION_MINOR     0         //Latest minor version of DNSCurve
+#define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
+#define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve es version of X25519-XSalsa20Poly1305
+#define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve es version of X25519-XChacha20Poly1305
 typedef struct _dnscurve_txt_hdr_
 {
 	uint32_t              CertMagicNumber;
@@ -2530,8 +2546,8 @@ typedef struct _dnscurve_txt_signature_
 /* About RFC standards
 * RFC 1928, SOCKS Protocol Version 5(https://tools.ietf.org/html/rfc1928)
 * RFC 1929, Username/Password Authentication for SOCKS V5(https://tools.ietf.org/html/rfc1929)
-* SOCKS(version 4): A protocol for TCP proxy across firewalls(http://www.openssh.com/txt/socks4.protocol)
-* SOCKS 4A: A Simple Extension to SOCKS 4 Protocol(http://www.openssh.com/txt/socks4a.protocol)
+* SOCKS(version 4): A protocol for TCP proxy across firewalls(https://www.openssh.com/txt/socks4.protocol)
+* SOCKS 4A: A Simple Extension to SOCKS 4 Protocol(https://www.openssh.com/txt/socks4a.protocol)
 */
 //Version, Method, Command and Reply definitions
 #define SOCKS_VERSION_4                            4U
@@ -2554,26 +2570,26 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS_COMMAND_CONNECT                      1U
 #define SOCKS_COMMAND_BIND                         2U
 #define SOCKS_COMMAND_UDP_ASSOCIATE                3U
-#define SOCKS4_VERSION_BYTES                       0
-#define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
-#define SOCKS4_REPLY_GRANTED                       0x5A         //Request granted
-#define SOCKS4_REPLY_REJECTED                      0x5B         //Request rejected or failed
-#define SOCKS4_REPLY_NOT_IDENTD                    0x5C         //Request failed because client is not running identd(or not reachable from the server).
-#define SOCKS4_REPLY_NOT_CONFIRM                   0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
-#define SOCKS5_ADDRESS_IPV4                        1U
-#define SOCKS5_ADDRESS_DOMAIN                      3U
-#define SOCKS5_ADDRESS_IPV6                        4U
-#define SOCKS5_REPLY_SUCCESS                       0
-#define SOCKS5_REPLY_SERVER_FAILURE                1U
-#define SOCKS5_REPLY_NOT_ALLOWED                   2U
-#define SOCKS5_REPLY_NETWORK_UNREACHABLE           3U
-#define SOCKS5_REPLY_HOST_UNREACHABLE              4U
-#define SOCKS5_REPLY_REFUSED                       5U
-#define SOCKS5_REPLY_TTL_EXPORED                   6U
-#define SOCKS5_REPLY_COMMAND_NOT_SUPPORTED         7U
-#define SOCKS5_REPLY_ADDRESS_TYPE_NOT_SUPPORTED    8U
-#define SOCKS5_REPLY_UNASSIGNED_A                  9U
-#define SOCKS5_REPLY_UNASSIGNED_B                  0xFF
+#define SOCKS_4_VERSION_BYTES                      0
+#define SOCKS_4_ADDRESS_DOMAIN_ADDRESS             0x00000001
+#define SOCKS_4_REPLY_GRANTED                      0x5A         //Request granted
+#define SOCKS_4_REPLY_REJECTED                     0x5B         //Request rejected or failed
+#define SOCKS_4_REPLY_NOT_IDENTD                   0x5C         //Request failed because client is not running identd(or not reachable from the server).
+#define SOCKS_4_REPLY_NOT_CONFIRM                  0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
+#define SOCKS_5_ADDRESS_IPV4                       1U
+#define SOCKS_5_ADDRESS_DOMAIN                     3U
+#define SOCKS_5_ADDRESS_IPV6                       4U
+#define SOCKS_5_REPLY_SUCCESS                      0
+#define SOCKS_5_REPLY_SERVER_FAILURE               1U
+#define SOCKS_5_REPLY_NOT_ALLOWED                  2U
+#define SOCKS_5_REPLY_NETWORK_UNREACHABLE          3U
+#define SOCKS_5_REPLY_HOST_UNREACHABLE             4U
+#define SOCKS_5_REPLY_REFUSED                      5U
+#define SOCKS_5_REPLY_TTL_EXPORED                  6U
+#define SOCKS_5_REPLY_COMMAND_NOT_SUPPORTED        7U
+#define SOCKS_5_REPLY_ADDRESS_TYPE_NOT_SUPPORTED   8U
+#define SOCKS_5_REPLY_UNASSIGNED_A                 9U
+#define SOCKS_5_REPLY_UNASSIGNED_B                 0xFF
 
 //SOCKS client version identifier and method selection message
 /*
@@ -2773,4 +2789,8 @@ typedef struct _tls_base_record_
 	uint16_t              Version;
 	uint16_t              Length;
 }tls_base_record, *ptls_base_record;
+#endif
+
+//Memory alignment(Part 2)
+#pragma pack(pop) //Restore original alignment from stack.
 #endif

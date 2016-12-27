@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_BASE_H
+#define PCAP_DNSPROXY_BASE_H
+
 #include "Template.h"
 
 //////////////////////////////////////////////////
@@ -26,11 +29,11 @@
 bool CheckEmptyBuffer(
 	const void * const Buffer, 
 	const size_t Length);
-bool MBSToWCSString(
+bool MBS_To_WCS_String(
 	const uint8_t * const Buffer, 
 	const size_t MaxLen, 
 	std::wstring &Target);
-bool WCSToMBSString(
+bool WCS_To_MBS_String(
 	const wchar_t * const Buffer, 
 	const size_t MaxLen, 
 	std::string &Target);
@@ -53,8 +56,7 @@ bool CompareStringReversed(
 	const std::string &TestItem);
 bool CompareStringReversed(
 	const wchar_t * const RuleItem, 
-	const wchar_t * const TestItem, 
-	const bool IsCaseConvert);
+	const wchar_t * const TestItem);
 bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
 	const DIFFERNET_FILE_SET_IPFILTER &End);
@@ -65,6 +67,11 @@ size_t Base64_Encode(
 	uint8_t * const Input, 
 	const size_t Length, 
 	uint8_t * const Output, 
+	const size_t OutputSize);
+size_t Base64_Decode(
+	uint8_t *Input, 
+	const size_t Length, 
+	uint8_t *Output, 
 	const size_t OutputSize);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(
@@ -87,14 +94,6 @@ void ReadIPFilter(
 	void);
 void ReadHosts(
 	void);
-void GetParameterListData(
-	std::vector<std::string> &ListData, 
-	const std::string Data, 
-	const size_t DataOffset, 
-	const size_t Length, 
-	const uint8_t SeparatedSign, 
-	const bool IsCaseConvert, 
-	const bool KeepEmptyItem);
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
@@ -104,10 +103,10 @@ bool DNSCurveVerifyKeypair(
 PDNSCURVE_SERVER_DATA DNSCurveSelectSignatureTargetSocket(
 	const uint16_t Protocol, 
 	const bool IsAlternate, 
-	size_t &ServerType, 
+	DNSCURVE_SERVER_TYPE &ServerType, 
 	std::vector<SOCKET_DATA> &SocketDataList);
 bool DNSCurvePacketTargetSetting(
-	const size_t ServerType, 
+	const DNSCURVE_SERVER_TYPE ServerType, 
 	DNSCURVE_SERVER_DATA ** const PacketTarget);
 bool DNSCurvePrecomputationKeySetting(
 	uint8_t * const PrecomputationKey, 
@@ -122,7 +121,7 @@ void DNSCurveSocketPrecomputation(
 	uint8_t ** const Alternate_PrecomputationKey, 
 	DNSCURVE_SERVER_DATA ** const PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> &SocketSelectingList, 
 	std::shared_ptr<uint8_t> &SendBuffer, 
 	size_t &DataLength, 
 	std::shared_ptr<uint8_t> &Alternate_SendBuffer, 
@@ -144,27 +143,27 @@ ssize_t DNSCurvePacketDecryption(
 	const ssize_t Length);
 bool DNSCruveGetSignatureData(
 	const uint8_t * const Buffer, 
-	const size_t ServerType);
+	const DNSCURVE_SERVER_TYPE ServerType);
 
 //DNSCurveRequest.h
 void DNSCurveInit(
 	void);
-size_t DNSCurveTCPRequestSingle(
+size_t DNSCurve_TCP_RequestSingle(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
-size_t DNSCurveTCPRequestMultiple(
+size_t DNSCurve_TCP_RequestMultiple(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
-size_t DNSCurveUDPRequestSingle(
+size_t DNSCurve_UDP_RequestSingle(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
-size_t DNSCurveUDPRequestMultiple(
+size_t DNSCurve_UDP_RequestMultiple(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
@@ -176,7 +175,7 @@ void MonitorLauncher(
 	void);
 bool MonitorInit(
 	void);
-bool TCPReceiveProcess(
+bool TCP_ReceiveProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	size_t RecvSize);
@@ -193,17 +192,18 @@ bool FirewallTest(
 #endif
 bool SocketSetting(
 	const SYSTEM_SOCKET Socket, 
-	const size_t SettingType, 
+	const SOCKET_SETTING_TYPE SettingType, 
 	const bool IsPrintError, 
 	void * const DataPointer);
 size_t SelectTargetSocketSingle(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	SOCKET_DATA * const TargetSocketData, 
-	void ** const DNSCurvePacketTarget, 
 	bool ** const IsAlternate, 
 	size_t ** const AlternateTimeoutTimes, 
-	const ADDRESS_UNION_DATA * const SpecifieTargetData);
+	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	void * DNSCurvePacketServerType, 
+	void ** const DNSCurvePacketTarget);
 bool SelectTargetSocketMultiple(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &TargetSocketDataList);
@@ -215,7 +215,7 @@ size_t SocketConnecting(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize);
 ssize_t SocketSelectingOnce(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
@@ -225,7 +225,7 @@ ssize_t SocketSelectingOnce(
 	const size_t RecvSize, 
 	ssize_t * const ErrorCode);
 size_t SocketSelectingSerial(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
@@ -253,14 +253,14 @@ size_t AddLengthDataToHeader(
 	uint8_t * const Buffer, 
 	const size_t RecvLen, 
 	const size_t MaxLen);
-size_t CharToDNSQuery(
+size_t StringToPacketQuery(
 	const uint8_t * const FName, 
 	uint8_t * const TName);
-size_t DNSQueryToChar(
+size_t PacketQueryToString(
 	const uint8_t * const TName, 
 	std::string &FName);
-size_t MarkWholeDNSQuery(
-	const uint8_t * const Packet, 
+size_t MarkWholePacketQuery(
+	const uint8_t * const WholePacket, 
 	const size_t Length, 
 	const uint8_t * const TName, 
 	const size_t TNameIndex, 
@@ -269,12 +269,12 @@ void MakeRamdomDomain(
 	uint8_t * const Buffer);
 void MakeDomainCaseConversion(
 	uint8_t * const Buffer);
-size_t AddEDNSLabelToAdditionalRR(
+size_t Add_EDNS_To_Additional_RR(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t MaxLen, 
 	const SOCKET_DATA * const LocalSocketData);
-bool AddEDNSLabelToAdditionalRR(
+bool Add_EDNS_To_Additional_RR(
 	DNS_PACKET_DATA * const Packet, 
 	const SOCKET_DATA * const LocalSocketData);
 size_t MakeCompressionPointerMutation(
@@ -283,8 +283,8 @@ size_t MakeCompressionPointerMutation(
 
 //PrintLog.h
 bool PrintError(
-	const size_t ErrorLevel, 
-	const size_t ErrorType, 
+	const LOG_LEVEL_TYPE ErrorLevel, 
+	const LOG_ERROR_TYPE ErrorType, 
 	const wchar_t * const Message, 
 	const ssize_t ErrorCode, 
 	const wchar_t * const FileName, 
@@ -295,16 +295,16 @@ void PrintToScreen(
 	...
 );
 void ErrorCodeToMessage(
-	const size_t ErrorType, 
+	const LOG_ERROR_TYPE ErrorType, 
 	const ssize_t ErrorCode, 
 	std::wstring &Message);
 void ReadTextPrintLog(
-	const size_t InputType, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_LIBSODIUM)
 void DNSCurvePrintLog(
-	const size_t ServerType, 
+	const DNSCURVE_SERVER_TYPE ServerType, 
 	std::wstring &Message);
 #endif
 
@@ -322,7 +322,7 @@ size_t CheckWhiteBannedHostsProcess(
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
 	dns_qry * const DNS_Query, 
-	bool * const IsLocal);
+	bool * const IsLocalRequest);
 size_t CheckHostsProcess(
 	DNS_PACKET_DATA * const Packet, 
 	uint8_t * const Result, 
@@ -341,7 +341,7 @@ bool MarkDomainCache(
 //Protocol.h
 bool AddressStringToBinary(
 	const uint16_t Protocol, 
-	const uint8_t * const AddrString, 
+	const uint8_t * const AddrBuffer, 
 	void * const OriginalAddr, 
 	ssize_t * const ErrorCode);
 bool BinaryToAddressString(
@@ -350,21 +350,15 @@ bool BinaryToAddressString(
 	void * const AddressString, 
 	const size_t StringSize, 
 	ssize_t * const ErrorCode);
-size_t AddressesComparing(
+ADDRESS_COMPARE_TYPE AddressesComparing(
 	const uint16_t Protocol, 
 	const void * const OriginalAddrBegin, 
 	const void * const OriginalAddrEnd);
 bool CheckSpecialAddress(
 	const uint16_t Protocol, 
-	void * const Addr, 
+	void * const OriginalAddr, 
 	const bool IsPrivateUse, 
-	const uint8_t * const Domain);
-bool CheckAddressRouting(
-	const uint16_t Protocol, 
-	const void * const Addr);
-bool CheckCustomModeFilter(
-	const uint16_t Protocol, 
-	const void * const OriginalAddr);
+	const uint8_t * const DomainBuffer);
 size_t CheckQueryNameLength(
 	const uint8_t * const Buffer);
 bool CheckQueryData(
@@ -373,11 +367,11 @@ bool CheckQueryData(
 	const size_t SendSize, 
 	const SOCKET_DATA &LocalSocketData);
 bool CheckConnectionStreamFin(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint8_t * const Stream, 
 	const size_t Length);
 size_t CheckResponseData(
-	const size_t ResponseType, 
+	const REQUEST_PROCESS_TYPE ResponseType, 
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
@@ -404,45 +398,45 @@ size_t HTTP_CONNECT_Request(
 #if defined(ENABLE_PCAP)
 bool DomainTestRequest(
 	const uint16_t Protocol);
-bool ICMPTestRequest(
+bool ICMP_TestRequest(
 	const uint16_t Protocol);
 #endif
-size_t TCPRequestSingle(
-	const size_t RequestType, 
+size_t TCP_RequestSingle(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData);
-size_t TCPRequestMultiple(
-	const size_t RequestType, 
+size_t TCP_RequestMultiple(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
-size_t UDPRequestSingle(
-	const size_t RequestType, 
+size_t UDP_RequestSingle(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	const SOCKET_DATA * const LocalSocketData);
-size_t UDPRequestMultiple(
-	const size_t RequestType, 
+size_t UDP_RequestMultiple(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	const SOCKET_DATA * const LocalSocketData);
 #endif
-size_t UDPCompleteRequestSingle(
-	const size_t RequestType, 
+size_t UDP_CompleteRequestSingle(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData);
-size_t UDPCompleteRequestMultiple(
-	const size_t RequestType, 
+size_t UDP_CompleteRequestMultiple(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
@@ -451,21 +445,21 @@ size_t UDPCompleteRequestMultiple(
 //Service.h
 #if defined(PLATFORM_WIN)
 BOOL WINAPI CtrlHandler(
-	const DWORD fdwCtrlType);
+	const DWORD ControlType);
 size_t WINAPI ServiceMain(
 	DWORD argc, 
 	LPTSTR *argv);
-bool FlushDNSMailSlotMonitor(
+bool Flush_DNS_MailSlotMonitor(
 	void);
-bool WINAPI FlushDNSMailSlotSender(
+bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-bool FlushDNSFIFOMonitor(
+bool Flush_DNS_FIFO_Monitor(
 	void);
-bool FlushDNSFIFOSender(
+bool Flush_DNS_FIFO_Sender(
 	const uint8_t * const Domain);
 #endif
-void FlushDNSCache(
+void Flush_DNS_Cache(
 	const uint8_t * const Domain);
 
 //TransportSecurity.h
@@ -498,11 +492,12 @@ bool OpenSSL_BIO_Initializtion(
 bool OpenSSL_Handshake(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
 bool TLS_TransportSerial(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const size_t PacketMinSize, 
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
 bool OpenSSL_ShutdownConnection(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
+#endif
 #endif
 #endif
