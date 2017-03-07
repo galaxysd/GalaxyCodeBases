@@ -15,10 +15,10 @@
 	url = git@gitlab.com:galaxycodebases/main.git
 	fetch = +refs/heads/*:refs/remotes/gitlab/*
 [remote "coding"]
-	url = git@coding.net:galaxy/GalaxyCodeBase.git
+	url = git@git.coding.net:galaxy/GalaxyCodeBase.git
 	fetch = +refs/heads/*:refs/remotes/coding/*
 [remote "orcz"]
-	url = ssh://repo.or.cz/GalaxyCodeBases.git
+	url = ssh://galaxy@repo.or.cz/GalaxyCodeBases.git
 	fetch = +refs/heads/*:refs/remotes/orcz/*
 [submodule "etc/overlay"]
 	url = git@github.com:galaxy001/gentooxy.git
@@ -26,3 +26,7 @@
 	url = git@bitbucket.org:galaxy001/mydoc.git
 [submodule "released/pIRS"]
 	url = git@github.com:galaxy001/pirs.git
+[submodule "tools/crawler/xeHentai/httplib2plus"]
+	url = https://github.com/fffonion/httplib2-plus.git
+[lfs "https://github.com/galaxysd/GalaxyCodeBases.git/info/lfs"]
+	locksverify = true
