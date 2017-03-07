@@ -10,6 +10,7 @@ import sys
 import math
 import json
 import time
+import traceback
 from .task import Task
 from . import util
 from . import proxy
@@ -67,7 +68,7 @@ class xeHentai(object):
                 try:
                     self.proxy.add_proxy(p)
                 except Exception as ex:
-                    self.logger.warning(str(ex))
+                    self.logger.warning(traceback.format_exc())
             self.logger.debug(i18n.PROXY_CANDIDATE_CNT % len(self.proxy.proxies))
         if cfg_dict['dir'] and not os.path.exists(cfg_dict['dir']):
             try:
@@ -85,11 +86,11 @@ class xeHentai(object):
         self.logger.set_logfile(self.cfg['log_path'])
 
     def _get_httpreq(self):
-        return HttpReq(self.headers, logger = self.logger, proxy = self.proxy)
+        return HttpReq(self.headers, logger = self.logger, proxy = self.proxy, proxy_image = self.cfg['proxy_image'])
 
     def _get_httpworker(self, tid, task_q, flt, suc, fail, keep_alive):
         return HttpWorker(tid, task_q, flt, suc, fail,
-            headers = self.headers, proxy = self.proxy,
+            headers = self.headers, proxy = self.proxy, proxy_image = self.cfg['proxy_image'],
             logger = self.logger, keep_alive = keep_alive)
 
     def add_task(self, url, cfg_dict = {}):
@@ -107,7 +108,7 @@ class xeHentai(object):
                 self._all_tasks[t.guid].cleanup()
             return 0, t.guid
         self._all_tasks[t.guid] = t
-        if not re.match("^https*://(g\.e\-|ex)hentai\.org/[^/]+/\d+/[^/]+/*#*$", url):
+        if not re.match("^%s/[^/]+/\d+/[^/]+/*#*$" % RESTR_SITE, url):
             t.set_fail(ERR_URL_NOT_RECOGNIZED)
         elif not self.has_login and re.match("^https*://exhentai\.org", url):
             t.set_fail(ERR_CANT_DOWNLOAD_EXH)
@@ -198,7 +199,7 @@ class xeHentai(object):
                         lambda x:task.meta.update(x),
                         lambda x:task.set_fail(x))
                 except Exception as ex:
-                    self.logger.error(i18n.TASK_ERROR % (task.guid, str(ex)))
+                    self.logger.error(i18n.TASK_ERROR % (task.guid, traceback.format_exc()))
                     task.state = TASK_STATE_FAILED
                     break
                 if task.failcode in (ERR_ONLY_VISIBLE_EXH, ERR_GALLERY_REMOVED) and self.has_login and \
@@ -277,6 +278,7 @@ class xeHentai(object):
                             mon.vote(tid, 0)),
                         lambda x, tid = tid: (
                             task.page_q.put(task.get_reload_url(x[1])),# if x[0] != ERR_QUOTA_EXCEEDED else None,
+                            task.reload_map.pop(x[1]) if x[1] in task.reload_map else None, # delete old url in reload_map
                             self.logger.debug("%s put a failed file into queue" % tid),
                             mon.vote(tid, x[0])),
                         mon.wrk_keepalive)
@@ -363,7 +365,7 @@ class xeHentai(object):
                         {k: v.to_dict() for k,v in self._all_tasks.items()},
                     'cookies':self.cookies}))
             except Exception as ex:
-                self.logger.warning(i18n.SESSION_LOAD_EXCEPTION % ex)
+                self.logger.warning(i18n.SESSION_LOAD_EXCEPTION % traceback.format_exc())
                 return ERR_SAVE_SESSION_FAILED, str(ex)
         return ERR_NO_ERROR, None
 
@@ -373,7 +375,7 @@ class xeHentai(object):
                 try:
                     j = json.loads(f.read())
                 except Exception as ex:
-                    self.logger.warning(i18n.SESSION_WRITE_EXCEPTION % ex)
+                    self.logger.warning(i18n.SESSION_WRITE_EXCEPTION % traceback.format_exc())
                     return ERR_SAVE_SESSION_FAILED, str(ex)
                 else:
                     for _ in j['tasks'].values():
