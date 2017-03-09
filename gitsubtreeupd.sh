@@ -30,7 +30,7 @@ git subtree pull --prefix=tools/Bilibili/danmaku2ass https://github.com/m13253/d
 git subtree pull --prefix=tools/Bilibili/danmaku2ass_native https://github.com/typcn/danmaku2ass_native.git master
 git subtree pull --prefix=tools/Bilibili/Biligrab https://github.com/cnbeining/Biligrab.git master
 git subtree pull --prefix=tools/Bilibili/BiliDan https://github.com/m13253/BiliDan.git master
-git subtree pull --prefix=tools/Bilibili/You-Get https://github.com/soimort/you-get.git develop
+#git subtree pull --prefix=tools/Bilibili/You-Get https://github.com/soimort/you-get.git develop
 
 git subtree pull --prefix=tools/Crypters/lvdo https://github.com/m13253/lvdo.git master
 git subtree pull --prefix=tools/wtb https://github.com/mariotaku/wtb.git master
