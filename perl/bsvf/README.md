@@ -188,3 +188,7 @@ clustername contig-number chrpoint virus-integration
 cluster1	contig1	chr1:3000	virus:+:200-300
 cluster1	contig2	chr2:4000	viurs:-:300-400
 ````
+
+## ToDo
+
+Compare with viralfusionseq and virusfinder on normal WGS data.
