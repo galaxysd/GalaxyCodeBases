@@ -191,4 +191,4 @@ cluster1	contig2	chr2:4000	viurs:-:300-400
 
 ## ToDo
 
-Compare with viralfusionseq and virusfinder on normal WGS data.
+Compare with [ViralFusionSeq [VFS]](https://sourceforge.net/projects/viralfusionseq/) and [VirusFinder 2](https://bioinfo.uth.edu/VirusFinder/) on normal WGS data.
