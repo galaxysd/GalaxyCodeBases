@@ -145,8 +145,10 @@ sub dosim($$$) {
 	open O,'>',$Paras->{OutPrefix}.'.Ref.fa';
 	#open R1,'>',$Paras->{OutPrefix}.'.1.fq';
 	#open R2,'>',$Paras->{OutPrefix}.'.2.fq';
-	tie *R1, 'IO::Zlib', $Paras->{OutPrefix}.'.1.fq.gz', "wb9";
-	tie *R2, 'IO::Zlib', $Paras->{OutPrefix}.'.2.fq.gz', "wb9";
+	tie *R1, 'IO::Zlib', $Paras->{OutPrefix}.'.b1.fq.gz', "wb9";
+	tie *R2, 'IO::Zlib', $Paras->{OutPrefix}.'.b2.fq.gz', "wb9";
+	tie *Ra, 'IO::Zlib', $Paras->{OutPrefix}.'.r1.fq.gz', "wb9";
+	tie *Rb, 'IO::Zlib', $Paras->{OutPrefix}.'.r2.fq.gz', "wb9";
 	#my @Refticks = @{getticks($RefBorder,$Refstr,$Paras->{RefLen},$PEinsertLen,$Paras->{RefNratioMax})};
 	#my @Virticks = @{getticks($Paras->{VirFrag},$Virstr,$Paras->{VirLen},int(0.9+ 0.5*$Paras->{VirFrag}),$Paras->{RefNratioMax})};
 	my @Refticks = @{$Paras->{pRefticks}};	# made a copy
@@ -182,9 +184,13 @@ sub dosim($$$) {
 				#last if $p > $maxP;
 				my $fPE = substr $newSeqs[1],$p,$PEinsertLen;
 				my $rPE = revcom(substr $newSeqs[2],$p,$PEinsertLen);
+				my $oPE = substr $newSeqs[0],$p,$PEinsertLen;
 				my $fR1 = substr $fPE,0,$SeqReadLen;
 				my $fR2 = substr $fPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
+				my $oR1 = substr $oPE,0,$SeqReadLen;
+				my $oR2 = substr $oPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 				my $revfR2 = revcom($fR2);
+				my $revoR2 = revcom($oR2);
 				my $type = getype($fR1,$fR2);
 				$type = '0' if $p == 0 or $p == $maxP;
 				my ($Part1,$Part2);
@@ -192,6 +198,8 @@ sub dosim($$$) {
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
 				print R1 "\@sf${p}_${type}_${tID}/1 ${Part1}\n$fR1\n+\n",base2qual($fR1),"\n";
 				print R2 "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revfR2\n+\n",base2qual($revfR2),"\n";
+				print Ra "\@sf${p}_${type}_${tID}/1 ${Part1}\n$oR1\n+\n",base2qual($oR1),"\n";
+				print Rb "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revoR2\n+\n",base2qual($revoR2),"\n";
 				my $rR1 = substr $rPE,0,$SeqReadLen;
 				my $rR2 = substr $rPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 				my $revrR2 = revcom($rR2);
@@ -205,6 +213,7 @@ sub dosim($$$) {
 	}
 	close O;
 	close R1; close R2;
+	close Ra; close Rb;
 	#print STDERR "\b\b\bdone.\n";
 }
 
