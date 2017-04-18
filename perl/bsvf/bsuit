@@ -51,7 +51,13 @@ if (@ARGV < 2) {
 
 my $cmd=lc shift;
 my $cfgfile=shift;
+my $base4=shift;
+our $FileData = 'DataFiles';
 die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
+if (defined $base4) {
+	warn "[!]Switch to use simulated WGS data.\n";
+	$FileData = 'Base4Files';
+}
 
 unless (exists $Cmd2Fun{$cmd} or $cmd eq 'check') {
 	warn "[x]Unknown Command: [$cmd] !\n";

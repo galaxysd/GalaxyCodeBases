@@ -69,10 +69,10 @@ sub do_aln() {
 	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	#warn "$Refilename\n";
 	my (%tID,%FQc,%maxReadNum);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
-		@{$FQc{$1}{$2}} = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$_};
+		@{$FQc{$1}{$2}} = split /\s*,\s*/,$main::Config->{$main::FileData}->{$_};
 		$maxReadNum{$1} = 0 unless exists $maxReadNum{$1};
 		$maxReadNum{$1} = $2 if $maxReadNum{$1} < $2;
 	}
@@ -94,10 +94,10 @@ sub do_aln() {
 	}
 	#ddx \%FQc;
 	for my $k (keys %tID) {
-		#my @FQ1c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{1}};
-		#my @FQ2c = split /\s*,\s*/,$main::Config->{'DataFiles'}->{$tID{$k}{2}};
+		#my @FQ1c = split /\s*,\s*/,$main::Config->{$main::FileData}->{$tID{$k}{1}};
+		#my @FQ2c = split /\s*,\s*/,$main::Config->{$main::FileData}->{$tID{$k}{2}};
 		my @FQ1c = @{$FQc{$k}{1}}; my @FQ2c = @{$FQc{$k}{2}};
-		die "[x]  DataFiles not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
+		die "[x]  $main::FileData not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
 		my $cmd;
 		if (@FQ1c == 1) {
 			$cmd = <<"CMD";
@@ -163,7 +163,7 @@ CMD
 sub do_grep($) {
 	my $cfgfile = $_[0];
 	my (%tID,%tFH);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
@@ -237,7 +237,7 @@ sub do_grep($) {
 sub do_grep0($) {
 	my $cfgfile = $_[0];
 	my (%tID,%tFH);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
@@ -424,7 +424,7 @@ sub do_grep0($) {
 sub do_analyse {
 	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	my (%tID,%tFH);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
@@ -570,7 +570,7 @@ sub do_check {
 	}
 
 	my (%tID,%Result,%FragLength);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
@@ -702,7 +702,7 @@ sub do_check {
 sub do_analyse0 {
 	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
 	my (%tID,%tFH);
-	for (@{$main::Config->{'DataFiles'}->{'='}}) {
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
 		/([^.]+)\.(\d)/ or die;
 		$tID{$1}{$2} = $_;
 	}
