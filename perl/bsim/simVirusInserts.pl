@@ -174,8 +174,13 @@ $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 my @fps = sort keys %fqFiles;
 print INI "[DataFiles]\n";
 for my $i (0 .. $#fps) {
-	print INI "F$fps[$i].1=",abs_path($fps[$i].'.1.fq.gz'),"\n";
-	print INI "F$fps[$i].2=",abs_path($fps[$i].'.2.fq.gz'),"\n";
+	print INI "F$fps[$i].1=",abs_path($fps[$i].'.b1.fq.gz'),"\n";
+	print INI "F$fps[$i].2=",abs_path($fps[$i].'.b2.fq.gz'),"\n";
+}
+print INI "[Base4Files]\n";
+for my $i (0 .. $#fps) {
+	print INI "F$fps[$i].1=",abs_path($fps[$i].'.r1.fq.gz'),"\n";
+	print INI "F$fps[$i].2=",abs_path($fps[$i].'.r2.fq.gz'),"\n";
 }
 print INI "\n[InsertSizes]\n";
 for my $i (0 .. $#fps) {
