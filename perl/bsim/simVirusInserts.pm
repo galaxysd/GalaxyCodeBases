@@ -198,8 +198,8 @@ sub dosim($$$) {
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
 				print R1 "\@sf${p}_${type}_${tID}/1 ${Part1}\n$fR1\n+\n",base2qual($fR1),"\n";
 				print R2 "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revfR2\n+\n",base2qual($revfR2),"\n";
-				print Ra "\@sf${p}_${type}_${tID}/1 ${Part1}\n$oR1\n+\n",base2qual($oR1),"\n";
-				print Rb "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revoR2\n+\n",base2qual($revoR2),"\n";
+				print Ra "\@so${p}_${type}_${tID}/1 ${Part1}\n$oR1\n+\n",base2qual($oR1),"\n";
+				print Rb "\@so${p}_${type}_${tID}/2 ${Part2}\n$revoR2\n+\n",base2qual($revoR2),"\n";
 				my $rR1 = substr $rPE,0,$SeqReadLen;
 				my $rR2 = substr $rPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 				my $revrR2 = revcom($rR2);

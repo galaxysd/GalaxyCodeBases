@@ -7,14 +7,12 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
 ## Dependencies
 
-`bwa-meth` depends on 
+[bwa-meth 0.10](https://github.com/brentp/bwa-meth/tree/0a2f9fc7c3fd3c99c4212941c94be73c9c865bb1) depends on 
 
  + python 2.7+ (including python3)
    - `toolshed` library. can be installed with: 
       * `easy_install toolshed` or
       * `pip install toolshed`
-
-   - You can install `bwa-meth` accroding to https://github.com/brentp/bwa-meth
 
  + samtools command on the `$PATH` (https://github.com/samtools/samtools)
 
