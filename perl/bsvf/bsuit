@@ -102,6 +102,10 @@ if (grep /^sv1$/i,@ARGV) {
 	warn "[!] All ",scalar(@SDs)," SD(s) are set to 1.\n";
 }
 
+unless ( -f "$RealBin/bin/water" ) {
+	die "[x] Cannot find \"$RealBin/bin/water\" !\n";
+}
+
 our $HostRefName = basename($Config->{'RefFiles'}->{'HostRef'});
 our $VirusRefName = basename($Config->{'RefFiles'}->{'VirusRef'});
 our $RefFilesSHA = getFilesHash($HostRefName,$VirusRefName);
