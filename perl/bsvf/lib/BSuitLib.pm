@@ -185,7 +185,7 @@ sub do_grep($) {
 			#print $thisGroup,"\t",join("][",@dat),"\n";
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
-				if ($main::GrepMergeBetter) {
+				if ($main::GrepMergeBetter and $main::Aligner eq 'bwa-meth') {
 					$skipflag = 1 if ($fhReads < 1 or $rhReads < 1);
 				} else {
 					$skipflag = 1 if @hReads < 2;
