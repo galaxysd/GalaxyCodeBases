@@ -757,7 +757,7 @@ if ($DEBGUHERE) {
 			$absPos = $p + $minLeft;
 			@theReads = @{$Bases{$p}};
 		}
-		my $mergstr = mergeStr(\@theReads);
+		my $mergstr = mergeStr(\@theReads,$_[1]);
 		$mergstr = reverse $mergstr if $p < 0;
 		#ddx \@theReads;
 		#ddx $Bases{$p};
@@ -779,7 +779,7 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# }
 	return (\%Results);
 }
-sub mergeStr($) {
+sub mergeStr($$) {
 	#   [
 	#     ["TTTGTTGATAA", "BBBBBBBBBBB", "CT"],
 	#     ["CTTATTAACAAAAATC", "BBBBBBBBBBBBBBBB", "GA"],
@@ -797,6 +797,9 @@ sub mergeStr($) {
 		for (@Strs) {
 			my $str = $_->[0];
 			my $qual = $_->[1];
+			if ($_[1] eq 'BSseeker2') {
+				$qual = '@' x length($str);
+			}
 			if ($p < length($str)) {
 				my $c = substr $str,$p,1;
 				my $q = substr $qual,$p,1;
