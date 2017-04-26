@@ -44,6 +44,10 @@ VirusRef=$Virabsf
 WorkDir=$Cwdabs
 ProjectID=$outp
 
+[Parameters]
+Aligner=bwa-meth
+# `bwa-meth` or `BSseeker2`
+
 CONTENT
 
 my %fqFiles;

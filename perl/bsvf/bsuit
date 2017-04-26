@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+#use Getopt::Std;
 
 #use FindBin 1.51 qw($RealBin);
 =pod
@@ -26,6 +27,9 @@ require BSuitLib;
 use Galaxy::IO::INI;
 use Galaxy::Data;
 use Data::Dump qw(ddx);
+
+#our %opts;
+#getopts('oif:', \%opts);
 
 my %Cmd2Fun = (
 	'prepare' => \&do_pre,
@@ -93,6 +97,8 @@ our $RootPath = $Config->{'Output'}->{'WorkDir'};
 $RootPath =~ s/[\/\\]+$//g;
 our $ProjectID = $Config->{'Output'}->{'ProjectID'};
 warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
+our $Aligner = $Config->{'Parameters'}->{'Aligner'} || 'bwa-meth';
+warn "[!] Aligner is [$Aligner].\n";
 
 if (grep /^sv1$/i,@ARGV) {
 	my @SDs = grep /\.SD$/,keys(%{$Config->{'InsertSizes'}});

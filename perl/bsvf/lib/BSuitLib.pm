@@ -192,7 +192,7 @@ sub do_grep($) {
 				}
 #print "$skipflag $lastgid <- $thisGroup\n";
 				unless ($skipflag) {
-					my $MergedHds = grepmerge(\@hReads);
+					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
 					#ddx $MergedHds;
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
 					if (@Keys == 1) {
