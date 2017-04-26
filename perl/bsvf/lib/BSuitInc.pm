@@ -758,6 +758,9 @@ if ($DEBGUHERE) {
 			}
 		} else {
 			$absPos = $p + $minLeft;
+			if ($_[1] eq 'BSseeker2') {
+				next unless exists $Bases{$p};	# '78S5M1D30M1D17M20S' caused trouble
+			}
 			@theReads = @{$Bases{$p}};
 		}
 		my $mergstr = mergeStr(\@theReads);
