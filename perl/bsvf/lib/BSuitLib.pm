@@ -56,13 +56,18 @@ sub do_pre() {
 		warn "[!] Already Read References Pairs:[$main::HostRefName,$main::VirusRefName].\n";
 	}
 	#ddx \$main::RefConfig;
+	my $cmd0 = "$main::PathPrefix samtools faidx $Refile";
+	my $cmd1 = "$main::PathPrefix $RealBin/bin/bwameth.py index $Refile";
+	my $cmd2 = "python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
+	warn "[!] Run following to build index:\n$cmd0\n$cmd1\n$cmd2\n";
 	unless ($main::DISABLE_REF_INDEX) {
 		warn "[!] Building index for [$Refile].\n";
-		system("$main::PathPrefix $RealBin/bin/bwameth.py index $Refile");	# unless -s $Refile.'.bwameth.c2t.sa';
+		system($cmd0) unless -s $Refile.'.fai';
+		system($cmd1);	# unless -s $Refile.'.bwameth.c2t.sa';
+		system($cmd2);
 	} else {
 		warn "[!] Bwameth.py Index Building skipped for [$Refile].\n";
 	}
-	system("$main::PathPrefix samtools faidx $Refile") unless -s $Refile.'.fai';
 }
 
 sub do_aln() {
@@ -77,6 +82,9 @@ sub do_aln() {
 		$maxReadNum{$1} = $2 if $maxReadNum{$1} < $2;
 	}
 	#ddx \%tID;
+#	if ($main::FileData eq 'Base4Files') {
+#		;
+#	}
 	File::Path::make_path("$main::RootPath/${main::ProjectID}_aln",{verbose => 0,mode => 0755});
 	open O,'>',"$main::RootPath/${main::ProjectID}_aln.sh" or die $!;
 	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
