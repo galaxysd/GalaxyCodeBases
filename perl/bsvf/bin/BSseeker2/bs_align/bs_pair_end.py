@@ -282,8 +282,12 @@ def bs_pair_end(main_read_file_1,
                             read_id = str(line_no/4+1).zfill(12)
                             if f==1 :
                                 read_id_lst_1[read_id] = l[0][1:]
+                                if read_id_lst_1[read_id].endswith('/1') :
+                                    read_id_lst_1[read_id] = read_id_lst_1[read_id][:-2]
                             else :
                                 read_id_lst_2[read_id] = l[0][1:]
+                                if read_id_lst_2[read_id].endswith('/2') :
+                                    read_id_lst_2[read_id] = read_id_lst_2[read_id][:-2]
                             seq_ready="N"
                         elif l_fastq==2 :
                             seq = l[0]
@@ -691,8 +695,12 @@ def bs_pair_end(main_read_file_1,
                             read_id = str(line_no/4+1).zfill(12)
                             if f==0 :
                                 read_id_lst_1[read_id] = l[0][1:]
+                                if read_id_lst_1[read_id].endswith('/1') :
+                                    read_id_lst_1[read_id] = read_id_lst_1[read_id][:-2]
                             else :
                                 read_id_lst_2[read_id] = l[0][1:]
+                                if read_id_lst_2[read_id].endswith('/2') :
+                                    read_id_lst_2[read_id] = read_id_lst_2[read_id][:-2]
                             seq_ready = "N"
                         elif l_fastq==2 :
                             seq = l[0]
