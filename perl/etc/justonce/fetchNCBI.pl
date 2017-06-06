@@ -19,6 +19,7 @@ while (<IN>) {
 	my ($left,$right) = ($dat[2]-$deltra,$dat[2]+$deltra);
 	my $url = 'https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id='.$id.'&db=nuccore&report=fasta&fmt_mask=0&maxplex=1&sendto=t&from='.$left.'&to='.$right.'&maxdownloadsize=1000000';
 	my $content = get($url);
+	# my $content = `curl \'$url\'`;
 	my @ret = split /\n/,$content;
 	my $head = shift @ret;
 	$head =~ s/^>//;
