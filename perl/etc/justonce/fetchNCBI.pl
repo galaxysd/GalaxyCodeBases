@@ -7,7 +7,7 @@ use Data::Dump qw(ddx);
 
 my $deltra = 200;
 
-my $infile = '/Users/galaxy/Downloads/snpcandidatforpcr.out';
+my $infile = 'snpcandidatforpcr.out';
 open IN,'<',$infile or die $!;
 open OUT,'>','pcr.fa' or die $!;
 while (<IN>) {
