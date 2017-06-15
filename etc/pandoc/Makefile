@@ -33,7 +33,7 @@ MEXT = md
 MS_DIR = .
 
 # Location of Pandoc support files.
-PREFIX = /Users/andrew/.pandoc
+PREFIX = .
 
 # Word and HTML can choke on PDF images, so those targets use a helper script
 # named replace_pdfs to replace all references to PDFs with PNGs and convert
@@ -43,31 +43,6 @@ PREFIX = /Users/andrew/.pandoc
 # own PNGs, uncomment PNG_CONVERT below. The script will still replace
 # references to PDFs with PNGs, but will not convert the PDFs
 # PNG_CONVERT = --no-convert
-
-
-# Location of your working bibliography file
-BIB_FILE = /Users/andrew/Dropbox/Readings/Papers.bib
-
-# CSL stylesheet (located in the csl folder of the PREFIX directory).
-# Common CSLs:
-#	* american-political-science-association
-#   * chicago-fullnote-bibliography
-#	* chicago-fullnote-no-bib
-#   * chicago-syllabus-no-bib
-#   * apa
-#   * apsa-no-bib
-CSL = american-political-science-association
-
-# LaTeX doesn't use pandoc-citeproc + CSL and instead lets biblatex handle the
-# heavy lifting. There are three possible styles built in to the template:
-#   * bibstyle-chicago-notes
-#   * bibstyle-chicago-authordate
-#   * bibstyle-apa
-TEX_REF = bibstyle-chicago-authordate
-TEX_DIR = tex_out
-
-# Cross reference options
-CROSSREF = --filter pandoc-crossref -M figPrefix:"Figure" -M eqnPrefix:"Equation" -M tblPrefix:"Table"
 
 # To add version control footer support in PDFs:
 #   1. Run vcinit in the directory
@@ -109,7 +84,7 @@ MS_ODT=$(SRC:.md=-manuscript.odt)
 MS_DOCX=$(SRC:.md=-manuscript.docx)
 BIB=$(SRC:.md=.bib)
 
-all:	clean $(PDF) $(HTML) $(ODT) $(DOCX) $(MS_ODT) $(MS_DOCX) $(TEX) $(BIB)
+all:	clean $(PDF) $(HTML)# $(ODT) $(DOCX) $(MS_ODT) $(MS_DOCX) $(TEX) $(BIB)
 
 pdf:	clean $(PDF)
 html:	clean $(HTML)
@@ -122,21 +97,17 @@ bib:	$(BIB)
 
 %.html:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to HTML using standard template...$(NO_COLOR)"
-	replace_includes $< | replace_pdfs $(PNG_CONVERT) | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w html -S \
-		$(CROSSREF) \
+	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
+	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w html \
 		--default-image-extension=png \
-		--template=$(PREFIX)/templates/html.template \
-		--css=$(PREFIX)/styles/marked/kultiad-serif.css \
-		--filter pandoc-citeproc \
-		--csl=$(PREFIX)/csl/$(CSL).csl \
-		--bibliography=$(BIB_FILE) \
+		--template=$(PREFIX)/templates/html5.template \
+		--css=$(PREFIX)/styles/kultiad-serif.css \
 	-o $@
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 %.pdf:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to PDF using hikma-article template...$(NO_COLOR)"
-	replace_includes $< | replace_reference_title | \
+	./bin/replace_includes.py $< | ./bin/replace_reference_title.py | \
 	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w latex -s -S \
 		$(CROSSREF) \
 		--default-image-extension=pdf \
@@ -151,62 +122,14 @@ bib:	$(BIB)
 	-o $@
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
-%.tex:	%.md
-	@echo "$(WARN_COLOR)Converting Markdown to TeX using hikma-article template...$(NO_COLOR)"
-	replace_includes $< | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w latex -s -S \
-		$(CROSSREF) \
-		--default-image-extension=pdf \
-		--latex-engine=xelatex \
-		--template=$(PREFIX)/templates/xelatex.template \
-		--biblatex \
-		-V $(TEX_REF) \
-		--bibliography=$(BIB_FILE) \
-		-V chapterstyle=hikma-article \
-		-V pagestyle=ath \
-		--base-header-level=2 \
-	-o $@
-	@echo "$(WARN_COLOR)...converting TeX to PDF with latexmk (prepare for lots of output)...$(NO_COLOR)"
-	latexmk -outdir=$(MS_DIR_FOR_TEX)$(TEX_DIR) -xelatex -quiet $@
-	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
-
-%.odt:	%.md
-	@echo "$(WARN_COLOR)Converting Markdown to .odt using standard template...$(NO_COLOR)"
-	replace_includes $< | replace_pdfs $(PNG_CONVERT) | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w odt -S \
-		$(CROSSREF) \
+%.docx:	%.md
+	@echo "$(WARN_COLOR)Converting Markdown to .docx using standard template...$(NO_COLOR)"
+	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
+	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w docx -S \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/odt.template \
-		--reference-odt=$(PREFIX)/styles/reference.odt \
-		--filter pandoc-citeproc \
-		--csl=$(PREFIX)/csl/$(CSL).csl \
-		--bibliography=$(BIB_FILE) \
 	-o $@;
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
-
-%.docx:	%.odt
-	@echo "$(WARN_COLOR)Converting .odt to .docx...$(NO_COLOR)"
-	/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to docx --outdir $(MS_DIR) $<
-	@echo "$(WARN_COLOR)Removing .odt file...$(NO_COLOR)"
-	rm $<
-	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
-
-%-manuscript.odt: %.md
-	@echo "$(WARN_COLOR)Converting Markdown to .odt using manuscript template...$(NO_COLOR)"
-	replace_includes $< | replace_pdfs $(PNG_CONVERT) | move_figs_tables_to_end | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w odt -S \
-		$(CROSSREF) \
-		--default-image-extension=png \
-		--template=$(PREFIX)/templates/odt-manuscript.template \
-		--reference-odt=$(PREFIX)/styles/reference-manuscript.odt \
-		--filter pandoc-citeproc \
-		--csl=$(PREFIX)/csl/$(CSL).csl \
-		--bibliography=$(BIB_FILE) \
-	-o $@
-
-%.bib: %.md
-	@echo "$(WARN_COLOR)Extracing all citations into a standalone .bib file...$(NO_COLOR)"
-	bib_extract --bibtex_file $(BIB_FILE) $< $@
 
 clean:
 	@echo "$(WARN_COLOR)Deleting all existing targets...$(NO_COLOR)"
