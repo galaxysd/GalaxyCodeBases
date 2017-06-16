@@ -42,7 +42,7 @@ PREFIX = .
 # from R with ggsave+Cairo. To disable on-the-fly conversion and supply your
 # own PNGs, uncomment PNG_CONVERT below. The script will still replace
 # references to PDFs with PNGs, but will not convert the PDFs
-# PNG_CONVERT = --no-convert
+PNG_CONVERT = --no-convert
 
 # To add version control footer support in PDFs:
 #   1. Run vcinit in the directory
@@ -86,11 +86,12 @@ html:	clean $(HTML)
 docx:	clean $(DOCX)
 
 FORMAT = markdown+simple_tables+table_captions+yaml_metadata_block+implicit_figures+link_attributes
+PANDOC:=$(shell type -P pandoc || type -P /share/FGI2016/brew/bin/pandoc || echo pandoc)
 
 %.html:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to HTML using standard template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
-	pandoc -r $(FORMAT) -w html \
+	$(PANDOC) -r $(FORMAT) -w html \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/html5.template \
 		--css=$(PREFIX)/styles/kultiad-serif.css \
@@ -101,7 +102,7 @@ FORMAT = markdown+simple_tables+table_captions+yaml_metadata_block+implicit_figu
 %.pdf:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to PDF using hikma-article template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_reference_title.py | \
-	pandoc -r $(FORMAT) -w pdf -s -S \
+	$(PANDOC) -r $(FORMAT) -w pdf -s -S \
 		--default-image-extension=pdf \
 		-V chapterstyle=hikma-article \
 		-V pagestyle=ath \
@@ -113,7 +114,7 @@ FORMAT = markdown+simple_tables+table_captions+yaml_metadata_block+implicit_figu
 %.docx:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to .docx using standard template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
-	pandoc -r $(FORMAT) -w docx -S \
+	$(PANDOC) -r $(FORMAT) -w docx -S \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/odt.template \
 		-s --toc \
