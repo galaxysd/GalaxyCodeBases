@@ -4,6 +4,7 @@ author: FGI
 date: 2017-06-15
 lang: zh-CN
 toc-title: 目录
+papersize: A4
 ...
 
 ## 分析结果
