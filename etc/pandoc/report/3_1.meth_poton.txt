@@ -1,0 +1,9 @@
+#Sample Name	Sample Type		mCG	mCHG	mCHH
+Simulate01	Normal	mC number	16392258	622422	2050119
+		proportion (%)	85.98%	3.26%	10.75%
+Simulate01	Normal	mC number	16392258	622422	2050119
+		proportion (%)	85.98%	3.26%	10.75%
+Simulate01	Normal	mC number	16392258	622422	2050119
+		proportion (%)	85.98%	3.26%	10.75%
+Simulate01	Normal	mC number	16392258	622422	2050119
+		proportion (%)	85.98%	3.26%	10.75%

@@ -1,0 +1,5 @@
+#Sample Name	Sample Type	CG (%)	CHG (%)	CHH (%)
+Simulate01	Normal	62.2%	45.42%	38.72%
+Simulate01	Normal	62.2%	45.42%	38.72%
+Simulate01	Normal	62.2%	45.42%	38.72%
+Simulate01	Normal	62.2%	45.42%	38.72%

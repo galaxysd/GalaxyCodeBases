@@ -85,10 +85,12 @@ pdf:	clean $(PDF)
 html:	clean $(HTML)
 docx:	clean $(DOCX)
 
+FORMAT = markdown+simple_tables+table_captions+yaml_metadata_block+implicit_figures+link_attributes
+
 %.html:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to HTML using standard template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w html \
+	pandoc -r $(FORMAT) -w html \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/html5.template \
 		--css=$(PREFIX)/styles/kultiad-serif.css \
@@ -99,7 +101,7 @@ docx:	clean $(DOCX)
 %.pdf:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to PDF using hikma-article template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_reference_title.py | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w pdf -s -S \
+	pandoc -r $(FORMAT) -w pdf -s -S \
 		--default-image-extension=pdf \
 		-V chapterstyle=hikma-article \
 		-V pagestyle=ath \
@@ -111,7 +113,7 @@ docx:	clean $(DOCX)
 %.docx:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to .docx using standard template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w docx -S \
+	pandoc -r $(FORMAT) -w docx -S \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/odt.template \
 		-s --toc \

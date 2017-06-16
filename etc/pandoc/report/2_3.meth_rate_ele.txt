@@ -1,0 +1,9 @@
+#Different Genome Regions	CG (%)	CHG (%)	CHH (%)
+3-UTR	80.98%	0.54%	0.54%
+5-UTR	38.84%	0.53%	0.52%
+CDS	80.61%	0.54%	0.51%
+CpGIsland	20.01%	0.55%	0.56%
+Downstream2k	78.75%	0.56%	0.53%
+Genebody	82.38%	0.55%	0.54%
+Intron	82.88%	0.55%	0.54%
+Upstream2k	51.93%	0.55%	0.53%

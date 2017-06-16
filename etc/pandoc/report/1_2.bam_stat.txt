@@ -1,0 +1,5 @@
+#Sample Name	Sample Type	Total Reads	Pair Mapped	Pair Mapped Rate
+Simulate01	Normal	420154240	394936188	94.00%
+Simulate01	Normal	420154240	394936188	94.00%
+Simulate01	Normal	420154240	394936188	94.00%
+Simulate01	Normal	420154240	394936188	94.00%
