@@ -79,7 +79,7 @@ PDF=$(SRC:.md=.pdf)
 HTML=$(SRC:.md=.html)
 DOCX=$(SRC:.md=.docx)
 
-all:	clean $(PDF) $(HTML) $(DOCX)
+all:	clean $(HTML) $(DOCX) $(PDF)
 
 pdf:	clean $(PDF)
 html:	clean $(HTML)
