@@ -90,35 +90,32 @@ PANDOC:=$(shell type -P pandoc || type -P /share/FGI2016/brew/bin/pandoc || echo
 
 %.html:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to HTML using standard template...$(NO_COLOR)"
-	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
 	$(PANDOC) -r $(FORMAT) -w html \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/html5.template \
 		--css=$(PREFIX)/styles/kultiad-serif.css \
 		-s --toc \
-	-o $@
+	-o $@ $<
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 %.pdf:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to PDF using hikma-article template...$(NO_COLOR)"
-	./bin/replace_includes.py $< | ./bin/replace_reference_title.py | \
 	$(PANDOC) -r $(FORMAT) -w pdf -s -S \
 		--default-image-extension=pdf \
 		-V chapterstyle=hikma-article \
 		-V pagestyle=ath \
 		-t html5 --toc \
 		--template=$(PREFIX)/templates/html5.template \
-	-o $@
+	-o $@ $<
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 %.docx:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to .docx using standard template...$(NO_COLOR)"
-	./bin/replace_includes.py $< | ./bin/replace_pdfs.py $(PNG_CONVERT) | \
 	$(PANDOC) -r $(FORMAT) -w docx -S \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/odt.template \
 		-s --toc \
-	-o $@;
+	-o $@ $<;
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 clean:
