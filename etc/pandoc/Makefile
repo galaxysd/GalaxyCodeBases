@@ -77,23 +77,13 @@ endif
 # Targets
 PDF=$(SRC:.md=.pdf)
 HTML=$(SRC:.md=.html)
-TEX=$(SRC:.md=.tex)
-ODT=$(SRC:.md=.odt)
 DOCX=$(SRC:.md=.docx)
-MS_ODT=$(SRC:.md=-manuscript.odt)
-MS_DOCX=$(SRC:.md=-manuscript.docx)
-BIB=$(SRC:.md=.bib)
 
-all:	clean $(PDF) $(HTML)# $(ODT) $(DOCX) $(MS_ODT) $(MS_DOCX) $(TEX) $(BIB)
+all:	clean $(PDF) $(HTML) $(DOCX)
 
 pdf:	clean $(PDF)
 html:	clean $(HTML)
-odt:	clean $(ODT)
 docx:	clean $(DOCX)
-ms: 	clean $(MS_ODT)
-msdocx:	clean $(MS_DOCX)
-tex:	clean $(TEX)
-bib:	$(BIB)
 
 %.html:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to HTML using standard template...$(NO_COLOR)"
@@ -102,23 +92,19 @@ bib:	$(BIB)
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/html5.template \
 		--css=$(PREFIX)/styles/kultiad-serif.css \
+		-s --toc \
 	-o $@
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 %.pdf:	%.md
 	@echo "$(WARN_COLOR)Converting Markdown to PDF using hikma-article template...$(NO_COLOR)"
 	./bin/replace_includes.py $< | ./bin/replace_reference_title.py | \
-	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w latex -s -S \
-		$(CROSSREF) \
+	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w pdf -s -S \
 		--default-image-extension=pdf \
-		--latex-engine=xelatex \
-		--template=$(PREFIX)/templates/xelatex.template \
-		--filter pandoc-citeproc \
-		--csl=$(PREFIX)/csl/$(CSL).csl \
-		--bibliography=$(BIB_FILE) \
 		-V chapterstyle=hikma-article \
 		-V pagestyle=ath \
-		--base-header-level=2 \
+		-t html5 --toc \
+		--template=$(PREFIX)/templates/html5.template \
 	-o $@
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
@@ -128,12 +114,11 @@ bib:	$(BIB)
 	pandoc -r markdown+simple_tables+table_captions+yaml_metadata_block -w docx -S \
 		--default-image-extension=png \
 		--template=$(PREFIX)/templates/odt.template \
+		-s --toc \
 	-o $@;
 	@echo "$(OK_COLOR)All done!$(NO_COLOR)"
 
 clean:
 	@echo "$(WARN_COLOR)Deleting all existing targets...$(NO_COLOR)"
 	rm -f $(addsuffix .html, $(BASE)) $(addsuffix .pdf, $(BASE)) \
-		$(addsuffix .odt, $(BASE)) $(addsuffix .docx, $(BASE)) \
-		$(addsuffix -manuscript.odt, $(BASE)) $(addsuffix -manuscript.docx, $(BASE)) \
-		$(addsuffix .tex, $(BASE)) $(addsuffix .bib, $(BASE))
+		$(addsuffix .docx, $(BASE))
