@@ -56,18 +56,17 @@ sub do_pre() {
 		warn "[!] Already Read References Pairs:[$main::HostRefName,$main::VirusRefName].\n";
 	}
 	#ddx \$main::RefConfig;
-	my $cmd0 = "$main::PathPrefix samtools faidx $Refile";
-	my $cmd1 = "$main::PathPrefix $RealBin/bin/bwameth.py index $Refile";
-	my $cmd2 = "python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
-	warn "[!] Run following to build index:\n$cmd0\n$cmd1\n$cmd2\n";
-	unless ($main::DISABLE_REF_INDEX) {
-		warn "[!] Building index for [$Refile].\n";
-		system($cmd0) unless -s $Refile.'.fai';
-		system($cmd1);	# unless -s $Refile.'.bwameth.c2t.sa';
-		system($cmd2);
-	} else {
-		warn "[!] Bwameth.py Index Building skipped for [$Refile].\n";
-	}
+	my @cmd;
+	open O,'>',"$main::RootPath/${main::ProjectID}_index.sh" or die $!;
+	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
+	push @cmd,"$main::PathPrefix samtools faidx $Refile";
+	push @cmd,"$main::PathPrefix $RealBin/bin/bwameth.py index $Refile";
+	push @cmd,"python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
+	push @cmd,"bwa index $Refile";
+	print O join("\n",@cmd),"\n";
+	close O;
+	chmod 0755,"$main::RootPath/${main::ProjectID}_index.sh";
+	warn "[!] Please run [$main::RootPath/${main::ProjectID}_index.sh] to build index.\n";
 }
 
 sub do_aln() {
@@ -115,7 +114,7 @@ CMD
 python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id $k -1 $FQ1c[0] -2 $FQ2c[0] -o $main::RootPath/${main::ProjectID}_aln/$k.bam >/dev/null
 CMD
 			$cmd3 = <<"CMD";
-bwa mem -CMY $Refilename -t 24 -R '$k' @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
+bwa mem -CMY $Refilename -t 24 -R '\@RG\\tID:$k\\tSM:$k' @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			if ($main::Aligner eq 'bwa-meth') {
 				print O $cmd;
@@ -135,11 +134,16 @@ CMD
 				$cmd2 = <<"CMD";
 python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -1 $FQ1c[$i] -2 $FQ2c[$i] -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam >/dev/null
 CMD
+			$cmd3 = <<"CMD";
+bwa mem -CMY $Refilename -t 24 -R '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID} -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam
+CMD
 				push @theBams,"$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam";
 				if ($main::Aligner eq 'bwa-meth') {
 					print O $cmd;
 				} elsif ($main::Aligner eq 'BSseeker2') {
 					print O $cmd2;
+				} elsif ($main::Aligner eq 'bwa') {
+					print O $cmd3;
 				} else {die;}
 			}
 			my $theBamsJ = join(' ',@theBams);

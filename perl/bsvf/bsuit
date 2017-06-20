@@ -79,7 +79,6 @@ our $minVirLen = 5;
 our $minVirMapLen = 5;
 our $DEVELOP = 0;	# chr18 only
 our $DEBUG = 0;
-our $DISABLE_REF_INDEX=0;
 our $FORCE_UNMETH=0;	# Crick/F->G2A, Watson/R->C2T
 our $GrepMergeBetter = 1;
 our $ResultMergeRange = 10;
