@@ -106,7 +106,7 @@ sub do_aln() {
 		#my @FQ2c = split /\s*,\s*/,$main::Config->{$main::FileData}->{$tID{$k}{2}};
 		my @FQ1c = @{$FQc{$k}{1}}; my @FQ2c = @{$FQc{$k}{2}};
 		die "[x]  $main::FileData not paired ! [@FQ1c],[@FQ2c]\n" unless $#FQ1c == $#FQ1c;
-		my ($cmd,$cmd2);
+		my ($cmd,$cmd2,$cmd3);
 		if (@FQ1c == 1) {
 			$cmd = <<"CMD";
 $RealBin/bin/bwameth.py --reference $Refilename -t 24 --read-group $k -p $main::RootPath/${main::ProjectID}_aln/$k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log
@@ -114,10 +114,15 @@ CMD
 			$cmd2 = <<"CMD";
 python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id $k -1 $FQ1c[0] -2 $FQ2c[0] -o $main::RootPath/${main::ProjectID}_aln/$k.bam >/dev/null
 CMD
+			$cmd3 = <<"CMD";
+bwa mem -CMY $Refilename -t 24 -R '$k' @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
+CMD
 			if ($main::Aligner eq 'bwa-meth') {
 				print O $cmd;
 			} elsif ($main::Aligner eq 'BSseeker2') {
 				print O $cmd2;
+			} elsif ($main::Aligner eq 'bwa') {
+				print O $cmd3;
 			} else {die;}
 		} else {
 			my @theBams;

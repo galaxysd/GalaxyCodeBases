@@ -685,6 +685,8 @@ if ($DEBGUHERE) {
 			} elsif ($XO eq 'XO:Z:-RF') {
 				$mtype = 'CT';	# Y
 			} else {die;}
+		} elsif ($_[1] eq 'bwa') {
+			$mtype = '-';
 		}
 #print "$mtype $i->[9] $YC\n";
 		my ($firstSC,$seqCIGAR) = getSeqCIGAR($minLeft,$i);
@@ -810,7 +812,7 @@ sub mergeStr($) {
 					$c = 'Y';
 				} elsif ($_->[2] eq 'GA' and $c eq 'A') {
 					$c = 'R';
-				}
+				}	# $_->[2] eq '-' means leaving the same.
 				++$ColBp{$c};
 				if ($c eq 'Y') {	# CT
 					$Col{$_} += $main::Qual2LgP{$q}->[4] for qw(G A);
