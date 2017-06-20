@@ -59,8 +59,8 @@ sub do_pre() {
 	my @cmd;
 	open O,'>',"$main::RootPath/${main::ProjectID}_index.sh" or die $!;
 	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
-	push @cmd,"$main::PathPrefix samtools faidx $Refile";
-	push @cmd,"$main::PathPrefix $RealBin/bin/bwameth.py index $Refile";
+	push @cmd,"samtools faidx $Refile";
+	push @cmd,"$RealBin/bin/bwameth.py index $Refile";
 	push @cmd,"python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
 	push @cmd,"bwa index $Refile";
 	print O join("\n",@cmd),"\n";
@@ -185,6 +185,7 @@ CMD
 	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
 	my $cli = "$RealBin/bin/bsanalyser -p grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
 	print O "\n$cli\n";
+	print O "\n$RealBin grep $fullcfgfile\n$RealBin analyse $fullcfgfile\n";
 # Grep step0 End
 	close O;
 	chmod 0755,"$main::RootPath/${main::ProjectID}_aln.sh";

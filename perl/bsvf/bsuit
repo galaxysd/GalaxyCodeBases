@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use File::Spec;
 #use Getopt::Std;
 
 #use FindBin 1.51 qw($RealBin);
@@ -56,6 +57,7 @@ if (@ARGV < 2) {
 my $cmd=lc shift;
 my $cfgfile=shift;
 my $base4=shift;
+my $fullcfgfile = File::Spec->rel2abs($cfgfile);
 our $FileData = 'DataFiles';
 die "[!]Config File [$cfgfile] NOT found !\n" unless -f $cfgfile;
 if (defined $base4) {
