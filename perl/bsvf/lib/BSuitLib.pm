@@ -185,7 +185,7 @@ CMD
 	$WorkINI->write("$main::RootPath/${main::ProjectID}_grep/ToGrep.ini");
 	my $cli = "$RealBin/bin/bsanalyser -p grep $main::RootPath/${main::ProjectID}_grep/ToGrep.ini";
 	print O "\n$cli\n";
-	print O "\n$RealBin grep $fullcfgfile\n$RealBin analyse $fullcfgfile\n";
+	print O "\n$RealBin grep $main::fullcfgfile\n$RealBin analyse $main::fullcfgfile\n";
 # Grep step0 End
 	close O;
 	chmod 0755,"$main::RootPath/${main::ProjectID}_aln.sh";
