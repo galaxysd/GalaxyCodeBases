@@ -1,6 +1,6 @@
 CC ?= gcc
-CFLAGS = -std=gnu11 -Wall -pedantic -pipe -march=core2 -mtune=generic
-LDFLAGS = -lz -lm -lhts -lbam
+CFLAGS = -std=gnu11 -Wall -pedantic -pipe -march=core2 -mtune=generic -I/usr/local/include
+LDFLAGS = -lz -lm -L/usr/local/lib -lhts -lbam
 OPT = -O3
 
 exefiles = bsanalyser

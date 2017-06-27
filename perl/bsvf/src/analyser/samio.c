@@ -103,6 +103,12 @@ int do_grep() {
 				const bam1_core_t *c = &b->core;
 				if (c->n_cigar) {
 					uint32_t *cigar = bam_get_cigar(b);
+					int i = c->n_cigar; --i;
+					if ( (bam_cigar_opchr(cigar[0])=='S' && bam_cigar_oplen(cigar[0]) >= myConfig.minGrepSlen) || 
+						 (bam_cigar_opchr(cigar[i])=='S' && bam_cigar_oplen(cigar[i]) >= myConfig.minGrepSlen)    ) {
+						flag = true;
+					}
+/* We only need /\d+S/ on both terminal, NOT inside.
 					for (int i = 0; i < c->n_cigar; ++i) {
 						if (bam_cigar_opchr(cigar[i])=='S') {	// soft clipping
 							if ( bam_cigar_oplen(cigar[i]) >= myConfig.minGrepSlen ) {
@@ -110,6 +116,7 @@ int do_grep() {
 							}
 						}
 					}
+*/
 				}
 				if (flag && ChrIsHum[c->tid]) {	// Now, skip Virus items.
 					//bam_copy1(bR1, b);

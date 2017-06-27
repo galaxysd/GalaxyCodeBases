@@ -214,6 +214,7 @@ int main (int argc, char **argv) {
 	myConfig.minGrepSlen = 5;
 	myConfig.minHumMapQ = 30;
 	myConfig.samples = 1;
+	myConfig.minBamQual = 30;
 
 	// Parse our arguments; every option seen by parse_opt will be reflected in arguments.
 	argp_parse (&argp, argc, argv, 0, 0, &arguments);

@@ -21,6 +21,7 @@ typedef struct {
 	uint16_t minGrepSlen;
 	uint16_t minHumMapQ;
 	uint8_t samples;
+	uint8_t minBamQual;
 } __attribute__ ((__packed__)) Config_t;
 
 Config_t myConfig;
