@@ -263,8 +263,8 @@ def bwa_mem(fa, mfq, extra_args, prefix='bwa-meth', threads=1, rg=None,
         rg = '@RG\tID:{rg}\tSM:{rg}'.format(rg=rg)
 
     # penalize clipping and unpaired. lower penalty on mismatches (-B)
-    # cmd = "|bwa mem -T 40 -B 2 -L 10 -CM "
-    cmd = "|bwa mem -T 40 -B 2 -L 6 -CMY "
+    # cmd = "|bwa mem -T 40 -B 2 -L 10 -CM " # samtools 1.5 cannot read sam with appended FASTA/FASTQ comment like `1:N:0:CATCATAA`.
+    cmd = "|bwa mem -T 40 -B 2 -L 6 -MY "
 
     if paired:
         cmd += ("-U 100 -p ")
