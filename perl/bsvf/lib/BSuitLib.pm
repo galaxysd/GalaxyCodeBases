@@ -86,7 +86,7 @@ sub do_aln() {
 #	}
 	File::Path::make_path("$main::RootPath/${main::ProjectID}_aln",{verbose => 0,mode => 0755});
 	open O,'>',"$main::RootPath/${main::ProjectID}_aln.sh" or die $!;
-	print O "#!/bin/sh\n\nset THREADSCNT=24\n\nexport $main::PathPrefix\n\n";
+	print O "#!/bin/sh\n\nexport THREADSCNT=24\nexport $main::PathPrefix\n\n";
 
 	for my $k (keys %tID) {
 		if ($maxReadNum{$k} == 1) {	# SE
