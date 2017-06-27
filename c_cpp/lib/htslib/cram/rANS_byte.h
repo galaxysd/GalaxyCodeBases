@@ -326,11 +326,27 @@ static inline void RansDecRenorm(RansState* r, uint8_t** pptr)
 
     if (x < RANS_BYTE_L) {
         uint8_t* ptr = *pptr;
-        do x = (x << 8) | *ptr++; while (x < RANS_BYTE_L);
+        x = (x << 8) | *ptr++;
+        if (x < RANS_BYTE_L)
+            x = (x << 8) | *ptr++;
         *pptr = ptr;
     }
 
     *r = x;
 }
+
+// Renormalize, with extra checks for falling off the end of the input.
+static inline void RansDecRenormSafe(RansState* r, uint8_t** pptr, uint8_t *ptr_end)
+{
+    uint32_t x = *r;
+    uint8_t* ptr = *pptr;
+    if (x >= RANS_BYTE_L || ptr >= ptr_end) return;
+    x = (x << 8) | *ptr++;
+    if (x < RANS_BYTE_L && ptr < ptr_end)
+        x = (x << 8) | *ptr++;
+    *pptr = ptr;
+    *r = x;
+}
+
 
 #endif // RANS_BYTE_HEADER
