@@ -101,6 +101,9 @@ int do_grep() {
 			while ((r = sam_read1(in, h, b)) >= 0) {
 				int8_t flag = false;
 				const bam1_core_t *c = &b->core;
+				if (c->qual < myConfig.minBamQual) {
+					continue;
+				}
 				if (c->n_cigar) {
 					uint32_t *cigar = bam_get_cigar(b);
 					int i = c->n_cigar; --i;
