@@ -7,7 +7,7 @@ A command to this program like:
 
 Gets converted to:
 
-    bwa mem -pCMR ref.fa.bwameth.c2t '<python bwameth.py c2t A.fq B.fq'
+    bwa mem -pCMYR ref.fa.bwameth.c2t '<python bwameth.py c2t A.fq B.fq'
 
 So that A.fq has C's converted to T's and B.fq has G's converted to A's
 and both are streamed directly to the aligner without a temporary file.
@@ -263,7 +263,7 @@ def bwa_mem(fa, mfq, extra_args, threads=1, rg=None,
         rg = '@RG\tID:{rg}\tSM:{rg}'.format(rg=rg)
 
     # penalize clipping and unpaired. lower penalty on mismatches (-B)
-    cmd = "|bwa mem -T 40 -B 2 -L 10 -CM "
+    cmd = "|bwa mem -T 40 -B 2 -L 10 -CMY "
 
     if paired:
         cmd += ("-U 100 -p ")
