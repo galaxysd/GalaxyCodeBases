@@ -129,7 +129,7 @@ CMD
 				my $fID = basename($FQ1c[$i]);
 				$fID =~ s/\.fq(\.gz)?$//i;
 				$cmd = <<"CMD";
-$RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}. -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam
+$RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID} -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam
 CMD
 				$cmd2 = <<"CMD";
 python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -1 $FQ1c[$i] -2 $FQ2c[$i] -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam >/dev/null
