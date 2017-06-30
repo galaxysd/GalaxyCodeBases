@@ -201,3 +201,6 @@ Compare with [ViralFusionSeq [VFS]](https://sourceforge.net/projects/viralfusion
 * [Vy-PER](http://www.ikmb.uni-kiel.de/vy-per/)
 * [seeksv](https://github.com/qiukunlong/seeksv)
 * [BS-Seeker2](https://github.com/BSSeeker/BSseeker2)
+
+* [Sherman](https://www.bioinformatics.babraham.ac.uk/projects/sherman/)
+  * 模拟时甲基化率设为800.
