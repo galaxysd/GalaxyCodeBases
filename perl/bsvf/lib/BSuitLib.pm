@@ -108,7 +108,7 @@ sub do_aln() {
 		my ($cmd,$cmd2,$cmd3);
 		if (@FQ1c == 1) {
 			$cmd = <<"CMD";
-$RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group $k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
+$RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group $k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			$cmd2 = <<"CMD";
 python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id $k -1 $FQ1c[0] -2 $FQ2c[0] -o $main::RootPath/${main::ProjectID}_aln/$k.bam >/dev/null
