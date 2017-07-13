@@ -130,7 +130,7 @@ if ($cmd ne 'prepare') {
 	}
 	$VirusChrIDs{$_} = $RefConfig->{$RefFilesSHA}->{$_} for @VirusChrID;
 
-	for my $q (1 .. 40) {
+	for my $q (1 .. 41) {
 		my $qchr = chr(33 + $q);
 		my $err = 10 ** (-$q/10);
 		my $p = 1 - $err;
