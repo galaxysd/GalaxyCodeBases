@@ -475,6 +475,22 @@ sub do_analyse {
 	}
 	close $FH;
 	close VIRUS;
+
+	my $tmptmpf = "$main::RootPath/${main::ProjectID}_grep/Greped.ini";
+	open TMPTMP,'<',$tmptmpf or die;
+	my %TMPtmp;
+	while (<TMPTMP>) {
+		/^\[(\d+)\]$/ or die;
+		my $id = $1;
+		<TMPTMP>;
+		<TMPTMP>;
+		$_=<TMPTMP>;
+		next if /^VirRange=NA$/;
+		my $tmp = (split /:/,$_)[-1];
+		$TMPtmp{$id}=$tmp;
+	}
+	close TMPTMP;
+
 	for my $k (keys %tID) {
 		my $myGrepf = "$main::RootPath/${main::ProjectID}_grep/$k.bam.grep";
 		print "[$myGrepf]\n";
@@ -523,7 +539,8 @@ sub do_analyse {
 			#next unless defined $strand;
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
-				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA','0','0'];
+				my @range = split /-/,$TMPtmp{$LineDat[0]};
+				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA',@range];
 				++$OutCnt[1];
 				next;
 			}
