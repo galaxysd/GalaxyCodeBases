@@ -215,6 +215,7 @@ sub do_grep($) {
 			my $thisGroup = $1;
 #print "$lastgid <- $thisGroup\n";
 			#print $thisGroup,"\t",join("][",@dat),"\n";
+			my $flagHV = 0;
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
 				if ($main::GrepMergeBetter and $main::Aligner eq 'bwa-meth') {
@@ -223,7 +224,8 @@ sub do_grep($) {
 					$skipflag = 1 if @hReads < 2;
 				}
 #print "$skipflag $lastgid <- $thisGroup\n";
-				unless ($skipflag) {
+				if ($flagHV == 3) {
+				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
 					#ddx $MergedHds;
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
@@ -247,12 +249,14 @@ sub do_grep($) {
 				$lastgid = $thisGroup;
 			}
 			if (/\bZd:Z:H\b/) {
+				$flagHV |= 1;
 				if ($dat[5] !~ /[IDH]/) {	# ignore [IDH] until 我有空写好 getDeriv()。
 					push @hReads,\@dat;
 					if (/\bYD:Z:f\b/) {++$fhReads}
 					else {++$rhReads;}
 				}
 			} elsif (/\bZd:Z:V\b/) {
+				$flagHV |= 2;
 				if ($dat[5] !~ /[IDH]/) {
 					push @vReads,\@dat;
 					if (/\bYD:Z:f\b/) {++$fvReads}

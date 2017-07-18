@@ -193,9 +193,14 @@ int do_grep() {
 							fprintf(fsdump,"[%u %s]\nHumRange=%s:%d-%d\n", blockid, BamID, h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
 							fprintf(fsdump,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
 #endif
-							fprintf(fs,"[%u]\nBamID=%s\nHumRange=%s:%d-%d\nVirRange=%s:%d-%d\n",blockid, BamID,
-							h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos,
-							h->target_name[(pierCluster->VirusRange).tid], (pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
+							fprintf(fs,"[%u]\nBamID=%s\nHumRange=%s:%d-%d\n",blockid, BamID,
+							h->target_name[(pierCluster->HumanRange).tid], (pierCluster->HumanRange).pos, (pierCluster->HumanRange).endpos);
+							if ( (pierCluster->VirusRange).pos == 0 && (pierCluster->VirusRange).endpos == 0 ) {
+								fprintf(fs,"VirRange=NA\n");
+							} else {
+								fprintf(fs,"VirRange=%s:%d-%d\n", h->target_name[(pierCluster->VirusRange).tid],
+									(pierCluster->VirusRange).pos, (pierCluster->VirusRange).endpos);
+							}
 							for (size_t i=0; i<kv_size(pierCluster->Reads);++i) {
 								bam1_t *bi = kv_A(pierCluster->Reads, i);
 								bam_aux_append(bi, "Zc", 'i', sizeof(uint32_t), (uint8_t*)&blockid);
