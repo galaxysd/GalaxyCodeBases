@@ -486,6 +486,7 @@ sub do_analyse {
 		<TMPTMP>;
 		$_=<TMPTMP>;
 		next if /^VirRange=NA$/;
+		chomp;
 		my $tmp = (split /:/,$_)[-1];
 		$TMPtmp{$id}=$tmp;
 	}
