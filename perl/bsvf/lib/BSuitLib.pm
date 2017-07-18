@@ -207,7 +207,7 @@ sub do_grep($) {
 		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
 		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
 		my ($lastgid,@hReads,@vReads);
-		my ($fhReads,$rhReads,$fvReads,$rvReads)=(0,0,0,0);	# /\bYD:Z:f\b/
+		my ($fhReads,$rhReads,$fvReads,$rvReads,$flagHV)=(0,0,0,0,0);	# /\bYD:Z:f\b/
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
@@ -215,7 +215,6 @@ sub do_grep($) {
 			my $thisGroup = $1;
 #print "$lastgid <- $thisGroup\n";
 			#print $thisGroup,"\t",join("][",@dat),"\n";
-			my $flagHV = 0;
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
 				if ($main::GrepMergeBetter and $main::Aligner eq 'bwa-meth') {
@@ -225,6 +224,7 @@ sub do_grep($) {
 				}
 #print "$skipflag $lastgid <- $thisGroup\n";
 				if ($flagHV == 3) {
+					$flagHV = 0;
 				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
 					#ddx $MergedHds;
