@@ -202,7 +202,7 @@ sub dynamic_trim_fastq_tag { #(File_in, phred_scale, desiredQ, emit_threshold)
 	my $is_gzip_input = DetermineFileType ($file_in);
 
 	if ($is_gzip_input) {
-		open ($FH, "<:gzip", $file_in) or die "Can't open $file_in (gzipped) for reading : $!";
+		open ($FH,"-|", "gzip -dc $file_in") or die "Can't open $file_in (gzipped) for reading : $!";
 	}
 	else {
 		open $FH, '<', $file_in or die "Can't open $file_in for reading : $!";
