@@ -272,7 +272,7 @@ def read_fasta(fasta_file):
         print "[Error] Cannot find fasta file : %s !" % fasta_file
         exit(-1)
     sanitize = re.compile(r'[^ACTGN]')
-    sanitize_seq_id = re.compile(r'[^A-Za-z0-9]')
+    sanitize_seq_id = re.compile(r'[^A-Za-z0-9|]')
 
     chrom_seq = []
     chrom_id = None

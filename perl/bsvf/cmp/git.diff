@@ -11,4 +11,16 @@ index b3f9c6a4..3fb63b82
  	else {
  		open $FH, '<', $file_in or die "Can't open $file_in for reading : $!";
 
+index 73005d03..30013ace 100644
+--- a/perl/bsvf/bin/BSseeker2/bs_utils/utils.py
++++ b/perl/bsvf/bin/BSseeker2/bs_utils/utils.py
+@@ -272,7 +272,7 @@ def read_fasta(fasta_file):
+         print "[Error] Cannot find fasta file : %s !" % fasta_file
+         exit(-1)
+     sanitize = re.compile(r'[^ACTGN]')
+-    sanitize_seq_id = re.compile(r'[^A-Za-z0-9]')
++    sanitize_seq_id = re.compile(r'[^A-Za-z0-9|]')
+ 
+     chrom_seq = []
+     chrom_id = None
 

@@ -111,7 +111,7 @@ sub do_aln() {
 $RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group $k @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
 CMD
 			$cmd2 = <<"CMD";
-python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id $k -1 $FQ1c[0] -2 $FQ2c[0] -o $main::RootPath/${main::ProjectID}_aln/$k.bam >/dev/null
+python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id $k -1 $FQ1c[0] -2 $FQ2c[0] -o $main::RootPath/${main::ProjectID}_aln/$k.bam --temp_dir=$main::RootPath/${main::ProjectID}_aln >/dev/null
 CMD
 			$cmd3 = <<"CMD";
 bwa mem -MY $Refilename -t \${THREADSCNT} -R '\@RG\\tID:$k\\tSM:$k' @{[warnFileExist($FQ1c[0],$FQ2c[0])]} 2>$main::RootPath/${main::ProjectID}_aln/$k.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/$k -o $main::RootPath/${main::ProjectID}_aln/$k.bam
@@ -132,7 +132,7 @@ CMD
 $RealBin/bin/bwameth.py --reference $Refilename -t \${THREADSCNT} --read-group '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID} -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam
 CMD
 				$cmd2 = <<"CMD";
-python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -1 $FQ1c[$i] -2 $FQ2c[$i] -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam >/dev/null
+python2 $RealBin/bin/BSseeker2/bs_seeker2-align.py --aligner bowtie2 -d ${Refilename}2 -g $Refilename --bt2--rg-id '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' -1 $FQ1c[$i] -2 $FQ2c[$i] -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam --temp_dir=$main::RootPath/${main::ProjectID}_aln >/dev/null
 CMD
 			$cmd3 = <<"CMD";
 bwa mem -MY $Refilename -t \${THREADSCNT} -R '\@RG\\tID:${k}_${i}_${fID}\\tSM:$k' @{[warnFileExist($FQ1c[$i],$FQ2c[$i])]} 2>$main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.log | samtools view -bS - | samtools sort -n -m 2415919104 - -T $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID} -o $main::RootPath/${main::ProjectID}_aln/${k}_${i}_${fID}.bam
