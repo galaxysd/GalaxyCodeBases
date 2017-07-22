@@ -61,7 +61,7 @@ sub do_pre() {
 	print O "#!/bin/sh\n\nexport $main::PathPrefix\n\n";
 	push @cmd,"samtools faidx $Refile";
 	push @cmd,"$RealBin/bin/bwameth.py index $Refile";
-	push @cmd,"python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
+	push @cmd,"#python2 $RealBin/bin/BSseeker2/bs_seeker2-build.py --aligner bowtie2 -f $Refile -d ${Refile}2";
 	push @cmd,"bwa index $Refile";
 	print O join("\n",@cmd),"\n";
 	close O;
