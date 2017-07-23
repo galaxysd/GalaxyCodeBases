@@ -207,7 +207,7 @@ sub do_grep($) {
 		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
 		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
 		my ($lastgid,@hReads,@vReads);
-		my ($fhReads,$rhReads,$fvReads,$rvReads,$flagHV)=(0,0,0,0,0);	# /\bYD:Z:f\b/
+		my ($fhReads,$rhReads,$fvReads,$rvReads,$flagHV,$strandOdd,$strandEven)=(0,0,0,0,0,0,0);	# /\bYD:Z:f\b/
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
@@ -215,6 +215,15 @@ sub do_grep($) {
 			my $thisGroup = $1;
 #print "$lastgid <- $thisGroup\n";
 			#print $thisGroup,"\t",join("][",@dat),"\n";
+			if ($dat[6] ne '=') {	# 假设染色体不同就算一边人一边病毒(故也统计了两遍)。严格来说也要分染色体统计，但目前只是临时补充的 用sam文件推断病毒正负链插入 功能，正式版将恢复通过后面的动态规划比对来精确判断。
+				my $flagr = ($dat[1] & 16)>>4;
+				my $flagR = ($dat[1] & 32)>>5;
+				if ($flagr == $flagR) {
+					++$strandEven;	# 相同就在负链上
+				} else {
+					++$strandOdd;
+				}
+			}
 			if ($lastgid and ($lastgid != $thisGroup)) {
 				my $skipflag = 0;
 				if ($main::GrepMergeBetter and $main::Aligner eq 'bwa-meth') {
@@ -228,15 +237,22 @@ sub do_grep($) {
 				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
 					#ddx $MergedHds;
+					my $tmp = '.';
+					if ($strandEven > $strandOdd) {
+						$tmp = '-';
+					} elsif ($strandEven < $strandOdd) {
+						$tmp = '+';
+					}
+					($strandOdd,$strandEven)=(0,0);
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
 					if (@Keys == 1) {
 						if ($Keys[0] > 0) {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N'),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp),"\n";
 						} else {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}}),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp),"\n";
 						}
 					} elsif (@Keys == 2) {
-						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}}),"\n";
+						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp),"\n";
 					}
 					#print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
 					#die;
@@ -541,7 +557,7 @@ sub do_analyse {
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
 				my @range = split /-/,$TMPtmp{$LineDat[0]};
-				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus','NA',@range];
+				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus',$LineDat[8],@range];	# 临时补丁
 				++$OutCnt[1];
 				next;
 			}
