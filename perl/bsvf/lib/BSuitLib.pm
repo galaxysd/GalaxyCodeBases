@@ -614,8 +614,8 @@ sub do_analyse {
 			}
 
 			my @TTT;
-			for my $i (1 .. $#Poses) {
-				if ($Poses[$i] - $Poses[$i-1] <= 20) {
+			for my $i (0 .. $#Poses) {
+				if (($i == 0) or ($Poses[$i] - $Poses[$i-1] <= 20)) {
 					push @TTT,$Results{$chr}{$Poses[$i]};
 				} else {
 					if (@TTT) {
