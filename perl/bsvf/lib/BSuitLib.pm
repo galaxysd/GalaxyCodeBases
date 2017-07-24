@@ -511,7 +511,7 @@ sub do_analyse {
 	for my $k (keys %tID) {
 		my $myGrepf = "$main::RootPath/${main::ProjectID}_grep/$k.bam.grep";
 		print "[$myGrepf]\n";
-		my $outf = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
+		my $outf = "$main::RootPath/${main::ProjectID}_analyse/.$k.analyse";
 		open IN,'<',$myGrepf or die;
 		open OUT,'>',$outf or die;
 		my (@OutCnt,%OutDat)=(0,0,0);
@@ -593,7 +593,49 @@ sub do_analyse {
 				++$OutCnt[2];
 			}
 		}
+		close IN; close OUT;
 		warn "[!]O: $OutCnt[0]+$OutCnt[1] => $OutCnt[2] in [$k], merged=",$OutCnt[0]+$OutCnt[1]-$OutCnt[2],".\n";
+
+		# Well, this is the f*cking reality. You know it.
+		my $outf2 = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
+		open IN,'<',$outf or die;
+		open OUT,'>',$outf2 or die;
+		my %Results;
+		while (<IN>) {
+			chomp;
+			my @dat = split /\t/;
+			$Results{$dat[1]}{$dat[2]} = \@dat;
+		}
+		for my $chr (keys %Results) {
+			my @Poses = sort {$a<=>$b} keys %{$Results{$chr}};
+			my $beg = shift @Poses;
+			my @TTT;
+			for my $p (@Poses) {
+				if ($p - $beg <= 20) {
+					push @TTT,$Results{$chr}{$p};
+				} else {
+					my (@Virus,@Hum);
+					if (@TTT) {
+						for my $tt (@TTT) {
+							push @Hum,$tt->[2];
+							push @Hum,$tt->[3] if $tt->[3] != -1;
+							push @Virus,$tt->[6] if $tt->[6] != -1;
+							push @Virus,$tt->[7] if $tt->[7] != -1;
+						}
+						@Hum = sort {$a<=>$b} @Hum;
+						@Virus = sort {$a<=>$b} @Virus;
+						push @Hum,-1 if scalar @Hum == 1;
+						push @Virus,-1 if scalar @Virus == 1;
+						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
+						@TTT = ();
+					}
+					$beg = $p;
+					print OUT join("\t",@{$Results{$chr}{$p}}),"\n";
+				}
+			}
+		}
+		close IN; close OUT;
+		# EOF this silly thing, which is favored by the mankind.
 	}
 }
 
