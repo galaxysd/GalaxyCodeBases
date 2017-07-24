@@ -612,13 +612,14 @@ sub do_analyse {
 				print OUT join("\t",@{$Results{$chr}{$Poses[0]}}),"\n";
 				next;
 			}
-=pod
+
 			my @TTT;
 			for my $i (1 .. $#Poses) {
 				if ($Poses[$i] - $Poses[$i-1] <= 20) {
 					push @TTT,$Results{$chr}{$Poses[$i]};
 				} else {
 					if (@TTT) {
+						my (@Virus,@Hum);
 						for my $tt (@TTT) {
 							push @Hum,$tt->[2];
 							push @Hum,$tt->[3] if $tt->[3] != -1;
@@ -634,8 +635,10 @@ sub do_analyse {
 					}
 				}
 			}
-=cut
-			#########
+			if (@TTT) {
+				print OUT join("\t",@{$TTT[0]}),"\n";
+			}
+=pod
 			my $beg = shift @Poses;
 			my @TTT;
 			push @TTT,$Results{$chr}{$beg};
@@ -663,7 +666,7 @@ sub do_analyse {
 					#print OUT join("\t",@{$Results{$chr}{$p}}),"\n";
 				}
 			}
-			###########
+=cut
 		}
 		close IN; close OUT;
 		# EOF this silly thing, which is favored by the mankind.
