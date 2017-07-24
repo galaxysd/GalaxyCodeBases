@@ -613,6 +613,7 @@ sub do_analyse {
 				next;
 			}
 			my $beg = shift @Poses;
+			push @TTT,$Results{$chr}{$beg};
 			my @TTT;
 			for my $p (@Poses) {
 				if ($p - $beg <= 20) {
