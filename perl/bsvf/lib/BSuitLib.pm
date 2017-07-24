@@ -612,6 +612,30 @@ sub do_analyse {
 				print OUT join("\t",@{$Results{$chr}{$Poses[0]}}),"\n";
 				next;
 			}
+=pod
+			my @TTT;
+			for my $i (1 .. $#Poses) {
+				if ($Poses[$i] - $Poses[$i-1] <= 20) {
+					push @TTT,$Results{$chr}{$Poses[$i]};
+				} else {
+					if (@TTT) {
+						for my $tt (@TTT) {
+							push @Hum,$tt->[2];
+							push @Hum,$tt->[3] if $tt->[3] != -1;
+							push @Virus,$tt->[6] if $tt->[6] != -1;
+							push @Virus,$tt->[7] if $tt->[7] != -1;
+						}
+						@Hum = sort {$a<=>$b} @Hum;
+						@Virus = sort {$a<=>$b} @Virus;
+						#push @Hum,-1 if scalar @Hum == 1;
+						#push @Virus,-1 if scalar @Virus == 1;
+						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
+						@TTT = ($Results{$chr}{$Poses[$i]});
+					}
+				}
+			}
+=cut
+			#########
 			my $beg = shift @Poses;
 			my @TTT;
 			push @TTT,$Results{$chr}{$beg};
@@ -633,12 +657,13 @@ sub do_analyse {
 						#push @Hum,-1 if scalar @Hum == 1;
 						#push @Virus,-1 if scalar @Virus == 1;
 						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
-						@TTT = [$Results{$chr}{$p}];
+						@TTT = ($Results{$chr}{$p});
 					}
 					$beg = $p;
 					#print OUT join("\t",@{$Results{$chr}{$p}}),"\n";
 				}
 			}
+			###########
 		}
 		close IN; close OUT;
 		# EOF this silly thing, which is favored by the mankind.
