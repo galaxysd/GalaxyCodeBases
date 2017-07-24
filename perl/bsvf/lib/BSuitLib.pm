@@ -608,11 +608,16 @@ sub do_analyse {
 		}
 		for my $chr (keys %Results) {
 			my @Poses = sort {$a<=>$b} keys %{$Results{$chr}};
+			if (@Poses == 1) {
+				print OUT join("\t",@{$Results{$chr}{$Poses[0]}}),"\n";
+				next;
+			}
 			my $beg = shift @Poses;
 			my @TTT;
 			for my $p (@Poses) {
 				if ($p - $beg <= 20) {
 					push @TTT,$Results{$chr}{$p};
+					$beg = $p;
 				} else {
 					my (@Virus,@Hum);
 					if (@TTT) {
