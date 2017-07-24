@@ -606,7 +606,7 @@ sub do_analyse {
 			my @dat = split /\t/;
 			$Results{$dat[1]}{$dat[2]} = \@dat;
 		}
-		for my $chr (keys %Results) {
+		for my $chr (sort keys %Results) {
 			my @Poses = sort {$a<=>$b} keys %{$Results{$chr}};
 			if (@Poses == 1) {
 				print OUT join("\t",@{$Results{$chr}{$Poses[0]}}),"\n";
@@ -629,8 +629,8 @@ sub do_analyse {
 						}
 						@Hum = sort {$a<=>$b} @Hum;
 						@Virus = sort {$a<=>$b} @Virus;
-						push @Hum,-1 if scalar @Hum == 1;
-						push @Virus,-1 if scalar @Virus == 1;
+						#push @Hum,-1 if scalar @Hum == 1;
+						#push @Virus,-1 if scalar @Virus == 1;
 						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
 						@TTT = ();
 					}
