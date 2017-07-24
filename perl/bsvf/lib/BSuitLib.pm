@@ -633,10 +633,10 @@ sub do_analyse {
 						#push @Hum,-1 if scalar @Hum == 1;
 						#push @Virus,-1 if scalar @Virus == 1;
 						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
-						@TTT = ();
+						@TTT = [$Results{$chr}{$p}];
 					}
 					$beg = $p;
-					print OUT join("\t",@{$Results{$chr}{$p}}),"\n";
+					#print OUT join("\t",@{$Results{$chr}{$p}}),"\n";
 				}
 			}
 		}
