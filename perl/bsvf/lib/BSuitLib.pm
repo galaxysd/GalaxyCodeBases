@@ -600,10 +600,13 @@ sub do_analyse {
 		my $outf2 = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
 		open IN,'<',$outf or die;
 		open OUT,'>',$outf2 or die;
+		#print OUT join("\t",qw[ID Host_Chr H_Start H_End Virus_Chr Strand V_Start V_End]),"\n";
+		print OUT join("\t",qw[ID Chr BreakPoint1 BreakPoint2 Virus Strand Start End]),"\n";	# Well, he prefer this.
 		my %Results;
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
+			$dat[4] = $retVirus[0]->[0];	# Well, just do it.
 			$Results{$dat[1]}{$dat[2]} = \@dat;
 		}
 		for my $chr (sort keys %Results) {
