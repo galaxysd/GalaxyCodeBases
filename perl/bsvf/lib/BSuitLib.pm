@@ -206,7 +206,7 @@ sub do_grep($) {
 		print "[$myBamf] ";	# 内部有错误示意。换行后移
 		open OUT,'>',"${myBamf}.grep" or die "Error opening ${myBamf}.grep: $!\n";
 		open( IN,"-|","$main::PathPrefix samtools view $myBamf") or die "Error opening $myBamf: $!\n";
-		my ($lastgid,@hReads,@vReads);
+		my ($lastgid,@hReads,@vReads,%Vchr);
 		my ($fhReads,$rhReads,$fvReads,$rvReads,$flagHV,$strandOdd,$strandEven)=(0,0,0,0,0,0,0);	# /\bYD:Z:f\b/
 		while (<IN>) {
 			chomp;
@@ -245,11 +245,13 @@ sub do_grep($) {
 					}
 					($strandOdd,$strandEven)=(0,0);
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
+					my @Vchrs = sort { $Vchr{$b} <=> $Vchr{$a} } keys %Vchr;
+					%Vchr = ();
 					if (@Keys == 1) {
 						if ($Keys[0] > 0) {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp,$Vchrs[0]),"\n";
 						} else {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0]),"\n";
 						}
 					} elsif (@Keys == 2) {
 						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp),"\n";
@@ -273,6 +275,7 @@ sub do_grep($) {
 				}
 			} elsif (/\bZd:Z:V\b/) {
 				$flagHV |= 2;
+				++$Vchr{$dat[2]};
 				if ($dat[5] !~ /[IDH]/) {
 					push @vReads,\@dat;
 					if (/\bYD:Z:f\b/) {++$fvReads}
@@ -557,12 +560,12 @@ sub do_analyse {
 			unless (defined $strand) {	# Well, we need more poistive.
 				#print OUT join("\t",@LineDat[0..3],'Virus','NA','0','0'),"\n";
 				my @range = split /-/,$TMPtmp{$LineDat[0]};
-				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus',$LineDat[8],@range];	# 临时补丁
+				$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],$LineDat[9],$LineDat[8],@range];	# 临时补丁
 				++$OutCnt[1];
 				next;
 			}
 			#print OUT join("\t",@LineDat[0..3],'Virus',$strand,$left,$right),"\n";
-			$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],'Virus',$strand,$left,$right];
+			$OutDat{$LineDat[1]}{$LineDat[2]} = [$LineDat[0],$LineDat[3],$LineDat[9],$strand,$left,$right];
 			++$OutCnt[0];
 		}
 		for my $chr (sort {alphanum($a,$b)} keys %OutDat) {
@@ -606,7 +609,7 @@ sub do_analyse {
 		while (<IN>) {
 			chomp;
 			my @dat = split /\t/;
-			$dat[4] = $retVirus[0]->[0];	# Well, just do it.
+			#$dat[4] = $retVirus[0]->[0];	# Well, just do it.
 			$Results{$dat[1]}{$dat[2]} = \@dat;
 		}
 		for my $chr (sort keys %Results) {
