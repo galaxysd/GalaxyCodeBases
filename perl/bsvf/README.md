@@ -207,13 +207,13 @@ Compare with [ViralFusionSeq [VFS]](https://sourceforge.net/projects/viralfusion
 
 | Tool | Sequencing Type | Programme Language | 1st Aligenment * | Assembler | 2nd Aligenment # | Epub Date |
 |:-----|:---------------:|:------------------:|:-----:|:-----:|:-----:|:-----:|
-|[VirusSeq](https://doi.org/10.1093/bioinformatics/bts665)|RNA-Seq,WGS|Perl|MOSAIK to Human|MOSAIK to Virus|MOSAIK to Hybrid|2012 Nov 08|
-|[ViralFusionSeq](https://doi.org/10.1093/bioinformatics/btt011)|RNA-Seq,WGS|Perl|BWA-SW to Human|cap3,SSAKE|blastall to Virus|2013 Jan 12|
-|[VERSE(VirusFinder2)](https://doi.org/10.1186/s13073-015-0126-6)|WGS,RNA-Seq|Perl|Bowtie2 to Human,BLAT to Virus,BLASTN to Virus|Trinity|BWA-SW to Hybrid, SVDetect,CREST|2015 Jan 20|
+|[VirusSeq](https://doi.org/10.1093/bioinformatics/bts665)|RNA-Seq, WGS|Perl|MOSAIK to Human|MOSAIK to Virus|MOSAIK to Hybrid|2012 Nov 08|
+|[ViralFusionSeq](https://doi.org/10.1093/bioinformatics/btt011)|RNA-Seq, WGS|Perl|BWA-SW to Human|cap3, SSAKE|Blastall to Virus|2013 Jan 12|
+|[VERSE(VirusFinder2)](https://doi.org/10.1186/s13073-015-0126-6)|WGS, RNA-Seq|Perl|Bowtie2 to Human, BLAT to Virus, BLASTN to Virus|Trinity|BWA-SW to Hybrid, SVDetect,CREST|2015 Jan 20|
 |[Virus-Clip](https://doi.org/10.18632/oncotarget.4187)|RNA-seq|Perl|BWA-MEM to Virus|Virus-Clip|BLASTN to Human|2015 May 19|
-|[Vy-PER](https://doi.org/10.1038/srep11534)|WGS,RNA-Seq|Python2|BWA-SW to Human|Vy-PER|BLAT to Virus|2015 Jul 13|
+|[Vy-PER](https://doi.org/10.1038/srep11534)|WGS, RNA-Seq|Python2|BWA-SW to Human|Vy-PER|BLAT to Virus|2015 Jul 13|
 |[seeksv](https://doi.org/10.1093/bioinformatics/btw591)|WGS|C++|BWA to Hybrid|seeksv|seeksv to Hybrid|2016 Sep 14|
-|BSVF|WGBS,WGS|Perl,C,C++|BWA-MEM to Hybrid|BSVF|water(EMBOSS) to Hybrid| N/A |
+|BSVF|WGBS, WGS|Perl,C,C++|BWA-MEM to Hybrid|BSVF|water(EMBOSS) to Hybrid| N/A |
 
 \* for virus-infected reads  
 \# for integration infomation
