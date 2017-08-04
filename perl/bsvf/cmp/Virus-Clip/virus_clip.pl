@@ -122,7 +122,7 @@ foreach $breakpoint (keys %left_count) {
 		chomp $line;
 
 		if ($line =~ />/) {				#extract matched human chr
-			my @column = split(" ",$line);
+			my @column = split(">",$line);	# There is NO MORE space in blastn output_file.
 			$human_chr = $column[1];
 		}
 		elsif ($line =~ /^Sbjct/) {		#extract matched human position
@@ -154,7 +154,7 @@ foreach $breakpoint (keys %right_count) {
 		chomp $line;
 
 		if ($line =~ />/) {				#extract matched human chr
-			my @column = split(" ",$line);
+			my @column = split(">",$line);
 			$human_chr = $column[1];
 		}
 		elsif ($line =~ /^Sbjct/) {		#extract matched human position
