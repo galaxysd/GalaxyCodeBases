@@ -15,3 +15,7 @@ cd VirusFinder2.0/icorn/pileup_v0.5b/ssaha2/
 rm VirusFinder2.0/bin/GenomeAnalysisTK.jar	# GATK version 2.4-9-g532efad
 ````
 
+## Patch
+
+* Use `samtools` <= 0.1.20.
+
