@@ -51,6 +51,7 @@ use IO::Handle();
 use Cwd;
 use FindBin;
 use lib "$FindBin::Bin";
+use lib "$FindBin::Bin/bin";
 use Mosaic;
 
 my @usage;
@@ -509,7 +510,8 @@ sub RunCREST {
     ### Variant calling using CREST
 
     if (!-e "$output_dir/crest/alignment.sorted.bam.cover"){
-       `perl extractSClip.pl -i $output_dir/alignment.sorted.bam -o $output_dir/crest/ --ref_genome $output_dir/hg19+virus.fa`;
+       my $ILIBs = GetIdir();
+       `perl $ILIBs extractSClip.pl -i $output_dir/alignment.sorted.bam -o $output_dir/crest/ --ref_genome $output_dir/hg19+virus.fa`;
     }
     if (!-e "$output_dir/crest/hg19+virus.2bit"){
        `$faToTwoBit_bin $output_dir/hg19+virus.fa $output_dir/crest/hg19+virus.2bit`;

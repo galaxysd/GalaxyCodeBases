@@ -15,7 +15,10 @@ cd VirusFinder2.0/icorn/pileup_v0.5b/ssaha2/
 rm VirusFinder2.0/bin/GenomeAnalysisTK.jar	# GATK version 2.4-9-g532efad
 ````
 
+The *ssaha2* used is `VirusFinder2.0/icorn/pileup_v0.5b/ssaha2/ssaha2-2.3_x86_64`
+
 ## Patch
 
 * Use `samtools` <= 0.1.20.
-
+* Use **absolute path** for `$output_dir` and `$config_file`.
+* `$blastn_index_human.fa` will be used as reference file name, `ln -s hg38.fa hg38.fa.fa` if you didnot `formatdb -n`.
