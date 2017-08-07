@@ -1,0 +1,4 @@
+#Compile the code, just type "make"
+make
+
+Usage: ./get_seqreads <read_name_file> <input_fastq_file> <output_fastq_file>

@@ -1,0 +1,14 @@
+Here are the changes documented between the versions.
+
+##### version 0.96
+- possible to run it on a farm enviroment. Please set the varible:
+  LSF=1 in line 35.
+
+
+###### version .97
+- bug for single ended reads fixed (Thanks C. Rusniok)
+- bugfix, if a SNP and indel is call on the same position, just the
+  indel is used. If insertion and deletion are called, the insertion
+  is used. We are thinking to do this randomly in future
+- In gff files, the bases previous and now are exchanged.
+- Improved view of error per base file

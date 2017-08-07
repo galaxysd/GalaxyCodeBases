@@ -1,0 +1,7 @@
+Compile the code: just type "make"
+make
+
+USAGE
+
+ ssaha_split <-split 4000> <output fastq head> <input fastq files>
+ -split 4000 means cut the file into small patches each with 4000 sequences

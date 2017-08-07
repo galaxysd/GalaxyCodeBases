@@ -1,0 +1,22 @@
+This is a patch to fix a problem in pileup_v0.5
+where large insert sizes are cut off.
+HP090512
+
+Place the file ssaha_clean.c in the pilup path at 
+pileup_v0.5/ssaha_pileup/ssaha_pileup/ssaha_clean.c
+
+then change to the top directory and run the install script ./install.csh
+
+
+For example, if the pileup directory is
+
+/nfs/team81/jit/bin/pileup_v0.5
+
+then do the following:
+
+> cp pileup_v0.5_patch1/ssaha_clean.c /nfs/team81/jit/bin/pileup_v0.5/ssaha_pileup/ssaha_pileup/ssaha_clean.c
+> cd /nfs/team81/jit/bin/pileup_v0.5/
+> ./install.csh
+
+Finally place the updates wrapper script in the correct directory:
+> cp pileup_v0.5_patch1/pileup.NoPile.csh  /nfs/team81/jit/bin/pileup_v0.5/.

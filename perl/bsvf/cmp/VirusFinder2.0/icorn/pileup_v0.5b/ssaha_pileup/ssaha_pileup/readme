@@ -1,0 +1,5 @@
+#Compile the all codes by doing 
+make all
+#Compile the code one by one
+make ssaha_pileup
+make ssaha_pairs

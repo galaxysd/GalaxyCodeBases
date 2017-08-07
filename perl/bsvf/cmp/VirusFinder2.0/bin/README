@@ -1,0 +1,254 @@
+This document has the information on how to run CREST for structural
+variation detection.
+
+=============
+Requirements:
+=============
+Before running CREST, you need to make sure that several pieces of software
+and/or modules are installed on the system:
+1. BLAT software suite, especially blat, gfClient, and gfServer. BLAT
+can be obtained from these links:
+    BLAT for academic use: http://www.soe.ucsc.edu/~kent
+    BLAT commercial license: http://www.kentinformatics.com/
+2. CAP3 assembly program, available here:
+    CAP3 for academic use: http://seq.cs.iastate.edu/cap3.html
+    CAP3 commercial license: Contact Robin Kolehmainen at Michigan Tech, 
+    rakolehm@mtu.edu or (906)487-2228.
+3: SAMtools library for accessing SAM/BAM files, available from SourceForge:
+    SAMtools: http://sourceforge.net/projects/samtools/files/
+4. BioPerl and Bio::DB::Sam modules.  They are usually available as
+packages on most Linux distributions, but are also available at this link:
+    BioPerl: http://www.bioperl.org/
+	Bio::DB::Sam: http://search.cpan.org/~lds/Bio-SamTools/lib/Bio/DB/Sam.pm
+Important: you must install SAMtools library before install Bio::DB::Sam.
+5. ptrfinder is needed if you want to remove short tandem repeat mediated
+SVs, the executable is included in the download package, put it on the path.
+
+Note:
+1. You can use your own programs in place of BLAT and CAP3, but you need to
+implement the run method in SVExtTools.pm.
+2. The pipeline uses gfServer to mimic a standard blat server, so you need
+to setup your own gfServer.  Details on setting up the server can be found in
+the BLAT package.  Using a query server can significantly increase the speed of
+the pipeline.
+
+Your BAM files must contain soft-clipping signatures at the breakpoints.  If
+they do not, you will not get any results.  For more information see the
+section "About Soft-Clipping" at the end of this document.
+
+=====================
+Running the pipeline:
+=====================
+
+Make sure that all the required perl modules are in @INC.  One simple way
+is to put all .pm and .pl scripts in the same directory and run them from
+this same directory. Also, the input bam file, must be sorted and indexed
+before running the pipeline.
+
+We are going to use two sample bam files (tumor.bam and germline.bam) to
+illustate how to run the pipeline. The examples assume you want to find SV
+in tumor.bam and you also have the matched germline sample bam file.
+
+Important: indexing all bam files before running the pipeline is required.
+
+1. Get soft-clipping positions.
+
+The program extractSClip.pl will extract all soft-clipping positions first,
+and identify those positions with a cluster of soft-clipped reads.  The
+program requires only the BAM file and the reference genome's FASTA file
+The following is an example to extract all positions:
+
+	extractSClip.pl -i tumor.bam --ref_genome hg18.fa
+
+Two files named tumor.bam.cover and tumor.bam.sclip.txt will be generated
+for use in the next step.
+
+Note: The program can use either paired or single-end sequencing data.  For
+single-end data, use the --nopaired parameter.
+
+For whole genome sequencing project, we highly suggest running the procedure
+in parallel by dividing the genome into pieces.  One natural way is by
+chromosome. The following is an example to extract all positons on chr4.
+
+	extractSClip.pl -i tumor.bam --ref_genome hg18.fa -r 4 
+
+Important: The genome file used in this pipeline must be the same as the one
+used to map reads, so the chromosome names need to agree.  In this example,
+the genome file and bam file all have the chromosome name as 4 instead of
+chr4 you may encounter.
+
+Two files named tumor.bam.4.cover and tumor.bam.4.sclip.txt will be generated
+for use in the next step. So it's very easy to run this step in parallel and
+combine the results together to form a final result.
+
+The output files for this step have names with suffixes of *.cover and
+*.sclip.txt.  The .cover file is a tab-delimited text file, with columns:
+chr, position, strand, number of soft-clipped reads, and coverage at that
+position.  The strand is just left-clipped or right-clipped to help identify
+the SV orientation.  The .sclip.txt file has the detailed information for
+all soft-clipped reads including sequence and quality values. This file is
+also tab-delimited with the following columns: chr, posiiton, strand, read
+name, sequence, and quality.
+
+Example of part of a *.cover file:
+4       125892327       +       1       28
+4       125892458       +       1       27
+4       125893225       +       1       28
+4       125893227       +       5       29
+4       125893365       -       1       26
+4       125893979       -       1       16
+10      66301086        -       1       33
+10      66301858        +       4       14
+10      66301865        -       8       21
+10      66301871        -       1       22
+10      66302136        +       1       51
+
+Example of part of a *.sclip.txt file:
+4       125892327       +       HWUSI-EAS1591_6113C:3:17:12332:19420#0  CC      CC
+4       125892458       +       HWUSI-EAS1591_6113C:4:91:6281:9961#0    GACTAACCACCACGGTACATGTTTTCCTATGTAAAAAACCTGCACATTCTACACATGTATCCCAGAACTTAAAGTAAAACAC B@C@?:CC>CCBCCCCACBCDCCCCCC;<:<9CCCCC@CCCCCBCCCCCCCCCCCCCCCACCCCCCCCCCCCCCCCCCCCAC
+4       125893225       +       HWI-EAS90_614M9:5:18:17924:10181#0      CCCTCCTGGGTTCAAGTGATTCTCCTGCCTCTACCTCCCGAGTAGCTGGGATTACAGGTGCCCACCACCATGCCTGGCTAA  #######@@7@:8@><16+6(B>AABCAA3AB@CC6CCCCCCCDCCCCCCBCCDCCCCCCCCCCCCDCCCCCCCCCCCCCC
+
+If you run this step in parallel, you need to combine the outputs by
+concatenating the files.  Tumor and germline files must be concatenated
+separately, for example:
+cat tumor.bam.*.cover > tumor.bam.cover
+cat germline.bam.*.cover > germline.bam.cover
+
+2.Remove germline events (optional) 
+
+Running step 1 on both germline and tumor samples, you will get the
+soft-clipping posiitons in both samples.  This step will remove any position
+in the tumor sample that also appears in germline sample, so germline events
+will be removed.  This step does not use any sequence information and could
+remove true events.  By our observations, true events are rarely removed.
+You can skip this step and the program will do germline clean up at later step
+(see the -g parameter for CREST.pl).
+
+The script for this step is countDiff.pl and it only requires two parameters
+to specity the two output files from previous step.
+
+	countDiff.pl -d tumor.bam.cover -g germline.bam.cover > soft_clip.dist.txt
+
+A file named tumor.bam.cover.somatic.cover will be generated for next step.
+
+The program will generate a file with suffix *.somatic.cover, and it will
+be used for the next step.  The file has the same format as *.cover generated
+in the previous step.
+
+The standard output will show the coverage distribution.  For every read count
+in the range 1-999, it will show the number of breakpoints supported by that
+many soft-clipped reads.
+
+3. Running the SV detection script.
+
+This is the core step in the detection process. The program is CREST.pl.
+
+The program needs quite a few parameters, but you can think about what you
+will need.  Here is a partial list of required and common parameters:
+
+	-f The input soft-clipped coverage file produced in step 1 or 2.
+	-d The disease or tumor bam file
+	-g The germline bam file.  If you want to identify somatic SVs only, you
+	should provide this parameter.  If you also want to identify germline
+	events, you can leave this parameter unspecified. When treat your
+	germline file as disease without specify -g parameter, the program can
+	be used to identify germline events, or SV polymorphism.
+	--ref_genome The reference genome in fa format (used by bam file)
+	-t The reference genome in 2bit format (used by gfClient), this file can
+	be generated by using faToTwoBit program in BLAT program suit.  This
+	file must be the same as the one you used to setup gfServer.
+	--blatserver The name or IP address of blat server, you need to use your
+	own one instead of using the public one at UCSC.
+	--blatport The port number for the blat server.
+	--nopaired Tell the program the reads are not paired.
+
+If all of the required programs are on the path then you won't need to
+specify them again, otherwise you need to specify the paths to the programs
+using the corresponding parameters.  Please use CREST.pl --man to show the 
+man page, which provides a detailed parameter list.
+
+An example of running this step is:
+	CREST.pl -f tumor.bam.cover -d tumor.bam -g germline.bam --ref_genome \
+	hg18.fa -t hg18.2bit
+
+There is also a -r parameter to specify the range to be searched and it's highly
+recommended to run using -r as below:
+	CREST.pl -f tumor.bam.cover -d tumor.bam -g germline.bam --ref_genome \
+	hg18.fa -t /genome/hg18.2bit -r chr1
+So it's very easy to run the program in parallel by spliting the genome into 
+pieces.
+
+The program will generate a *.predSV.txt file.  The filename will be the input
+bam with .predSV.txt appended unless you specify the -p parameter.  Also the 
+STDERR output has the full list of SVs, including rejected ones.  The output 
+file *.predSV.txt has the following tab-delimited columns: left_chr, left_pos, 
+left_strand, # of left soft-clipped reads, right_chr, right_pos, right_strand, 
+# right soft-clipped reads, SV type, coverage at left_pos, coverage at 
+right_pos, assembled length at left_pos, assembled length at right_pos,
+average percent identity at left_pos, percent of non-unique mapping reads at
+left_pos, average percent identity at right_pos, percent of non-unique mapping
+reads at right_pos, start position of consensus mapping to genome,
+starting chromosome of consensus mapping, position of the genomic mapping of
+consensus starting position, end position of consensus mapping to genome,
+ending chromsome of consnesus mapping, position of genomic mapping of
+consensus ending posiiton, and consensus sequences.  For inversion(INV), the 
+last 7 fields will be repeated to reflect the fact two different breakpoints 
+are needed to identify an INV event.
+
+Example of the tumor.predSV.txt file:
+4	125893227	+	5	10	66301858	-	4	CTX	29	14	83	71	0.895173453996983	0.230769230769231	0.735384615384615	0.5	1	4	125893135	176	10	66301773	TTATGAATTTTGAAATATATATCATATTTTGAAATATATATCATATTCTAAATTATGAAAAGAGAATATGATTCTCTTTTCAGTAGCTGTCACCTCCTGGGTTCAAGTGATTCTCCTGCCTCTACCTCCCGAGTAGCTGGGATTACAGGTGCCCACCACCATGCCTGGCTAATTTT
+5	7052198	-	0	10	66301865	+	8	CTX	0	22	0	81	0.761379310344828	0.482758620689655	0	0	1	5	7052278	164	10	66301947	AGCCATGGACCTTGTGGTGGGTTCTTAACAATGGTGAGTCCGGAGTTCTTAACGATGGTGAGTCCGTAGTTTGTTCCTTCAGGAGTGAGCCAAGATCATGCCACTGCACTCTAGCCTGGGCAACAGAGGAAGACTCCACCTCAAAAAAAAAAAGTGGGAAGAGG
+10	66301858	+	4	4	125893225	-	1	CTX	15	28	71	81	0.735384615384615	0.5	0.889507154213037	0.243243243243243	1	10	66301777	153	4	125893154	TTAGCCAGGCATGGTGGTGGGCACCTGTAATCCCAGCTACTCGGGAGGTAGAGGCAGGAGAATCACTTGAACCCAGGAGGTGACAGCTACTGAAAAGAGAATCATATTCTCTTTTCATAATTTAGAATATGATATATATTTCAAAATATGATA
+
+If there are no or very few results, there may be a lack of soft-clipping.  See
+the section "About Soft-Clipping" at the end of this document.
+
+4. Visulization of the detailed alignment at breakpoint (optional)
+
+The bam2html.pl script builds an html view of the multiple alignment for
+the breakpoint, so you can manually check the soft-clipping and other things.
+
+	bam2html.pl -d diag.bam -g germline.bam -i diag.bam.predSV.txt \
+		--ref_genome /genome/hg18 -o diag.bam.predSV.html
+
+The output file is specified by -o option.
+
+====================
+About Soft-Clipping:
+====================
+
+CREST uses soft-clipping signatures to identify breakpoints.  Soft-clipping is
+indicated by "S" elements in the CIGAR for SAM/BAM records.  Soft-clipping may
+not occur, depending on the mapping algorithm and parameters and sometimes even
+the library preparation.
+
+With bwa sampe:
+---------------
+
+One mapping method that will soft-clip reads is bwa sampe (BWA for paired-end
+reads).  When BWA successfully maps one read in a pair but is not able to map
+the other, it will attempt a more permissive Smith-Waterman alignment of the
+unmapped read in the neighborhood of the mapped mate.  If it is only able to
+align part of the read, then it will soft-clip the portion on the end that it
+could not align.  Often this occurs at the breakpoints of structural
+variations.
+
+In some cases when the insert sizes approach the read length, BWA will not
+perform Smith-Waterman alignment.  Reads from inserts smaller than the read
+length will contain primer and/or adapter and will often not map.  When the
+insert size is close to the read length, this creates a skewed distribution
+of inferred insert sizes which may cause BWA to not attempt Smith-Waterman
+realignment.  This is indicated by the error message "weird pairing".  Often
+in these cases there are also unusually low mapping rates.
+
+One way to fix this problem is to remap unmapped reads bwasw.  To do this,
+extract the unmapped reads as FASTQ files (this may be done with a combination
+of samtools view -f 4 and Picard's SamToFastq).  Realign using bwa bwasw and
+build a BAM file.  Then, re-run CREST on this new BAM file, and you may pick
+up events that would have been missed otherwise.
+
+With other aligners:
+--------------------
+
+Consult the documentation or mailing list(s) for your mapper to determine its
+behavior with regard to soft-clipping.

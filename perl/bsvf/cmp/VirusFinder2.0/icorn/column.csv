@@ -1,0 +1,35 @@
+ssaha Mapping / lane
+
+genome Size
+
+Reads
+Num Reads mapped
+% all mapped
+
+Num Reads map unique
+%unique
+
+#Read Pair
+#RP ok
+mean insert size
+Mapped BP
+
+Genome Cover (GeC)== 0
+%GeC == 0x
+GeC < 5x
+%GeC < 5x
+GeC < 10
+%GeC < 10x
+GeC >= 10
+%GeC >= 10x
+GeC >= 20x
+%GeC >= 20x
+GeC >= 40x
+%GeC >= 40x
+
+
+SNP Qual >= 20
+SNP Qual >= 50
+SNP Qual >= 60
+SNP Qual >= 80
+SNP Qual >= 90
