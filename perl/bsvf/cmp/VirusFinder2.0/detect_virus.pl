@@ -249,7 +249,7 @@ if (!-e 'Trinity-init.fasta'){
     $updated = 1;
 
     my $ILIBs = GetIdir();
-    `perl $ILIBs $trinity_script --seqType fa  --JM 4G --single blat_out_candidate_singlelane.fa --min_contig_length $min_contig_length  --output trinity_output --CPU $thread_no --bfly_opts \"-V 10 --stderr\"`;
+    `$trinity_script --seqType fa --max_memory 4G --single blat_out_candidate_singlelane.fa --min_contig_length $min_contig_length  --output trinity_output --CPU $thread_no --no_version_check`;
 
     if (-e 'trinity_output/Trinity.fasta' && -s 'trinity_output/Trinity.fasta'){
     	print "Finished read assembly\n";

@@ -175,8 +175,8 @@ if (! defined $virus_sequence) {
         `mkdir $output_dir/step2`;
     }
 
-    `ln -s $output_dir/step1/unmapped.1.fa  $output_dir/step2/` if (!-e "$output_dir/step2/unmapped.1.fa");
-    `ln -s $output_dir/step1/unmapped.2.fa  $output_dir/step2/` if (-e  "$output_dir/step1/unmapped.2.fa" && !-e "$output_dir/step2/unmapped.2.fa");
+    `ln $output_dir/step1/unmapped.1.fa  $output_dir/step2/` if (!-e "$output_dir/step2/unmapped.1.fa");
+    `ln $output_dir/step1/unmapped.2.fa  $output_dir/step2/` if (-e  "$output_dir/step1/unmapped.2.fa" && !-e "$output_dir/step2/unmapped.2.fa");
 
     system("perl $ILIBs $detect_virus_script -c $config_file -o $output_dir/step2");
 

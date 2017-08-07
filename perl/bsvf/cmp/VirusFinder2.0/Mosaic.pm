@@ -739,7 +739,7 @@ sub GetIdir{
     my $iDir = "";
     foreach(@INC) {
         if (index($PerlEnv, $_.' ') == -1) {
-            $iDir .= "-I $_ ";
+            $iDir .= "-I$_ ";
         }
     }
 
