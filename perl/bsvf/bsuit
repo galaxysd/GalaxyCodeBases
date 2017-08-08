@@ -99,7 +99,8 @@ $RootPath =~ s/[\/\\]+$//g;
 our $ProjectID = $Config->{'Output'}->{'ProjectID'};
 warn "[!] Working on: [$ProjectID] @ [$RootPath]\n";
 our $Aligner = $Config->{'Parameters'}->{'Aligner'} || 'bwa-meth';
-warn "[!] Aligner is [$Aligner].\n";
+our $MinVirusLength = $Config->{'Parameters'}->{'MinVirusLength'} || 20;
+warn "[!] Aligner is [$Aligner]. Min Virus Length is $MinVirusLength.\n";
 
 if (grep /^sv1$/i,@ARGV) {
 	my @SDs = grep /\.SD$/,keys(%{$Config->{'InsertSizes'}});

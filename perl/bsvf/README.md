@@ -125,6 +125,10 @@ tSE_X.SD=1
 [Output]
 WorkDir=/share/work/bsvir/bsI
 ProjectID=SZ2015
+
+[Parameters]
+Aligner=bwa-meth
+MinVirusLength=20
 ```
 
 ## Build
