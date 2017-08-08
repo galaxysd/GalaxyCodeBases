@@ -262,8 +262,8 @@ sub do_grep($) {
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
 				my @VKeys = sort {$b <=> $a} keys %{$MergedVds};
 					my @Vchrs = sort { $Vchr{$b} <=> $Vchr{$a} } keys %Vchr;
-					%Vchr = (-1,-1);
-				my @Vposes;
+					%Vchr = ();
+				my @Vposes=(-1,-1);
 				if (@VKeys == 1) {
 					if ($VKeys[0] > 0) {
 						@Vposes = ($VKeys[0],-1);
