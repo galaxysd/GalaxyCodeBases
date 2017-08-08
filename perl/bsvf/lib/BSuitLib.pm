@@ -236,7 +236,7 @@ sub do_grep($) {
 					$flagHV = 0;
 				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
-					#ddx $MergedHds;
+					ddx $MergedHds;
 					my $tmp = '.';
 					if ($strandEven > $strandOdd) {
 						$tmp = '-';
@@ -254,7 +254,7 @@ sub do_grep($) {
 							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0]),"\n";
 						}
 					} elsif (@Keys == 2) {
-						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp),"\n";
+						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp,$Vchrs[0]),"\n";
 					}
 					#print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
 					#die;
