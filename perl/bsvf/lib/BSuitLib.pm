@@ -237,7 +237,21 @@ sub do_grep($) {
 				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
 				my $MergedVds = grepmerge(\@vReads,$main::Aligner);
-					ddx [$MergedHds,$MergedVds];
+					#ddx [$MergedHds,$MergedVds];
+# BSuitLib.pm:240: [
+#   {
+#     180587608 => [
+#       19,
+#       "TTGCGAAAGCCCAAGATGATGGGATGGGAATACAGGTGCAATTTCCATCCGTAGGTTTTGTACAGCAACATGAGGGAAACATAGAGTTGCCTTGRRCRRRRRTCRTR",
+#     ],
+#   },
+#   {
+#     640 => [
+#              6,
+#              "CCAGATGCAATCTAATTAAACCCACCAGGTGTCTCCCCTCARRTTRRRRTRCCCCRTR",
+#            ],
+#   },
+# ]
 					my $tmp = '.';
 					if ($strandEven > $strandOdd) {
 						$tmp = '-';
@@ -248,7 +262,7 @@ sub do_grep($) {
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
 				my @VKeys = sort {$b <=> $a} keys %{$MergedVds};
 					my @Vchrs = sort { $Vchr{$b} <=> $Vchr{$a} } keys %Vchr;
-					%Vchr = ();
+					%Vchr = (-1,-1);
 				my @Vposes;
 				if (@VKeys == 1) {
 					if ($VKeys[0] > 0) {
