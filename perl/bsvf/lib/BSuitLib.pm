@@ -236,7 +236,8 @@ sub do_grep($) {
 					$flagHV = 0;
 				#unless ($skipflag)
 					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
-					ddx $MergedHds;
+				my $MergedVds = grepmerge(\@vReads,$main::Aligner);
+					ddx [$MergedHds,$MergedVds];
 					my $tmp = '.';
 					if ($strandEven > $strandOdd) {
 						$tmp = '-';
@@ -245,16 +246,27 @@ sub do_grep($) {
 					}
 					($strandOdd,$strandEven)=(0,0);
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
+				my @VKeys = sort {$b <=> $a} keys %{$MergedVds};
 					my @Vchrs = sort { $Vchr{$b} <=> $Vchr{$a} } keys %Vchr;
 					%Vchr = ();
+				my @Vposes;
+				if (@VKeys == 1) {
+					if ($VKeys[0] > 0) {
+						@Vposes = ($VKeys[0],-1);
+					} else {
+						@Vposes = (-1,-$VKeys[0]);
+					}
+				} elsif (@VKeys == 2) {
+					@Vposes = ($VKeys[0],-$VKeys[1]);
+				}
 					if (@Keys == 1) {
 						if ($Keys[0] > 0) {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp,$Vchrs[0]),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp,$Vchrs[0],@VKeys),"\n";
 						} else {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0]),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0],@VKeys),"\n";
 						}
 					} elsif (@Keys == 2) {
-						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp,$Vchrs[0]),"\n";
+						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp,$Vchrs[0],@VKeys),"\n";
 					}
 					#print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
 					#die;
