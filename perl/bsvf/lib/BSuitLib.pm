@@ -275,12 +275,12 @@ sub do_grep($) {
 				}
 					if (@Keys == 1) {
 						if ($Keys[0] > 0) {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp,$Vchrs[0],@VKeys),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-1,@{$MergedHds->{$Keys[0]}},0,'N',$tmp,$Vchrs[0],@Vposes),"\n";
 						} else {
-							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0],@VKeys),"\n";
+							print OUT join("\t",$lastgid,$hReads[0]->[2],-1,-$Keys[0],0,'N',@{$MergedHds->{$Keys[0]}},$tmp,$Vchrs[0],@Vposes),"\n";
 						}
 					} elsif (@Keys == 2) {
-						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp,$Vchrs[0],@VKeys),"\n";
+						print OUT join("\t",$lastgid,$hReads[0]->[2],$Keys[0],-$Keys[1],@{$MergedHds->{$Keys[0]}},@{$MergedHds->{$Keys[1]}},$tmp,$Vchrs[0],@Vposes),"\n";
 					}
 					#print OUT join("\t",$lastgid,$hReads[0]->[2],$_,@{$MergedHds->{$_}}),"\n" for sort { $a <=> $b } keys %{$MergedHds};
 					#die;
