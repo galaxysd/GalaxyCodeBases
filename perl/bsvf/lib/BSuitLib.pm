@@ -583,7 +583,7 @@ sub do_analyse {
 			}
 			$LineDat[3] = -1 if $LineDat[3] == $LineDat[2] + 1;	# 貌似正负链加减一没统一？
 			#next unless defined $strand;
-			my $tVr=[];
+			my $tVr=[-1];
 			for (@LineDat[10,11]) {
 				push @{$tVr},$_ if $_ != -1;
 			}
@@ -612,7 +612,7 @@ sub do_analyse {
 					if ($lastL != -1) {
 						my @Dat = @{$OutDat{$chr}{$lastL}};	# 假设第一条的病毒结果最准确（其实应该是中间某个；最好前期打分）
 						$Dat[1] = -1 if $Dat[1] == $lastL + 1;
-						print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..5],join('-',@{$Dat[6]})),"\n";
+						print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..5],join(',',@{$Dat[6]})),"\n";
 						++$OutCnt[2];
 						#print STDERR join("\t",'---',$Dat[0],$chr,$lastL,@Dat[1..$#Dat]),"\n";
 					}
@@ -622,7 +622,7 @@ sub do_analyse {
 			if ($lastL != -1) {
 				my @Dat = @{$OutDat{$chr}{$lastL}};	# 假设第一条的病毒结果最准确（其实应该是中间某个；最好前期打分）
 				$Dat[1] = -1 if $Dat[1] == $lastL + 1;
-				print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..5],join('-',@{$Dat[6]})),"\n";
+				print OUT join("\t",$Dat[0],$chr,$lastL,@Dat[1..5],join(',',@{$Dat[6]})),"\n";
 				++$OutCnt[2];
 			}
 		}
@@ -661,7 +661,7 @@ sub do_analyse {
 							push @Hum,$tt->[3] if $tt->[3] != -1;
 							push @Virus,$tt->[6] if $tt->[6] != -1;
 							push @Virus,$tt->[7] if $tt->[7] != -1;
-							my @tVr = split /-/,$tt->[8];
+							my @tVr = split /,/,$tt->[8];
 							for (@tVr) {
 								push @Virus,$_ if $_ != -1;
 							}
