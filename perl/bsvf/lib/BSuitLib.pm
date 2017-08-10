@@ -692,7 +692,17 @@ sub do_analyse {
 				}
 			}
 			if (@TTT) {
-				print OUT join("\t",@{$TTT[0]}),"\n";
+				my @tmp = @{$TTT[0]};
+				my $last1 = pop @tmp;
+				my $last2 = pop @tmp;
+				my $last3 = pop @tmp;
+				my @Virus;
+				my @tVr = split /,/,$last1;
+				for (@tVr,$last2,$last3) {
+					push @Virus,$_ if $_ != -1;
+				}
+				print OUT join("\t",@tmp,$Virus[0],$Virus[-1]),"\n";
+				#print OUT join("\t",@{$TTT[0]}),"\n";
 			}
 		}
 		close IN; close OUT;
