@@ -645,7 +645,16 @@ sub do_analyse {
 		for my $chr (sort keys %Results) {
 			my @Poses = sort {$a<=>$b} keys %{$Results{$chr}};
 			if (@Poses == 1) {
-				print OUT join("\t",@{$Results{$chr}{$Poses[0]}}),"\n";
+				my @tmp = @{$Results{$chr}{$Poses[0]}};
+				my $last1 = pop @tmp;
+				my $last2 = pop @tmp;
+				my $last3 = pop @tmp;
+				my @Virus;
+				my @tVr = split /,/,$last1;
+				for (@tVr,$last2,$last3) {
+					push @Virus,$_ if $_ != -1;
+				}
+				print OUT join("\t",@tmp,$Virus[0],$Virus[-1]),"\n";
 				next;
 			}
 
