@@ -49,6 +49,7 @@ use Cwd;
 use Bio::SeqIO;
 use FindBin;
 use lib "$FindBin::Bin";
+use File::Spec;
 use Mosaic;
 
 my @usage;
@@ -93,6 +94,7 @@ if (defined $output_dir) {
         print @usage;
 	exit;
     }
+    $output_dir = File::Spec->rel2abs($output_dir);
 }else{
     $output_dir = getcwd;
 }
@@ -107,6 +109,7 @@ if (defined $config_file) {
     print @usage;
     exit;
 }
+$config_file = File::Spec->rel2abs($config_file);
 if (defined $virus_sequence) {
     if (!-e $virus_sequence){
 	print "The virus sequence $virus_sequence does not exist!\n\n";
@@ -175,8 +178,8 @@ if (! defined $virus_sequence) {
         `mkdir $output_dir/step2`;
     }
 
-    `ln $output_dir/step1/unmapped.1.fa  $output_dir/step2/` if (!-e "$output_dir/step2/unmapped.1.fa");
-    `ln $output_dir/step1/unmapped.2.fa  $output_dir/step2/` if (-e  "$output_dir/step1/unmapped.2.fa" && !-e "$output_dir/step2/unmapped.2.fa");
+    `ln -s $output_dir/step1/unmapped.1.fa  $output_dir/step2/` if (!-e "$output_dir/step2/unmapped.1.fa");
+    `ln -s $output_dir/step1/unmapped.2.fa  $output_dir/step2/` if (-e  "$output_dir/step1/unmapped.2.fa" && !-e "$output_dir/step2/unmapped.2.fa");
 
     system("perl $ILIBs $detect_virus_script -c $config_file -o $output_dir/step2");
 
@@ -268,14 +271,14 @@ sub DetectIntegration {
     }else{
 
         if (!-e "$output_dir/step3/results-virus-top1.fa"){
-            `ln $output_dir/step2/results-virus-top1.fa $output_dir/step3/`;
+            `ln -s $output_dir/step2/results-virus-top1.fa $output_dir/step3/`;
         }
 
     }
 
 
-    `ln $output_dir/step1/unmapped.1.fq  $output_dir/step3/` if (!-e "$output_dir/step3/unmapped.1.fq");
-    `ln $output_dir/step1/unmapped.2.fq  $output_dir/step3/` if (-e  "$output_dir/step1/unmapped.2.fq" && !-e "$output_dir/step3/unmapped.2.fq");
+    `ln -s $output_dir/step1/unmapped.1.fq  $output_dir/step3/` if (!-e "$output_dir/step3/unmapped.1.fq");
+    `ln -s $output_dir/step1/unmapped.2.fq  $output_dir/step3/` if (-e  "$output_dir/step1/unmapped.2.fq" && !-e "$output_dir/step3/unmapped.2.fq");
     `ln -s $blastn_index_human.fa $output_dir/step3/hg19.fa`    if (!-e "$output_dir/step3/hg19.fa");
 
     if ($mode eq 'sensitive' && -e "$output_dir/step3/unmapped.2.fq"){
@@ -317,17 +320,17 @@ sub DetectMutation {
     }else{
 
         if (!-e "$output_dir/step4/results-virus-top1.fa"){
-            `ln $output_dir/step2/results-virus-top1.fa $output_dir/step4/`;
+            `ln -s $output_dir/step2/results-virus-top1.fa $output_dir/step4/`;
         }
 
     }
 
-    `ln $output_dir/step1/unmapped.1.fq  $output_dir/step4/` if (!-e "$output_dir/step4/unmapped.1.fq");
-    `ln $output_dir/step1/unmapped.2.fq  $output_dir/step4/` if (-e  "$output_dir/step1/unmapped.2.fq" && !-e "$output_dir/step4/unmapped.2.fq");
+    `ln -s $output_dir/step1/unmapped.1.fq  $output_dir/step4/` if (!-e "$output_dir/step4/unmapped.1.fq");
+    `ln -s $output_dir/step1/unmapped.2.fq  $output_dir/step4/` if (-e  "$output_dir/step1/unmapped.2.fq" && !-e "$output_dir/step4/unmapped.2.fq");
 
     if ($mode eq 'sensitive' && -e "$output_dir/step4/unmapped.2.fq" && -e "$output_dir/step3/a-vfix"){
-        `ln $output_dir/step3/a-vfix $output_dir/step4/vfix`;
-        `ln $output_dir/step3/virus-corrected-seq.fa $output_dir/step4/virus-consensus-seq.fa` if (!-e "$output_dir/step4/virus-consensus-seq.fa");
+        `ln -s $output_dir/step3/a-vfix $output_dir/step4/vfix`;
+        `ln -s $output_dir/step3/virus-corrected-seq.fa $output_dir/step4/virus-consensus-seq.fa` if (!-e "$output_dir/step4/virus-consensus-seq.fa");
     }
 
     system("perl $ILIBs $detect_mutation_script -c $config_file -o $output_dir/step4 -m $markdup");
