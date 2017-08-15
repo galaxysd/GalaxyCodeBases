@@ -71,6 +71,7 @@ unless (exists $Cmd2Fun{$cmd} or $cmd eq 'check') {
 }
 
 $Cmd2Fun{'check'} = \&do_check;
+$Cmd2Fun{'patch'} = \&do_patch;
 
 #our $CFGminMAPQ = 30;
 our $minHostDepth = 10;

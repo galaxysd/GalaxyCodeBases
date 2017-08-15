@@ -887,4 +887,94 @@ sub sortWsum {
     else { return $a cmp $b; }
 }
 
+sub do_patch {
+	my $Refilename = warnFileExist($main::RefConfig->{$main::RefFilesSHA}->{'Refilename'});
+	my (%tID,%tFH);
+	for (@{$main::Config->{$main::FileData}->{'='}}) {
+		/([^.]+)\.(\d)/ or die;
+		$tID{$1}{$2} = $_;
+	}
+	for my $k (keys %tID) {
+		my $outf = "$main::RootPath/${main::ProjectID}_analyse/.$k.analyse";
+		# Well, this is the f*cking reality. You know it.
+		my $outf2 = "$main::RootPath/${main::ProjectID}_analyse/$k.analyse";
+		open IN,'<',$outf or die;
+		open OUT,'>',$outf2 or die;
+		#print OUT join("\t",qw[ID Host_Chr H_Start H_End Virus_Chr Strand V_Start V_End]),"\n";
+		print OUT join("\t",qw[ID Chr BreakPoint1 BreakPoint2 Virus Strand Start End]),"\n";	# Well, he prefer this.
+		my %Results;
+		while (<IN>) {
+			chomp;
+			my @dat = split /\t/;
+			#$dat[4] = $retVirus[0]->[0];	# Well, just do it.
+			$Results{$dat[1]}{$dat[2]} = \@dat;
+		}
+		for my $chr (sort keys %Results) {
+			my @Poses = sort {$a<=>$b} keys %{$Results{$chr}};
+			if (@Poses == 1) {
+				my @tmp = @{$Results{$chr}{$Poses[0]}};
+				my $last1 = pop @tmp;
+				my $last2 = pop @tmp;
+				my $last3 = pop @tmp;
+				my @Virus;
+				my @tVr = split /,/,$last1;
+				for (@tVr,$last2,$last3) {
+					push @Virus,$_ if $_ != -1;
+				}
+				print OUT join("\t",@tmp,$Virus[0],$Virus[-1]),"\n";
+				next;
+			}
+
+			my @TTT;
+			for my $i (0 .. $#Poses) {
+				if (($i == 0) or ($Poses[$i] - $Poses[$i-1] <= 20)) {
+					push @TTT,$Results{$chr}{$Poses[$i]};
+				} else {
+					if (@TTT) {
+						my (@Virus,@Hum);
+						for my $tt (@TTT) {
+							push @Hum,$tt->[2];
+							push @Hum,$tt->[3] if $tt->[3] != -1;
+							push @Virus,$tt->[6] if $tt->[6] != -1;
+							push @Virus,$tt->[7] if $tt->[7] != -1;
+							my @tVr = split /,/,$tt->[8];
+							for (@tVr) {
+								push @Virus,$_ if $_ != -1;
+							}
+						}
+						@Hum = sort {$a<=>$b} @Hum;
+						@Virus = sort {$a<=>$b} @Virus;
+						push @Hum,-1 if scalar @Hum == 1;
+						if (scalar @Virus == 1) {
+							push @Virus,-1;
+						} else {
+							my $vlen = $Virus[1] - $Virus[0];
+							if ($vlen < $main::MinVirusLength) {
+								next;
+							}
+						}
+						print OUT join("\t",$Results{$chr}{$Hum[0]}->[0],$chr,$Hum[0],$Hum[-1],$Results{$chr}{$Hum[0]}->[4],$Results{$chr}{$Hum[0]}->[5],$Virus[0],$Virus[-1]),"\n";
+					}
+					@TTT = ($Results{$chr}{$Poses[$i]});
+				}
+			}
+			if (@TTT) {
+				my @tmp = @{$TTT[0]};
+				my $last1 = pop @tmp;
+				my $last2 = pop @tmp;
+				my $last3 = pop @tmp;
+				my @Virus;
+				my @tVr = split /,/,$last1;
+				for (@tVr,$last2,$last3) {
+					push @Virus,$_ if $_ != -1;
+				}
+				print OUT join("\t",@tmp,$Virus[0],$Virus[-1]),"\n";
+				#print OUT join("\t",@{$TTT[0]}),"\n";
+			}
+		}
+		close IN; close OUT;
+		# EOF this silly thing, which is favored by the mankind.
+	}
+}
+
 1;
