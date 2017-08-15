@@ -37,16 +37,13 @@ my %Cmd2Fun = (
 	'aln' => \&do_aln,
 	'grep' => \&do_grep,
 	'analyse' => \&do_analyse,
+	'check' => \&do_check,
+	'patch' => \&do_patch
 );
-my %CmdOrder = (
-	'prepare' => 0,
-	'aln' => 1,
-	'grep' => 2,
-	'analyse' => 3,
-);
+my @CmdOrder = qw(prepare aln grep analyse);
 
 sub ShowHelp() {
-	die '[!]Available Commands are: [',join('],[',sort { $CmdOrder{$a} <=> $CmdOrder{$b} } keys %Cmd2Fun),"], case insensitive.\n";
+	die '[!]Available Commands are: [',join('],[',@CmdOrder),"], case insensitive.\n";
 }
 my $ShowHelp=0;
 if (@ARGV < 2) {
@@ -65,13 +62,10 @@ if (defined $base4) {
 	$FileData = 'Base4Files';
 }
 
-unless (exists $Cmd2Fun{$cmd} or $cmd eq 'check') {
+unless (exists $Cmd2Fun{$cmd}) {
 	warn "[x]Unknown Command: [$cmd] !\n";
 	ShowHelp();
 }
-
-$Cmd2Fun{'check'} = \&do_check;
-$Cmd2Fun{'patch'} = \&do_patch;
 
 #our $CFGminMAPQ = 30;
 our $minHostDepth = 10;
