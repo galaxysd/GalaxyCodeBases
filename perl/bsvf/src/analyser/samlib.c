@@ -159,7 +159,7 @@ int checkMapQ(int8_t *ChrIsHum, bam1_t *b, bool save_tid) {
 
 pierCluster_t *sam_plp_init() {
 	//fprintf(stderr,"[c]\n");
-	pierCluster_t *p = calloc(1, sizeof(pierCluster_t));
+	pierCluster_t *p = (pierCluster_t *) calloc(1, sizeof(pierCluster_t));
 	kv_init(p->quals);
 	kv_init(p->Reads);
 	return p;

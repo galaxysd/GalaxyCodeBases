@@ -76,7 +76,7 @@ int do_grep() {
 				fprintf(stderr, "[x]Couldn't read header for \"%s\"\n", pbam->fileName);
 				return EXIT_FAILURE;
 			} else {
-				ChrIsHum = malloc(h->n_targets * sizeof(int8_t));
+				ChrIsHum = (int8_t *) malloc(h->n_targets * sizeof(int8_t));
 				for (int32_t i=0; i < h->n_targets; ++i) {
 					//ChrIsHum[i] = -1;
 					ki = kh_get(chrNFO, chrNFOp, h->target_name[i]);

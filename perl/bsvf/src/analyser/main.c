@@ -7,6 +7,10 @@
 #include "timer.h"
 #include "functions.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 kvec_t(char*) aRefChrIDs, aVirusChrIDs;
 
 const char *argp_program_version =
@@ -55,7 +59,7 @@ static error_t
 parse_opt (int key, char *arg, struct argp_state *state) {
 /* Get the input argument from argp_parse, which we
   know is a pointer to our arguments structure. */
-	struct arguments *arguments = state->input;
+	struct arguments *arguments = (struct arguments *) state->input;
 	//utarray_new(arguments->deplst,&ut_int_icd);
 	int tmpArgValue;
 	switch (key) {
@@ -127,7 +131,7 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 	BamInfo_t tbam, *pbam;
 	int absent;
 	char *word, *strtok_lasts;
-	char *sep = ", ;";
+	char const *sep = ", ;";
 	//#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 	if (strcmp(section, "Ref") == 0) {
 		if (strcmp(name, "RefChrIDs") == 0) {
@@ -205,7 +209,7 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 
 int main (int argc, char **argv) {
 	struct arguments arguments;
-	arguments.args=calloc(sizeof(size_t),argc);
+	arguments.args=(char **)calloc(sizeof(size_t),argc);
 
 	// Default values.
 	arguments.isSAM = 0;
@@ -321,3 +325,7 @@ int main (int argc, char **argv) {
 
 	exit(EXIT_SUCCESS);
 }
+
+#ifdef __cplusplus
+}
+#endif
