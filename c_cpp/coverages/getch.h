@@ -4,6 +4,10 @@
 #ifndef _GA_GETCH_H
 #define _GA_GETCH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -33,5 +37,8 @@ static inline int pressAnyKey (void) {
   return ch;
 }
 
-#endif /* getch.h */
+#ifdef __cplusplus
+}
+#endif
 
+#endif /* getch.h */

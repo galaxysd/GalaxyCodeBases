@@ -5,6 +5,10 @@
 #include <sys/time.h>   //getrusage, gettimeofday
 #include <sys/resource.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct timeval __g_timeofday_start, __g_timeofday_end, __g_timeofday_diff,\
        __g_resource_usage_tmp,__g_resource_usage_other_time;
 struct rusage __g_resource_usage;
@@ -43,6 +47,10 @@ struct rusage __g_resource_usage;
 	#define G_TIMER_PRINT __G_TIMER_PRINT("%06d")
 #else
 #   error "Unknown compiler !"
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* timer.h */
