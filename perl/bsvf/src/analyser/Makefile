@@ -9,12 +9,13 @@ exefiles = bsanalyser
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CC = gcc-7
-	CXX = g++-7
-	LDFLAGS += -largp -D_THREAD_SAFE #-static-libgcc -static-libstdc++
+	#CC = gcc-7
+	#CXX = g++-7
+	LDFLAGS += -largp #-D_THREAD_SAFE -static-libgcc -static-libstdc++
 endif
 ifeq ($(UNAME_S),Linux)
-	LDFLAGS += -static -lbz2 -lm -lpthread -lz -llzma -pthread
+	LDFLAGS += #-static -lbz2 -lm -lpthread -lz -llzma -pthread
+	# https://github.com/samtools/htslib/issues/259 , thus no static !
 endif
 
 OBJDIR = ./objects/
