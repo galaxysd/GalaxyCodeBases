@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os, sys, hashlib
-import sqlite3, getopt
+import sqlite3, getopt, mmap
 #from os.path import join, getsize
 from datetime import datetime
 
@@ -10,19 +10,20 @@ def epoch_seconds(dt):
     return (dt - epoch).total_seconds()
 
 BUF_SIZE = 1048576  # lets read stuff in 1Mb chunks!
-def sha1file(fname=None):
+def sha1file(fname=None, blocksize=BUF_SIZE):
     if fname is None:
         return None
     sha1 = hashlib.sha1()
     with open(fname, 'rb') as f:
-        while True:
-            data = f.read(BUF_SIZE)
-            if not data:
-                break
-            sha1.update(data)
+        with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as mm:
+            while True:
+                data = mm.read(blocksize)
+                if not data:
+                    break
+                sha1.update(data)
     return sha1.hexdigest()
 
-class Config:
+class Config: # https://stackoverflow.com/a/47016739/159695
     def __init__(self, **kwds):
         self.verbose=0 # -1=quiet  0=norm  1=noisy
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
@@ -59,7 +60,7 @@ def main(argv=None):
     print(argv)
 
     try:
-        opts, args = getopt.gnu_getopt(argv, "ho:v?", ['help','version', "output="])
+        opts, args = getopt.gnu_getopt(argv, "ho:p:vVq?", ['help','version', "output="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -69,18 +70,20 @@ def main(argv=None):
         prevopt=''
         for o, a in opts:
             if o=='-p':
-                chdir(a)
+                os.chdir(a)
             elif o in ("-o", "--output"):
-                output = a
+                config.output = a
             elif o=='-v':
-                config.setx('verbose', 'v')
+                if config.verbose >=0: config.verbose +=1
+            elif o=='-q':
+                if config.verbose >=0:
+                    config.verbose =-1
+                else:
+                    config.verbose -=1
             elif o=='-h' or o=='-?' or o=='--help':
                 printusage()
-            elif o=='--version':
-                print('cfv %s'%version)
-                try:
-                    if not nommap: print('+mmap')
-                except NameError: pass
+            elif o=='-V' or o=='--version':
+                print('gethashes %s'%version)
                 try: print('fchksum %s'%fchksum.version())
                 except NameError: pass
                 print('python %08x-%s'%(sys.hexversion,sys.platform))
@@ -91,6 +94,7 @@ def main(argv=None):
     except RuntimeError as e:
         perror('cfv: %s'%e)
         sys.exit(1)
+    print(config)
 
     for root, dirs, files in os.walk(argv[0]): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
