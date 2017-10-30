@@ -16,11 +16,13 @@ def sha1file(fname=None, blocksize=BUF_SIZE):
     sha1 = hashlib.sha1()
     with open(fname, 'rb') as f:
         with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as mm:
-            while True:
-                data = mm.read(blocksize)
-                if not data:
-                    break
-                sha1.update(data)
+            for block in iter(lambda: mm.read(blocksize), b""):
+                sha1.update(block)
+#            while True:
+#                data = mm.read(blocksize)
+#                if not data:
+#                    break
+#                sha1.update(data)
     return sha1.hexdigest()
 
 class Config: # https://stackoverflow.com/a/47016739/159695
