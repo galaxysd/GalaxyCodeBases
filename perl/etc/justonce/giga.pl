@@ -6,7 +6,7 @@ use LWP::UserAgent;
 use JSON qw( decode_json );
 #use HTML::TreeBuilder 5 -weak;
 use IO::Handle;
-#use Data::Dumper;
+use Data::Dumper;
 
 my $ua = LWP::UserAgent->new;
 $ua->agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:58.0) Gecko/20100101 Firefox/58.0");
@@ -26,11 +26,15 @@ sub openfile($) {
 
 sub getthings($) {
 	my ($cnt) = @_;
-	my ($tocSections,$jsonData)=('','');
+	my ($tocSections,$jsonData,$reflist)=('');
 	my @lines = split(/^/m,$cnt);
 	for (my $i=0;$i<=$#lines;$i++) {
 		if ($lines[$i] =~ /<script type="application\/ld\+json">/) {
 			$jsonData = $lines[$i+1];
+		}
+		if ($lines[$i] =~ /<div class="ref-list">/) {
+			$reflist = $lines[$i];
+			chomp($reflist);
 		}
 		if ($lines[$i] =~ /Issue Section:/) {
 			$lines[$i+1] =~ />([^<>]+)<\/a>/;
@@ -41,7 +45,7 @@ sub getthings($) {
 	my $decoded_json = decode_json( $jsonData );
 	#print ">>>$tocSections<<<\n";
 	#print Dumper $decoded_json;
-	return [$tocSections,$decoded_json];
+	return [$tocSections,$decoded_json,$reflist];
 }
 
 sub fetchURL($) {
@@ -68,17 +72,26 @@ binmode(O, ":utf8");
 while (<$fh>) {
 	chomp;
 	my @dat = split /\t/;
-	print join(" | ",@dat[0,-1]),"\n";
-	my $url = 'https://academic.oup.com/gigascience/article-lookup/doi/' . $dat[-1];
+	print join(" | ",@dat[0,16]),"\n";
+	unless ($dat[16] =~ /\//) {
+		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Missing or Misformatted DOI !\"\n\n";
+		next;
+	}
+	my $url = 'https://academic.oup.com/gigascience/article-lookup/doi/' . $dat[16];
 	my $ret=fetchURL($url);
+	#my $ret=[''];
+	if ($ret->[0] eq '') {
+		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Wrong DOI !\"\n\n";
+		next;
+	}
 	print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"$ret->[0]\"\nAuthors={\n";
-	#print Dumper $ret->[1];
+	#print Dumper $ret;
 	my $authors = ${$ret->[1]}{'author'};
 	for (@$authors) {
 		#print Dumper $_;
 		print O join('"',"\t",$_->{'name'},"=",$_->{'affiliation'},"\n");
 	}
-	print O "}\n\n";
+	print O "}\nRefList=\"$ret->[2]\"\n\n";
 	O->flush();
 }
 close O;
