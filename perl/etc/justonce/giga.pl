@@ -26,7 +26,7 @@ sub openfile($) {
 
 sub getthings($) {
 	my ($cnt) = @_;
-	my ($tocSections,$jsonData,$reflist)=('');
+	my ($tocSections,$reflist,$jsonData)=('','');
 	my @lines = split(/^/m,$cnt);
 	for (my $i=0;$i<=$#lines;$i++) {
 		if ($lines[$i] =~ /<script type="application\/ld\+json">/) {
