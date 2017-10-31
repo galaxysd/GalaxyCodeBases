@@ -62,7 +62,8 @@ sub fetchURL($) {
 
 
 my $fh = openfile('giga.tsv.bz2');
-open O,'>','giga.authors.ini';
+open O,'>','giga.authors.ini' || die("[x]Cannot Open Output File.");
+binmode(O, ":utf8");
 <$fh>;
 while (<$fh>) {
 	chomp;
@@ -81,3 +82,20 @@ while (<$fh>) {
 	O->flush();
 }
 close O;
+
+__END__
+
+eg:
+
+[10.1186/s13742-015-0066-5]
+Title="The ocean sampling day consortium"
+Type="Commentary"
+Authors={
+	"Kopf, Anna"="1 Max Planck Institute for Marine Microbiology, Celsiusstrasse 1, D-28359Bremen, Germany   2 Jacobs University Bremen gGmbH, Campus Ring 1, D-28759 Bremen, Germany"
+	"Bicak, Mesude"="3 University of Oxford, 7 Keble Road, OX1 3QG Oxford, Oxfordshire, UK"
+	"Kottmann, Renzo"="1 Max Planck Institute for Marine Microbiology, Celsiusstrasse 1, D-28359Bremen, Germany"
+	"Schnetzer, Julia"="1 Max Planck Institute for Marine Microbiology, Celsiusstrasse 1, D-28359Bremen, Germany   2 Jacobs University Bremen gGmbH, Campus Ring 1, D-28759 Bremen, Germany"
+	"Øvreås, Lise"="26 Department of Biology, University of Bergen, Thormøhlensgate 53 B, 5020 Bergen, Norway"
+	"Glöckner, Frank Oliver"="1 Max Planck Institute for Marine Microbiology, Celsiusstrasse 1, D-28359Bremen, Germany   2 Jacobs University Bremen gGmbH, Campus Ring 1, D-28759 Bremen, Germany"
+}
+
