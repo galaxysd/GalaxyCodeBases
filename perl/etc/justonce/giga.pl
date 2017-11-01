@@ -4,7 +4,6 @@ use warnings;
 use LWP;
 use LWP::UserAgent;
 use JSON qw( decode_json );
-#use HTML::TreeBuilder 5 -weak;
 use IO::Handle;
 use Data::Dumper;
 
@@ -48,20 +47,22 @@ sub getthings($) {
 	return [$tocSections,$decoded_json,$reflist];
 }
 
-sub fetchURL($) {
-	my ($URL)=@_;
+sub fetchURL($$) {
+	my ($URL,$times)=@_;
 	my $req = HTTP::Request->new(GET => $URL);
-	my $res = $ua->request($req);
 	my $ret;
-    if ($res->is_success) {
-        #print $res->content;
-		#my $tree = HTML::TreeBuilder->new_from_content($res->content);
-		#$tree->dump; $tree->delete;
-		$ret=getthings($res->content);
-		return $ret;
-    } else {
-        print $res->status_line, "\n";
-    }
+	for my $i (1 .. $times) {
+		my $res = $ua->request($req);
+	    if ($res->is_success) {
+			$ret = getthings($res->content);
+			return $ret;
+	    } else {
+	        print $res->status_line, " <<<--- $i of $times\n";
+			$ret = ["\n",$res->status_line];
+			sleep $i;
+	    }
+	}
+	return $ret;
 }
 
 
@@ -78,10 +79,13 @@ while (<$fh>) {
 		next;
 	}
 	my $url = 'https://academic.oup.com/gigascience/article-lookup/doi/' . $dat[16];
-	my $ret=fetchURL($url);
+	my $ret=fetchURL($url,5);
 	#my $ret=[''];
 	if ($ret->[0] eq '') {
 		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Wrong DOI !\"\n\n";
+		next;
+	} elsif ($ret->[0] eq "\n") {
+		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Error: $ret->[1]\"\n\n";
 		next;
 	}
 	print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"$ret->[0]\"\nAuthors={\n";
