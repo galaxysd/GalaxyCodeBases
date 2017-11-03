@@ -75,27 +75,27 @@ while (<$fh>) {
 	my @dat = split /\t/;
 	print join(" | ",@dat[0,16]),"\n";
 	unless ($dat[16] =~ /\//) {
-		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Missing or Misformatted DOI !\"\n\n";
+		print O "[$dat[16]]\nTitle=\"$dat[0]\"\nType=\"Missing or Misformatted DOI !\"\n\n";
 		next;
 	}
 	my $url = 'https://academic.oup.com/gigascience/article-lookup/doi/' . $dat[16];
 	my $ret=fetchURL($url,5);
 	#my $ret=[''];
 	if ($ret->[0] eq '') {
-		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Wrong DOI !\"\n\n";
+		print O "[$dat[16]]\nTitle=\"$dat[0]\"\nType=\"Wrong DOI !\"\n\n";
 		next;
 	} elsif ($ret->[0] eq "\n") {
-		print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"Error: $ret->[1]\"\n\n";
+		print O "[$dat[16]]\nTitle=\"$dat[0]\"\nType=\"Error: $ret->[1]\"\n\n";
 		next;
 	}
-	print O "[$dat[-1]]\nTitle=\"$dat[0]\"\nType=\"$ret->[0]\"\nAuthors={\n";
+	print O "[$dat[16]]\nTitle=\"$dat[0]\"\nType=\"$ret->[0]\"\nAuthors={\n";
 	#print Dumper $ret;
 	my $authors = ${$ret->[1]}{'author'};
 	for (@$authors) {
 		#print Dumper $_;
 		print O join('"',"\t",$_->{'name'},"=",$_->{'affiliation'},"\n");
 	}
-	print O "}\nRefList=\"$ret->[2]\"\n\n";
+	print O "}\nRefList=\{$ret->[2]\}\n\n";
 	O->flush();
 }
 close O;
