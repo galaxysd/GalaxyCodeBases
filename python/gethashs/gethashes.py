@@ -18,16 +18,12 @@ def sha1file(fname=None, blocksize=BUF_SIZE):
         with mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ) as mm:
             for block in iter(lambda: mm.read(blocksize), b""):
                 sha1.update(block)
-#            while True:
-#                data = mm.read(blocksize)
-#                if not data:
-#                    break
-#                sha1.update(data)
     return sha1.hexdigest()
 
 class Config: # https://stackoverflow.com/a/47016739/159695
     def __init__(self, **kwds):
         self.verbose=0 # -1=quiet  0=norm  1=noisy
+        self.output = ''.join(['.',os.sep])
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
     def __repr__(self):
         args = ['%s=%s' % (k, repr(v)) for (k,v) in vars(self).items()]
@@ -46,7 +42,7 @@ def perror(s,nl='\n'):
 def printusage(err=0):
     phelp = err and perror or pinfo # False->pinfo, True->perror
     phelp('Usage: gethashes [opts] [-p dir] [-T|-C] [-t type] [-f file] [files...]')
-    phelp('  -p <d>   change to directory <d> before doing anything')
+    phelp('  -p <d> [.]  change to directory <d> before doing anything')
     phelp(' --help/-h show help')
     phelp(' --version show gethashes and module versions')
     sys.exit(err)
@@ -72,6 +68,7 @@ def main(argv=None):
         prevopt=''
         for o, a in opts:
             if o=='-p':
+                config.startpoint = ''.join([a.rstrip(os.sep),os.sep])
                 os.chdir(a)
             elif o in ("-o", "--output"):
                 config.output = a
@@ -98,7 +95,7 @@ def main(argv=None):
         sys.exit(1)
     print(config)
 
-    for root, dirs, files in os.walk(argv[0]): # os.walk(top, topdown=True, onerror=None, followlinks=False)
+    for root, dirs, files in os.walk(config.output): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
         #print(sum(getsize(join(root, name)) for name in files), end=" ")
         #print("bytes in", len(files), "non-directory files")
@@ -108,7 +105,7 @@ def main(argv=None):
         dirs.sort(reverse=True)
         files.sort(reverse=True)
         print(dirs,files)
-        relroot = root.rpartition(argv[0])[2]
+        relroot = root.rpartition(config.output)[2]
         #if not relroot: relroot = '.'
         #print(root,relroot,dirs)
         #print(files)
