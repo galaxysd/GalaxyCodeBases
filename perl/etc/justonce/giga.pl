@@ -6,6 +6,12 @@ use LWP::UserAgent;
 use JSON qw( decode_json );
 use IO::Handle;
 use Data::Dumper;
+use DBI;
+
+my $dbh = DBI->connect("dbi:SQLite:dbname=giga.authors.sqlite","","",{RaiseError => 0,PrintError => 1,AutoCommit => 0}) or die $DBI::errstr;
+$dbh->do("CREATE TABLE PubDat (DOI TEXT, Title TEXT, Type TEXT, Authors TEXT, RefList TEXT)") or die $dbh->errstr;
+$dbh->commit;
+my $sthi = $dbh->prepare( "INSERT INTO PubDat ( DOI,Title,Type,Authors,RefList ) VALUES ( ?,?,?,?,? )" );
 
 my $ua = LWP::UserAgent->new;
 $ua->agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:58.0) Gecko/20100101 Firefox/58.0");
@@ -91,14 +97,19 @@ while (<$fh>) {
 	print O "[$dat[16]]\nTitle=\"$dat[0]\"\nType=\"$ret->[0]\"\nAuthors={\n";
 	#print Dumper $ret;
 	my $authors = ${$ret->[1]}{'author'};
+	my $AuthorStr = '';
 	for (@$authors) {
 		#print Dumper $_;
 		print O join('"',"\t",$_->{'name'},"=",$_->{'affiliation'},"\n");
+		$AuthorStr .= join('"','',$_->{'name'},"=",$_->{'affiliation'},"\n");
 	}
 	print O "}\nRefList=\{$ret->[2]\}\n\n";
 	O->flush();
+	$sthi->execute($dat[16],$dat[0],$ret->[0],$AuthorStr,$ret->[2]) or die $sthi->errstr;
+	$dbh->commit;
 }
 close O;
+$dbh->disconnect;
 
 __END__
 
