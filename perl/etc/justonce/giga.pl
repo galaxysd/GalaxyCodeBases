@@ -10,6 +10,7 @@ use DBI;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=giga.authors.sqlite","","",{RaiseError => 0,PrintError => 1,AutoCommit => 0}) or die $DBI::errstr;
 $dbh->do("CREATE TABLE PubDat (DOI TEXT, Title TEXT, Type TEXT, Authors TEXT, RefList TEXT)") or die $dbh->errstr;
+# CREATE TABLE IF NOT EXISTS PubDat ? But we have not check previous got entries.
 $dbh->commit;
 my $sthi = $dbh->prepare( "INSERT INTO PubDat ( DOI,Title,Type,Authors,RefList ) VALUES ( ?,?,?,?,? )" );
 
