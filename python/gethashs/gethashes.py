@@ -23,6 +23,7 @@ def sha1file(fname=None, blocksize=BUF_SIZE):
 class Config: # https://stackoverflow.com/a/47016739/159695
     def __init__(self, **kwds):
         self.verbose=0 # -1=quiet  0=norm  1=noisy
+        self.mode=0 # 
         self.output = ''.join(['.',os.sep])
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
     def __repr__(self):
@@ -41,8 +42,20 @@ def perror(s,nl='\n'):
         sys.stderr.write(s+nl)
 def printusage(err=0):
     phelp = err and perror or pinfo # False->pinfo, True->perror
-    phelp('Usage: gethashes [opts] [-p dir] [-T|-C] [-t type] [-f file] [files...]')
-    phelp('  -p <d> [.]  change to directory <d> before doing anything')
+    phelp('Usage: gethashes [opts] [-p dir] [-T|-C] [-f file] [files...]')
+    phelp('  -T       Test mode (default)')
+    phelp('  -C       Create mode')
+    #phelp('  -t <t>   set type to <t> (%s, or auto(default))'%', '.join(sorted(hashlib.algorithms_available)))
+    phelp('  -f <f>   use <f> as list file (.hash)')
+    phelp('  -p <d>   change to directory <d> before doing anything')
+    phelp('Options in Create mode:')
+    phelp('  -u [s][k,m]   load .sha1 files in subdirectories and skip older recorded files larger than [s] [*1024, *1048576] (default=1m)')
+    phelp('  -s            Always skip recorded files even if loaded .sha1 file is older')
+    phelp('  -1            Also create .sha1 file')
+    phelp('Options in Test mode:')
+    phelp('  -b <f>        Output list of bad files to file <f>')
+    phelp('Other Options:')
+    phelp('  -v/-q    verbose/quiet, change verbosity [-1,2]')
     phelp(' --help/-h show help')
     phelp(' --version show gethashes and module versions')
     sys.exit(err)
@@ -58,7 +71,7 @@ def main(argv=None):
     print(argv)
 
     try:
-        opts, args = getopt.gnu_getopt(argv, "ho:p:vVq?", ['help','version', "output="])
+        opts, args = getopt.gnu_getopt(argv, "CTf:p:u:s1b:vqh?", ['help','version'])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
