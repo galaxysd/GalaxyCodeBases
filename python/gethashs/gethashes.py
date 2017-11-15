@@ -24,7 +24,7 @@ class Config: # https://stackoverflow.com/a/47016739/159695
     def __init__(self, **kwds):
         self.verbose=0 # -1=quiet  0=norm  1=noisy
         self.mode=0 # 
-        self.output = ''.join(['.',os.sep])
+        self.startpoint = ''.join(['.',os.sep])
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
     def __repr__(self):
         args = ['%s=%s' % (k, repr(v)) for (k,v) in vars(self).items()]
@@ -85,6 +85,8 @@ def main(argv=None):
                 os.chdir(a)
             elif o in ("-o", "--output"):
                 config.output = a
+            elif o=='-u':
+                config.size = human2bytes(a)
             elif o=='-v':
                 if config.verbose >=0: config.verbose +=1
             elif o=='-q':
@@ -108,7 +110,7 @@ def main(argv=None):
         sys.exit(1)
     print(config)
 
-    for root, dirs, files in os.walk(config.output): # os.walk(top, topdown=True, onerror=None, followlinks=False)
+    for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
         #print(sum(getsize(join(root, name)) for name in files), end=" ")
         #print("bytes in", len(files), "non-directory files")
@@ -118,7 +120,7 @@ def main(argv=None):
         dirs.sort(reverse=True)
         files.sort(reverse=True)
         print(dirs,files)
-        relroot = root.rpartition(config.output)[2]
+        relroot = root.rpartition(config.startpoint)[2]
         #if not relroot: relroot = '.'
         #print(root,relroot,dirs)
         #print(files)
