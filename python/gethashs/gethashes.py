@@ -130,7 +130,45 @@ def main(argv=None):
             stime = datetime.utcfromtimestamp(mtime).strftime('%Y%m%du%H%M%S')
             #rtime = datetime.strptime(''.join([stime,'UTC']),'%Y%m%du%H%M%S%Z')
             #print(rname,fname,stime,mtime,epoch_seconds(rtime))
-            print(fname,stime,sha1file(rname),sep='\t')
+            fsize = os.path.getsize(rname)
+            hsize = bytes2human(fsize)
+            print(fname,hsize,stime,sha1file(rname),sep='\t')
+
+# https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
+def bytes2human(n, format="%(value).1f%(symbol)s"):
+    """
+    >>> bytes2human(10000)
+    '9K'
+    >>> bytes2human(100001221)
+    '95M'
+    """
+    symbols = ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+    prefix = {}
+    for i, s in enumerate(symbols[1:]):
+        prefix[s] = 1 << (i + 1) * 10
+    for symbol in reversed(symbols[1:]):
+        if n >= prefix[symbol]:
+            value = float(n) / prefix[symbol]
+            return format % locals()
+    return format % dict(symbol=symbols[0], value=n)
+
+# http://goo.gl/zeJZl
+def human2bytes(s):
+    """
+    >>> human2bytes('1M')
+    1048576
+    >>> human2bytes('1G')
+    1073741824
+    """
+    symbols = ('B', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+    letter = s[-1:].strip().upper()
+    num = s[:-1]
+    assert num.isdigit() and letter in symbols, s
+    num = float(num)
+    prefix = {symbols[0]: 1}
+    for i, s in enumerate(symbols[1:]):
+        prefix[s] = 1 << (i + 1) * 10
+    return int(num * prefix[letter])
 
 version='0.1'
 if __name__ == '__main__':
