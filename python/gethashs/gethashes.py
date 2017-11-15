@@ -135,7 +135,7 @@ def main(argv=None):
             print(fname,hsize,stime,sha1file(rname),sep='\t')
 
 # https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
-def bytes2human(n, format="%(value).1f%(symbol)s"):
+def bytes2human(n, format="%(value).1f%(symbol)s", intfmt="%(value).0f %(symbol)s"):
     """
     >>> bytes2human(10000)
     '9K'
@@ -150,7 +150,10 @@ def bytes2human(n, format="%(value).1f%(symbol)s"):
         if n >= prefix[symbol]:
             value = float(n) / prefix[symbol]
             return format % locals()
-    return format % dict(symbol=symbols[0], value=n)
+    #import re
+    #intfmt=re.sub(r'\(value\)\.(\d+)',r'(value).0',format)
+    #print(intfmt)
+    return intfmt % dict(symbol=symbols[0], value=n)
 
 # http://goo.gl/zeJZl
 def human2bytes(s):
