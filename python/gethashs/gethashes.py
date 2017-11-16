@@ -98,8 +98,6 @@ def main(argv=None):
                 printusage()
             elif o=='-V' or o=='--version':
                 print('gethashes %s'%version)
-                try: print('fchksum %s'%fchksum.version())
-                except NameError: pass
                 print('python %08x-%s'%(sys.hexversion,sys.platform))
                 sys.exit(0)
             else:
@@ -111,7 +109,7 @@ def main(argv=None):
     if not hasattr(config, 'hashfile'):
         dirName = os.path.basename(os.path.abspath(config.startpoint))
         #dirName = os.path.basename(os.getcwd())
-        config.hashfile = '.'.join([dirName,'hash'])
+        config.hashfile = ''.join([config.startpoint, dirName, '.hash'])
     print(config) # <-- DEBUG
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
