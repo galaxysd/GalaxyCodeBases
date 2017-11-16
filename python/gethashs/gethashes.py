@@ -24,7 +24,9 @@ def sha1file(fname=None, blocksize=BUF_SIZE):
 class Config: # https://stackoverflow.com/a/47016739/159695
     def __init__(self, **kwds):
         self.verbose=0 # -1=quiet  0=norm  1=noisy
-        self.mode=0 # 
+        self.mode=0 # 0:Test, 1:Create
+        self.skipNewer=0
+        self.sha1dump=0
         self.startpoint = ''.join(['.',os.sep])
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
     def __repr__(self):
@@ -47,14 +49,14 @@ def printusage(err=0):
     phelp('  -T       Test mode (default)')
     phelp('  -C       Create mode')
     #phelp('  -t <t>   set type to <t> (%s, or auto(default))'%', '.join(sorted(hashlib.algorithms_available)))
-    phelp('  -f <f>   use <f> as list file (.hash)')
     phelp('  -p <d>   change to directory <d> before doing anything')
+    phelp('  -f <f>   use <f> as list file (<d>.hash)')
     phelp('Options in Create mode:')
-    phelp('  -u [s][k,m]   load .sha1 files in subdirectories and skip older recorded files larger than [s] [*1024, *1048576] (default=1m)')
-    phelp('  -s            Always skip recorded files even if loaded .sha1 file is older')
-    phelp('  -1            Also create .sha1 file')
+    phelp('  -s [s][k,m]   load .sha1 files in subdirectories and skip older recorded files larger than [s] [*1024, *1048576] (default=1m)')
+    phelp('  -a            Always skip recorded files even if loaded .sha1 file is older')
+    phelp('  -1            Also create <f>.sha1 file')
     phelp('Options in Test mode:')
-    phelp('  -b <f>        Output list of bad files to file <f>')
+    phelp('  -b <l>        Output list of bad files to file <l>')
     phelp('Other Options:')
     phelp('  -v/-q    verbose/quiet, change verbosity [-1,2]')
     phelp(' --help/-h show help')
@@ -93,7 +95,7 @@ def main(argv=None):
     print(argv) # <-- DEBUG
 
     try:
-        opts, args = getopt.gnu_getopt(argv, "CTf:p:u:s1b:vqh?", ['help','version'])
+        opts, args = getopt.gnu_getopt(argv, "CTf:p:s:a1b:vqh?", ['help','version'])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -105,10 +107,14 @@ def main(argv=None):
             if o=='-p':
                 config.startpoint = ''.join([a.rstrip(os.sep),os.sep])
                 os.chdir(a) # also checks PermissionError and FileNotFoundError for me
-            elif o in ('-f'):
+            elif o=='-f':
                 config.hashfile = a
-            elif o=='-u':
+            elif o=='-s':
                 config.size = human2bytes(a)
+            elif o=='-a':
+                config.skipNewer = 1
+            elif o=='-1':
+                config.sha1dump = 1
             elif o=='-v':
                 if config.verbose >=0: config.verbose +=1
             elif o=='-q':
@@ -116,7 +122,7 @@ def main(argv=None):
                     config.verbose =-1
                 else:
                     config.verbose -=1
-            elif o=='-h' or o=='-?' or o=='--help':
+            elif o in ("-h", "--help", '-?'):
                 printusage()
             elif o=='-V' or o=='--version':
                 print('gethashes %s'%version)
