@@ -68,7 +68,7 @@ def main(argv=None):
     if not argv:
         argv.append('.')
         argv[0] = ''.join([argv[0].rstrip(os.sep),os.sep])
-    print(argv)
+    print(argv) # <-- DEBUG
 
     try:
         opts, args = getopt.gnu_getopt(argv, "CTf:p:u:s1b:vqh?", ['help','version'])
@@ -82,9 +82,9 @@ def main(argv=None):
         for o, a in opts:
             if o=='-p':
                 config.startpoint = ''.join([a.rstrip(os.sep),os.sep])
-                os.chdir(a)
-            elif o in ("-o", "--output"):
-                config.output = a
+                os.chdir(a) # also checks PermissionError and FileNotFoundError for me
+            elif o in ('-f'):
+                config.hashfile = a
             elif o=='-u':
                 config.size = human2bytes(a)
             elif o=='-v':
@@ -108,7 +108,11 @@ def main(argv=None):
     except RuntimeError as e:
         perror('cfv: %s'%e)
         sys.exit(1)
-    print(config)
+    if not hasattr(config, 'hashfile'):
+        dirName = os.path.basename(os.path.abspath(config.startpoint))
+        #dirName = os.path.basename(os.getcwd())
+        config.hashfile = '.'.join([dirName,'hash'])
+    print(config) # <-- DEBUG
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
