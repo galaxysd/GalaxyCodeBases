@@ -2,6 +2,7 @@
 
 import os, sys, hashlib
 import sqlite3, getopt, mmap
+import re
 #from os.path import join, getsize
 from datetime import datetime
 
@@ -61,6 +62,27 @@ def printusage(err=0):
     sys.exit(err)
 
 config=Config()
+
+OldHashes = {}
+# rem from `cfv` L1116:`_foosum_rem`. `re.match()` checks for a match only at the beginning of the string, thus not r'^'.
+sha1rem=re.compile(r'([0-9a-fA-F]{40}) ([ *])([^\r\n]+)[\r\n]*$')
+
+def loadsha1(root,afile):
+    global OldHashes
+    rname = os.path.join(root,afile)
+    mtime = os.path.getmtime(rname)
+    for line in open(rname):
+        x = sha1rem.match(line)
+        if not x: return -1
+        if x.group(2)==' ':
+            pinfo('[!]Textmode in "%s".'%(rname))
+        print([x.group(3),x.group(1),x.group(2)])
+        iname = os.path.join(root,x.group(3))
+        itime = os.path.getmtime(iname)
+        isize = os.path.getsize(iname)
+        print([iname,itime,isize])
+        ... # check file exists
+    return
 
 def main(argv=None):
     if argv is None:
@@ -126,6 +148,11 @@ def main(argv=None):
         #if not relroot: relroot = '.'
         #print(root,relroot,dirs)
         #print(files)
+        global OldHashes
+        for afile in files:
+            if afile.endswith(".sha1"):
+                loadsha1(root,afile)
+                ...
         for afile in files:
             rname = os.path.join(root,afile)
             #fname = os.sep.join(filter(None,[relroot,afile]))
