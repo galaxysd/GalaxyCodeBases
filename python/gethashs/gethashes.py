@@ -5,6 +5,7 @@ import sqlite3, getopt, mmap
 import re
 #from os.path import join, getsize
 from datetime import datetime
+import pprint
 
 epoch = datetime.utcfromtimestamp(0)
 def epoch_seconds(dt):
@@ -65,7 +66,13 @@ def printusage(err=0):
 
 config=Config()
 
-OldHashes = {}
+# https://stackoverflow.com/questions/635483/what-is-the-best-way-to-implement-nested-dictionaries/19829714#19829714
+class Vividict(dict):
+    def __missing__(self, key):
+        value = self[key] = type(self)() # retain local pointer to value
+        return value                     # faster to return than dict lookup
+
+OldHashes = Vividict()
 # rem from `cfv` L1116:`_foosum_rem`. `re.match()` checks for a match only at the beginning of the string, thus not r'^'.
 sha1rem=re.compile(r'([0-9a-fA-F]{40}) ([ *])([^\r\n]+)[\r\n]*$')
 
@@ -73,17 +80,26 @@ def loadsha1(root,afile):
     global OldHashes
     rname = os.path.join(root,afile)
     mtime = os.path.getmtime(rname)
+    itextmode = 0
     for line in open(rname):
         x = sha1rem.match(line)
         if not x: return -1
         if x.group(2)==' ':
-            pinfo('[!]Textmode in "%s".'%(rname))
+            if not itextmode:
+                pinfo('[!]Textmode in "%s".'%(rname))
+            itextmode += 1
+            next
         print([x.group(3),x.group(1),x.group(2)])
         iname = os.path.join(root,x.group(3))
+        istat = os.stat(iname)
         itime = os.path.getmtime(iname)
         isize = os.path.getsize(iname)
-        print([iname,itime,isize])
+        print(['->',iname,itime,isize,afile,istat.st_ino,istat.st_dev])
+        OldHashes[istat.st_dev][istat.st_ino] = x.group(1)
+        pprint.pprint(OldHashes)
         ... # check file exists
+    if itextmode>1 :
+        pinfo('[!]Textmode %d times in "%s" !'%(itextmode,rname))
     return
 
 def main(argv=None):
@@ -146,10 +162,10 @@ def main(argv=None):
         #print("bytes in", len(files), "non-directory files")
         if '@eaDir' in dirs:
             dirs.remove('@eaDir')  # don't visit "@eaDir" directories
-        print(dirs,files)
+        #print(dirs,files)
         dirs.sort(reverse=True)
         files.sort(reverse=True)
-        print(dirs,files)
+        #print(dirs,files)
         relroot = root.rpartition(config.startpoint)[2]
         #if not relroot: relroot = '.'
         #print(root,relroot,dirs)
@@ -169,7 +185,7 @@ def main(argv=None):
             #print(rname,fname,stime,mtime,epoch_seconds(rtime))
             fsize = os.path.getsize(rname)
             hsize = bytes2human(fsize)
-            print(fname,hsize,stime,sha1file(rname),sep='\t')
+            #print(fname,hsize,stime,sha1file(rname),sep='\t')
 
 # https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
 def bytes2human(n, format="%(value).1f%(symbol)s", intfmt="%(value).0f %(symbol)s"):
