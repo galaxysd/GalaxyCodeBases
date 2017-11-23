@@ -28,6 +28,7 @@ class Config: # https://stackoverflow.com/a/47016739/159695
         self.mode=0 # 0:Test, 1:Create
         self.skipNewer=0
         self.sha1dump=0
+        self.ssize=1048576
         self.startpoint = ''.join(['.',os.sep])
         self.__dict__.update(kwds) # Must be last to accept assigned member variable.
     def __repr__(self):
@@ -88,15 +89,21 @@ def loadsha1(root,afile):
             if not itextmode:
                 pinfo('[!]Textmode in "%s".'%(rname))
             itextmode += 1
-            next
-        print([x.group(3),x.group(1),x.group(2)])
+            continue
+        #pprint.pprint([x.group(3),x.group(1),x.group(2)])
         iname = os.path.join(root,x.group(3))
         istat = os.stat(iname)
-        itime = os.path.getmtime(iname)
-        isize = os.path.getsize(iname)
-        print(['->',iname,itime,isize,afile,istat.st_ino,istat.st_dev])
+        if istat.st_size < config.ssize:
+            continue
+        if not config.skipNewer:
+            itime = os.path.getmtime(iname)
+            #isize = os.path.getsize(iname)
+            pprint.pprint(['t:',iname,mtime,itime])
+            #pprint.pprint(['->',iname,itime,istat.st_size,afile,istat.st_ino,istat.st_dev])
+            if mtime < itime:
+                continue
         OldHashes[istat.st_dev][istat.st_ino] = x.group(1)
-        pprint.pprint(OldHashes)
+        pprint.pprint(('O:',OldHashes))
         ... # check file exists
     if itextmode>1 :
         pinfo('[!]Textmode %d times in "%s" !'%(itextmode,rname))
@@ -108,7 +115,7 @@ def main(argv=None):
     if not argv:
         argv.append('.')
         argv[0] = ''.join([argv[0].rstrip(os.sep),os.sep])
-    print(argv) # <-- DEBUG
+    pprint.pprint(argv) # <-- DEBUG
 
     try:
         opts, args = getopt.gnu_getopt(argv, "CTf:p:s:a1b:vqh?", ['help','version'])
@@ -126,7 +133,7 @@ def main(argv=None):
             elif o=='-f':
                 config.hashfile = a
             elif o=='-s':
-                config.size = human2bytes(a)
+                config.ssize = human2bytes(a)
             elif o=='-a':
                 config.skipNewer = 1
             elif o=='-1':
@@ -154,7 +161,7 @@ def main(argv=None):
         dirName = os.path.basename(os.path.abspath(config.startpoint))
         #dirName = os.path.basename(os.getcwd())
         config.hashfile = ''.join([config.startpoint, dirName, '.hash'])
-    print(config) # <-- DEBUG
+    pprint.pprint(config) # <-- DEBUG
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
