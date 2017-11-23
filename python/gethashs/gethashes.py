@@ -53,7 +53,7 @@ def printusage(err=0):
     #phelp('  -C       Create mode')
     #phelp('  -t <t>   set type to <t> (%s, or auto(default))'%', '.join(sorted(hashlib.algorithms_available)))
     phelp('  -p <d>   change to directory <d> before doing anything')
-    phelp('  -f <f>   use <f> as list file (<d>.hash.gz)')
+    phelp('  -f <f>   use <f> as gzipped hash file (<d>.hash.gz)')
     #phelp('Options in Create mode:')
     phelp('  -s [s][k,m]   load .sha1 files in subdirectories and skip older recorded files larger than [s] [*1024, *1048576] (default=1m)')
     phelp('  -a            Always skip recorded files even if loaded .sha1 file is older')
