@@ -84,30 +84,36 @@ def loadsha1(root,afile):
     rname = os.path.join(root,afile)
     mtime = os.path.getmtime(rname)
     itextmode = 0
-    for line in open(rname):
+    imissing = 0
+    for line in open(rname, encoding='utf-8', errors='surrogateescape'):
         x = sha1rem.match(line)
         if not x: return -1
         if x.group(2)==' ':
             if not itextmode:
-                pinfo('[!]Textmode in "%s".'%(rname))
+                pinfo('[!] Textmode in "%s".'%(rname))
             itextmode += 1
             continue
-        #pprint.pprint([x.group(3),x.group(1),x.group(2)])
         iname = os.path.join(root,x.group(3))
-        istat = os.stat(iname)
+        try:
+            istat = os.stat(iname)
+        except FileNotFoundError:
+            if not imissing:
+                pinfo('[!] Missing file from "%s".'%(rname))
+            imissing += 1
+            continue
         if istat.st_size < config.ssize:
             continue
         if not config.skipNewer:
             itime = os.path.getmtime(iname)
             #isize = os.path.getsize(iname)
-            pprint.pprint(['t:',iname,mtime,itime])
-            #pprint.pprint(['->',iname,itime,istat.st_size,afile,istat.st_ino,istat.st_dev])
+            #pprint.pprint(['t:',iname,mtime,itime])
             if mtime < itime:
                 continue
         OldHashes[istat.st_dev][istat.st_ino] = x.group(1)
-        #pprint.pprint(('O:',OldHashes))
     if itextmode>1 :
-        pinfo('[!]Textmode %d times in "%s" !'%(itextmode,rname))
+        pinfo('[!] Textmode %d times in "%s" !'%(itextmode,rname))
+    if imissing>1 :
+        pinfo('[!] Missing %d times in "%s" !'%(imissing,rname))
     return
 
 def main(argv=None):
@@ -116,7 +122,7 @@ def main(argv=None):
     if not argv:
         argv.append('.')
         argv[0] = ''.join([argv[0].rstrip(os.sep),os.sep])
-    pprint.pprint(argv) # <-- DEBUG
+    #pprint.pprint(argv) # <-- DEBUG
 
     try:
         opts, args = getopt.gnu_getopt(argv, "CTf:p:s:a1b:vqh?", ['help','version'])
@@ -169,23 +175,18 @@ def doCreation():
     f_out = gzip.open(config.hashfile, 'wt', encoding='utf-8')
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
-        #print(root, "consumes", end=" ")
-        #print(sum(getsize(join(root, name)) for name in files), end=" ")
-        #print("bytes in", len(files), "non-directory files")
         if '@eaDir' in dirs:
             dirs.remove('@eaDir')  # don't visit "@eaDir" directories
-        #print(dirs,files)
         dirs.sort(reverse=True)
         files.sort(reverse=True)
-        #print(dirs,files)
         relroot = root.rpartition(config.startpoint)[2]
         #if not relroot: relroot = '.'
-        #print(root,relroot,dirs)
-        #print(files)
         global OldHashes
         global HitHashes
         for afile in files:
             if afile.endswith(".sha1"):
+                rname = os.path.join(root,afile)
+                pinfo('[!]Loading SHA1 hash from [%s]'%rname)
                 loadsha1(root,afile)
         for afile in files:
             rname = os.path.join(root,afile)
@@ -199,7 +200,7 @@ def doCreation():
                 HitHashes += 1
             else:
                 ihash = sha1file(rname)
-            pprint.pprint(('O:',fname,rname,ihash,HitHashes))
+            #pprint.pprint(('O:',fname,rname,ihash,HitHashes))
             f_out.write('%s *%s\n'%(ihash,fname))
             #mtime = os.path.getmtime(rname)
             #stime = datetime.utcfromtimestamp(mtime).strftime('%Y%m%du%H%M%S')
@@ -211,7 +212,7 @@ def doCreation():
     f_out.close()
     if HitHashes:
         pinfo('[!]Skipped hashing of %d recorded file(s).'%HitHashes)
-    pinfo('[!]Done. Test with `cfv -T -f %s`.'%config.hashfile)
+    pinfo('\n[!]Done. Test with `cfv -T -f %s`.'%config.hashfile)
 
 # https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
 def bytes2human(n, format="%(value).1f%(symbol)s", intfmt="%(value).0f %(symbol)s"):
