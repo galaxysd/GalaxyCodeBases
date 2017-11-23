@@ -74,6 +74,7 @@ class Vividict(dict):
         return value                     # faster to return than dict lookup
 
 OldHashes = Vividict()
+HitHashes = 0
 # rem from `cfv` L1116:`_foosum_rem`. `re.match()` checks for a match only at the beginning of the string, thus not r'^'.
 sha1rem=re.compile(r'([0-9a-fA-F]{40}) ([ *])([^\r\n]+)[\r\n]*$')
 
@@ -103,8 +104,7 @@ def loadsha1(root,afile):
             if mtime < itime:
                 continue
         OldHashes[istat.st_dev][istat.st_ino] = x.group(1)
-        pprint.pprint(('O:',OldHashes))
-        ... # check file exists
+        #pprint.pprint(('O:',OldHashes))
     if itextmode>1 :
         pinfo('[!]Textmode %d times in "%s" !'%(itextmode,rname))
     return
@@ -178,14 +178,21 @@ def main(argv=None):
         #print(root,relroot,dirs)
         #print(files)
         global OldHashes
+        global HitHashes
         for afile in files:
             if afile.endswith(".sha1"):
                 loadsha1(root,afile)
-                ...
         for afile in files:
             rname = os.path.join(root,afile)
             #fname = os.sep.join(filter(None,[relroot,afile]))
             fname = os.path.join(relroot,afile)
+            istat = os.stat(fname)
+            if (istat.st_dev in OldHashes) and (istat.st_ino in OldHashes[istat.st_dev]):
+                ihash = OldHashes[istat.st_dev][istat.st_ino]
+                HitHashes += 1
+            else:
+                ihash = sha1file(rname)
+            pprint.pprint(('O:',fname,ihash,HitHashes))
             mtime = os.path.getmtime(rname)
             stime = datetime.utcfromtimestamp(mtime).strftime('%Y%m%du%H%M%S')
             #rtime = datetime.strptime(''.join([stime,'UTC']),'%Y%m%du%H%M%S%Z')
