@@ -3,6 +3,7 @@
 import os, sys, hashlib
 import sqlite3, getopt, mmap
 import re
+import gzip
 #from os.path import join, getsize
 from datetime import datetime
 import pprint
@@ -48,18 +49,18 @@ def perror(s,nl='\n'):
 def printusage(err=0):
     phelp = err and perror or pinfo # False->pinfo, True->perror
     phelp('Usage: gethashes [opts] [-p dir] [-T|-C] [-f file] [files...]')
-    phelp('  -T       Test mode (default)')
-    phelp('  -C       Create mode')
+    #phelp('  -T       Test mode (default)')
+    #phelp('  -C       Create mode')
     #phelp('  -t <t>   set type to <t> (%s, or auto(default))'%', '.join(sorted(hashlib.algorithms_available)))
     phelp('  -p <d>   change to directory <d> before doing anything')
-    phelp('  -f <f>   use <f> as list file (<d>.hash)')
-    phelp('Options in Create mode:')
+    phelp('  -f <f>   use <f> as list file (<d>.hash.gz)')
+    #phelp('Options in Create mode:')
     phelp('  -s [s][k,m]   load .sha1 files in subdirectories and skip older recorded files larger than [s] [*1024, *1048576] (default=1m)')
     phelp('  -a            Always skip recorded files even if loaded .sha1 file is older')
-    phelp('  -1            Also create <f>.sha1 file')
-    phelp('Options in Test mode:')
-    phelp('  -b <l>        Output list of bad files to file <l>')
-    phelp('Other Options:')
+    #phelp('  -1            Also create <f>.sha1 file')
+    #phelp('Options in Test mode:')
+    #phelp('  -b <l>        Output list of bad files to file <l>')
+    #phelp('Other Options:')
     phelp('  -v/-q    verbose/quiet, change verbosity [-1,2]')
     phelp(' --help/-h show help')
     phelp(' --version show gethashes and module versions')
@@ -160,8 +161,12 @@ def main(argv=None):
     if not hasattr(config, 'hashfile'):
         dirName = os.path.basename(os.path.abspath(config.startpoint))
         #dirName = os.path.basename(os.getcwd())
-        config.hashfile = ''.join([config.startpoint, dirName, '.hash'])
+        config.hashfile = ''.join([config.startpoint, dirName, '.hash.gz'])
     pprint.pprint(config) # <-- DEBUG
+    doCreation()
+
+def doCreation():
+    f_out = gzip.open(config.hashfile, 'wt', encoding='utf-8')
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         #print(root, "consumes", end=" ")
@@ -184,22 +189,29 @@ def main(argv=None):
                 loadsha1(root,afile)
         for afile in files:
             rname = os.path.join(root,afile)
+            if os.path.samefile(rname,config.hashfile):
+                continue
             #fname = os.sep.join(filter(None,[relroot,afile]))
             fname = os.path.join(relroot,afile)
-            istat = os.stat(fname)
+            istat = os.stat(rname)
             if (istat.st_dev in OldHashes) and (istat.st_ino in OldHashes[istat.st_dev]):
                 ihash = OldHashes[istat.st_dev][istat.st_ino]
                 HitHashes += 1
             else:
                 ihash = sha1file(rname)
-            pprint.pprint(('O:',fname,ihash,HitHashes))
-            mtime = os.path.getmtime(rname)
-            stime = datetime.utcfromtimestamp(mtime).strftime('%Y%m%du%H%M%S')
+            pprint.pprint(('O:',fname,rname,ihash,HitHashes))
+            f_out.write('%s *%s\n'%(ihash,fname))
+            #mtime = os.path.getmtime(rname)
+            #stime = datetime.utcfromtimestamp(mtime).strftime('%Y%m%du%H%M%S')
             #rtime = datetime.strptime(''.join([stime,'UTC']),'%Y%m%du%H%M%S%Z')
             #print(rname,fname,stime,mtime,epoch_seconds(rtime))
-            fsize = os.path.getsize(rname)
-            hsize = bytes2human(fsize)
+            #fsize = os.path.getsize(rname)
+            #hsize = bytes2human(fsize)
             #print(fname,hsize,stime,sha1file(rname),sep='\t')
+    f_out.close()
+    if HitHashes:
+        pinfo('[!]Skipped hashing of %d recorded file(s).'%HitHashes)
+    pinfo('[!]Done. Test with `cfv -T -f %s`.'%config.hashfile)
 
 # https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
 def bytes2human(n, format="%(value).1f%(symbol)s", intfmt="%(value).0f %(symbol)s"):
