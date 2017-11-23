@@ -186,11 +186,15 @@ def doCreation():
         for afile in files:
             if afile.endswith(".sha1"):
                 rname = os.path.join(root,afile)
-                pinfo('[!]Loading SHA1 hash from [%s]'%rname)
+                pinfo('[!]Loading SHA1 hash from "%s"'%rname)
                 loadsha1(root,afile)
         for afile in files:
             rname = os.path.join(root,afile)
-            if os.path.samefile(rname,config.hashfile):
+            try:
+                if os.path.samefile(rname,config.hashfile):
+                    continue
+            except FileNotFoundError:
+                pinfo('[!] FileNotFound:"%s".'%rname)
                 continue
             #fname = os.sep.join(filter(None,[relroot,afile]))
             fname = os.path.join(relroot,afile)
@@ -212,7 +216,7 @@ def doCreation():
     f_out.close()
     if HitHashes:
         pinfo('[!]Skipped hashing of %d recorded file(s).'%HitHashes)
-    pinfo('\n[!]Done. Test with `cfv -T -f %s`.'%config.hashfile)
+    pinfo('\n[!]Done. Test with `cfv -p %s -f %s`.'%(config.startpoint,config.hashfile))
 
 # https://github.com/giampaolo/pyftpdlib/blob/0430c92e9d852a6d175b489c0ebf17fbc0190914/scripts/ftpbench#L139
 def bytes2human(n, format="%(value).1f%(symbol)s", intfmt="%(value).0f %(symbol)s"):
