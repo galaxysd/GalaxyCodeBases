@@ -172,7 +172,7 @@ def main(argv=None):
     doCreation()
 
 def doCreation():
-    f_out = gzip.open(config.hashfile, 'wt', encoding='utf-8')
+    f_out = gzip.open(config.hashfile, 'wt', encoding='utf-8', errors='surrogateescape')
 
     for root, dirs, files in os.walk(config.startpoint): # os.walk(top, topdown=True, onerror=None, followlinks=False)
         if '@eaDir' in dirs:
@@ -199,7 +199,9 @@ def doCreation():
             #fname = os.sep.join(filter(None,[relroot,afile]))
             fname = os.path.join(relroot,afile)
             istat = os.stat(rname)
-            if (istat.st_dev in OldHashes) and (istat.st_ino in OldHashes[istat.st_dev]):
+            if istat.st_size == 0:
+                continue
+            elif (istat.st_dev in OldHashes) and (istat.st_ino in OldHashes[istat.st_dev]):
                 ihash = OldHashes[istat.st_dev][istat.st_ino]
                 HitHashes += 1
             else:
