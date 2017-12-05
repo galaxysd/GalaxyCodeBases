@@ -1,4 +1,6 @@
 #!/bin/bash
+# https://www.ncbi.nlm.nih.gov/books/NBK25500/
+# Based on https://www.biostars.org/p/244479/#244495
 
 mkdir t
 set -u
