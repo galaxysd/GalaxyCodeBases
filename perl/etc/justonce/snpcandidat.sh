@@ -16,7 +16,7 @@ for TAX in "${TAXLIST[@]}" ; do
 	NAME=`echo $GENOME |  xtract -pattern DocumentSummary -element Assembly_Name`
 	echo authoritative genome: $ACC $NAME
 	RESULT=$(esearch -db assembly -query "$ACC" |
-		efetch -format docsum | tee "${TAX}.assembly.esearch.docsum")
+		efetch -format docsum | tee "./t/${TAX}.assembly.esearch.docsum")
 	FTPP=`echo $RESULT | xtract -pattern DocumentSummary  -element FtpPath_GenBank`
 	TAXID=`echo $RESULT | xtract -pattern DocumentSummary  -element Taxid`
 	echo FtpPath: $FTPP
