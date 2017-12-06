@@ -47,14 +47,14 @@ fcount: $(objects) $(mainobjects)
 gcount: $(objects) $(mainobjects)
 	@$(CC) $(CFLAGS) $(OPT) $(LDFLAGS) -o gcount $(objects) $(addprefix $(OBJDIR), gcount.o)
 
-#$(OBJDIR)sdleftTFuint16.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFuint32.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFuint64.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
-#$(OBJDIR)sdleftTFpublic.o:
-#	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint16.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT16 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint32.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT32 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFuint64.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D USEUINT64 -c sdleftTF.c -o $@ > $(@:.o=.asm)
+$(OBJDIR)sdleftTFpublic.o:
+	$(CC) -std=gnu99 $(MAKEARG) -D PUBLIC -c sdleftTF.c -o $@ > $(@:.o=.asm)
 
 $(cobjects): $(OBJDIR)%.o: %.c 
 	@$(CC) $(MAKEARG) -c $< -o $@ > $(@:.o=.asm)
