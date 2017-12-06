@@ -30,7 +30,7 @@ endif
 
 cobjects =
 customobjects = $(addprefix $(OBJDIR),)# sdleftTFuint16.o sdleftTFuint32.o sdleftTFuint64.o sdleftTFpublic.o )
-c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o 2bitseq.o cfgparser.o gtools.o bihash.o)
+c99objects = $(addprefix $(OBJDIR), MurmurHash3.o gFileIO.o 2bitseq.o cfgparser.o gtools.o sdleft.o)
 mainobjects = $(addprefix $(OBJDIR), main.o tester.o fcount.o gcount.o )
 objects = $(cobjects) $(c99objects) $(customobjects)
 exefiles = readscorr tester fcount gcount
