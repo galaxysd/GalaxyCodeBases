@@ -38,7 +38,7 @@ print('[!]SNP read:%d.' % (SNPcnt))
 
 SNPcnt = 0
 vcf_reader = vcf.Reader(filename='microb.vcf.gz',compressed=True)
-for theChrid in SNPchrID:
+for theChrid in sorted(SNPchrID):
     for record in vcf_reader.fetch(theChrid):
         theKey = '\t'.join((record.CHROM,str(record.POS)))
         #print((theKey))
