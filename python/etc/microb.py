@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 
 import vcf
-import gzip
-f = gzip.open('snpcandidatforpcr.out.gz', 'rb')
-for line in f.readlines():
+import gzip,csv
+
+f = gzip.open('snpcandidatforpcr.out.gz', 'rt')
+tsvin = csv.reader(f, delimiter='\t')
+for row in tsvin:
+    if len(row)==0: continue
+    print(row)
+    ChrID = row[0].split('.')[1]
+    thePos = row[2]
+    theRef = row[3]
+    Alleles = row[4].split(',')
+    Allele1 = Alleles[0].split('|')
+    Allele2 = Alleles[1].split('|')
+    print((ChrID,thePos,theRef))
+    print(Allele1)
+    print(Allele2)
     ...
 f.close()
 
