@@ -45,14 +45,13 @@ for theChrid in SNPchrID:
         if theKey in SNPdata:
             SNPcnt += 1
             #print(record)
-            #theBases = [record.REF]
-            #for abp in record.ALT:
-            #    theBases.append(str(abp))
+            theBases = [record.REF]
+            for abp in record.ALT:
+                theBases.append(str(abp))
             SNPdatastr = []
             for abp in SNPdata[theKey]:
                 SNPdatastr.append( ''.join([abp,':',str(SNPdata[theKey][abp]) ]) )
-            #print('\t'.join([theKey,','.join(SNPdatastr)])) # ','.join(theBases)
-            print('%4d   %s\t%s'%(SNPcnt, theKey.replace('\t',':'), ','.join(SNPdatastr)))
+            print('%4d   %s\t%s\t%s'%(SNPcnt, theKey.replace('\t',':'), ','.join(SNPdatastr),','.join(theBases)))
             #print(SNPdata[theKey])
             #print(record.genotype('ERR589860'))
             for sample in record.samples:
@@ -64,4 +63,4 @@ for theChrid in SNPchrID:
                     theADstr = str(sample['AD'])
                 else:
                     theADstr = 'ERROR'
-                print('%s:%s\t%s=%s'%(sample.sample,sample.gt_bases,sample['GT'],theADstr))
+                print('%s:%s\t%4d %s=%s'%(sample.sample,sample.gt_bases,sample['DP'],sample['GT'],theADstr))
