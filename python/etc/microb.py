@@ -37,6 +37,8 @@ f.close()
 print('[!]SNP read:%d.' % (SNPcnt))
 
 SNPcnt = 0
+DepthStat = {}
+GTStat = {}
 vcf_reader = vcf.Reader(filename='microb.vcf.gz',compressed=True)
 for theChrid in sorted(SNPchrID):
     for record in vcf_reader.fetch(theChrid):
@@ -54,13 +56,26 @@ for theChrid in sorted(SNPchrID):
             print('%4d   %s\t%s\t%s'%(SNPcnt, theKey.replace('\t',':'), ','.join(SNPdatastr),','.join(theBases)))
             #print(SNPdata[theKey])
             #print(record.genotype('ERR589860'))
+            SampleGTs = set()
+            Depths = []
             for sample in record.samples:
                 #print(sample)
-                theADstr = ''
+                theADstr = ','.join(map(str, sample['AD'] if isinstance(sample['AD'], list) else list(str(sample['AD']))))
+                """
                 if type(sample['AD']) is list:
                     theADstr = ','.join(map(str,sample['AD']))
                 elif type(sample['AD']) is int:
                     theADstr = str(sample['AD'])
                 else:
                     theADstr = 'ERROR'
+                """
                 print('%s:%s\t%4d %s=%s'%(sample.sample,sample.gt_bases,sample['DP'],sample['GT'],theADstr))
+                SampleGTs.add(sample['GT'])
+                if sample['GT'] != 'None':
+                    Depths.append(sample['DP'])
+            if len(Depths):
+                AvgDepth = round(sum(Depths)/len(Depths),-1)
+                DepthStat[AvgDepth] = 1 + DepthStat.setdefault(AvgDepth,0)
+                GTStat[len(SampleGTs)] = 1 + GTStat.setdefault(len(SampleGTs),0)
+            print((len(SampleGTs),AvgDepth))
+            print((GTStat,DepthStat))
