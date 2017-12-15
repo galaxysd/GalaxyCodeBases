@@ -70,9 +70,9 @@ for theChrid in sorted(SNPchrID):
                     theADstr = 'ERROR'
                 """
                 print('%s:%s\t%4d %s=%s'%(sample.sample,sample.gt_bases,sample['DP'],sample['GT'],theADstr))
-                SampleGTs.add(sample['GT'])
+                Depths.append(sample['DP'])
                 if sample['GT'] != 'None':
-                    Depths.append(sample['DP'])
+                    SampleGTs.add(sample['GT'])
             if len(Depths):
                 AvgDepth = int(round(sum(Depths)/len(Depths),-1))
                 DepthStat[AvgDepth] = 1 + DepthStat.setdefault(AvgDepth,0)
