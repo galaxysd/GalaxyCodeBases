@@ -71,8 +71,8 @@ for theChrid in sorted(SNPchrID):
                 """
                 print('%s:%s\t%4d %s=%s'%(sample.sample,sample.gt_bases,sample['DP'],sample['GT'],theADstr))
                 Depths.append(sample['DP'])
-                if sample['GT'] != 'None':
-                    SampleGTs.add(sample['GT'])
+                if sample.gt_bases != None:
+                    SampleGTs.add(sample.gt_bases)
             if len(Depths):
                 AvgDepth = sum(Depths)/len(Depths)
                 theDepth = int(round(AvgDepth,-1))
