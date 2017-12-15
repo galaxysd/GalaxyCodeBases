@@ -74,8 +74,9 @@ for theChrid in sorted(SNPchrID):
                 if sample['GT'] != 'None':
                     SampleGTs.add(sample['GT'])
             if len(Depths):
-                AvgDepth = int(round(sum(Depths)/len(Depths),-1))
-                DepthStat[AvgDepth] = 1 + DepthStat.setdefault(AvgDepth,0)
+                AvgDepth = sum(Depths)/len(Depths)
+                theDepth = int(round(AvgDepth,-1))
+                DepthStat[theDepth] = 1 + DepthStat.setdefault(theDepth,0)
                 GTStat[len(SampleGTs)] = 1 + GTStat.setdefault(len(SampleGTs),0)
-            print((len(SampleGTs),AvgDepth))
+            print((len(SampleGTs),AvgDepth,theDepth))
             print((GTStat,DepthStat))
