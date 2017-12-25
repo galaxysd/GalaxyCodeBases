@@ -96,4 +96,8 @@ f=magic.from_file('meth.cg.rate.bz2')
 print(f)
 f=magic.from_file('adapter.fa')
 print(f)
+
+15615200
+81835576
+(164859, 202393, 25, 198788)
 '''
