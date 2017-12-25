@@ -80,3 +80,16 @@ for theChrid in sorted(SNPchrID):
                 GTStat[len(SampleGTs)] = 1 + GTStat.setdefault(len(SampleGTs),0)
             print((len(SampleGTs),AvgDepth,theDepth))
             print((GTStat,DepthStat))
+
+'''
+gzcat snpcandidatforpcr.out.gz|awk 'NF > 0 {split($0,a,".");print a[1]}'|uniq
+411477
+411479
+445970
+515619
+515620
+563193
+657321
+702446
+缺几个物种没基因组？
+'''
