@@ -221,3 +221,16 @@ Compare with [ViralFusionSeq [VFS]](https://sourceforge.net/projects/viralfusion
 
 \* for virus-infected reads  
 \# for integration infomation
+
+## One More Things
+
+To extract relevant PE reads within 500 bp range from final result, *BS.analyse* for example.
+
+```bash
+perl -lane '$a=$F[2]-501;$b=$F[2]+501;print join("\t",$F[1],$a,$b)' ../W2BS_analyse/BS.analyse >zones.bed
+vi zones.bed # To remove the first head line
+# sort BS.bam to BS.sort.bam and index it.
+samtools view -L zones.bed BS.sort.bam > zones.sam
+awk '{print $1}' zones.sam | sort | uniq > zones.ids
+samtools view BS.bam | grep -F -f zones.ids >zones.PE.sam
+```
