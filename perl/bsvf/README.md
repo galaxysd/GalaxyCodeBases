@@ -232,5 +232,6 @@ vi zones.bed # To remove the first head line
 # sort BS.bam to BS.sort.bam and index it.
 samtools view -L zones.bed BS.sort.bam > zones.sam
 awk '{print $1}' zones.sam | sort | uniq > zones.ids
-samtools view BS.bam | grep -F -f zones.ids >zones.PE.sam
+#samtools view BS.bam | grep -F -f zones.ids >zones.PE.sam
+samtools view BS.sort.bam | grep -F -f zones.ids > zones.PEs.sam # sorted one maybe more useful.
 ```
