@@ -18,6 +18,8 @@ class Vividict(dict):
         value = self[key] = type(self)()
         return value
 
+print(sys.argv)
+
 MethRate = Vividict()
 MethRateCnt = 0
 with xopen('meth.cg.rate.bz2','rt') as f:
