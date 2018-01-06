@@ -1,0 +1,56 @@
+国外IP检测：
+https://www.privateinternetaccess.com/pages/whats-my-ip/
+
+http://mxtoolbox.com/whatismyip/
+
+国内IP检测：
+https://ip.rtbasia.com/
+
+http://www.ipip.net/ip.html
+
+http://ip.cn/
+
+http://ip138.com/
+
+4K 视频测试(对自己的服务器比较有信心的可以试一下这个视频，请设置到最高分辨率4K测试)：
+
+花草：
+https://www.youtube.com/watch?v=bGMR6gPlUWU
+
+https://www.youtube.com/watch?v=XhUmlMwji6Q
+
+车模：
+https://www.youtube.com/watch?v=MJkwXZK9upg&list=RDMJkwXZK9upg
+
+https://www.youtube.com/watch?v=fhStiFIo0DU
+https://www.youtube.com/watch?v=4dJsHlfNcK8
+
+https://www.youtube.com/watch?v=YR6U0M6Za9I
+
+风景：
+https://www.youtube.com/watch?v=0wCC3aLXdOw
+
+https://www.youtube.com/watch?v=3aQn5gdw7DI
+
+
+
+
+
+ip隐私泄露检测：
+https://ipleak.net/
+
+http://www.netscan.co/demo/
+
+ServerSpeeder 锐速支持的内核:
+http://my.serverspeeder.com/ls.do?m=availables
+
+cn ip list:
+http://www.ipdeny.com/ipblocks/data/countries/cn.zone
+
+contab generator:
+http://crontab.guru/
+
+docs:
+https://wikidevi.com/wiki/List_of_Padavan_firmware_supported_devices
+
+https://wikidevi.com/wiki/MediaTek
