@@ -1,0 +1,2 @@
+#!/bin/sh 
+./cloud189_speedup  -t TOKEN --client_sn client_sn --client_model "CLIENT_MODEL" --client_mac "CLIENT_MAC"
