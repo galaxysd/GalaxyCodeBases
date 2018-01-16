@@ -1,5 +1,7 @@
 # browse.php Payload
 
+*[browse.php - Remote payload](https://github.com/bytecode-77/browse.php-payload), single file directory browser & downloader <https://bytecode77.com/hacking/payloads/browse>*
+
 **browse.php** is a PHP single-file script providing an HTML based directory
 browser. Once arbitrary write access is granted to a directory, deploying this
 file will yield comprehensive insights in the directory structure of the server.
