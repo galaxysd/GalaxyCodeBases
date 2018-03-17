@@ -1,6 +1,8 @@
 # BSVF
 [Bisulfite Sequencing Virus integration Finder](https://github.com/BGI-SZ/BSVF)
 
+Repo URL: <https://github.com/BGI-SZ/BSVF>
+
 ## Attention
 
 For directional libraries only. PBAT and indirectional libraries are _NOT_ supported.
@@ -59,9 +61,7 @@ ls -l
 
 ## Citation
 
-Gao, S., Hu, X., Xu, F., Gao, C., Xiong, K., Zhao, X., … Pedersen, C. N. S. (2017, December 18). BS-virus-finder: virus integration calling using bisulfite sequencing data. GigaScience. <https://doi.org/10.1093/gigascience/gix123>
-
-Repo URL: <https://github.com/BGI-SZ/BSVF>
+Gao, S., Hu, X., Xu, F., Gao, C., Xiong, K., Zhao, X., … Pedersen, C. N. S. (2018). BS-virus-finder: virus integration calling using bisulfite sequencing data. GigaScience, 7(1), 1–7. <https://doi.org/10.1093/gigascience/gix123>
 
 ## Usage
 
