@@ -1,5 +1,5 @@
 # BSVF
-Bisulfite Sequencing Virus integration Finder
+[Bisulfite Sequencing Virus integration Finder](https://github.com/BGI-SZ/BSVF)
 
 ## Attention
 
@@ -73,6 +73,8 @@ Repo URL: <https://github.com/BGI-SZ/BSVF>
 ./bsuit grep prj.ini
 ./bsuit analyse prj.ini
 ```
+
+![a Logo](https://raw.githubusercontent.com/BGI-SZ/BSVF/master/logo/BSVFlogo.png)
 
 ## Test Run
 
