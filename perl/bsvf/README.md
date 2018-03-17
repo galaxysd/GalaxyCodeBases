@@ -22,6 +22,8 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
 ## Install
 
+### Normal
+
 Run `pip install toolshed`.
 
 Run `src/install.sh`.
@@ -35,6 +37,31 @@ Your `bsIntegration/bin/` should be like this:
 -rwxr-xr-x   27040 Feb 20 01:14 water
 -rwxr-xr-x  971772 Feb 20 00:48 samtools
 ````
+
+### Homebrew/Linuxbrew
+
+````bash
+brew tap Ensembl/homebrew-external
+brew install emboss bwa samtools python
+pip install toolshed
+
+ln -s `which bwa` ./bin/
+ln -s `which samtools` ./bin/
+ln -s `which water` ./bin/
+
+brew install gcc
+cd ./src/analyser/
+make
+cp -av analyser/bsanalyser ../../bin/
+cd ../../bin/
+ls -l
+````
+
+## Citation
+
+Gao, S., Hu, X., Xu, F., Gao, C., Xiong, K., Zhao, X., … Pedersen, C. N. S. (2017, December 18). BS-virus-finder: virus integration calling using bisulfite sequencing data. GigaScience. <https://doi.org/10.1093/gigascience/gix123>
+
+Repo URL: <https://github.com/BGI-SZ/BSVF>
 
 ## Usage
 
