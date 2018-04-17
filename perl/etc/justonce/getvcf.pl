@@ -6,11 +6,17 @@ Version: 1.0.0 @ 20180417
 use strict;
 use warnings;
 use Galaxy::IO;
+use Data::Dump qw(ddx);
 
 my $in = openfile('0328.snp.table.16.txt.gz');
 chomp(my $t = <$in>);
 my @Header = split(/\t/,$t);
-print join(", ",@Header),"\n";
+my @SampleIDs = splice @Header,4;
+my $qGroupCnt = @SampleIDs/4;
+die "[x]Sample count $qGroupCnt is not 4n !\n" if $qGroupCnt != int($qGroupCnt);
+print join(", ","$qGroupCnt: ",@SampleIDs),"\n";
+
+my %Result;
 
 while(<$in>) {
 	chomp;
@@ -30,7 +36,26 @@ while(<$in>) {
 			push @SampleGT,join('','x',@aSampleGT);
 		}
 	}
-	print join(", ",$chr,$pos,@SampleGT,@SampleDep),"\n";
+	for my $i (1 .. $qGroupCnt) {
+		my $flag = 1;
+		my %gTGTs;
+		for my $j (4*($i-1) .. (4*$i-1)) {
+			if ($SampleDep[$j]<15) {
+				$flag = 0;
+				last;
+			} else {
+				++$gTGTs{$SampleGT[$j]}
+			}
+		}
+		if ($flag == 0) {
+			next;
+		} else {
+			++$Result{$i}{keys(%gTGTs)};
+			++$Result{$i}{-1};
+		}
+	}
+	#print join(", ",$chr,$pos,@SampleGT,@SampleDep),"\n";
+	ddx \%Result;
 }
 
 close $in;
