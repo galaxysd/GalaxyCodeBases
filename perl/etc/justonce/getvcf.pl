@@ -16,7 +16,7 @@ my $qGroupCnt = @SampleIDs/4;
 die "[x]Sample count $qGroupCnt is not 4n !\n" if $qGroupCnt != int($qGroupCnt);
 print join(", ","$qGroupCnt: ",@SampleIDs),"\n";
 
-my %Result;
+my (%Result,%GroupTGT);
 
 while(<$in>) {
 	chomp;
@@ -40,22 +40,34 @@ while(<$in>) {
 		my $flag = 1;
 		my %gTGTs;
 		for my $j (4*($i-1) .. (4*$i-1)) {
-			if ($SampleDep[$j]<15) {
+			if ($SampleDep[$j] < 15) {	# min depth is 15
 				$flag = 0;
 				last;
 			} else {
 				++$gTGTs{$SampleGT[$j]}
 			}
 		}
+		my $cp = "$chr\t$pos";
 		if ($flag == 0) {
+			$GroupTGT{$cp}{$i} = '.';	# less depth
+			next;
+		}
+		my @TGTs = keys(%gTGTs);
+		if (@TGTs == 1 and length($TGTs[0])!=1) {
+			$GroupTGT{$cp}{$i} = '-';	# 4 being same, but Het
 			next;
 		} else {
-			++$Result{$i}{keys(%gTGTs)};
+			++$Result{$i}{@TGTs};
 			++$Result{$i}{-1};
+			if (@TGTs == 1) {
+				$GroupTGT{$cp}{$i} = $TGTs[0];
+			}
 		}
 	}
 	#print join(", ",$chr,$pos,@SampleGT,@SampleDep),"\n";
 	ddx \%Result;
 }
-
 close $in;
+
+ddx \%GroupTGT;
+ddx \%Result;
