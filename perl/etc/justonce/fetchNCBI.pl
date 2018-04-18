@@ -8,6 +8,7 @@ use Data::Dump qw(ddx);
 my $deltra = 200;
 
 my $infile = 'snpcandidatforpcr.out';
+my %Genes;
 open IN,'<',$infile or die $!;
 open OUT,'>','pcr.fa' or die $!;
 while (<IN>) {
@@ -15,11 +16,14 @@ while (<IN>) {
 	my @dat = split /\t/;
 	next if @dat < 3;
 	my (undef,$id) = split /\./,$dat[0];
+	next if exists $Genes{$id};
+	++$Genes{$id};
 	print "$id, $dat[2], $dat[3]\n";
 	my ($left,$right) = ($dat[2]-$deltra,$dat[2]+$deltra);
 	my $url = 'https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id='.$id.'&db=nuccore&report=fasta&fmt_mask=0&maxplex=1&sendto=t&from='.$left.'&to='.$right.'&maxdownloadsize=1000000';
-	my $content = get($url);
-	# my $content = `curl \'$url\'`;
+	$url = 'https://www.ncbi.nlm.nih.gov/sviewer/viewer.fcgi?id='.$id.'&db=nuccore&report=fasta&fmt_mask=0&maxplex=1';
+	#my $content = get($url);
+	my $content = `curl -s \'$url\'`;
 	my @ret = split /\n/,$content;
 	my $head = shift @ret;
 	$head =~ s/^>//;
