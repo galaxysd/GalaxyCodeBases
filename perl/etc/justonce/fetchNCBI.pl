@@ -27,7 +27,8 @@ while (<IN>) {
 	my @ret = split /\n/,$content;
 	my $head = shift @ret;
 	$head =~ s/^>//;
-	my $out = ">${id}_$dat[2] $head\n" . join('',@ret);
+	#my $out = ">${id}_$dat[2] $head\n" . join('',@ret);
+	my $out = ">${id} $head\n" . join('',@ret);
 	print OUT "$out\n\n";
 }
 close OUT;
