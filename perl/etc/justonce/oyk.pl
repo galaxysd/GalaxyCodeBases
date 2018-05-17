@@ -32,6 +32,29 @@ if( (my $errorCode = getErrorCode()) ) {
 	print getStatisticName, "value for bigram is ", $twotailed_value, "\n";
 }
 
+sub getBolsheviks(@) {
+	my @dat = map { [split /[;,]/,$_] } @_;
+	my (%GT);
+	for (@dat) {
+		++$GT{$_->[0]};
+	}
+	my $Bolsheviks = (sort {$GT{$b} <=> $GT{$a}} keys %GT)[0];
+	my @GTdep;
+	for (@dat) {
+		next if $_->[0] ne $Bolsheviks;
+		for my $i (1 .. $#$_) {
+			$GTdep[$i-1] += $_->[$i];
+		}
+	}
+	my @GTs = split /[\/|]/,$Bolsheviks;
+	my $Hom = 0;
+	$Hom = 1 if $GTs[0] eq $GTs[1];
+	if ((keys %GT)>1) {
+		ddx $Bolsheviks,$Hom,\@GTdep,@dat;
+	}
+	return [$Bolsheviks,$Hom,\@GTdep];
+}
+
 open FM,'<','samplesM.tsv' or die "[x]Mom: $!\n";
 open FF,'<','samplesF.tsv' or die "[x]Dad: $!\n";
 open FC,'<','samplesC.tsv' or die "[x]Child: $!\n";
@@ -50,11 +73,22 @@ while (<FM>) {
 	next if $datF[3] < 100;
 	next if $datC[3] < 100;
 	die if $datM[0] ne $datC[0];
+	my @tM = splice @datM,4;
+	my @tF = splice @datF,4;
+	my @tC = splice @datC,4;
+	next if "@tM @tF @tC" =~ /\./;
+	#print "@tM\n@datM\n";
+	my $retM = getBolsheviks(@tM);
+	next unless $retM->[1];
+	my $retF = getBolsheviks(@tF);
+	ddx $retM,$retF;
 }
 
 close FM; close FF; close FC;
 
 __END__
+
+Order M,F,C
 
 All the words below is provided by the client, original text:
 
