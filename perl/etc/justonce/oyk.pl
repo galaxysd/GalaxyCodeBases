@@ -10,28 +10,6 @@ use Data::Dump qw(ddx);
 
 use Text::NSP::Measures::2D::Fisher::twotailed;
 
-my $n11 = 1968;
-my $n12 = 4;
-my $n21 = 1975;
-my $n22 = 15;
-
-my $n1p = $n11 + $n12;
-my $np1 = $n11 + $n21;
-my $npp = $n1p + $n21 + $n22;
-
-my $twotailed_value = calculateStatistic(
-	n11 => $n11,
-	n1p => $n1p,
-	np1 => $np1,
-	npp => $npp,
-);
-
-if( (my $errorCode = getErrorCode()) ) {
-	print STDERR $errorCode, " - ", getErrorMessage();
-} else {
-	print getStatisticName, "value for bigram is ", $twotailed_value, "\n";
-}
-
 sub getBolsheviks(@) {
 	my @dat = map { [split /[;,]/,$_] } @_;
 	my (%GT);
