@@ -120,10 +120,11 @@ while (<FM>) {
 			$GTtC = join('/',$Bases[$m],$Bases[$n]) if $twotailedFisher < 0.05;
 		}
 	}
+	my $retC = getBolsheviks(@tC);
 	print join("\t",@datM,
 		join(';',$retM->[0],join(',',@{$retM->[2]})),
 		join(';',$retF->[0],join(',',@{$retF->[2]})),
-		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher)
+		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,$retC->[0],join(',',@{$retC->[2]}))
 	),"\n";
 }
 
