@@ -49,9 +49,7 @@ sub getBolsheviks(@) {
 	my @GTs = split /[\/|]/,$Bolsheviks;
 	my $Hom = 0;
 	$Hom = 1 if $GTs[0] eq $GTs[1];
-	if ((keys %GT)>1) {
-		ddx $Bolsheviks,$Hom,\@GTdep,@dat;
-	}
+	#ddx $Bolsheviks,$Hom,\@GTdep,@dat if (keys %GT)>1;
 	return [$Bolsheviks,$Hom,\@GTdep];
 }
 
@@ -60,6 +58,7 @@ open FF,'<','samplesF.tsv' or die "[x]Dad: $!\n";
 open FC,'<','samplesC.tsv' or die "[x]Child: $!\n";
 
 my ($lFC,$lFF,$lFM);
+print "# Order: M,F,C\n";
 
 while (<FM>) {
 	chomp;
@@ -76,12 +75,56 @@ while (<FM>) {
 	my @tM = splice @datM,4;
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
+	my @Bases = split /,/,$datM[2];
 	next if "@tM @tF @tC" =~ /\./;
 	#print "@tM\n@datM\n";
 	my $retM = getBolsheviks(@tM);
 	next unless $retM->[1];
 	my $retF = getBolsheviks(@tF);
-	ddx $retM,$retF;
+	#ddx $retM,$retF;
+	my @sdatC = map { [split /[;,]/,$_] } @tC;
+	my @GTdepC;
+	for (@sdatC) {
+		for my $i (1 .. $#$_) {
+			$GTdepC[$i-1] += $_->[$i];
+		}
+	}
+	my %CntM;
+	my @GTM = @{$retM->[2]};
+	for my $i (0 .. $#GTM) {
+		$CntM{$i} = $GTM[$i];
+	}
+	my ($x,$y) = sort { $CntM{$b} <=> $CntM{$a} } keys %CntM;
+	#ddx [$x,$y,$Bases[$x],$Bases[$y]],\@sdatC,\@GTdepC;
+	my $n11 = $retM->[2]->[$x];
+	my $n12 = $retM->[2]->[$y];
+	my $n21 = $GTdepC[$x];
+	my $n22 = $GTdepC[$y];
+	my $GTtC;
+	my $twotailedFisher = -1;
+	$GTtC = join('/',$Bases[$x],$Bases[$x]);
+	unless ($n22 * 199 < $n21) {	# 0.5% = 1:200
+		my $n1p = $n11 + $n12;
+		my $np1 = $n11 + $n21;
+		my $npp = $n1p + $n21 + $n22;
+		$twotailedFisher = calculateStatistic(
+			n11 => $n11,
+			n1p => $n1p,
+			np1 => $np1,
+			npp => $npp,
+		);
+		if( (my $errorCode = getErrorCode()) ) {
+			die $errorCode, " - ", getErrorMessage();
+		} else {
+			my ($m,$n) = sort {$a<=>$b} ($x,$y);
+			$GTtC = join('/',$Bases[$m],$Bases[$n]) if $twotailedFisher < 0.05;
+		}
+	}
+	print join("\t",@datM,
+		join(';',$retM->[0],join(',',@{$retM->[2]})),
+		join(';',$retF->[0],join(',',@{$retF->[2]})),
+		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher)
+	),"\n";
 }
 
 close FM; close FF; close FC;
