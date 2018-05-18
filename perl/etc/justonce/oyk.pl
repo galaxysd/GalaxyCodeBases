@@ -10,10 +10,24 @@ use Data::Dump qw(ddx);
 
 use Text::NSP::Measures::2D::Fisher::twotailed;
 
-#sub deBayes(@) {}
+our @Bases;
+sub deBayes($) {
+	my $p = $_[0];
+	my %Dep;
+	for my $i (1 .. $#$p) {
+		$Dep{$i-1} = $p->[$i];
+	}
+	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
+	if ( $Dep{$dKeys[1]} * 39 > $Dep{$dKeys[0]} ) {
+		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
+		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
+		$p->[0] = $gt;
+	}
+}
 
 sub getBolsheviks(@) {
 	my @dat = map { [split /[;,]/,$_] } @_;
+	deBayes($_) for @dat;
 	my (%GT);
 	for (@dat) {
 		++$GT{$_->[0]};
@@ -55,7 +69,7 @@ while (<FM>) {
 	my @tM = splice @datM,4;
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
-	my @Bases = split /,/,$datM[2];
+	@Bases = split /,/,$datM[2];
 	next if "@tM @tF @tC" =~ /\./;
 	#print "@tM\n@datM\n";
 	my $retM = getBolsheviks(@tM);
@@ -107,7 +121,9 @@ while (<FM>) {
 	print join("\t",@datM,
 		join(';',$retM->[0],join(',',@{$retM->[2]})),
 		join(';',$retF->[0],join(',',@{$retF->[2]})),
-		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,$retC->[0],join(',',@{$retC->[2]}))
+		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher
+			,$retC->[0],join(',',@{$retC->[2]})
+		)
 	),"\n";
 }
 
@@ -118,7 +134,7 @@ __END__
 Order M,F,C
 
 Canceled:
-x+放弃贝叶斯结果，2.5%以上就是杂合。双亲只保留多数结果。
++放弃贝叶斯结果，2.5%以上就是杂合。双亲只保留多数结果。
 x子代单个样品深度<1000的，整行扔掉。
 x子代，both >0.5% and chi^2<0.05，才算杂合。
 
