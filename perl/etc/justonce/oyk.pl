@@ -10,6 +10,8 @@ use Data::Dump qw(ddx);
 
 use Text::NSP::Measures::2D::Fisher::twotailed;
 
+#sub deBayes(@) {}
+
 sub getBolsheviks(@) {
 	my @dat = map { [split /[;,]/,$_] } @_;
 	my (%GT);
@@ -111,6 +113,11 @@ close FM; close FF; close FC;
 __END__
 
 Order M,F,C
+
+Canceled:
+x+放弃贝叶斯结果，2.5%以上就是杂合。双亲只保留多数结果。
+x子代单个样品深度<1000的，整行扔掉。
+x子代，both >0.5% and chi^2<0.05，才算杂合。
 
 All the words below is provided by the client, original text:
 
