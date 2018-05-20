@@ -5,10 +5,12 @@ Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
-use Galaxy::IO;
-use Data::Dump qw(ddx);
 
+use lib '.';
+
+use Data::Dump qw(ddx);
 use Text::NSP::Measures::2D::Fisher::twotailed;
+use FGI::GetCPI;
 
 our @Bases;
 sub deBayes($) {
@@ -51,7 +53,7 @@ open FM,'<','samplesM.tsv' or die "[x]Mom: $!\n";
 open FF,'<','samplesF.tsv' or die "[x]Dad: $!\n";
 open FC,'<','samplesC.tsv' or die "[x]Child: $!\n";
 
-my ($lFC,$lFF,$lFM);
+my ($cpi,$lFC,$lFF,$lFM)=(1);
 print "# Order: M,F,C\n";
 
 while (<FM>) {
@@ -118,16 +120,20 @@ while (<FM>) {
 		}
 	}
 	my $retC = getBolsheviks(@tC);
-	print join("\t",@datM,
-		join(';',$retM->[0],join(',',@{$retM->[2]})),
-		join(';',$retF->[0],join(',',@{$retF->[2]})),
-		join(';',$GTtC,join(',',@GTdepC),$twotailedFisher
-			,$retC->[0],join(',',@{$retC->[2]})
-		)
-	),"\n";
+	my $resM = join(';',$retM->[0],join(',',@{$retM->[2]}));
+	my $resF = join(';',$retF->[0],join(',',@{$retF->[2]}));
+	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,
+						$retC->[0],join(',',@{$retC->[2]})
+					);
+	my $cret = getcpi(@datM,$resM,$resF,$resC);
+	#ddx $cret;
+	$cpi *= $cret->[0];
+	print join("\t",@datM,$resM,$resF,$resC,@$cret,$cpi),"\n";
 }
 
 close FM; close FF; close FC;
+
+print "# CPI: $cpi\n";
 
 __END__
 
