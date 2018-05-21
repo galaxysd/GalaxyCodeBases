@@ -11,7 +11,7 @@ use lib '.';
 use Data::Dump qw(ddx);
 use Text::NSP::Measures::2D::Fisher::twotailed;
 use FGI::GetCPI;
-use bignum;
+#use Math::BigFloat;
 
 our @Bases;
 sub deBayes($) {
@@ -54,7 +54,7 @@ open FM,'<','samplesM.tsv' or die "[x]Mom: $!\n";
 open FF,'<','samplesF.tsv' or die "[x]Dad: $!\n";
 open FC,'<','samplesC.tsv' or die "[x]Child: $!\n";
 
-my ($cpi,$lFC,$lFF,$lFM)=(1);
+my ($logcpi,$lFC,$lFF,$lFM)=(0);
 print "# Order: M,F,C\n";
 
 while (<FM>) {
@@ -128,13 +128,13 @@ while (<FM>) {
 					);
 	my $cret = getcpi(@datM,$resM,$resF,$resC);
 	#ddx $cret;
-	$cpi *= $cret->[0];
-	print join("\t",@datM,$resM,$resF,$resC,@$cret,$cpi),"\n";
+	$logcpi += log($cret->[0]);
+	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10)),"\n";
 }
 
 close FM; close FF; close FC;
 
-print "# CPI: $cpi\n";
+print "# CPI: ",exp($logcpi),"\n";
 
 __END__
 
