@@ -21,7 +21,7 @@ sub deBayes($) {
 		$Dep{$i-1} = $p->[$i];
 	}
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( $Dep{$dKeys[1]} * 39 > $Dep{$dKeys[0]} ) {
+	if ( $Dep{$dKeys[1]} * 49 > $Dep{$dKeys[0]} ) {	# 2%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
@@ -103,9 +103,9 @@ while (<FM>) {
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
-	if (($n22/$Cdep > 0.001) and ($n22/$Cdep < 0.02)) {
+	if ($n22/$Cdep < 0.02) {	# minnor < 2%, skip ; depth<10
 		next;	# skip
-	} elsif ($n22/$Cdep >= 0.02) {
+	} else {
 		my $n1p = $n11 + $n12;
 		my $np1 = $n11 + $n21;
 		my $npp = $n1p + $n21 + $n22;
@@ -119,7 +119,7 @@ while (<FM>) {
 			die $errorCode, " - ", getErrorMessage();
 		} else {
 			my ($m,$n) = sort {$a<=>$b} ($x,$y);
-			$GTtC = join('/',$Bases[$m],$Bases[$n]) if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
+			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
 		}
 	}
 	my $retC = getBolsheviks(@tC);
