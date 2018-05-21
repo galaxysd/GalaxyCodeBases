@@ -11,6 +11,7 @@ use lib '.';
 use Data::Dump qw(ddx);
 use Text::NSP::Measures::2D::Fisher::twotailed;
 use FGI::GetCPI;
+use bignum;
 
 our @Bases;
 sub deBayes($) {
