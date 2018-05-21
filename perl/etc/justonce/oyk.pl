@@ -101,10 +101,11 @@ while (<FM>) {
 	my $GTtC;
 	my $twotailedFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
+	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
-	if ($n22/($n21+$n22) > 0.001 and $n22/($n21+$n22) < 0.02) {
+	if (($n22/$Cdep > 0.001) and ($n22/$Cdep < 0.02)) {
 		next;	# skip
-	} else {
+	} elsif ($n22/$Cdep >= 0.02) {
 		my $n1p = $n11 + $n12;
 		my $np1 = $n11 + $n21;
 		my $npp = $n1p + $n21 + $n22;
