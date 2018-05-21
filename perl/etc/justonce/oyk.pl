@@ -101,7 +101,8 @@ while (<FM>) {
 	my $GTtC;
 	my $twotailedFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
-	if ($n22 * 199 < $n21) {	# 0.5% = 1:200
+	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
+	if ($n22/($n21+$n22) > 0.001 and $n22/($n21+$n22) < 0.02) {
 		next;	# skip
 	} else {
 		my $n1p = $n11 + $n12;
@@ -117,7 +118,7 @@ while (<FM>) {
 			die $errorCode, " - ", getErrorMessage();
 		} else {
 			my ($m,$n) = sort {$a<=>$b} ($x,$y);
-			$GTtC = join('/',$Bases[$m],$Bases[$n]) if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# 0.05 & 2%
+			$GTtC = join('/',$Bases[$m],$Bases[$n]) if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
 		}
 	}
 	my $retC = getBolsheviks(@tC);

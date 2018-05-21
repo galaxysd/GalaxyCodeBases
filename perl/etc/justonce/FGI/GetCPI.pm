@@ -11022,12 +11022,12 @@ sub getcpi(@) {
 	my @genodad=split /\//,$dad[0];
 	my @genoch=split /\//,$ch[0];
 	#ddx \@geno,\@mm,\@dad,\@ch,\@genomm,\@genodad,\@genoch;
-	#++$pass;
 	if($genoch[0] ne $genomm[0] && $genoch[1] ne $genomm[1]){
 		$pass++;
 		return [1,$err,$special,$pass];
 	}else{
 		if($alt =~/\,/){
+			$pass++;
 			return [1,$err,$special,$pass];
 		}else{
 		 if($genoch[0] ne $genodad[0] && $genoch[0] ne $genodad[1] && $genoch[1] ne $genodad[0] && $genoch[1] ne $genodad[1]){
@@ -11039,10 +11039,29 @@ sub getcpi(@) {
 			return [1/$maj,$err,$special,$pass];
 		
 		 }
+		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
+
+			return [0.5/$maf,$err,$special,$pass];
+		 }
+		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
+			 $err++;
+			 return [1e-7,$err,$special,$pass];
+			
+		 }
 		#child is hom alt
 		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $alt){
 			return [1/$maf,$err,$special,$pass];	
 		 }
+
+		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $alt){
+                        return [0.5/$maj,$err,$special,$pass];
+                 }
+		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $alt){
+                        $err++;
+			 return [1e-7,$err,$special,$pass];
+                 }
+
+		   
 
 		#special case1
 		 #if(($genoch[0] eq $ref && $genoch[1] ne $ref) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref){
@@ -11064,11 +11083,15 @@ sub getcpi(@) {
                         return [1/$maj,$err,$special,$pass];
                    }
  
-		   if( ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
+		   if( ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $alt ){
 			$err++;
                         return [1e-7,$err,$special,$pass];
                    }
-  			
+  		   if( ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref ){
+                        $err++;
+                        return [1e-7,$err,$special,$pass];
+                   }
+ 		
 		 }
 		#special case
 		 if ($genoch[0] ne $ref && $genoch[0] ne $alt && $genoch[1] ne $ref && $genoch[1] ne $alt) { #two alleles are special
