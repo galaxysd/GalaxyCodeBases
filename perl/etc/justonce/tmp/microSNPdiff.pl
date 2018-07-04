@@ -5,8 +5,9 @@ use Data::Dump qw(ddx);
 
 my $SampleList = 'samples.lst';
 my $SNPtsv = 'micro.snp.tsv';
+my $Out1 = 'micro.consisted.tsv';
 
-my (%Samples,@Samples,%ID2Sample,%SampleCnts);
+my (%Samples,@Samples,@UIDs,%ID2Sample,%SampleCnts);
 open I,'<',$SampleList or die $?;
 while (<I>) {
 	chomp;
@@ -17,12 +18,16 @@ while (<I>) {
 	++$SampleCnts{$1};
 }
 close I;
+@UIDs = sort keys %Samples;
 
-my ();
+my (%SameCntSum);
+open O,'>',$Out1 or die $?;
+print O join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
 open I,'<',$SNPtsv or die $?;
 while (<I>) {
 	chomp;
 	my ($Chr,$Pos,$GTstr,$Qual,@Dat) = split /\t/;
+	my $Loc = "$Chr\t$Pos";
 	my @GTs = split /,/,$GTstr;
 	my @DatA = map { (split /;/,$_)[0] } @Dat;
 	#ddx [$Chr,$Pos,\@GTs,$Qual,\@DatA];
@@ -33,10 +38,28 @@ while (<I>) {
 		my $GT = $DatA[$i];
 		++$SmpGTp{$uid}{$GT};
 	}
-	ddx \%SmpGTp;
+	#ddx \%SmpGTp;
+	my %SameCntLoc;
+	for my $uid (@UIDs) {
+		my @SmpGTpKeys = keys %{$SmpGTp{$uid}};
+		$SameCntLoc{$uid} = 0;
+		if (@SmpGTpKeys == 1) {
+			$SameCntLoc{$uid}  = 1;
+			$SameCntLoc{'\t'} += 1;
+		}
+	}
+	#ddx \%SameCnt;
+	++$SameCntSum{$SameCntLoc{'\t'}};
+	print O join("\t",$Chr,$Pos,$SameCntLoc{'\t'},(map {$SameCntLoc{$_}} @UIDs)),"\n";
 }
 close I;
 
+print O "\n# Total ",scalar @UIDs," Individuals.\n\n# Summary\n";
+for my $i (sort {$a <=> $b} keys %SameCntSum) {
+	print O "# $i:",$SameCntSum{$i},"\n";
+}
+
+close O;
 
 
 __END__
