@@ -18,15 +18,28 @@ while (<I>) {
 }
 close I;
 
+my ();
 open I,'<',$SNPtsv or die $?;
 while (<I>) {
 	chomp;
 	my ($Chr,$Pos,$GTstr,$Qual,@Dat) = split /\t/;
 	my @GTs = split /,/,$GTstr;
 	my @DatA = map { (split /;/,$_)[0] } @Dat;
-	ddx [$Chr,$Pos,\@GTs,$Qual,\@DatA];
+	#ddx [$Chr,$Pos,\@GTs,$Qual,\@DatA];
+	my %SmpGTp;
+	for my $i (0 .. $#Samples) {
+		my $sid = $Samples[$i];
+		my $uid = $ID2Sample{$sid};
+		my $GT = $DatA[$i];
+		++$SmpGTp{$uid}{$GT};
+	}
+	ddx \%SmpGTp;
 }
 close I;
+
+
+
+__END__
 
 ddx \%Samples;
 ddx \%ID2Sample;
