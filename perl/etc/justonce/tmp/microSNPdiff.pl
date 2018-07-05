@@ -6,8 +6,9 @@ use Data::Dump qw(ddx);
 my $SampleList = 'samples.lst';
 my $SNPtsv = 'micro.snp.tsv';
 my $Out1 = 'micro.consisted.tsv';
-my $Out2 = 'micro.diff.tsv';
+my $Out2 = 'micro.same.tsv';
 my $Out3 = 'micro.GT.tsv';
+my $Out4 = 'micro.diff.tsv';
 
 my (%Samples,@Samples,@UIDs,%ID2Sample,%SampleCnts);
 open I,'<',$SampleList or die $?;
@@ -69,14 +70,16 @@ close O;
 
 #my %SameDiffSum;
 open O,'>',$Out2 or die $?;
+open E,'>',$Out4 or die $?;
 print O join("\t",'=',@UIDs),"\n";
+print E join("\t",'=',@UIDs),"\n";
 for my $i (0 .. $#UIDs) {
 	my $p = $#UIDs - $i;
 	my $uidi = $UIDs[$i];
 	print O $uidi;
 	for my $j (0 .. $i) {
 		my $uidj = $UIDs[$j];
-		my $cntij = 0;
+		my ($cntij,$cntijE) = (0,0);
 		for my $Loc (keys %SameGTdat) {
 			my $GTi = $SameGTdat{$Loc}{$uidi};
 			my $GTj = $SameGTdat{$Loc}{$uidj};
@@ -85,15 +88,20 @@ for my $i (0 .. $#UIDs) {
 			if ($GTi eq $GTj) {
 				#next if $GTi =~ /,/;
 				++$cntij;
+			} else {
+				++$cntijE;
 			}
 		}
 		#++$SameDiffSum{$cntij};
 		print O "\t$cntij";
+		print E "\t$cntijE";
 	}
 	print O "\n";
+	print E "\n";
 }
 
 close O;
+close E;
 
 #ddx \%SameDiffSum;
 __END__
