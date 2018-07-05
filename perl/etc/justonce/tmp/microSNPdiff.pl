@@ -80,6 +80,8 @@ open X,'>',$Out5 or die $?;
 open Y,'>',$Out6 or die $?;
 print O join("\t",'=',@UIDs),"\n";
 print E join("\t",'=',@UIDs),"\n";
+print X join("\t",'=',@UIDs),"\n";
+print Y join("\t",'=',@UIDs),"\n";
 for my $i (0 .. $#UIDs) {
 	my $uidi = $UIDs[$i];
 	print O $uidi;
