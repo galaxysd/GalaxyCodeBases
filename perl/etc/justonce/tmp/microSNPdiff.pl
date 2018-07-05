@@ -76,6 +76,7 @@ print E join("\t",'=',@UIDs),"\n";
 for my $i (0 .. $#UIDs) {
 	my $uidi = $UIDs[$i];
 	print O $uidi;
+	print E $uidi;
 	for my $j (0 .. $i) {
 		my $uidj = $UIDs[$j];
 		my ($cntij,$cntijE) = (0,0);
