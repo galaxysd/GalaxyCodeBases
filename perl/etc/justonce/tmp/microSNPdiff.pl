@@ -6,6 +6,8 @@ use Data::Dump qw(ddx);
 my $SampleList = 'samples.lst';
 my $SNPtsv = 'micro.snp.tsv';
 my $Out1 = 'micro.consisted.tsv';
+my $Out2 = 'micro.diff.tsv';
+my $Out3 = 'micro.GT.tsv';
 
 my (%Samples,@Samples,@UIDs,%ID2Sample,%SampleCnts);
 open I,'<',$SampleList or die $?;
@@ -20,9 +22,11 @@ while (<I>) {
 close I;
 @UIDs = sort keys %Samples;
 
-my (%SameCntSum);
+my (%SameCntSum,%SameGTdat,%SameCnt);
 open O,'>',$Out1 or die $?;
+open P,'>',$Out3 or die $?;
 print O join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
+print P join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
 open I,'<',$SNPtsv or die $?;
 while (<I>) {
 	chomp;
@@ -39,29 +43,59 @@ while (<I>) {
 		++$SmpGTp{$uid}{$GT};
 	}
 	#ddx \%SmpGTp;
-	my %SameCntLoc;
+	#my %SameCntLoc;
 	for my $uid (@UIDs) {
-		my @SmpGTpKeys = keys %{$SmpGTp{$uid}};
-		$SameCntLoc{$uid} = 0;
+		my @SmpGTpKeys = sort keys %{$SmpGTp{$uid}};
+		$SameCnt{$Loc}{$uid} = 0;
 		if (@SmpGTpKeys == 1) {
-			$SameCntLoc{$uid}  = 1;
-			$SameCntLoc{'\t'} += 1;
+			$SameCnt{$Loc}{$uid}  = 1;
+			$SameCnt{$Loc}{'\t'} += 1;
 		}
+		$SameGTdat{$Loc}{$uid} = join(',',sort @SmpGTpKeys);
 	}
 	#ddx \%SameCnt;
-	++$SameCntSum{$SameCntLoc{'\t'}};
-	print O join("\t",$Chr,$Pos,$SameCntLoc{'\t'},(map {$SameCntLoc{$_}} @UIDs)),"\n";
+	++$SameCntSum{$SameCnt{$Loc}{'\t'}};
+	print O join("\t",$Chr,$Pos,$SameCnt{$Loc}{'\t'},(map {$SameCnt{$Loc}{$_}} @UIDs)),"\n";
+	print P join("\t",$Chr,$Pos,$SameCnt{$Loc}{'\t'},(map {$SameGTdat{$Loc}{$_}} @UIDs)),"\n";
 }
 close I;
+close P;
 
 print O "\n# Total ",scalar @UIDs," Individuals.\n\n# Summary\n";
 for my $i (sort {$a <=> $b} keys %SameCntSum) {
 	print O "# $i:",$SameCntSum{$i},"\n";
 }
+close O;
+
+#my %SameDiffSum;
+open O,'>',$Out2 or die $?;
+print O join("\t",'=',@UIDs),"\n";
+for my $i (0 .. $#UIDs) {
+	my $p = $#UIDs - $i;
+	my $uidi = $UIDs[$i];
+	print O $uidi;
+	for my $j (0 .. $i) {
+		my $uidj = $UIDs[$j];
+		my $cntij = 0;
+		for my $Loc (keys %SameGTdat) {
+			my $GTi = $SameGTdat{$Loc}{$uidi};
+			my $GTj = $SameGTdat{$Loc}{$uidj};
+			next unless $SameCnt{$Loc}{$uidi};
+			next unless $SameCnt{$Loc}{$uidj};
+			if ($GTi eq $GTj) {
+				#next if $GTi =~ /,/;
+				++$cntij;
+			}
+		}
+		#++$SameDiffSum{$cntij};
+		print O "\t$cntij";
+	}
+	print O "\n";
+}
 
 close O;
 
-
+#ddx \%SameDiffSum;
 __END__
 
 ddx \%Samples;
