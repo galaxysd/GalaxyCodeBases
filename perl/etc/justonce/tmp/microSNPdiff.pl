@@ -74,7 +74,6 @@ open E,'>',$Out4 or die $?;
 print O join("\t",'=',@UIDs),"\n";
 print E join("\t",'=',@UIDs),"\n";
 for my $i (0 .. $#UIDs) {
-	my $p = $#UIDs - $i;
 	my $uidi = $UIDs[$i];
 	print O $uidi;
 	for my $j (0 .. $i) {
