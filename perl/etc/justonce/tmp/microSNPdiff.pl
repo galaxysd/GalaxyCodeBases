@@ -11,9 +11,10 @@ my $Out3 = 'micro.GT.tsv';
 my $Out4 = 'micro.diff.tsv';
 my $Out5 = 'micro.Tsame.tsv';
 my $Out6 = 'micro.Tdiff.tsv';
+my $Out7 = 'micro.cGT.tsv';
 
 my (%Samples,@Samples,@UIDs,%ID2Sample,%SampleCnts);
-open I,'<',$SampleList or die $?;
+open I,'<',$SampleList or die $!;
 while (<I>) {
 	chomp;
 	my ($id,$rep) = /([A-Za-z]+)(\w+)/;
@@ -25,12 +26,14 @@ while (<I>) {
 close I;
 @UIDs = sort keys %Samples;
 
-my (%SameCntSum,%SameGTdat,%SameCnt,%TopLoc);
-open O,'>',$Out1 or die $?;
-open P,'>',$Out3 or die $?;
+my (%SameCntSum,%SameGTdat,%SamecGTdat,%SameCnt,%TopLoc,%SameAcGTdat);
+open O,'>',$Out1 or die $!;
+open P,'>',$Out3 or die $!;
+open X,'>',$Out7 or die $!;
 print O join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
 print P join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
-open I,'<',$SNPtsv or die $?;
+print X join("\t",'Chr','Pos','Consisted',@UIDs),"\n";
+open I,'<',$SNPtsv or die $!;
 while (<I>) {
 	chomp;
 	my ($Chr,$Pos,$GTstr,$Qual,@Dat) = split /\t/;
@@ -55,17 +58,26 @@ while (<I>) {
 			$SameCnt{$Loc}{'\t'} += 1;
 		}
 		$SameGTdat{$Loc}{$uid} = join(',',sort @SmpGTpKeys);
+		$SamecGTdat{$Loc}{$uid} = scalar @SmpGTpKeys;
+		++$SameAcGTdat{$uid}{scalar @SmpGTpKeys};
 	}
 	#ddx \%SameCnt;
 	++$SameCntSum{$SameCnt{$Loc}{'\t'}};
 	print O join("\t",$Chr,$Pos,$SameCnt{$Loc}{'\t'},(map {$SameCnt{$Loc}{$_}} @UIDs)),"\n";
 	print P join("\t",$Chr,$Pos,$SameCnt{$Loc}{'\t'},(map {$SameGTdat{$Loc}{$_}} @UIDs)),"\n";
+	print X join("\t",$Chr,$Pos,$SameCnt{$Loc}{'\t'},(map {$SamecGTdat{$Loc}{$_}} @UIDs)),"\n";
 	if ($SameCnt{$Loc}{'\t'} == scalar @UIDs) {
 		++$TopLoc{$Loc};
 	}
 }
 close I;
 close P;
+
+print X "\n# Summary\n";
+for my $uid (@UIDs) {
+	print X "# $uid: ",join(', ',(map {"$_=$SameAcGTdat{$uid}{$_}"} sort {$a <=> $b} keys %{$SameAcGTdat{$uid}})),"\n";
+}
+close X;
 
 print O "\n# Total ",scalar @UIDs," Individuals.\n\n# Summary\n";
 for my $i (sort {$a <=> $b} keys %SameCntSum) {
@@ -74,10 +86,10 @@ for my $i (sort {$a <=> $b} keys %SameCntSum) {
 close O;
 
 #my %SameDiffSum;
-open O,'>',$Out2 or die $?;
-open E,'>',$Out4 or die $?;
-open X,'>',$Out5 or die $?;
-open Y,'>',$Out6 or die $?;
+open O,'>',$Out2 or die $!;
+open E,'>',$Out4 or die $!;
+open X,'>',$Out5 or die $!;
+open Y,'>',$Out6 or die $!;
 print O join("\t",'=',@UIDs),"\n";
 print E join("\t",'=',@UIDs),"\n";
 print X join("\t",'=',@UIDs),"\n";
