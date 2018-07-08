@@ -50,9 +50,19 @@ sub getBolsheviks(@) {
 	return [$Bolsheviks,$Hom,\@GTdep];
 }
 
-open FM,'<','samplesM.tsv' or die "[x]Mom: $!\n";
-open FF,'<','samplesF.tsv' or die "[x]Dad: $!\n";
-open FC,'<','samplesC.tsv' or die "[x]Child: $!\n";
+my ($samplesM,$samplesF,$samplesC);
+
+if (@ARGV == 3) {
+	($samplesM,$samplesF,$samplesC) = @ARGV;
+} elsif (@ARGV == 0) {
+	($samplesM,$samplesF,$samplesC) = ('samplesM.tsv','samplesF.tsv','samplesC.tsv');
+} else {
+	die "Usage: $0 <samplesM> <samplesF> <samplesC>\n";
+}
+
+open FM,'<',$samplesM or die "[x]Mom: $samplesM $!\n";
+open FF,'<',$samplesF or die "[x]Dad: $samplesF $!\n";
+open FC,'<',$samplesC or die "[x]Child: $samplesC $!\n";
 
 my ($logcpi,$lFC,$lFF,$lFM)=(0);
 print "# Order: M,F,C\n";
