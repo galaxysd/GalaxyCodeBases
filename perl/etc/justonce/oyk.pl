@@ -143,13 +143,13 @@ while (<FM>) {
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
 	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10)),"\n";
-	++$Cnt;
+	++$CntA;
 	$CntM = $cret->[1];
 }
 
 close FM; close FF; close FC;
 
-print "# Total: $Cnt, Mis: $CntM," CPI: ",exp($logcpi),"\n";
+print "# Total: $CntA, Mis: $CntM, CPI: ",exp($logcpi),"\n";
 
 __END__
 
