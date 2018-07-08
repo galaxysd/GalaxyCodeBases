@@ -67,6 +67,7 @@ open FC,'<',$samplesC or die "[x]Child: $samplesC $!\n";
 my ($logcpi,$lFC,$lFF,$lFM)=(0);
 print "# Order: M,F,C\n";
 
+my ($CntA,$CntM) = (0,0);
 while (<FM>) {
 	chomp;
 	chomp($lFC = <FC>);
@@ -142,11 +143,13 @@ while (<FM>) {
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
 	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10)),"\n";
+	++$Cnt;
+	$CntM = $cret->[1];
 }
 
 close FM; close FF; close FC;
 
-print "# CPI: ",exp($logcpi),"\n";
+print "# Total: $Cnt, Mis: $CntM," CPI: ",exp($logcpi),"\n";
 
 __END__
 
