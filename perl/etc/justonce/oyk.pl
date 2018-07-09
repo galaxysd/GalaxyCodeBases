@@ -149,11 +149,11 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-$lgcpi = sprintf("%f",$logcpi/log(10));
+my $lgcpi = sprintf("%f",$logcpi/log(10));
 my @cpiPart = split /\./,$lgcpi;
 my ($main,$texp) = (1,$cpiPart[0]);
 if (scalar @cpiPart == 2) {
-	$main = 10*exp($cpiPart[1]*log(10));
+	$main = 10*exp("0.$cpiPart[1]"*log(10));
 	$texp -= 1;
 }
 
