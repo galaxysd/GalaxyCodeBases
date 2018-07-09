@@ -11032,7 +11032,7 @@ sub getcpi(@) {
 		}else{
 		 if($genoch[0] ne $genodad[0] && $genoch[0] ne $genodad[1] && $genoch[1] ne $genodad[0] && $genoch[1] ne $genodad[1]){
 			$err++;
-			return [1e-7,$err,$special,$pass];
+			return [1e-4,$err,$special,$pass];
 		 }
 		 #child is hom ref
 		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref ){
@@ -11045,7 +11045,7 @@ sub getcpi(@) {
 		 }
 		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
 			 $err++;
-			 return [1e-7,$err,$special,$pass];
+			 return [1e-4,$err,$special,$pass];
 			
 		 }
 		#child is hom alt
@@ -11058,7 +11058,7 @@ sub getcpi(@) {
                  }
 		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $alt){
                         $err++;
-			 return [1e-7,$err,$special,$pass];
+			 return [1e-4,$err,$special,$pass];
                  }
 
 		   
@@ -11066,7 +11066,7 @@ sub getcpi(@) {
 		#special case1
 		 #if(($genoch[0] eq $ref && $genoch[1] ne $ref) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref){
 		#	$err++;
-		#	return 1e-7;
+		#	return 1e-4;
 		# }
 		# child is heter  
 		 if ($genoch[0] eq $ref && $genoch[1] eq $alt){
@@ -11085,11 +11085,11 @@ sub getcpi(@) {
  
 		   if( ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $alt ){
 			$err++;
-                        return [1e-7,$err,$special,$pass];
+                        return [1e-4,$err,$special,$pass];
                    }
   		   if( ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref ){
                         $err++;
-                        return [1e-7,$err,$special,$pass];
+                        return [1e-4,$err,$special,$pass];
                    }
  		
 		 }
@@ -11101,7 +11101,7 @@ sub getcpi(@) {
 		   if($genoch[0] ne $ref && $genoch[0] ne $alt){
 			#if(($genoch[0] eq $genodad[0] && $genoch[1] eq $genomm[1]) || ($genoch[0] eq $genodad[1] && $genoch[1] eq $genomm[1]) ){
 			#	$special++;
-			#	return 1e7;
+			#	return 1e4;
 			#}
 			#if(($genoch[1] eq $genodad[0] && $genoch[0] eq $genomm[1]) || ($genoch[1] eq $genodad[1] && $genoch[0] eq $genomm[1])){
 			#	return 2; 
@@ -11112,17 +11112,17 @@ sub getcpi(@) {
 				}
 				if(($genoch[1] ne  $genodad[0]) && ($genoch[1] ne $genodad[1])){
 					$err++;
-					return [1e-7,$err,$special,$pass];
+					return [1e-4,$err,$special,$pass];
 				}
 			}		
 			if($genoch[1] eq $genomm[0]){
 				if(($genoch[0] eq $genodad[0]) || ($genoch[0] eq $genodad[1])){
 					$special++;
-					return [1e7,$err,$special,$pass];
+					return [1e4,$err,$special,$pass];
 				}
 				if(($genoch[0] ne $genodad[0]) && ($genoch[0] ne $genodad[1])){
 					$err++;
-					return [1e-7,$err,$special,$pass];
+					return [1e-4,$err,$special,$pass];
 				}
 			}
 		   }
@@ -11133,17 +11133,17 @@ sub getcpi(@) {
 				}
 				if(($genoch[0] ne  $genodad[0]) && ($genoch[0] ne $genodad[1])){
 					$err++;
-					return [1e-7,$err,$special,$pass];
+					return [1e-4,$err,$special,$pass];
 				}
 			}
 			if($genoch[0] eq $genomm[0]){
 				if(($genoch[1] eq $genodad[0]) || ($genoch[1] eq $genodad[1])){
 					$special++;
-					return [1e7,$err,$special,$pass];
+					return [1e4,$err,$special,$pass];
 				}
 				if(($genoch[1] ne $genodad[0]) && ($genoch[1] ne $genodad[1])){
 					$err++;
-					return [1e-7,$err,$special,$pass];
+					return [1e-4,$err,$special,$pass];
 				}
 			}
 		}
