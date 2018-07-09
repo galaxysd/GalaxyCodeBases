@@ -153,7 +153,13 @@ my $lgcpi = sprintf("%f",$logcpi/log(10));
 my @cpiPart = split /\./,$lgcpi;
 my ($main,$texp) = (1,$cpiPart[0]);
 if (scalar @cpiPart == 2) {
-	$main = 10*exp("0.$cpiPart[1]"*log(10));
+	my $mainstr;
+	if ($logcpi < 0) {
+		$mainstr = "-0.$cpiPart[1]";
+	} else {
+		$mainstr = "0.$cpiPart[1]";
+	}
+	$main = 10*exp($mainstr*log(10));
 	$texp -= 1;
 }
 
