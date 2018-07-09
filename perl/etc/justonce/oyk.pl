@@ -156,11 +156,12 @@ if (scalar @cpiPart == 2) {
 	my $mainstr;
 	if ($logcpi < 0) {
 		$mainstr = "-0.$cpiPart[1]";
+		$main = 10*exp($mainstr*log(10));
+		$texp -= 1;
 	} else {
 		$mainstr = "0.$cpiPart[1]";
+		$main = exp($mainstr*log(10));
 	}
-	$main = 10*exp($mainstr*log(10));
-	$texp -= 1;
 }
 
 print "# Total: $CntA, Mis: $CntM, CPI: ",join('',$main,'e',$texp),"\n";
