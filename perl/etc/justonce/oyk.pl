@@ -149,7 +149,15 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-print "# Total: $CntA, Mis: $CntM, CPI: ",exp($logcpi),"\n";
+$lgcpi = sprintf("%f",$logcpi/log(10));
+my @cpiPart = split /\./,$lgcpi;
+my ($main,$texp) = (1,$cpiPart[0]);
+if (scalar @cpiPart == 2) {
+	$main = 10*exp($cpiPart[1]*log(10));
+	$texp -= 1;
+}
+
+print "# Total: $CntA, Mis: $CntM, CPI: ",join('',$main,'e',$texp),"\n";
 
 __END__
 
