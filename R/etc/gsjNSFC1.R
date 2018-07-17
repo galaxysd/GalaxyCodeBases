@@ -45,12 +45,17 @@ x[length(x)-2]<-'fpkmAtW'
 x[length(x)-1]<-'fpkmBtW'
 x[length(x)]<-'fpkmDtA'
 colnames(res) <- x
-head(res)
+#head(res)
 
 t <- cor(res$FPKM.expA,res$FPKM.expB,use='pairwise.complete.obs',method='pearson')
 cat("Corr:",t,"\n")
 
-write.csv(res,'res.csv', row.names=FALSE)
+
+#for (i in head(res)) {
+#	cat(i,"\n",sep=",")
+#}
+
+#write.csv(res,'res.csv', row.names=FALSE)
 
 Vx <- log2(res$fpkmAtW)
 Vy <- log2(res$fpkmBtW)
@@ -103,8 +108,14 @@ ohit=mygtf[overlapGenes.df$subjectHits]
 #head(ohit$gene_id)
 ores <- cbind(res[overlapGenes.df$queryHits,],ohit$gene_id,ohit$gene_type,ohit$gene_name)
 
-nearestGenes <- distanceToNearest(resGR, mygtf)
-nearestGenes.df <- as.data.frame(overlapGenes)
-nhit=mygtf[nearestGenes.df$subjectHits]
-nres <- cbind(res[nearestGenes.df$queryHits,],nhit$gene_id,nhit$gene_type,nhit$gene_name)
+#nearestGenes <- distanceToNearest(resGR, mygtf)
+#nearestGenes.df <- as.data.frame(overlapGenes)
+#nhit=mygtf[nearestGenes.df$subjectHits]
+#nres <- cbind(res[nearestGenes.df$queryHits,],nhit$gene_id,nhit$gene_type,nhit$gene_name)
 
+x <- colnames(ores)
+x[length(x)-2]<-'GeneID'
+x[length(x)-1]<-'GeneType'
+x[length(x)]<-'GeneName'
+colnames(ores) <- x
+write.csv(ores,'ores.csv', row.names=FALSE)
