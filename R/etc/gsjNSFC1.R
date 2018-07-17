@@ -5,6 +5,8 @@
 # source("https://bioconductor.org/biocLite.R")
 # biocLite("ballgown")
 
+library(plyr)
+
 library(ballgown)
 library(RSkittleBrewer)
 library(genefilter)
@@ -45,6 +47,9 @@ x[length(x)]<-'fpkmDtA'
 colnames(res) <- x
 head(res)
 
+t <- cor(res$FPKM.expA,res$FPKM.expB,use='pairwise.complete.obs',method='pearson')
+cat("Corr:",t,"\n")
+
 write.csv(res,'res.csv', row.names=FALSE)
 
 Vx <- log2(res$fpkmAtW)
@@ -82,3 +87,24 @@ dev.off()
 #############3
 #slotNames(bg_chrX_filt)
 #head(bg_chrX_filt@structure)
+
+library('rtracklayer')
+gtf<-gzfile('gencode.v28.primary_assembly.annotation.gtf.gz','rt')
+rawgtf <- import(gtf)
+mygtf <- rawgtf[rawgtf$type=='gene']
+
+stra <- revalue(res$strand, c('.' = "*"))
+resGR <- GRanges(Rle(res$chr),IRanges(res$start,res$end,names=res$t_id),Rle(strand(stra)),
+                 FPKM.expA=res$FPKM.expA, FPKM.expB=res$FPKM.expB, FPKM.wild=res$FPKM.wild)
+
+overlapGenes <- findOverlaps(resGR, mygtf)
+overlapGenes.df <- as.data.frame(overlapGenes)
+ohit=mygtf[overlapGenes.df$subjectHits]
+#head(ohit$gene_id)
+ores <- cbind(res[overlapGenes.df$queryHits,],ohit$gene_id,ohit$gene_type,ohit$gene_name)
+
+nearestGenes <- distanceToNearest(resGR, mygtf)
+nearestGenes.df <- as.data.frame(overlapGenes)
+nhit=mygtf[nearestGenes.df$subjectHits]
+nres <- cbind(res[nearestGenes.df$queryHits,],nhit$gene_id,nhit$gene_type,nhit$gene_name)
+
