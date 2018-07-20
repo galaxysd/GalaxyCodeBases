@@ -39,27 +39,54 @@ bg <- bg_chrX_filt
 wtx = texpr(bg, 'all')
 # write.csv(wtx,'wtx.csv', row.names=FALSE)
 
-res <- cbind(wtx,(wtx$FPKM.expA/wtx$FPKM.wild),(wtx$FPKM.expB/wtx$FPKM.wild),2*(wtx$FPKM.expA-wtx$FPKM.expB)/(wtx$FPKM.expA+wtx$FPKM.expB))
-x <- colnames(res)
-x[length(x)-2]<-'fpkmAtW'
-x[length(x)-1]<-'fpkmBtW'
-x[length(x)]<-'fpkmDtA'
-colnames(res) <- x
+res <- cbind(wtx,'fpkmAtW'=log2(wtx$FPKM.expA/wtx$FPKM.wild),'fpkmBtW'=log2(wtx$FPKM.expB/wtx$FPKM.wild),'fpkmDtA'=2*(wtx$FPKM.expA-wtx$FPKM.expB)/(wtx$FPKM.expA+wtx$FPKM.expB))
+#x <- colnames(res)
+#x[length(x)-2]<-'fpkmAtW'
+#x[length(x)-1]<-'fpkmBtW'
+#x[length(x)]<-'fpkmDtA'
+#colnames(res) <- x
 #head(res)
+#res <- na.omit(res)
 
 t <- cor(res$FPKM.expA,res$FPKM.expB,use='pairwise.complete.obs',method='pearson')
 cat("Corr:",t,"\n")
 
-
-#for (i in head(res)) {
-#	cat(i,"\n",sep=",")
-#}
+getype <- function(Vx,Vy) {
+	theType = 'Z'
+	if (is.na(Vx) || is.na(Vy) || is.na(Vx-Vy)) {
+		theType = 'N'
+	} else {
+		if (abs(Vx)<1 & abs(Vy)<1) {
+			theType = 'O'
+		} else if (abs(Vx-Vy)<=1 & (abs(Vx)>=1 | abs(Vy)>=1)) {
+			theType ='A'
+		} else if ((abs(Vx)<1 & abs(Vy)>1) | (abs(Vy)<1 & abs(Vx)>1)) {
+			theType ='B'
+		} else if (abs(Vx)>1 | abs(Vy)>1) {
+			if (Vx*Vy<0) {
+				theType ='C'
+			} else if (abs(Vx)>abs(Vy)) {
+				theType ='D'
+			} else if (abs(Vx)<abs(Vy)) {
+				theType ='E'
+			} else {
+				theType ='X'
+			}
+		}
+	}
+	theType
+}
+#apply(head(res)[,c('fpkmAtW','fpkmBtW')], 1, function(y) getype(y['fpkmAtW'],y['fpkmBtW']))
+#df=head(res)
+#cbind(df,'Type' = mapply(getype, df$fpkmAtW, df$fpkmBtW) )
+res <- cbind(res,'Type' = mapply(getype, res$fpkmAtW, res$fpkmBtW) )
+#head(res[res$Type=='Z',])
 
 #write.csv(res,'res.csv', row.names=FALSE)
 
-Vx <- log2(res$fpkmAtW)
-Vy <- log2(res$fpkmBtW)
-ex_input_p_mvc <- rbind(Vx,Vy)
+Vx <- res$fpkmAtW
+Vy <- res$fpkmBtW
+ex_input_p_mvc <- rbind('Vx'=res$fpkmAtW,'Vy'=res$fpkmBtW)
 
 mvc_cross<-ex_input_p_mvc[,((abs(Vx)<1 & abs(Vy)>1) | (abs(Vy)<1 & abs(Vx)>1))]
 mvc_trend<-ex_input_p_mvc[,(abs(Vx-Vy)<1 & (abs(Vx)>1 | abs(Vy)>1))]
@@ -77,15 +104,15 @@ points(mvc_cross[1,],mvc_cross[2,],pch='.',cex=3,col='red')
 
 abline(h=0,col='black',lty=4)
 abline(v=0,col='black',lty=4)
-text(16,16,"A",cex=2)
-text(4,14,"B",cex=2)
-text(0,14,"C",cex=2)
-text(-10,10,"D",cex=2)
 
-text(-16,-16,"A",cex=2)
-text(-4,-14,"B",cex=2)
-text(0,-14,"C",cex=2)
-text(10,-10,"D",cex=2)
+Ldis <- 17
+Sdis <- 12
+Tdis <- 5
+text(c(-Ldis,Ldis),c(-Ldis,Ldis),"A",cex=2)
+text(c(0,0),c(-Ldis,Ldis),"B",cex=2)
+text(c(Sdis,-Sdis),c(-Sdis,Sdis),"C",cex=2)
+text(c(Tdis,-Tdis),c(Sdis,-Sdis),"E",cex=2)
+text(c(Sdis,-Sdis),c(Tdis,-Tdis),"D",cex=2)
 
 dev.off()
 
@@ -106,16 +133,16 @@ overlapGenes <- findOverlaps(resGR, mygtf)
 overlapGenes.df <- as.data.frame(overlapGenes)
 ohit=mygtf[overlapGenes.df$subjectHits]
 #head(ohit$gene_id)
-ores <- cbind(res[overlapGenes.df$queryHits,],ohit$gene_id,ohit$gene_type,ohit$gene_name)
-
+ores <- cbind(res[overlapGenes.df$queryHits,],'GeneID'=ohit$gene_id,'GeneType'=ohit$gene_type,'GeneName'=ohit$gene_name)
+ores <- ores[order(ores$Type),]
 #nearestGenes <- distanceToNearest(resGR, mygtf)
 #nearestGenes.df <- as.data.frame(overlapGenes)
 #nhit=mygtf[nearestGenes.df$subjectHits]
 #nres <- cbind(res[nearestGenes.df$queryHits,],nhit$gene_id,nhit$gene_type,nhit$gene_name)
 
-x <- colnames(ores)
-x[length(x)-2]<-'GeneID'
-x[length(x)-1]<-'GeneType'
-x[length(x)]<-'GeneName'
-colnames(ores) <- x
+#x <- colnames(ores)
+#x[length(x)-2]<-'GeneID'
+#x[length(x)-1]<-'GeneType'
+#x[length(x)]<-'GeneName'
+#colnames(ores) <- x
 write.csv(ores,'ores.csv', row.names=FALSE)
