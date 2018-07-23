@@ -26,13 +26,20 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
 ### Normal
 
-Run `pip install toolshed`.
-
-Run `src/install.sh`.
+````bash
+pip install toolshed
+apt install libpcre2-dev
+git clone https://github.com/BGI-SZ/BSVF.git
+cd BSVF
+git submodule init
+git submodule update
+src/install.sh
+````
 
 In case EMBOSS failed to install, you'll need to download the binary from above sites. And put `water` of EMBOSS in to `./bin`. Or, just link `water` to `./bin`.
 
 Your `BSVF/bin/` should be like this:
+
 ````bash
 -rwxr-xr-x  398860 Feb 20 00:48 bwa
 -rwxr-xr-x   21892 Sep  1 08:37 bwameth.py
