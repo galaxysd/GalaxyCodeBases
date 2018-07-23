@@ -24,7 +24,7 @@ sub getDat($) {
 	return ["\t",-1,"NN"];
 }
 
-my (@ChrIDs,%ChrLen);
+my (@ChrIDs,%ChrLen,%Chrank);
 open H,'<',$fhead or die $!;
 while (<H>) {
 	chomp;
@@ -36,7 +36,8 @@ while (<H>) {
 	$ChrLen{$cid} = $clen;
 }
 close H;
-ddx \@ChrIDs,\%ChrLen;
+%Chrank = map { $ChrIDs[$_], $_ + 1 } 0 .. $#ChrIDs;
+ddx \%Chrank,\@ChrIDs,\%ChrLen;
 
 my ($fha,$fhb,$fhc);
 open $fha,'<',$files[0] or die $!;
