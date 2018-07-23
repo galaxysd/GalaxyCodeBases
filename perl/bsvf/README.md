@@ -24,11 +24,16 @@ For directional libraries only. PBAT and indirectional libraries are _NOT_ suppo
 
 ## Install
 
-### Normal
+### [Nerdy](https://thelinuxexperiment.com/?s=nerdy)
+
+Since the project leader wants to include all relevant tools here, even if they are already provided by main Linux distributions.
+
+For problems on compiling `EMBOSS`, `BWA` or `SAMTOOLS`/`HTSLIB`, please ask the original programmer. 
 
 ````bash
 pip install toolshed
-apt install libpcre2-dev
+apt-get install autoconf automake make gcc perl zlib1g-dev libbz2-dev liblzma-dev libcurl4-gnutls-dev libssl-dev
+#yum install autoconf automake make gcc perl-Data-Dumper zlib-devel bzip2 bzip2-devel xz-devel curl-devel openssl-devel
 git clone https://github.com/BGI-SZ/BSVF.git
 cd BSVF
 git submodule init
