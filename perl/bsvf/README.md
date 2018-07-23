@@ -32,12 +32,24 @@ Run `src/install.sh`.
 
 In case EMBOSS failed to install, you'll need to download the binary from above sites. And put `water` of EMBOSS in to `./bin`. Or, just link `water` to `./bin`.
 
-Your `bsIntegration/bin/` should be like this:
+Your `BSVF/bin/` should be like this:
 ````bash
 -rwxr-xr-x  398860 Feb 20 00:48 bwa
 -rwxr-xr-x   21892 Sep  1 08:37 bwameth.py
 -rwxr-xr-x   27040 Feb 20 01:14 water
 -rwxr-xr-x  971772 Feb 20 00:48 samtools
+````
+
+### Debian
+
+````bash
+apt install libbam-dev libhts-dev python3-pip emboss bwa samtools
+pip install toolshed
+git clone https://github.com/BGI-SZ/BSVF.git
+cd BSVF/src/analyser
+make
+cd BSVF/bin
+[symbolic link `bwa`, `samtools` and `water` from /usr/bin/ or so]
 ````
 
 ### Homebrew/Linuxbrew
