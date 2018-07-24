@@ -18,7 +18,7 @@ sub getDat($) {
 		my $sum1 = sum0(@dep1);
 		my $sum2 = sum0(@dep2);
 		next unless ($sum1+$sum2) > 20;
-		return [@dat[0,1,7,6,9,10],$sum1+$sum2];
+		#return [@dat[0,1,7,6,9,10],$sum1+$sum2];
 		return [@dat[0,1,7]];
 	}
 	return ["\t",-1,"NN"];
@@ -37,7 +37,7 @@ while (<H>) {
 }
 close H;
 %Chrank = map { $ChrIDs[$_], $_ + 1 } 0 .. $#ChrIDs;
-ddx \%Chrank,\@ChrIDs,\%ChrLen;
+#ddx \%Chrank,\@ChrIDs,\%ChrLen;
 
 my ($fha,$fhb,$fhc);
 open $fha,'<',$files[0] or die $!;
@@ -52,23 +52,41 @@ my %FHs = (
 	'C' => [$fhc,getDat($fhc)],
 );
 #print $FHs{'A'}->[1][0],"--\n";
+
+open O,'>','res.tsv' or die $!;
 while (($FHs{'A'}->[1][0] ne "\t") and ($FHs{'B'}->[1][0] ne "\t") and ($FHs{'C'}->[1][0] ne "\t")) {
-	ddx \%FHs;
-	my %ChrIDs = map { $_ => $FHs{$_}->[1][0] } @IDs;
-	my @aID = sort { $FHs{$b}->[1][1] <=> $FHs{$a}->[1][1] } @IDs;	# desc
-	ddx \%ChrIDs,\@aID;
+	#my %ChrIDs = map { $_ => $FHs{$_}->[1][0] } @IDs;
+	my @aID = sort { $Chrank{$FHs{$b}->[1][0]} <=> $Chrank{$FHs{$a}->[1][0]} || $FHs{$b}->[1][1] <=> $FHs{$a}->[1][1] } @IDs;	# desc
+	#ddx \%FHs,\@aID;
+	for my $i (1 .. $#aID) {
+		while (
+			(($Chrank{$FHs{$aID[0]}->[1][0]} == $Chrank{$FHs{$aID[$i]}->[1][0]}) and ($FHs{$aID[0]}->[1][1] > $FHs{$aID[$i]}->[1][1]))
+			or ($Chrank{$FHs{$aID[0]}->[1][0]} > $Chrank{$FHs{$aID[$i]}->[1][0]})
+		) {
+			$FHs{$aID[$i]}->[1] = getDat($FHs{$aID[$i]}->[0]);
+		}
+	}
+	if ($FHs{'A'}->[1][1] == $FHs{'B'}->[1][1] and $FHs{'A'}->[1][1] == $FHs{'C'}->[1][1]) {
+		#ddx \%FHs;
+		my $type='N';
+		if ( $FHs{'A'}->[1][2] eq $FHs{'B'}->[1][2] and $FHs{'A'}->[1][2] eq $FHs{'C'}->[1][2] ) {
+			$type='AAA';
+		} elsif ( $FHs{'A'}->[1][2] eq $FHs{'B'}->[1][2] and $FHs{'A'}->[1][2] ne $FHs{'C'}->[1][2] ) {
+			$type='AAB';
+		} elsif ( $FHs{'A'}->[1][2] ne $FHs{'B'}->[1][2] and $FHs{'A'}->[1][2] eq $FHs{'C'}->[1][2] ) {
+			$type='ABA';
+		} elsif ( $FHs{'A'}->[1][2] ne $FHs{'B'}->[1][2] and $FHs{'B'}->[1][2] eq $FHs{'C'}->[1][2] ) {
+			$type='ABB';
+		} elsif ( $FHs{'A'}->[1][2] ne $FHs{'B'}->[1][2] and $FHs{'A'}->[1][2] ne $FHs{'C'}->[1][2] and $FHs{'B'}->[1][2] ne $FHs{'C'}->[1][2] ) {
+			$type='ABC';
+		}
+		print O join("\t",$FHs{'A'}->[1][0],$FHs{'A'}->[1][1],$type,join(',',$FHs{'A'}->[1][2],$FHs{'B'}->[1][2],$FHs{'C'}->[1][2])),"\n";
+		for my $f (@aID) {
+			$FHs{$f}->[1] = getDat($FHs{$f}->[0]);
+		}
+	} else {
+		$FHs{'A'}->[1] = getDat($FHs{'A'}->[0]);
+	}
 }
-
-
-
-my $flag=1;
-while($flag) {
-	my $retA = getDat($fha);
-	my $retB = getDat($fhb);
-	my $retC = getDat($fhc);
-	ddx ($retA,$retB,$retC);$flag = 0;
-	;
-}
-close $fha;
-close $fhb;
-close $fhc;
+close O;
+close $fha;close $fhb;close $fhc;
