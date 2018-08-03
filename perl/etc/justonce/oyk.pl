@@ -78,7 +78,7 @@ while (<FM>) {
 	#my ($chr,undef,$bases,$qual,@data) = split /\t/;
 	next if $datM[3] < 100;
 	next if $datF[3] < 100;
-	next if $datC[3] < 100;
+	next if $datC[3] < 1000;
 	die if $datM[0] ne $datC[0];
 	my @tM = splice @datM,4;
 	my @tF = splice @datF,4;
