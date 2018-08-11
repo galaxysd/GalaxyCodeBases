@@ -19,7 +19,7 @@ sub getDat($) {
 		my $sum2 = sum0(@dep2);
 		next unless ($sum1+$sum2) > 20;
 		#return [@dat[0,1,7,6,9,10],$sum1+$sum2];
-		return [@dat[0,1,7]];
+		return [@dat[0,1,7,3]];
 	}
 	return ["\t",-1,"NN"];
 }
@@ -80,7 +80,7 @@ while (($FHs{'A'}->[1][0] ne "\t") and ($FHs{'B'}->[1][0] ne "\t") and ($FHs{'C'
 		} elsif ( $FHs{'A'}->[1][2] ne $FHs{'B'}->[1][2] and $FHs{'A'}->[1][2] ne $FHs{'C'}->[1][2] and $FHs{'B'}->[1][2] ne $FHs{'C'}->[1][2] ) {
 			$type='ABC';
 		}
-		print O join("\t",$FHs{'A'}->[1][0],$FHs{'A'}->[1][1],$type,join(',',$FHs{'A'}->[1][2],$FHs{'B'}->[1][2],$FHs{'C'}->[1][2])),"\n";
+		print O join("\t",$FHs{'A'}->[1][0],$FHs{'A'}->[1][1],$FHs{'A'}->[1][3],$type,join(',',$FHs{'A'}->[1][2],$FHs{'B'}->[1][2],$FHs{'C'}->[1][2])),"\n";
 		for my $f (@aID) {
 			$FHs{$f}->[1] = getDat($FHs{$f}->[0]);
 		}
