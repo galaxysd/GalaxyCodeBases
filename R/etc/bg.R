@@ -44,6 +44,11 @@ EC <- subset(sampleE,"tko %in% c('CD-WT','HFD-KO')", genomesubset=FALSE)
 ED <- subset(sampleE,"exp %in% 'HFD'", genomesubset=FALSE)
 LA_data <- subset(pheno_data,tissue=="L"&gko=="WT",genomesubset=FALSE)
 
+WA <- subset(out_filt,"gko %in% 'WT'", genomesubset=FALSE)
+WB <- subset(out_filt,"exp %in% 'CD'", genomesubset=FALSE)
+WC <- subset(out_filt,"tko %in% c('CD-WT','HFD-KO')", genomesubset=FALSE)
+WD <- subset(out_filt,"exp %in% 'HFD'", genomesubset=FALSE)
+
 ## DE by transcript
 LAresults_transcripts <-  stattest(LA, feature='transcript', covariate="tko", getFC=TRUE, meas='FPKM')
 LBresults_transcripts <-  stattest(LB, feature='transcript', covariate="tko", getFC=TRUE, meas='FPKM')
@@ -57,6 +62,11 @@ EAresults_transcripts <-  stattest(EA, feature='transcript', covariate="tko", ge
 EBresults_transcripts <-  stattest(EB, feature='transcript', covariate="tko", getFC=TRUE, meas='FPKM')
 ECresults_transcripts <-  stattest(EC, feature='transcript', covariate="tko", getFC=TRUE, meas='FPKM')
 EDresults_transcripts <-  stattest(ED, feature='transcript', covariate="tko", getFC=TRUE, meas='FPKM')
+
+WAresults_transcripts <-  stattest(WA, feature='transcript', covariate="tko", adjustvars=c('tissue'), getFC=TRUE, meas='FPKM')
+WBresults_transcripts <-  stattest(WB, feature='transcript', covariate="tko", adjustvars=c('tissue'), getFC=TRUE, meas='FPKM')
+WCresults_transcripts <-  stattest(WC, feature='transcript', covariate="tko", adjustvars=c('tissue'), getFC=TRUE, meas='FPKM')
+WDresults_transcripts <-  stattest(WD, feature='transcript', covariate="tko", adjustvars=c('tissue'), getFC=TRUE, meas='FPKM')
 
 ## DE by gene
 LAresults_genes <- stattest(LA, feature='gene', covariate='tko',getFC=TRUE, meas='FPKM')
@@ -86,6 +96,11 @@ EBresults_transcripts <- data.frame(chr=EB@expr$trans$chr,strand=EB@expr$trans$s
 ECresults_transcripts <- data.frame(chr=EC@expr$trans$chr,strand=EC@expr$trans$strand,start=EC@expr$trans$start,end=EC@expr$trans$end,geneNames=ballgown::geneNames(EC),geneIDs=ballgown::geneIDs(EC), ECresults_transcripts)
 EDresults_transcripts <- data.frame(chr=ED@expr$trans$chr,strand=ED@expr$trans$strand,start=ED@expr$trans$start,end=ED@expr$trans$end,geneNames=ballgown::geneNames(ED),geneIDs=ballgown::geneIDs(ED), EDresults_transcripts)
 
+WAresults_transcripts <- data.frame(chr=WA@expr$trans$chr,strand=WA@expr$trans$strand,start=WA@expr$trans$start,end=WA@expr$trans$end,geneNames=ballgown::geneNames(WA),geneIDs=ballgown::geneIDs(WA), WAresults_transcripts)
+WBresults_transcripts <- data.frame(chr=WB@expr$trans$chr,strand=WB@expr$trans$strand,start=WB@expr$trans$start,end=WB@expr$trans$end,geneNames=ballgown::geneNames(WB),geneIDs=ballgown::geneIDs(WB), WBresults_transcripts)
+WCresults_transcripts <- data.frame(chr=WC@expr$trans$chr,strand=WC@expr$trans$strand,start=WC@expr$trans$start,end=WC@expr$trans$end,geneNames=ballgown::geneNames(WC),geneIDs=ballgown::geneIDs(WC), WCresults_transcripts)
+WDresults_transcripts <- data.frame(chr=WD@expr$trans$chr,strand=WD@expr$trans$strand,start=WD@expr$trans$start,end=WD@expr$trans$end,geneNames=ballgown::geneNames(WD),geneIDs=ballgown::geneIDs(WD), WDresults_transcripts)
+
 ## Sort results from smallest p-value
 LAresults_transcripts <- arrange(LAresults_transcripts, pval)
 LAresults_genes <-  arrange(LAresults_genes, pval)
@@ -111,6 +126,11 @@ ECresults_transcripts <- arrange(ECresults_transcripts, pval)
 ECresults_genes <-  arrange(ECresults_genes, pval)
 EDresults_transcripts <- arrange(EDresults_transcripts, pval)
 EDresults_genes <-  arrange(EDresults_genes, pval)
+
+WAresults_transcripts <- arrange(WAresults_transcripts, pval)
+WBresults_transcripts <- arrange(WBresults_transcripts, pval)
+WCresults_transcripts <- arrange(WCresults_transcripts, pval)
+WDresults_transcripts <- arrange(WDresults_transcripts, pval)
 
 ## Write results to CSV
 write.csv(LAresults_transcripts, "LA_transcripts_results.csv", row.names=FALSE)
@@ -138,9 +158,14 @@ write.csv(ECresults_genes, "EC_genes_results.csv", row.names=FALSE)
 write.csv(EDresults_transcripts, "ED_transcripts_results.csv", row.names=FALSE)
 write.csv(EDresults_genes, "ED_genes_results.csv", row.names=FALSE)
 
+write.csv(WAresults_transcripts, "WA_transcripts_results.csv", row.names=FALSE)
+write.csv(WBresults_transcripts, "WB_transcripts_results.csv", row.names=FALSE)
+write.csv(WCresults_transcripts, "WC_transcripts_results.csv", row.names=FALSE)
+write.csv(WDresults_transcripts, "WD_transcripts_results.csv", row.names=FALSE)
+
 ## Filter for genes with q-val <0.05
-subset(LAresults_transcripts, LAresults_transcripts$qval <=0.05)
-subset(LAresults_genes, LAresults_genes$qval <=0.05)
+subset(WAresults_transcripts, WAresults_transcripts$qval <=0.05)
+#subset(LAresults_genes, LAresults_genes$qval <=0.05)
 
 ## Plotting setup
 #tropical <- c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
@@ -166,7 +191,7 @@ subset(LAresults_genes, LAresults_genes$qval <=0.05)
 #plotMeans(ballgown::geneIDs(bg_chrX)[203], bg_chrX_filt, groupvar="sex", legend=FALSE)
 
 ##print gene abundance distribution in your screen
-pdf(file="Gene_abundance_distribution.pdf",width=15,height=9)
+pdf(file="1.Gene_abundance_distribution.pdf",width=15,height=9)
 par(mai=c(1.8,1,1,1))
 tropical <- c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
 palette(tropical)
@@ -176,19 +201,19 @@ boxplot(fpkm, col=as.numeric(pheno_data$tko), las=2,ylab='log2(FPKM+1)')
 dev.off()
 
 ##print individual transcripts
-pdf(file="Individual_transcripts.pdf")
+pdf(file="2.Individual_transcripts.pdf")
 ballgown::transcriptNames(out_filt)[15]
 plot(fpkm[15,] ~ pheno_data$gko, border=c(1,2),main=paste(ballgown::geneNames(out_filt)[15], ' : ',ballgown::transcriptNames(out_filt)[15]),pch=19, xlab="Gko", ylab='log2(FPKM+1)')
 points(fpkm[15,] ~ jitter(as.numeric(pheno_data$gko)), col=as.numeric(pheno_data$gko))
 dev.off()
 
 ##print Plot gene of transcript
-pdf(file="Plot_gene_of_transcript.pdf")
+pdf(file="3.Plot_gene_of_transcript.pdf")
 plotTranscripts(ballgown::geneIDs(out_filt)[8219], out_filt,main=c('Gene XIST in sample HFD-L14'), sample=c('HFD-L14'))
 dev.off()
 
 ##print the compare of average expression
-pdf(file="Comparison_of_average_expression.pdf")
+pdf(file="4.Comparison_of_average_expression.pdf")
 plotTranscripts(ballgown::geneIDs(out_filt)[8219], out_filt,main=c('Gene XIST in sample HFD-L14'), sample=c('HFD-L14'))
 plotMeans('MSTRG.7196', out_filt,groupvar="gko",legend=FALSE)
 dev.off()
@@ -198,7 +223,7 @@ fpkm2 <- texpr(out_filt, meas='FPKM')
 tbl_fpkm2<-tbl_df(fpkm2)
 colnames(tbl_fpkm2) <- c("CD-B1","CD-B2","CD-B3","CD-B4","CD-B5","CD-E1","CD-E2","CD-E4","CD-E5","CD-KO-B10","CD-KO-B6","CD-KO-B7","CD-KO-B8","CD-KO-E10","CD-KO-E6","CD-KO-E7","CD-KO-E8","CD-KO-E9","CD-KO-L10","CD-KO-L6","CD-KO-L7","CD-KO-L8","CD-KO-L9","CD-L1","CD-L2","CD-L3","CD-L4","CD-L5","HFD-B11","HFD-B12","HFD-B13","HFD-B14","HFD-B15","HFD-E11","HFD-E12","HFD-E13","HFD-E14","HFD-E15","HFD-KO-B16","HFD-KO-B17","HFD-KO-B18","HFD-KO-B19","HFD-KO-E16","HFD-KO-E17","HFD-KO-E18","HFD-KO-E19","HFD-KO-E20","HFD-KO-L16","HFD-KO-L17","HFD-KO-L18","HFD-KO-L19","HFD-KO-L20","HFD-L11","HFD-L12","HFD-L13","HFD-L14","HFD-L15")
 newdf <- select(tbl_fpkm2,"CD-L1","CD-L2","CD-L3","CD-L4","CD-L5","CD-KO-L6","CD-KO-L7","CD-KO-L8","CD-KO-L9","CD-KO-L10","HFD-L11","HFD-L12","HFD-L13","HFD-L14","HFD-L15","HFD-KO-L16","HFD-KO-L17","HFD-KO-L18","HFD-KO-L19","HFD-KO-L20","CD-B1","CD-B2","CD-B3","CD-B4","CD-B5","CD-KO-B6","CD-KO-B7","CD-KO-B8","CD-KO-B10","HFD-B11","HFD-B12","HFD-B13","HFD-B14","HFD-B15","HFD-KO-B16","HFD-KO-B17","HFD-KO-B18","HFD-KO-B19","CD-E1","CD-E2","CD-E4","CD-E5","CD-KO-E6","CD-KO-E7","CD-KO-E8","CD-KO-E9","CD-KO-E10","HFD-E11","HFD-E12","HFD-E13","HFD-E14","HFD-E15","HFD-KO-E16","HFD-KO-E17","HFD-KO-E18","HFD-KO-E19","HFD-KO-E20")
-pdf(file="Gene_abundance_distribution_insequnce.pdf",width=15,height=9)
+pdf(file="5.Gene_abundance_distribution_insequnce.pdf",width=15,height=9)
 par(mai=c(1.8,1,1,1))
 tropical <- c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
 palette(tropical)
