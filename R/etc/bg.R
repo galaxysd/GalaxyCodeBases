@@ -73,18 +73,18 @@ ECresults_genes <- stattest(EC, feature='gene', covariate='tko',getFC=TRUE, meas
 EDresults_genes <- stattest(ED, feature='gene', covariate='tko',getFC=TRUE, meas='FPKM')
 
 ## Add gene name
-LAresults_transcripts <- data.frame(geneNames=ballgown::geneNames(LA),geneIDs=ballgown::geneIDs(LA), LAresults_transcripts)
-LBresults_transcripts <- data.frame(geneNames=ballgown::geneNames(LB),geneIDs=ballgown::geneIDs(LB), LBresults_transcripts)
-LCresults_transcripts <- data.frame(geneNames=ballgown::geneNames(LC),geneIDs=ballgown::geneIDs(LC), LCresults_transcripts)
-LDresults_transcripts <- data.frame(geneNames=ballgown::geneNames(LD),geneIDs=ballgown::geneIDs(LD), LDresults_transcripts)
-BAresults_transcripts <- data.frame(geneNames=ballgown::geneNames(BA),geneIDs=ballgown::geneIDs(BA), BAresults_transcripts)
-BBresults_transcripts <- data.frame(geneNames=ballgown::geneNames(BB),geneIDs=ballgown::geneIDs(BB), BBresults_transcripts)
-BCresults_transcripts <- data.frame(geneNames=ballgown::geneNames(BC),geneIDs=ballgown::geneIDs(BC), BCresults_transcripts)
-BDresults_transcripts <- data.frame(geneNames=ballgown::geneNames(BD),geneIDs=ballgown::geneIDs(BD), BDresults_transcripts)
-EAresults_transcripts <- data.frame(geneNames=ballgown::geneNames(EA),geneIDs=ballgown::geneIDs(EA), EAresults_transcripts)
-EBresults_transcripts <- data.frame(geneNames=ballgown::geneNames(EB),geneIDs=ballgown::geneIDs(EB), EBresults_transcripts)
-ECresults_transcripts <- data.frame(geneNames=ballgown::geneNames(EC),geneIDs=ballgown::geneIDs(EC), ECresults_transcripts)
-EDresults_transcripts <- data.frame(geneNames=ballgown::geneNames(ED),geneIDs=ballgown::geneIDs(ED), EDresults_transcripts)
+LAresults_transcripts <- data.frame(chr=LA@expr$trans$chr,strand=LA@expr$trans$strand,start=LA@expr$trans$start,end=LA@expr$trans$end,geneNames=ballgown::geneNames(LA),geneIDs=ballgown::geneIDs(LA), LAresults_transcripts)
+LBresults_transcripts <- data.frame(chr=LB@expr$trans$chr,strand=LB@expr$trans$strand,start=LB@expr$trans$start,end=LB@expr$trans$end,geneNames=ballgown::geneNames(LB),geneIDs=ballgown::geneIDs(LB), LBresults_transcripts)
+LCresults_transcripts <- data.frame(chr=LC@expr$trans$chr,strand=LC@expr$trans$strand,start=LC@expr$trans$start,end=LC@expr$trans$end,geneNames=ballgown::geneNames(LC),geneIDs=ballgown::geneIDs(LC), LCresults_transcripts)
+LDresults_transcripts <- data.frame(chr=LD@expr$trans$chr,strand=LD@expr$trans$strand,start=LD@expr$trans$start,end=LD@expr$trans$end,geneNames=ballgown::geneNames(LD),geneIDs=ballgown::geneIDs(LD), LDresults_transcripts)
+BAresults_transcripts <- data.frame(chr=BA@expr$trans$chr,strand=BA@expr$trans$strand,start=BA@expr$trans$start,end=BA@expr$trans$end,geneNames=ballgown::geneNames(BA),geneIDs=ballgown::geneIDs(BA), BAresults_transcripts)
+BBresults_transcripts <- data.frame(chr=BB@expr$trans$chr,strand=BB@expr$trans$strand,start=BB@expr$trans$start,end=BB@expr$trans$end,geneNames=ballgown::geneNames(BB),geneIDs=ballgown::geneIDs(BB), BBresults_transcripts)
+BCresults_transcripts <- data.frame(chr=BC@expr$trans$chr,strand=BC@expr$trans$strand,start=BC@expr$trans$start,end=BC@expr$trans$end,geneNames=ballgown::geneNames(BC),geneIDs=ballgown::geneIDs(BC), BCresults_transcripts)
+BDresults_transcripts <- data.frame(chr=BD@expr$trans$chr,strand=BD@expr$trans$strand,start=BD@expr$trans$start,end=BD@expr$trans$end,geneNames=ballgown::geneNames(BD),geneIDs=ballgown::geneIDs(BD), BDresults_transcripts)
+EAresults_transcripts <- data.frame(chr=EA@expr$trans$chr,strand=EA@expr$trans$strand,start=EA@expr$trans$start,end=EA@expr$trans$end,geneNames=ballgown::geneNames(EA),geneIDs=ballgown::geneIDs(EA), EAresults_transcripts)
+EBresults_transcripts <- data.frame(chr=EB@expr$trans$chr,strand=EB@expr$trans$strand,start=EB@expr$trans$start,end=EB@expr$trans$end,geneNames=ballgown::geneNames(EB),geneIDs=ballgown::geneIDs(EB), EBresults_transcripts)
+ECresults_transcripts <- data.frame(chr=EC@expr$trans$chr,strand=EC@expr$trans$strand,start=EC@expr$trans$start,end=EC@expr$trans$end,geneNames=ballgown::geneNames(EC),geneIDs=ballgown::geneIDs(EC), ECresults_transcripts)
+EDresults_transcripts <- data.frame(chr=ED@expr$trans$chr,strand=ED@expr$trans$strand,start=ED@expr$trans$start,end=ED@expr$trans$end,geneNames=ballgown::geneNames(ED),geneIDs=ballgown::geneIDs(ED), EDresults_transcripts)
 
 ## Sort results from smallest p-value
 LAresults_transcripts <- arrange(LAresults_transcripts, pval)
@@ -166,7 +166,7 @@ subset(LAresults_genes, LAresults_genes$qval <=0.05)
 #plotMeans(ballgown::geneIDs(bg_chrX)[203], bg_chrX_filt, groupvar="sex", legend=FALSE)
 
 ##print gene abundance distribution in your screen
-pdf(file="plot1.pdf",width=15,height=9)
+pdf(file="Gene_abundance_distribution.pdf",width=15,height=9)
 par(mai=c(1.8,1,1,1))
 tropical <- c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
 palette(tropical)
@@ -176,19 +176,19 @@ boxplot(fpkm, col=as.numeric(pheno_data$tko), las=2,ylab='log2(FPKM+1)')
 dev.off()
 
 ##print individual transcripts
-pdf(file="plot2.pdf")
+pdf(file="Individual_transcripts.pdf")
 ballgown::transcriptNames(out_filt)[15]
 plot(fpkm[15,] ~ pheno_data$gko, border=c(1,2),main=paste(ballgown::geneNames(out_filt)[15], ' : ',ballgown::transcriptNames(out_filt)[15]),pch=19, xlab="Gko", ylab='log2(FPKM+1)')
 points(fpkm[15,] ~ jitter(as.numeric(pheno_data$gko)), col=as.numeric(pheno_data$gko))
 dev.off()
 
 ##print Plot gene of transcript
-pdf(file="plot3.pdf")
+pdf(file="Plot_gene_of_transcript.pdf")
 plotTranscripts(ballgown::geneIDs(out_filt)[8219], out_filt,main=c('Gene XIST in sample HFD-L14'), sample=c('HFD-L14'))
 dev.off()
 
 ##print the compare of average expression
-pdf(file="plot4.pdf")
+pdf(file="Comparison_of_average_expression.pdf")
 plotTranscripts(ballgown::geneIDs(out_filt)[8219], out_filt,main=c('Gene XIST in sample HFD-L14'), sample=c('HFD-L14'))
 plotMeans('MSTRG.7196', out_filt,groupvar="gko",legend=FALSE)
 dev.off()
@@ -198,10 +198,11 @@ fpkm2 <- texpr(out_filt, meas='FPKM')
 tbl_fpkm2<-tbl_df(fpkm2)
 colnames(tbl_fpkm2) <- c("CD-B1","CD-B2","CD-B3","CD-B4","CD-B5","CD-E1","CD-E2","CD-E4","CD-E5","CD-KO-B10","CD-KO-B6","CD-KO-B7","CD-KO-B8","CD-KO-E10","CD-KO-E6","CD-KO-E7","CD-KO-E8","CD-KO-E9","CD-KO-L10","CD-KO-L6","CD-KO-L7","CD-KO-L8","CD-KO-L9","CD-L1","CD-L2","CD-L3","CD-L4","CD-L5","HFD-B11","HFD-B12","HFD-B13","HFD-B14","HFD-B15","HFD-E11","HFD-E12","HFD-E13","HFD-E14","HFD-E15","HFD-KO-B16","HFD-KO-B17","HFD-KO-B18","HFD-KO-B19","HFD-KO-E16","HFD-KO-E17","HFD-KO-E18","HFD-KO-E19","HFD-KO-E20","HFD-KO-L16","HFD-KO-L17","HFD-KO-L18","HFD-KO-L19","HFD-KO-L20","HFD-L11","HFD-L12","HFD-L13","HFD-L14","HFD-L15")
 newdf <- select(tbl_fpkm2,"CD-L1","CD-L2","CD-L3","CD-L4","CD-L5","CD-KO-L6","CD-KO-L7","CD-KO-L8","CD-KO-L9","CD-KO-L10","HFD-L11","HFD-L12","HFD-L13","HFD-L14","HFD-L15","HFD-KO-L16","HFD-KO-L17","HFD-KO-L18","HFD-KO-L19","HFD-KO-L20","CD-B1","CD-B2","CD-B3","CD-B4","CD-B5","CD-KO-B6","CD-KO-B7","CD-KO-B8","CD-KO-B10","HFD-B11","HFD-B12","HFD-B13","HFD-B14","HFD-B15","HFD-KO-B16","HFD-KO-B17","HFD-KO-B18","HFD-KO-B19","CD-E1","CD-E2","CD-E4","CD-E5","CD-KO-E6","CD-KO-E7","CD-KO-E8","CD-KO-E9","CD-KO-E10","HFD-E11","HFD-E12","HFD-E13","HFD-E14","HFD-E15","HFD-KO-E16","HFD-KO-E17","HFD-KO-E18","HFD-KO-E19","HFD-KO-E20")
-pdf(file="plot5.pdf",width=15,height=9)
+pdf(file="Gene_abundance_distribution_insequnce.pdf",width=15,height=9)
 par(mai=c(1.8,1,1,1))
 tropical <- c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
 palette(tropical)
 newdf <- log2(newdf +1)
 boxplot(newdf, col=as.numeric(pheno_data$tko), las=2,ylab='log2(FPKM+1)')
 dev.off()
+
