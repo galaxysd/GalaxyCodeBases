@@ -1,10 +1,14 @@
 #!/usr/bin/env perl
+=pod
+Author: Hu Xuesong @ BGI <huxuesong@genomics.org.cn>
+Version: 1.0.0 @ 20180516
+=cut
 use strict;
 use warnings;
 
 use lib '.';
 
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 use Text::NSP::Measures::2D::Fisher::twotailed;
 use FGI::GetCPI;
 #use Math::BigFloat;
@@ -84,15 +88,16 @@ while (<FM>) {
 	my @datF = split /\t/,$lFF;
 	my @datC = split /\t/,$lFC;
 	#my ($chr,undef,$bases,$qual,@data) = split /\t/;
-	next if $datM[3] < 100;
-	next if $datF[3] < 100;
-	next if $datC[3] < 100;
+	next if $datM[3] < 30;
+	next if $datF[3] < 30;
+	next if $datC[3] < 500;
 	die if $datM[0] ne $datC[0];
 	my @tM = splice @datM,4;
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
 	@Bases = split /,/,$datM[2];
 	next if "@tM @tF @tC" =~ /\./;
+	#T/T;6,2245      C/C;1698,0
 	#print "@tM\n@datM\n";
 	my $retM = getBolsheviks(@tM);
 	next unless $retM->[1];
@@ -121,14 +126,16 @@ while (<FM>) {
 	my $n12 = $retM->[2]->[$y];
 	my $n21 = $GTdepC[$x];
 	my $n22 = $GTdepC[$y];
-	next if ($n21+$n22) < 1000;	# skip
+	next if ($n21+$n22) < 500;	# skip
 	my $GTtC;
 	my $twotailedFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
-	if ($n22/$Cdep < 0.02) {	# minnor < 2%, skip ; depth<10
+	if ($n22/$Cdep < 0.02 and $n22/$Cdep > 0.001) {	# 0.1% < minnor < 2%, skip ; depth<10
 		next;	# skip
+	} elsif ($n22/$Cdep <= 0.001) {
+		1;
 	} else {
 		my $n1p = $n11 + $n12;
 		my $np1 = $n11 + $n21;
@@ -147,6 +154,12 @@ while (<FM>) {
 		}
 	}
 	my $retC = getBolsheviks(@tC);
+	my @fgeno=split /\//,$retF->[0];
+	my @mgeno=split /\//,$retM->[0];
+	next if($fgeno[0] eq $fgeno[1] && $fgeno[0] eq $mgeno[0]);
+
+	my @mnum=@{$retM->[2]};
+	my @fnum=@{$retF->[2]};
 	my $resM = join(';',$retM->[0],join(',',@{$retM->[2]}));
 	my $resF = join(';',$retF->[0],join(',',@{$retF->[2]}));
 	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,
@@ -162,3 +175,23 @@ close FM; close FF; close FC;
 
 print "# CPI: ",exp($logcpi),"\n";
 
+__END__
+
+Order M,F,C
+
+Canceled:
++放弃贝叶斯结果，2.5%以上就是杂合。双亲只保留多数结果。
+x子代单个样品深度<1000的，整行扔掉。
+x子代，both >0.5% and chi^2<0.05，才算杂合。
+
+All the words below is provided by the client, original text:
+
+1. 先读母亲和儿子的文件，只选map质量大于100，并且母亲是醇和snp的位点
+我:
+我:
+2， 如果是多次测序，少数服从多数，并吧多数的加起来。把三个人的genotype定住
+3. 确定基因型：（计算母亲与儿子snp的差异的卡方的pvalue，要求孩子的alt rate大于0.5%，并且卡方pvalue<0.05,则取与母亲不同的genotype，否则，取和母亲一致的genotype）
+
+4，计算CPI
+注意事项;1,母亲的genotype只用纯和的（以vcf结果为准），2，孩子的深度必须大于1000X
+结果： snp位点  孩子genotype(合起来的#ref/合起来的#alt) 母亲genotype 父亲genotype
