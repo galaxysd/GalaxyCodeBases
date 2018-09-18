@@ -132,9 +132,9 @@ while (<FM>) {
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
-	if ($n22/$Cdep < 0.02 and $n22/$Cdep > 0.001) {	# 0.1% < minnor < 2%, skip ; depth<10
+	if ($n22/$Cdep < 0.02 and $n22/$Cdep > 0.005) {	# 0.1% < minnor < 2%, skip ; depth<10
 		next;	# skip
-	} elsif ($n22/$Cdep <= 0.001) {
+	} elsif ($n22/$Cdep <= 0.005) {
 		1;
 	} else {
 		my $n1p = $n11 + $n12;
