@@ -9,7 +9,7 @@ use warnings;
 use lib '.';
 
 #use Data::Dump qw(ddx);
-use Text::NSP::Measures::2D::Fisher::twotailed;
+use Text::NSP::Measures::2D::Fisher::right;
 use FGI::GetCPI;
 #use Math::BigFloat;
 
@@ -128,7 +128,7 @@ while (<FM>) {
 	my $n22 = $GTdepC[$y];
 	next if ($n21+$n22) < 500;	# skip
 	my $GTtC;
-	my $twotailedFisher = -1;
+	my $testFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
@@ -140,7 +140,7 @@ while (<FM>) {
 		my $n1p = $n11 + $n12;
 		my $np1 = $n11 + $n21;
 		my $npp = $n1p + $n21 + $n22;
-		$twotailedFisher = calculateStatistic(
+		$testFisher = calculateStatistic(
 			n11 => $n11,
 			n1p => $n1p,
 			np1 => $np1,
@@ -150,7 +150,7 @@ while (<FM>) {
 			die $errorCode, " - ", getErrorMessage();
 		} else {
 			my ($m,$n) = sort {$a<=>$b} ($x,$y);
-			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
+			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $testFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
 		}
 	}
 	my $retC = getBolsheviks(@tC);
@@ -162,7 +162,7 @@ while (<FM>) {
 	my @fnum=@{$retF->[2]};
 	my $resM = join(';',$retM->[0],join(',',@{$retM->[2]}));
 	my $resF = join(';',$retF->[0],join(',',@{$retF->[2]}));
-	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,
+	my $resC = join(';',$GTtC,join(',',@GTdepC),$testFisher,
 						$retC->[0],join(',',@{$retC->[2]})
 					);
 	my $cret = getcpi(@datM,$resM,$resF,$resC);
