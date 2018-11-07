@@ -11,9 +11,12 @@ import primer3  # https://github.com/libnano/primer3-py
 # BRCA1_004379  chr17:g.43103085:A>G     17   43103085  A    G
 
 from os.path import expanduser
-InFile: str = r'~/Downloads/variants.tsv.gz'
+InFile: str = r'~/tmp/variants.tsv.gz'
 InFile = expanduser(InFile)
-#InFile: str = r'/Users/galaxy/Downloads/variants.tsv.gz'
+
+InRef: str = expanduser(r'~/tmp/GRCh38_no_alt_analysis_set.fna.gz')
+from pyfaidx import Fasta
+RefSeqs = Fasta(InRef)
 
 #InColNames = ['DBID_LOVD','Chr','Pos','Ref','Alt','Genomic_Coordinate_hg38']
 InColNames = ['Chr','Pos','Ref','Alt']
@@ -24,7 +27,10 @@ InColNames = ['Chr','Pos','Ref','Alt']
 import gzip
 import csv
 Total: int = 0
-skipped: int = 0
+Skipped: int = 0
+from typing import Dict, List, Tuple
+InData: Dict[str,Dict[int,Tuple[str,List[str]]]] = {}
+
 with gzip.open(InFile, 'rt') as tsvin:
     tsvin = csv.DictReader(tsvin, delimiter='\t')
     #headers = tsvin.fieldnames
@@ -34,7 +40,20 @@ with gzip.open(InFile, 'rt') as tsvin:
         Total += 1
         if len(row['Ref']) > 1 or len(row['Alt']) > 1 :
             #print(', '.join(row[col] for col in ['Chr','Pos','Ref','Alt']))
-            skipped += 1
+            Skipped += 1
         else :
             print(', '.join(row[col] for col in InColNames))
-#print(b'[!] %(skipped)d InDels skipped in %(Total)d items.' % {b'skipped': skipped, b'Total': Total})
+            if row['Chr'] in InData :
+                if row['Pos'] in InData[row['Chr']] :
+                    InData[row['Chr']][row['Pos']][1].append(row['Alt'])
+                    #print(InData[row['Chr']][row['Pos']])
+                else :
+                    InData[row['Chr']][row['Pos']] = (row['Ref'],[row['Alt']])
+            else :
+                InData[row['Chr']] = { row['Pos'] : (row['Ref'],[row['Alt']]) }
+    for ChrID in InData.keys() :
+        for thePos in InData[ChrID].keys() :
+            print('='.join([ChrID,thePos]))
+
+
+print(b'[!] %(skipped)d InDels skipped in %(Total)d items.' % {b'skipped': Skipped, b'Total': Total})
