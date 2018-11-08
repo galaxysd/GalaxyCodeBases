@@ -11,12 +11,14 @@ import primer3  # https://github.com/libnano/primer3-py
 # BRCA1_004379  chr17:g.43103085:A>G     17   43103085  A    G
 
 from os.path import expanduser
-InFile: str = r'~/tmp/variants.tsv.gz'
+InFile: str = r'~/tmp/variants.tsv.0.gz'
 InFile = expanduser(InFile)
 
-InRef: str = expanduser(r'~/tmp/GRCh38_no_alt_analysis_set.fna.gz')
+InRef: str = expanduser(r'~/tmp/GRCh38.fa')
 from pyfaidx import Fasta
 RefSeqs = Fasta(InRef)
+#print(RefSeqs['chr1'])
+# Random access of BGZip is not supported now, see https://github.com/mdshw5/pyfaidx/issues/126
 
 #InColNames = ['DBID_LOVD','Chr','Pos','Ref','Alt','Genomic_Coordinate_hg38']
 InColNames = ['Chr','Pos','Ref','Alt']
@@ -31,6 +33,18 @@ Skipped: int = 0
 from typing import Dict, List, Tuple
 InData: Dict[str,Dict[int,Tuple[str,List[str]]]] = {}
 
+'''
+第一种引物，上游引物3‘端设一个，下游距离300bp-400bp设置
+第二种，目标点上游100bp设置上游引物，不要覆盖目标点，下游，200-300，
+只考虑一对引物中间的部分，引物本身不考虑。
+Tm 参考范围55-62
+'''
+
+thePara: Dict[str,int] = dict(MaxAmpLen=400, MinAmpLen=300, P5Up1=0, P5Up2=100,
+    TmMax=62, TmMin=55, TmDeltra=5,
+    PrimerLenMin=25, PrimerLenMax=42, Mode2LeftMax=100
+    )
+
 with gzip.open(InFile, 'rt') as tsvin:
     tsvin = csv.DictReader(tsvin, delimiter='\t')
     #headers = tsvin.fieldnames
@@ -43,6 +57,7 @@ with gzip.open(InFile, 'rt') as tsvin:
             Skipped += 1
         else :
             print(', '.join(row[col] for col in InColNames))
+            row['Pos'] = int(row['Pos'])
             if row['Chr'] in InData :
                 if row['Pos'] in InData[row['Chr']] :
                     InData[row['Chr']][row['Pos']][1].append(row['Alt'])
@@ -51,9 +66,19 @@ with gzip.open(InFile, 'rt') as tsvin:
                     InData[row['Chr']][row['Pos']] = (row['Ref'],[row['Alt']])
             else :
                 InData[row['Chr']] = { row['Pos'] : (row['Ref'],[row['Alt']]) }
-    for ChrID in InData.keys() :
-        for thePos in InData[ChrID].keys() :
-            print('='.join([ChrID,thePos]))
+
+for ChrID in InData.keys() :
+    for thePos in InData[ChrID].keys() :
+        FulChrID: str = ''.join(['chr',ChrID])
+        # Start attributes are 1-based
+        Left: int = thePos - thePara['Mode2LeftMax'] - thePara['PrimerLenMax'] -1
+        if Left < 0 : Left = 0
+        #Left = thePos-1
+        # End attributes are 0-based
+        Right: int = thePos + thePara['MaxAmpLen'] + thePara['PrimerLenMax']
+        if Right > len(RefSeqs[FulChrID]) : Right = len(RefSeqs[FulChrID])
+        theSeq: str = RefSeqs[FulChrID][Left:Right]
+        print(':'.join([ChrID,str(thePos),FulChrID,str(theSeq),str(InData[ChrID][thePos]) ]))
 
 
 print(b'[!] %(skipped)d InDels skipped in %(Total)d items.' % {b'skipped': Skipped, b'Total': Total})
