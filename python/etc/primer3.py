@@ -41,7 +41,7 @@ Tm 参考范围55-62
 '''
 
 thePara: Dict[str,int] = dict(MaxAmpLen=400, MinAmpLen=300, P5Up1=0, P5Up2=100,
-    TmMax=62, TmMin=55, TmDeltra=5,
+    TmMax=63, TmMin=55, TmDeltra=5,
     PrimerLenMin=25, PrimerLenMax=42, Mode2LeftMax=100
     )
 
@@ -67,6 +67,30 @@ with gzip.open(InFile, 'rt') as tsvin:
             else :
                 InData[row['Chr']] = { row['Pos'] : (row['Ref'],[row['Alt']]) }
 
+Primer3GlobalArgs: Dict = {
+    'PRIMER_OPT_SIZE': 20,
+    'PRIMER_PICK_INTERNAL_OLIGO': 1,
+    'PRIMER_INTERNAL_MAX_SELF_END': 8,
+    'PRIMER_MIN_SIZE': thePara['PrimerLenMin'],
+    'PRIMER_MAX_SIZE': thePara['PrimerLenMax'],
+    'PRIMER_OPT_TM': 60.0,
+    'PRIMER_MIN_TM': thePara['TmMin'],
+    'PRIMER_MAX_TM': thePara['TmMax'],
+    'PRIMER_MIN_GC': 20.0,
+    'PRIMER_MAX_GC': 80.0,
+    'PRIMER_MAX_POLY_X': 10,
+    'PRIMER_INTERNAL_MAX_POLY_X': 10,
+    'PRIMER_SALT_MONOVALENT': 50.0,
+    'PRIMER_DNA_CONC': 50.0,
+    'PRIMER_MAX_NS_ACCEPTED': 0,
+    'PRIMER_MAX_SELF_ANY': 12,
+    'PRIMER_MAX_SELF_END': 8,
+    'PRIMER_PAIR_MAX_COMPL_ANY': 12,
+    'PRIMER_PAIR_MAX_COMPL_END': 8,
+    'PRIMER_PRODUCT_SIZE_RANGE': [[thePara['MinAmpLen']-thePara['PrimerLenMax'],thePara['MaxAmpLen']+thePara['PrimerLenMax']]],
+}
+primer3.bindings.setP3Globals(Primer3GlobalArgs)
+
 for ChrID in InData.keys() :
     for thePos in InData[ChrID].keys() :
         FulChrID: str = ''.join(['chr',ChrID])
@@ -79,6 +103,7 @@ for ChrID in InData.keys() :
         if Right > len(RefSeqs[FulChrID]) : Right = len(RefSeqs[FulChrID])
         theSeq: str = RefSeqs[FulChrID][Left:Right]
         print(':'.join([ChrID,str(thePos),FulChrID,str(theSeq),str(InData[ChrID][thePos]) ]))
+        Primer3Ret: Dict = primer3.bindings.designPrimers({})
 
 
 print(b'[!] %(skipped)d InDels skipped in %(Total)d items.' % {b'skipped': Skipped, b'Total': Total})
