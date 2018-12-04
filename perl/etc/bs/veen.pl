@@ -3,9 +3,20 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-die "Usage: $0 <files> >out.txt\n" if @ARGV < 2;
+die "Usage: $0 <reference.faidx> <snp files> >out.txt\n" if @ARGV < 3;
 #@ARGV;
-warn "Input ",scalar @ARGV," Files: [",join('],[',@ARGV),"].\n";
+my $faiN = shift;
+
+my ($id,%ChrOrder)=(0);
+open I,'<',$faiN or die "Error opening $faiN: $!\n";
+while(<I>) {
+	++$id;
+	my $chr = (split /\t/)[0];
+	$ChrOrder{$chr} = $id;
+}
+$ChrOrder{'_EOF_'} = 1 + $id;
+close I;
+warn "Index:[$faiN], $id chrosomes found.\nCompare ",scalar @ARGV," Files:[",join('],[',@ARGV),"].\n";
 
 my @thePOS = qw(chrom position);
 my @SELECTED = qw(normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt);
@@ -23,7 +34,7 @@ sub readnext($) {
 		#ddx \%hash;
 		return 1;
 	} else {
-		@{$in}[2,3] = qw(| 0);
+		@{$in}[2,3] = qw(_EOF_ 0);
 		$in->[4] = [qw(0 0 NA NA 0 0 NA NA)];
 		$in->[5] = 0;
 		return 0;
@@ -58,7 +69,7 @@ for (@ARGV) {
 
 my $flag = 1;
 while($flag) {
-	my @SortedFH = sort { $a->[2] cmp $b->[2] || $a->[3] <=> $b->[3] } @FH;
+	my @SortedFH = sort { $ChrOrder{$a->[2]} <=> $ChrOrder{$b->[2]} || $a->[3] <=> $b->[3] } @FH;
 	readnext($SortedFH[0]);
 	ddx \@SortedFH;
 	$flag = 0;
