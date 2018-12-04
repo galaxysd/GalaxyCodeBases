@@ -57,17 +57,18 @@ sub initfile($) {
 	return $ret;
 }
 
-print "# InFiles:",join(',',@ARGV),"\n";
 my @FH;
-my ($id,$flag) = (0,0);
+my ($id,$flag,@tmpstr) = (0,0);
 for (@ARGV) {
 	my $t = initfile($_);
 	$t->[6] = 1 << $id;
 	++$id;
 	push @FH,$t;
 	$flag += $t->[5];
+	push @tmpstr,"$_($t->[6])";
 }
-
+print "# InFile(VeenID)s: ",join(',',@tmpstr),"\n# INFO: ",join(',',@SELECTED),"\n";
+print join("\t",qw(Chr Pos VeenType),@ARGV),"\n";
 while($flag) {
 	my @SortedFH = sort { $ChrOrder{$a->[2]} <=> $ChrOrder{$b->[2]} || $a->[3] <=> $b->[3] } @FH;
 	#ddx \@SortedFH;
