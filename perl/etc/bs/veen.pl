@@ -23,6 +23,9 @@ sub readnext($) {
 		#ddx \%hash;
 		return 1;
 	} else {
+		@{$in}[2,3] = qw(| 0);
+		$in->[4] = [qw(0 0 NA NA 0 0 NA NA)];
+		$in->[5] = 0;
 		return 0;
 	}
 }
@@ -31,27 +34,39 @@ sub initfile($) {
 	my ($filename)=@_;
 	my $infile;
 	if ($filename=~/.zst$/) {
-			open( $infile,"-|","zstd -dc $filename") or die "Error opening $filename: $!\n";
+			open( $infile,"-|","zstd -qdc $filename") or die "Error opening $filename: $!\n";
 	} elsif ($filename=~/.gz$/) {
 		open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
 	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
 	chomp(my $t = <$infile>);
 	my @tt = split("\t",$t);
 	map { s/_read(\d)$/_reads$1/ } @tt;
-	my $ret = [$infile,\@tt,undef,-1,[]];
+	my $ret = [$infile,\@tt,undef,-1,[],1,0];
 	readnext($ret) or die "[x]File [$filename] is empty. $!\n";
 	return $ret;
 }
 
 print "# InFiles:",join(',',@ARGV),"\n";
 my @FH;
+my $id = 1;
 for (@ARGV) {
 	my $t = initfile($_);
+	$t->[6] = $id;
+	++$id;
 	push @FH,$t;
 }
 
+my $flag = 1;
+while($flag) {
+	my @SortedFH = sort { $a->[2] cmp $b->[2] || $a->[3] <=> $b->[3] } @FH;
+	readnext($SortedFH[0]);
+	ddx \@SortedFH;
+	$flag = 0;
+	$flag += $_->[5] for @FH;
+	ddx $flag;
+}
 
 
-ddx \@FH;
+#ddx \@FH;
 
 close $_->[0] for @FH;
