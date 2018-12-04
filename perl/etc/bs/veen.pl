@@ -7,16 +7,16 @@ die "Usage: $0 <reference.faidx> <snp files> >out.txt\n" if @ARGV < 3;
 #@ARGV;
 my $faiN = shift;
 
-my ($id,%ChrOrder)=(0);
+my ($cid,%ChrOrder)=(0);
 open I,'<',$faiN or die "Error opening $faiN: $!\n";
 while(<I>) {
-	++$id;
+	++$cid;
 	my $chr = (split /\t/)[0];
-	$ChrOrder{$chr} = $id;
+	$ChrOrder{$chr} = $cid;
 }
-$ChrOrder{'_EOF_'} = 1 + $id;
+$ChrOrder{'_EOF_'} = 1 + $cid;
 close I;
-warn "Index:[$faiN], $id chrosomes found.\nCompare ",scalar @ARGV," Files:[",join('],[',@ARGV),"].\n";
+warn "Index:[$faiN], $cid chrosomes found.\nCompare ",scalar @ARGV," Files:[",join('],[',@ARGV),"].\n";
 
 my @thePOS = qw(chrom position);
 my @SELECTED = qw(normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt);
