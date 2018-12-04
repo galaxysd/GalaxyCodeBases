@@ -59,10 +59,10 @@ sub initfile($) {
 
 print "# InFiles:",join(',',@ARGV),"\n";
 my @FH;
-my $id = 1;
+my $id = 0;
 for (@ARGV) {
 	my $t = initfile($_);
-	$t->[6] = $id;
+	$t->[6] = 1 << $id;
 	++$id;
 	push @FH,$t;
 }
