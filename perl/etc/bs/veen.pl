@@ -59,25 +59,36 @@ sub initfile($) {
 
 print "# InFiles:",join(',',@ARGV),"\n";
 my @FH;
-my $id = 0;
+my ($id,$flag) = (0,0);
 for (@ARGV) {
 	my $t = initfile($_);
 	$t->[6] = 1 << $id;
 	++$id;
 	push @FH,$t;
+	$flag += $t->[5];
 }
 
-my $flag = 1;
 while($flag) {
 	my @SortedFH = sort { $ChrOrder{$a->[2]} <=> $ChrOrder{$b->[2]} || $a->[3] <=> $b->[3] } @FH;
 	readnext($SortedFH[0]);
-	ddx \@SortedFH;
+	#ddx \@SortedFH;
 	$flag = 0;
 	$flag += $_->[5] for @FH;
-	ddx $flag;
+	#ddx $flag;
+	my $maxSame = 0;
+	for my $i (1 .. $#FH) {
+		if ( $SortedFH[0]->[2] eq $SortedFH[$i]->[2] and $SortedFH[0]->[3] == $SortedFH[$i]->[3] ) {
+			++$maxSame;
+		} else {
+			last;
+		}
+	}
+	my @pDat;
+	for my $i (0 .. $maxSame) {
+		;
+	}
 }
 
 
 #ddx \@FH;
-
 close $_->[0] for @FH;
