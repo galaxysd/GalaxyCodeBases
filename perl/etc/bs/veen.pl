@@ -70,23 +70,32 @@ for (@ARGV) {
 
 while($flag) {
 	my @SortedFH = sort { $ChrOrder{$a->[2]} <=> $ChrOrder{$b->[2]} || $a->[3] <=> $b->[3] } @FH;
-	readnext($SortedFH[0]);
 	#ddx \@SortedFH;
 	$flag = 0;
 	$flag += $_->[5] for @FH;
 	#ddx $flag;
 	my $maxSame = 0;
+	my $VeenType = $SortedFH[0]->[6];
 	for my $i (1 .. $#FH) {
 		if ( $SortedFH[0]->[2] eq $SortedFH[$i]->[2] and $SortedFH[0]->[3] == $SortedFH[$i]->[3] ) {
 			++$maxSame;
+			$VeenType += $SortedFH[$i]->[6];
 		} else {
 			last;
 		}
 	}
+	my @ChrPos = @{$SortedFH[0]}[2,3];
 	my @pDat;
 	for my $i (0 .. $maxSame) {
-		;
+		push @pDat,[$SortedFH[$i]->[4],$SortedFH[$i]->[6]];
+		readnext($SortedFH[$i]);
 	}
+	for my $i ((1+$maxSame) .. $#FH) {
+		push @pDat,[[qw(0 0 NA NA 0 0 NA NA)],$SortedFH[$i]->[6]];
+	}
+	@pDat = sort { $a->[1] <=> $b->[1] } @pDat;
+	my @res = map { join(',',@{$_->[0]}) } @pDat;
+	print join("\t",@ChrPos,$VeenType,@res),"\n" if $flag;
 }
 
 
