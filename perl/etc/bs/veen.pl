@@ -92,7 +92,7 @@ while($flag) {
 		readnext($SortedFH[$i]);
 	}
 	for my $i ((1+$maxSame) .. $#FH) {
-		push @pDat,[[qw(0 0 NA NA 0 0 NA NA)],$SortedFH[$i]->[6]];
+		push @pDat,[[qw(. . . . . . . .)],$SortedFH[$i]->[6]];
 	}
 	@pDat = sort { $a->[1] <=> $b->[1] } @pDat;
 	my @res = map { join(',',@{$_->[0]}) } @pDat;
@@ -102,3 +102,7 @@ while($flag) {
 
 #ddx \@FH;
 close $_->[0] for @FH;
+
+__END__
+./veen.pl GRCh38_p12_control.fa.fai oVarScan9291.snp obsmutect.snp > pVB.txt
+./veen.pl GRCh38_p12_control.fa.fai *.zst|head
