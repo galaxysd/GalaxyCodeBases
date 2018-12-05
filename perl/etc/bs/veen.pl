@@ -19,7 +19,7 @@ close I;
 warn "Index:[$faiN], $cid chrosomes found.\nCompare ",scalar @ARGV," Files:[",join('],[',@ARGV),"].\n";
 
 my @thePOS = qw(chrom position);
-my @SELECTED = qw(normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt);
+my @SELECTED = qw(normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt somatic_status);
 
 sub readnext($) {
 	my $in = $_[0];
@@ -35,7 +35,7 @@ sub readnext($) {
 		return 1;
 	} else {
 		@{$in}[2,3] = qw(_EOF_ 0);
-		$in->[4] = [qw(0 0 NA NA 0 0 NA NA)];
+		$in->[4] = [qw(0 0 NA NA 0 0 NA NA NA)];
 		$in->[5] = 0;
 		return 0;
 	}
@@ -92,7 +92,7 @@ while($flag) {
 		readnext($SortedFH[$i]);
 	}
 	for my $i ((1+$maxSame) .. $#FH) {
-		push @pDat,[[qw(. . . . . . . .)],$SortedFH[$i]->[6]];
+		push @pDat,[[qw(. . . . . . . . .)],$SortedFH[$i]->[6]];
 	}
 	@pDat = sort { $a->[1] <=> $b->[1] } @pDat;
 	my @res = map { join(',',@{$_->[0]}) } @pDat;
