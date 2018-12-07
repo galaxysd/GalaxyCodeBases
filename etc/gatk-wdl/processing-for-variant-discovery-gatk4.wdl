@@ -60,6 +60,7 @@ workflow PreProcessingForVariantDiscovery_GATK4 {
   String python_docker
 
   String gotc_path
+  String bwa_path
   String gatk_path
   
   Int flowcell_small_disk
@@ -80,7 +81,7 @@ workflow PreProcessingForVariantDiscovery_GATK4 {
   call GetBwaVersion {
     input: 
       docker_image = gotc_docker,
-      bwa_path = gotc_path,
+      bwa_path = bwa_path,
       preemptible_tries = preemptible_tries
   }
 
@@ -100,7 +101,7 @@ workflow PreProcessingForVariantDiscovery_GATK4 {
         ref_fasta_index = ref_fasta_index,
         ref_dict = ref_dict,
         docker_image = gotc_docker,
-        bwa_path = gotc_path,
+        bwa_path = bwa_path,
         gotc_path = gotc_path,
         disk_size = flowcell_medium_disk,
         preemptible_tries = preemptible_tries,
@@ -260,7 +261,7 @@ task GetBwaVersion {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
   }
   output {
@@ -319,7 +320,7 @@ task SamToFastqAndBwaMem {
   >>>
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     cpu: num_cpu
     disks: "local-disk " + disk_size + " HDD"
@@ -381,7 +382,7 @@ task MergeBamAlignment {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -429,7 +430,7 @@ task SortAndFixTags {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -471,7 +472,7 @@ task MarkDuplicates {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -531,7 +532,7 @@ task CreateSequenceGroupingTSV {
   >>>
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
   }
   output {
@@ -575,7 +576,7 @@ task BaseRecalibrator {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -606,7 +607,7 @@ task GatherBqsrReports {
     }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -649,7 +650,7 @@ task ApplyBQSR {
   }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
@@ -682,7 +683,7 @@ task GatherBamFiles {
     }
   runtime {
     preemptible: preemptible_tries
-    docker: docker_image
+    #docker: docker_image
     memory: mem_size
     disks: "local-disk " + disk_size + " HDD"
   }
