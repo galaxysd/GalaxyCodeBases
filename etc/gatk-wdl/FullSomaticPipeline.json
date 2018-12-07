@@ -1,0 +1,92 @@
+{
+  "##_COMMENT1": "Take note of the .64 extensions on the reference files, issues between 32 and 64 bit OS",
+
+  "##_COMMENT2": "SAMPLE NAME AND UNMAPPED BAMS",
+  "FullSomaticPipeline.tumor_base_file_name": "HCC1143T",
+  "FullSomaticPipeline.tumor_flowcell_unmapped_bams": [
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.1.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.2.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.3.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.5.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.6.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0ENM.7.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0UK2.4.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0UK2.8.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0UW5.4.unmapped.bam",
+      "gs://gatk-test-data/wgs_ubam/HCC1143T/D0UW5.8.unmapped.bam"
+  ],
+  "FullSomaticPipeline.normal_base_file_name": "HCC1143BL",
+  "FullSomaticPipeline.normal_flowcell_unmapped_bams": [
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/C09DF.1.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/C09DF.2.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0EN0.4.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0EN0.7.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0EN0.8.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0UK2.1.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0UK2.2.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0UK2.6.unmapped.bam",
+     "gs://gatk-test-data/wgs_ubam/HCC1143BL/D0UK2.7.unmapped.bam"
+  ],
+  "FullSomaticPipeline.unmapped_bam_suffix": ".bam",
+
+  "##_COMMENT3": "REFERENCES",
+  "FullSomaticPipeline.fingerprint_genotypes_file": "gs://dsde-data-na12878-public/NA12878.hg38.reference.fingerprint.vcf",
+  "FullSomaticPipeline.contamination_sites_ud": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.contam.UD",
+  "FullSomaticPipeline.contamination_sites_bed": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.contam.bed",
+  "FullSomaticPipeline.contamination_sites_mu": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.contam.mu",
+  "FullSomaticPipeline.wgs_calling_interval_list": "gs://broad-references/hg38/v0/wgs_calling_regions.hg38.interval_list",
+  "FullSomaticPipeline.ref_dict": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
+  "FullSomaticPipeline.ref_fasta": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
+  "FullSomaticPipeline.ref_fasta_index": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
+  "FullSomaticPipeline.ref_alt": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.alt",
+  "FullSomaticPipeline.ref_sa": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.sa",
+  "FullSomaticPipeline.ref_amb": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.amb",
+  "FullSomaticPipeline.ref_bwt": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.bwt",
+  "FullSomaticPipeline.ref_ann": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.ann",
+  "FullSomaticPipeline.ref_pac": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.pac",
+  "FullSomaticPipeline.known_indels_sites_VCFs": [
+    "gs://broad-references/hg38/v0/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz",
+    "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.known_indels.vcf.gz"
+  ],
+  "FullSomaticPipeline.known_indels_sites_indices": [
+    "gs://broad-references/hg38/v0/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi",
+    "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.known_indels.vcf.gz.tbi"
+  ],
+  "FullSomaticPipeline.dbSNP_vcf": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf",
+  "FullSomaticPipeline.dbSNP_vcf_index": "gs://broad-references/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf.idx",
+  "FullSomaticPipeline.wgs_coverage_interval_list": "gs://broad-references/hg38/v0/wgs_coverage_regions.hg38.interval_list",
+
+  "##_COMMENT4": "PRIVATE REFERENCES",
+
+  "##_COMMENT5": "DISK SIZES + MISC",
+  "FullSomaticPipeline.flowcell_small_disk": 100,
+  "FullSomaticPipeline.flowcell_medium_disk": 200,
+  "FullSomaticPipeline.agg_small_disk": 200,
+  "FullSomaticPipeline.agg_medium_disk": 300,
+  "FullSomaticPipeline.agg_large_disk": 400,
+  "FullSomaticPipeline.preemptible_tries": 0,
+  "FullSomaticPipeline.agg_preemptible_tries": 0,
+
+  "##_COMMENT6": "SOMATIC PIPELINES (M2 & CNV)",
+  "FullSomaticPipeline.gatk_docker": "us.gcr.io/broad-gatk/gatk:4.0.1.2",
+  "FullSomaticPipeline.is_run_oncotator": true,
+
+  "##_COMMENT7": "SOMATIC PIPELINES (CNV only)",
+  "FullSomaticPipeline.common_sites": "gs://gatk-test-data/cnv/somatic/somatic-hg38_af-only-gnomad.hg38.AFgt0.02.interval_list",
+  "FullSomaticPipeline.bin_length": 250,
+  "FullSomaticPipeline.read_count_pon": "gs://gatk-test-data/cnv/somatic/PoN_4.0_WGS_for_public.pon.hdf5",
+  "FullSomaticPipeline.mem_gb_for_model_segments": 31,
+
+  "##_COMMENT8": "SOMATIC PIPELINES (M2 only)",
+  "FullSomaticPipeline.artifact_modes": ["G/T", "C/T"],
+  "FullSomaticPipeline.gnomad": "gs://gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz",
+  "FullSomaticPipeline.gnomad_index": "gs://gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz.tbi",
+  "FullSomaticPipeline.is_bamOut": false,
+  "FullSomaticPipeline.is_run_orientation_bias_filter": true,
+  "FullSomaticPipeline.pon": "gs://gatk-test-data/mutect2/M2PoN_4.0_WGS_for_public.vcf",
+  "FullSomaticPipeline.pon_index": "gs://gatk-test-data/mutect2/M2PoN_4.0_WGS_for_public.vcf.idx",
+  "FullSomaticPipeline.scatter_count": 30,
+  "FullSomaticPipeline.variants_for_contamination": "gs://gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz",
+  "FullSomaticPipeline.variants_for_contamination_index": "gs://gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi"
+}
+
