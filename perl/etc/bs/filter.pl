@@ -66,7 +66,7 @@ while($FH->[3]) {
 	my @d2 = (split(',',$FH->[4][3]))[$t1,$t2];
 	my $s1 = $d1[0] + $d1[1];
 	my $s2 = $d2[0] + $d2[1];
-	next if ($s1<5 or $s2<5 or ($s1+$s2)<20);
+	next if ($s1<5 or $s2<5 or ($s1+$s2)<15);
 	next if $d1[1]==0 or $d2[1]==0;
 	if (($t1+$t2)==3) {
 		if ($t1==1 or $t1==2) { # CT
