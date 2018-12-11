@@ -7,7 +7,7 @@ die "Usage: $0 <snp file> >out.txt\n" if @ARGV < 1;
 
 no warnings 'qw';
 my @thePOS = qw(chrom position);
-my @SELECTED = qw(ref var Number_of_watson[A,T,C,G] Number_of_crick[A,T,C,G]);
+my @SELECTED = qw(ref var eW eC);
 my %gOrder;
 @gOrder{qw(A T C G)} = qw(0 1 2 3);
 
@@ -44,6 +44,7 @@ sub initfile($) {
 	print "$t\n";
 	my @tt = split("\t",$t);
 	map { s/_read(\d)$/_reads$1/ } @tt;
+	push @tt,qw(eW eC eA eB);
 	my $ret = [$infile,\@tt,undef,-1,[],[]];
 	#readnext($ret) or die "[x]File [$filename] is empty. $!\n";
 	return $ret;
@@ -54,6 +55,7 @@ my $FH = initfile($ARGV[0]);
 
 while($FH->[3]) {
 	readnext($FH) or last;
+	next unless defined $FH->[3];	# skip empty lines
 	if (length($FH->[4][1])>1) {
 		print $FH->[5],"\n";
 		next;
