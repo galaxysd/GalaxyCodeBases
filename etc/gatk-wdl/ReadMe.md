@@ -8,7 +8,7 @@ Workflows for converting between sequence data formats
 ## Local CMD
 
 ```bash
-time cromwell run paired-fastq-to-unmapped-bam.wdl -i paired-fastq-to-unmapped-bam.inputs.json >cromwell.01.log &
+time cromwell run paired-fastq-to-unmapped-bam.wdl -i paired-fastq-to-unmapped-bam.inputs.json >cromwell.uBAM.log &
 ```
 
     You can also use `date '+%Y%m%d%H%M%S'` for unique strings.
@@ -35,6 +35,13 @@ readgroup   fastq_pair1_file_path   fastq_pair2_file_path   sample_name   librar
 ## gatk4-data-processing
 
 <https://github.com/gatk-workflows/gatk4-data-processing>
+
+## Local CMD
+
+```bash
+time cromwell run processing-for-variant-discovery-gatk4.wdl -i processing-for-variant-discovery-gatk4.hg38.wgs.D3B.inputs.json > cromwell.processing.D3B.log &
+time cromwell run processing-for-variant-discovery-gatk4.wdl -i processing-for-variant-discovery-gatk4.hg38.wgs.Normal.inputs.json > cromwell.processing.Normal.log &
+```
 
 ### Purpose :
 Workflows for processing high-throughput sequencing data for variant discovery with GATK4 and related tools.
