@@ -484,7 +484,7 @@ task SplitIntervals {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -570,7 +570,7 @@ task M2 {
     >>>
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -621,7 +621,7 @@ task MergeVCFs {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -677,7 +677,7 @@ task MergeBamOuts {
     >>>
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -723,7 +723,7 @@ task CollectSequencingArtifactMetrics {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -779,7 +779,7 @@ task CollectF1R2Counts {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -830,7 +830,7 @@ task LearnReadOrientationModel {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -888,7 +888,7 @@ task CalculateContamination {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: command_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + " HDD"
@@ -944,7 +944,7 @@ task Filter {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: machine_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -1000,7 +1000,7 @@ task FilterByOrientationBias {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: command_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -1056,7 +1056,7 @@ task FilterAlignmentArtifacts {
     }
 
     runtime {
-        docker: gatk_docker
+        #docker: gatk_docker
         bootDiskSizeGb: 12
         memory: command_mem + " MB"
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -1268,7 +1268,7 @@ task FuncotateMaf {
      >>>
 
      runtime {
-         docker: gatk_docker
+         #docker: gatk_docker
          bootDiskSizeGb: 20
          memory: machine_mem + " MB"
          disks: "local-disk " + select_first([disk_space_gb, default_disk_space_gb]) + if use_ssd then " SSD" else " HDD"
