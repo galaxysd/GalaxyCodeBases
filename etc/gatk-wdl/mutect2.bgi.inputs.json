@@ -28,7 +28,7 @@
   "Mutect2.gnomad_index": "/hwfssz1/pub/database/storage.googleapis.com/gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz.tbi",
   "Mutect2.variants_for_contamination": "/hwfssz1/pub/database/storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz",
   "Mutect2.variants_for_contamination_index": "/hwfssz1/pub/database/storage.googleapis.com/gatk-best-practices/somatic-hg38/small_exac_common_3.hg38.vcf.gz.tbi",
-  "##Mutect2.realignment_index_bundle": "File? (optional)",
+  "Mutect2.realignment_index_bundle": "/share/FGI2017B/pub/Ref/broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.img",
 
   "##_COMMENT5": "Secondary resources",
   "Mutect2.onco_ds_tar_gz": "gs://gatk-best-practices/somatic-b37/oncotator_v1_ds_April052016.tar.gz",
