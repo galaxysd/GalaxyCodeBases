@@ -31,8 +31,8 @@
   "Mutect2.realignment_index_bundle": "/share/FGI2017B/pub/Ref/broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.img",
 
   "##_COMMENT5": "Secondary resources",
-  "Mutect2.onco_ds_tar_gz": "gs://gatk-best-practices/somatic-b37/oncotator_v1_ds_April052016.tar.gz",
-  "Mutect2.default_config_file": "gs://gatk-best-practices/somatic-b37/onco_config.txt",
+  "##_Mutect2.onco_ds_tar_gz": "gs://gatk-best-practices/somatic-b37/oncotator_v1_ds_April052016.tar.gz",
+  "##_Mutect2.default_config_file": "gs://gatk-best-practices/somatic-b37/onco_config.txt",
   "##_Mutect2.sequencing_center": "(optional) String?",
   "##_Mutect2.sequence_source": "(optional) String?",
 

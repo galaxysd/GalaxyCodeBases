@@ -471,7 +471,7 @@ task SplitIntervals {
 
     command {
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         mkdir interval-files
         gatk --java-options "-Xmx${command_mem}m" SplitIntervals \
@@ -541,7 +541,7 @@ task M2 {
     command <<<
         set -e
 
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         # We need to create these files regardless, even if they stay empty
         touch bamout.bam
@@ -616,7 +616,7 @@ task MergeVCFs {
     # WARNING 2015-10-28 15:01:48 GatherVcfs  Index creation not currently supported when gathering block compressed VCFs.
     command {
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
         gatk --java-options "-Xmx${command_mem}m" MergeVcfs -I ${sep=' -I ' input_vcfs} -O ${output_vcf}
     }
 
@@ -663,7 +663,7 @@ task MergeBamOuts {
         # This command block assumes that there is at least one file in bam_outs.
         #  Do not call this task if len(bam_outs) == 0
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
         gatk --java-options "-Xmx${command_mem}m" GatherBamFiles \
             -I ${sep=" -I " bam_outs} -O unsorted.out.bam -R ${ref_fasta}
 
@@ -717,7 +717,7 @@ task CollectSequencingArtifactMetrics {
 
     command {
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
         gatk --java-options "-Xmx${command_mem}m" CollectSequencingArtifactMetrics \
             -I ${tumor_bam} -O "gatk" -R ${ref_fasta} -VALIDATION_STRINGENCY LENIENT
     }
@@ -763,7 +763,7 @@ task CollectF1R2Counts {
 
     command {
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
         
         # Get the sample name. The task M2 retrieves this information too, but it must be done separately here
         # to avoid a cyclic dependency
@@ -820,7 +820,7 @@ task LearnReadOrientationModel {
 
     command {
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         gatk --java-options "-Xmx${command_mem}m" LearnReadOrientationModel \
         -alt-table ${alt_table} \
@@ -874,7 +874,7 @@ task CalculateContamination {
     command {
         set -e
 
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         if [[ -f "${normal_bam}" ]]; then
             gatk --java-options "-Xmx${command_mem}m" GetPileupSummaries -I ${normal_bam} ${"--interval-set-rule INTERSECTION -L " + intervals} \
@@ -934,7 +934,7 @@ task Filter {
     command {
         set -e
 
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         gatk --java-options "-Xmx${command_mem}m" FilterMutectCalls -V ${unfiltered_vcf} \
       	    -O ${output_vcf} \
@@ -990,7 +990,7 @@ task FilterByOrientationBias {
     command {
         set -e
 
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         gatk --java-options "-Xmx${command_mem}m" FilterByOrientationBias \
             -V ${input_vcf} \
@@ -1045,7 +1045,7 @@ task FilterAlignmentArtifacts {
     command {
         set -e
 
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
         gatk --java-options "-Xmx${command_mem}m" FilterAlignmentArtifacts \
             -V ${input_vcf} \
@@ -1230,7 +1230,7 @@ task FuncotateMaf {
 
      command <<<
          set -e
-         export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
+         #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk_override}
 
          DATA_SOURCES_TAR_GZ=${data_sources_tar_gz}
          if [[ ! -e $DATA_SOURCES_TAR_GZ ]] ; then
