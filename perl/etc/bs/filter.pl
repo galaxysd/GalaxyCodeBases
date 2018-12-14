@@ -7,7 +7,7 @@ die "Usage: $0 <snp file> >out.txt\n" if @ARGV < 1;
 
 no warnings 'qw';
 my @thePOS = qw(chrom position);
-my @SELECTED = qw(ref var eW eC);
+my @SELECTED = qw(ref var eW eC Number_of_watson[A,T,C,G] Number_of_crick[A,T,C,G]);
 my %gOrder;
 @gOrder{qw(A T C G)} = qw(0 1 2 3);
 
@@ -64,10 +64,13 @@ while($FH->[3]) {
 	my $t2 = $gOrder{$FH->[4][1]};
 	my @d1 = (split(',',$FH->[4][2]))[$t1,$t2];
 	my @d2 = (split(',',$FH->[4][3]))[$t1,$t2];
+	my ($d3) = (split(',',$FH->[4][4]))[$t1];
+	my ($d4) = (split(',',$FH->[4][5]))[$t1];
 	my $s1 = $d1[0] + $d1[1];
 	my $s2 = $d2[0] + $d2[1];
 	next if ($s1<5 or $s2<5 or ($s1+$s2)<15);
 	next if $d1[1]==0 or $d2[1]==0;
+	next if $d3 < 5 or $d4 < 5;
 	if (($t1+$t2)==3) {
 		if ($t1==1 or $t1==2) { # CT
 			next if ($d2[1])/($s2) < 0.2;
