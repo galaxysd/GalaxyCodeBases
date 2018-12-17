@@ -1,0 +1,5 @@
+#!/usr/bin/bc -l
+l = read()
+scale = 14; a = 1/3; b = 2/3; t = l * l(2); m = l(t) # a^b == e(l(a) * b)
+n = e( l(m) * b ); o = e( l(t) * a ); p = (1.923 * o * n - 4.69) / l(2)
+print "Strength: ", p, "\n"
