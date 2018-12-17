@@ -17,3 +17,6 @@ echo id_*.${FULLDATE}.pub | xargs -n1 ssh-keygen -lf
 # https://blog.josefsson.org/2016/11/03/why-i-dont-use-2048-or-4096-rsa-key-sizes/
 # https://medium.com/@honglong/%E9%81%B8%E6%93%87-ssh-key-%E7%9A%84%E5%8A%A0%E5%AF%86%E6%BC%94%E7%AE%97%E6%B3%95-70ca45c94d8e
 # echo 4096 | ./keysize-NIST.bc
+# chmod 700 ~/.ssh ; chmod 600 ~/.ssh/authorized_keys
+# Changing private key passphrase(overwrite): ssh-keygen -p -f id_ed25519
+# Print OpenSSH public key: ssh-keygen -y -f id_ed25519
