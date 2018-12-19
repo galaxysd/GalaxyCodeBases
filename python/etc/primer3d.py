@@ -42,7 +42,7 @@ Tm 参考范围55-62
 
 thePara: Dict[str,int] = dict(MaxAmpLen=400, MinAmpLen=300, P5Up1=0, P5Up2=100,
     TmMax=63, TmMin=55, TmDeltra=5,
-    PrimerLenMin=25, PrimerLenMax=42, Mode2LeftMax=100
+    PrimerLenMin=25, PrimerLenMax=36, Mode2LeftMax=100
     )
 
 with gzip.open(InFile, 'rt') as tsvin:
@@ -68,7 +68,7 @@ with gzip.open(InFile, 'rt') as tsvin:
                 InData[row['Chr']] = { row['Pos'] : (row['Ref'],[row['Alt']]) }
 
 Primer3GlobalArgs: Dict = {
-    'PRIMER_OPT_SIZE': 20,
+    'PRIMER_OPT_SIZE': 2+thePara['PrimerLenMin'],
     'PRIMER_PICK_INTERNAL_OLIGO': 1,
     'PRIMER_INTERNAL_MAX_SELF_END': 8,
     'PRIMER_MIN_SIZE': thePara['PrimerLenMin'],
@@ -88,6 +88,11 @@ Primer3GlobalArgs: Dict = {
     'PRIMER_PAIR_MAX_COMPL_ANY': 12,
     'PRIMER_PAIR_MAX_COMPL_END': 8,
     'PRIMER_PRODUCT_SIZE_RANGE': [[thePara['MinAmpLen']-thePara['PrimerLenMax'],thePara['MaxAmpLen']+thePara['PrimerLenMax']]],
+    'PRIMER_TASK': 'generic',
+    'PRIMER_PICK_LEFT_PRIMER': 1,
+    'PRIMER_PICK_INTERNAL_OLIGO': 0,
+    'PRIMER_PICK_RIGHT_PRIMER': 1,
+    'PRIMER_PAIR_MAX_DIFF_TM': thePara['TmDeltra'],
 }
 primer3.bindings.setP3Globals(Primer3GlobalArgs)
 
@@ -103,7 +108,12 @@ for ChrID in InData.keys() :
         if Right > len(RefSeqs[FulChrID]) : Right = len(RefSeqs[FulChrID])
         theSeq: str = RefSeqs[FulChrID][Left:Right]
         print(':'.join([ChrID,str(thePos),FulChrID,str(theSeq),str(InData[ChrID][thePos]) ]))
-        Primer3Ret: Dict = primer3.bindings.designPrimers({})
+        Primer3Ret: Dict = primer3.bindings.designPrimers({
+            'SEQUENCE_ID': theSeq.fancy_name,
+            'SEQUENCE_TEMPLATE': str(theSeq),
+            'SEQUENCE_INCLUDED_REGION': [ thePara['PrimerLenMax'],thePara['MaxAmpLen'] ],
+        })
+        print(Primer3Ret)
 
 
 print(b'[!] %(skipped)d InDels skipped in %(Total)d items.' % {b'skipped': Skipped, b'Total': Total})
