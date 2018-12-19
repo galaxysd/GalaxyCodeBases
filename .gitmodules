@@ -9,3 +9,6 @@
 [submodule "mydoc"]
 	path = mydoc
 	url = git@bitbucket.org:galaxy001/mydoc.git
+[submodule "shared/bioinfo01"]
+	path = shared/bioinfo01
+	url = git@bitbucket.org:fgisz/bioinfo01.git
