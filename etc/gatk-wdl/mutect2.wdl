@@ -1134,7 +1134,7 @@ task oncotate_m2 {
     >>>
 
     runtime {
-        docker: oncotator_docker
+        #docker: oncotator_docker
         memory: machine_mem + " MB"
         bootDiskSizeGb: 12
         disks: "local-disk " + select_first([disk_space, 100]) + if use_ssd then " SSD" else " HDD"
@@ -1165,7 +1165,7 @@ task SumFloats {
     }
 
     runtime {
-        docker: "python:2.7"
+        #docker: "python:2.7"
         disks: "local-disk " + 10 + " HDD"
         preemptible: select_first([preemptible_attempts, 10])
         maxRetries: select_first([max_retries, 3])
