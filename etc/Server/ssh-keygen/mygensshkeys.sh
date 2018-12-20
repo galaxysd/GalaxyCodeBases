@@ -1,5 +1,41 @@
 #!/usr/bin/env bash
 
+# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash/14203146#14203146
+function show_help {
+	echo "Usage: $0 [-hcv]"
+	echo "Options: -h   display this help"
+	echo "         -c   clean previous key files"
+	echo "         -v   be verbose"
+}
+function do_clean {
+	rm -rv c* authorized_keys.*
+}
+
+OPTIND=1
+output_file=""
+verbose=0
+
+while getopts "h?cvf:" opt; do
+	case "$opt" in
+	h|\?)
+		show_help
+		exit 0
+		;;
+	c)
+		do_clean
+		exit 0
+		;;
+	v)  verbose=1
+		;;
+	f)  output_file=$OPTARG
+		;;
+    esac
+done
+
+shift $((OPTIND-1))
+[ "${1:-}" = "--" ] && shift
+#echo "verbose=$verbose, output_file='$output_file', Leftovers: $@"
+
 FULLDATE=`date '+%Y%m%d%H%M%S'`
 JUSTDATE=$(date '+%Y%m%d')
 PLACES="local,bgi,vps"
@@ -22,12 +58,12 @@ for thePlace in ${aPLACES[@]}; do
 	#cat ${PREFIX}/id_{ed25519,ecdsa,rsa}.pub >authorized_keys.${thePlace}.${FULLDATE}
 done
 
-rm -f authorized_keys.${FULLDATE}
+rm -f authorized_keys.${JUSTDATE}
 for theType in rsa ecdsa ed25519; do
-	rm -f authorized_keys.${theType}_${FULLDATE}
+	rm -f authorized_keys.${theType}_${JUSTDATE}
 	for thePlace in ${aPLACES[@]}; do
 		PREFIX="c${FULLDATE}.${thePlace}"
-		cat ${PREFIX}/id_${theType}.pub >>authorized_keys.${theType}_${FULLDATE}
+		cat ${PREFIX}/id_${theType}.pub >>authorized_keys.${theType}_${JUSTDATE}
 	done
-	cat authorized_keys.${theType}_${FULLDATE} >>authorized_keys.${FULLDATE}
+	cat authorized_keys.${theType}_${JUSTDATE} >>authorized_keys.${JUSTDATE}
 done
