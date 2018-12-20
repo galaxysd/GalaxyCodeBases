@@ -7,7 +7,8 @@ die "Usage: $0 <snp file> >out.txt\n" if @ARGV < 1;
 
 no warnings 'qw';
 my @thePOS = qw(chrom position);
-my @SELECTED = qw(ref var eW eC Number_of_watson[A,T,C,G] Number_of_crick[A,T,C,G]);
+my @LastEight = qw(Number_of_watson[A,T,C,G]_Normal Number_of_crick[A,T,C,G]_Normal Mean_Quality_of_Watson[A,T,C,G]_Normal Mean_Quality_of_Crick[A,T,C,G]_Normall Number_of_watson[A,T,C,G]_Cancer Number_of_crick[A,T,C,G]_Cancer Mean_Quality_of_Watson[A,T,C,G]_Cancer Mean_Quality_of_Crick[A,T,C,G]_Cancer);
+my @SELECTED = (qw(ref var),@LastEight[4,5,0,1]);
 my %gOrder;
 @gOrder{qw(A T C G)} = qw(0 1 2 3);
 
@@ -41,10 +42,13 @@ sub initfile($) {
 		open( $infile,"-|","gzip -dc $filename") or die "Error opening $filename: $!\n";
 	} else {open( $infile,"<",$filename) or die "Error opening $filename: $!\n";}
 	chomp(my $t = <$infile>);
-	print "$t\n";
+	#print "$t\n";
 	my @tt = split("\t",$t);
 	map { s/_read(\d)$/_reads$1/ } @tt;
 	push @tt,qw(eW eC eA eB);
+	#print join("|",@tt),"\n";
+	@tt[-8 .. -1] = @LastEight;
+	print join("\t",@tt),"\n";
 	my $ret = [$infile,\@tt,undef,-1,[],[]];
 	#readnext($ret) or die "[x]File [$filename] is empty. $!\n";
 	return $ret;
