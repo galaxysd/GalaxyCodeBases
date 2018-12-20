@@ -4,7 +4,7 @@ FULLDATE=`date '+%Y%m%d%H%M%S'`
 SSHCOMMENT="$(whoami)@$(hostname)-$(date '+%Y%m%d')"
 
 ssh-keygen -b 4096 -t rsa -C ${SSHCOMMENT} -N '' -f id_rsa.4k.${FULLDATE}
-ssh-keygen -b 3072 -t rsa -C ${SSHCOMMENT} -N '' -f id_rsa.3k.${FULLDATE}
+#ssh-keygen -b 3072 -t rsa -C ${SSHCOMMENT} -N '' -f id_rsa.3k.${FULLDATE}
 ssh-keygen -t ecdsa -b 521 -C ${SSHCOMMENT} -N '' -f id_ecdsa.57.${FULLDATE}
 ssh-keygen -t ed25519 -C ${SSHCOMMENT} -N '' -f id_ed25519.65.${FULLDATE}
 
