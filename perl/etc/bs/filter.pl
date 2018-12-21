@@ -8,7 +8,7 @@ die "Usage: $0 <snp file> >out.txt\n" if @ARGV < 1;
 no warnings 'qw';
 my @thePOS = qw(chrom position);
 my @LastEight = qw(Number_of_watson[A,T,C,G]_Normal Number_of_crick[A,T,C,G]_Normal Mean_Quality_of_Watson[A,T,C,G]_Normal Mean_Quality_of_Crick[A,T,C,G]_Normall Number_of_watson[A,T,C,G]_Cancer Number_of_crick[A,T,C,G]_Cancer Mean_Quality_of_Watson[A,T,C,G]_Cancer Mean_Quality_of_Crick[A,T,C,G]_Cancer);
-my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status');
+my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status',@LastEight[6,7,2,3]);
 my %gOrder;
 @gOrder{qw(A T C G)} = qw(0 1 2 3);
 
@@ -67,23 +67,31 @@ while($FH->[3]) {
 	my $t1 = $gOrder{$FH->[4][0]};	# ref
 	my $t2 = $gOrder{$FH->[4][1]};	# var
 	my $GT = join('',(sort {$a cmp $b} ($FH->[4][0],$FH->[4][1])));
-	my @d1 = (split(',',$FH->[4][2]))[$t1,$t2];	# Watson_Cancer
-	my @d2 = (split(',',$FH->[4][3]))[$t1,$t2];	# Crick_Cancer
-	my @d3 = (split(',',$FH->[4][4]))[$t1,$t2];	# Watson_Normal
-	my @d4 = (split(',',$FH->[4][5]))[$t1,$t2];	# Crick_Normal
+	my @d1 = (split(',',$FH->[4][2]))[$t1,$t2,0,1,2,3];	# Watson_Cancer
+	my @d2 = (split(',',$FH->[4][3]))[$t1,$t2,0,1,2,3];	# Crick_Cancer
+	my @d3 = (split(',',$FH->[4][4]))[$t1,$t2,0,1,2,3];	# Watson_Normal
+	my @d4 = (split(',',$FH->[4][5]))[$t1,$t2,0,1,2,3];	# Crick_Normal
 	my ($g3) = (split(',',$FH->[4][4]))[$t1];
 	my ($g4) = (split(',',$FH->[4][5]))[$t1];
 	my $s1 = $d1[0] + $d1[1];
 	my $s2 = $d2[0] + $d2[1];
+	my $sa = $s1+$s2;
+	my @q1 = (split(',',$FH->[4][7]))[$t1,$t2,0,1,2,3];	# Watson_Cancer
+	my @q2 = (split(',',$FH->[4][8]))[$t1,$t2,0,1,2,3];	# Crick_Cancer
+	my @q3 = (split(',',$FH->[4][9]))[$t1,$t2,0,1,2,3];	# Watson_Normal
+	my @q4 = (split(',',$FH->[4][10]))[$t1,$t2,0,1,2,3];	# Crick_Normal
 	if ($FH->[4][6] eq 'Germline') {
 		;
 	} elsif ($FH->[4][6] eq 'Somatic') {
-		ddx $GT;
-		next if ($s1+$s2)<15;
+		next if $sa<15;
 		if ($GT eq 'AA' or $GT eq 'TT') {
 			;
-		} elsif $GT eq 'AT') {
-			;
+		} elsif ($GT eq 'AT') {
+			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他大都是0
+			next if $d1[1]<2 or $d2[1]<2;
+			next if (($d1[1]+$d2[1])/$sa)<0.2;
+			next if ($q1[1]+$q2[1])<40;
+			next if ($d1[2]+$d1[3]+$d1[4]+$d1[5])>($d1[0]+$d1[1]);
 		} elsif ($GT eq 'CC' or $GT eq 'GG') {
 			;
 		} elsif ($GT eq 'CT' or $GT eq 'AG') {
