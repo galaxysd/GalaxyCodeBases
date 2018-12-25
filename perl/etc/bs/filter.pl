@@ -9,11 +9,14 @@ no warnings 'qw';
 my @thePOS = qw(chrom position);
 my @LastEight = qw(Number_of_watson[A,T,C,G]_Normal Number_of_crick[A,T,C,G]_Normal Mean_Quality_of_Watson[A,T,C,G]_Normal Mean_Quality_of_Crick[A,T,C,G]_Normall Number_of_watson[A,T,C,G]_Cancer Number_of_crick[A,T,C,G]_Cancer Mean_Quality_of_Watson[A,T,C,G]_Cancer Mean_Quality_of_Crick[A,T,C,G]_Cancer);
 my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status',@LastEight[6,7,2,3]);
+my @Bases = qw(A T C G);
+my $i = 0;
+my %L = map { $_ => $i++ } @Bases;
 my (%gOrder,%bsBase,%cmpBase,%bscmpBase);
-@gOrder{qw(A T C G)}	= qw(0 1 2 3); # A T C G
-@bsBase{qw(A T C G)}	= qw(3 2 1 0); # G C T A
-@cmpBase{qw(A T C G)}	= qw(1 0 3 2); # T A G C
-@bscmpBase{qw(A T C G)}	= qw(2 3 0 1); # C G A T
+@gOrder{@Bases}    = qw(0 1 2 3); # A T C G
+@bsBase{@Bases}    = qw(3 2 1 0); # G C T A
+@cmpBase{@Bases}   = qw(1 0 3 2); # T A G C
+@bscmpBase{@Bases} = qw(2 3 0 1); # C G A T
 
 sub readnext($) {
 	my $in = $_[0];
@@ -69,7 +72,7 @@ while($FH->[3]) {
 	}
 	my $t1 = $gOrder{$FH->[4][0]};	# ref
 	my $t2 = $gOrder{$FH->[4][1]};	# var
-	my @GTs = sort {$a cmp $b} ($FH->[4][0],$FH->[4][1]);
+	my @GTs = sort {$L{$a} <=> $L{$b} || $a cmp $b} ($FH->[4][0],$FH->[4][1]);
 	my $GT = join('',@GTs);
 	my @m1 = ($gOrder{$GTs[0]},$bsBase{$GTs[0]},$cmpBase{$GTs[0]},$bscmpBase{$GTs[0]});
 	my @m2 = ($gOrder{$GTs[1]},$bsBase{$GTs[1]},$cmpBase{$GTs[1]},$bscmpBase{$GTs[1]});
@@ -88,6 +91,12 @@ while($FH->[3]) {
 	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
 	my @q4 = (split(',',$FH->[4][10]))[0..3,$t1,$t2];	# Crick_Normal
 	my @qs = ([@q1[@m1,@m2]],[@q2[@m1,@m2]],[@q3[@m1,@m2]],[@q4[@m1,@m2]]);
+	my ($x,$y)=();
+	if ($GT =~ /C/) {
+		($x,$y)=(0,1);
+	} elsif ($GT =~ /G/) {
+		($x,$y)=(1,0);
+	}
 	if ($FH->[4][6] eq 'Germline') {
 		;
 	} elsif ($FH->[4][6] eq 'Somatic') {
@@ -99,24 +108,38 @@ while($FH->[3]) {
 			next if $qs[0][0] < 20;
 			next if $qs[1][0] < 20;
 		} elsif ($GT eq 'AT') { # AGTCTCAG
-			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他大都是0
+			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他都是0
 			next if $d1[5]<2 or $d2[5]<2;
 			next if (($d1[5]+$d2[5])/$sa)<0.2;
 			next if ($q1[5]+$q2[5])<40;
 			next if $d1[2]+$d1[3] + $d2[2]+$d2[3] > 0;
-		} elsif ($GT eq 'CC' or $GT eq 'GG') {	# CTGACTGA,GACTGACT
-			my $x = $t1 - 2;
-			my $y = 3 - $t1;
+		} elsif ($GT eq 'CC' or $GT eq 'GG') {	# CTGAx2,GACTx2
 			next if $ds[$x][0] + $ds[$x][1] < 5; # 正链(C+T)>5,G=0,A=0
 			next if $ds[$x][2] + $ds[$x][3] > 0;
 			next if $ds[$y][0] < 5; # 负链C>5,A=0,T=0,G=0
 			next if $ds[$y][1] + $ds[$y][2] + $ds[$y][3] > 0;
-		} elsif ($GT eq 'CT' or $GT eq 'AG') {
+		} elsif ($GT eq 'TC' or $GT eq 'AG') { # TCAGCTGA,AGTCGACT
+			next if $ds[$x][4] + $ds[$x][5] < 5; # 正链(C+T)>5,G=0,A=0
+			next if $ds[$x][6] + $ds[$x][7] > 0;
+			next if $ds[$y][4] < 2 or $ds[$y][5] < 2; # C>2,T>2，其他都是0
+			next if $ds[$y][6] + $ds[$y][7] > 0;
+			next if 4 * $ds[$y][0] < $ds[$y][1]; # C/(C+T)>0.2 C/T < 1/4
+			next if 4 * $ds[$y][1] < $ds[$y][0];
+		} elsif ($GT eq 'AC' or $GT eq 'TG') { # AGTCCTGA,TCAGGACT
+			next if $ds[$x][0] < 2;
+			next if $ds[$x][4] + $ds[$x][5] < 2;
 			;
-		} elsif ($GT eq 'GT' or $GT eq 'CG') {
-			;
-		} elsif ($GT eq 'AC') {
-			;
+		} elsif ($GT eq 'CG') { # CTGAGACT | ATCG
+			next if $d1[2] + $d1[1] < 2;
+			next if $d1[3]<2;
+			next if $d1[0]>0;
+			next if $d1[3]/($d1[1]+$d1[2]) <0.25;
+			next if ($d1[1]+$d1[2])/$d1[3] <0.25;
+			next if $d1[0] + $d1[3] < 2;
+			next if $d2[2]<2;
+			next if $d2[1]>0;
+			next if $d2[2]/($d2[0]+$d2[3]) <0.25;
+			next if ($d2[0]+$d2[3])/$d2[2] <0.25;
 		} else {die;}
 	} elsif ($FH->[4][6] eq 'LOH') {
 		;
