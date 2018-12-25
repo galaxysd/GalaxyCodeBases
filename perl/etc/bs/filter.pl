@@ -105,8 +105,6 @@ while($FH->[3]) {
 			next if $ds[0][0] < 5;
 			next if $ds[1][0] < 5;
 			next if $ds[0][1]+$ds[0][2]+$ds[0][3] + $ds[1][1]+$ds[1][2]+$ds[1][3] > 0;
-			next if $qs[0][0] < 20;
-			next if $qs[1][0] < 20;
 		} elsif ($GT eq 'AT') { # AGTCTCAG
 			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他都是0
 			next if $d1[5]<2 or $d2[5]<2;
@@ -123,12 +121,19 @@ while($FH->[3]) {
 			next if $ds[$x][6] + $ds[$x][7] > 0;
 			next if $ds[$y][4] < 2 or $ds[$y][5] < 2; # C>2,T>2，其他都是0
 			next if $ds[$y][6] + $ds[$y][7] > 0;
-			next if 4 * $ds[$y][0] < $ds[$y][1]; # C/(C+T)>0.2 C/T < 1/4
-			next if 4 * $ds[$y][1] < $ds[$y][0];
+			next if $ds[$y][0]/$ds[$y][1] <0.25;
+			next if $ds[$y][1]/$ds[$y][0] <0.25;
 		} elsif ($GT eq 'AC' or $GT eq 'TG') { # AGTCCTGA,TCAGGACT
 			next if $ds[$x][0] < 2;
 			next if $ds[$x][4] + $ds[$x][5] < 2;
-			;
+			next if $ds[$x][1] > 0;
+			next if $ds[$x][0]/($ds[$x][4] + $ds[$x][5]) <0.25;
+			next if $ds[$x][4]/($ds[$x][0] + $ds[$x][5]) <0.25;
+			next if $ds[$y][0] < 2;
+			next if $ds[$y][4] < 2;
+			next if $ds[$y][1] + $ds[$y][5] > 0;
+			next if $ds[$y][0]/$ds[$y][4] <0.25;
+			next if $ds[$y][4]/$ds[$y][0] <0.25;
 		} elsif ($GT eq 'CG') { # CTGAGACT | ATCG
 			next if $d1[2] + $d1[1] < 2;
 			next if $d1[3]<2;
@@ -141,22 +146,31 @@ while($FH->[3]) {
 			next if $d2[2]/($d2[0]+$d2[3]) <0.25;
 			next if ($d2[0]+$d2[3])/$d2[2] <0.25;
 		} else {die;}
+		if ($GT eq 'AA') {
+			;
+		} elsif ($GT eq 'TT') {
+			;
+		} elsif ($GT eq 'AT') {
+			;
+		} elsif ($GT eq 'CC') {
+			;
+		} elsif ($GT eq 'GG') {
+			;
+		} elsif ($GT eq 'TC') {
+			;
+		} elsif ($GT eq 'AG') {
+			;
+		} elsif ($GT eq 'TG') {
+			;
+		} elsif ($GT eq 'CG') {
+			;
+		} elsif ($GT eq 'AC') {
+			;
+		} else {die;}
 	} elsif ($FH->[4][6] eq 'LOH') {
 		;
 	} else {
 		;
-	}
-	next if ($s1<5 or $s2<5 or ($s1+$s2)<15);
-	next if $d1[1]==0 or $d2[1]==0;
-	next if $g3 < 5 or $g4 < 5;
-	if (($t1+$t2)==3) {
-		if ($t1==1 or $t1==2) { # CT
-			next if ($d2[1])/($s2) < 0.2;
-		} elsif ($t1==0 or $t1==3) { # AG
-			next if ($d1[1])/($s1) < 0.2;
-		}
-	} else {
-		next if ($d1[1]+$d2[1])/($s1+$s2) < 0.2;
 	}
 	print $FH->[5],"\n";
 	#ddx $FH;
