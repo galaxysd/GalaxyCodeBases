@@ -9,8 +9,11 @@ no warnings 'qw';
 my @thePOS = qw(chrom position);
 my @LastEight = qw(Number_of_watson[A,T,C,G]_Normal Number_of_crick[A,T,C,G]_Normal Mean_Quality_of_Watson[A,T,C,G]_Normal Mean_Quality_of_Crick[A,T,C,G]_Normall Number_of_watson[A,T,C,G]_Cancer Number_of_crick[A,T,C,G]_Cancer Mean_Quality_of_Watson[A,T,C,G]_Cancer Mean_Quality_of_Crick[A,T,C,G]_Cancer);
 my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status',@LastEight[6,7,2,3]);
-my %gOrder;
-@gOrder{qw(A T C G)} = qw(0 1 2 3);
+my (%gOrder,%bsBase,%cmpBase,%bscmpBase);
+@gOrder{qw(A T C G)}	= qw(0 1 2 3); # A T C G
+@bsBase{qw(A T C G)}	= qw(3 2 1 0); # G C T A
+@cmpBase{qw(A T C G)}	= qw(1 0 3 2); # T A G C
+@bscmpBase{qw(A T C G)}	= qw(2 3 0 1); # C G A T
 
 sub readnext($) {
 	my $in = $_[0];
@@ -66,34 +69,48 @@ while($FH->[3]) {
 	}
 	my $t1 = $gOrder{$FH->[4][0]};	# ref
 	my $t2 = $gOrder{$FH->[4][1]};	# var
-	my $GT = join('',(sort {$a cmp $b} ($FH->[4][0],$FH->[4][1])));
-	my @d1 = (split(',',$FH->[4][2]))[$t1,$t2,0,1,2,3];	# Watson_Cancer
-	my @d2 = (split(',',$FH->[4][3]))[$t1,$t2,0,1,2,3];	# Crick_Cancer
-	my @d3 = (split(',',$FH->[4][4]))[$t1,$t2,0,1,2,3];	# Watson_Normal
-	my @d4 = (split(',',$FH->[4][5]))[$t1,$t2,0,1,2,3];	# Crick_Normal
+	my @GTs = sort {$a cmp $b} ($FH->[4][0],$FH->[4][1]);
+	my $GT = join('',@GTs);
+	my @m1 = ($gOrder{$GTs[0]},$bsBase{$GTs[0]},$cmpBase{$GTs[0]},$bscmpBase{$GTs[0]});
+	my @m2 = ($gOrder{$GTs[1]},$bsBase{$GTs[1]},$cmpBase{$GTs[1]},$bscmpBase{$GTs[1]});
+	my @d1 = (split(',',$FH->[4][2]))[0..3,$t1,$t2];	# Watson_Cancer, $d1[0]是A，$d1[1]是T，$d1[2]是C，$d1[3]是G, $d1[4]是Ref，$d1[5]是Var
+	my @d2 = (split(',',$FH->[4][3]))[0..3,$t1,$t2];	# Crick_Cancer
+	my @d3 = (split(',',$FH->[4][4]))[0..3,$t1,$t2];	# Watson_Normal
+	my @d4 = (split(',',$FH->[4][5]))[0..3,$t1,$t2];	# Crick_Normal
+	my @ds = ([@d1[@m1,@m2]],[@d2[@m1,@m2]],[@d3[@m1,@m2]],[@d4[@m1,@m2]]);
 	my ($g3) = (split(',',$FH->[4][4]))[$t1];
 	my ($g4) = (split(',',$FH->[4][5]))[$t1];
 	my $s1 = $d1[0] + $d1[1];
 	my $s2 = $d2[0] + $d2[1];
 	my $sa = $s1+$s2;
-	my @q1 = (split(',',$FH->[4][7]))[$t1,$t2,0,1,2,3];	# Watson_Cancer
-	my @q2 = (split(',',$FH->[4][8]))[$t1,$t2,0,1,2,3];	# Crick_Cancer
-	my @q3 = (split(',',$FH->[4][9]))[$t1,$t2,0,1,2,3];	# Watson_Normal
-	my @q4 = (split(',',$FH->[4][10]))[$t1,$t2,0,1,2,3];	# Crick_Normal
+	my @q1 = (split(',',$FH->[4][7]))[0..3,$t1,$t2];	# Watson_Cancer, $q1[0]是A，$q1[1]是T，$q1[2]是C，$q1[3]是G, $q1[4]是Ref，$q1[5]是Var
+	my @q2 = (split(',',$FH->[4][8]))[0..3,$t1,$t2];	# Crick_Cancer
+	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
+	my @q4 = (split(',',$FH->[4][10]))[0..3,$t1,$t2];	# Crick_Normal
+	my @qs = ([@q1[@m1,@m2]],[@q2[@m1,@m2]],[@q3[@m1,@m2]],[@q4[@m1,@m2]]);
 	if ($FH->[4][6] eq 'Germline') {
 		;
 	} elsif ($FH->[4][6] eq 'Somatic') {
-		next if $sa<15;
-		if ($GT eq 'AA' or $GT eq 'TT') {
-			;
-		} elsif ($GT eq 'AT') {
+		next if $sa < 15;
+		if ($GT eq 'AA' or $GT eq 'TT') { # AGTCx2,TCAGx2
+			next if $ds[0][0] < 5;
+			next if $ds[1][0] < 5;
+			next if $ds[0][1]+$ds[0][2]+$ds[0][3] + $ds[1][1]+$ds[1][2]+$ds[1][3] > 0;
+			next if $qs[0][0] < 20;
+			next if $qs[1][0] < 20;
+		} elsif ($GT eq 'AT') { # AGTCTCAG
 			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他大都是0
-			next if $d1[1]<2 or $d2[1]<2;
-			next if (($d1[1]+$d2[1])/$sa)<0.2;
-			next if ($q1[1]+$q2[1])<40;
-			next if ($d1[2]+$d1[3]+$d1[4]+$d1[5])>($d1[0]+$d1[1]);
-		} elsif ($GT eq 'CC' or $GT eq 'GG') {
-			;
+			next if $d1[5]<2 or $d2[5]<2;
+			next if (($d1[5]+$d2[5])/$sa)<0.2;
+			next if ($q1[5]+$q2[5])<40;
+			next if $d1[2]+$d1[3] + $d2[2]+$d2[3] > 0;
+		} elsif ($GT eq 'CC' or $GT eq 'GG') {	# CTGACTGA,GACTGACT
+			my $x = $t1 - 2;
+			my $y = 3 - $t1;
+			next if $ds[$x][0] + $ds[$x][1] < 5; # 正链(C+T)>5,G=0,A=0
+			next if $ds[$x][2] + $ds[$x][3] > 0;
+			next if $ds[$y][0] < 5; # 负链C>5,A=0,T=0,G=0
+			next if $ds[$y][1] + $ds[$y][2] + $ds[$y][3] > 0;
 		} elsif ($GT eq 'CT' or $GT eq 'AG') {
 			;
 		} elsif ($GT eq 'GT' or $GT eq 'CG') {
