@@ -141,7 +141,7 @@ while($FH->[3]) {
 			next if $d1[0]>0;
 			next if $d1[3]/($d1[1]+$d1[2]) <0.25;
 			next if ($d1[1]+$d1[2])/$d1[3] <0.25;
-			next if $d1[0] + $d1[3] < 2;
+			next if $d2[0] + $d2[3] < 2;
 			next if $d2[2]<2;
 			next if $d2[1]>0;
 			next if $d2[2]/($d2[0]+$d2[3]) <0.25;
