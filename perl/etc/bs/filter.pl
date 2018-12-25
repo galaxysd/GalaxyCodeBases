@@ -83,9 +83,12 @@ while($FH->[3]) {
 	my @ds = ([@d1[@m1,@m2]],[@d2[@m1,@m2]],[@d3[@m1,@m2]],[@d4[@m1,@m2]]);
 	my ($g3) = (split(',',$FH->[4][4]))[$t1];
 	my ($g4) = (split(',',$FH->[4][5]))[$t1];
-	my $s1 = $d1[0] + $d1[1];
-	my $s2 = $d2[0] + $d2[1];
-	my $sa = $s1+$s2;
+	my $sa1 = $d1[4] + $d1[5];
+	my $sa2 = $d2[4] + $d2[5];
+	my $sa = $sa1+$sa2;
+	my $sb1 = $d3[4]+$d3[5];
+	my $sb2 = $d4[4]+$d4[5];
+	my $sb = $sb1+$sb2;
 	my @q1 = (split(',',$FH->[4][7]))[0..3,$t1,$t2];	# Watson_Cancer, $q1[0]是A，$q1[1]是T，$q1[2]是C，$q1[3]是G, $q1[4]是Ref，$q1[5]是Var
 	my @q2 = (split(',',$FH->[4][8]))[0..3,$t1,$t2];	# Crick_Cancer
 	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
@@ -147,6 +150,20 @@ while($FH->[3]) {
 			next if $d2[2]/($d2[0]+$d2[3]) <0.25;
 			next if ($d2[0]+$d2[3])/$d2[2] <0.25;
 		} else {die;}
+		if ($t1 == 0 or $t1 == 1) {
+			next if $sb < 15;
+			next if $sb1 < 5;
+			next if $sb2 < 5;
+			next if ($d3[3]+$d4[3]) < $sb;
+		} elsif ($t1 == 2) {
+			next if ($d3[2]+$d4[2]+$d3[1]) < $sb;
+			next if $d4[2] < 5;
+			next if ($d3[2]+$d4[1]) < 5;
+		} elsif ($t1 == 3) {
+			next if ($d3[3]+$d4[3]+$d4[0]) < $sb;
+			next if $d3[3] < 5;
+			next if ($d4[0]+$d4[3]) < 5;
+		}
 		if ($GT eq 'AA') {
 			;
 		} elsif ($GT eq 'TT') {
