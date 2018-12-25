@@ -105,11 +105,12 @@ while($FH->[3]) {
 			next if $ds[0][0] < 5;
 			next if $ds[1][0] < 5;
 			next if $ds[0][1]+$ds[0][2]+$ds[0][3] + $ds[1][1]+$ds[1][2]+$ds[1][3] > 0;
+			#next if $qs[0][0] < 20;
+			#next if $qs[1][0] < 20;
 		} elsif ($GT eq 'AT') { # AGTCTCAG
-			# 1.1 突变碱基正负链大等于2，1.2 突变频率大于0.2，深度大于15。1.3 突变碱基平均质量值大于20 1.4 除了AT，其他都是0
 			next if $d1[5]<2 or $d2[5]<2;
 			next if (($d1[5]+$d2[5])/$sa)<0.2;
-			next if ($q1[5]+$q2[5])<40;
+			#next if ($q1[5]+$q2[5])<40;
 			next if $d1[2]+$d1[3] + $d2[2]+$d2[3] > 0;
 		} elsif ($GT eq 'CC' or $GT eq 'GG') {	# CTGAx2,GACTx2
 			next if $ds[$x][0] + $ds[$x][1] < 5; # 正链(C+T)>5,G=0,A=0
