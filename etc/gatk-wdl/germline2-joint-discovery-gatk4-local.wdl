@@ -366,7 +366,7 @@ task GetNumberOfSamples {
     wc -l ${sample_name_map} | awk '{print $1}'
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "1 GB"
     preemptible: 5
   }
@@ -423,7 +423,7 @@ task ImportGVCFs {
 
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -469,7 +469,7 @@ task GenotypeGVCFs {
      -L ${interval}
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -510,7 +510,7 @@ task HardFilterAndMakeSitesOnlyVcf {
 
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "3.5 GB"
     cpu: "1"
     disks: "local-disk " + disk_size + " HDD"
@@ -561,7 +561,7 @@ task IndelsVariantRecalibrator {
       -resource dbsnp,known=true,training=false,truth=false,prior=2:${dbsnp_resource_vcf}
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "26 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -618,7 +618,7 @@ task SNPsVariantRecalibratorCreateModel {
       -resource dbsnp,known=true,training=false,truth=false,prior=7:${dbsnp_resource_vcf}
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "104 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -671,7 +671,7 @@ task SNPsVariantRecalibrator {
       -resource dbsnp,known=true,training=false,truth=false,prior=7:${dbsnp_resource_vcf}
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "3.5 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -703,7 +703,7 @@ task GatherTranches {
       --output ${output_filename}
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: "2"
     disks: "local-disk " + disk_size + " HDD"
@@ -756,7 +756,7 @@ task ApplyRecalibration {
       -mode SNP
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: "1"
     disks: "local-disk " + disk_size + " HDD"
@@ -794,7 +794,7 @@ task GatherVcfs {
     --feature-file ${output_vcf_name}
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: "1"
     disks: "local-disk " + disk_size + " HDD"
@@ -835,7 +835,7 @@ task CollectVariantCallingMetrics {
     File summary_metrics_file = "${metrics_filename_prefix}.variant_calling_summary_metrics"
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: "7 GB"
     cpu: 2
     disks: "local-disk " + disk_size + " HDD"
@@ -864,7 +864,7 @@ task GatherMetrics {
     --OUTPUT ${output_prefix}
   >>>
   runtime {
-    docker: docker
+    # docker: docker
     memory: "3 GB"
     cpu: "1"
     disks: "local-disk " + disk_size + " HDD"
@@ -881,7 +881,7 @@ task DynamicallyCombineIntervals {
   Int merge_count
 
   command {
-    python << CODE
+    python2 << CODE
     def parse_interval(interval):
         colon_split = interval.split(":")
         chromosome = colon_split[0]
@@ -933,7 +933,7 @@ task DynamicallyCombineIntervals {
   runtime {
     memory: "3 GB"
     preemptible: 5
-    docker: "python:2.7"
+    # docker: "python:2.7"
   }
 
   output {

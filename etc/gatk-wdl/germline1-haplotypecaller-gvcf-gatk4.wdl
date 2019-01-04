@@ -131,7 +131,7 @@ task CramToBamTask {
     mv ${sample_name}.bam.bai ${sample_name}.bai
   }
   runtime {
-    docker: docker
+    # docker: docker
     memory: select_first([machine_mem_gb, 15]) + " GB"
     disks: "local-disk " + select_first([disk_space_gb, disk_size]) + if use_ssd then " SSD" else " HDD"
     preemptibe: preemptible_attempts
@@ -184,7 +184,7 @@ task HaplotypeCaller {
   >>>
 
   runtime {
-    docker: docker
+    # docker: docker
     memory: machine_mem_gb + " GB"
     disks: "local-disk " + select_first([disk_space_gb, disk_size]) + if use_ssd then " SSD" else " HDD"
     preemptible: select_first([preemptible_attempts, 3])
@@ -223,7 +223,7 @@ task MergeGVCFs {
   >>>
 
   runtime {
-    docker: docker
+    # docker: docker
     memory: machine_mem_gb + " GB"
     disks: "local-disk " + select_first([disk_space_gb, 100]) + if use_ssd then " SSD" else " HDD"
     preemptible: select_first([preemptible_attempts, 3])
