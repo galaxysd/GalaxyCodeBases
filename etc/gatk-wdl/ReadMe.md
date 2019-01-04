@@ -163,6 +163,56 @@ override:NCBI_Build=37,Strand=+,status=Somatic,phase=Phase_I,sequencer=Illumina,
 
 
 
+## gatk4-germline-snps-indels
+
+<https://github.com/gatk-workflows/gatk4-germline-snps-indels>
+
+### Purpose : 
+Workflows for germline short variant discovery with GATK4. 
+
+### haplotypecaller-gvcf-gatk :
+The haplotypecaller-gvcf-gatk4 workflow runs HaplotypeCaller 
+from GATK4 in GVCF mode on a single sample according to the GATK Best Practices (June 2016), 
+scattered across intervals.
+
+#### Requirements/expectations
+- One analysis-ready BAM file for a single sample (as identified in RG:SM)
+- Set of variant calling intervals lists for the scatter, provided in a file
+#### Outputs 
+- One GVCF file and its index
+
+### joint-discovery-gatk :
+The second WDL implements the joint discovery and VQSR 
+filtering portion of the GATK Best Practices (June 2016) for germline SNP and Indel 
+discovery in human whole-genome sequencing (WGS) and exome sequencing data.
+
+*NOTE: joint-discovery-gatk4-local.wdl is a slightly modified version of the original to support users interested in running the workflow locally.*
+
+#### Requirements/expectations
+- One or more GVCFs produced by HaplotypeCaller in GVCF mode
+- Bare minimum 1 WGS sample or 30 Exome samples. Gene panels are not supported.
+- When deteriming disk size in the json, use the guideline below
+  - small_disk = (num_gvcfs / 10) + 10
+  - medium_disk = (num_gvcfs * 15) + 10
+  - huge_disk = num_gvcfs + 10
+
+### Outputs 
+- A VCF file and its index, filtered using variant quality score recalibration  
+  (VQSR) with genotypes for all samples present in the input VCF. All sites that  
+  are present in the input VCF are retained; filtered sites are annotated as such  
+  in the FILTER field.
+
+### Software version requirements :
+- GATK 4 or later 
+- Samtools (see gotc docker)
+- Python 2.7
+
+Cromwell version support 
+- Successfully tested on v31
+- Does not work on versions < v23 due to output syntax
+
+
+
 ---
 
 
