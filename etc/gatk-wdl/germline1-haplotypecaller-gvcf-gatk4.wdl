@@ -38,7 +38,7 @@ workflow HaplotypeCallerGvcf_GATK4 {
   String? gatk_docker_override
   String gatk_docker = select_first([gatk_docker_override, "broadinstitute/gatk:4.0.6.0"])
   String? gatk_path_override
-  String gatk_path = select_first([gatk_path_override, "/gatk/gatk"])
+  String gatk_path = select_first([gatk_path_override, "gatk"])
   String? gitc_docker_override
   String gitc_docker = select_first([gitc_docker_override, "broadinstitute/genomes-in-the-cloud:2.3.1-1500064817"])
   
