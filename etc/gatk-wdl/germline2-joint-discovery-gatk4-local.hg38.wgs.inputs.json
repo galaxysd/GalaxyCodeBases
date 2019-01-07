@@ -1,8 +1,8 @@
 {  
   "##_COMMENT1": "INPUT GVCFs & COHORT -- DATASET-SPECIFC, MUST BE ADAPTED",
   "JointGenotyping.sample_names": ["WGS-D3B","WGS-Normal"],
-  "JointGenotyping.input_gvcfs": ["/home/bshifaw/data/joint_discovery/NA12878.g.vcf.gz",""],
-  "JointGenotyping.input_gvcfs_indices": ["/home/bshifaw/data/joint_discovery/NA12878.g.vcf.gz.tbi",""],
+  "JointGenotyping.input_gvcfs": ["/share/FGI2017B/users/huxs/nsfcG/wgs/WGS-D3B.hg38.g.vcf.gz","/share/FGI2017B/users/huxs/nsfcG/wgs/WGS-Normal.hg38.g.vcf.gz"],
+  "JointGenotyping.input_gvcfs_indices": ["/share/FGI2017B/users/huxs/nsfcG/wgs/WGS-D3B.hg38.g.vcf.gz.tbi","/share/FGI2017B/users/huxs/nsfcG/wgs/WGS-Normal.hg38.g.vcf.gz.tbi"],
   "JointGenotyping.callset_name": "NSFCwgs",
 
   "##_COMMENT2": "REFERENCE FILES",
