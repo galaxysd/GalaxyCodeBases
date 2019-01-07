@@ -41,6 +41,9 @@
 ## page at https://hub.docker.com/r/broadinstitute/genomes-in-the-cloud/ for detailed
 ## licensing information pertaining to the included programs.
 
+# Run with:
+# JAVA_OPTS="-Dsystem.input-read-limits.lines=500000 -Dbackend.providers.Local.config.concurrent-job-limit=16" cromwell run germline2-joint-discovery-gatk4-local.wdl -i germline2-joint-discovery-gatk4-local.hg38.wgs.inputs.json > cromwell.germline2.log &
+
 workflow JointGenotyping {
   File unpadded_intervals_file
 
