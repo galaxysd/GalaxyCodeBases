@@ -11,4 +11,5 @@
 	url = git@bitbucket.org:galaxy001/mydoc.git
 [submodule "shared/bioinfo01"]
 	path = shared/bioinfo01
-	url = git@bitbucket.org:fgisz/bioinfo01.git
+	#url = git@bitbucket.org:fgisz/bioinfo01.git
+	url = git@github.com:galaxy001/bioinfo01.git
