@@ -1,15 +1,9 @@
 class R < Formula
   desc "Software environment for statistical computing"
   homepage "https://www.r-project.org/"
-  url "https://cran.r-project.org/src/base/R-3/R-3.5.1.tar.gz"
-  sha256 "0463bff5eea0f3d93fa071f79c18d0993878fd4f2e18ae6cf22c1639d11457ed"
-
-  bottle do
-    sha256 "7b0dc8ab038b82baa8961a5ca4fd78efcc53b34ada5953657b3b6faded7359a3" => :mojave
-    sha256 "4cdfd2024463182b97053abf06d8e575a3b2cc9b432255f1a5398da3fd067515" => :high_sierra
-    sha256 "de63492e498039f4724b5565fb9f6591f1b8639ed01bce78d92eefb579526ef4" => :sierra
-    sha256 "20d6f0a9f62ef08f7ddc7dc3cf731681f35ea0757ffb42b6c63c6c472d147240" => :el_capitan
-  end
+  url "https://cran.r-project.org/src/base/R-3/R-3.5.2.tar.gz"
+  sha256 "e53d8c3cf20f2b8d7a9c1631b6f6a22874506fb392034758b3bb341c586c5b62"
+  revision 2
 
   depends_on "pkg-config" => :build
   depends_on "gcc" # for gfortran
@@ -38,6 +32,7 @@ class R < Formula
        MacOS::Xcode.version >= "8.0"
       ENV["ac_cv_have_decl_clock_gettime"] = "no"
     end
+    # https://github.com/Homebrew/homebrew-core/pull/24094/commits/22d0eeaae2f05c1a6b671728d88572b0fe8aa5ae
     # Fix cairo detection with Quartz-only cairo
     inreplace ["configure", "m4/cairo.m4"], "cairo-xlib.h", "cairo.h"
 
@@ -51,6 +46,8 @@ class R < Formula
       "--with-lapack",
       "--enable-R-shlib",
       "SED=/usr/bin/sed", # don't remember Homebrew's sed shim
+      #"--disable-java",
+      #"--with-blas=-L#{Formula["openblas"].opt_lib} -lopenblas",
     ]
 
     if build.with? "openblas"
