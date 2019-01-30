@@ -1,40 +1,77 @@
 #!/usr/bin/env python3
+import sys
 
-def main(n_threads):
-    import sys
+def main():
     if len(sys.argv) == 1 :
         print('[x]No arguments given!',file=sys.stderr,flush=True)
 
         print("Name of the script:",sys.argv[0])
         print("Number of arguments:", len(sys.argv))
         print("Arguments:" , str(sys.argv))
-    if len(sys.argv) != 3 :
-        print('Usage:',sys.argv[0],'<in.bam> <outprefix>',file=sys.stderr,flush=True)
+    if len(sys.argv) < 3 :
+        print('Usage:',sys.argv[0],'<in.bam> <outprefix> [verbose=0]',file=sys.stderr,flush=True)
         exit(0)
+    try:
+        verbose = int(sys.argv[3])
+    except ValueError:
+        verbose = 0
+    except IndexError:
+        verbose = 0
+
     inBAMname = sys.argv[1]
     outPrefix = sys.argv[2]
-    print('Read From:',inBAMname)
-    print('Write To:','.'.join((outPrefix,'(Watson|Crick|Supplementary)','bam')))
+    print('From:[{}], To:[{}.(Watson|Crick|Supplementary).bam].\nVerbose: [{}].'.format(inBAMname,outPrefix,verbose),file=sys.stderr,flush=True)
+    splitBSbam(inBAMname,outPrefix,3,verbose)
 
+class DebugWrite:
+    def __init__(self, name=None, verbose=1):
+        self._name = name
+        self.verbose = verbose
+
+    @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, name):
+        self._name = name
+
+    def write(self, read):
+        if self.verbose > 1:
+            print ("[{}]\t{}\t{}".format(self.name, read.query_name, read.flag))
+    def close(self):
+        return 0
+
+def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
     import pysam
     samfile = pysam.AlignmentFile(inBAMname, "rb")
-    fileWatson = pysam.AlignmentFile('.'.join((outPrefix,'Watson','bam')), "wb", template=samfile, threads=n_threads)
-    fileCrick = pysam.AlignmentFile('.'.join((outPrefix,'Crick','bam')), "wb", template=samfile, threads=n_threads)
-    fileSupplementary = pysam.AlignmentFile('.'.join((outPrefix,'Supplementary','bam')), "wb", template=samfile, threads=n_threads)
+    if verbose == 0:
+        fileWatson = pysam.AlignmentFile('.'.join((outPrefix,'Watson','bam')), "wb", template=samfile, threads=n_threads)
+        fileCrick = pysam.AlignmentFile('.'.join((outPrefix,'Crick','bam')), "wb", template=samfile, threads=n_threads)
+        fileSupplementary = pysam.AlignmentFile('.'.join((outPrefix,'Supplementary','bam')), "wb", template=samfile, threads=n_threads)
+    else:
+        fileWatson = DebugWrite('oWatson',verbose)
+        fileCrick = DebugWrite('oCrick',verbose)
+        fileSupplementary = DebugWrite('oSupp.',verbose)
     for read in samfile:
         if read.flag & 0xF00 :
             fileSupplementary.write(read)
-        elif ((read.flag & 0x0040) and (not (read.flag & 0x0010))) or ((read.flag & 0x0080) and (read.flag & 0x0010)) :
+        elif (read.is_read1 and (not read.is_reverse)) or (read.is_read2 and read.is_reverse) :
             fileWatson.write(read)
-        elif ((read.flag & 0x0040) and (read.flag & 0x0010)) or ((read.flag & 0x0080) and (not (read.flag & 0x0010))) :
+        elif (read.is_read1 and read.is_reverse) or (read.is_read2 and (not read.is_reverse)) :
             fileCrick.write(read)
         else:
             print (str(read))
             exit(2)
+        try:
+            tagYD = read.get_tag('YD')
+            #print(tagYD,read.query_name,read.flag)
+        except KeyError:
+            #print('[!]',sys.exc_info()[1])    # (<class 'KeyError'>, KeyError("tag 'YD' not present"), <traceback object at 0x10f664ec8>)
+            pass
     fileSupplementary.close()
     fileWatson.close()
     fileCrick.close()
     samfile.close()
 
 if __name__ == "__main__":
-    main(3)
+    main()
