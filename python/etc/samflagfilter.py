@@ -13,9 +13,7 @@ def main():
         exit(0)
     try:
         verbose = int(sys.argv[3])
-    except ValueError:
-        verbose = 0
-    except IndexError:
+    except: # `except IndexError:` and `except ValueError:`
         verbose = 0
 
     inBAMname = sys.argv[1]
