@@ -20,7 +20,7 @@ def main():
 
     inBAMname = sys.argv[1]
     outPrefix = sys.argv[2]
-    print('From:[{}], To:[{}.(Watson|Crick|Supplementary).bam].\nVerbose: [{}].'.format(inBAMname,outPrefix,verbose),file=sys.stderr,flush=True)
+    print('From:[{}], To:[{}.(Watson|Crick|Dropped).bam].\nVerbose: [{}].'.format(inBAMname,outPrefix,verbose),file=sys.stderr,flush=True)
     splitBSbam(inBAMname,outPrefix,3,verbose)
 
 class DebugWrite:
@@ -47,31 +47,48 @@ def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
     if verbose == 0:
         fileWatson = pysam.AlignmentFile('.'.join((outPrefix,'Watson','bam')), "wb", template=samfile, threads=n_threads)
         fileCrick = pysam.AlignmentFile('.'.join((outPrefix,'Crick','bam')), "wb", template=samfile, threads=n_threads)
-        fileSupplementary = pysam.AlignmentFile('.'.join((outPrefix,'Supplementary','bam')), "wb", template=samfile, threads=n_threads)
+        fileDropped = pysam.AlignmentFile('.'.join((outPrefix,'Dropped','bam')), "wb", template=samfile, threads=n_threads)
     else:
         fileWatson = DebugWrite('oWatson',verbose)
         fileCrick = DebugWrite('oCrick',verbose)
-        fileSupplementary = DebugWrite('oSupp.',verbose)
+        fileDropped = DebugWrite('oDropped',verbose)
     for read in samfile:
         if read.flag & 0xF00 :
-            fileSupplementary.write(read)
-        elif (read.is_read1 and (not read.is_reverse)) or (read.is_read2 and read.is_reverse) :
-            fileWatson.write(read)
-        elif (read.is_read1 and read.is_reverse) or (read.is_read2 and (not read.is_reverse)) :
-            fileCrick.write(read)
-        else:
-            print (str(read))
-            exit(2)
+            fileDropped.write(read)
         try:
             tagYD = read.get_tag('YD')
-            #print(tagYD,read.query_name,read.flag)
+            if tagYD == 'f':
+                fileWatson.write(read)
+            elif tagYD == 'r':
+                fileCrick.write(read)
+            else:
+                print(tagYD,read.query_name,read.flag)
+                exit(3)
         except KeyError:
             #print('[!]',sys.exc_info()[1])    # (<class 'KeyError'>, KeyError("tag 'YD' not present"), <traceback object at 0x10f664ec8>)
-            pass
-    fileSupplementary.close()
+            #pass
+            if read.is_unmapped:
+                if read.mate_is_unmapped:
+                    fileDropped.write(read)
+                elif (read.is_read2 and (not read.mate_is_reverse)) or (read.is_read1 and read.mate_is_reverse) :
+                    fileWatson.write(read)
+                elif (read.is_read2 and read.mate_is_reverse) or (read.is_read1 and (not read.mate_is_reverse)) :
+                    fileCrick.write(read)
+                else:
+                    print (str(read))
+                    exit(4)
+            else:   # not bwa-meth
+                if (read.is_read1 and (not read.is_reverse)) or (read.is_read2 and read.is_reverse) :
+                    fileWatson.write(read)
+                elif (read.is_read1 and read.is_reverse) or (read.is_read2 and (not read.is_reverse)) :
+                    fileCrick.write(read)
+                else:
+                    print (str(read))
+                    exit(2)
+    fileDropped.close()
     fileWatson.close()
     fileCrick.close()
     samfile.close()
 
 if __name__ == "__main__":
-    main()
+    main()  # time ./samflagfilter.py t.bam tt2
