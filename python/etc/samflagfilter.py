@@ -55,6 +55,7 @@ def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
     for read in samfile:
         if read.flag & 0xF00 :
             fileDropped.write(read)
+            continue
         try:
             tagYD = read.get_tag('YD')
             if tagYD == 'f':
@@ -64,6 +65,7 @@ def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
             else:
                 print(tagYD,read.query_name,read.flag)
                 exit(3)
+            #continue
         except KeyError:
             #print('[!]',sys.exc_info()[1])    # (<class 'KeyError'>, KeyError("tag 'YD' not present"), <traceback object at 0x10f664ec8>)
             #pass
