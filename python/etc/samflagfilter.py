@@ -52,16 +52,23 @@ def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
         fileWatson = DebugWrite('oWatson',verbose)
         fileCrick = DebugWrite('oCrick',verbose)
         fileDropped = DebugWrite('oDropped',verbose)
+    from collections import defaultdict
+    stats = defaultdict(int)
+    stats['Watson']=stats['Crick']=0    # make them be first in `str(stats)`.
     for read in samfile:
         if read.flag & 0xF00 :
             fileDropped.write(read)
+            stats['Dropped_Supplementary'] += 1
             continue
         try:
             tagYD = read.get_tag('YD')
+            stats['etc_YD'] += 1
             if tagYD == 'f':
                 fileWatson.write(read)
+                stats['Watson'] += 1
             elif tagYD == 'r':
                 fileCrick.write(read)
+                stats['Crick'] += 1
             else:
                 print(tagYD,read.query_name,read.flag)
                 exit(3)
@@ -70,23 +77,34 @@ def splitBSbam(inBAMname,outPrefix,n_threads=3,verbose=0):
             #print('[!]',sys.exc_info()[1])    # (<class 'KeyError'>, KeyError("tag 'YD' not present"), <traceback object at 0x10f664ec8>)
             #pass
             if read.is_unmapped:
+                stats['etc_nonYD'] += 1
                 if read.mate_is_unmapped:
                     fileDropped.write(read)
+                    stats['Dropped_PEUnmapped'] += 1
                 elif (read.is_read2 and (not read.mate_is_reverse)) or (read.is_read1 and read.mate_is_reverse) :
                     fileWatson.write(read)
+                    stats['Watson'] += 1
                 elif (read.is_read2 and read.mate_is_reverse) or (read.is_read1 and (not read.mate_is_reverse)) :
                     fileCrick.write(read)
+                    stats['Crick'] += 1
                 else:
                     print (str(read))
                     exit(4)
             else:   # not bwa-meth
+                stats['etc_nonBWA-meth'] += 1
                 if (read.is_read1 and (not read.is_reverse)) or (read.is_read2 and read.is_reverse) :
                     fileWatson.write(read)
+                    stats['Watson'] += 1
                 elif (read.is_read1 and read.is_reverse) or (read.is_read2 and (not read.is_reverse)) :
                     fileCrick.write(read)
+                    stats['Crick'] += 1
                 else:
                     print (str(read))
                     exit(2)
+    else:
+        print(str(stats),file=sys.stderr,flush=True)
+        #import pprint
+        #pprint.pprint(stats, indent=2, stream=sys.stderr)
     fileDropped.close()
     fileWatson.close()
     fileCrick.close()
