@@ -7,6 +7,8 @@ Use to quickly measure the size of your python objects. Supports:
 * No double-counting for repeated objects in a collection
 * Python v2/v3
 
+<https://github.com/bosswissam/pysize>
+
 # Examples:
 ```python
 >>> class Test(object):
