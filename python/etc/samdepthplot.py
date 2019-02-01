@@ -47,10 +47,14 @@ def inStat(inDepthFile,verbose):
 
 if __name__ == "__main__":
     main()  # time python3 ./samdepthplot.py t.tsv.gz 1
-    # get_size only works under Python, not PyPy.
-    mylibfile = "../lib/pysize/pysize.py"
-    with open(mylibfile) as f:
-        code = compile(f.read(), mylibfile, 'exec')
-        exec(code, globals(), locals())
-    print(get_size(DepthCnt))   # smaller
-    #print(get_size(nDepthCnt))
+
+    import platform
+    get_implementation_name = platform.python_implementation()
+    if get_implementation_name == 'CPython':
+        # get_size only works under Python, not PyPy.
+        mylibfile = "../lib/pysize/pysize.py"
+        with open(mylibfile) as f:
+            code = compile(f.read(), mylibfile, 'exec')
+            exec(code, globals(), locals())
+        print('DepthCnt:',get_size(DepthCnt))   # smaller
+        #print('nDepthCnt:',get_size(nDepthCnt))
