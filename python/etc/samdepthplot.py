@@ -2,9 +2,13 @@
 import sys
 
 SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_WGS', 'Normal_WGS')
+
 from collections import defaultdict
-DepthCnt = dict.fromkeys(SamplesList, defaultdict(int))
-#nDepthCnt = defaultdict(lambda: defaultdict(int))
+DepthCnt = {key:defaultdict(int) for key in SamplesList}
+yDepthCnt = defaultdict(lambda: defaultdict(int))
+
+from collections import Counter
+cDepthCnt = {key:Counter() for key in SamplesList}
 
 def main():
     if len(sys.argv) < 3 :
@@ -21,7 +25,10 @@ def main():
     RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
     print('{}\t{}'.format('#depth','\t'.join(SamplesList)))
     for depth in range(0,MaxDepth):
-        print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
+        #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
+        #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
+        print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)) )
+        #pass
     plotDepth(RecordCnt,MaxDepth)
 
 def inStat(inDepthFile,verbose):
@@ -38,10 +45,12 @@ def inStat(inDepthFile,verbose):
                 #print(', '.join(row[col] for col in SamplesList))
                 RecordCnt += 1
                 for k in SamplesList:
-                    if int(row[k]) > MaxDepth:
-                        MaxDepth = int(row[k])
-                    DepthCnt[k][int(row[k])] += 1
-                    #nDepthCnt[int(row[k])][k] += 1
+                    theValue = int(row[k])
+                    if theValue > MaxDepth:
+                        MaxDepth = theValue
+                    DepthCnt[k][theValue] += 1
+                    yDepthCnt[theValue][k] += 1
+                    cDepthCnt[k][theValue] += 1
                 #print(MaxDepth,DepthCnt)
         except KeyboardInterrupt:
             print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
@@ -65,7 +74,15 @@ if __name__ == "__main__":
             with open(mylibfile) as f:
                 code = compile(f.read(), mylibfile, 'exec')
                 exec(code, globals(), locals())
-            print('[!]DepthCnt:',get_size(DepthCnt),file=sys.stderr,flush=True)   # smaller
-            #print('nDepthCnt:',get_size(nDepthCnt))
+            print('[!]DepthCnt: ',get_size(DepthCnt),file=sys.stderr,flush=True)   # smaller
+            print('[!]yDepthCnt:',get_size(yDepthCnt),file=sys.stderr,flush=True)
+            print('[!]cDepthCnt:',get_size(cDepthCnt),file=sys.stderr,flush=True)
         except FileNotFoundError:
             pass
+        except NameError:
+            pass
+'''
+[!]DepthCnt:  993487
+[!]yDepthCnt: 1953307
+[!]cDepthCnt: 994207
+'''
