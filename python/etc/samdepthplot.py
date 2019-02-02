@@ -24,7 +24,7 @@ def main():
     print('From:[{}], To:[{}.out].\nVerbose: [{}].'.format(inDepthFile,outPrefix,verbose),file=sys.stderr,flush=True)
     RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
     print('{}\t{}'.format('#depth','\t'.join(SamplesList)))
-    for depth in range(0,MaxDepth):
+    for depth in range(0,MaxDepth+1):
         #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
         print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)) )
