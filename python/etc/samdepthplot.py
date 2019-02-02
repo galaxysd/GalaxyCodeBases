@@ -18,7 +18,11 @@ def main():
     inDepthFile = sys.argv[1]
     outPrefix = sys.argv[2]
     print('From:[{}], To:[{}.out].\nVerbose: [{}].'.format(inDepthFile,outPrefix,verbose),file=sys.stderr,flush=True)
-    inStat(inDepthFile,verbose)
+    RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
+    print('{}\t{}'.format('#depth','\t'.join(SamplesList)))
+    for depth in range(0,MaxDepth):
+        print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
+    plotDepth(RecordCnt,MaxDepth)
 
 def inStat(inDepthFile,verbose):
     import gzip
@@ -27,8 +31,8 @@ def inStat(inDepthFile,verbose):
     MaxDepth = 0
     with gzip.open(inDepthFile, 'rt') as tsvin:
         tsvin = csv.DictReader(tsvin, delimiter='\t', fieldnames=('ChrID','Pos')+SamplesList )
-        headers = tsvin.fieldnames
-        print(headers)
+        #headers = tsvin.fieldnames
+        #print(headers)
         try:
             for row in tsvin:
                 #print(', '.join(row[col] for col in SamplesList))
@@ -43,7 +47,11 @@ def inStat(inDepthFile,verbose):
             print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
             pass
         print('[!]Lines Read:[{}], MaxDepth is [{}].'.format(RecordCnt,MaxDepth),file=sys.stderr,flush=True)
+    return RecordCnt,MaxDepth
 
+def plotDepth(RecordCnt,MaxDepth):
+    import matplotlib.pyplot as plt
+    return
 
 if __name__ == "__main__":
     main()  # time python3 ./samdepthplot.py t.tsv.gz 1
@@ -51,10 +59,13 @@ if __name__ == "__main__":
     import platform
     get_implementation_name = platform.python_implementation()
     if get_implementation_name == 'CPython':
-        # get_size only works under Python, not PyPy.
-        mylibfile = "../lib/pysize/pysize.py"
-        with open(mylibfile) as f:
-            code = compile(f.read(), mylibfile, 'exec')
-            exec(code, globals(), locals())
-        print('DepthCnt:',get_size(DepthCnt))   # smaller
-        #print('nDepthCnt:',get_size(nDepthCnt))
+        try:
+            # get_size only works under Python, not PyPy.
+            mylibfile = "../lib/pysize/pysize.py"
+            with open(mylibfile) as f:
+                code = compile(f.read(), mylibfile, 'exec')
+                exec(code, globals(), locals())
+            print('[!]DepthCnt:',get_size(DepthCnt),file=sys.stderr,flush=True)   # smaller
+            #print('nDepthCnt:',get_size(nDepthCnt))
+        except FileNotFoundError:
+            pass
