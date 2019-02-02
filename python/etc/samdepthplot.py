@@ -3,9 +3,9 @@ import sys
 
 SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_WGS', 'Normal_WGS')
 
-from collections import defaultdict
-DepthCnt = {key:defaultdict(int) for key in SamplesList}
-yDepthCnt = defaultdict(lambda: defaultdict(int))
+#from collections import defaultdict
+#DepthCnt = {key:defaultdict(int) for key in SamplesList}
+#yDepthCnt = defaultdict(lambda: defaultdict(int))
 
 from collections import Counter
 cDepthCnt = {key:Counter() for key in SamplesList}
@@ -29,7 +29,7 @@ def main():
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
         print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)) )
         #pass
-    plotDepth(RecordCnt,MaxDepth)
+    #plotDepth(RecordCnt,MaxDepth)
 
 def inStat(inDepthFile,verbose):
     import gzip
@@ -48,9 +48,9 @@ def inStat(inDepthFile,verbose):
                     theValue = int(row[k])
                     if theValue > MaxDepth:
                         MaxDepth = theValue
-                    DepthCnt[k][theValue] += 1
-                    yDepthCnt[theValue][k] += 1
-                    cDepthCnt[k][theValue] += 1
+                    #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
+                    #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
+                    cDepthCnt[k][theValue] += 1 # PyPy3:29.82 ns, Python3:30.61 ns
                 #print(MaxDepth,DepthCnt)
         except KeyboardInterrupt:
             print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
@@ -74,15 +74,19 @@ if __name__ == "__main__":
             with open(mylibfile) as f:
                 code = compile(f.read(), mylibfile, 'exec')
                 exec(code, globals(), locals())
+            print('[!]cDepthCnt:',get_size(cDepthCnt),file=sys.stderr,flush=True)
             print('[!]DepthCnt: ',get_size(DepthCnt),file=sys.stderr,flush=True)   # smaller
             print('[!]yDepthCnt:',get_size(yDepthCnt),file=sys.stderr,flush=True)
-            print('[!]cDepthCnt:',get_size(cDepthCnt),file=sys.stderr,flush=True)
         except FileNotFoundError:
             pass
         except NameError:
             pass
+
 '''
 [!]DepthCnt:  993487
 [!]yDepthCnt: 1953307
 [!]cDepthCnt: 994207
+
+time pypy3 -m cProfile -o t2.cprof ./samdepthplot.py t.tsv.gz 1
+pyprof2calltree -i t2.cprof -k
 '''
