@@ -31,8 +31,9 @@ def main():
         cDepthStat[k][2] = cDepthStat[k][0] / RecordCnt # E(X)
         cDepthStat[k][3] = cDepthStat[k][1] / RecordCnt # E(X^2)
         cDepthStat[k][4] = math.sqrt(cDepthStat[k][3] - cDepthStat[k][2]*cDepthStat[k][2])   # E(X^2)-E(X)^2
-    print('{}\t{}'.format('#depth','\t'.join(SamplesList)))
-    print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(cDepthStat[col][4]) for col in SamplesList)) )
+    print('#{}\t{}'.format('Depth','\t'.join(SamplesList)))
+    #RecordCntLength = len(str(RecordCnt))
+    print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(round(cDepthStat[col][4],1)) for col in SamplesList)) )
     for depth in range(0,MaxDepth+1):
         #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
