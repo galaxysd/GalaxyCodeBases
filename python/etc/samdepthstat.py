@@ -7,11 +7,6 @@ SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_
 #DepthCnt = {key:defaultdict(int) for key in SamplesList}
 #yDepthCnt = defaultdict(lambda: defaultdict(int))
 
-from collections import Counter
-cDepthCnt = {key:Counter() for key in SamplesList}
-
-cDepthStat = {key:[0,0,0,0,0] for key in SamplesList} # x and x^2
-
 def main():
     import math
 
@@ -26,7 +21,7 @@ def main():
     inDepthFile = sys.argv[1]
     outFile = sys.argv[2]
     print('From:[{}], To:[{}].\nVerbose: [{}].'.format(inDepthFile,outFile,verbose),file=sys.stderr,flush=True)
-    RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
+    RecordCnt,MaxDepth,cDepthCnt,cDepthStat = inStat(inDepthFile,verbose)
     for k in SamplesList:
         cDepthStat[k][2] = cDepthStat[k][0] / RecordCnt # E(X)
         cDepthStat[k][3] = cDepthStat[k][1] / RecordCnt # E(X^2)
@@ -40,12 +35,17 @@ def main():
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
         print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)),file=tsvout)
         #pass
+    #print('#MaxDepth={}'.format(MaxDepth),file=tsvout)
     tsvout.close()
     pass
 
 def inStat(inDepthFile,verbose):
     import gzip
     import csv
+    from collections import Counter
+    # Looking up things in global scope takes longer then looking up stuff in local scope. <https://stackoverflow.com/a/54645851/159695>
+    cDepthCnt = {key:Counter() for key in SamplesList}
+    cDepthStat = {key:[0,0,0,0,0] for key in SamplesList} # x and x^2
     RecordCnt = 0
     MaxDepth = 0
     with gzip.open(inDepthFile, 'rt') as tsvin:
@@ -62,7 +62,7 @@ def inStat(inDepthFile,verbose):
                         MaxDepth = theValue
                     #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
                     #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
-                    cDepthCnt[k][theValue] += 1 # PyPy3:29.82 ns, Python3:30.61 ns
+                    cDepthCnt[k][theValue] += 1  # PyPy3:29.82 ns, Python3:30.61 ns
                     cDepthStat[k][0] += theValue
                     cDepthStat[k][1] += theValue * theValue
                 #print(MaxDepth,DepthCnt)
@@ -70,7 +70,7 @@ def inStat(inDepthFile,verbose):
             print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
             pass
         print('[!]Lines Read:[{}], MaxDepth is [{}].'.format(RecordCnt,MaxDepth),file=sys.stderr,flush=True)
-    return RecordCnt,MaxDepth
+    return RecordCnt,MaxDepth,cDepthCnt,cDepthStat
 
 if __name__ == "__main__":
     main()  # time python3 ./samdepthplot.py t.tsv.gz 1
@@ -99,4 +99,6 @@ if __name__ == "__main__":
 
 time pypy3 -m cProfile -o t2.cprof ./samdepthstat.py t.tsv.gz t.out
 pyprof2calltree -i t2.cprof -k
+
+time ./samdepthstat.py t.tsv.gz t.out
 '''
