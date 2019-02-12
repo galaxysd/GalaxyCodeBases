@@ -16,7 +16,7 @@ def main():
     import math
 
     if len(sys.argv) < 3 :
-        print('Usage:',sys.argv[0],'<samtools.depth.gz> <outprefix> [verbose=0]',file=sys.stderr,flush=True)
+        print('Usage:',sys.argv[0],'<samtools.depth.gz> <out.tsv> [verbose=0]',file=sys.stderr,flush=True)
         exit(0)
     try:
         verbose = int(sys.argv[3])
@@ -24,21 +24,23 @@ def main():
         verbose = 0
 
     inDepthFile = sys.argv[1]
-    outPrefix = sys.argv[2]
-    print('From:[{}], To:[{}.out].\nVerbose: [{}].'.format(inDepthFile,outPrefix,verbose),file=sys.stderr,flush=True)
+    outFile = sys.argv[2]
+    print('From:[{}], To:[{}].\nVerbose: [{}].'.format(inDepthFile,outFile,verbose),file=sys.stderr,flush=True)
     RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
     for k in SamplesList:
         cDepthStat[k][2] = cDepthStat[k][0] / RecordCnt # E(X)
         cDepthStat[k][3] = cDepthStat[k][1] / RecordCnt # E(X^2)
         cDepthStat[k][4] = math.sqrt(cDepthStat[k][3] - cDepthStat[k][2]*cDepthStat[k][2])   # E(X^2)-E(X)^2
-    print('#{}\t{}'.format('Depth','\t'.join(SamplesList)))
+    tsvout = open(outFile, 'wt')
+    print('#{}\t{}'.format('Depth','\t'.join(SamplesList)),file=tsvout)
     #RecordCntLength = len(str(RecordCnt))
-    print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(round(cDepthStat[col][4],1)) for col in SamplesList)) )
+    print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(round(cDepthStat[col][4],1)) for col in SamplesList)),file=tsvout)
     for depth in range(0,MaxDepth+1):
         #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
-        print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)) )
+        print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)),file=tsvout)
         #pass
+    tsvout.close()
     pass
 
 def inStat(inDepthFile,verbose):
@@ -95,6 +97,6 @@ if __name__ == "__main__":
 [!]yDepthCnt: 1953307
 [!]cDepthCnt: 994207
 
-time pypy3 -m cProfile -o t2.cprof ./samdepthplot.py t.tsv.gz 1
+time pypy3 -m cProfile -o t2.cprof ./samdepthstat.py t.tsv.gz t.out
 pyprof2calltree -i t2.cprof -k
 '''
