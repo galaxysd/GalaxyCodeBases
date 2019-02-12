@@ -39,7 +39,7 @@ def main():
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
         print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)) )
         #pass
-    #plotDepth(RecordCnt,MaxDepth)
+    pass
 
 def inStat(inDepthFile,verbose):
     import gzip
@@ -69,10 +69,6 @@ def inStat(inDepthFile,verbose):
             pass
         print('[!]Lines Read:[{}], MaxDepth is [{}].'.format(RecordCnt,MaxDepth),file=sys.stderr,flush=True)
     return RecordCnt,MaxDepth
-
-def plotDepth(RecordCnt,MaxDepth):
-    import matplotlib.pyplot as plt
-    return
 
 if __name__ == "__main__":
     main()  # time python3 ./samdepthplot.py t.tsv.gz 1
