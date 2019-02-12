@@ -10,7 +10,11 @@ SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_
 from collections import Counter
 cDepthCnt = {key:Counter() for key in SamplesList}
 
+cDepthStat = {key:[0,0,0,0,0] for key in SamplesList} # x and x^2
+
 def main():
+    import math
+
     if len(sys.argv) < 3 :
         print('Usage:',sys.argv[0],'<samtools.depth.gz> <outprefix> [verbose=0]',file=sys.stderr,flush=True)
         exit(0)
@@ -23,7 +27,12 @@ def main():
     outPrefix = sys.argv[2]
     print('From:[{}], To:[{}.out].\nVerbose: [{}].'.format(inDepthFile,outPrefix,verbose),file=sys.stderr,flush=True)
     RecordCnt,MaxDepth = inStat(inDepthFile,verbose)
+    for k in SamplesList:
+        cDepthStat[k][2] = cDepthStat[k][0] / RecordCnt # E(X)
+        cDepthStat[k][3] = cDepthStat[k][1] / RecordCnt # E(X^2)
+        cDepthStat[k][4] = math.sqrt(cDepthStat[k][3] - cDepthStat[k][2]*cDepthStat[k][2])   # E(X^2)-E(X)^2
     print('{}\t{}'.format('#depth','\t'.join(SamplesList)))
+    print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(cDepthStat[col][4]) for col in SamplesList)) )
     for depth in range(0,MaxDepth+1):
         #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
         #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
@@ -51,6 +60,8 @@ def inStat(inDepthFile,verbose):
                     #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
                     #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
                     cDepthCnt[k][theValue] += 1 # PyPy3:29.82 ns, Python3:30.61 ns
+                    cDepthStat[k][0] += theValue
+                    cDepthStat[k][1] += theValue * theValue
                 #print(MaxDepth,DepthCnt)
         except KeyboardInterrupt:
             print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
