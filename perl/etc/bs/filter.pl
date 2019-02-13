@@ -3,7 +3,9 @@ use strict;
 use warnings;
 use Data::Dump qw(ddx);
 
-die "Usage: $0 <snp file> >out.txt\n" if @ARGV < 1;
+die "Usage: $0 <snp file> <Cancer_Watson,Cancer_Crick,Normal_Watson,Normal_Crick> >out.txt\n" if @ARGV < 2;
+my @maxDepth = split /,/,$ARGV[1];
+warn "[!]MaxDepth:[",join(',',@maxDepth),"]\n";
 
 no warnings 'qw';
 my @thePOS = qw(chrom position);
@@ -104,6 +106,9 @@ while($FH->[3]) {
 		;
 	} elsif ($FH->[4][6] eq 'Somatic') {
 		next if $sa < 15;
+		if ($sa1>$maxDepth[0] or $sa2>$maxDepth[1] or $sb1>$maxDepth[2] or $sb2>$maxDepth[3]) {
+			next;
+		}
 		if ($GT eq 'AA' or $GT eq 'TT') { # AGTCx2,TCAGx2
 			next if $ds[0][0] < 5;
 			next if $ds[1][0] < 5;

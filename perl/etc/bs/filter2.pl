@@ -82,13 +82,13 @@ while($FH->[3]) {
 	my @q2 = (split(',',$FH->[4][8]))[$t1,$t2,0,1,2,3];	# Crick_Cancer的Mean_Quality
 	my @q3 = (split(',',$FH->[4][9]))[$t1,$t2,0,1,2,3];	# Watson_Normal的Mean_Quality
 	my @q4 = (split(',',$FH->[4][10]))[$t1,$t2,0,1,2,3];	# Crick_Normal的Mean_Quality
-	if ($s1>$maxDepth[0] or $s2>$maxDepth[1] or $s3>$maxDepth[2] or $s4>$maxDepth[3]) {
-		next;
-	}
 	if ($FH->[4][6] eq 'Germline') {
 		;
 	} elsif ($FH->[4][6] eq 'Somatic') {
 		next if $sa<15;
+		if ($s1>$maxDepth[0] or $s2>$maxDepth[1] or $s3>$maxDepth[2] or $s4>$maxDepth[3]) {
+			next;
+		}
 		if ($GT eq 'AA') {
 			;
 		} elsif ($GT eq 'TT') {
