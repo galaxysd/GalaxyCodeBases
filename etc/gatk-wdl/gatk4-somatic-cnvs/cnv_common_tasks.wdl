@@ -39,7 +39,7 @@ task PreprocessIntervals {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, 40]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -81,7 +81,7 @@ task AnnotateIntervals {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, ceil(size(ref_fasta, "GB")) + 50]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -132,7 +132,7 @@ task CollectCounts {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, ceil(size(bam, "GB")) + 50]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -184,7 +184,7 @@ task CollectAllelicCounts {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, ceil(size(bam, "GB")) + 50]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -223,7 +223,7 @@ task ScatterIntervals {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, 40]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -303,7 +303,7 @@ task PostprocessGermlineCNVCalls {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + select_first([disk_space_gb, 40]) + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])

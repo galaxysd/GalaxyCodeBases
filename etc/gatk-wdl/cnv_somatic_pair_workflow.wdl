@@ -516,7 +516,7 @@ task DenoiseReadCounts {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + disk_space_gb + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -608,7 +608,7 @@ task ModelSegments {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + disk_space_gb + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -664,7 +664,7 @@ task CallCopyRatioSegments {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + disk_space_gb + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -714,7 +714,7 @@ task PlotDenoisedCopyRatios {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + disk_space_gb + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])
@@ -771,7 +771,7 @@ task PlotModeledSegments {
     >>>
 
     runtime {
-        docker: "${gatk_docker}"
+        #docker: "${gatk_docker}"
         memory: machine_mem_mb + " MB"
         disks: "local-disk " + disk_space_gb + if use_ssd then " SSD" else " HDD"
         cpu: select_first([cpu, 1])

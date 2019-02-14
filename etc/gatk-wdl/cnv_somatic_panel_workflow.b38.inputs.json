@@ -1,14 +1,14 @@
 {
   "##_COMMENT1": "Inputs",
-  "CNVSomaticPanelWorkflow.normal_bams": ["gs://gatk-test-data/cnv/somatic/SM-74NEG.bam", "gs://gatk-test-data/cnv/somatic/SM-74NF5.bam"],
-  "CNVSomaticPanelWorkflow.normal_bais": ["gs://gatk-test-data/cnv/somatic/SM-74NEG.bam.bai", "gs://gatk-test-data/cnv/somatic/SM-74NF5.bam.bai"],
-  "CNVSomaticPanelWorkflow.pon_entity_id": "wes-do-gc",
+  "CNVSomaticPanelWorkflow.normal_bams": ["/share/FGI2017B/users/huxs/nsfcG/wgs/cnv/WGS-Normal.hg38.bam"],
+  "CNVSomaticPanelWorkflow.normal_bais": ["/share/FGI2017B/users/huxs/nsfcG/wgs/cnv/WGS-Normal.hg38.bai"],
+  "CNVSomaticPanelWorkflow.pon_entity_id": "WGS-Normal",
 
   "##_COMMENT2": "Reference and Resource",
-  "CNVSomaticPanelWorkflow.ref_fasta_dict": "gs://broad-references/hg19/v0/Homo_sapiens_assembly19.dict",
-  "CNVSomaticPanelWorkflow.ref_fasta": "gs://broad-references/hg19/v0/Homo_sapiens_assembly19.fasta",
-  "CNVSomaticPanelWorkflow.ref_fasta_fai": "gs://broad-references/hg19/v0/Homo_sapiens_assembly19.fasta.fai",
-  "CNVSomaticPanelWorkflow.intervals": "gs://gatk-test-data/cnv/somatic/ice_targets.tsv.interval_list",
+  "CNVSomaticPanelWorkflow.ref_fasta_dict": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.dict",
+  "CNVSomaticPanelWorkflow.ref_fasta": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.fasta",
+  "CNVSomaticPanelWorkflow.ref_fasta_fai": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.fasta.fai",
+  "CNVSomaticPanelWorkflow.intervals": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/v0/wgs_evaluation_regions.hg38.interval_list",
 
   "##_COMMENT3": "Docker",
   "CNVSomaticPanelWorkflow.gatk_docker": "broadinstitute/gatk:4.0.8.0",
@@ -47,6 +47,6 @@
   "##CNVSomaticPanelWorkflow.padding": "(optional) Int?",
   "##CNVSomaticPanelWorkflow.bin_length": "(optional) Int?",
   "##CNVSomaticPanelWorkflow.do_explicit_gc_correction": "True",
-  "##CNVSomaticPanelWorkflow.gatk4_jar_override": "(optional) File?"
+  "CNVSomaticPanelWorkflow.gatk4_jar_override": "/share/FGI2017B/brew/Cellar/gatk/4.0.11.0/gatk-package-4.0.11.0-local.jar"
 }
 
