@@ -25,7 +25,7 @@ task PreprocessIntervals {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" PreprocessIntervals \
             ${"-L " + intervals} \
@@ -71,7 +71,7 @@ task AnnotateIntervals {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" AnnotateIntervals \
             -L ${intervals} \
@@ -120,7 +120,7 @@ task CollectCounts {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" CollectReadCounts \
             -L ${intervals} \
@@ -173,7 +173,7 @@ task CollectAllelicCounts {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" CollectAllelicCounts \
             -L ${common_sites} \
@@ -264,7 +264,7 @@ task PostprocessGermlineCNVCalls {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         # untar calls to CALLS_0, CALLS_1, etc directories and build the command line
         gcnv_calls_tar_array=(${sep=" " gcnv_calls_tars})

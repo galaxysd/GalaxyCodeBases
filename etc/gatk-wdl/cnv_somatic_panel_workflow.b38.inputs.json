@@ -47,6 +47,6 @@
   "##CNVSomaticPanelWorkflow.padding": "(optional) Int?",
   "##CNVSomaticPanelWorkflow.bin_length": "(optional) Int?",
   "##CNVSomaticPanelWorkflow.do_explicit_gc_correction": "True",
-  "CNVSomaticPanelWorkflow.gatk4_jar_override": "/share/FGI2017B/brew/Cellar/gatk/4.0.11.0/gatk-package-4.0.11.0-local.jar"
+  "##CNVSomaticPanelWorkflow.gatk4_jar_override": "/share/FGI2017B/brew/Cellar/gatk/4.0.11.0/gatk-package-4.0.11.0-local.jar"
 }
 

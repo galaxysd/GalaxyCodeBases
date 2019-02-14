@@ -25,8 +25,8 @@
 #
 #############
 
-import "cnv_common_tasks.wdl" as CNVTasks
-import "cnv_somatic_oncotator_workflow.wdl" as CNVOncotator
+import "cnv_somatic/cnv_common_tasks.wdl" as CNVTasks
+import "cnv_somatic/cnv_somatic_oncotator_workflow.wdl" as CNVOncotator
 
 workflow CNVSomaticPairWorkflow {
 
@@ -505,7 +505,7 @@ task DenoiseReadCounts {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" DenoiseReadCounts \
             --input ${read_counts} \
@@ -574,7 +574,7 @@ task ModelSegments {
     command <<<
         set -e
         mkdir ${output_dir_}
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" ModelSegments \
             --denoised-copy-ratios ${denoised_copy_ratios} \
@@ -652,7 +652,7 @@ task CallCopyRatioSegments {
 
     command <<<
         set -e
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" CallCopyRatioSegments \
             --input ${copy_ratio_segments} \
@@ -702,7 +702,7 @@ task PlotDenoisedCopyRatios {
     command <<<
         set -e
         mkdir ${output_dir_}
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" PlotDenoisedCopyRatios \
             --standardized-copy-ratios ${standardized_copy_ratios} \
@@ -758,7 +758,7 @@ task PlotModeledSegments {
     command <<<
         set -e
         mkdir ${output_dir_}
-        export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
+        #export GATK_LOCAL_JAR=${default="/root/gatk.jar" gatk4_jar_override}
 
         gatk --java-options "-Xmx${command_mem_mb}m" PlotModeledSegments \
             --denoised-copy-ratios ${denoised_copy_ratios} \

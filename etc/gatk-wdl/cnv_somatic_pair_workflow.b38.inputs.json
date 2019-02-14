@@ -92,7 +92,7 @@
   "##CNVSomaticPairWorkflow.max_num_smoothing_iterations": "(optional) Int?",
   "##CNVSomaticPairWorkflow.padding": "(optional) Int?",
   "##CNVSomaticPairWorkflow.num_burn_in_copy_ratio": "(optional) Int?",
-  "CNVSomaticPairWorkflow.gatk4_jar_override": "/share/FGI2017B/brew/Cellar/gatk/4.0.11.0/gatk-package-4.0.11.0-local.jar",
+  "##CNVSomaticPairWorkflow.gatk4_jar_override": "/share/FGI2017B/brew/Cellar/gatk/4.0.11.0/gatk-package-4.0.11.0-local.jar",
   "##CNVSomaticPairWorkflow.number_of_eigensamples": "(optional) Int?",
   "##CNVSomaticPairWorkflow.num_samples_copy_ratio": "(optional) Int?",
   "##CNVSomaticPairWorkflow.bin_length": "(optional) Int?"
