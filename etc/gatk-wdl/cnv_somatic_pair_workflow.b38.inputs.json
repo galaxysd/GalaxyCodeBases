@@ -9,7 +9,7 @@
   "CNVSomaticPairWorkflow.ref_fasta": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.fasta",
   "CNVSomaticPairWorkflow.ref_fasta_fai": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.fasta.fai",
   "CNVSomaticPairWorkflow.ref_fasta_dict": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/Homo_sapiens_assembly38.dict",
-  "CNVSomaticPairWorkflow.common_sites": "/share/FGI2017B/pub/gatk-data/gatk-test-data/cnv/somatic/common_snps.interval_list",
+  "CNVSomaticPairWorkflow.common_sites": "/share/FGI2017B/pub/gatk-data/gatk-test-data/cnv/somatic/hg38.common_snps.interval_list",
   "CNVSomaticPairWorkflow.read_count_pon": "/share/FGI2017B/users/huxs/nsfcG/wgs/cnv/WGS-Normal.pon.hdf5",
   "CNVSomaticPairWorkflow.intervals": "/ldfssz1/FGI/CCS/huxuesong/nsfcG/hg38/v0/wgs_evaluation_regions.hg38.interval_list",
 
