@@ -1,0 +1,119 @@
+/*
+* Webfonts served by typotheque.com
+*
+* To make the font files as small as possible,
+* most glyphs and OpenType features were removed.
+* To edit the fonts, add more language support,
+* log it to your Typotheque account:
+* http://www.typotheque.com/my_account/webfonts
+*
+* The Typotheque Font Software is protected under domestic
+* and international trademark and copyright law.
+* Modifying, reverse engineering or otherwise copying
+* of Typotheque Font Software is illegal.
+* http://www.typotheque.com/licensing/
+*
+* (c) 2018, Typotheque
+* Generated: 2017-10-16 15:39:46
+*/
+
+@font-face {
+	font-family: "Greta Sans Hairline";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001027-b8393cebfb5fa5e1cc0751b7d9c8cc79.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001027-b8393cebfb5fa5e1cc0751b7d9c8cc79.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001027-b8393cebfb5fa5e1cc0751b7d9c8cc79.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001027-b8393cebfb5fa5e1cc0751b7d9c8cc79.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001027-b8393cebfb5fa5e1cc0751b7d9c8cc79.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Hairline Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001028-c89249aac0e2ca0ceeb64dfa313dd9c7.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001028-c89249aac0e2ca0ceeb64dfa313dd9c7.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001028-c89249aac0e2ca0ceeb64dfa313dd9c7.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001028-c89249aac0e2ca0ceeb64dfa313dd9c7.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001028-c89249aac0e2ca0ceeb64dfa313dd9c7.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Thin";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001029-bd10aa0555a25b9484c8752c42471136.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001029-bd10aa0555a25b9484c8752c42471136.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001029-bd10aa0555a25b9484c8752c42471136.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001029-bd10aa0555a25b9484c8752c42471136.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001029-bd10aa0555a25b9484c8752c42471136.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Thin Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001030-effa5b3b8ae80ead19037ca1934e3445.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001030-effa5b3b8ae80ead19037ca1934e3445.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001030-effa5b3b8ae80ead19037ca1934e3445.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001030-effa5b3b8ae80ead19037ca1934e3445.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001030-effa5b3b8ae80ead19037ca1934e3445.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans ExtraLight";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001031-b584b52a521fc5d158451a5bc64e346f.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001031-b584b52a521fc5d158451a5bc64e346f.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001031-b584b52a521fc5d158451a5bc64e346f.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001031-b584b52a521fc5d158451a5bc64e346f.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001031-b584b52a521fc5d158451a5bc64e346f.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans ExtraLight Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001032-1143617cbd2de3cfd8ae90f27e2e4d81.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001032-1143617cbd2de3cfd8ae90f27e2e4d81.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001032-1143617cbd2de3cfd8ae90f27e2e4d81.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001032-1143617cbd2de3cfd8ae90f27e2e4d81.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001032-1143617cbd2de3cfd8ae90f27e2e4d81.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Light";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001033-1e48fa95d33ea36c212449f7e42fa328.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001033-1e48fa95d33ea36c212449f7e42fa328.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001033-1e48fa95d33ea36c212449f7e42fa328.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001033-1e48fa95d33ea36c212449f7e42fa328.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001033-1e48fa95d33ea36c212449f7e42fa328.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Light Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001034-c531bc560cc158213b99bd0df6d4d363.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001034-c531bc560cc158213b99bd0df6d4d363.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001034-c531bc560cc158213b99bd0df6d4d363.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001034-c531bc560cc158213b99bd0df6d4d363.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001034-c531bc560cc158213b99bd0df6d4d363.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Regular";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001035-031277c95b14f57dee054ed80a83fda6.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001035-031277c95b14f57dee054ed80a83fda6.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001035-031277c95b14f57dee054ed80a83fda6.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001035-031277c95b14f57dee054ed80a83fda6.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001035-031277c95b14f57dee054ed80a83fda6.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Regular Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001036-fcca630bb436ab4fc61acf220d82492b.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001036-fcca630bb436ab4fc61acf220d82492b.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001036-fcca630bb436ab4fc61acf220d82492b.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001036-fcca630bb436ab4fc61acf220d82492b.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001036-fcca630bb436ab4fc61acf220d82492b.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Medium";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001037-04657931d49c9329025fe04cdf5d6fc4.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001037-04657931d49c9329025fe04cdf5d6fc4.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001037-04657931d49c9329025fe04cdf5d6fc4.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001037-04657931d49c9329025fe04cdf5d6fc4.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001037-04657931d49c9329025fe04cdf5d6fc4.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Medium Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001038-84e8308db9636fa405bae251ced06cd0.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001038-84e8308db9636fa405bae251ced06cd0.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001038-84e8308db9636fa405bae251ced06cd0.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001038-84e8308db9636fa405bae251ced06cd0.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001038-84e8308db9636fa405bae251ced06cd0.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans SemiBold";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001039-5dbe22607f0d4ca8d643cf668a5a394b.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001039-5dbe22607f0d4ca8d643cf668a5a394b.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001039-5dbe22607f0d4ca8d643cf668a5a394b.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001039-5dbe22607f0d4ca8d643cf668a5a394b.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001039-5dbe22607f0d4ca8d643cf668a5a394b.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans SemiBold Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001040-616e90463f47e9f75d0ef7b130b632e1.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001040-616e90463f47e9f75d0ef7b130b632e1.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001040-616e90463f47e9f75d0ef7b130b632e1.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001040-616e90463f47e9f75d0ef7b130b632e1.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001040-616e90463f47e9f75d0ef7b130b632e1.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Bold";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001041-4fde8e506483df8b9f9aeefbbe00c653.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001041-4fde8e506483df8b9f9aeefbbe00c653.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001041-4fde8e506483df8b9f9aeefbbe00c653.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001041-4fde8e506483df8b9f9aeefbbe00c653.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001041-4fde8e506483df8b9f9aeefbbe00c653.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Bold Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001042-52a9ecf7b498f4d14d24fc58fe7b7140.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001042-52a9ecf7b498f4d14d24fc58fe7b7140.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001042-52a9ecf7b498f4d14d24fc58fe7b7140.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001042-52a9ecf7b498f4d14d24fc58fe7b7140.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001042-52a9ecf7b498f4d14d24fc58fe7b7140.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Heavy";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001043-b9af8493bb81fda5f5c0250a74438dfd.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001043-b9af8493bb81fda5f5c0250a74438dfd.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001043-b9af8493bb81fda5f5c0250a74438dfd.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001043-b9af8493bb81fda5f5c0250a74438dfd.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001043-b9af8493bb81fda5f5c0250a74438dfd.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Heavy Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001044-13953afcf760fee61f56b3c17e1acc4a.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001044-13953afcf760fee61f56b3c17e1acc4a.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001044-13953afcf760fee61f56b3c17e1acc4a.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001044-13953afcf760fee61f56b3c17e1acc4a.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001044-13953afcf760fee61f56b3c17e1acc4a.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Black";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001045-67d95fd37cf109936b39f102e5d927be.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001045-67d95fd37cf109936b39f102e5d927be.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001045-67d95fd37cf109936b39f102e5d927be.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001045-67d95fd37cf109936b39f102e5d927be.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001045-67d95fd37cf109936b39f102e5d927be.svg#typotheque_webfonts_service") format("svg");
+}
+@font-face {
+	font-family: "Greta Sans Black Italic";
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001046-09ebe0afdbb80b2a8f9fd14f2cb113fa.eot");
+	src: url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001046-09ebe0afdbb80b2a8f9fd14f2cb113fa.eot?#iefix") format("embedded-opentype"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001046-09ebe0afdbb80b2a8f9fd14f2cb113fa.woff2") format("woff2"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001046-09ebe0afdbb80b2a8f9fd14f2cb113fa.woff") format("woff"), url("https://s3-ap-northeast-1.amazonaws.com/fonts-tokyo.typotheque.com/WF-000099-001641-001046-09ebe0afdbb80b2a8f9fd14f2cb113fa.svg#typotheque_webfonts_service") format("svg");
+}
