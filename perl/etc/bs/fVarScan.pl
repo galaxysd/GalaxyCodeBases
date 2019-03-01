@@ -23,7 +23,12 @@ while(<I>) {
 	$in[2] = [@hash{@SELECTED}];
 	next if $in[2]->[9] ne 'Somatic';
 	next if $in[2]->[4] ne $in[2]->[0];
-	ddx \@in;
+	next if ($in[2]->[1]+$in[2]->[2])<20 or ($in[2]->[5]+$in[2]->[6])<15;
+	my $t = $in[2]->[7];
+	$t =~ s/%$//;
+	next if $t < 20;
+	#ddx \@in;
+	print join("\t",@in[0,1],join(',',@{$in[2]})),"\n";
 }
 close I;
 
