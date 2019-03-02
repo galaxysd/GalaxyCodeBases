@@ -9,6 +9,7 @@ my $IN = shift;
 
 my @thePOS = qw(chrom position);
 my @SELECTED = qw(ref normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt somatic_status tumor_reads1_plus tumor_reads2_minus);
+my @Print = qw(normal_reads1 normal_reads2 normal_var_freq normal_gt tumor_reads1 tumor_reads2 tumor_var_freq tumor_gt tumor_reads1_plus tumor_reads2_minus);
 
 open I,'<',$IN or die "Error opening $IN: $!\n";
 my ($id,$flag,@tmpstr) = (0,0);
@@ -29,7 +30,7 @@ while(<I>) {
 	next if $t < 20;
 	next if $in[2]->[10]<1 or $in[2]->[11]<0;
 	#ddx \@in;
-	print join("\t",@in[0,1],join(',',@{$in[2]})),"\n";
+	print join("\t",@in[0,1],join(',',@hash{qw(ref var)}),join(',',@hash{@Print})),"\n";
 }
 close I;
 
