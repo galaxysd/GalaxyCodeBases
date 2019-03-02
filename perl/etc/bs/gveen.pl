@@ -101,5 +101,5 @@ while($flag) {
 close $_->[0] for @FH;
 
 __END__
-./veen.pl GRCh38_p12_control.fa.fai oVarScan9291.snp obsmutect.snp > pVB.txt
-./veen.pl GRCh38_p12_control.fa.fai *.zst|head
+./gveen.pl GRCh38_p12_control.fa.fai oVarScan9291.tsv WGS-D3B.hg38-filtered.GSJ.SNP.tsv >gvBB.txt
+./gveen.pl GRCh38_p12_control.fa.fai oVarScan9291.tsv WGS-D3B.hg38-filtered.PASS.SNP.tsv >gvBG.txt
