@@ -157,8 +157,9 @@ if __name__ == "__main__":
 [!]yDepthCnt: 1953307
 [!]cDepthCnt: 994207
 
-time pypy3 -m cProfile -o t2.cprof ./samdepthstat.py t.tsv.gz t.out
-pyprof2calltree -i t2.cprof -k
+# https://stackoverflow.com/questions/11041683/python-multiprocess-profiling
+time pypy3 -m cProfile -o pool.cprof ./samdepthstat.pool.py t.tsv.gz t.out
+pyprof2calltree -i pool.cprof -k
 
-time ./samdepthstat.py t.tsv.gz t.out
+(time python3 ./samdepthstat.pool.py t.tsv.gz out.pool) 2>time.pool
 '''
