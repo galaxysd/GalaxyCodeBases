@@ -1,9 +1,9 @@
 #!/usr/bin/env pypy3
 import sys
 from collections import Counter
+import multiprocessing
 #import time
 #import random
-from multiprocessing import Pool, Process, Manager, current_process, freeze_support
 
 SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_WGS', 'Normal_WGS')
 
@@ -61,9 +61,9 @@ def CallStat(inDepthFile):
     cDepthStat = {key:[0,0,0,0,0] for key in SamplesList} # x and x^2
     #lines_queue = Queue()
     oldSignal=signal.signal(signal.SIGINT, signal.SIG_IGN)
-    manager = Manager()
+    manager = multiprocessing.Manager()
     lines_queue = manager.Queue()
-    stater_pool = Pool(Nworkers)
+    stater_pool = multiprocessing.Pool(Nworkers)
     #TASKS = itertools.repeat((lines_queue,SamplesList),Nworkers)
     QUEUES = itertools.repeat(lines_queue,Nworkers)
     myStator = functools.partial(iStator,inSamplesList=SamplesList)
@@ -128,10 +128,11 @@ def iStator(inQueue,inSamplesList):
                 cDepthStat[k][0] += theValue
                 cDepthStat[k][1] += theValue * theValue
             #print(MaxDepth,DepthCnt)
-        #print('[!]{} Lines Read:[{}], MaxDepth is [{}].'.format(current_process().name,RecordCnt,MaxDepth),file=sys.stderr,flush=True)
+        #print('[!]{} Lines Read:[{}], MaxDepth is [{}].'.format(multiprocessing.current_process().name,RecordCnt,MaxDepth),file=sys.stderr,flush=True)
     return RecordCnt,MaxDepth,cDepthCnt,cDepthStat
 
 if __name__ == "__main__":
+    #multiprocessing.freeze_support()
     main()  # time python3 ./samdepthplot.py t.tsv.gz 1
 
     import platform
