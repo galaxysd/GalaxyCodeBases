@@ -2,6 +2,7 @@
 import sys
 from collections import Counter
 import multiprocessing
+import csv
 #import time
 #import random
 
@@ -99,7 +100,6 @@ def CallStat(inDepthFile):
     return RecordCnt,MaxDepth,cDepthCnt,cDepthStat
 
 def iStator(inQueue,inSamplesList):
-    import csv
     # Looking up things in global scope takes longer then looking up stuff in local scope. <https://stackoverflow.com/a/54645851/159695>
     cDepthCnt = {key:Counter() for key in inSamplesList}
     cDepthStat = {key:[0,0] for key in inSamplesList} # x and x^2
