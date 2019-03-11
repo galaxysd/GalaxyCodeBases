@@ -7,10 +7,6 @@ import multiprocessing
 
 SamplesList = ('D3B_Crick', 'D3B_Watson', 'Normal_Crick', 'Normal_Watson', 'D3B_WGS', 'Normal_WGS')
 
-#from collections import defaultdict
-#DepthCnt = {key:defaultdict(int) for key in SamplesList}
-#yDepthCnt = defaultdict(lambda: defaultdict(int))
-
 ChunkSize = 1024 * 128
 verbose = 0
 Nworkers = 16
@@ -42,8 +38,6 @@ def main():
     #RecordCntLength = len(str(RecordCnt))
     print( '#N={},SD:\t{}'.format(RecordCnt,'\t'.join(str(round(cDepthStat[col][4],1)) for col in SamplesList)),file=tsvout)
     for depth in range(0,MaxDepth+1):
-        #print( '{}\t{}'.format(depth,'\t'.join(str(DepthCnt[col][depth]) for col in SamplesList)) )
-        #print( '{}\t{}'.format(depth,'\t'.join(str(yDepthCnt[depth][col]) for col in SamplesList)) )
         print( '{}\t{}'.format(depth,'\t'.join(str(cDepthCnt[col][depth]) for col in SamplesList)),file=tsvout)
         #pass
     #print('#MaxDepth={}'.format(MaxDepth),file=tsvout)
@@ -105,8 +99,6 @@ def CallStat(inDepthFile):
     return RecordCnt,MaxDepth,cDepthCnt,cDepthStat
 
 def iStator(inQueue,inSamplesList):
-#def iStator(args):
-    #(inQueue,inSamplesList) = args
     import csv
     # Looking up things in global scope takes longer then looking up stuff in local scope. <https://stackoverflow.com/a/54645851/159695>
     cDepthCnt = {key:Counter() for key in inSamplesList}
@@ -122,9 +114,7 @@ def iStator(inQueue,inSamplesList):
                 theValue = int(row[k])
                 if theValue > MaxDepth:
                     MaxDepth = theValue
-                #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
-                #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
-                cDepthCnt[k][theValue] += 1  # PyPy3:29.82 ns, Python3:30.61 ns
+                cDepthCnt[k][theValue] += 1
                 cDepthStat[k][0] += theValue
                 cDepthStat[k][1] += theValue * theValue
             #print(MaxDepth,DepthCnt)
@@ -133,7 +123,7 @@ def iStator(inQueue,inSamplesList):
 
 if __name__ == "__main__":
     #multiprocessing.freeze_support()
-    main()  # time python3 ./samdepthplot.py t.tsv.gz 1
+    main()  # time python3 ./samdepthstat.pool.py t.tsv.gz out.pool
 
     import platform
     get_implementation_name = platform.python_implementation()
@@ -145,16 +135,12 @@ if __name__ == "__main__":
                 code = compile(f.read(), mylibfile, 'exec')
                 exec(code, globals(), locals())
             print('[!]cDepthCnt:',get_size(cDepthCnt),file=sys.stderr,flush=True)
-            print('[!]DepthCnt: ',get_size(DepthCnt),file=sys.stderr,flush=True)   # smaller
-            print('[!]yDepthCnt:',get_size(yDepthCnt),file=sys.stderr,flush=True)
         except FileNotFoundError:
             pass
         except NameError:
             pass
 
 '''
-[!]DepthCnt:  993487
-[!]yDepthCnt: 1953307
 [!]cDepthCnt: 994207
 
 # https://stackoverflow.com/questions/11041683/python-multiprocess-profiling
