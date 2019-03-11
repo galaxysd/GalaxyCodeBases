@@ -54,11 +54,13 @@ def CallStat(inDepthFile):
     import gzip
     import itertools
     import functools
+    import signal
     RecordCnt = 0
     MaxDepth = 0
     cDepthCnt = {key:Counter() for key in SamplesList}
     cDepthStat = {key:[0,0,0,0,0] for key in SamplesList} # x and x^2
     #lines_queue = Queue()
+    oldSignal=signal.signal(signal.SIGINT, signal.SIG_IGN)
     manager = Manager()
     lines_queue = manager.Queue()
     stater_pool = Pool(Nworkers)
@@ -72,6 +74,7 @@ def CallStat(inDepthFile):
     #MapResult = stater_pool.map_async(myStator,QUEUES,1)
     AsyncResult = stater_pool.imap_unordered(myStator,QUEUES,1)
     #ApplyResult = [stater_pool.apply_async(fStator) for x in range(Nworkers)]
+    signal.signal(signal.SIGINT, oldSignal)
     try:
         with gzip.open(inDepthFile, 'rt') as tsvfin:
             while True:
@@ -111,24 +114,20 @@ def iStator(inQueue,inSamplesList):
     RecordCnt = 0
     MaxDepth = 0
     for lines in iter(inQueue.get, b'\n\n'):
-        try:
-            tsvin = csv.DictReader(lines, delimiter='\t', fieldnames=('ChrID','Pos')+inSamplesList )
-            for row in tsvin:
-                #print(', '.join(row[col] for col in inSamplesList))
-                RecordCnt += 1
-                for k in inSamplesList:
-                    theValue = int(row[k])
-                    if theValue > MaxDepth:
-                        MaxDepth = theValue
-                    #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
-                    #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
-                    cDepthCnt[k][theValue] += 1  # PyPy3:29.82 ns, Python3:30.61 ns
-                    cDepthStat[k][0] += theValue
-                    cDepthStat[k][1] += theValue * theValue
-                #print(MaxDepth,DepthCnt)
-        except KeyboardInterrupt:
-            print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
-            pass
+        tsvin = csv.DictReader(lines, delimiter='\t', fieldnames=('ChrID','Pos')+inSamplesList )
+        for row in tsvin:
+            #print(', '.join(row[col] for col in inSamplesList))
+            RecordCnt += 1
+            for k in inSamplesList:
+                theValue = int(row[k])
+                if theValue > MaxDepth:
+                    MaxDepth = theValue
+                #DepthCnt[k][theValue] += 1  # PyPy3:30.54 ns, Python3:22.23 ns
+                #yDepthCnt[theValue][k] += 1 # PyPy3:30.47 ns, Python3:21.50 ns
+                cDepthCnt[k][theValue] += 1  # PyPy3:29.82 ns, Python3:30.61 ns
+                cDepthStat[k][0] += theValue
+                cDepthStat[k][1] += theValue * theValue
+            #print(MaxDepth,DepthCnt)
         #print('[!]{} Lines Read:[{}], MaxDepth is [{}].'.format(current_process().name,RecordCnt,MaxDepth),file=sys.stderr,flush=True)
     return RecordCnt,MaxDepth,cDepthCnt,cDepthStat
 
