@@ -11010,11 +11010,18 @@ sub getcpi(@) {
 		return [1,$err,$special,$pass];
 		$pass++;
 	}
-	my $ref=$CHR{$a[0]}{"ref"};
-	my $alt=$CHR{$a[0]}{"alt"};
-	my $maf=$ME{$a[0]}{"maf"};
-	my $maj=1-$maf;
 	my @geno=split /\,/,$a[2];
+	my ($ref,$alt,$maf);
+	if (exists $ME{$a[0]}{"maf"}) {
+		$maf=$ME{$a[0]}{"maf"};
+		$ref=$CHR{$a[0]}{"ref"};
+		$alt=$CHR{$a[0]}{"alt"};
+	} else {
+		$maf=0.45;
+		$ref=$geno[0];
+		$alt=$geno[1];
+	}
+	my $maj=1-$maf;
 	my @mm=split /\;/,$a[4];
 	my @dad=split /\;/,$a[5];
 	my @ch=split /\;/,$a[6];
