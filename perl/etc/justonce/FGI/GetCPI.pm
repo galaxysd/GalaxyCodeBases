@@ -13,6 +13,7 @@ use Data::Dump qw(ddx);
     Author :  gaoshengjie at 2018/05/16
     Contact:  gaoshengjie@genomics.org.cn
 =head1 UPDATE LOG
+    For missing record, MAF = 0.45, Ref/Alt follow VCF.
 =cut
 
 use File::Basename qw/basename dirname/;
