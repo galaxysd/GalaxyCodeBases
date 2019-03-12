@@ -21,7 +21,7 @@ sub deBayes($) {
 		$Dep{$i-1} = $p->[$i];
 	}
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( $Dep{$dKeys[1]} * 49 > $Dep{$dKeys[0]} ) {	# 2%
+	if ( @dKeys>1 and $Dep{$dKeys[1]} * 49 > $Dep{$dKeys[0]} ) {	# 2%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
@@ -123,10 +123,16 @@ while (<FM>) {
 	}
 	my ($x,$y) = sort { $CntM{$b} <=> $CntM{$a} } keys %CntM;
 	#ddx [$x,$y,$Bases[$x],$Bases[$y]],\@sdatC,\@GTdepC;
+	my ($n12,$n22);
 	my $n11 = $retM->[2]->[$x];
-	my $n12 = $retM->[2]->[$y];
 	my $n21 = $GTdepC[$x];
-	my $n22 = $GTdepC[$y];
+	if (defined $y) {
+		$n12 = $retM->[2]->[$y];
+		$n22 = $GTdepC[$y];
+	} else {
+		$n12 = 0;
+		$n22 = 0;
+	}
 	next if ($n21+$n22) < 500;	# skip
 	my $GTtC;
 	my $twotailedFisher = -1;
