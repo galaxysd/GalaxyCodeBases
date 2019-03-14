@@ -1,8 +1,7 @@
 #!/usr/bin/env pypy3
 import sys
 from collections import Counter
-from concurrent.futures import ProcessPoolExecutor
-import concurrent
+import concurrent.futures
 import multiprocessing
 import csv
 #import time
@@ -60,7 +59,7 @@ def CallStat(inDepthFile):
     oldSignal=signal.signal(signal.SIGINT, signal.SIG_IGN)
     manager = multiprocessing.Manager()
     lines_queue = manager.Queue()
-    executor = ProcessPoolExecutor(max_workers=Nworkers)
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=Nworkers)
     fStator = functools.partial(iStator,inQueue=lines_queue,inSamplesList=SamplesList)
     workers_pool = [executor.submit(fStator) for i in range(Nworkers)]
     signal.signal(signal.SIGINT, oldSignal)
