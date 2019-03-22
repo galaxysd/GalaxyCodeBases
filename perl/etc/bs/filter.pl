@@ -10,7 +10,7 @@ warn "[!]MaxDepth:[",join(',',@maxDepth),"]\n";
 no warnings 'qw';
 my @thePOS = qw(chrom position);
 my @LastEight = qw(Number_of_watson[A,T,C,G]_Normal Number_of_crick[A,T,C,G]_Normal Mean_Quality_of_Watson[A,T,C,G]_Normal Mean_Quality_of_Crick[A,T,C,G]_Normall Number_of_watson[A,T,C,G]_Cancer Number_of_crick[A,T,C,G]_Cancer Mean_Quality_of_Watson[A,T,C,G]_Cancer Mean_Quality_of_Crick[A,T,C,G]_Cancer);
-my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status',@LastEight[6,7,2,3]);
+my @SELECTED = (qw(ref var),@LastEight[4,5,0,1],'somatic_status',@LastEight[6,7,2,3],'tumor_gt','normal_gt');
 my @Bases = qw(A T C G);
 my $i = 0;
 my %L = map { $_ => $i++ } @Bases;
@@ -35,7 +35,7 @@ sub readnext($) {
 		return 1;
 	} else {
 		@{$in}[2,3] = qw(_EOF_ 0);
-		$in->[4] = [qw(0 0 NA NA 0 0 NA NA NA)];
+		$in->[4] = [qw(0 0 NA NA 0 0 NA NA NA NN NN)];
 		$in->[5] = '';
 		return 0;
 	}
@@ -72,17 +72,25 @@ while($FH->[3]) {
 		print $FH->[5],"\n";
 		next;
 	}
+	my $tumor_gt = $FH->[4][11];
+	my $normal_gt = $FH->[4][12];
+	my @tumorGT = sort {$L{$a} <=> $L{$b} || $a cmp $b} split('',$tumor_gt);
+	my @normalGT = sort {$L{$a} <=> $L{$b} || $a cmp $b} split('',$normal_gt);
+	my $tumGT = join('',@tumorGT);
+	my $norGT = join('',@normalGT);
 	my $t1 = $gOrder{$FH->[4][0]};	# ref
 	my $t2 = $gOrder{$FH->[4][1]};	# var
-	my @GTs = sort {$L{$a} <=> $L{$b} || $a cmp $b} ($FH->[4][0],$FH->[4][1]);
-	my $GT = join('',@GTs);
-	my @m1 = ($gOrder{$GTs[0]},$bsBase{$GTs[0]},$cmpBase{$GTs[0]},$bscmpBase{$GTs[0]});
-	my @m2 = ($gOrder{$GTs[1]},$bsBase{$GTs[1]},$cmpBase{$GTs[1]},$bscmpBase{$GTs[1]});
+	#my @GTs = sort {$L{$a} <=> $L{$b} || $a cmp $b} ($FH->[4][0],$FH->[4][1]);
+	#my $GT = join('',@GTs);
+	my @m1 = ($gOrder{$tumorGT[0]},$bsBase{$tumorGT[0]},$cmpBase{$tumorGT[0]},$bscmpBase{$tumorGT[0]});
+	my @m2 = ($gOrder{$tumorGT[1]},$bsBase{$tumorGT[1]},$cmpBase{$tumorGT[1]},$bscmpBase{$tumorGT[1]});
+	my @m3 = ($gOrder{$normalGT[0]},$bsBase{$normalGT[0]},$cmpBase{$normalGT[0]},$bscmpBase{$normalGT[0]});
+	my @m4 = ($gOrder{$normalGT[1]},$bsBase{$normalGT[1]},$cmpBase{$normalGT[1]},$bscmpBase{$normalGT[1]});
 	my @d1 = (split(',',$FH->[4][2]))[0..3,$t1,$t2];	# Watson_Cancer, $d1[0]是A，$d1[1]是T，$d1[2]是C，$d1[3]是G, $d1[4]是Ref，$d1[5]是Var
 	my @d2 = (split(',',$FH->[4][3]))[0..3,$t1,$t2];	# Crick_Cancer
 	my @d3 = (split(',',$FH->[4][4]))[0..3,$t1,$t2];	# Watson_Normal
 	my @d4 = (split(',',$FH->[4][5]))[0..3,$t1,$t2];	# Crick_Normal
-	my @ds = ([@d1[@m1,@m2]],[@d2[@m1,@m2]],[@d3[@m1,@m2]],[@d4[@m1,@m2]]);
+	my @ds = ([@d1[@m1,@m2]],[@d2[@m1,@m2]],[@d3[@m3,@m4]],[@d4[@m3,@m4]]);
 	my ($g3) = (split(',',$FH->[4][4]))[$t1];
 	my ($g4) = (split(',',$FH->[4][5]))[$t1];
 	my $sa1 = $d1[4] + $d1[5];
@@ -98,11 +106,11 @@ while($FH->[3]) {
 	my @q2 = (split(',',$FH->[4][8]))[0..3,$t1,$t2];	# Crick_Cancer
 	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
 	my @q4 = (split(',',$FH->[4][10]))[0..3,$t1,$t2];	# Crick_Normal
-	my @qs = ([@q1[@m1,@m2]],[@q2[@m1,@m2]],[@q3[@m1,@m2]],[@q4[@m1,@m2]]);
+	my @qs = ([@q1[@m1,@m2]],[@q2[@m1,@m2]],[@q3[@m3,@m4]],[@q4[@m3,@m4]]);
 	my ($x,$y)=();	# GenoType bs dualize strand
-	if ($GT =~ /C/) {
+	if ($tumGT =~ /C/) {
 		($x,$y)=(0,1);
-	} elsif ($GT =~ /G/) {
+	} elsif ($tumGT =~ /G/) {
 		($x,$y)=(1,0);
 	}
 	if ($FH->[4][6] eq 'Germline') {
@@ -112,30 +120,30 @@ while($FH->[3]) {
 		if ($sa1>$maxDepth[0] or $sa2>$maxDepth[1] or $sb1>$maxDepth[2] or $sb2>$maxDepth[3]) {
 			next;
 		}
-		if ($GT eq 'AA' or $GT eq 'TT') { # AGTCx2,TCAGx2
+		if ($tumGT eq 'AA' or $tumGT eq 'TT') { # AGTCx2,TCAGx2
 			next if $ds[0][0] < 5;
 			next if $ds[1][0] < 5;
 			next if $ds[0][1]+$ds[0][2]+$ds[0][3] + $ds[1][1]+$ds[1][2]+$ds[1][3] > 0;
 			#next if $qs[0][0] < 20;
 			#next if $qs[1][0] < 20;
-		} elsif ($GT eq 'AT') { # AGTCTCAG
+		} elsif ($tumGT eq 'AT') { # AGTCTCAG
 			next if $d1[5]<2 or $d2[5]<2;
 			next if (($d1[5]+$d2[5])/$sa)<0.2;
 			#next if ($q1[5]+$q2[5])<40;
 			next if $d1[2]+$d1[3] + $d2[2]+$d2[3] > 0;
-		} elsif ($GT eq 'CC' or $GT eq 'GG') {	# CTGAx2,GACTx2
+		} elsif ($tumGT eq 'CC' or $tumGT eq 'GG') {	# CTGAx2,GACTx2
 			next if $ds[$x][0] + $ds[$x][1] < 5; # 正链(C+T)>5,G=0,A=0
 			next if $ds[$x][2] + $ds[$x][3] > 0;
 			next if $ds[$y][0] < 5; # 负链C>5,A=0,T=0,G=0
 			next if $ds[$y][1] + $ds[$y][2] + $ds[$y][3] > 0;
-		} elsif ($GT eq 'TC' or $GT eq 'AG') { # TCAGCTGA,AGTCGACT
+		} elsif ($tumGT eq 'TC' or $tumGT eq 'AG') { # TCAGCTGA,AGTCGACT
 			next if $ds[$x][4] + $ds[$x][5] < 5; # 正链(C+T)>5,G=0,A=0
 			next if $ds[$x][6] + $ds[$x][7] > 0;
 			next if $ds[$y][4] < 2 or $ds[$y][5] < 2; # C>2,T>2，其他都是0
 			next if $ds[$y][6] + $ds[$y][7] > 0;
 			next if $ds[$y][0]/$ds[$y][1] <0.25;
 			next if $ds[$y][1]/$ds[$y][0] <0.25;
-		} elsif ($GT eq 'AC' or $GT eq 'TG') { # AGTCCTGA,TCAGGACT
+		} elsif ($tumGT eq 'AC' or $tumGT eq 'TG') { # AGTCCTGA,TCAGGACT
 			next if $ds[$x][0] < 2;
 			next if $ds[$x][4] + $ds[$x][5] < 2;
 			next if $ds[$x][1] > 0;
@@ -146,7 +154,7 @@ while($FH->[3]) {
 			next if $ds[$y][1] + $ds[$y][5] > 0;
 			next if $ds[$y][0]/$ds[$y][4] <0.25;
 			next if $ds[$y][4]/$ds[$y][0] <0.25;
-		} elsif ($GT eq 'CG') { # CTGAGACT | ATCG
+		} elsif ($tumGT eq 'CG') { # CTGAGACT | ATCG
 			next if $d1[2] + $d1[1] < 2;
 			next if $d1[3]<2;
 			next if $d1[0]>0;
@@ -172,31 +180,10 @@ while($FH->[3]) {
 			next if $d3[3] < 5;
 			next if ($d4[0]+$d4[3]) < 5;
 		}
-		if ($GT eq 'AA') {
-			;
-		} elsif ($GT eq 'TT') {
-			;
-		} elsif ($GT eq 'AT') {
-			;
-		} elsif ($GT eq 'CC') {
-			;
-		} elsif ($GT eq 'GG') {
-			;
-		} elsif ($GT eq 'TC') {
-			;
-		} elsif ($GT eq 'AG') {
-			;
-		} elsif ($GT eq 'TG') {
-			;
-		} elsif ($GT eq 'CG') {
-			;
-		} elsif ($GT eq 'AC') {
-			;
-		} else {die;}
 	} elsif ($FH->[4][6] eq 'LOH') {
-		;
+		next;
 	} else {
-		;
+		next;
 	}
 	print $FH->[5],"\n";
 	#ddx $FH;
