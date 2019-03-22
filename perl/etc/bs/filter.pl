@@ -80,8 +80,9 @@ while($FH->[3]) {
 	my $norGT = join('',@normalGT);
 	my $t1 = $gOrder{$FH->[4][0]};	# ref
 	my $t2 = $gOrder{$FH->[4][1]};	# var
-	#my @GTs = sort {$L{$a} <=> $L{$b} || $a cmp $b} ($FH->[4][0],$FH->[4][1]);
-	#my $GT = join('',@GTs);
+	my @pGTs = sort {$L{$a} <=> $L{$b} || $a cmp $b} ($FH->[4][0],$FH->[4][1]);
+	my $pGT = join('',@pGTs);
+	next if $pGT eq 'AG' or $pGT eq 'TC';
 	my @m1 = ($gOrder{$tumorGT[0]},$bsBase{$tumorGT[0]},$cmpBase{$tumorGT[0]},$bscmpBase{$tumorGT[0]});
 	my @m2 = ($gOrder{$tumorGT[1]},$bsBase{$tumorGT[1]},$cmpBase{$tumorGT[1]},$bscmpBase{$tumorGT[1]});
 	my @m3 = ($gOrder{$normalGT[0]},$bsBase{$normalGT[0]},$cmpBase{$normalGT[0]},$bscmpBase{$normalGT[0]});
