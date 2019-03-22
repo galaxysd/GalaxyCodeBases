@@ -16,7 +16,7 @@ my $i = 0;
 my %L = map { $_ => $i++ } @Bases;
 my (%gOrder,%bsBase,%cmpBase,%bscmpBase);
 @gOrder{@Bases}    = qw(0 1 2 3); # A T C G
-@bsBase{@Bases}    = qw(3 2 1 0); # G C T A
+@bsBase{@Bases}    = qw(3 2 1 0); # G C T A	# bsPaired
 @cmpBase{@Bases}   = qw(1 0 3 2); # T A G C
 @bscmpBase{@Bases} = qw(2 3 0 1); # C G A T
 
@@ -96,14 +96,14 @@ while($FH->[3]) {
 	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
 	my @q4 = (split(',',$FH->[4][10]))[0..3,$t1,$t2];	# Crick_Normal
 	my @qs = ([@q1[@m1,@m2]],[@q2[@m1,@m2]],[@q3[@m1,@m2]],[@q4[@m1,@m2]]);
-	my ($x,$y)=();
+	my ($x,$y)=();	# GenoType bs dualize strand
 	if ($GT =~ /C/) {
 		($x,$y)=(0,1);
 	} elsif ($GT =~ /G/) {
 		($x,$y)=(1,0);
 	}
 	if ($FH->[4][6] eq 'Germline') {
-		;
+		next;
 	} elsif ($FH->[4][6] eq 'Somatic') {
 		next if $sa < 15;
 		if ($sa1>$maxDepth[0] or $sa2>$maxDepth[1] or $sb1>$maxDepth[2] or $sb2>$maxDepth[3]) {
@@ -200,7 +200,28 @@ while($FH->[3]) {
 }
 
 __END__
+./filter.pl obsmutect.snp.zst 100,100,100,100
+./filter.pl SNP.bsmap.final.h.zst 100,100,100,100 >bs.tsv
 
+Germline 的都不要。
+
+depth>15
+
+Genotype:	# GT是纯合基因型，bsGT是亚硫酸盐处理后与GT结果一样的另一碱基。C链在GT含C时是正链，在GT含G时是负链，G链与C链相反。
+	AA, TT
+		Cancer:支持GT正负链都大于5，其他都是0。
+	AT
+		Cancer:突变碱基正负链大等于2。
+		Cancer:突变频率大于0.2，正负链合计。
+		Cancer:除了AT，其他都是0，正负链合计。
+	CC, GG
+		Cancer:C链(GT+bsGT)>5，其他都是0。
+		Cancer:G链GT>5，其他都是0。
+	TC, AG
+		Cancer:
+		Cancer:
+
+=============
 先分类型：
 第一， germline过滤条件：（原则：原则尽量宽松）
 只考虑两个文件都是正负链都有支持突变类型。就通过。
