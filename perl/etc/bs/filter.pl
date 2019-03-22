@@ -91,6 +91,9 @@ while($FH->[3]) {
 	my $sb1 = $d3[4]+$d3[5];
 	my $sb2 = $d4[4]+$d4[5];
 	my $sb = $sb1+$sb2;
+	my $sb1a = $d3[0]+$d3[1]+$d3[2]+$d3[3];
+	my $sb2a = $d4[0]+$d4[1]+$d4[2]+$d4[3];
+	my $sba = $sb1a+$sb2a;
 	my @q1 = (split(',',$FH->[4][7]))[0..3,$t1,$t2];	# Watson_Cancer, $q1[0]是A，$q1[1]是T，$q1[2]是C，$q1[3]是G, $q1[4]是Ref，$q1[5]是Var
 	my @q2 = (split(',',$FH->[4][8]))[0..3,$t1,$t2];	# Crick_Cancer
 	my @q3 = (split(',',$FH->[4][9]))[0..3,$t1,$t2];	# Watson_Normal
@@ -137,7 +140,7 @@ while($FH->[3]) {
 			next if $ds[$x][4] + $ds[$x][5] < 2;
 			next if $ds[$x][1] > 0;
 			next if $ds[$x][0]/($ds[$x][4] + $ds[$x][5]) <0.25;
-			next if $ds[$x][4]/($ds[$x][0] + $ds[$x][5]) <0.25;
+			next if ($ds[$x][4] + $ds[$x][5])/$ds[$x][0] <0.25;
 			next if $ds[$y][0] < 2;
 			next if $ds[$y][4] < 2;
 			next if $ds[$y][1] + $ds[$y][5] > 0;
@@ -155,17 +158,17 @@ while($FH->[3]) {
 			next if $d2[2]/($d2[0]+$d2[3]) <0.25;
 			next if ($d2[0]+$d2[3])/$d2[2] <0.25;
 		} else {die;}
-		if ($t1 == 0 or $t1 == 1) {
-			next if $sb < 15;
-			next if $sb1 < 5;
-			next if $sb2 < 5;
-			next if ($d3[3]+$d4[3]) < $sb;
-		} elsif ($t1 == 2) {
-			next if ($d3[2]+$d4[2]+$d3[1]) < $sb;
+		if ($t1 == 0 or $t1 == 1) {	# A,T; ATCG
+			next if $sba > $d3[4]+$d4[4];	# 除了ref碱基，其他都是0.
+			next if $d3[4]+$d4[4] < 15;	# ref总深度大于15
+			next if $d3[4] < 5;
+			next if $d4[4] < 5;	# ref碱基正负链都大于5
+		} elsif ($t1 == 2) {	# C; ATCG
+			next if $sba > ($d3[2]+$d4[2]+$d3[1]);	# 除了C碱基和正链的T碱基，其他碱基都是0
 			next if $d4[2] < 5;
-			next if ($d3[2]+$d4[1]) < 5;
-		} elsif ($t1 == 3) {
-			next if ($d3[3]+$d4[3]+$d4[0]) < $sb;
+			next if ($d3[2]+$d3[1]) < 5;
+		} elsif ($t1 == 3) {	# G; ATCG
+			next if $sba > ($d3[3]+$d4[3]+$d4[0]);	# 除了G碱基和负链A碱基，其他碱基个数都是0
 			next if $d3[3] < 5;
 			next if ($d4[0]+$d4[3]) < 5;
 		}
@@ -205,7 +208,7 @@ __END__
 
 Germline 的都不要。
 
-depth>15
+Ref+Alt >15
 
 Genotype:	# GT是纯合基因型，bsGT是亚硫酸盐处理后与GT结果一样的另一碱基。C链在GT含C时是正链，在GT含G时是负链，G链与C链相反。
 	AA, TT
@@ -218,9 +221,32 @@ Genotype:	# GT是纯合基因型，bsGT是亚硫酸盐处理后与GT结果一样
 		Cancer:C链(GT+bsGT)>5，其他都是0。
 		Cancer:G链GT>5，其他都是0。
 	TC, AG
-		Cancer:
-		Cancer:
+		Cancer:C链(GT+bsGT)>5，其他都是0。
+		Cancer:G链GT>2,bsGT>2，其他都是0。
+		Cancer:G链GT/bsGT>1/4,bsGT/GT>1/4。
+	AC, TG
+		Cancer:C链左碱基>2
+		Cancer:C链(bs左碱基+右碱基)>2
+		Cancer:C链【G,C】=0
+		Cancer:G链左碱基>2,右碱基>2,其他都是0。
+		Cancer:G链左碱基/右碱基>1/4,右碱基/左碱基>1/4
+		Cancer:C链左碱基/(右碱基+互补左碱基)>1/4,(右碱基+互补左碱基)/左碱基>1/4
+	CG
+		Cancer:正链：(C+T)>2; G>2, A=0
+		Cancer:正链：G/(T+C)>1/4, (T+C)/G>1/4
+		Cancer:负链：C>2,(G+A)>2, T=0,
+		Cancer:负链：C/(A+G)>1/4, (A+G)/C>1/4
 
+	A-,T-
+		Normal:除了ref碱基，其他碱基都是0.
+		Normal:ref碱基正负链都大于5，
+		Normal:ref总深度大于15
+	C-
+		Normal:除了C碱基和正链的T碱基，其他碱基都是0
+		Normal:负链C碱基个数大于5，正链（C+T大于5）
+	G-
+		Normal:除了G碱基和负链A碱基，其他碱基个数都是0
+		Normal:正链G碱基个数大于5，负链（A+G大于5个）
 =============
 先分类型：
 第一， germline过滤条件：（原则：原则尽量宽松）
