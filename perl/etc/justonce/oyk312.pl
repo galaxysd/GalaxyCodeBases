@@ -8,7 +8,7 @@ use warnings;
 
 use lib '.';
 
-#use Data::Dump qw(ddx);
+use Data::Dump qw(ddx);
 use Text::NSP::Measures::2D::Fisher::twotailed;
 use FGI::GetCPI;
 #use Math::BigFloat;
@@ -20,6 +20,7 @@ sub deBayes($) {
 	for my $i (1 .. $#$p) {
 		$Dep{$i-1} = $p->[$i];
 	}
+	#ddx %Dep;
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
 	if ( @dKeys>1 and $Dep{$dKeys[1]} * 49 > $Dep{$dKeys[0]} ) {	# 2%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
@@ -99,8 +100,7 @@ while (<FM>) {
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
 	#T/T;6,2245      C/C;1698,0
-		
-	#print "@tM\n@datM\n";
+	#print "> @tM , @tF , @tC\n@datM\n";
 	my $retM = getBolsheviks(@tM);
 	next unless $retM->[1];
 	my $retF = getBolsheviks(@tF);
@@ -134,6 +134,7 @@ while (<FM>) {
 		$n12 = 0;
 		$n22 = 0;
 	}
+	next unless defined $n22;
 	next if ($n21+$n22) < 500;	# skip
 	my $GTtC;
 	my $twotailedFisher = -1;
