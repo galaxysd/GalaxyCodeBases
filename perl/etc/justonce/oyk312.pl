@@ -96,6 +96,7 @@ while (<FM>) {
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
 	@Bases = split /,/,$datM[2];
+	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
 	#T/T;6,2245      C/C;1698,0
 		
