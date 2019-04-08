@@ -11012,13 +11012,15 @@ sub getcpi(@) {
 		$pass++;
 	}
 	my @geno=split /\,/,$a[2];
-	my ($ref,$alt,$maf);
+	my ($ref,$alt,$maf,$pe);
 	if (exists $ME{$a[0]}{"maf"}) {
 		$maf=$ME{$a[0]}{"maf"};
+		$pe=$ME{$a[0]}{"ep"};
 		$ref=$CHR{$a[0]}{"ref"};
 		$alt=$CHR{$a[0]}{"alt"};
 	} else {
 		$maf=0.45;
+		$pe = 0.18;
 		$ref=$geno[0];
 		$alt=$geno[1];
 	}
