@@ -78,7 +78,7 @@ open FM,'<',$mother or die "[x]Mom: $!\n";
 open FF,'<',$father or die "[x]Dad: $!\n";
 open FC,'<',$child or die "[x]Child: $!\n";
 
-my ($logcpi,$lFC,$lFF,$lFM)=(0);
+my ($logcpi,$spe,$lFC,$lFF,$lFM)=(0,0);
 print "# Order: M,F,C\n";
 
 while (<FM>) {
@@ -177,12 +177,14 @@ while (<FM>) {
 	my $cret = getcpi(@datM,$resM,$resF,$resC);
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
-	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10)),"\n";
+	$spe += log(1-$cret->[1]);
+	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
 }
 
 close FM; close FF; close FC;
 
 print "# CPI: ",exp($logcpi),"\n";
+print "# CPE: 1-1E(",$spe/log(10),")\n";
 
 __END__
 

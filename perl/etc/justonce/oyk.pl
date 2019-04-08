@@ -64,7 +64,7 @@ open FM,'<',$samplesM or die "[x]Mom: $samplesM $!\n";
 open FF,'<',$samplesF or die "[x]Dad: $samplesF $!\n";
 open FC,'<',$samplesC or die "[x]Child: $samplesC $!\n";
 
-my ($logcpi,$lFC,$lFF,$lFM)=(0);
+my ($logcpi,$spe,$lFC,$lFF,$lFM)=(0,0);
 print "# Order: M,F,C\n";
 
 my ($CntA,$CntM) = (0,0);
@@ -142,7 +142,8 @@ while (<FM>) {
 	my $cret = getcpi(@datM,$resM,$resF,$resC);
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
-	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10)),"\n";
+	$spe += log(1-$cret->[1]);
+	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
 	++$CntA;
 	$CntM = $cret->[1];
 }
@@ -165,6 +166,7 @@ if (scalar @cpiPart == 2) {
 }
 
 print "# Total: $CntA, Mis: $CntM, CPI: ",join('',$main,'e',$texp),"\n";
+print "# CPE: 1-1E(",$spe/log(10),")\n";
 
 __END__
 
