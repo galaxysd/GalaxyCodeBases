@@ -107,7 +107,7 @@ while (<FM>) {
 	#ddx $retM,$retF;
 	my $xx = getequal(@tM);
 	my $yy = getequal(@tF);
-	my $zz = getequal (@tC);
+	my $zz = getequal(@tC);
 	my $t=$xx*$yy*$zz;
 	next unless $t;
 	my @sdatC = map { [split /[;,]/,$_] } @tC;
