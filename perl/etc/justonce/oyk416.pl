@@ -22,9 +22,14 @@ sub deBayes($) {
 	}
 	#ddx %Dep;
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( @dKeys>1 and $Dep{$dKeys[1]} * 49 > $Dep{$dKeys[0]} ) {	# 2%
+	if ( @dKeys>1 and $Dep{$dKeys[1]} >= $Dep{$dKeys[0]} * 0.02) {	# 2%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
+		$p->[0] = $gt;
+	} elsif (@dKeys>1 && ($Dep{$dKeys[1]} < $Dep{$dKeys[0]} * 0.02) && ($Dep{$dKeys[1]} > $Dep{$dKeys[0]} * 0.001)){
+		$p->[0] = "NA";
+	} elsif (@dKeys == 1 or ($Dep{$dKeys[1]} <= $Dep{$dKeys[0]} * 0.001)){
+		my $gt = join('/',$Bases[$dKeys[0]],$Bases[$dKeys[0]]);
 		$p->[0] = $gt;
 	}
 }
@@ -36,10 +41,12 @@ sub deBayes2($) {
 	}
 	#ddx %Dep;
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( @dKeys>1 and $Dep{$dKeys[1]} * 4 > $Dep{$dKeys[0]} ) {	# 20%
+	if ( @dKeys>1 and $Dep{$dKeys[1]}  >= $Dep{$dKeys[0]} * 0.1 ) {	# 10%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
+	}elsif (@dKeys>1 && ($Dep{$dKeys[1]}  > $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]}  < $Dep{$dKeys[0]} * 0.1)){
+		$p->[0] = "NA";
 	}
 }
 
@@ -56,6 +63,9 @@ sub getBolsheviks(@) {
 	my (%GT);
 	for (@dat) {
 		++$GT{$_->[0]};
+	}
+	if (defined $GT{NA}){
+		return ["NA",0,"NA"];
 	}
 	my $Bolsheviks = (sort {$GT{$b} <=> $GT{$a}} keys %GT)[0];
 	my @GTdep;
@@ -109,8 +119,8 @@ while (<FM>) {
 	my @datF = split /\t/,$lFF;
 	my @datC = split /\t/,$lFC;
 	#my ($chr,undef,$bases,$qual,@data) = split /\t/;
-	next if $datM[3] < 30;
-	next if $datF[3] < 30;
+	next if $datM[3] < 100;
+	next if $datF[3] < 100;
 	next if $datC[3] < 100;
 	die if $datM[0] ne $datC[0];
 	my @tM = splice @datM,4;
@@ -119,11 +129,40 @@ while (<FM>) {
 	@Bases = split /,/,$datM[2];
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
+
+	my $check_dep = 1;
+	for (@tM){
+		my @info = split /[;,]/,$_;
+		my $sum;
+		for my $i(1..scalar @info - 1){
+			$sum += $info[$i];
+		}
+		if ($sum > 50){
+			$check_dep *= 1;
+		}else{
+			$check_dep *= 0;
+		}
+	}
+	for (@tF){
+		my @info = split /[;,]/,$_;
+		my $sum;
+		for my $i(1..scalar @info - 1){
+			$sum += $info[$i];
+		}
+		if ($sum > 50){
+			$check_dep *= 1;
+		}else{
+			$check_dep *= 0;
+		}
+	}
+	next if ($check_dep == 0);
+
 	#T/T;6,2245      C/C;1698,0
 	#print "> @tM , @tF , @tC\n@datM\n";
 	my $retM = getBolsheviks(0,@tM);
 	next unless $retM->[1];
 	my $retF = getBolsheviks(0,@tF);
+	next if ($retM->[0] eq "NA" or $retF->[0] eq "NA");
 	#ddx $retM,$retF;
 	my $xx = getequal(0,@tM);
 	my $yy = getequal(0,@tF);
@@ -155,34 +194,35 @@ while (<FM>) {
 		$n22 = 0;
 	}
 	next unless defined $n22;
-	#next if ($n21+$n22) < 500;	# skip
+	next if ($n21+$n22) < 200;	# skip 500
 	my $GTtC;
 	my $twotailedFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 	#if ($n22 * 199 < $n21) {	# <0.5% = 1:200
-	if ($n22/$Cdep < 0.02 and $n22/$Cdep > 0.001) {	# 0.1% < minnor < 2%, skip ; depth<10
-		next;	# skip
-	} elsif ($n22/$Cdep <= 0.001) {
-		1;
-	} else {
-		my $n1p = $n11 + $n12;
-		my $np1 = $n11 + $n21;
-		my $npp = $n1p + $n21 + $n22;
-		$twotailedFisher = calculateStatistic(
-			n11 => $n11,
-			n1p => $n1p,
-			np1 => $np1,
-			npp => $npp,
-		);
-		if( (my $errorCode = getErrorCode()) ) {
-			die $errorCode, " - ", getErrorMessage();
-		} else {
-			my ($m,$n) = sort {$a<=>$b} ($x,$y);
-			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
-		}
-	}
+#	if ($n22/$Cdep < 0.02 and $n22/$Cdep > 0.001) {	# 0.1% < minnor < 2%, skip ; depth<10
+#		next;	# skip
+#	} elsif ($n22/$Cdep <= 0.001) {
+#		1;
+#	} else {
+#		my $n1p = $n11 + $n12;
+#		my $np1 = $n11 + $n21;
+#		my $npp = $n1p + $n21 + $n22;
+#		$twotailedFisher = calculateStatistic(
+#			n11 => $n11,
+#			n1p => $n1p,
+#			np1 => $np1,
+#			npp => $npp,
+#		);
+#		if( (my $errorCode = getErrorCode()) ) {
+#			die $errorCode, " - ", getErrorMessage();
+#		} else {
+#			my ($m,$n) = sort {$a<=>$b} ($x,$y);
+#			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
+#		}
+#	}
 	my $retC = getBolsheviks(1,@tC);
+	next if ($retC->[0] eq "NA");
 	my @fgeno=split /\//,$retF->[0];
 	my @mgeno=split /\//,$retM->[0];
 	my @cgeno=split /\//,$retC->[0];
@@ -193,9 +233,10 @@ while (<FM>) {
 	my @fnum=@{$retF->[2]};	
 	my $resM = join(';',$retM->[0],join(',',@{$retM->[2]}));
 	my $resF = join(';',$retF->[0],join(',',@{$retF->[2]}));
-	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,
-						$retC->[0],join(',',@{$retC->[2]})
-					);
+	my $resC = join(';',$retC->[0],join(',',@{$retC->[2]}));
+#	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,
+#						$retC->[0],join(',',@{$retC->[2]})
+#					);
 	my $cret = getcpi(@datM,$resM,$resF,$resC);
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
