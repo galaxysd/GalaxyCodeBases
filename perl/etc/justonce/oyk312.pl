@@ -28,12 +28,28 @@ sub deBayes($) {
 		$p->[0] = $gt;
 	}
 }
+sub deBayes2($) {
+	my $p = $_[0];
+	my %Dep;
+	for my $i (1 .. $#$p) {
+		$Dep{$i-1} = $p->[$i];
+	}
+	#ddx %Dep;
+	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
+	if ( @dKeys>1 and $Dep{$dKeys[1]} * 4 > $Dep{$dKeys[0]} ) {	# 20%
+		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
+		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
+		$p->[0] = $gt;
+	}
+}
 
 sub getBolsheviks(@) {
 	my $type = shift;
 	my @dat = map { [split /[;,]/,$_] } @_;
 	if ($type) {
 		deBayes($_) for @dat;
+	} else {
+		deBayes2($_) for @dat;
 	}
 	#ddx \@dat;
 
@@ -62,6 +78,8 @@ sub getequal(@) {
 #ddx \@dat;
 	if ($type) {
 		deBayes($_) for @dat;
+	} else {
+		deBayes2($_) for @dat;
 	}
 	my (%GT);
 	for (@dat) {
