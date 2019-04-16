@@ -155,7 +155,7 @@ while (<FM>) {
 		$n22 = 0;
 	}
 	next unless defined $n22;
-	next if ($n21+$n22) < 500;	# skip
+	#next if ($n21+$n22) < 500;	# skip
 	my $GTtC;
 	my $twotailedFisher = -1;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
