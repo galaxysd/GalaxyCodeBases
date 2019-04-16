@@ -29,8 +29,11 @@ sub deBayes($) {
 }
 
 sub getBolsheviks(@) {
+	my $type = shift;
 	my @dat = map { [split /[;,]/,$_] } @_;
-	deBayes($_) for @dat;
+	if ($type) {
+		deBayes($_) for @dat;
+	}
 	my (%GT);
 	for (@dat) {
 		++$GT{$_->[0]};
@@ -86,9 +89,9 @@ while (<FM>) {
 	@Bases = split /,/,$datM[2];
 	next if "@tM @tF @tC" =~ /\./;
 	#print "@tM\n@datM\n";
-	my $retM = getBolsheviks(@tM);
+	my $retM = getBolsheviks(0,@tM);
 	next unless $retM->[1];
-	my $retF = getBolsheviks(@tF);
+	my $retF = getBolsheviks(0,@tF);
 	#ddx $retM,$retF;
 	my @sdatC = map { [split /[;,]/,$_] } @tC;
 	my @GTdepC;
@@ -133,7 +136,14 @@ while (<FM>) {
 			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
 		}
 	}
-	my $retC = getBolsheviks(@tC);
+	my $retC = getBolsheviks(1,@tC);
+
+	my @fgeno=split /\//,$retF->[0];
+	my @mgeno=split /\//,$retM->[0];
+	my @cgeno=split /\//,$retC->[0];
+	#next if $fgeno[0] eq $fgeno[1] && ($fgeno[0] eq $mgeno[0] or $fgeno[0] eq $mgeno[1]);
+	next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
+
 	my $resM = join(';',$retM->[0],join(',',@{$retM->[2]}));
 	my $resF = join(';',$retF->[0],join(',',@{$retF->[2]}));
 	my $resC = join(';',$GTtC,join(',',@GTdepC),$twotailedFisher,

@@ -30,8 +30,11 @@ sub deBayes($) {
 }
 
 sub getBolsheviks(@) {
+	my $type = shift;
 	my @dat = map { [split /[;,]/,$_] } @_;
-	deBayes($_) for @dat;
+	if ($type) {
+		deBayes($_) for @dat;
+	}
 	#ddx \@dat;
 
 	my (%GT);
@@ -54,21 +57,20 @@ sub getBolsheviks(@) {
 }
 
 sub getequal(@) {
-        my @dat = map { [split /[;,]/,$_] } @_;
+	my $type = shift;
+	my @dat = map { [split /[;,]/,$_] } @_;
 #ddx \@dat;
-        deBayes($_) for @dat;
-        my (%GT);
-        for (@dat) {
-                ++$GT{$_->[0]};
-        }
+	if ($type) {
+		deBayes($_) for @dat;
+	}
+	my (%GT);
+	for (@dat) {
+		++$GT{$_->[0]};
+	}
 	for (values %GT) {
-		return 1 if $_ == 2;
+		return 1 if $_ == 2;	# 两个样品GT一致
 	}
 	return 0;
-        #ddx $Bolsheviks,$Hom,\@GTdep,@dat if (keys %GT)>1;
-        #        return [$Bolsheviks,$Hom,\@GTdep];
-        #        }
-        #
 }
 
 my $mother=shift;
@@ -101,13 +103,13 @@ while (<FM>) {
 	next if "@tM @tF @tC" =~ /\./;
 	#T/T;6,2245      C/C;1698,0
 	#print "> @tM , @tF , @tC\n@datM\n";
-	my $retM = getBolsheviks(@tM);
+	my $retM = getBolsheviks(0,@tM);
 	next unless $retM->[1];
-	my $retF = getBolsheviks(@tF);
+	my $retF = getBolsheviks(0,@tF);
 	#ddx $retM,$retF;
-	my $xx = getequal(@tM);
-	my $yy = getequal(@tF);
-	my $zz = getequal(@tC);
+	my $xx = getequal(0,@tM);
+	my $yy = getequal(0,@tF);
+	my $zz = getequal(1,@tC);
 	my $t=$xx*$yy*$zz;
 	next unless $t;
 	my @sdatC = map { [split /[;,]/,$_] } @tC;
@@ -162,10 +164,12 @@ while (<FM>) {
 			$GTtC = join('/',$Bases[$m],$Bases[$n]);# if $twotailedFisher < 0.05 or $n22 * 49 >= $n21;	# (f0.05 and 0.5%~2%) or >2%
 		}
 	}
-	my $retC = getBolsheviks(@tC);
+	my $retC = getBolsheviks(1,@tC);
 	my @fgeno=split /\//,$retF->[0];
 	my @mgeno=split /\//,$retM->[0];
-	next if($fgeno[0] eq $fgeno[1] && $fgeno[0] eq $mgeno[0]);
+	my @cgeno=split /\//,$retC->[0];
+	#next if $fgeno[0] eq $fgeno[1] && ($fgeno[0] eq $mgeno[0] or $fgeno[0] eq $mgeno[1]);
+	next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
 
 	my @mnum=@{$retM->[2]};
 	my @fnum=@{$retF->[2]};	
