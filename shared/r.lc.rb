@@ -3,26 +3,29 @@ class R < Formula
   homepage "https://www.r-project.org/"
   url "https://cran.r-project.org/src/base/R-3/R-3.5.3.tar.gz"
   sha256 "2bfa37b7bd709f003d6b8a172ddfb6d03ddd2d672d6096439523039f7a8e678c"
-  #revision 2
+
+  bottle do
+    root_url "https://linuxbrew.bintray.com/bottles"
+    sha256 "8d1c5161ae03b34d8ed55bd7aa60c708b196b39929cd867bf80973640915f86e" => :mojave
+    sha256 "e1d29ef3229094d533527fa8caaf1d747548b06ef03260dbda3b490f8ee85904" => :high_sierra
+    sha256 "e3da4551f917e2846fb7c887c1bffdd923fcd8abab3f035d69c592ef74d9a18a" => :sierra
+    sha256 "448ad4b364a862a39e95c515110a15725061fe52bbd354a90a08013e978d786a" => :x86_64_linux
+  end
 
   depends_on "pkg-config" => :build
   depends_on "gcc" # for gfortran
   depends_on "gettext"
   depends_on "jpeg"
   depends_on "libpng"
+  depends_on "openblas"
   depends_on "pcre"
   depends_on "readline"
   depends_on "xz"
-  depends_on "cairo"
-  depends_on :java => :optional
 
   unless OS.mac?
-    depends_on "openblas"
-    #depends_on "cairo"
+    depends_on "cairo"
     depends_on "curl"
     depends_on "linuxbrew/xorg/xorg"
-  else
-    depends_on "openblas" => :optional
   end
 
   # needed to preserve executable permissions on files without shebangs
@@ -46,9 +49,8 @@ class R < Formula
       "--enable-memory-profiling",
       "--with-lapack",
       "--enable-R-shlib",
-      #"--disable-java",
-      #"--with-blas=-L#{Formula["openblas"].opt_lib} -lopenblas",
-      "--with-cairo",
+      "--disable-java",
+      "--with-blas=-L#{Formula["openblas"].opt_lib} -lopenblas",
     ]
 
     # don't remember Homebrew's sed shim
@@ -56,36 +58,11 @@ class R < Formula
 
     unless OS.mac?
       args << "--libdir=#{lib}" # avoid using lib64 on CentOS
-      #args << "--with-cairo"
+      args << "--with-cairo"
 
       # If LDFLAGS contains any -L options, configure sets LD_LIBRARY_PATH to
       # search those directories. Remove -LHOMEBREW_PREFIX/lib from LDFLAGS.
       ENV.remove "LDFLAGS", "-L#{HOMEBREW_PREFIX}/lib"
-
-      args << "--with-blas=-L#{Formula["openblas"].opt_lib} -lopenblas"
-      #ENV.append "LDFLAGS", "-L#{Formula["openblas"].opt_lib}"
-    else
-      #args << "--with-cairo"
-      # https://github.com/Homebrew/homebrew-core/pull/24094/commits/22d0eeaae2f05c1a6b671728d88572b0fe8aa5ae
-      # Fix cairo detection with Quartz-only cairo
-      inreplace ["configure", "m4/cairo.m4"], "cairo-xlib.h", "cairo.h"
-
-      #args << "--without-cairo"
-      args << "--without-x"
-      args << "--with-aqua"
-
-      if build.with? "openblas"
-        args << "--with-blas=-L#{Formula["openblas"].opt_lib} -lopenblas"
-      else
-        args << "--with-blas=-framework Accelerate"
-        ENV.append_to_cflags "-D__ACCELERATE__" if ENV.compiler != :clang
-      end
-    end
-
-    if build.with? "java"
-      args << "--enable-java"
-    else
-      args << "--disable-java"
     end
 
     # Help CRAN packages find gettext and readline
