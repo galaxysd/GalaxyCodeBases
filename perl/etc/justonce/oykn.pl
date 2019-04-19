@@ -190,6 +190,10 @@ while (<FM>) {
 	@Bases = split /,/,$datM[2];	# $bases = ref,alt
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
+
+	my $retM = getBolsheviks(0,@tM);
+	my $retF = getBolsheviks(0,@tF);
+	#ddx $retM if $retM->[1];
 	my (@rM,@rF,@rC);
 	if (@Bases > 2) {
 		#ddx \@tM,\@tF,\@tC;
@@ -205,6 +209,14 @@ while (<FM>) {
 			}
 			#ddx (\%trioF,\%trioM,\%trioC);
 			++$trioN;
+			if ($retM->[1]) {
+				my $str = join('=',$retM->[0],join(',',@{$retM->[2]}));
+				$rM[0] = join('.',$rM[0],$str,'HM');
+			}
+			if ($retF->[1]) {
+				my $str = join('=',$retF->[0],join(',',@{$retF->[2]}));
+				$rF[0] = join('.',$rF[0],$str,'HF');
+			}
 			print OT join("\t",$trioN,@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
 		}
 	}
@@ -237,9 +249,9 @@ while (<FM>) {
 
 	#T/T;6,2245      C/C;1698,0
 	#print "> @tM , @tF , @tC\n@datM\n";
-	my $retM = getBolsheviks(0,@tM);
+	#my $retM = getBolsheviks(0,@tM);
 	next unless $retM->[1];
-	my $retF = getBolsheviks(0,@tF);
+	#my $retF = getBolsheviks(0,@tF);
 	next if ($retM->[0] eq "NA" or $retF->[0] eq "NA");
 	#ddx $retM,$retF;
 	my $xx = getequal(0,@tM);
