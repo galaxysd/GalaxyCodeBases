@@ -141,6 +141,16 @@ sub getrio(@) {
 	#ddx \@ret;
 	return ($n,$x,$xx,$y,$yy,$depstr);
 }
+sub tstat(%) {
+	my %d = @_;
+	my $mean1 = $d{'x'}/$d{'n'};
+	my $mean2 = $d{'y'}/$d{'n'};
+	my $std1 = sqrt($d{'xx'}/$d{'n'} - $mean1*$mean1);
+	my $std2 = sqrt($d{'yy'}/$d{'n'} - $mean2*$mean2);
+	my $srt1 = join(' ± ',$mean1,$std1);
+	my $srt2 = join(' ± ',$mean2,$std2);
+	return ($srt1,$srt2);
+}
 
 my $mother=shift;
 my $father=shift;
@@ -153,8 +163,8 @@ open FC,'<',$child or die "[x]Child: $!\n";
 open OC,'>',"$outprefix.cpie" or die "[x]$outprefix.cpie: $!\n";
 open OT,'>',"$outprefix.trio" or die "[x]$outprefix.trio: $!\n";
 
-my ($logcpi,$spe,$lFC,$lFF,$lFM)=(0,0);
-my (%trioF,%trioM,%trioC);
+my ($logcpi,$spe,$trioN,$lFC,$lFF,$lFM)=(0,0,0);
+my (%trioM,%trioF,%trioC);
 for (qw(n x xx y yy)) {
 	$trioM{$_} = 0;
 	$trioF{$_} = 0;
@@ -193,8 +203,9 @@ while (<FM>) {
 				$trioF{$_} += shift @rF;
 				$trioC{$_} += shift @rC;
 			}
-			ddx (\%trioF,\%trioM,\%trioC);
-			print OT join("\t",@datM,$rM[0],$rF[0],$rC[0]),"\n";
+			#ddx (\%trioF,\%trioM,\%trioC);
+			++$trioN;
+			print OT join("\t",$trioN,@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
 		}
 	}
 	my $check_dep = 1;
@@ -296,6 +307,20 @@ print OC "# CPE: 1-1E(",$spe/log(10),")\n";
 
 print "CPI: E(",$logcpi/log(10),")\n";
 print "CPE: 1-1E(",$spe/log(10),")\n";
+
+if ($trioN) {
+	my @stM = tstat(%trioM);
+	my @stF = tstat(%trioF);
+	my @stC = tstat(%trioC);
+	#ddx (\@stM,\@stF,\@stC);
+	print OT "# M1: $stM[0] , M2: $stM[1]\n";
+	print OT "# F1: $stF[0] , F2: $stF[1]\n";
+	print OT "# C1: $stC[0] , C2: $stC[1]\n";
+
+	print "M1: $stM[0] , M2: $stM[1]\n";
+	print "F1: $stF[0] , F2: $stF[1]\n";
+	print "C1: $stC[0] , C2: $stC[1]\n";
+}
 
 close OC;close OT;
 
