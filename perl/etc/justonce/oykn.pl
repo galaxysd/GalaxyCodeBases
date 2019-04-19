@@ -314,7 +314,7 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-print OC "# CPI: ",exp($logcpi),"\n";
+print OC "# CPI: E(",$logcpi/log(10),")\n";
 print OC "# CPE: 1-1E(",$spe/log(10),")\n";
 
 print "CPI: E(",$logcpi/log(10),")\n";
