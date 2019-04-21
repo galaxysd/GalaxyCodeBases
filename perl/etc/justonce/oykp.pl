@@ -5,6 +5,7 @@ Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
+use POSIX;
 
 use lib '.';
 
@@ -154,6 +155,14 @@ sub tstat(%) {
 	my $srt2 = join(' ± ',$mean2,$std2);
 	return ($srt1,$srt2);
 }
+sub printExp($) {
+	my $lnV = $_[0]/log(10);
+	my $lnInt = floor($lnV);
+	my $lnExt = $lnV - $lnInt;
+	my $prefix = exp($lnExt*log(10));
+	my $str = join('e',$prefix,$lnInt);
+	return $str;
+}
 
 my $mother=shift;
 my $father=shift;
@@ -297,7 +306,7 @@ while (<FM>) {
 	my @fgeno=split /\//,$retF->[0];
 	my @mgeno=split /\//,$retM->[0];
 	my @cgeno=split /\//,$retC->[0];
-	next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and (($retM->[2][0]>1 and $retM->[2][1]>1) or ($retF->[2][0]>1 and $retF->[2][1]>1));
+	next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>1 and $retM->[2][1]>1) or ($retF->[2][0]>1 and $retF->[2][1]>1));
 	#next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
 
 	my @mnum=@{$retM->[2]};
@@ -317,11 +326,14 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-print OC "# CPI: 1E(",$logcpi/log(10),")\n";
-print OC "# CPE: 1-1E(",$spe/log(10),")\n";
+my $sCPI = printExp($logcpi);
+my $sPCPE = printExp($spe);
 
-print "CPI: 1E(",$logcpi/log(10),")\n";
-print "CPE: 1-1E(",$spe/log(10),")\n";
+print OC "# CPI: $sCPI\n";
+print OC "# CPE: 1-$sPCPE\n";
+
+print "CPI: $sCPI\n";
+print "CPE: 1-$sPCPE\n";
 
 if ($trioN) {
 	my @stM = tstat(%trioM);
@@ -343,7 +355,7 @@ __END__
 grep '[ACTG],[ATCG],[ATCG]' *.tsv|grep '[1-9],[1-9],[1-9]'
 ./oykp.pl s385M1.tsv s385F1.tsv s385C.tsv ss
 
-FM,hom,either one with 2 mutation base.
+F=M,hom,either one with 2 mutation base.
 keep those MC 100% hom
 
 Order M,F,C

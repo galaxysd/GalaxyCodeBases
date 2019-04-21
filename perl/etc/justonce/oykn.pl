@@ -154,6 +154,14 @@ sub tstat(%) {
 	my $srt2 = join(' ± ',$mean2,$std2);
 	return ($srt1,$srt2);
 }
+sub printExp($) {
+	my $lnV = $_[0]/log(10);
+	my $lnInt = floor($lnV);
+	my $lnExt = $lnV - $lnInt;
+	my $prefix = exp($lnExt*log(10));
+	my $str = join('e',$prefix,$lnInt);
+	return $str;
+}
 
 my $mother=shift;
 my $father=shift;
@@ -317,11 +325,14 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-print OC "# CPI: 1E(",$logcpi/log(10),")\n";
-print OC "# CPE: 1-1E(",$spe/log(10),")\n";
+my $sCPI = printExp($logcpi);
+my $sPCPE = printExp($spe);
 
-print "CPI: 1E(",$logcpi/log(10),")\n";
-print "CPE: 1-1E(",$spe/log(10),")\n";
+print OC "# CPI: $sCPI\n";
+print OC "# CPE: 1-$sPCPE\n";
+
+print "CPI: $sCPI\n";
+print "CPE: 1-$sPCPE\n";
 
 if ($trioN) {
 	my @stM = tstat(%trioM);
