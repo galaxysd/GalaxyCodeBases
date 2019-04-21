@@ -195,7 +195,7 @@ while (<FM>) {
 	next if $datM[3] !~ /\d/ or $datM[3] < 100;
 	next if $datF[3] !~ /\d/ or $datF[3] < 100;
 	next if $datC[3] !~ /\d/ or $datC[3] < 100;
-	die if $datM[0] ne $datC[0];
+	die if $datM[0] ne $datC[0] or $datF[0] ne $datC[0];
 	my @tM = splice @datM,4;
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
