@@ -143,6 +143,9 @@ sub getrio(@) {
 }
 sub tstat(%) {
 	my %d = @_;
+	unless ($d{'n'}) {
+		return ['NA','NA'];
+	}
 	my $mean1 = $d{'x'}/$d{'n'};
 	my $mean2 = $d{'y'}/$d{'n'};
 	my $std1 = sqrt($d{'xx'}/$d{'n'} - $mean1*$mean1);
@@ -314,10 +317,10 @@ while (<FM>) {
 
 close FM; close FF; close FC;
 
-print OC "# CPI: E(",$logcpi/log(10),")\n";
+print OC "# CPI: 1E(",$logcpi/log(10),")\n";
 print OC "# CPE: 1-1E(",$spe/log(10),")\n";
 
-print "CPI: E(",$logcpi/log(10),")\n";
+print "CPI: 1E(",$logcpi/log(10),")\n";
 print "CPE: 1-1E(",$spe/log(10),")\n";
 
 if ($trioN) {
