@@ -145,7 +145,7 @@ sub getrio(@) {
 sub tstat(%) {
 	my %d = @_;
 	unless ($d{'n'}) {
-		return ['NA','NA'];
+		return ('NA','NA');
 	}
 	my $mean1 = $d{'x'}/$d{'n'};
 	my $mean2 = $d{'y'}/$d{'n'};
