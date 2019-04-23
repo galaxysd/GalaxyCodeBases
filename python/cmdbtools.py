@@ -36,6 +36,17 @@ annotate_command = commands.add_parser('annotate', help='Annotate input VCF.',
 annotate_command.add_argument('-i', '--vcffile', metavar='VCF_FILE', type=str, required=True, dest='in_vcffile',
                               help='input VCF file.')
 
+query_rs_command = commands.add_parser('query-rs',
+                                       help='Query variant by variant identifier or by dbSNP rsID.',
+                                       description='')
+query_rs_command.add_argument('-r', '--rsid', metavar='rsid', type=str, dest='rsid',
+                              help='dbSNP rsID.', default=None)
+query_rs_command.add_argument('-l', '--list', metavar='File-contain-a-list-of-dbSNP-rsIDs',
+                              type=str, dest='list',
+                              help='dbSNP rsIDs list in a file. One for each line.'
+                                   'could be .gz file',
+                              default=None)
+
 query_variant_command = commands.add_parser('query-variant',
                                             help='Query variant by variant identifier or by chromosome name and '
                                                  'chromosomal position.',
@@ -259,6 +270,19 @@ def _query_nonpaged(token, url):
     return cmdb_response.json()
 
 
+def query_rs(rsid):
+    if not authaccess_exists():
+        sys.stderr.write('No access tokens found. Please login first.\n')
+        return
+
+    tokenstore = read_tokenstore()
+    if rsid is None:
+        raise CMDBException('Provide "-r rsid".')
+
+    query_url = '{}/variant?&type=rs&query={}'.format(CMDB_API_MAIN_URL, rsid)
+    return _query_nonpaged(tokenstore["access_token"], query_url)
+
+
 def query_variant(chromosome, position):
     if not authaccess_exists():
         sys.stderr.write('No access tokens found. Please login first.\n')
@@ -353,6 +377,32 @@ def annotate(infile, filter=None):
     return
 
 
+def run_rs_variant(rsids):
+    if not authaccess_exists():
+        raise CMDBException('[ERROR] No access tokens found. Please login first.\n')
+    sys.stdout.write('%s\n' % '\n'.join(CMDB_VCF_HEADER))
+    for rsid in rsids:
+        variants = query_rs(rsid)
+        if variants is None:
+            continue
+        for cmdb_variant in variants:
+            vcf_line = [
+                cmdb_variant['chrom'],
+                cmdb_variant['pos'],
+                cmdb_variant['rsid'],
+                cmdb_variant['ref'],
+                cmdb_variant['alt'],
+                cmdb_variant['site_quality'],
+                cmdb_variant['filter_status'],
+                'CMDB_AF={},CMDB_AC={},CMDB_AN={}'.format(
+                    cmdb_variant['allele_freq'],
+                    cmdb_variant['allele_count'],
+                    cmdb_variant['allele_num']
+                )
+            ]
+            sys.stdout.write('%s\n' % '\t'.join(map(str, vcf_line)))
+
+
 def run_query_variant(positions):
 
     if not authaccess_exists():
@@ -367,7 +417,7 @@ def run_query_variant(positions):
 
         for cmdb_variant in variants:
             vcf_line = [
-                'chr' + cmdb_variant['chrom'],
+                cmdb_variant['chrom'],
                 cmdb_variant['pos'],
                 cmdb_variant['rsid'],
                 cmdb_variant['ref'],
@@ -398,6 +448,26 @@ def main():
 
         elif args.command == 'print-access-token':
             print_access_token()
+
+        elif args.command == 'query-rs':
+            if not (args.rsid or args.list):
+                sys.stderr.write("[Error] Couldn't find any rsIDs. You must input single rsID by '-r' "
+                                 "or multiple rsIDs in one single file by '-l'.\n")
+                sys.exit(1)
+
+            rsIDs = []
+            if args.rsid:
+                rsIDs.append(args.rsid.lower())
+            if args.list:
+                # Fetching positions from a single file
+                with gzip.open(args.list) if args.list.endswith('.gz') else open(args.list) as P:
+                    for line in P:
+                        # skip header information
+                        if line.startswith("#"):
+                            continue
+                        col = line.strip()
+                        rsIDs.append(col.lower())
+            run_rs_variant(rsIDs)
 
         elif args.command == 'query-variant':
 
