@@ -14,7 +14,15 @@ use Data::Dump qw(ddx);
 use FGI::GetCPI;
 #use Math::BigFloat;
 
-die "Usage: $0 <mother> <father> <child> <outprefix>\n" if @ARGV<4;
+my @Modes = qw(CHIP PCR);
+my %Mode = map { $_ => 1 } @Modes;
+my $Verbose = 0;
+
+die "Usage: $0 <mode> <mother> <father> <child> <outprefix>\n" if @ARGV<5;
+my $theMode = uc shift;
+unless (exists $Mode{$theMode}) {
+	die "[x]mode can only be:[",join(',',@Modes),"].\n";
+}
 
 our @Bases;
 sub deBayes($) {
@@ -118,23 +126,34 @@ sub getrio(@) {
 			++$cnt if $_;
 		}
 		if ($cnt == 3) {
-			push @ret,[$sortAsc[0]/$sum,$sortAsc[1]/$sum,join(',',@depth,'T')];
+			push @ret,[1,$sortAsc[0]/$sum,$sortAsc[1]/$sum,join(',',@depth)];
+			$ret[-1]->[-1] = $ret[-1]->[-1] . ',T' if $Verbose;
 		} elsif ($cnt == 4) {
-			push @ret,[($sortAsc[0]+$sortAsc[1])/$sum,$sortAsc[2]/$sum,join(',',@depth,'Q')];
+			push @ret,[1,($sortAsc[0]+$sortAsc[1])/$sum,$sortAsc[2]/$sum,join(',',@depth)];
+			$ret[-1]->[-1] = $ret[-1]->[-1] . ',Q' if $Verbose;
+		} elsif ($cnt == 1) {
+			push @ret,[0,0,0,join(',',@depth)];
+			$ret[-1]->[-1] = $ret[-1]->[-1] . ',S' if $Verbose;
+		} elsif ($cnt == 2) {
+			push @ret,[0,0,0,join(',',@depth)];
+			$ret[-1]->[-1] = $ret[-1]->[-1] . ',D' if $Verbose;
 		} else {
-			next;
+			die;
 		}
 	}
 	my ($n,$x,$xx,$y,$yy,$depstr,@depstrs)=(0,0,0,0,0,'');
 	if (@ret == 0) {
-		$depstr = '.';
+		die;
 	} else {
 		for (@ret) {
-			$x += $$_[0];
-			$xx += $$_[0]*$$_[0];
-			$y += $$_[1];
-			$yy += $$_[1]*$$_[1];
-			++$n;
+			my $flag = shift @$_;
+			if ($flag) {
+				$x += $$_[0];
+				$xx += $$_[0]*$$_[0];
+				$y += $$_[1];
+				$yy += $$_[1]*$$_[1];
+				++$n;
+			}
 			push @depstrs,$$_[2]; 
 		}
 		$depstr = join(';',@depstrs);
@@ -174,6 +193,7 @@ open FC,'<',$child or die "[x]Child: $!\n";
 
 open OC,'>',"$outprefix.cpie" or die "[x]$outprefix.cpie: $!\n";
 open OT,'>',"$outprefix.trio" or die "[x]$outprefix.trio: $!\n";
+open OR,'>',"$outprefix.tsv" or die "[x]$outprefix.tsv: $!\n";
 
 my ($logcpi,$spe,$trioN,$lFC,$lFF,$lFM)=(0,0,0);
 my (%trioM,%trioF,%trioC);
@@ -208,20 +228,41 @@ while (<FM>) {
 	#ddx $retM if $retM->[1];
 	my (@rM,@rF,@rC);
 	if (@Bases > 2) {
+		#ddx \@datM,\@datF,\@datC;
+# oyka.pl:220: (
+#   ["SNP5501", 501, "C,A,G", 3763.92],
+#   ["SNP5501", 501, "C,A,G", 3763.92],
+#   ["SNP5501", 501, "C,A,G", 3763.92],
+# )
 		#ddx \@tM,\@tF,\@tC;
+# oyka.pl:221: (
+#   ["C/A;28,26,0", "C/A;28,26,0"],
+#   ["C/G;35,0,37", "C/G;35,0,37"],
+#   ["C/A;36,48,0", "C/A;36,48,0"],
+# )
 		@rM = getrio(@tM);
 		@rF = getrio(@tF);
 		@rC = getrio(@tC);
 		#ddx \@rM,\@rF,\@rC;
+#   [
+#     2,
+#     0.560606060606061,
+#     0.157139577594123,
+#     0.606060606060606,
+#     0.183654729109275,
+#     "37,55,40,T;37,55,40,T",
+#   ],
 		if ($rM[0]+$rF[0]+$rC[0] >0) {
 			for (qw(n x xx y yy)) {
 				$trioM{$_} += shift @rM;
 				$trioF{$_} += shift @rF;
 				$trioC{$_} += shift @rC;
 			}
+#   ["37,55,40,T;37,55,40,T"]
 			#ddx (\%trioF,\%trioM,\%trioC);
 			++$trioN;
 			if ($retM->[1]) {
+				print OR join("\t",@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
 				my $str = join('=',$retM->[0],join(',',@{$retM->[2]}));
 				$rM[0] = join('.',$rM[0],$str,'HM');
 			}
@@ -307,7 +348,13 @@ while (<FM>) {
 	my @mgeno=split /\//,$retM->[0];
 	my @cgeno=split /\//,$retC->[0];
 	#next if $fgeno[0] eq $fgeno[1] && ($fgeno[0] eq $mgeno[0] or $fgeno[0] eq $mgeno[1]);
-	next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
+	if ($theMode eq 'CHIP') {
+		next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
+	} elsif ($theMode eq 'PCR') {
+		next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>1 and $retM->[2][1]>1) or ($retF->[2][0]>1 and $retF->[2][1]>1));
+	} else {
+		die;
+	}
 
 	my @mnum=@{$retM->[2]};
 	my @fnum=@{$retF->[2]};	
@@ -349,11 +396,11 @@ if ($trioN) {
 	print "C1: $stC[0] , C2: $stC[1]\n";
 }
 
-close OC;close OT;
+close OC;close OT;close OR;
 
 __END__
 grep '[ACTG],[ATCG],[ATCG]' *.tsv|grep '[1-9],[1-9],[1-9]'
-./oyk416.pl s385M1.tsv s385F1.tsv s385C.tsv ss
+./oyka.pl chip s385M1.tsv s385F1.tsv s385C.tsv ss
 
 Order M,F,C
 
