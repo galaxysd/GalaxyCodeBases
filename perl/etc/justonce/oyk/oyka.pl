@@ -193,7 +193,7 @@ open FC,'<',$child or die "[x]Child: $!\n";
 
 open OC,'>',"$outprefix.cpie" or die "[x]$outprefix.cpie: $!\n";
 open OT,'>',"$outprefix.trio" or die "[x]$outprefix.trio: $!\n";
-open OR,'>',"$outprefix.tsv" or die "[x]$outprefix.tsv: $!\n";
+open OR,'>',"$outprefix.tHM" or die "[x]$outprefix.tsv: $!\n";
 
 my ($logcpi,$spe,$trioN,$lFC,$lFF,$lFM)=(0,0,0);
 my (%trioM,%trioF,%trioC);
