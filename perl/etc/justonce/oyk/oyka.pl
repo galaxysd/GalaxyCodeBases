@@ -19,6 +19,7 @@ my %Mode = map { $_ => 1 } @Modes;
 my $Verbose = 0;
 
 die "Usage: $0 <mode> <mother> <father> <child> <outprefix>\n" if @ARGV<5;
+$Verbose = 1 if @ARGV == 6;
 my $theMode = uc shift;
 unless (exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
@@ -56,7 +57,7 @@ sub deBayes2($) {
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
-	}elsif (@dKeys>1 && ($Dep{$dKeys[1]}  > $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]}  < $Dep{$dKeys[0]} * 0.1)){
+	} elsif (@dKeys>1 && ($Dep{$dKeys[1]}  > $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]}  < $Dep{$dKeys[0]} * 0.1)){
 		$p->[0] = "NA";
 	}
 }
@@ -311,7 +312,12 @@ while (<FM>) {
 	my $yy = getequal(0,@tF);
 	my $zz = getequal(1,@tC);
 	my $t=$xx*$yy*$zz;
-	next unless $t;
+	my $REP = 1;
+	if ($theMode eq 'CHIP') {
+		next unless $t;
+	} else {
+		$REP = 2 if $t;
+	}
 	my @sdatC = map { [split /[;,]/,$_] } @tC;
 	my @GTdepC;
 	for (@sdatC) {
@@ -337,12 +343,17 @@ while (<FM>) {
 		$n22 = 0;
 	}
 	next unless defined $n22;
-	next if ($n21+$n22) < 200;	# skip 500
+	if ($theMode eq 'CHIP') {
+		next if ($n21+$n22) < 200;
+	} elsif ($theMode eq 'PCR') {
+		next if ($n21+$n22) < (100 * $REP);
+	}
 	my $GTtC;
 	$GTtC = join('/',$Bases[$x],$Bases[$x]);
 	my $Cdep = $n21 + $n22;
 
 	my $retC = getBolsheviks(1,@tC);
+	#ddx $retM,$retF,$retC;
 	next if ($retC->[0] eq "NA");
 	my @fgeno=split /\//,$retF->[0];
 	my @mgeno=split /\//,$retM->[0];
