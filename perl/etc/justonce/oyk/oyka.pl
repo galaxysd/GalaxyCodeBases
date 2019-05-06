@@ -359,9 +359,8 @@ while (<FM>) {
 	my @mgeno=split /\//,$retM->[0];
 	my @cgeno=split /\//,$retC->[0];
 
-	if ($theMode eq 'CHIP') {
-		next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
-	} elsif ($theMode eq 'PCR') {
+	next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
+	if ($theMode eq 'PCR') {
 		next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>0 and $retM->[2][1]>0) or ($retF->[2][0]>0 and $retF->[2][1]>0));
 	} else {
 		die;
