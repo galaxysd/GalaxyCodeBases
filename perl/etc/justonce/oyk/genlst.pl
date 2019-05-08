@@ -23,11 +23,13 @@ my %pPrefixs = (
 	oyki => '4tsv',
 );
 
-
 my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
 
 my ($theMode,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
+$pout = '.' unless $pout;
+my $listFQ = "$pout/fq.lst";
+
 my $Usage = "Usage: $0 <mode/help/example> <info.csv> <fam.csv> <chip path> [out path]\n";
 
 my $egInfo = <<'END_EG';
@@ -44,6 +46,11 @@ Father,Mother,Child
 HK19M241F,HK19M241M,HK19M241C
 NS19M342F-N,NS19M342M,NS19M342C
 END_EG
+my $takeoutNFO = <<"END_NFO";
+#### If the chip path is not in BGISEQ schema, you must ensure Sample names are correct, and then modify [$listFQ].
+#### To skip `cutadapt`, run `SKIP=1 $pout/1fq.sh` manually WITHOUT qsub it.
+#### If you then regret to use `cutadapt`, you must clean "$pout/$pPrefixs{fq}/", but KEEP the directory itself, before qsub it.
+END_NFO
 if (defined $theMode) {
 	if ($theMode =~ /(\bh\b)|(help)/i) {
 		warn $Usage,<<"END_MESSAGE";
@@ -55,11 +62,12 @@ $egInfo
 
 ### Example of "fam.csv":
 $egFam
-#### Use Sample names here.
+#### Use Sample names in "fam.csv".
 
 #### All other columns will be ignored.
 
-#### If your Index is not 501~599, modify `my $pI = '5';` in this programme.
+$takeoutNFO
+#### If your Index is not 501~599, modify `my \$pI = '5';` in this programme.
 #### You can run `$0 example` or `$0 eg` to overwrite "info.csv" and "fam.csv" with examples above.
 
 END_MESSAGE
@@ -81,21 +89,21 @@ $theMode = uc $theMode;
 if (! exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
 }
-
-$pout = '.' unless $pout;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
 die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
-die "[x]Cannot use out Path [$pout].\n" unless -r -w -x $pout;
+#die "[x]Cannot use out Path [$pout].\n" unless -r -w -x $pout;
+$pchip =~ s/\/+$//g;
 warn "[1]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n";
 
 my $cinfo = Parse::CSV->new(file => $fninfo, names => 1);
 my $cfam = Parse::CSV->new(file => $fnfam, names => 1);
+system('mkdir','-p',$pout);
 for (keys %pPrefixs) {
 	mkdir "$pout/$pPrefixs{$_}";
 }
 
-open O,'>',"$pout/$pPrefixs{lst}/fq.lst" or die $?;
+open O,'>',$listFQ or die $?;
 my (%fqInfo,%Samples);
 while ( my $value = $cinfo->fetch ) {
 	next if $value->{Cell} eq '';
@@ -121,14 +129,18 @@ if ($theMode eq 'CHIP') {
 }
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
-	print O join("\t",$_,join('/',$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]))),"\n";
+	print O join("\t",$_,join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]))),"\n";
 }
 close O;
 
 my %Families;
 while ( my $value = $cfam->fetch ) {
 	next if $value->{Child} eq '';
-	$Families{$value->{Child}} = [$value->{Mother},$value->{Father}];
+	$Families{$value->{Child}} = [
+		$Samples{$value->{Mother}},
+		$Samples{$value->{Father}},
+		$Samples{$value->{Child}}
+	];
 }
 die $cfam->errstr if $cfam->errstr;
 ddx \%Families;
@@ -143,5 +155,5 @@ for (keys %Families) {
 }
 
 __END__
-./genlst.pl chip info.csv fam.csv ./chip
+./genlst.pl chip info.csv fam.csv ./chip ./out/
 
