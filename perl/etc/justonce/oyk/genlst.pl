@@ -12,6 +12,8 @@ use lib '.';
 use Data::Dump qw(ddx);
 #use FGI::GetCPI;
 
+my $pI = '5';
+
 die "Usage: $0 <info.csv> <fam.csv> <chip path> [out path]\n" if @ARGV<3;
 my ($fninfo,$fnfam,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
@@ -23,18 +25,28 @@ warn "[1]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n";
 
 my $cinfo = Parse::CSV->new(file => $fninfo, names => 1);
 my $cfam = Parse::CSV->new(file => $fnfam, names => 1);
+mkdir "$pout/0lst";
+open O,'>',"$pout/0lst/fq.lst";
+
+my %fqIngo;
 while ( my $value = $cinfo->fetch ) {
 	next if $value->{Cell} eq '';
-    ddx $value;
+	$fqIngo{$value->{Sample}} = [$value->{Cell},$value->{Lane},$value->{Index}];
 }
 die $cinfo->errstr if $cinfo->errstr;
+#ddx \%fqIngo;
 
-while ( my $value = $cfam->fetch ) {
-	next if $value->{Child} eq '';
-    ddx $value;
+for (sort keys %fqIngo) {
+	my @d = @{$fqIngo{$_}};
+	print O join("\t",$_,join('/',$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]))),"\n";
 }
-die $cfam->errstr if $cfam->errstr;
-
+close O;
 
 __END__
 ./genlst.pl info.csv fam.csv ./chip
+
+while ( my $value = $cfam->fetch ) {
+	next if $value->{Child} eq '';
+	#ddx $value;
+}
+die $cfam->errstr if $cfam->errstr;

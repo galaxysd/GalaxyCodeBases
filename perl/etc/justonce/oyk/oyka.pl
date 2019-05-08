@@ -313,7 +313,7 @@ while (<FM>) {
 	my $zz = getequal(1,@tC);
 	my $t=$xx*$yy*$zz;
 	my $REP = 1;
-	if ($theMode eq 'CHIP') {
+	if ($theMode eq 'PCR') {
 		next unless $t;
 	} else {
 		$REP = 2 if $t;
@@ -343,9 +343,9 @@ while (<FM>) {
 		$n22 = 0;
 	}
 	next unless defined $n22;
-	if ($theMode eq 'CHIP') {
+	if ($theMode eq 'PCR') {
 		next if ($n21+$n22) < 200;
-	} elsif ($theMode eq 'PCR') {
+	} elsif ($theMode eq 'CHIP') {
 		next if ($n21+$n22) < (100 * $REP);
 	}
 	my $GTtC;
