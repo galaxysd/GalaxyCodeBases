@@ -30,7 +30,12 @@ $SHcutadapt = <<"END_SH";
 #$ -binding linear:3
 #$ -cwd -r y
 #$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
+#$ -e /dev/null -o /dev/null
 
+#$ -t 1-21
+
+INFILE=`sed -n "\${SGE_TASK_ID}p" sample.lst`
+read -ra INDAT <<<"\$INFILE"
 
 END_SH
 
