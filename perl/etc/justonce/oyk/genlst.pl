@@ -5,6 +5,7 @@ Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
+use Cwd 'abs_path';
 use Parse::CSV;
 use lib '.';
 use Data::Dump qw(ddx);
@@ -94,6 +95,8 @@ die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
 die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
 #die "[x]Cannot use out Path [$pout].\n" unless -r -w -x $pout;
 $pchip =~ s/\/+$//g;
+$pout =~ s/\/+$//g;
+$pchip = abs_path($pchip);
 warn "[1]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n";
 
 my $cinfo = Parse::CSV->new(file => $fninfo, names => 1);
@@ -129,7 +132,8 @@ if ($theMode eq 'CHIP') {
 }
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
-	print O join("\t",$_,join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]))),"\n";
+	my $fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]));
+	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;
 
@@ -137,21 +141,30 @@ my %Families;
 while ( my $value = $cfam->fetch ) {
 	next if $value->{Child} eq '';
 	$Families{$value->{Child}} = [
-		$Samples{$value->{Mother}},
-		$Samples{$value->{Father}},
-		$Samples{$value->{Child}}
+		$value->{Mother},
+		$value->{Father},
+		$value->{Child},
 	];
 }
 die $cfam->errstr if $cfam->errstr;
 ddx \%Families;
-for (keys %Families) {
-	my $prefix = "$pout/$pPrefixs{lst}/p$_";
+for my $iF (keys %Families) {
+	my $prefix = "$pout/$pPrefixs{lst}/p$iF";
 	open P,'>',"$prefix.bams.lst" or die $?;
 	open M,'>',"$prefix.M.lst" or die $?;
 	open F,'>',"$prefix.F.lst" or die $?;
 	open C,'>',"$prefix.C.lst" or die $?;
-	;
-	close P; close M; close F; close C;
+	open Y,'>',"$prefix.oyk.lst" or die $?;
+	print M join(' ',@{$Samples{$Families{$iF}->[0]}}),"\n";
+	print F join(' ',@{$Samples{$Families{$iF}->[1]}}),"\n";
+	print C join(' ',@{$Samples{$Families{$iF}->[2]}}),"\n";
+	#for ( @{$Samples{$Families{$iF}->[0]}},@{$Samples{$Families{$iF}->[1]}},@{$Samples{$Families{$iF}->[2]}} ) {
+	for (map {@{$Samples{$Families{$iF}->[$_]}}} (0..2) ) {
+		my $nbam = "./$pPrefixs{bam}/$_.bam";
+		print P "$nbam\n";
+	}
+	print Y join(' ',map {"v$_.lst"} @{$Families{$iF}}[0..2]),"\n";
+	close P; close M; close F; close C; close Y;
 }
 
 __END__
