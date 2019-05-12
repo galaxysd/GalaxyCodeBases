@@ -21,7 +21,7 @@ my %pPrefixs = (
 	fq => '1fq',
 	bam => '2bam',
 	vcf	=> '3vcf',
-	oyki => '4tsv',
+	oyk => '4tsv',
 );
 
 my @Modes = qw(CHIP PCR);
@@ -172,7 +172,8 @@ close O;
 my $LSTprefix = "$pout/$pPrefixs{lst}";
 open O,'>',"$pout/q2mplieup.sh" or die $?;
 my $VCFprefix = "$pout/$pPrefixs{vcf}";
-print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef);
+my $OYKprefix = "$pout/$pPrefixs{oyk}";
+print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef,$OYKprefix,$theMode);
 close O;
 ################################
 for my $iF (keys %Families) {
@@ -181,7 +182,6 @@ for my $iF (keys %Families) {
 	open M,'>',"$prefix.M.lst" or die $?;
 	open F,'>',"$prefix.F.lst" or die $?;
 	open C,'>',"$prefix.C.lst" or die $?;
-	open Y,'>',"$prefix.oyk.lst" or die $?;
 	print M join(' ',@{$Samples{$Families{$iF}->[0]}}),"\n";
 	print F join(' ',@{$Samples{$Families{$iF}->[1]}}),"\n";
 	print C join(' ',@{$Samples{$Families{$iF}->[2]}}),"\n";
@@ -190,8 +190,7 @@ for my $iF (keys %Families) {
 		my $nbam = "./$pPrefixs{bam}/$_.bam";
 		print P "$nbam\n";
 	}
-	print Y join(' ',map {"v$_.lst"} @{$Families{$iF}}[0..2]),"\n";
-	close P; close M; close F; close C; close Y;
+	close P; close M; close F; close C;
 }
 
 
