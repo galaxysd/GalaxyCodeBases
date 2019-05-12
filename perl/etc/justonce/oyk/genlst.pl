@@ -27,11 +27,12 @@ my %pPrefixs = (
 my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
 
-my ($theMode,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
+my ($theMode,$fninfo,$fnfam,$pRef,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
+$pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
 
-my $Usage = "Usage: $0 <mode/help/example> <info.csv> <fam.csv> <chip path> [out path]\n";
+my $Usage = "Usage: $0 <mode/help/example> <info.csv> <fam.csv> <Ref for BWA> <chip path> [out path]\n";
 
 my $egInfo = <<'END_EG';
 UID,Sample,Cell,Lane,Index
@@ -93,10 +94,11 @@ if (! exists $Mode{$theMode}) {
 my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
+die "[x]Cannot read BWA Reference [$pRef].\n" unless -r -s $pRef;
 die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
 #die "[x]Cannot use out Path [$pout].\n" unless -r -w -x $pout;
 $pchip =~ s/\/+$//g;
-$pout =~ s/\/+$//g;
+#$pout =~ s/\/+$//g;
 $pchip = abs_path($pchip);
 warn "[!]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n[!]Current working directory:[$cwd]\n";
 
@@ -141,10 +143,13 @@ for (sort keys %fqInfo) {
 }
 close O;
 open O,'>',"$pout/q0cutadapter.sh" or die $?;
-$tprefix = "$pout/$pPrefixs{fq}";
-print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$tprefix);
+my $FQprefix = "$pout/$pPrefixs{fq}";
+print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$FQprefix);
 close O;
-
+open O,'>',"$pout/q1bwa.sh" or die $?;
+$tprefix = "$pout/$pPrefixs{bam}";
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$tprefix,$FQprefix,$pRef);
+close O;
 ######
 my %Families;
 while ( my $value = $cfam->fetch ) {
@@ -178,5 +183,6 @@ for my $iF (keys %Families) {
 
 
 __END__
-./genlst.pl chip info.csv fam.csv . ./out/
+./genlst.pl chip info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
 
+pip3 install -h cutadapt dnaio xopen
