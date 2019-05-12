@@ -12,7 +12,7 @@ use Data::Dump qw(ddx);
 use FGI::OYK;
 # ====================================
 
-my $pI = '5';
+our $pI = '5';
 
 # ====================================
 
@@ -106,7 +106,9 @@ for (keys %pPrefixs) {
 	mkdir "$pout/$pPrefixs{$_}";
 }
 
-open O,'>',$listFQ or die $?;
+###########################
+# fq.lst, q0cutadapter.sh #
+###########################
 my (%fqInfo,%Samples);
 while ( my $value = $cinfo->fetch ) {
 	next if $value->{Cell} eq '';
@@ -118,7 +120,7 @@ while ( my $value = $cinfo->fetch ) {
 die $cinfo->errstr if $cinfo->errstr;
 #ddx \%fqInfo,\%Samples;
 
-my (%SampleCnt,@sCnt);
+my (%SampleCnt,@sCnt,$tprefix);
 for (keys %Samples) {
 	++$SampleCnt{scalar @{$Samples{$_}}};
 }
@@ -130,13 +132,19 @@ if ($theMode eq 'CHIP') {
 } elsif ($theMode eq 'PCR') {
 	die "[x]PCR mode allows exactly TWO repeats per sample, got $sCnt[0].\n" if $sCnt[0] != 2;
 }
+open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
 	my $fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]));
 	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;
+open O,'>',"$pout/q0cutadapter.sh" or die $?;
+$tprefix = "$pout/$pPrefixs{fq}";
+print O Scutadapt(scalar(keys %fqInfo),$listFQ,$tprefix);
+close O;
 
+######
 my %Families;
 while ( my $value = $cfam->fetch ) {
 	next if $value->{Child} eq '';
@@ -166,6 +174,7 @@ for my $iF (keys %Families) {
 	print Y join(' ',map {"v$_.lst"} @{$Families{$iF}}[0..2]),"\n";
 	close P; close M; close F; close C; close Y;
 }
+
 
 __END__
 ./genlst.pl chip info.csv fam.csv ./chip ./out/
