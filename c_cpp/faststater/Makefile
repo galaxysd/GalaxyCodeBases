@@ -1,7 +1,14 @@
-CC = gcc
+#CC = gcc
 CFLAGS = -Wall -pipe -march=core2 -mtune=generic
 LDFLAGS = -lz -lm
 OPT = -O3
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	CC=gcc-8
+	CFLAGS += -I/usr/local/include
+	LDFLAGS += -L/usr/local/lib -largp
+endif
 
 OBJDIR = ./objects/
 

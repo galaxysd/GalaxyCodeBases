@@ -129,19 +129,19 @@ int main (int argc, char **argv) {
     SStd = sqrtl(( SS - (float128)allbases*(float128)allbases/(float128)allreads ) / (long double)(allreads -1));
 
     FILE *fp = fopen(arguments.outfile, "w");
-    fprintf(fp,"#Total_Bases: %lu\n#Total_Reads: %lu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
-        "#Read_Len_Range: [%lu,%lu]\n"
-        "#Overflow: %lu\n"
+    fprintf(fp,"#Total_Bases: %llu\n#Total_Reads: %llu\n#Avg_Read_Len: %.1f\tStd: %.3f\n"
+        "#Read_Len_Range: [%llu,%llu]\n"
+        "#Overflow: %llu\n"
         "\n#Read_Len\tCount\tRatio\n",
         allbases,allreads,
         0.05+((double)allbases/(double)allreads), SStd,
         minReadLen,maxReadLen,ReadsLenArr[0]);
     for (uint64_t i=minReadLen; i<=maxReadLen; i++) {
         if (ReadsLenArr[i])
-            fprintf(fp,"%lu\t%lu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
+            fprintf(fp,"%llu\t%llu\t%g\n",i,ReadsLenArr[i],(double)ReadsLenArr[i]/(double)allreads);
     }
     if (ReadsLenArr[MAXREADLEN]) {
-        fprintf(fp,"#>=%lu\t%lu\t%g\n",MAXREADLEN,ReadsLenArr[MAXREADLEN],(double)ReadsLenArr[MAXREADLEN]/(double)allreads);
+        fprintf(fp,"#>=%lu\t%llu\t%g\n",MAXREADLEN,ReadsLenArr[MAXREADLEN],(double)ReadsLenArr[MAXREADLEN]/(double)allreads);
     }
     fclose(fp);
 

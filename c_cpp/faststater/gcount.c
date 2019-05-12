@@ -159,8 +159,8 @@ int main (int argc, char **argv) {
     fputs("\nStat Done!\n", stderr);
 
     FILE *fp = fopen(arguments.outfile, "w");
-    fprintf(fp,"# Total_Bases: %lu\n"
-        "# A: %lu\tT: %lu\tC: %lu\tG: %lu\tN: %lu\n"
+    fprintf(fp,"# Total_Bases: %llu\n"
+        "# A: %llu\tT: %llu\tC: %llu\tG: %llu\tN: %llu\n"
         "# A%%: %.3f\tT%%: %.3f\tC%%: %.3f\tG%%: %.3f\tN%%: %.3f\n"
         "\n#Base\tRepeat_Count\tTimes\tBaseRatio\n",
         allbases,
@@ -191,11 +191,11 @@ int main (int argc, char **argv) {
         }
         for (size_t polymerLen=1;polymerLen<=maxHomoPoly[base];polymerLen++) {
             if (HomoPoly[base][polymerLen])
-                fprintf(fp,"%c\t%lu\t%lu\t%g\n",theBase,polymerLen,HomoPoly[base][polymerLen],
+                fprintf(fp,"%c\t%lu\t%llu\t%g\n",theBase,polymerLen,HomoPoly[base][polymerLen],
                 (double)HomoPoly[base][polymerLen]*polymerLen/allbases);
         }
         if (HomoPoly[base][0]) {
-            fprintf(fp,"#%c\t>=%lu\t%lu\n",theBase,MAXHOMOPOLYLEN,HomoPoly[base][0]);
+            fprintf(fp,"#%c\t>=%lu\t%llu\n",theBase,MAXHOMOPOLYLEN,HomoPoly[base][0]);
         }
         fprintf(fp,"#----------------------------------------------------------------\n");
     }
