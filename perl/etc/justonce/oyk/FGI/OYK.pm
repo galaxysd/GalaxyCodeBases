@@ -56,8 +56,8 @@ END_SH
 	return $SHcutadapt;
 }
 
-sub Sbwamem($$$$$$) {
-	my ($cwd,$cnt,$flst,$outP,$FQprefix,$pRef) = @_;
+sub Sbwamem($$$$$$$) {
+	my ($cwd,$cnt,$flst,$outP,$FQprefix,$pRef,$SHcutadapt) = @_;
 	my $SHbwa = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -76,12 +76,46 @@ cd $cwd
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
-bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2097152 -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+if [ ! -s $FQprefix/\${INDAT[0]}.fq.gz ]; then
+	bash $SHcutadapt
+fi
+
+bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
 
 samtools index $outP/\${INDAT[0]}.bam
 
 END_SH
 	return $SHbwa;
 }
+
+sub Smpileup($$$$$$$) {
+	my ($cwd,$cnt,$flst,$outP,$BAMprefix,$LSTprefix,$pRef) = @_;
+	my $Smpileup = <<"END_SH";
+#!/bin/bash
+#\$ -S /bin/bash
+#\$ -q $SgeQueue -P $SgeProject
+#\$ -N p2${SgeJobPrefix}mplp -hold_jid p1${SgeJobPrefix}bwa
+#\$ -l vf=500M,num_proc=1
+#\$ -binding linear:2
+#\$ -cwd -r y
+#\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
+#\$ -e /dev/null -o /dev/null
+
+#\$ -t 1-$cnt
+
+cd $cwd
+
+INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
+read -ra INDAT <<<"\$INFILE"
+
+samtools mpileup -b $LSTprefix/p\${INDAT[0]}.bams.lst -d 4000 -Q 20 -f $pRef -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
+bcftools call -Oz -v -m $outP/\${INDAT[2]}.vcf.gz -o $outP/\${INDAT[2]}.snp.gz
+bcftools index $outP/\${INDAT[2]}.snp.gz
+bcftools index $outP/\${INDAT[2]}.vcf.gz
+
+END_SH
+	return $Smpileup;
+}
+
 
 1;

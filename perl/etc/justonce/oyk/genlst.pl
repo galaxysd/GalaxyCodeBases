@@ -31,6 +31,7 @@ my ($theMode,$fninfo,$fnfam,$pRef,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
 $pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
+my $listFamily = "$pout/family.lst";
 
 my $Usage = "Usage: $0 <mode/help/example> <info.csv> <fam.csv> <Ref for BWA> <chip path> [out path]\n";
 
@@ -123,7 +124,7 @@ while ( my $value = $cinfo->fetch ) {
 die $cinfo->errstr if $cinfo->errstr;
 #ddx \%fqInfo,\%Samples;
 
-my (%SampleCnt,@sCnt,$tprefix);
+my (%SampleCnt,@sCnt);
 for (keys %Samples) {
 	++$SampleCnt{scalar @{$Samples{$_}}};
 }
@@ -142,16 +143,18 @@ for (sort keys %fqInfo) {
 	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;
-open O,'>',"$pout/q0cutadapter.sh" or die $?;
+my $fSHcutadapt = "$pout/q0cutadapter.sh";
+open O,'>',$fSHcutadapt or die $?;
 my $FQprefix = "$pout/$pPrefixs{fq}";
 print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$FQprefix);
 close O;
 open O,'>',"$pout/q1bwa.sh" or die $?;
-$tprefix = "$pout/$pPrefixs{bam}";
-print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$tprefix,$FQprefix,$pRef);
+my $BAMprefix = "$pout/$pPrefixs{bam}";
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef,$fSHcutadapt);
 close O;
 ######
 my %Families;
+open O,'>',$listFamily or die $?;
 while ( my $value = $cfam->fetch ) {
 	next if $value->{Child} eq '';
 	$Families{$value->{Child}} = [
@@ -159,11 +162,19 @@ while ( my $value = $cfam->fetch ) {
 		$value->{Father},
 		$value->{Child},
 	];
+	print O join("\t",$value->{Mother},$value->{Father},$value->{Child}),"\n";
 }
 die $cfam->errstr if $cfam->errstr;
 ddx \%Families;
+close O;
+my $LSTprefix = "$pout/$pPrefixs{lst}";
+open O,'>',"$pout/q2mplieup.sh" or die $?;
+my $VCFprefix = "$pout/$pPrefixs{vcf}";
+print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef);
+close O;
+
 for my $iF (keys %Families) {
-	my $prefix = "$pout/$pPrefixs{lst}/p$iF";
+	my $prefix = "$LSTprefix/p$iF";
 	open P,'>',"$prefix.bams.lst" or die $?;
 	open M,'>',"$prefix.M.lst" or die $?;
 	open F,'>',"$prefix.F.lst" or die $?;
