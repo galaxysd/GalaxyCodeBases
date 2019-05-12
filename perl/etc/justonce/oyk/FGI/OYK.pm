@@ -52,6 +52,10 @@ else
 	echo "[x]Cannot find .fq.gz file(s) for [\${INDAT[1]}(_[12])?.fq.gz] !"
 	exit 1
 fi
+
+if [ ! -s $outP/\${INDAT[0]}.fq.gz ]; then
+	exit 1
+fi
 END_SH
 	return $SHcutadapt;
 }
@@ -84,6 +88,9 @@ bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefi
 
 samtools index $outP/\${INDAT[0]}.bam
 
+if [ ! -s $outP/\${INDAT[0]}.bam ]; then
+	exit 1
+fi
 END_SH
 	return $SHbwa;
 }
@@ -120,6 +127,9 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 
 ./oyka.pl $theMode $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 
+if [ ! -s $outP/\${INDAT[2]}.snp.gz ]; then
+	exit 1
+fi
 END_SH
 	return $Smpileup;
 }
