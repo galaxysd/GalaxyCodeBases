@@ -110,9 +110,9 @@ for (keys %pPrefixs) {
 	mkdir "$pout/$pPrefixs{$_}";
 }
 
-###########################
-# fq.lst, q0cutadapter.sh #
-###########################
+################################
+# fq.lst, q0cutadapter.sh, q1bwa.sh #
+################################
 my (%fqInfo,%Samples);
 while ( my $value = $cinfo->fetch ) {
 	next if $value->{Cell} eq '';
@@ -152,7 +152,9 @@ open O,'>',"$pout/q1bwa.sh" or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
 print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef,$fSHcutadapt);
 close O;
-######
+################################
+# family.lst, q2mplieup.sh #
+################################
 my %Families;
 open O,'>',$listFamily or die $?;
 while ( my $value = $cfam->fetch ) {
@@ -172,7 +174,7 @@ open O,'>',"$pout/q2mplieup.sh" or die $?;
 my $VCFprefix = "$pout/$pPrefixs{vcf}";
 print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef);
 close O;
-
+################################
 for my $iF (keys %Families) {
 	my $prefix = "$LSTprefix/p$iF";
 	open P,'>',"$prefix.bams.lst" or die $?;
