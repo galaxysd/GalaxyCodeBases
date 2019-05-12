@@ -5,7 +5,7 @@ Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
-use Cwd 'abs_path';
+use Cwd qw(abs_path cwd);
 use Parse::CSV;
 use lib '.';
 use Data::Dump qw(ddx);
@@ -90,6 +90,7 @@ $theMode = uc $theMode;
 if (! exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
 }
+my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
 die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
@@ -97,7 +98,7 @@ die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
 $pchip =~ s/\/+$//g;
 $pout =~ s/\/+$//g;
 $pchip = abs_path($pchip);
-warn "[1]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n";
+warn "[!]Info:[$fninfo], Fam:[$fnfam], CHIP:[$pchip] to Out:[$pout]\n[!]Current working directory:[$cwd]\n";
 
 my $cinfo = Parse::CSV->new(file => $fninfo, names => 1);
 my $cfam = Parse::CSV->new(file => $fnfam, names => 1);
@@ -141,7 +142,7 @@ for (sort keys %fqInfo) {
 close O;
 open O,'>',"$pout/q0cutadapter.sh" or die $?;
 $tprefix = "$pout/$pPrefixs{fq}";
-print O Scutadapt(scalar(keys %fqInfo),$listFQ,$tprefix);
+print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$tprefix);
 close O;
 
 ######
@@ -177,5 +178,5 @@ for my $iF (keys %Families) {
 
 
 __END__
-./genlst.pl chip info.csv fam.csv ./chip ./out/
+./genlst.pl chip info.csv fam.csv . ./out/
 
