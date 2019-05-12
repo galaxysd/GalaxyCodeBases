@@ -63,7 +63,7 @@ sub Sbwamem($$$$$$) {
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p1${SgeJobPrefix}bwa -hold_jid p0${SgeJobPrefix}cut
-#\$ -l vf=8G,num_proc=11
+#\$ -l vf=6G,num_proc=7
 #\$ -binding linear:12
 #\$ -cwd -r y
 #\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
