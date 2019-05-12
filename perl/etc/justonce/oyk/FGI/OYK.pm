@@ -10,7 +10,7 @@ my $SgeJobPrefix = 'nip'.(time() % 999);
 sub Scutadapt($$$$) {
 	my ($cwd,$cnt,$flst,$outP) = @_;
 	my $SHcutadapt = <<"END_SH";
-#!/bin/sh
+#!/bin/bash
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p0${SgeJobPrefix}cut
@@ -29,10 +29,13 @@ read -ra INDAT <<<"\$INFILE"
 
 ADAPTERSTR='-g GAACGACATGGCTACGATCCGACTT -a AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA -A AAGTCGGATCGTAGCCATGTCGTTC -G TTGTCTTCCTAAGACCGCTTGGCCTCCGACTT'
 
-if [ -f "\${INDAT[1]}.fq.gz" ]; then
+if [ -e "\${INDAT[1]}.fq.gz" ]; then
 	cutadapt -j 2 -m 1 -O 4 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
-else
+elif [ -e "\${INDAT[1]}_1.fq.gz" ] && [ -e "\${INDAT[1]}_2.fq.gz" ]; then
 	cutadapt -j 2 -m 1 -O 4 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
+else
+	echo "[x]Cannot find .fq.gz file(s) for \${INDAT[1]}(_[12])?.fq.gz !"
+	exit 1
 fi
 
 END_SH
