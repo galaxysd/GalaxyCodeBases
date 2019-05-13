@@ -115,15 +115,15 @@ cd $cwd
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
-samtools mpileup -b $LSTprefix/p\${INDAT[0]}.bams.lst -d 4000 -Q 20 -f $pRef -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
+samtools mpileup -b $LSTprefix/p\${INDAT[2]}.bams.lst -d 4000 -Q 20 -f $pRef -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
 bcftools call -Oz -v -m $outP/\${INDAT[2]}.vcf.gz -o $outP/\${INDAT[2]}.snp.gz
 bcftools index $outP/\${INDAT[2]}.vcf.gz &
 bcftools index $outP/\${INDAT[2]}.snp.gz
 
 
-bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[0]}.M.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.M.tsv
-bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[0]}.F.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.F.tsv
-bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[0]}.C.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.C.tsv
+bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.M.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.M.tsv
+bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.F.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.F.tsv
+bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.C.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.C.tsv
 
 ./oyka.pl $theMode $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 

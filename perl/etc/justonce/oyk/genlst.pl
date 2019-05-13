@@ -187,7 +187,7 @@ for my $iF (keys %Families) {
 	print C join(' ',@{$Samples{$Families{$iF}->[2]}}),"\n";
 	#for ( @{$Samples{$Families{$iF}->[0]}},@{$Samples{$Families{$iF}->[1]}},@{$Samples{$Families{$iF}->[2]}} ) {
 	for (map {@{$Samples{$Families{$iF}->[$_]}}} (0..2) ) {
-		my $nbam = "./$pPrefixs{bam}/$_.bam";
+		my $nbam = "$BAMprefix/$_.bam";
 		print P "$nbam\n";
 	}
 	close P; close M; close F; close C;
