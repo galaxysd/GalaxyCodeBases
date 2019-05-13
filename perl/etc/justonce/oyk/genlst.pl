@@ -148,7 +148,8 @@ open O,'>',$fSHcutadapt or die $?;
 my $FQprefix = "$pout/$pPrefixs{fq}";
 print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$FQprefix);
 close O;
-open O,'>',"$pout/q1bwa.sh" or die $?;
+my $fSHbwa = "$pout/q1bwa.sh";
+open O,'>',$fSHbwa or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
 print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef,$fSHcutadapt);
 close O;
@@ -167,10 +168,11 @@ while ( my $value = $cfam->fetch ) {
 	print O join("\t",$value->{Mother},$value->{Father},$value->{Child}),"\n";
 }
 die $cfam->errstr if $cfam->errstr;
-ddx \%Families;
+#ddx \%Families;
 close O;
 my $LSTprefix = "$pout/$pPrefixs{lst}";
-open O,'>',"$pout/q2mplieup.sh" or die $?;
+my $fSHsamt = "$pout/q2mplieup.sh";
+open O,'>',$fSHsamt or die $?;
 my $VCFprefix = "$pout/$pPrefixs{vcf}";
 my $OYKprefix = "$pout/$pPrefixs{oyk}";
 print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef,$OYKprefix,$theMode);
@@ -193,7 +195,7 @@ for my $iF (keys %Families) {
 	close P; close M; close F; close C;
 }
 
-
+print "[!]Done !\nNow, check [$listFQ] and [$listFamily] first and run:\n\nqsub ",join('; qsub ',$fSHcutadapt,$fSHbwa,$fSHsamt),"\n\n";
 __END__
 ./genlst.pl chip info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
 
