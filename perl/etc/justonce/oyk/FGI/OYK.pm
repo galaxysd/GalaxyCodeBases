@@ -45,9 +45,9 @@ read -ra INDAT <<<"\$INFILE"
 ADAPTERSTR='-g GAACGACATGGCTACGATCCGACTT -a AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA -A AAGTCGGATCGTAGCCATGTCGTTC -G TTGTCTTCCTAAGACCGCTTGGCCTCCGACTT'
 
 if [ -e "\${INDAT[1]}.fq.gz" ]; then
-	cutadapt -j 2 -m 1 -O 4 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
+	cutadapt -j 2 -m 1 -O 6 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
 elif [ -e "\${INDAT[1]}_1.fq.gz" ] && [ -e "\${INDAT[1]}_2.fq.gz" ]; then
-	cutadapt -j 2 -m 1 -O 4 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
+	cutadapt -j 2 -m 1 -O 6 -n 2 \$ADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
 else
 	echo "[x]Cannot find .fq.gz file(s) for [\${INDAT[1]}(_[12])?.fq.gz] !"
 	exit 1
