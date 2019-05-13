@@ -4,7 +4,7 @@ use warnings;
 use Data::Dump qw(ddx);
 
 my $SgeQueue = 'fgi.q';
-my $SgeProject = 'fgi';
+my $SgeProject = 'fgiccs';
 my $SgeJobPrefix = 'nip'.(time() % 9999);
 
 sub Scutadapt($$$$) {
