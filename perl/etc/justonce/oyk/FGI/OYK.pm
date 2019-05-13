@@ -24,7 +24,7 @@ sub Scutadapt($$$$) {
 
 cd $cwd
 
-if [ -t 1 && "x\$SKIP" = 'x1' ]; then
+if [ -t 1 ] && [ "x\$SKIP" = 'x1' ]; then
 	while read -u 9 THELINE; do
 		read -ra INDAT <<<"\$THELINE"
 		if [ -e "\${INDAT[1]}.fq.gz" ]; then
