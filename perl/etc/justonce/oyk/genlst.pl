@@ -151,7 +151,7 @@ close O;
 my $fSHbwa = "$pout/q1bwa.sh";
 open O,'>',$fSHbwa or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
-print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef,$fSHcutadapt);
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef);
 close O;
 ################################
 # family.lst, q2mplieup.sh #

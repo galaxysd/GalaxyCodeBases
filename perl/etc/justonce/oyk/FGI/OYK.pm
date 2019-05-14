@@ -4,7 +4,7 @@ use warnings;
 use Data::Dump qw(ddx);
 
 my $SgeQueue = 'fgi.q';
-my $SgeProject = 'fgiccs';
+my $SgeProject = 'fgi';
 my $SgeJobPrefix = 'nip'.(time() % 9999);
 
 sub Scutadapt($$$$) {
@@ -14,7 +14,7 @@ sub Scutadapt($$$$) {
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p0${SgeJobPrefix}cut
-#\$ -l vf=600M,num_proc=2
+#\$ -l vf=600M,num_proc=2,h=cngb-compute-f8-*
 #\$ -binding linear:3
 #\$ -cwd -r y
 #\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
@@ -60,8 +60,8 @@ END_SH
 	return $SHcutadapt;
 }
 
-sub Sbwamem($$$$$$$) {
-	my ($cwd,$cnt,$flst,$outP,$FQprefix,$pRef,$SHcutadapt) = @_;
+sub Sbwamem($$$$$$) {
+	my ($cwd,$cnt,$flst,$outP,$FQprefix,$pRef) = @_;
 	my $SHbwa = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -79,10 +79,6 @@ cd $cwd
 
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
-
-if [ ! -s $FQprefix/\${INDAT[0]}.fq.gz ]; then
-	bash $SHcutadapt
-fi
 
 bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
 
@@ -102,7 +98,7 @@ sub Smpileup($$$$$$$$$) {
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p2${SgeJobPrefix}mplp -hold_jid p1${SgeJobPrefix}bwa
-#\$ -l vf=500M,num_proc=1
+#\$ -l vf=500M,num_proc=1,h=cngb-compute-f8-*
 #\$ -binding linear:2
 #\$ -cwd -r y
 #\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
