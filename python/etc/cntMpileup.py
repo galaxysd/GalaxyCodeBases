@@ -7,8 +7,49 @@ import itertools
 import sys
 import collections
 
-CounterKeys = ["{}{}".format(x,y) for x,y in itertools.product(['fwd','rev'], ['A','C','G','T','N'])] + ['cntIns','cntDel'];
+CoreKeys = ["{}{}".format(x,y) for x,y in itertools.product(['fwd','rev'], ['A','C','G','T','N'])]
+CounterKeys = CoreKeys + ['cntIns','cntDel'];
 theSamples = ['B7','D3','Normal'];
+
+def main():
+	if len(sys.argv) < 3 :
+		print('Usage:',sys.argv[0],'<samtools.mpileup.lz4> <BED file>',file=sys.stderr,flush=True);
+		exit(0);
+	inDepthFile = sys.argv[1]
+	inBEDFile = sys.argv[2]
+
+	theZone = collections.defaultdict(dict)
+	with open(inBEDFile, newline='') as csvfile:
+		tsvin = csv.DictReader(csvfile, delimiter='\t', fieldnames=['ChrID','Start','End'])
+		for row in tsvin:
+			theZone[row['ChrID']][row['Start']] = 1
+	#print(theZone)
+	#print("# Samples: [{}]".format(','.join(theSamples)))
+	print('# Format: {}'.format(','.join(CoreKeys)))
+	print("\t".join(['ChrID','Pos']+theSamples))
+	with lz4.frame.open(inDepthFile, newline='', mode='rt') as fp:
+		tsvin = csv.DictReader(fp, delimiter='\t', fieldnames=['ChrID','Pos','Ref'] + 
+			["{}_{}".format(x,y) for x,y in itertools.product(theSamples, ['Depth','Bases','Qs'])]
+		)
+		sbc = {key:collections.Counter() for key in theSamples}
+		bc = {key:{} for key in theSamples}
+		try:
+			for row in tsvin:
+				#print(row)
+				if row['ChrID'] in theZone:
+					if row['Pos'] in theZone[row['ChrID']]:
+						#print(row)
+						print("\t".join((row['ChrID'],row['Pos'])),end='\t')
+						for k in theSamples:
+							bc[k] = Base_Counter(row['{}_Depth'.format(k)],row['{}_Bases'.format(k)])
+							sbc[k] += {x: bc[k][x] for x in CounterKeys}
+							#print(bc[k])
+							print(",".join( [str(bc[k][x]) for x in CoreKeys] ),end='\t')
+						print()
+		except KeyboardInterrupt:
+			print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
+			pass
+		#print(sbc);
 
 # Base Counting Subroutine *[Completed]
 # https://github.com/photonchang/allelecount/blob/master/allelecount.py
@@ -147,33 +188,9 @@ def Base_Counter(inDepth,inBases):
 	FinalOutput['cntIns'] = countIn; FinalOutput['cntDel'] = countDel; FinalOutput['Indels'] = ';'.join(FinalIndelHolder); 	
 	return FinalOutput
 
-with lz4.frame.open('z.mp9k.lz4', newline='', mode='rt') as fp:
-	tsvin = csv.DictReader(fp, delimiter='\t', fieldnames=['ChrID','Pos','Ref'] + 
-		["{}_{}".format(x,y) for x,y in itertools.product(theSamples, ['Depth','Bases','Qs'])]
-	)
-	sbc = {key:collections.Counter() for key in theSamples}
-	bc = {key:{} for key in theSamples}
-	sbcB7 = {key:0 for key in CounterKeys};
-	sbcD3 = {key:0 for key in CounterKeys};
-	sbcNm = {key:0 for key in CounterKeys};
-	try:
-		for row in tsvin:
-			#print(row)
-			bcB7 = Base_Counter(row['B7_Depth'],row['B7_Bases'])
-			bcD3 = Base_Counter(row['D3_Depth'],row['D3_Bases'])
-			bcNm = Base_Counter(row['Normal_Depth'],row['Normal_Bases'])
-			for k in CounterKeys:
-				sbcB7[k] += bcB7[k];
-				sbcD3[k] += bcD3[k];
-				sbcNm[k] += bcNm[k];
-			for k in theSamples:
-				bc[k] = Base_Counter(row['{}_Depth'.format(k)],row['{}_Bases'.format(k)])
-				sbc[k] += {x: bc[k][x] for x in CounterKeys}
-	except KeyboardInterrupt:
-		print('\n[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
-		pass
-	#print('[!]Lines Read:[{}], MaxDepth is [{}].'.format(RecordCnt,MaxDepth),file=sys.stderr,flush=True)
-	print(sbcB7);
-	print(sbcD3);
-	print(sbcNm);
-	print(sbc);
+if __name__ == "__main__":
+	main()  # time python3 ./samdepthplot.py t.tsv.gz 1
+
+'''
+./cntMpileup.py z.mp9k.lz4 z.bed
+'''
