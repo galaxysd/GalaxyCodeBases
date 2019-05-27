@@ -45,7 +45,7 @@ def main():
 							sbc[k] += {x: bc[k][x] for x in CounterKeys}
 							#print(bc[k])
 							print(",".join( [str(bc[k][x]) for x in CoreKeys] ),end='\t')
-						print(); sys.stdout.flush();
+						print(flush=True);
 		except KeyboardInterrupt:
 			print('\n#[!]Ctrl+C pressed.',file=sys.stderr,flush=True)
 			sys.stdout.flush()
