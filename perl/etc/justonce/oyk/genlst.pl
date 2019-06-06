@@ -12,7 +12,7 @@ use Data::Dump qw(ddx);
 use FGI::OYK;
 # ====================================
 
-our $pI = '5';
+#our $pI = '5';
 
 # ====================================
 
@@ -26,23 +26,25 @@ my %pPrefixs = (
 
 my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
+my @Machines = qw(BGISEQ PROTON);
+my %Machine = map { $_ => 1 } @Machines;
 
-my ($theMode,$fninfo,$fnfam,$pRef,$pchip,$pout) = @ARGV;
+my ($theMode,$theMachine,$fninfo,$fnfam,$pRef,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
 $pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
 my $listFamily = "$pout/family.lst";
 
-my $Usage = "Usage: $0 <mode/help/example> <info.csv> <fam.csv> <Ref for BWA> <chip path> [out path]\n";
+my $Usage = "Usage: $0 <mode/help/example> <BGISEQ|PROTON> <info.csv> <fam.csv> <Ref for BWA> <chip path> [out path]\n";
 
 my $egInfo = <<'END_EG';
 UID,Sample,Cell,Lane,Index
-1,HK19M241C,V300016438,L02,20
-2,HK19M241F,V300016438,L02,63
-3,HK19M241M,V300016438,L02,64
-34,NS19M342C,V300016438,L01,55
-35,NS19M342F-N,V300016438,L01,19
-37,NS19M342M,V300016438,L01,20
+1,HK19M241C,V300016438,L02,520
+2,HK19M241F,V300016438,L02,563
+3,HK19M241M,V300016438,L02,564
+34,NS19M342C,V300016438,L01,555
+35,NS19M342F-N,V300016438,L01,519
+37,NS19M342M,V300016438,L01,520
 END_EG
 my $egFam = <<'END_EG';
 Father,Mother,Child
@@ -92,6 +94,10 @@ $theMode = uc $theMode;
 if (! exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
 }
+$theMachine = uc $theMachine;
+if (! exists $Machine{$theMachine}) {
+        die "[x]machine can only be:[",join(',',@Machines),"].\n";
+}
 my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
@@ -139,7 +145,8 @@ if ($theMode eq 'CHIP') {
 open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
-	my $fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$pI.$d[2]));
+	#my $fqNameP = join('/',$pchip,$d[0],$d[1],"basecaller_results",join('_',"IonXpress",$d[2]));
+	my $fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$d[2]));
 	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;
