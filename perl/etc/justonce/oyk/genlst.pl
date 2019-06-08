@@ -210,6 +210,6 @@ for my $iF (keys %Families) {
 
 print "[!]Done !\nNow, check [$listFQ] and [$listFamily] first and run:\n\nqsub ",join('; qsub ',$fSHcutadapt,$fSHbwa,$fSHsamt),"\n\n";
 __END__
-./genlst.pl chip info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
+./genlst.pl chip BGISEQ info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
 
 pip3 install -h cutadapt dnaio xopen
