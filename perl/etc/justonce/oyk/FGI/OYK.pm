@@ -23,6 +23,7 @@ sub Scutadapt($$$$) {
 #\$ -t 1-$cnt
 
 cd $cwd
+mkdir -p $outP
 
 if [ -t 1 ] && [ "x\$SKIP" = 'x1' ]; then
 	while read -u 9 THELINE; do
@@ -83,6 +84,7 @@ sub Sbwamem($$$$$$) {
 #\$ -t 1-$cnt
 
 cd $cwd
+mkdir -p $outP
 
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
@@ -118,6 +120,7 @@ sub Smpileup($$$$$$$$$) {
 #\$ -t 1-$cnt
 
 cd $cwd
+mkdir -p $outP
 
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
