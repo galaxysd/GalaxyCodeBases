@@ -53,6 +53,8 @@ NS19M342F-N,NS19M342M,NS19M342C
 END_EG
 my $takeoutNFO = <<"END_NFO";
 #### If the chip path is not in BGISEQ schema, you must ensure Sample names are correct, and then modify [$listFQ].
+#### [BGISEQ]/nanoballs fq.gz can be SE(favored) or PE, [PROTON]/IonTorrent bams are all treated as SE.
+####    If you do have PE Ion Torrent data, convert to *_[12].fq.gz pairs first.
 #### To skip `cutadapt`, run `SKIP=1 $pout/1fq.sh` manually WITHOUT qsub it.
 #### If you then regret to use `cutadapt`, you must clean "$pout/$pPrefixs{fq}/", but KEEP the directory itself, before qsub it.
 END_NFO
@@ -145,8 +147,12 @@ if ($theMode eq 'CHIP') {
 open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
-	#my $fqNameP = join('/',$pchip,$d[0],$d[1],"basecaller_results",join('_',"IonXpress",$d[2]));
-	my $fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$d[2]));
+	my $fqNameP;
+	if ($theMachine eq 'BGISEQ') {
+		$fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$d[2]));
+	} elsif ($theMachine eq 'PROTON') {
+		$fqNameP = join('/',$pchip,$d[0],$d[1],"basecaller_results",join('_',"IonXpress",$d[2]));
+	}
 	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;

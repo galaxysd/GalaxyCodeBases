@@ -32,6 +32,9 @@ if [ -t 1 ] && [ "x\$SKIP" = 'x1' ]; then
 		elif [ -e "\${INDAT[1]}_1.fq.gz" ] && [ -e "\${INDAT[1]}_2.fq.gz" ]; then
 			echo "[!]Cannot use SKIP mode for PE, using Read 1 only [\${INDAT[1]}_1.fq.gz] !"
 			ln -si \${INDAT[1]}_1.fq.gz $outP/\${INDAT[0]}.fq.gz
+		elif [ -e "\${INDAT[1]}_rawlib.basecaller.bam" ]; then
+			echo "[!]PROTON/IonTorrent machine detected, assuming SE mode [\${INDAT[1]}_rawlib.basecaller.bam] !"
+			ln -si \${INDAT[1]}_rawlib.basecaller.bam $outP/\${INDAT[0]}.ubam
 		else
 			echo "[x]Cannot find .fq.gz file(s) for [\${INDAT[1]}(_[12])?.fq.gz] !"
 		fi
@@ -44,11 +47,14 @@ read -ra INDAT <<<"\$INFILE"
 
 SEADAPTERSTR='-g GAACGACATGGCTACGATCCGACTT -a AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA'
 PEADAPTERSTR="\$SEADAPTERSTR -A AAGTCGGATCGTAGCCATGTCGTTC -G TTGTCTTCCTAAGACCGCTTGGCCTCCGACTT"
+IONSEADAPTERSTR='-g GAACGACATGGCTACGATCCGACTT -a AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA'
 
 if [ -e "\${INDAT[1]}.fq.gz" ]; then
-	cutadapt -j 2 -m 1 -O 6 -n 2 \$SEADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
+	cutadapt -j 2 -m 1 -O 6 -n 2 \$SEADAPTERSTR -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
 elif [ -e "\${INDAT[1]}_1.fq.gz" ] && [ -e "\${INDAT[1]}_2.fq.gz" ]; then
 	cutadapt -j 2 -m 1 -O 6 -n 2 \$PEADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
+elif [ -e "\${INDAT[1]}_rawlib.basecaller.bam" ]; then
+	samtools fastq \${INDAT[1]}_rawlib.basecaller.bam | cutadapt -j 2 -m 1 -O 6 -n 2 \$IONSEADAPTERSTR -o $outP/\${INDAT[0]}.fq.gz - >$outP/\${INDAT[0]}.log
 else
 	echo "[x]Cannot find .fq.gz file(s) for [\${INDAT[1]}(_[12])?.fq.gz] !"
 	exit 1
@@ -81,7 +87,11 @@ cd $cwd
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
-bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+if [ -e "$FQprefix/\${INDAT[0]}.fq.gz" ]; then
+	bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+elif [ -e "$FQprefix/\${INDAT[0]}.ubam" ]; then
+	samtools fastq $FQprefix/\${INDAT[0]}.ubam | bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" - 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+fi
 
 samtools index $outP/\${INDAT[0]}.bam
 
