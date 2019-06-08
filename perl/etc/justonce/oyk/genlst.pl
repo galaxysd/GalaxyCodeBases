@@ -161,6 +161,7 @@ open O,'>',$fSHcutadapt or die $?;
 my $FQprefix = "$pout/$pPrefixs{fq}";
 print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$FQprefix);
 close O;
+chmod 0755,$fSHcutadapt;
 my $fSHbwa = "$pout/q1bwa.sh";
 open O,'>',$fSHbwa or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
