@@ -11,11 +11,6 @@ use lib '.';
 use Data::Dump qw(ddx);
 use FGI::OYK;
 # ====================================
-
-#our $pI = '5';
-
-# ====================================
-
 my %pPrefixs = (
 	lst => '0lst',
 	fq => '1fq',
@@ -74,7 +69,6 @@ $egFam
 #### All other columns will be ignored.
 
 $takeoutNFO
-#### If your Index is not 501~599, modify `my \$pI = '5';` in this programme.
 #### You can run `$0 example` or `$0 eg` to overwrite "info.csv" and "fam.csv" with examples above.
 
 END_MESSAGE
