@@ -192,9 +192,9 @@ for my $iF (keys %Families) {
 	open M,'>',"$prefix.M.lst" or die $?;
 	open F,'>',"$prefix.F.lst" or die $?;
 	open C,'>',"$prefix.C.lst" or die $?;
-	print M join(' ',@{$Samples{$Families{$iF}->[0]}}),"\n";
-	print F join(' ',@{$Samples{$Families{$iF}->[1]}}),"\n";
-	print C join(' ',@{$Samples{$Families{$iF}->[2]}}),"\n";
+	print M join("\n",@{$Samples{$Families{$iF}->[0]}}),"\n";
+	print F join("\n",@{$Samples{$Families{$iF}->[1]}}),"\n";
+	print C join("\n",@{$Samples{$Families{$iF}->[2]}}),"\n";
 	#for ( @{$Samples{$Families{$iF}->[0]}},@{$Samples{$Families{$iF}->[1]}},@{$Samples{$Families{$iF}->[2]}} ) {
 	for (map {@{$Samples{$Families{$iF}->[$_]}}} (0..2) ) {
 		my $nbam = "$BAMprefix/$_.bam";
