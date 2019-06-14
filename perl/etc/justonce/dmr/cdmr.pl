@@ -7,7 +7,6 @@ use strict;
 use warnings;
 use Cwd qw(abs_path cwd);
 use Parse::CSV;
-use Number::Range;
 #use lib '.';
 use Data::Dump qw(ddx);
 
@@ -25,11 +24,9 @@ while (<B>) {
 	my @L = split /\t/;
 	next unless $L[2];
 	push @{$Dbed{$L[0]}},[$L[1],$L[2]];
-	my $rgstr = $L[1] . '..' . $L[2];
-	if (exists $Rbed{$L[0]}) {
-		$Rbed{$L[0]}->addrange($rgstr);
-	} else {
-		$Rbed{$L[0]} = Number::Range->new($rgstr);
+	my @rng = $L[1] .. $L[2];
+	for (@rng) {
+		++$Rbed{$L[0]}{$_};
 	}
 }
 #ddx %Dbed;
@@ -39,25 +36,22 @@ sub loadCG($$) {
 	my %Dcg;
 	while ( my $value = $csvh->fetch ) {
 		#ddx $value;
-		if (exists $rngD->{ $value->{'#CHROM'} }) {
-			if ( $rngD->{ $value->{'#CHROM'} }->inrange($value->{'POS'}) ) {
-				my ($cgCnt,$cgC,$cgW)=(0,0,0);
-				if ($value->{'Crick-COVERAGE'} ne '.') {
-					if ($value->{'Crick-COVERAGE'} >= 5) {
-						$cgC = $value->{'Crick-METH'}/$value->{'Crick-COVERAGE'};
-						$cgCnt += 1;
-					}
+		if (exists $rngD->{ $value->{'#CHROM'} }{ $value->{'POS'} }) {
+			my ($cgCnt,$cgC,$cgW)=(0,0,0);
+			if ($value->{'Crick-COVERAGE'} ne '.') {
+				if ($value->{'Crick-COVERAGE'} >= 5) {
+					$cgC = $value->{'Crick-METH'}/$value->{'Crick-COVERAGE'};
+					$cgCnt += 1;
 				}
-				if ($value->{'Watson-COVERAGE'} ne '.') {
-					if ($value->{'Watson-COVERAGE'} >= 5) {
-						$cgW = $value->{'Watson-METH'}/$value->{'Watson-COVERAGE'};
-						$cgCnt += 1;
-					}
+			}
+			if ($value->{'Watson-COVERAGE'} ne '.') {
+				if ($value->{'Watson-COVERAGE'} >= 5) {
+					$cgW = $value->{'Watson-METH'}/$value->{'Watson-COVERAGE'};
+					$cgCnt += 1;
 				}
-				if ($cgCnt) {
-					$Dcg{$value->{'#CHROM'}}{$value->{'POS'}} = [$cgCnt/2, ($cgC+$cgW)/$cgCnt];
-				}
-				print STDERR '.';
+			}
+			if ($cgCnt) {
+				$Dcg{$value->{'#CHROM'}}{$value->{'POS'}} = [$cgCnt/2, ($cgC+$cgW)/$cgCnt];
 			}
 		} else {
 			next;
