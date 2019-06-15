@@ -66,12 +66,38 @@ my %DcgL = %{ loadCG(\%Rbed,$cgLin) };
 my %DcgR = %{ loadCG(\%Rbed,$cgRin) };
 #ddx \%DcgR;
 
+sub getCG($$$) {
+    my ($dat,$st,$ed)=@_;
+    my %ret;
+    for my $p ($st .. $ed) {
+        if (exists $dat->{$p}) {
+            $ret{$p} = $dat->{$p};
+        }
+    }
+    return %ret;
+}
+
 open O,'>',$outfn or die $?;
 open B,'<',$bedfn or die $?;
 while (<B>) {
 	my @L = split /\t/;
 	next unless $L[2];
 	print O join("\t",@L[0..2]);
+	my %cgLr = getCG($DcgL{$L[0]},$L[1],$L[2]);
+	my %cgRr = getCG($DcgR{$L[0]},$L[1],$L[2]);
+	#ddx \%cgLr;
+	my (%rPoses,%cgR);
+	for (keys %cgLr,keys %cgRr) {
+        ++$rPoses{$_};
+	}
+	for (keys %rPoses) {
+        my $dL = [0,0];
+        my $dR = [0,0];
+        $dL = $cgLr{$_} if exists $cgLr{$_};
+        $dR = $cgRr{$_} if exists $cgRr{$_};
+        $cgR{$_} = [@$dL,@$dR];
+	}
+	ddx \%cgR;
 }
 close B;
 close O;
