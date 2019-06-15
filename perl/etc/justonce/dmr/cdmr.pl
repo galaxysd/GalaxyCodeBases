@@ -30,6 +30,7 @@ while (<B>) {
 	}
 }
 #ddx %Dbed;
+close B;
 
 sub loadCG($$) {
 	my ($rngD,$csvh) = @_;
@@ -61,11 +62,19 @@ sub loadCG($$) {
 }
 
 my %DcgL = %{ loadCG(\%Rbed,$cgLin) };
-ddx \%DcgL;
+#ddx \%DcgL;
 my %DcgR = %{ loadCG(\%Rbed,$cgRin) };
-ddx \%DcgR;
+#ddx \%DcgR;
 
-
+open O,'>',$outfn or die $?;
+open B,'<',$bedfn or die $?;
+while (<B>) {
+	my @L = split /\t/;
+	next unless $L[2];
+	print O join("\t",@L[0..2]);
+}
+close B;
+close O;
 
 __END__
 ./cdmr.pl gencode.v30.annotation.bed.h B7B.cg.h Normal.cg.h o.tsv
