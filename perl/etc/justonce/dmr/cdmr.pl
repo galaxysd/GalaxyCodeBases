@@ -121,8 +121,8 @@ while (<B>) {
             $unioned += 0.5;
         }
         #ddx $flag;
-        $Lsum += $d[1]; $Lcnt += $d[0];
-        $Rsum += $d[4]; $Rcnt += $d[3];
+        $Lsum += $d[1]*$d[0]; $Lcnt += $d[0];
+        $Rsum += $d[4]*$d[3]; $Rcnt += $d[3];
 	}
     my $p='NA';
     if (@tL>1 and @tR>1) {
