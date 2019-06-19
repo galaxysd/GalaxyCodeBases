@@ -110,7 +110,7 @@ my @rsids = sort {
 print join("\t",'#SNPid','Chr.hg19','Pos.hg19','Chr.GRCh38','Pos.GRCh38','Alleles with Frequency'),"\n";
 for my $id (@rsids) {
 	my @d = @{$Markers{$id}};
-	my @allels = sort { $MarkerAF{$id}{$a} <=> $MarkerAF{$id}{$b} } keys %{$MarkerAF{$id}};
+	my @allels = sort { $MarkerAF{$id}{$a} <=> $MarkerAF{$id}{$b} || $a cmp $b } keys %{$MarkerAF{$id}};
 	my @af = map {"$_\t$MarkerAF{$id}{$_}"} @allels;
 	print join("\t",$id,@d[3,4,5,6],@af),"\n";
 }
