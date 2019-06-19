@@ -104,11 +104,12 @@ my @rsids = sort {
 	$L{$Markers{$a}->[$i]} <=> $L{$Markers{$b}->[$i]} ||
 	$Markers{$a}->[$i+1] <=> $Markers{$b}->[$i+1]
 } keys %Markers;
+print join("\t",'#SNPid','Chr.GRCh37','Pos.GRCh37','Chr.GRCh38','Pos.GRCh38','Alleles with Frequency'),"\n";
 for my $id (@rsids) {
 	my @d = @{$Markers{$id}};
 	my @allels = sort { $MarkerAF{$id}{$a} <=> $MarkerAF{$id}{$b} } keys %{$MarkerAF{$id}};
 	my @af = map {"$_\t$MarkerAF{$id}{$_}"} @allels;
-	print join("\t",$id,@d[5,6,3,4],@af),"\n";
+	print join("\t",$id,@d[3,4,5,6],@af),"\n";
 }
 
 =pod
@@ -121,6 +122,8 @@ rs113184075 was merged into rs77634512 on July 19, 2016 (Build 147)
 
 rs2484385,rs10453900,rs61800290,rs144913592
 unlocalized scaffold in GRCh38
+
+./cpi.pl >nippt.tsv 2>nippt.tsv.err &
 =cut
 __DATA__
 rs11735025	chr4	132188981	A	0.4550	G	0.5450
