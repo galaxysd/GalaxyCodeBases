@@ -478,7 +478,7 @@ close OC;close OT;close OR;
 
 __END__
 grep '[ACTG],[ATCG],[ATCG]' *.tsv|grep '[1-9],[1-9],[1-9]'
-./oyka.pl chip Trio s385M1.tsv s385F1.tsv s385C.tsv ss
+./oykn.pl chip Trio s385M1.tsv s385F1.tsv s385C.tsv ss
 
 Order M,F,C
 
