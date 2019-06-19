@@ -23,7 +23,20 @@ sub getPE(@) {
 	}
 	return $p1-$p2;
 }
-
+sub getDPE(@) {
+	my @AFs = @_;
+	my ($p1,$p2)=(0,0);
+	for my $i (0 .. $#AFs) {
+		my $p1i = $AFs[$i]*$AFs[$i]*(1-$AFs[$i])*(1-$AFs[$i]);
+		$p1 += $p1i;
+		for my $j (($i+1) .. $#AFs) {
+			my $tb = 1-$AFs[$i]-$AFs[$j];
+			my $p2i = 2*$AFs[$i]*$AFs[$j]*$tb*$tb;
+			$p2 += $p2i;
+		}
+	}
+	return $p1+$p2;
+}
 sub get0PE(@) {
 	my @AFs = @_;
 	my ($p1,$p2)=(0,0);
@@ -45,14 +58,58 @@ while (<DATA>) {
 	my ($rs,$chr,$pos,@d) = split /\t/,$_;
 	$MarkerAF{$rs} = {@d};
 	my @AFs = values %{$MarkerAF{$rs}};
-	$sum = eval join '+',@AFs;
+	#$sum = eval join '+',@AFs;
 	#print "$rs: $sum\n" if $sum != 1;
 	my $PE = getPE(@AFs);
-	$Markers{$rs} = [$chr,$pos,$PE];
+	$Markers{$rs} = [$chr,$pos,$PE,undef,undef,undef,undef];
 }
-ddx \%Markers;
+#ddx \%Markers;
 
-
+# zgrep rs112459276 /hwfssz1/pub/database/ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/BED/bed_chr_X.bed.gz
+# zgrep rs112459276 /hwfssz1/pub/database/ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/BED/bed_chr_X.bed.gz
+my @hg19fs = glob '/hwfssz1/pub/database/ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/BED/bed_chr_*.bed.gz';
+my @hg38fs = glob '/hwfssz1/pub/database/ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/BED/bed_chr_*.bed.gz';
+#ddx \@hg19fs,\@hg38fs;
+sub readPos(@) {
+	my $offect = shift @_;
+	for (@_) {
+		open( GZIN,"-|","gzip -dc $_") or die "Error opening $_: $!\n";
+		while(<GZIN>) {
+			next if /^track /;
+			my ($chrom,$chromStart,$chromEnd,$name,$score,$strand)=split /\t/;
+			next unless exists $Markers{$name};
+			my $len = $chromEnd - $chromStart;
+			warn "[!]Len:$len for [$_]\n" if $len > 1;
+			$Markers{$name}->[$offect] = $chrom;
+			$Markers{$name}->[$offect+1] = $chromEnd;
+			#ddx \$Markers{$name};
+			if ($offect == 3) {
+				if ($Markers{$name}->[0] ne $chrom or $Markers{$name}->[1] ne $chromEnd) {
+					warn "[!]Position Not match to hg19.\n";
+					ddx \$Markers{$name};
+				}
+			}
+		}
+	}
+}
+readPos(3,@hg19fs);
+readPos(5,@hg38fs);
+my @ChrIDs = map {"chr$_"} (1..23,'X','Y','MT');
+my $i = 0;
+my %L = map { $_ => $i++ } @ChrIDs;
+$i = 5;
+#$i = 0;
+my @rsids = sort {
+	exists $L{$Markers{$a}->[$i]} <=> exists $L{$Markers{$b}->[$i]} ||
+	$L{$Markers{$a}->[$i]} <=> $L{$Markers{$b}->[$i]} ||
+	$Markers{$a}->[$i+1] <=> $Markers{$b}->[$i+1]
+} keys %Markers;
+for my $id (@rsids) {
+	my @d = @{$Markers{$id}};
+	my @allels = sort { $MarkerAF{$id}{$a} <=> $MarkerAF{$id}{$b} } keys %{$MarkerAF{$id}};
+	my @af = map {"$_\t$MarkerAF{$id}{$_}"} @allels;
+	print join("\t",$id,@d[5,6,3,4],@af),"\n";
+}
 
 __DATA__
 rs11735025	chr4	132188981	A	0.4550	G	0.5450
@@ -5445,7 +5502,7 @@ rs11176431	chr12	67205775	A	0.5748	G	0.4252
 rs12200432	chr6	12516585	C	0.5723	T	0.4277
 rs7136650	chr12	28805538	A	0.4676	G	0.5324
 rs2397009	chr6	50514534	G	0.4404	T	0.5596
-rs149540625	chrX	130562260	C	0.9978	T	0.0022
+rs112459276	chrX	130562260	C	0.9978	T	0.0022
 rs7991600	chr13	76667297	C	0.4308	T	0.5692
 rs11381500	chr10	4031769	A	0.2891	G	0.1731	T	0.5378
 rs893218	chr17	32791490	C	0.4929	T	0.5071
