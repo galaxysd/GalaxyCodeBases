@@ -61,7 +61,7 @@ while (<DATA>) {
 	#$sum = eval join '+',@AFs;
 	#print "$rs: $sum\n" if $sum != 1;
 	my $PE = getPE(@AFs);
-	$Markers{$rs} = [$chr,$pos,$PE,undef,undef,undef,undef];
+	$Markers{$rs} = [$chr,$pos,$PE,'unlocalized',0,'unlocalized',0];
 }
 #ddx \%Markers;
 
@@ -111,6 +111,18 @@ for my $id (@rsids) {
 	print join("\t",$id,@d[5,6,3,4],@af),"\n";
 }
 
+=pod
+rs149540625 was merged into rs112459276 on August 21, 2014 (Build 142)
+rs117314748 was merged into rs289279 on July 1, 2015 (Build 144)
+rs201431024 was merged into rs4617205 on July 1, 2015 (Build 144)
+rs200370602 was merged into rs10154714 on July 1, 2015 (Build 144)
+rs75611253 was merged into rs3852322 on July 1, 2015 (Build 144)
+rs113184075 was merged into rs77634512 on July 19, 2016 (Build 147)
+
+rs2484385,rs10453900,rs61800290,rs144913592
+unlocalized scaffold in GRCh38
+
+=cut
 __DATA__
 rs11735025	chr4	132188981	A	0.4550	G	0.5450
 rs8094296	chr18	2328937	C	0.5760	G	0.4240
@@ -1477,7 +1489,7 @@ rs11874630	chr18	69395174	A	0.4318	G	0.5682
 rs200370602	chr14	19175216	A	0.8764	T	0.1236
 rs11203693	chr8	15208663	A	0.5815	G	0.4185
 rs974822	chr14	28924363	C	0.4066	T	0.5934
-rs117314748	chr19	23100143	A	0.6070	G	0.3930
+rs289279	chr19	23100143	A	0.6070	G	0.3930
 rs2164685	chr1	118278275	C	0.4166	T	0.5834
 rs1166900	chr1	208972144	G	0.5989	T	0.4011
 rs1029047	chr6	1135939	A	0.3016	T	0.6984
