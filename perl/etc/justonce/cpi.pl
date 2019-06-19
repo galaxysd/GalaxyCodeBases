@@ -100,11 +100,14 @@ my %L = map { $_ => $i++ } @ChrIDs;
 $i = 5;
 #$i = 0;
 my @rsids = sort {
+	no warnings 'uninitialized';
 	exists $L{$Markers{$a}->[$i]} <=> exists $L{$Markers{$b}->[$i]} ||
 	$L{$Markers{$a}->[$i]} <=> $L{$Markers{$b}->[$i]} ||
-	$Markers{$a}->[$i+1] <=> $Markers{$b}->[$i+1]
+	$Markers{$a}->[$i+1] <=> $Markers{$b}->[$i+1] ||
+	$Markers{$a}->[1] <=> $Markers{$b}->[1] ||
+	$a cmp $b
 } keys %Markers;
-print join("\t",'#SNPid','Chr.GRCh37','Pos.GRCh37','Chr.GRCh38','Pos.GRCh38','Alleles with Frequency'),"\n";
+print join("\t",'#SNPid','Chr.hg19','Pos.hg19','Chr.GRCh38','Pos.GRCh38','Alleles with Frequency'),"\n";
 for my $id (@rsids) {
 	my @d = @{$Markers{$id}};
 	my @allels = sort { $MarkerAF{$id}{$a} <=> $MarkerAF{$id}{$b} } keys %{$MarkerAF{$id}};
