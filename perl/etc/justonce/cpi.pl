@@ -94,7 +94,7 @@ sub readPos(@) {
 }
 readPos(3,@hg19fs);
 readPos(5,@hg38fs);
-my @ChrIDs = map {"chr$_"} (1..23,'X','Y','MT');
+my @ChrIDs = map {"chr$_"} (1..22,'X','Y','MT','M');
 my $i = 0;
 my %L = map { $_ => $i++ } @ChrIDs;
 $i = 5;
