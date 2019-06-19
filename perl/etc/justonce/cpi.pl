@@ -113,10 +113,10 @@ for my $id (@rsids) {
 
 =pod
 rs149540625 was merged into rs112459276 on August 21, 2014 (Build 142)
-rs117314748 was merged into rs289279 on July 1, 2015 (Build 144)
-rs201431024 was merged into rs4617205 on July 1, 2015 (Build 144)
-rs200370602 was merged into rs10154714 on July 1, 2015 (Build 144)
 rs75611253 was merged into rs3852322 on July 1, 2015 (Build 144)
+rs117314748 was merged into rs289279 on July 1, 2015 (Build 144)
+rs200370602 was merged into rs10154714 on July 1, 2015 (Build 144)
+rs201431024 was merged into rs4617205 on July 1, 2015 (Build 144)
 rs113184075 was merged into rs77634512 on July 19, 2016 (Build 147)
 
 rs2484385,rs10453900,rs61800290,rs144913592
