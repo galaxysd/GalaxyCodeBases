@@ -1,7 +1,6 @@
 package main;
 use strict;
 use warnings;
-use Data::Dump qw(ddx);
 
 my $SgeQueue = 'fgi.q';
 my $SgeProject = 'fgi';
@@ -97,6 +96,8 @@ elif [ -e "$FQprefix/\${INDAT[0]}.ubam" ]; then
 fi
 
 samtools index $outP/\${INDAT[0]}.bam
+samtools stats -@ 12 $outP/\${INDAT[0]}.bam >$outP/\${INDAT[0]}.bam.stat
+grep ^IS $outP/\${INDAT[0]}.bam.stat | cut -f 2- > $outP/\${INDAT[0]}.fragstats
 
 if [ ! -s $outP/\${INDAT[0]}.bam ]; then
 	exit 1
@@ -136,7 +137,9 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.F.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.F.tsv
 bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.C.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.C.tsv
 
-./oyka.pl $theMode $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
+$RealBin/bin/oyka.pl $theMode $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
+
+$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/snp.chr.list \${INDAT[2]}.F
 
 if [ ! -s $outP/\${INDAT[2]}.snp.gz ]; then
 	exit 1
@@ -145,5 +148,34 @@ END_SH
 	return $Smpileup;
 }
 
+sub Sqc($$$) {
+	my ($cwd,$outP,$theMode) = @_;
+	my $Sqc = <<"END_SH";
+#!/bin/bash
+#\$ -S /bin/bash
+#\$ -q $SgeQueue -P $SgeProject
+#\$ -N p3${SgeJobPrefix}qc -hold_jid p1${SgeJobPrefix}bwa
+#\$ -l vf=2G,num_proc=1
+#\$ -binding linear:1
+#\$ -cwd -r y
+#\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
+#\$ -e /dev/null -o /dev/null
+
+cd $cwd
+mkdir -p $outP
+
+perl $RealBin/bin/contamination.F.pl $theMode $outP/../family.lst $outP/../4tsv $outP/contamination.F.txt
+perl $RealBin/bin/contamination.MC.pl $outP/../family.lst $outP/../4tsv $outP/contamination.MC.txt
+perl $RealBin/bin/heterozygosity.pl $outP/../family.lst $outP/../4tsv $outP/heterozygosity.txt
+
+perl $RealBin/bin/prepare.cffDNA.pl $outP/../family.lst $outP/../4tsv $outP/cffDNA.txt
+Rscript $RealBin/bin/ggplot_bar.cffdna.R $outP/cffDNA.txt $outP/cffDNA.pdf
+
+ls $outP/../2bam/*.fragstats > $outP/fragment.list
+Rscript $RealBin/bin/ggplot_bar.frag.ReadList.R $outP/fragment.list $outP/fragment.pdf
+
+END_SH
+	return $Sqc;
+}
 
 1;

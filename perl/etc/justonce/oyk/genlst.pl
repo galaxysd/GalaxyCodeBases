@@ -7,8 +7,13 @@ use strict;
 use warnings;
 use Cwd qw(abs_path cwd);
 use Parse::CSV;
-use lib '.';
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
+use FindBin qw($RealBin);
+if ($FindBin::VERSION < 1.51) {
+	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
+}
+FindBin::again();
+use lib "$RealBin";
 use FGI::OYK;
 # ====================================
 my %pPrefixs = (
@@ -17,6 +22,7 @@ my %pPrefixs = (
 	bam => '2bam',
 	vcf	=> '3vcf',
 	oyk => '4tsv',
+	qc => '5qc',
 );
 
 my @Modes = qw(CHIP PCR);
@@ -186,6 +192,14 @@ my $OYKprefix = "$pout/$pPrefixs{oyk}";
 print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef,$OYKprefix,$theMode);
 close O;
 ################################
+## family.lst, q3qc.sh #
+################################
+my $fSHqc = "$pout/q3qc.sh";
+open O,">",$fSHqc or die $?;
+my $QCprefix = "$pout/$pPrefixs{qc}";
+print O Sqc($cwd,$QCprefix,$theMode);
+close O;
+################################
 for my $iF (keys %Families) {
 	my $prefix = "$LSTprefix/p$iF";
 	open P,'>',"$prefix.bams.lst" or die $?;
@@ -203,7 +217,7 @@ for my $iF (keys %Families) {
 	close P; close M; close F; close C;
 }
 
-print "[!]Done !\nNow, check [$listFQ] and [$listFamily] first and run:\n\nqsub ",join('; qsub ',$fSHcutadapt,$fSHbwa,$fSHsamt),"\n\n";
+print "[!]Done !\nNow, check [$listFQ] and [$listFamily] first and run:\n\nqsub ",join('; qsub ',$fSHcutadapt,$fSHbwa,$fSHsamt,$fSHqc),"\n\n";
 __END__
 ./genlst.pl chip BGISEQ info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
 
