@@ -7,11 +7,16 @@ use strict;
 use warnings;
 use POSIX;
 
-use lib '.';
+use FindBin qw($RealBin);
+if ($FindBin::VERSION < 1.51) {
+	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
+}
+FindBin::again();
+use lib "$RealBin/../";
+require FGI::GetCPI;
 
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 #use Text::NSP::Measures::2D::Fisher::twotailed;
-use FGI::GetCPI;
 #use Math::BigFloat;
 
 my @Modes = qw(CHIP PCR);

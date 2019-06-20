@@ -3,7 +3,7 @@ package FGI::GetCPI;
 use strict;
 no strict "subs";
 use warnings;
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 =head1 NAME && VERSION
    cpi.pm
    Version:  V1.0
