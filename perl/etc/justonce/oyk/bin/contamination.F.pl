@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 =pod
-Author: HU Xuesong @ BGI <huxuesong@genomics.org.cn>
-Version: 1.0.0 @ 20180520
+Author: HU Xuesong @ BGI <huxuesong@genomics.org.cn>, LI Bowen <libowen@genomics.cn>
+Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
@@ -15,22 +15,65 @@ FindBin::again();
 use lib "$RealBin/../";
 require FGI::GetCPI;
 
-#use Data::Dump qw(ddx);
-#use Text::NSP::Measures::2D::Fisher::twotailed;
-#use Math::BigFloat;
-
 my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
 my $Verbose = 0;
 
-die "Usage: $0 <mode> <mother> <father> <child> <outprefix>\n" if @ARGV<5;
-$Verbose = 1 if @ARGV == 6;
 my $theMode = uc shift;
 unless (exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
 }
 
 our @Bases;
+
+my $list = shift;
+my $store = shift;
+my $output = shift;
+
+my @fams;
+my %Fs;
+open LI,"<$list" or die($!);
+open OUT,">$output" or die($!);
+while (my $info = <LI>){
+        chomp($info);
+        my ($M,$F,$C) = split /\s+/,$info;
+	push @fams,"p$C";
+        $Fs{$F} = "p$C.F";
+}
+close LI;
+
+my @fathers = sort keys %Fs;
+print OUT "\t";
+print OUT join("\t",@fathers),"\n";
+foreach my $family (@fams){
+	my $Mfile = "$store/$family.M.tsv";
+	my $Cfile = "$store/$family.C.tsv";
+	print OUT "$family\t";
+	my @outputs;
+	foreach my $father (@fathers){
+		my $total = 0;
+		my $mismatch = 0;
+		my $Ffile = "$store/$Fs{$father}.tsv";
+		my @info = &match($Mfile,$Ffile,$Cfile);
+		foreach my $line (@info){
+			chomp($line);
+			next if ($line =~ /^#/);
+			my @data = split /\t/,$line;
+			next unless (defined $data[7]);
+			$total++;
+			if ($data[7] == 0.0001){
+				$mismatch++;
+			}
+		}
+		my $outinfo = join "/",$mismatch,$total;
+		push @outputs,$outinfo;
+	}
+	print OUT join("\t",@outputs),"\n";
+}
+close OUT;
+
+
+########################################################
 sub deBayes($) {
 	my $p = $_[0];
 	my %Dep;
@@ -117,56 +160,7 @@ sub getequal(@) {
 	}
 	return 0;
 }
-sub getrio(@) {
-	my @dat = map { [split /[;,]/,$_] } @_;
-	#ddx \@dat;
-	my @ret;
-	for (@dat) {
-		shift @$_;
-		my @depth = @$_;
-		my @sortAsc = sort {$a <=> $b} @depth;
-		#ddx \@depth;
-		my ($sum,$cnt)=(0,0);
-		for (@depth) {
-			$sum += $_;
-			++$cnt if $_;
-		}
-		if ($cnt == 3) {
-			push @ret,[1,$sortAsc[0]/$sum,$sortAsc[1]/$sum,join(',',@depth)];
-			$ret[-1]->[-1] = $ret[-1]->[-1] . ',T' if $Verbose;
-		} elsif ($cnt == 4) {
-			push @ret,[1,($sortAsc[0]+$sortAsc[1])/$sum,$sortAsc[2]/$sum,join(',',@depth)];
-			$ret[-1]->[-1] = $ret[-1]->[-1] . ',Q' if $Verbose;
-		} elsif ($cnt == 1) {
-			push @ret,[0,0,0,join(',',@depth)];
-			$ret[-1]->[-1] = $ret[-1]->[-1] . ',S' if $Verbose;
-		} elsif ($cnt == 2) {
-			push @ret,[0,0,0,join(',',@depth)];
-			$ret[-1]->[-1] = $ret[-1]->[-1] . ',D' if $Verbose;
-		} else {
-			die;
-		}
-	}
-	my ($n,$x,$xx,$y,$yy,$depstr,@depstrs)=(0,0,0,0,0,'');
-	if (@ret == 0) {
-		die;
-	} else {
-		for (@ret) {
-			my $flag = shift @$_;
-			if ($flag) {
-				$x += $$_[0];
-				$xx += $$_[0]*$$_[0];
-				$y += $$_[1];
-				$yy += $$_[1]*$$_[1];
-				++$n;
-			}
-			push @depstrs,$$_[2]; 
-		}
-		$depstr = join(';',@depstrs);
-	}
-	#ddx \@ret;
-	return ($n,$x,$xx,$y,$yy,$depstr);
-}
+
 sub tstat(%) {
 	my %d = @_;
 	unless ($d{'n'}) {
@@ -189,34 +183,87 @@ sub printExp($) {
 	return $str;
 }
 
-my $mother=shift;
-my $father=shift;
-my $child=shift;
-my $outprefix=shift;
+sub get_locus{
+        my $file = shift;
+        my %temp;
+        open TE,"<$file" or die($!);
+        while (<TE>){
+                chomp;
+                my @data = split /\t/,$_;
+                $temp{$data[0]}{$data[1]}++;
+        }
+        close TE;
+        return %temp;
+}
+
+sub reshape(@) {
+        my $bases = shift;
+        my @TBases = @$bases;
+        for (@_){
+                my %tempValue;
+                my @dep = split /[;,]/,$_;
+                my @newDep;
+                for my $i(1..scalar @dep - 1){
+                        $tempValue{$TBases[$i - 1]} = $dep[$i];
+                }
+                foreach my $allele (@Bases){
+                        if (defined $tempValue{$allele}){
+                                push @newDep,$tempValue{$allele};
+                        }else{
+                                push @newDep,0;
+                        }
+                }
+                $_ = join(";",$dep[0],join(",",@newDep));
+        }
+}
+
+sub match {
+	my ($mother,$father,$child) = @_;
+	my @temp_out;
+
+	my %locusM = get_locus($mother);
+	my %locusF = get_locus($father);
+	my %locusC = get_locus($child);
+	my %need;
+	foreach my $chr (keys %locusM){
+	        foreach my $pos (keys %{$locusM{$chr}}){
+	                if (defined $locusF{$chr}{$pos} && $locusC{$chr}{$pos}){
+	                        $need{$chr}{$pos}++;
+	                }
+	        }
+	}
+
 open FM,'<',$mother or die "[x]Mom: $!\n";
 open FF,'<',$father or die "[x]Dad: $!\n";
 open FC,'<',$child or die "[x]Child: $!\n";
 
-open OC,'>',"$outprefix.cpie" or die "[x]$outprefix.cpie: $!\n";
-open OT,'>',"$outprefix.trio" or die "[x]$outprefix.trio: $!\n";
-open OR,'>',"$outprefix.tHM" or die "[x]$outprefix.tsv: $!\n";
-
 my ($logcpi,$spe,$trioN,$lFC,$lFF,$lFM)=(0,0,0);
-my (%trioM,%trioF,%trioC);
-for (qw(n x xx y yy)) {
-	$trioM{$_} = 0;
-	$trioF{$_} = 0;
-	$trioC{$_} = 0;
-}
-print "# Order: M,F,C\n";
 
+my %check_dup;
 while (<FM>) {
 	chomp;
-	chomp($lFC = <FC>);
-	chomp($lFF = <FF>);
 	my @datM = split /\t/;
-	my @datF = split /\t/,$lFF;
-	my @datC = split /\t/,$lFC;
+	next unless (defined $need{$datM[0]}{$datM[1]});
+	$check_dup{$datM[0]}{$datM[1]}++;
+	next if ($check_dup{$datM[0]}{$datM[1]} > 1);
+	my (@datF,@datC);
+        while ($lFF = <FF>){
+                chomp($lFF);
+                @datF = split /\t/,$lFF;
+                if ($datF[0] eq $datM[0] && $datF[1] eq $datM[1]){
+                        last;
+                }
+        }
+        while ($lFC = <FC>){
+                chomp($lFC);
+                @datC = split /\t/,$lFC;
+                if ($datC[0] eq $datM[0] && $datC[1] eq $datM[1]){
+                        last;
+                }
+        }
+        unless ($datF[0] eq $datM[0] && $datF[1] eq $datM[1] && $datC[0] eq $datM[0] && $datC[1] eq $datM[1]){
+                last;
+        }
 	#my ($chr,undef,$bases,$qual,@data) = split /\t/;
 	next if $datM[3] !~ /\d/ or $datM[3] < 100;
 	next if $datF[3] !~ /\d/ or $datF[3] < 100;
@@ -226,59 +273,30 @@ while (<FM>) {
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
 	@Bases = split /,/,$datM[2];	# $bases = ref,alt
+        unless ($datM[2] eq $datF[2] && $datM[2] eq $datC[2]){
+                my @MBases = split /,/,$datM[2];
+                my @FBases = split /,/,$datF[2];
+                my @CBases = split /,/,$datC[2];
+                unless ($MBases[0] eq $FBases[0] && $MBases[0] eq $CBases[0]){
+                        next;
+                }
+                my %alts;
+                for my $i (1..scalar @MBases - 1){$alts{$MBases[$i]}++;}
+                for my $i (1..scalar @FBases - 1){$alts{$FBases[$i]}++;}
+                for my $i (1..scalar @CBases - 1){$alts{$CBases[$i]}++;}
+                @Bases = sort keys %alts;
+                unshift @Bases,$MBases[0];
+                reshape(\@MBases,@tM);
+                reshape(\@FBases,@tF);
+                reshape(\@CBases,@tC);
+        }
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
 
 	my $retM = getBolsheviks(0,@tM);
 	my $retF = getBolsheviks(0,@tF);
 	#ddx $retM if $retM->[1];
-	my (@rM,@rF,@rC);
-	if (@Bases > 2) {
-		#ddx \@datM,\@datF,\@datC;
-# oyka.pl:220: (
-#   ["SNP5501", 501, "C,A,G", 3763.92],
-#   ["SNP5501", 501, "C,A,G", 3763.92],
-#   ["SNP5501", 501, "C,A,G", 3763.92],
-# )
-		#ddx \@tM,\@tF,\@tC;
-# oyka.pl:221: (
-#   ["C/A;28,26,0", "C/A;28,26,0"],
-#   ["C/G;35,0,37", "C/G;35,0,37"],
-#   ["C/A;36,48,0", "C/A;36,48,0"],
-# )
-		@rM = getrio(@tM);
-		@rF = getrio(@tF);
-		@rC = getrio(@tC);
-		#ddx \@rM,\@rF,\@rC;
-#   [
-#     2,
-#     0.560606060606061,
-#     0.157139577594123,
-#     0.606060606060606,
-#     0.183654729109275,
-#     "37,55,40,T;37,55,40,T",
-#   ],
-		if ($rM[0]+$rF[0]+$rC[0] >0) {
-			for (qw(n x xx y yy)) {
-				$trioM{$_} += shift @rM;
-				$trioF{$_} += shift @rF;
-				$trioC{$_} += shift @rC;
-			}
-#   ["37,55,40,T;37,55,40,T"]
-			#ddx (\%trioF,\%trioM,\%trioC);
-			++$trioN;
-			if ($retM->[1]) {
-				print OR join("\t",@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
-				my $str = join('=',$retM->[0],join(',',@{$retM->[2]}));
-				$rM[0] = join('.',$rM[0],$str,'HM');
-			}
-			if ($retF->[1]) {
-				my $str = join('=',$retF->[0],join(',',@{$retF->[2]}));
-				$rF[0] = join('.',$rF[0],$str,'HF');
-			}
-			print OT join("\t",$trioN,@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
-		}
-	}
+
 	my $check_dep = 1;
 	for (@tM){
 		my @info = split /[;,]/,$_;
@@ -384,55 +402,10 @@ while (<FM>) {
 	#ddx $cret;
 	$logcpi += log($cret->[0]);
 	$spe += log(1-$cret->[1]);
-	print OC join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
+	my $tempout = join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
+	push @temp_out,$tempout;
 }
 
 close FM; close FF; close FC;
-
-my $sCPI = printExp($logcpi);
-my $sPCPE = printExp($spe);
-
-print OC "# CPI: $sCPI\n";
-print OC "# CPE: 1-$sPCPE\n";
-
-print "CPI: $sCPI\n";
-print "CPE: 1-$sPCPE\n";
-
-if ($trioN) {
-	my @stM = tstat(%trioM);
-	my @stF = tstat(%trioF);
-	my @stC = tstat(%trioC);
-	#ddx (\@stM,\@stF,\@stC);
-	print OT "# M1: $stM[0] , M2: $stM[1]\n";
-	print OT "# F1: $stF[0] , F2: $stF[1]\n";
-	print OT "# C1: $stC[0] , C2: $stC[1]\n";
-
-	print "M1: $stM[0] , M2: $stM[1]\n";
-	print "F1: $stF[0] , F2: $stF[1]\n";
-	print "C1: $stC[0] , C2: $stC[1]\n";
+return @temp_out;
 }
-
-close OC;close OT;close OR;
-
-__END__
-grep '[ACTG],[ATCG],[ATCG]' *.tsv|grep '[1-9],[1-9],[1-9]'
-./oyka.pl chip s385M1.tsv s385F1.tsv s385C.tsv ss
-
-Order M,F,C
-
-Canceled:
-+放弃贝叶斯结果，2.5%以上就是杂合。双亲只保留多数结果。
-x子代单个样品深度<1000的，整行扔掉。
-x子代，both >0.5% and chi^2<0.05，才算杂合。
-
-All the words below is provided by the client, original text:
-
-1. 先读母亲和儿子的文件，只选map质量大于100，并且母亲是醇和snp的位点
-我:
-我:
-2， 如果是多次测序，少数服从多数，并吧多数的加起来。把三个人的genotype定住
-3. 确定基因型：（计算母亲与儿子snp的差异的卡方的pvalue，要求孩子的alt rate大于0.5%，并且卡方pvalue<0.05,则取与母亲不同的genotype，否则，取和母亲一致的genotype）
-
-4，计算CPI
-注意事项;1,母亲的genotype只用纯和的（以vcf结果为准），2，孩子的深度必须大于1000X
-结果： snp位点  孩子genotype(合起来的#ref/合起来的#alt) 母亲genotype 父亲genotype
