@@ -8,13 +8,14 @@ use warnings;
 
 use Data::Dump qw(ddx);
 
+die "Usage: $0 <in.tsv> ...\n[!]ChrMT are not allowed now.\n" if @ARGV<1;
+
 my (%Pos19d,%Pos38d);
-open IN,'<','nippt5427.tsv' or die $!;
-while (<IN>) {
+while (<>) {
 	next if /^#/;
 	chomp;
 	my ($rs,$chr19,$pos19,$chr38,$pos38,@d) = split /\t/,$_;
-	$chr19 =~ s/^chr//;
+	$chr19 =~ s/^chr//;	# We have no marker on ChrM now.
 	$Pos19d{$chr19}{$pos19} = $rs;
 	$Pos38d{$chr38}{$pos38} = $rs if $chr38 ne 'unlocalized';
 }
@@ -50,14 +51,14 @@ sub dealfa($$$$) {
 			my $top = substr $theSeq,0,500;
 			my $base = substr $theSeq,500,1;
 			my $bottom = substr $theSeq,501,500;
-			print O ">$PosH->{$chr}{$p} $chr:$p $left-$right\n$top\n$base\n$bottom\n";
+			print O ">$PosH->{$chr}{$p} $chr:$p $left-$right\n${top}${base}\n$bottom\n";
+			# `samtools faidx` says "[E::fai_build_core] Different line length in sequence 'rs10453900'" if not in standard line length.
 		}
 	}
 	close O;
 }
-dealfa(\%Pos19d,\@ChrIDs19,$hg19fa,'nippt5427.hg19.fa');
-dealfa(\%Pos38d,\@ChrIDs38,$hg38fa,'nippt5427.GRCh38.fa');
-
+dealfa(\%Pos19d,\@ChrIDs19,$hg19fa,'nippt.out.hg19.fa');
+dealfa(\%Pos38d,\@ChrIDs38,$hg38fa,'nippt.out.GRCh38.fa');
 
 __END__
 $ grep -v GL hs37d5.fna.bgz.fai
