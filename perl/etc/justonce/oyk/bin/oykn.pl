@@ -11,7 +11,7 @@ if ($FindBin::VERSION < 1.51) {
 	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
 }
 FindBin::again();
-use lib "$RealBin";
+use lib "$RealBin/../";
 require FGI::rsCPI;
 
 use Data::Dump qw(ddx);
