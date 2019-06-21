@@ -5,6 +5,7 @@ use warnings;
 my $SgeQueue = 'fgi.q';
 my $SgeProject = 'fgi';
 my $SgeJobPrefix = 'nip'.(time() % 9999);
+our $rRefn;
 
 sub Scutadapt($$$$) {
 	my ($cwd,$cnt,$flst,$outP) = @_;
@@ -68,8 +69,8 @@ END_SH
 	return $SHcutadapt;
 }
 
-sub Sbwamem($$$$$$) {
-	my ($cwd,$cnt,$flst,$outP,$FQprefix,$pRef) = @_;
+sub Sbwamem($$$$$) {
+	my ($cwd,$cnt,$flst,$outP,$FQprefix) = @_;
 	my $SHbwa = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -90,9 +91,9 @@ INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
 if [ -e "$FQprefix/\${INDAT[0]}.fq.gz" ]; then
-	bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+	bwa mem -t 12 -Y $RealBin/$rRefn -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" -p $FQprefix/\${INDAT[0]}.fq.gz 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
 elif [ -e "$FQprefix/\${INDAT[0]}.ubam" ]; then
-	samtools fastq $FQprefix/\${INDAT[0]}.ubam | bwa mem -t 12 -Y $pRef -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" - 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
+	samtools fastq $FQprefix/\${INDAT[0]}.ubam | bwa mem -t 12 -Y $RealBin/$rRefn -R "\@RG\\tID:\${INDAT[0]}\\tSM:\${INDAT[0]}" - 2>$outP/\${INDAT[0]}.log | samtools view -bS - | samtools sort -m 2G -T $outP/\${INDAT[0]}.tmp -o $outP/\${INDAT[0]}.bam
 fi
 
 samtools index $outP/\${INDAT[0]}.bam
@@ -107,7 +108,7 @@ END_SH
 }
 
 sub Smpileup($$$$$$$$$) {
-	my ($cwd,$cnt,$flst,$outP,$BAMprefix,$LSTprefix,$pRef,$OYKprefix,$theMode) = @_;
+	my ($cwd,$cnt,$flst,$outP,$BAMprefix,$LSTprefix,$OYKprefix,$theMode,$theParentage) = @_;
 	my $Smpileup = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -127,7 +128,7 @@ mkdir -p $outP
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
-samtools mpileup -b $LSTprefix/p\${INDAT[2]}.bams.lst -d 4000 -Q 20 -f $pRef -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
+samtools mpileup -b $LSTprefix/p\${INDAT[2]}.bams.lst -d 4000 -Q 20 -f $RealBin/$rRefn -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
 bcftools call -Oz -v -m $outP/\${INDAT[2]}.vcf.gz -o $outP/\${INDAT[2]}.snp.gz
 bcftools index $outP/\${INDAT[2]}.vcf.gz &
 bcftools index $outP/\${INDAT[2]}.snp.gz
@@ -137,7 +138,7 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.F.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.F.tsv
 bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTprefix/p\${INDAT[2]}.C.lst -i'POS=501' $outP/\${INDAT[2]}.snp.gz >$OYKprefix/p\${INDAT[2]}.C.tsv
 
-$RealBin/bin/oyka.pl $theMode $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
+$RealBin/bin/oykn.pl $theMode $theParentage $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 
 $RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F
 

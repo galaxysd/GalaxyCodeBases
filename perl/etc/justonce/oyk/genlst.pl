@@ -29,14 +29,22 @@ my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
 my @Machines = qw(BGISEQ PROTON);
 my %Machine = map { $_ => 1 } @Machines;
+my @Parentages = qw(DUO TRIO);
+my %Parentage = map { $_ => 1 } @Parentages;
 
-my ($theMode,$theMachine,$fninfo,$fnfam,$pRef,$pchip,$pout) = @ARGV;
+my ($theMode,$theMachine,$theParentage,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
 $pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
 my $listFamily = "$pout/family.lst";
+our $rRefn = "ref/nippt7274.GRCh38p.fa.gz";
 
-my $Usage = "Usage: $0 <mode/help/example> <BGISEQ|PROTON> <info.csv> <fam.csv> <Ref for BWA> <chip path> [out path]\n";
+my $Usage = "Usage: $0 <mode/help/example> <BGISEQ|PROTON> <Trio|Duo> <info.csv> <fam.csv> <chip path> [out path]\n
+[Mode]: PCR mode require 2 repeats while Chip mode require 1.
+[Machine]: PROTON for bam files from IonTorrent.
+[Parentage]: A duo test involves the child and an alleged father. 例如代孕。
+In contrast, a trio test involves the mother, child, and the alleged father.
+";
 
 my $egInfo = <<'END_EG';
 UID,Sample,Cell,Lane,Index
@@ -100,10 +108,14 @@ $theMachine = uc $theMachine;
 if (! exists $Machine{$theMachine}) {
         die "[x]machine can only be:[",join(',',@Machines),"].\n";
 }
+$theParentage = uc $theParentage;
+if (! exists $Parentage{$theParentage}) {
+        die "[x]parentage can only be:[",join(',',@Parentages),"].\n";
+}
 my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read fam.csv [$fnfam].\n" unless -r -s $fnfam;
-die "[x]Cannot read BWA Reference [$pRef].\n" unless -r -s $pRef;
+die "[x]Cannot read BWA Reference [$RealBin/$rRefn.*].\n[!]Run `samtools faidx $RealBin/$rRefn` and `bwa index $RealBin/$rRefn` first.\n" unless -r -s "$RealBin/$rRefn.sa";
 die "[x]Cannot read Chip Path [$pchip].\n" unless -r $pchip;
 #die "[x]Cannot use out Path [$pout].\n" unless -r -w -x $pout;
 $pchip =~ s/\/+$//g;
@@ -165,7 +177,7 @@ chmod 0755,$fSHcutadapt;
 my $fSHbwa = "$pout/q1bwa.sh";
 open O,'>',$fSHbwa or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
-print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix,$pRef);
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$FQprefix);
 close O;
 ################################
 # family.lst, q2mplieup.sh #
@@ -189,7 +201,7 @@ my $fSHsamt = "$pout/q2mplieup.sh";
 open O,'>',$fSHsamt or die $?;
 my $VCFprefix = "$pout/$pPrefixs{vcf}";
 my $OYKprefix = "$pout/$pPrefixs{oyk}";
-print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$pRef,$OYKprefix,$theMode);
+print O Smpileup($cwd,scalar(keys %Families),$listFamily,$VCFprefix,$BAMprefix,$LSTprefix,$OYKprefix,$theMode,$theParentage);
 close O;
 ################################
 ## family.lst, q3qc.sh #
@@ -219,6 +231,6 @@ for my $iF (keys %Families) {
 
 print "[!]Done !\nNow, check [$listFQ] and [$listFamily] first and run:\n\nqsub ",join('; qsub ',$fSHcutadapt,$fSHbwa,$fSHsamt,$fSHqc),"\n\n";
 __END__
-./genlst.pl chip BGISEQ info.csv fam.csv ref/NIPPT.SNP.5538.fa.gz . ./out/
+./genlst.pl chip BGISEQ Trio info.csv fam.csv . ./out/
 
 pip3 install -h cutadapt dnaio xopen

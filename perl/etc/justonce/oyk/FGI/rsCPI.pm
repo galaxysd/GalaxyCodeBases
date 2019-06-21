@@ -110,8 +110,7 @@ sub getcpiT(@) {
 		return [1,0,$err,$special,$pass];
 	}
 	my @geno=split /\,/,$a[2];
-	my ($pe);
-	my @geno=split /\,/,$a[2];
+	my $pe;
 	my @alleles = qw{A C G T};
 	if (exists $MarkerAF{$a[0]}) {
 		$pe = $Markers{$a[0]}->[3];
