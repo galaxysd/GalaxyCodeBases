@@ -4,7 +4,7 @@ use warnings;
 
 use Data::Dump qw(ddx);
 
-#die "Usage: $0 <in.tsv>\n" if @ARGV<1;
+die "Usage: $0 <in.tsv>\n" if @ARGV<1;
 #my ($inf) = @ARGV;
 while (<>) {
 	next if /^#/;
