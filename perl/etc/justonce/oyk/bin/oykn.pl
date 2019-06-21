@@ -14,7 +14,8 @@ FindBin::again();
 use lib "$RealBin/../";
 require FGI::rsCPI;
 
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
+my $DBsuffix = '../db/nippt7274.tsv';
 
 my @Modes = qw(CHIP PCR);
 my %Mode = map { $_ => 1 } @Modes;
@@ -65,8 +66,6 @@ sub getDPE(@) {
 	return $p1+$p2;
 }
 our (%Markers,%MarkerAF);
-my $DBsuffix = <DATA>;
-chomp $DBsuffix;
 open DB,'<',"$RealBin/$DBsuffix" or die $?;
 while (<DB>) {
 	next if /^#/;

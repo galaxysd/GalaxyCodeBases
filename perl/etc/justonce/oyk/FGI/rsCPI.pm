@@ -1,9 +1,9 @@
 package main;
 
 use strict;
-no strict "subs";
+#no strict "subs";
 use warnings;
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 =head1 NAME && VERSION
    cpi.pm
    Version:  V1.1
@@ -17,15 +17,6 @@ use Data::Dump qw(ddx);
     For missing record, MAF = 0.45, Ref/Alt follow VCF.
 =cut
 
-our (%ME,%CHR);
-%ME=(
-	SNP2570 => { maf => 0.410194174757282, ep => 0.178986155204038 },
-	SNP5237 => { maf => 0.410194174757282, ep => 0.178986155204038 },
-);
-%CHR=(
-	SNP2570 => { chr => chr1, ref => T, alt => "C" },
-	SNP5237 => { chr => chr9, ref => A, alt => "C" },
-);
 our (%Markers,%MarkerAF);
 # %Markers
 #   {
@@ -159,6 +150,3 @@ sub getcpiT(@) {
 }
 
 1;
-
-__DATA__
-../db/nippt7274.tsv
