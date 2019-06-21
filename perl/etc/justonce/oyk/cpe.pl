@@ -25,6 +25,7 @@ while (<>) {
 	$GTfreq{$d[3]} = 1 - $sum2;
 	my @allels = sort { $GTfreq{$a} <=> $GTfreq{$b} } keys %GTfreq;
 	my @af = map {"$_\t$GTfreq{$_}"} @allels;
+	$d[0] = 'chr' . $d[0];
 	print join("\t",@d[2,0,1],@af),"\n";
 }
 

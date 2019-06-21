@@ -127,5 +127,5 @@ rs113184075 was merged into rs77634512 on July 19, 2016 (Build 147)
 rs2484385,rs10453900,rs61800290,rs144913592
 unlocalized scaffold in GRCh38
 
-./cpi.pl >nippt.tsv 2>nippt.tsv.err &
+./rs2pos.pl >nippt.tsv 2>nippt.tsv.err &
 =cut
