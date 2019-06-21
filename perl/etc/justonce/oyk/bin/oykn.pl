@@ -422,10 +422,6 @@ while (<FM>) {
 
 	if ($theMode eq 'PCR') {
 		next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>0 and $retM->[2][1]>0) or ($retF->[2][0]>0 and $retF->[2][1]>0));
-	} elsif ($theMode eq 'CHIP') {
-		next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
-	} else {
-		die;
 	}
 
 	my @mnum=@{$retM->[2]};
@@ -438,8 +434,20 @@ while (<FM>) {
 #					);
 	my $cret;
 	if ($theParentage eq 'TRIO') {
+		if ($theMode eq 'CHIP') {
+			next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
+		}
 		$cret = getcpiT(@datM,$resM,$resF,$resC);
 	} elsif ($theParentage eq 'DUO') {
+		my $mGT = $mgeno[0];
+		if ($cgeno[0] eq $cgeno[1]) {
+			my $d1 = $retC->[2]->[0];
+			my $d2 = $retC->[2]->[1];
+			my $flag = 0;
+			$flag = 1 if $d1 > 500;
+			$flag = 1 if $d2 > 500;
+			next if $flag == 0;
+		}
 		$cret = getcpiD(@datM,$resM,$resF,$resC);
 	}
 # @datM,$resM,$resF,$resC: (
