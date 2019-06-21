@@ -10,7 +10,8 @@ use Data::Dump qw(ddx);
 =head1 DESCRIPTION
 	chosen snp
 =head1 AUTHOR && CONTACT
-    Author :  gaoshengjie at 2018/05/16
+    Author :  gaoshengjie huxuesong 2018/05/06
+    modified at 2019/06/18
     Contact:  gaoshengjie@genomics.org.cn
 =head1 UPDATE LOG
     For missing record, MAF = 0.45, Ref/Alt follow VCF.
@@ -46,166 +47,117 @@ our $special=0;
 our $pass=0;
 sub getcpiD(@) {
 	my @a = @_;
-	my ($ref,$alt,$maf,$pe);
-	$pe = $Markers{$a[0]}->[2];
-}
-sub getcpiT(@) {
-	my @a = @_;
 	if(@a<6){
-		return [1,0,$err,$special,$pass];
 		$pass++;
+		return [1,0,$err,$special,$pass];
 	}
+	my @alleles = qw{A C G T};
 	my @geno=split /\,/,$a[2];
-	my ($ref,$alt,$maf,$pe);
-	if (exists $ME{$a[0]}{"maf"}) {
-		$maf=$ME{$a[0]}{"maf"};
-		#$pe=$ME{$a[0]}{"ep"};
-		$pe = $Markers{$a[0]}->[3];
-		$ref=$CHR{$a[0]}{"ref"};
-		$alt=$CHR{$a[0]}{"alt"};
-	} else {
-		$maf=0.45;
-		$pe = 0.18;
-		$ref=$geno[0];
-		$alt=$geno[1];
+	my ($pe);
+	if (exists $MarkerAF{$a[0]}){
+		$pe = $Markers{$a[0]}->[2];
+		foreach my $allele (@alleles){
+			unless (defined $MarkerAF{$a[0]}{$allele}){
+				$MarkerAF{$a[0]}{$allele} = 0.01;
+			}
+		}
+	}else{
+		$MarkerAF{$a[0]}{$geno[0]} = 0.55;
+		for my $i (1..scalar @geno - 1){
+			$MarkerAF{$a[0]}{$geno[$i]} = 0.45;
+		}
+		$pe = 0.12;
 	}
-	my $maj=1-$maf;
-	my @mm=split /\;/,$a[4];
 	my @dad=split /\;/,$a[5];
 	my @ch=split /\;/,$a[6];
-  	my @genomm=split /\//,$mm[0];
 	my @genodad=split /\//,$dad[0];
 	my @genoch=split /\//,$ch[0];
-	#ddx \@geno,\@mm,\@dad,\@ch,\@genomm,\@genodad,\@genoch;
-	if($genoch[0] ne $genomm[0] && $genoch[1] ne $genomm[1]){
-		$pass++;
-		return [1,0,$err,$special,$pass];
-	}else{
-		if($alt =~/\,/){
-			$pass++;
-			return [1,0,$err,$special,$pass];
-		}else{
-		 if($genoch[0] ne $genodad[0] && $genoch[0] ne $genodad[1] && $genoch[1] ne $genodad[0] && $genoch[1] ne $genodad[1]){
-			$err++;
-			return [1e-4,$pe,$err,$special,$pass];
-		 }
-		 #child is hom ref
-		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref ){
-			return [1/$maj,$pe,$err,$special,$pass];
-
-		 }
-		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
-
-			return [0.5/$maf,$pe,$err,$special,$pass];
-		 }
-		 if(($genoch[0] eq $ref && $genoch[1] eq $ref) && ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
-			 $err++;
-			 return [1e-4,$pe,$err,$special,$pass];
-
-		 }
-		#child is hom alt
-		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $alt){
-			return [1/$maf,$pe,$err,$special,$pass];
-		 }
-
-		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $alt){
-			 return [0.5/$maj,$pe,$err,$special,$pass];
-		 }
-		 if(($genoch[0] eq $alt && $genoch[1] eq $alt) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $alt){
-			 $err++;
-			 return [1e-4,$pe,$err,$special,$pass];
-		 }
-
-		#special case1
-		 #if(($genoch[0] eq $ref && $genoch[1] ne $ref) && ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref){
-		#	$err++;
-		#	return 1e-4;
-		# }
-		# child is heter
-		 if ($genoch[0] eq $ref && $genoch[1] eq $alt){
-			 if(($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $ref){
-				 return [0.5/$maf,$pe,$err,$special,$pass];
-			 }
-		if(($genodad[0] eq $ref && $genodad[1] eq $alt) && $genomm[0] eq $alt){
-			return [0.5/$maj,$pe,$err,$special,$pass];
+	if ($genoch[0] ne $genodad[0] && $genoch[0] ne $genodad[1] && $genoch[1] ne $genodad[0] && $genoch[1] ne $genodad[1]){
+		$err++;
+		return [1e-4,$pe,$err,$special,$pass];
+	} elsif ($genoch[0] eq $genoch[1]){
+		if ($genodad[0] eq $genodad[1]){
+			return [1/$MarkerAF{$a[0]}{$genoch[0]},$pe,$err,$special,$pass];
+		}elsif ($genodad[0] ne $genodad[1]){
+			return [0.5/$MarkerAF{$a[0]}{$genoch[0]},$pe,$err,$special,$pass];
 		}
-		if( ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $ref ){
-			return [1/$maf,$pe,$err,$special,$pass];
-		}
-		if( ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $alt ){
-			return [1/$maj,$pe,$err,$special,$pass];
-		}
-
-		if( ($genodad[0] eq $alt && $genodad[1] eq $alt) && $genomm[0] eq $alt ){
-			$err++;
-			return [1e-4,$pe,$err,$special,$pass];
-		}
-		if( ($genodad[0] eq $ref && $genodad[1] eq $ref) && $genomm[0] eq $ref ){
-			$err++;
-			return [1e-4,$pe,$err,$special,$pass];
-		}
-
-	}
-		#special case
-		 if ($genoch[0] ne $ref && $genoch[0] ne $alt && $genoch[1] ne $ref && $genoch[1] ne $alt) { #two alleles are special
-			$pass++;
-			return [1,0,$err,$special,$pass];
-		 } else { # one allel is special
-		 if($genoch[0] ne $ref && $genoch[0] ne $alt){
-			#if(($genoch[0] eq $genodad[0] && $genoch[1] eq $genomm[1]) || ($genoch[0] eq $genodad[1] && $genoch[1] eq $genomm[1]) ){
-			#	$special++;
-			#	return 1e4;
-			#}
-			#if(($genoch[1] eq $genodad[0] && $genoch[0] eq $genomm[1]) || ($genoch[1] eq $genodad[1] && $genoch[0] eq $genomm[1])){
-			#	return 2;
-			#}
-			if($genoch[0] eq $genomm[0]){
-				if(($genoch[1] eq $genodad[0]) || ($genoch[1] eq $genodad[1])){
-					return [2,$pe,$err,$special,$pass];
-				}
-				if(($genoch[1] ne  $genodad[0]) && ($genoch[1] ne $genodad[1])){
-					$err++;
-					return [1e-4,$pe,$err,$special,$pass];
-				}
-			}
-			if($genoch[1] eq $genomm[0]){
-				if(($genoch[0] eq $genodad[0]) || ($genoch[0] eq $genodad[1])){
-					$special++;
-					return [1e4,$pe,$err,$special,$pass];
-				}
-				if(($genoch[0] ne $genodad[0]) && ($genoch[0] ne $genodad[1])){
-					$err++;
-					return [1e-4,$pe,$err,$special,$pass];
-				}
-			}
-		   }
-		   if($genoch[1] ne $ref && $genoch[1] ne $alt){
-			if($genoch[1] eq $genomm[0]){
-				if(($genoch[0] eq $genodad[0]) || ($genoch[0] eq $genodad[1])){
-					return [2,$pe,$err,$special,$pass];
-				}
-				if(($genoch[0] ne  $genodad[0]) && ($genoch[0] ne $genodad[1])){
-					$err++;
-					return [1e-4,$pe,$err,$special,$pass];
-				}
-			}
-			if($genoch[0] eq $genomm[0]){
-				if(($genoch[1] eq $genodad[0]) || ($genoch[1] eq $genodad[1])){
-					$special++;
-					return [1e4,$pe,$err,$special,$pass];
-				}
-				if(($genoch[1] ne $genodad[0]) && ($genoch[1] ne $genodad[1])){
-					$err++;
-					return [1e-4,$pe,$err,$special,$pass];
-				}
+	} elsif ($genoch[0] ne $genoch[1]){
+		my @child = sort @ch;
+		my @Gdad = sort @dad;
+		if ($genodad[0] eq $genodad[1]){
+			return [0.5/$MarkerAF{$a[0]}{$genodad[0]},$pe,$err,$special,$pass];
+		} elsif ($genodad[0] ne $genodad[1]){
+			my @child = sort @ch;
+			my @Gdad = sort @dad;
+			if ($child[0] eq $Gdad[0] && $child[1] eq $Gdad[1]){
+				my $pi = ($MarkerAF{$a[0]}{$child[0]} + $MarkerAF{$a[0]}{$child[1]}) / (4 * $MarkerAF{$a[0]}{$child[0]} * $MarkerAF{$a[0]}{$child[1]});
+				return [$pi,$pe,$err,$special,$pass];
+			}else{
+				push @child,@Gdad;
+				my %count;
+				my @need = grep { ++$count{$_} > 1 } @child;
+				return [0.25/$MarkerAF{$a[0]}{$need[0]},$pe,$err,$special,$pass];
 			}
 		}
-	}
-	}
 	}
 	return [999,$pe,-111,-222,-333];
 }
-
+sub getcpiT(@) {
+	no warnings 'uninitialized';
+	my @a = @_;
+	if(@a<6){
+		$pass++;
+		return [1,0,$err,$special,$pass];
+	}
+	my @geno=split /\,/,$a[2];
+	my ($pe);
+	my @geno=split /\,/,$a[2];
+	my @alleles = qw{A C G T};
+	if (exists $MarkerAF{$a[0]}) {
+		$pe = $Markers{$a[0]}->[3];
+		foreach my $allele (@alleles){
+			unless (defined $MarkerAF{$a[0]}{$allele}){
+				$MarkerAF{$a[0]}{$allele} = 0.01;
+			}
+		}
+	} else {
+		$MarkerAF{$a[0]}{$geno[0]} = 0.55;
+		for my $i (1..scalar @geno - 1){
+			$MarkerAF{$a[0]}{$geno[$i]} = 0.45;
+		}
+		$pe = 0.18;
+	}
+	my @mm=split /\;/,$a[4];
+	my @dad=split /\;/,$a[5];
+	my @ch=split /\;/,$a[6];
+	my @genomm=split /\//,$mm[0];
+	my @genodad=split /\//,$dad[0];
+	my @genoch=split /\//,$ch[0];
+	if($genoch[0] ne $genomm[0] && $genoch[1] ne $genomm[1]){
+		$pass++;
+		return [1,0,$pe,$err,$special,$pass];
+	} elsif ($genoch[0] eq $genoch[1]){
+		if ($genoch[0] ne $genodad[0] && $genoch[0] ne $genodad[1]){
+			$err++;
+			return [1e-4,$pe,$err,$special,$pass];
+		} elsif ($genodad[0] eq $genodad[1]){
+			return [1/$MarkerAF{$a[0]}{$genoch[0]},$pe,$err,$special,$pass];
+		} elsif ($genodad[0] ne $genodad[1]){
+			return [0.5/$MarkerAF{$a[0]}{$genoch[0]},$pe,$err,$special,$pass];
+		}
+	} elsif ($genoch[0] ne $genoch[1]){
+		my $fromF = $genoch[0] eq $genomm[0] ? $genoch[1] : $genoch[0];
+		if ($fromF ne $genodad[0] && $fromF ne $genodad[1]){
+			$err++;
+			return [1e-4,$pe,$err,$special,$pass];
+		} elsif ($genodad[0] eq $genodad[1]){
+			return [1/$fromF,$pe,$err,$special,$pass];
+		} elsif ($genodad[0] ne $genodad[1]){
+			return [0.5/$fromF,$pe,$err,$special,$pass];
+		}
+	}
+	return [999,$pe,-111,-222,-333];
+}
 
 1;
 
