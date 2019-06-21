@@ -65,9 +65,13 @@ sub getDPE(@) {
 	return $p1+$p2;
 }
 our (%Markers,%MarkerAF);
-while (<DATA>) {
+my $DBsuffix = <DATA>;
+chomp $DBsuffix;
+open DB,'<',"$RealBin/$DBsuffix" or die $?;
+while (<DB>) {
+	next if /^#/;
 	chomp;
-	my ($rs,$chr,$pos,@d) = split /\t/,$_;
+	my ($rs,$chr,$pos,$chr38,$pos38,@d) = split /\t/,$_;
 	$MarkerAF{$rs} = {@d};
 	my @AFs = values %{$MarkerAF{$rs}};
 	#my $sum = eval join '+',@AFs;
@@ -76,7 +80,12 @@ while (<DATA>) {
 	my $DPE = getDPE(@AFs);
 	$Markers{$rs} = [$chr,$pos,$DPE,$TPE];
 }
-#ddx \%Markers,\%MarkerAF;
+#ddx \%Markers;
+#ddx \%MarkerAF;
+close DB;
+#print getDPE(0.5,0.5),"\n";print getTPE(0.5,0.5),"\n";
+#0.125
+#0.1875
 
 our @Bases;
 sub deBayes($) {
