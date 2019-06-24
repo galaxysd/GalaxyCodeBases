@@ -141,9 +141,9 @@ sub getcpiT(@) {
 			$err++;
 			return [1e-4,$pe,$err,$special,$pass];
 		} elsif ($genodad[0] eq $genodad[1]){
-			return [1/$fromF,$pe,$err,$special,$pass];
+			return [1/$MarkerAF{$a[0]}{$fromF},$pe,$err,$special,$pass];
 		} elsif ($genodad[0] ne $genodad[1]){
-			return [0.5/$fromF,$pe,$err,$special,$pass];
+			return [0.5/$MarkerAF{$a[0]}{$fromF},$pe,$err,$special,$pass];
 		}
 	}
 	return [999,$pe,-111,-222,-333];
