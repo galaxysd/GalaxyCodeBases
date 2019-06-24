@@ -114,11 +114,11 @@ sub deBayes2($) {
 	}
 	#ddx %Dep;
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( @dKeys>1 and $Dep{$dKeys[1]}  >= $Dep{$dKeys[0]} * 0.1 ) {	# 10%
+	if ( @dKeys>1 and $Dep{$dKeys[1]} >= $Dep{$dKeys[0]} * 0.1 ) {	# 10%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
-	} elsif (@dKeys>1 && ($Dep{$dKeys[1]}  > $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]}  < $Dep{$dKeys[0]} * 0.1)){
+	} elsif (@dKeys>1 && ($Dep{$dKeys[1]} > $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]} < $Dep{$dKeys[0]} * 0.1)){
 		$p->[0] = "NA";
 	}
 }
@@ -244,11 +244,57 @@ sub printExp($) {
 	my $str = join('e',$prefix,$lnInt);
 	return $str;
 }
+sub get_locus{
+	my $file = shift;
+	my %temp;
+	open TE,"<$file" or die($!);
+	while (<TE>){
+		chomp;
+		my @data = split /\t/,$_;
+		$temp{$data[0]}{$data[1]}++;
+	}
+	close TE;
+	return %temp;
+}
+
+sub reshape(@) {
+	my $bases = shift;
+	my @TBases = @$bases;
+	for (@_){
+		my %tempValue;
+		my @dep = split /[;,]/,$_;
+		my @newDep;
+		for my $i(1..scalar @dep - 1){
+			$tempValue{$TBases[$i - 1]} = $dep[$i];
+		}
+		foreach my $allele (@Bases){
+			if (defined $tempValue{$allele}){
+				push @newDep,$tempValue{$allele};
+			}else{
+				push @newDep,0;
+			}
+		}
+		$_ = join(";",$dep[0],join(",",@newDep));
+	}
+}
 
 my $mother=shift;
 my $father=shift;
 my $child=shift;
 my $outprefix=shift;
+
+my %locusM = get_locus($mother);
+my %locusF = get_locus($father);
+my %locusC = get_locus($child);
+my %need;
+foreach my $chr (keys %locusM){
+	foreach my $pos (keys %{$locusM{$chr}}){
+		if (defined $locusF{$chr}{$pos} && $locusC{$chr}{$pos}){
+			$need{$chr}{$pos}++;
+		}
+	}
+}
+
 open FM,'<',$mother or die "[x]Mom: $!\n";
 open FF,'<',$father or die "[x]Dad: $!\n";
 open FC,'<',$child or die "[x]Child: $!\n";
@@ -266,13 +312,31 @@ for (qw(n x xx y yy)) {
 }
 print "# Order: M,F,C\n";
 
+my %check_dup;
 while (<FM>) {
 	chomp;
-	chomp($lFC = <FC>);
-	chomp($lFF = <FF>);
 	my @datM = split /\t/;
-	my @datF = split /\t/,$lFF;
-	my @datC = split /\t/,$lFC;
+	next unless (defined $need{$datM[0]}{$datM[1]});
+	$check_dup{$datM[0]}{$datM[1]}++;
+	next if ($check_dup{$datM[0]}{$datM[1]} > 1);
+	my (@datF,@datC);
+	while ($lFF = <FF>){
+		chomp($lFF);
+		@datF = split /\t/,$lFF;
+		if ($datF[0] eq $datM[0] && $datF[1] eq $datM[1]){
+			last;
+		}
+	}
+	while ($lFC = <FC>){
+		chomp($lFC);
+		@datC = split /\t/,$lFC;
+		if ($datC[0] eq $datM[0] && $datC[1] eq $datM[1]){
+			last;
+		}
+	}
+	unless ($datF[0] eq $datM[0] && $datF[1] eq $datM[1] && $datC[0] eq $datM[0] && $datC[1] eq $datM[1]){
+		last;
+	}
 	#my ($chr,undef,$bases,$qual,@data) = split /\t/;
 	next if $datM[3] !~ /\d/ or $datM[3] < 100;
 	next if $datF[3] !~ /\d/ or $datF[3] < 100;
@@ -282,6 +346,23 @@ while (<FM>) {
 	my @tF = splice @datF,4;
 	my @tC = splice @datC,4;
 	@Bases = split /,/,$datM[2];	# $bases = ref,alt
+	unless ($datM[2] eq $datF[2] && $datM[2] eq $datC[2]){
+		my @MBases = split /,/,$datM[2];
+		my @FBases = split /,/,$datF[2];
+		my @CBases = split /,/,$datC[2];
+		unless ($MBases[0] eq $FBases[0] && $MBases[0] eq $CBases[0]){
+			next;
+		}
+		my %alts;
+		for my $i (1..scalar @MBases - 1){$alts{$MBases[$i]}++;}
+		for my $i (1..scalar @FBases - 1){$alts{$FBases[$i]}++;}
+		for my $i (1..scalar @CBases - 1){$alts{$CBases[$i]}++;}
+		@Bases = sort keys %alts;
+		unshift @Bases,$MBases[0];
+		reshape(\@MBases,@tM);
+		reshape(\@FBases,@tF);
+		reshape(\@CBases,@tC);
+	}
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
 
@@ -463,6 +544,7 @@ while (<FM>) {
 	$logcpi += log($cret->[0]);
 	$spe += log(1-$cret->[1]);
 	print OC join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
+	print join("\t",@datM,$resM,$resF,$resC,@$cret,$logcpi/log(10),$spe/log(10)),"\n";
 }
 
 close FM; close FF; close FC;
