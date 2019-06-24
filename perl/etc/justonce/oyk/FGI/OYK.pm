@@ -140,7 +140,7 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 
 $RealBin/bin/oykn.pl $theMode $theParentage $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 
-$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F
+$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F >r\${INDAT[2]}.F.txt
 
 if [ ! -s $outP/\${INDAT[2]}.snp.gz ]; then
 	exit 1
