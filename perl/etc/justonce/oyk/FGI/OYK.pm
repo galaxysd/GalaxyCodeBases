@@ -140,7 +140,7 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 
 $RealBin/bin/oykn.pl $theMode $theParentage $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 
-$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F >r\${INDAT[2]}.F.txt
+$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F > $OYKprefix/r\${INDAT[2]}.F.txt
 
 if [ ! -s $outP/\${INDAT[2]}.snp.gz ]; then
 	exit 1
@@ -149,8 +149,8 @@ END_SH
 	return $Smpileup;
 }
 
-sub Sqc($$$) {
-	my ($cwd,$outP,$theMode) = @_;
+sub Sqc($$$$) {
+	my ($cwd,$outP,$theMode,$theParentage) = @_;
 	my $Sqc = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -165,7 +165,7 @@ sub Sqc($$$) {
 cd $cwd
 mkdir -p $outP
 
-perl $RealBin/bin/contamination.F.pl $theMode $outP/../family.lst $outP/../4tsv $outP/contamination.F.txt
+perl $RealBin/bin/contamination.F.pl $theMode $theParentage $outP/../family.lst $outP/../4tsv $outP/contamination.F.txt
 perl $RealBin/bin/contamination.MC.pl $outP/../family.lst $outP/../4tsv $outP/contamination.MC.txt
 perl $RealBin/bin/heterozygosity.pl $outP/../family.lst $outP/../4tsv $outP/heterozygosity.txt
 

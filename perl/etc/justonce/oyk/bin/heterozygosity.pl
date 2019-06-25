@@ -9,7 +9,7 @@ open OUT,">$output" or die($!);
 
 while (<LI>){
 	chomp;
-	my @ID = split /\s+/,$info;
+	my @ID = split /\s+/,$_;
 	my @tag = qw{F M C};
 	foreach my $i (0..2){
 	my $id = $ID[$i];

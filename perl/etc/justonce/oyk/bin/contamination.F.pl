@@ -59,7 +59,8 @@ foreach my $family (@fams){
 		my $mismatch = 0;
 		my $Ffile = "$store/$Fs{$father}.tsv";
 		system("mkdir -p $store/temp") unless (-e "$store/temp");
-		my @info = readpipe("perl $RealBin/oykn.pl $thetMode $thetParentage $Mfile $Ffile $Cfile $store/temp/$Cfile");
+		print "perl $RealBin/oykn.pl $thetMode $thetParentage $Mfile $Ffile $Cfile $store/temp/tm$family\n";
+		my @info = readpipe("perl $RealBin/oykn.pl $thetMode $thetParentage $Mfile $Ffile $Cfile $store/temp/tm$family");
 		foreach my $line (@info){
 			chomp($line);
 			next if ($line =~ /^#/);

@@ -73,20 +73,18 @@ sub getcpiD(@) {
 			return [0.5/$MarkerAF{$a[0]}{$genoch[0]},$pe,$err,$special,$pass];
 		}
 	} elsif ($genoch[0] ne $genoch[1]){
-		my @child = sort @ch;
-		my @Gdad = sort @dad;
 		if ($genodad[0] eq $genodad[1]){
 			return [0.5/$MarkerAF{$a[0]}{$genodad[0]},$pe,$err,$special,$pass];
 		} elsif ($genodad[0] ne $genodad[1]){
-			my @child = sort @ch;
-			my @Gdad = sort @dad;
-			if ($child[0] eq $Gdad[0] && $child[1] eq $Gdad[1]){
-				my $pi = ($MarkerAF{$a[0]}{$child[0]} + $MarkerAF{$a[0]}{$child[1]}) / (4 * $MarkerAF{$a[0]}{$child[0]} * $MarkerAF{$a[0]}{$child[1]});
+			my @Gchild = sort @genoch;
+			my @Gdad = sort @genodad;
+			if ($Gchild[0] eq $Gdad[0] && $Gchild[1] eq $Gdad[1]){
+				my $pi = ($MarkerAF{$a[0]}{$Gchild[0]} + $MarkerAF{$a[0]}{$Gchild[1]}) / (4 * $MarkerAF{$a[0]}{$Gchild[0]} * $MarkerAF{$a[0]}{$Gchild[1]});
 				return [$pi,$pe,$err,$special,$pass];
 			}else{
-				push @child,@Gdad;
+				push @Gchild,@Gdad;
 				my %count;
-				my @need = grep { ++$count{$_} > 1 } @child;
+				my @need = grep { ++$count{$_} > 1 } @Gchild;
 				return [0.25/$MarkerAF{$a[0]}{$need[0]},$pe,$err,$special,$pass];
 			}
 		}

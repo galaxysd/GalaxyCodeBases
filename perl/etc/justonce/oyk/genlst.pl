@@ -209,7 +209,7 @@ close O;
 my $fSHqc = "$pout/q3qc.sh";
 open O,">",$fSHqc or die $?;
 my $QCprefix = "$pout/$pPrefixs{qc}";
-print O Sqc($cwd,$QCprefix,$theMode);
+print O Sqc($cwd,$QCprefix,$theMode,$theParentage);
 close O;
 ################################
 for my $iF (keys %Families) {
