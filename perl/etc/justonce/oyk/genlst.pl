@@ -42,7 +42,7 @@ our $rRefn = "ref/nippt7274.GRCh38p.fa.gz";
 my $Usage = "Usage: $0 <mode/help/example> <BGISEQ|PROTON> <Trio|Duo> <info.csv> <fam.csv> <chip path> [out path]\n
 [Mode]: PCR mode require 2 repeats while Chip mode require 1.
 [Machine]: PROTON for bam files from IonTorrent.
-[Parentage]: A duo test involves the child and an alleged father. 例如代孕。
+[Parentage]: A duo test involves the child and an alleged father. eg. gestational/full surrogacy。
 In contrast, a trio test involves the mother, child, and the alleged father.
 ";
 
