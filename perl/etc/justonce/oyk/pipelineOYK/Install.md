@@ -1,4 +1,4 @@
-# Struction
+# Instruction
 
 First, install some of the requirements provided as packages, as below.
 
