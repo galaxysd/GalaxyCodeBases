@@ -2,3 +2,5 @@
 
 scp -r pipelineOYK 2017b:/ldfssz1/FGI/CCS/huxuesong/nippt/
 
+# tar -cLzvf oyk.tgz pipelineOYK
+
