@@ -24,7 +24,7 @@ Then, install *remained* requirements.
 sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
 sudo yum install centos-release-scl
 sudo yum install rh-python34
-sudo yum install rh-perl524 bwa
+sudo yum install rh-perl524 bwa perl
 sudo yum --disablerepo='epel' groupinstall 'Development Tools'
 sudo yum install https://arc.liv.ac.uk/downloads/SGE/releases/8.1.9/gridengine-8.1.9-1.el6.x86_64.rpm
 
@@ -39,7 +39,7 @@ See <https://arc.liv.ac.uk/downloads/SGE/releases/8.1.9/> for details of GridEng
 sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 sudo yum install centos-release-scl
 sudo yum install rh-python35
-sudo yum install rh-perl524 bwa
+sudo yum install rh-perl524 bwa perl
 sudo yum --disablerepo='epel' groupinstall 'Development Tools'
 sudo yum install https://copr-be.cloud.fedoraproject.org/results/loveshack/SGE/epel-7-x86_64/00756477-gridengine/gridengine-8.1.9-2.el7.x86_64.rpm
 
@@ -53,7 +53,7 @@ See <https://copr.fedorainfracloud.org/coprs/loveshack/SGE/> for details of Grid
 Follow <https://backports.debian.org/Instructions/> to add `deb http://deb.debian.org/debian stretch-backports main` to `/etc/apt/sources.list.d/`.
 
 ```bash
-sudo apt install python3 r-base build-essential gridengine-client
+sudo apt install perl python3 r-base build-essential gridengine-client
 sudo apt install -t stretch-backports bwa samtools bcftools
 
 pip3 install cutadapt
