@@ -156,7 +156,7 @@ sub Sqc($$$$) {
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p3${SgeJobPrefix}qc -hold_jid p1${SgeJobPrefix}bwa
-#\$ -l vf=2G,num_proc=1
+#\$ -l vf=2G,num_proc=1,h=cngb-compute-f8-*
 #\$ -binding linear:1
 #\$ -cwd -r y
 #\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH

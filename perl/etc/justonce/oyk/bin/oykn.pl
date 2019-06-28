@@ -8,7 +8,7 @@ use warnings;
 use POSIX;
 use FindBin qw($RealBin);
 if ($FindBin::VERSION < 1.51) {
-	warn "[!]Your Perl is too old, thus there can only be ONE `bsuit` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
+	warn "[!]Your Perl is too old, thus there can only be ONE `oykn.pl` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
 }
 FindBin::again();
 use lib "$RealBin/../";
@@ -520,6 +520,7 @@ while (<FM>) {
 		}
 		$cret = getcpiT(@datM,$resM,$resF,$resC);
 	} elsif ($theParentage eq 'DUO') {
+		next unless $fgeno[0] eq $fgeno[1];
 		my $mGT = $mgeno[0];
 		if ($cgeno[0] eq $cgeno[1]) {
 			my $d1 = $retC->[2]->[0];
