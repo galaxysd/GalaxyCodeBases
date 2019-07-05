@@ -155,7 +155,7 @@ sub Sqc($$$$) {
 #!/bin/bash
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
-#\$ -N p3${SgeJobPrefix}qc -hold_jid p1${SgeJobPrefix}bwa
+#\$ -N p3${SgeJobPrefix}qc -hold_jid p2${SgeJobPrefix}mplp
 #\$ -l vf=2G,num_proc=1,h=cngb-compute-f8-*
 #\$ -binding linear:1
 #\$ -cwd -r y
