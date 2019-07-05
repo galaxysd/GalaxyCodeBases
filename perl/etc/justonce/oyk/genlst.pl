@@ -74,7 +74,7 @@ if (defined $theMode) {
 ### Example of "info.csv":
 $egInfo
 #### `UID` must be UNIQUE !
-#### For PCR mode, each sample has two lines with identical Sample name BUT different UID.
+#### For PCR mode, each sample can has two lines with identical Sample name BUT different UID.
 
 ### Example of "fam.csv":
 $egFam
@@ -153,9 +153,10 @@ for (keys %Samples) {
 die "[x]Cannot mix Chip & PCR data.\n" if @sCnt > 1;
 if ($theMode eq 'CHIP') {
 	die "[x]Chip mode allows only one repeat per sample.\n" if $sCnt[0] > 1;
-} elsif ($theMode eq 'PCR') {
-	die "[x]PCR mode allows exactly TWO repeats per sample, got $sCnt[0].\n" if $sCnt[0] != 2;
 }
+#} elsif ($theMode eq 'PCR') {
+#	die "[x]PCR mode allows exactly TWO repeats per sample, got $sCnt[0].\n" if $sCnt[0] != 2;
+#}
 open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};

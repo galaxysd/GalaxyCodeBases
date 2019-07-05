@@ -25,7 +25,7 @@ my $Verbose = 0;
 
 die "Usage: $0 <Chip|PCR> <Duo|Trio> <mother> <father> <child> <outprefix>
 
-[Mode]: PCR mode require 2 repeats while Chip mode require 1.
+[Mode]: PCR mode support 2 repeats while Chip mode require 1.
 [Parentage]: A duo test involves the child and an alleged father. 例如代孕。
 In contrast, a trio test involves the mother, child, and the alleged father.\n" if @ARGV<6;
 $Verbose = 1 if @ARGV == 7;
@@ -169,7 +169,7 @@ sub getequal(@) {
 		++$GT{$_->[0]};
 	}
 	for (values %GT) {
-		return 1 if $_ == 2;	# 两个样品GT一致
+		return 1 if $_ == scalar @dat;	# 两个样品GT一致
 	}
 	return 0;
 }
@@ -454,11 +454,9 @@ while (<FM>) {
 	my $yy = getequal(0,@tF);
 	my $zz = getequal(1,@tC);
 	my $t=$xx*$yy*$zz;
-	my $REP = 1;
+	my $REP = scalar @tC;	# lbw-20190509
 	if ($theMode eq 'PCR') {
 		next unless $t;
-	} else {
-		$REP = 2 if $t;
 	}
 	my @sdatC = map { [split /[;,]/,$_] } @tC;
 	my @GTdepC;
@@ -486,7 +484,8 @@ while (<FM>) {
 	}
 	next unless defined $n22;
 	if ($theMode eq 'PCR') {
-		next if ($n21+$n22) < 200;
+		#next if ($n21+$n22) < 200;
+		next if ($n21+$n22) < (100 * $REP);
 	} elsif ($theMode eq 'CHIP') {
 		next if ($n21+$n22) < (100 * $REP);
 	}
