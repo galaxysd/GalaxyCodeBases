@@ -42,15 +42,15 @@ while (my $info = <LI>){
 		next if ($depcheck == 0);
 
 		$total++;
-                my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-                if (@dKeys>1 and $Dep{$dKeys[1]}  >= $Dep{$dKeys[0]} * 0.1){
-                        my @rKeys = sort {$a<=>$b} @dKeys[0,1];
-                        my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
+		my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
+		if (@dKeys>1 and $Dep{$dKeys[1]}  >= $Dep{$dKeys[0]} * 0.1){
+			my @rKeys = sort {$a<=>$b} @dKeys[0,1];
+			my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 			unless ($gt eq $hete{$data[0]}){
 				$mismatch++;
 				print "$C\t$data[0]\t$gt\t$hete{$data[0]}\n";
 			}
-                }else{
+		}else{
 			$mismatch++;
 #			print "$C\t$data[0]\n";
 		}

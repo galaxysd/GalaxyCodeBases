@@ -128,7 +128,7 @@ mkdir -p $outP
 INFILE=`sed -n "\${SGE_TASK_ID}p" $flst`
 read -ra INDAT <<<"\$INFILE"
 
-samtools mpileup -b $LSTprefix/p\${INDAT[2]}.bams.lst -d 4000 -Q 20 -f $RealBin/$rRefn -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
+samtools mpileup -b $LSTprefix/p\${INDAT[2]}.bams.lst -d 4000 -Q 30 -f $RealBin/$rRefn -v -t 'DP,AD,ADF,ADR,SP,INFO/AD,INFO/ADF,INFO/ADR' -p -o $outP/\${INDAT[2]}.vcf.gz
 bcftools call -Oz -v -m $outP/\${INDAT[2]}.vcf.gz -o $outP/\${INDAT[2]}.snp.gz
 bcftools index $outP/\${INDAT[2]}.vcf.gz &
 bcftools index $outP/\${INDAT[2]}.snp.gz
@@ -140,7 +140,7 @@ bcftools query -f '%CHROM\\t%POS\\t%REF,%ALT\\t%QUAL[\\t%TGT;%AD]\\n' -S $LSTpre
 
 $RealBin/bin/oykn.pl $theMode $theParentage $OYKprefix/p\${INDAT[2]}.M.tsv $OYKprefix/p\${INDAT[2]}.F.tsv $OYKprefix/p\${INDAT[2]}.C.tsv $OYKprefix/r\${INDAT[2]}
 
-$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[2]}.F > $OYKprefix/r\${INDAT[2]}.F.txt
+$RealBin/bin/get_ChrNum.pl $OYKprefix/r\${INDAT[2]}.cpie $RealBin/db/nippt7274.tsv \${INDAT[1]} > $OYKprefix/r\${INDAT[2]}.F.txt
 
 if [ ! -s $outP/\${INDAT[2]}.snp.gz ]; then
 	exit 1
@@ -149,8 +149,8 @@ END_SH
 	return $Smpileup;
 }
 
-sub Sqc($$$$) {
-	my ($cwd,$outP,$theMode,$theParentage) = @_;
+sub Sqc($$$$$$$$) {
+	my ($cwd,$outP,$theMode,$theParentage,$theSam,$theFam,$theMachine,$theStore) = @_;
 	my $Sqc = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -164,17 +164,26 @@ sub Sqc($$$$) {
 
 cd $cwd
 mkdir -p $outP
+mkdir -p $outP/../6record
 
-perl $RealBin/bin/contamination.F.pl $theMode $theParentage $outP/../family.lst $outP/../4tsv $outP/contamination.F.txt
+perl $RealBin/bin/contamination.F.pl $theMode $theParentage $outP $outP/contamination.F.txt
+perl $RealBin/bin/contamination.FM.pl $outP $outP/contamination.FM.txt
 perl $RealBin/bin/contamination.MC.pl $outP/../family.lst $outP/../4tsv $outP/contamination.MC.txt
 perl $RealBin/bin/heterozygosity.pl $outP/../family.lst $outP/../4tsv $outP/heterozygosity.txt
 
-perl $RealBin/bin/prepare.cffDNA.pl $outP/../family.lst $outP/../4tsv $outP/cffDNA.txt
+perl $RealBin/bin/prepare.distribution.pl $outP/../family.lst $outP/../4tsv $outP/cffDNA.txt $outP/depth.txt
 Rscript $RealBin/bin/ggplot_bar.cffdna.R $outP/cffDNA.txt $outP/cffDNA.pdf
 
+if [[ "$theMode" == "CHIP" ]]; then
 ls $outP/../2bam/*.fragstats > $outP/fragment.list
 Rscript $RealBin/bin/ggplot_bar.frag.ReadList.R $outP/fragment.list $outP/fragment.pdf
+	Rscript $RealBin/bin/ggplot_bar.depth.R $outP/depth.txt $outP/depth.pdf
+elif [[ "$theMode" == "PCR" ]]; then
+	Rscript $RealBin/bin/ggplot_bar.depth.forPCR.R $outP/depth.txt $outP/depth.pdf
+fi
 
+perl $RealBin/bin/base_qc.pl -sl $theSam -fl $theFam -mode $theMachine -s $theStore -r $outP/.. -o $outP
+perl $RealBin/bin/record.pl $outP/../family.lst $outP/../4tsv $outP/../6record
 END_SH
 	return $Sqc;
 }

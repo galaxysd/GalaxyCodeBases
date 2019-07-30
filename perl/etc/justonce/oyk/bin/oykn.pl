@@ -95,11 +95,11 @@ sub deBayes($) {
 	}
 	#ddx %Dep;
 	my @dKeys = sort { $Dep{$b} <=> $Dep{$a} } keys %Dep;
-	if ( @dKeys>1 and $Dep{$dKeys[1]} >= $Dep{$dKeys[0]} * 0.02) {	# 2%
+	if ( @dKeys>1 and $Dep{$dKeys[1]} >= $Dep{$dKeys[0]} * 0.01) {	# 2%
 		my @rKeys = sort {$a<=>$b} @dKeys[0,1];
 		my $gt = join('/',$Bases[$rKeys[0]],$Bases[$rKeys[1]]);
 		$p->[0] = $gt;
-	} elsif (@dKeys>1 && ($Dep{$dKeys[1]} < $Dep{$dKeys[0]} * 0.02) && ($Dep{$dKeys[1]} > $Dep{$dKeys[0]} * 0.001)){
+	} elsif (@dKeys>1 && ($Dep{$dKeys[1]} < $Dep{$dKeys[0]} * 0.01) && ($Dep{$dKeys[1]} > $Dep{$dKeys[0]} * 0.001)){
 		$p->[0] = "NA";
 	} elsif (@dKeys == 1 or ($Dep{$dKeys[1]} <= $Dep{$dKeys[0]} * 0.001)){
 		my $gt = join('/',$Bases[$dKeys[0]],$Bases[$dKeys[0]]);
@@ -278,6 +278,24 @@ sub reshape(@) {
 	}
 }
 
+sub depcheck(@) {
+	my ($array,$num) = @_;
+	my $ret = 1;
+	for (@$array){
+		my @info = split /[;,]/,$_;
+		my $sum;
+		for my $i (1 .. $#info) {
+			$sum += $info[$i];
+		}
+		if ($sum > $num){
+			$ret *= 1;
+		} else {
+			$ret *= 0;
+		}
+	}
+	return $ret;
+}
+
 my $mother=shift;
 my $father=shift;
 my $child=shift;
@@ -366,6 +384,11 @@ while (<FM>) {
 	next if $Bases[1] eq '.';
 	next if "@tM @tF @tC" =~ /\./;
 
+	my $check_dep = 1;
+	$check_dep *= depcheck(\@tM,50);
+	$check_dep *= depcheck(\@tF,50);
+	$check_dep *= depcheck(\@tC,100);
+	next if ($check_dep == 0);
 	my $retM = getBolsheviks(0,@tM);
 	my $retF = getBolsheviks(0,@tF);
 	#ddx $retM if $retM->[1];
@@ -416,32 +439,6 @@ while (<FM>) {
 			print OT join("\t",$trioN,@datM[0,2],$rM[0],$rF[0],$rC[0]),"\n";
 		}
 	}
-	my $check_dep = 1;
-	for (@tM){
-		my @info = split /[;,]/,$_;
-		my $sum;
-		for my $i(1..scalar @info - 1){
-			$sum += $info[$i];
-		}
-		if ($sum > 50){
-			$check_dep *= 1;
-		}else{
-			$check_dep *= 0;
-		}
-	}
-	for (@tF){
-		my @info = split /[;,]/,$_;
-		my $sum;
-		for my $i(1..scalar @info - 1){
-			$sum += $info[$i];
-		}
-		if ($sum > 50){
-			$check_dep *= 1;
-		}else{
-			$check_dep *= 0;
-		}
-	}
-	next if ($check_dep == 0);
 
 	#T/T;6,2245      C/C;1698,0
 	#print "> @tM , @tF , @tC\n@datM\n";
@@ -513,7 +510,7 @@ while (<FM>) {
 		if ($theMode eq 'CHIP') {
 			next if $mgeno[0] eq $mgeno[1] && $cgeno[0] eq $cgeno[1] && $mgeno[0] eq $cgeno[0];
 		} elsif ($theMode eq 'PCR') {
-			next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>0 and $retM->[2][1]>0) or ($retF->[2][0]>0 and $retF->[2][1]>0));
+#			next if $fgeno[0] eq $fgeno[1] and $mgeno[0] eq $mgeno[1] and $mgeno[0] eq $fgeno[0] and (($retM->[2][0]>0 and $retM->[2][1]>0) or ($retF->[2][0]>0 and $retF->[2][1]>0));
 		}
 		$cret = getcpiT(@datM,$resM,$resF,$resC);
 	} elsif ($theParentage eq 'DUO') {

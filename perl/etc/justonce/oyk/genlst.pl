@@ -106,11 +106,11 @@ if (! exists $Mode{$theMode}) {
 }
 $theMachine = uc $theMachine;
 if (! exists $Machine{$theMachine}) {
-        die "[x]machine can only be:[",join(',',@Machines),"].\n";
+	die "[x]machine can only be:[",join(',',@Machines),"].\n";
 }
 $theParentage = uc $theParentage;
 if (! exists $Parentage{$theParentage}) {
-        die "[x]parentage can only be:[",join(',',@Parentages),"].\n";
+	die "[x]parentage can only be:[",join(',',@Parentages),"].\n";
 }
 my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
@@ -210,7 +210,7 @@ close O;
 my $fSHqc = "$pout/q3qc.sh";
 open O,">",$fSHqc or die $?;
 my $QCprefix = "$pout/$pPrefixs{qc}";
-print O Sqc($cwd,$QCprefix,$theMode,$theParentage);
+print O Sqc($cwd,$QCprefix,$theMode,$theParentage,$fninfo,$fnfam,$theMachine,$pchip);
 close O;
 ################################
 for my $iF (keys %Families) {

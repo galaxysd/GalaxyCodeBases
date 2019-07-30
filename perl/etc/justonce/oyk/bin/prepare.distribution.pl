@@ -2,13 +2,13 @@
 use strict;
 use warnings;
 
-#my $store = "/ldfssz1/FGI/CCS/libowen/01_PROJECT/Maternal_blood/20190418.NS385NS386NS389NS390/2.result.another/result.gatk3";
-my ($list,$store,$output) = @ARGV;
+my ($list,$store,$output,$depout) = @ARGV;
 
-my %stat;
+my (%stat,%dep);
 my @fams;
 open LI,"<$list" or die($!);
 open OUT,">$output" or die($!);
+open DOUT,">$depout" or die($!);
 while (my $info = <LI>){
 	chomp($info);
 	next if ($info =~ /^#/);
@@ -20,7 +20,6 @@ while (my $info = <LI>){
 	while (my $line = <FC>){
 		chomp($line);
 		my @data = split /\t/,$line;
-		next unless (defined $homo{$data[0]});
 		next if ($data[3] eq '.' or $data[3] < 100);
 		my @tmpInfo = splice @data,4;
 		my %Dep;
@@ -41,6 +40,9 @@ while (my $info = <LI>){
 				$depcheck *= 1;
 			}
 		}
+		$dep{$data[0]}{$fam} = $sum;
+
+		next unless (defined $homo{$data[0]});
 		next if ($depcheck == 0);
 		my @values = sort {$b<=>$a} values %Dep;
 		if (scalar @values > 1){
@@ -70,6 +72,24 @@ foreach my $locus (sort keys %stat){
 	print OUT join("\t",@values),"\n";
 }
 close OUT;
+
+print DOUT "\t";
+print DOUT join("\t",@fams),"\n";
+foreach my $locus (sort keys %dep){
+	print DOUT "$locus\t";
+	my @values;
+	foreach my $fam (@fams){
+		if (defined $dep{$locus}{$fam} && $dep{$locus}{$fam} != 0){
+			push @values,$dep{$locus}{$fam};
+		}else{
+			push @values,"";
+		}
+	}
+	print DOUT join("\t",@values),"\n";
+}
+close DOUT;
+
+#########################################################
 sub get_homo {
 	my ($C) = @_;
 	my %temp;
@@ -79,23 +99,24 @@ sub get_homo {
 		my @data = split /\t/,$line;
 		next if ($data[3] eq '.' or $data[3] < 100);
 		my @tM = splice @data,4;
-                my %Dep;
-                my $depcheck = 1;
-                for (@tM){
-                        my $depsum = 0;
-                        my @Depinfo = split /[;,]/,$_;
-                        for my $i (1..scalar @Depinfo - 1){
-                                if ($Depinfo[$i] eq '.'){$Depinfo[$i] = 0;}
-                                $Dep{$i - 1} += $Depinfo[$i];
+		my %Dep;
+		my $depcheck = 1;
+		my @bases = split /,/,$data[2];
+		for (@tM){
+			my $depsum = 0;
+			my @Depinfo = split /[;,]/,$_;
+			for my $i (1..scalar @Depinfo - 1){
+				if ($Depinfo[$i] eq '.'){$Depinfo[$i] = 0;}
+				$Dep{$bases[$i - 1]} += $Depinfo[$i];
 				$depsum += $Depinfo[$i];
-                        }
+			}
 			if ($depsum <= 50){
 				$depcheck *= 0;
 			}else{
 				$depcheck *= 1;
 			}
-                }
-                next if ($depcheck == 0);
+		}
+		next if ($depcheck == 0);
 
 		my @values = sort {$b<=>$a} values %Dep;
 		if (scalar @values > 1){
