@@ -1,5 +1,12 @@
 # My GATK4 WorkFlows
 
+## Install
+
+```R
+install.packages('optparse')
+install.packages('data.table')
+```
+
 ## seq-format-conversion
 Workflows for converting between sequence data formats
 
