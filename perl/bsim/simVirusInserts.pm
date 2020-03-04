@@ -34,6 +34,37 @@ sub getRefChr1stID($) {
 	}
 }
 
+sub getRefChrHash($) {
+	my $GENOME = $_[0];
+	my %ChrDat;
+	my ($minSeq,$minLen);
+	while (<$GENOME>) {
+		s/^>//;
+		/^(\S+)/ or next;
+		my $seqname = $1;
+		print STDERR ">$seqname ...";
+		$/=">";
+		my $genome=<$GENOME>;
+		chomp $genome;
+		$genome=~s/\s//g;
+		$/="\n";
+		my $thelength = length $genome;
+		print STDERR "\b\b\b", $thelength, ".\n";
+		$ChrDat{$seqname} = $genome;
+		my $SeqLen = length $genome;
+		if (defined $minLen) {
+			if ($minLen > $SeqLen) {
+				$minLen = $SeqLen;
+				$minSeq = $genome;
+			}
+		} else {
+			$minLen = $SeqLen;
+			$minSeq = $genome;
+		}
+	}
+	return (\%ChrDat,$minLen,$minSeq);
+}
+
 sub getRefChr1st($) {
 	my $GENOME = $_[0];
 	while (<$GENOME>) {
@@ -138,23 +169,45 @@ sub base2qual($) {
 }
 
 sub dosim($$$) {
-	my ($Refstr,$Virstr,$Paras)=@_;
-	my $PEinsertLen = $Paras->{PEinsertLen};
-	my $SeqReadLen = $Paras->{SeqReadLen};
-	my $RefBorder = $PEinsertLen + 1000;
+	my ($pRefHash,$pVirHash,$Paras)=@_;
 	open O,'>',$Paras->{OutPrefix}.'.Ref.fa';
 	#open R1,'>',$Paras->{OutPrefix}.'.1.fq';
 	#open R2,'>',$Paras->{OutPrefix}.'.2.fq';
-	tie *R1, 'IO::Zlib', $Paras->{OutPrefix}.'.b1.fq.gz', "wb9";
-	tie *R2, 'IO::Zlib', $Paras->{OutPrefix}.'.b2.fq.gz', "wb9";
-	tie *Ra, 'IO::Zlib', $Paras->{OutPrefix}.'.r1.fq.gz', "wb9";
-	tie *Rb, 'IO::Zlib', $Paras->{OutPrefix}.'.r2.fq.gz', "wb9";
+	my ($fR1,$fR2,$fRa,$fRb);
+	$fR1 = IO::Zlib->new($Paras->{OutPrefix}.'.b1.fq.gz', 'wb9');
+	$fR2 = IO::Zlib->new($Paras->{OutPrefix}.'.b2.fq.gz', 'wb9');
+	$fRa = IO::Zlib->new($Paras->{OutPrefix}.'.r1.fq.gz', 'wb9');
+	$fRb = IO::Zlib->new($Paras->{OutPrefix}.'.r1.fq.gz', 'wb9');
+	my $PEinsertLen = $Paras->{PEinsertLen};
+	print STDERR "$Paras->{OutPrefix}:\tPE_Ins:$PEinsertLen, Vir_Frag:$Paras->{VirFrag}.\n";
+	my ($Refstr,$Virstr);
+	for my $kH (sort keys %{$pRefHash}) {
+		$Refstr = $pRefHash->{$kH};
+		print STDERR "\tHum:[$kH], Vir:";
+		for my $kV (sort keys %{$pVirHash}) {
+			$Virstr = $pVirHash->{$kV};
+			print STDERR "[$kV],";
+			dosimS($Refstr,$Virstr,$Paras,[$fR1,$fR2,$fRa,$fRb],[$kH,$kV]);
+		}
+		print STDERR "\b.\n";
+	}
+	close O;
+	close $fR1; close $fR2;
+	close $fRa; close $fRb;
+}
+
+sub dosimS($$$$$) {
+	my ($Refstr,$Virstr,$Paras,$pFHs,$pChrIDs)=@_;
+	my ($fhR1,$fhR2,$fhRa,$fhRb) = @$pFHs;
+	my ($kH,$kV) = @$pChrIDs;
+	my $PEinsertLen = $Paras->{PEinsertLen};
+	my $SeqReadLen = $Paras->{SeqReadLen};
+	my $RefBorder = $PEinsertLen + 1000;
 	#my @Refticks = @{getticks($RefBorder,$Refstr,$Paras->{RefLen},$PEinsertLen,$Paras->{RefNratioMax})};
 	#my @Virticks = @{getticks($Paras->{VirFrag},$Virstr,$Paras->{VirLen},int(0.9+ 0.5*$Paras->{VirFrag}),$Paras->{RefNratioMax})};
 	my @Refticks = @{$Paras->{pRefticks}};	# made a copy
 	my @Virticks = @{$Paras->{pVirticks}};
 	#ddx $Paras;
-	print STDERR "$Paras->{OutPrefix}:\tPE_Ins:$PEinsertLen, Vir_Frag:$Paras->{VirFrag}.\n";
 	for my $pRef (@Refticks) {
 		my $seqR1 = substr $Refstr,($pRef-$PEinsertLen),$PEinsertLen;
 		my $seqR2 = substr $Refstr,$pRef,$PEinsertLen;
@@ -176,7 +229,7 @@ sub dosim($$$) {
 		$newSeqs[2] =~ tr /Gg/Aa/;	# 100% un-methylation R
 		#for my $mt (1 .. $#newSeqs) {	# skip 0, only of 100% un-methylation.
 		#	my $newSeq = $newSeqs[$mt];
-			my $tID = join('_','Ref',$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,'Vir',$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
+			my $tID = join('_',"R:$kH",$pRef-$PEinsertLen+1,$pRef,$pRef+$PEinsertLen,"V:$kV",$strand,$startV+1,$startV+$Paras->{VirFrag},'R',$PEinsertLen,$SeqReadLen);
 			print O '>',$tID,"\n$RawNewSeq\n\n";
 			my $maxP = length($RawNewSeq) - $PEinsertLen;
 			#for my $p ($Paras->{LeftStart} .. $Paras->{LeftEnd}) {
@@ -196,24 +249,21 @@ sub dosim($$$) {
 				my ($Part1,$Part2);
 				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,1);
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'f',$p,2);
-				print R1 "\@sf${p}_${type}_${tID}/1 ${Part1}\n$fR1\n+\n",base2qual($fR1),"\n";
-				print R2 "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revfR2\n+\n",base2qual($revfR2),"\n";
-				print Ra "\@so${p}_${type}_${tID}/1 ${Part1}\n$oR1\n+\n",base2qual($oR1),"\n";
-				print Rb "\@so${p}_${type}_${tID}/2 ${Part2}\n$revoR2\n+\n",base2qual($revoR2),"\n";
+				print $fhR1 "\@sf${p}_${type}_${tID}/1 ${Part1}\n$fR1\n+\n",base2qual($fR1),"\n";
+				print $fhR2 "\@sf${p}_${type}_${tID}/2 ${Part2}\n$revfR2\n+\n",base2qual($revfR2),"\n";
+				print $fhRa "\@so${p}_${type}_${tID}/1 ${Part1}\n$oR1\n+\n",base2qual($oR1),"\n";
+				print $fhRb "\@so${p}_${type}_${tID}/2 ${Part2}\n$revoR2\n+\n",base2qual($revoR2),"\n";
 				my $rR1 = substr $rPE,0,$SeqReadLen;
 				my $rR2 = substr $rPE,$PEinsertLen-$SeqReadLen,$SeqReadLen;
 				my $revrR2 = revcom($rR2);
 				$type =~ tr/123456789ABCDEFGH/GDFA5HCE94B728316/;	# 反向后的对应关系
 				$Part2 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,2);
 				$Part1 = join '-',getInsertParts($PEinsertLen,$SeqReadLen,$Paras->{VirFrag},'r',$p,1);
-				print R1 "\@sr${p}_${type}_${tID}/1 ${Part1}\n$rR1\n+\n",base2qual($rR1),"\n";
-				print R2 "\@sr${p}_${type}_${tID}/2 ${Part2}\n$revrR2\n+\n",base2qual($revrR2),"\n";
+				print $fhR1 "\@sr${p}_${type}_${tID}/1 ${Part1}\n$rR1\n+\n",base2qual($rR1),"\n";
+				print $fhR2 "\@sr${p}_${type}_${tID}/2 ${Part2}\n$revrR2\n+\n",base2qual($revrR2),"\n";
 			}
 		#}
 	}
-	close O;
-	close R1; close R2;
-	close Ra; close Rb;
 	#print STDERR "\b\b\bdone.\n";
 }
 

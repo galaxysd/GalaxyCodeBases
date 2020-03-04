@@ -22,14 +22,20 @@ $ReadLen = 90 unless defined $ReadLen;
 #$Virf='HBV.AJ507799.2.fa.gz';
 
 my $Refh = openfile($Reff);
-my $Refstr = getRefChr1st($Refh);
-my $RefLen = length $Refstr;
+#my $Refstr = getRefChr1st($Refh);
+#my $RefLen = length $Refstr;
+my ($pRefHash,$RefLen,$Refstr) = getRefChrHash($Refh);
 close $Refh;
 my $Virfh = openfile($Virf);
-my $Virstr = getRefChr1st($Virfh);
-my $VirLen = length $Virstr;
+#my $Virstr = getRefChr1st($Virfh);
+#my $VirLen = length $Virstr;
+my ($pVirHash,$VirLen,$Virstr) = getRefChrHash($Virfh);
 close $Virfh;
+# Now $Virstr and $VirLen are from the shortest seq.
 $Virstr .= $Virstr;	# circle
+for my $k (keys %{$pVirHash}) {
+	$pVirHash->{$k} .= $pVirHash->{$k};	# circle
+}
 
 open INI,'>',$outp.'.ini' or die $!;
 my $Refabsf = abs_path($Reff);
@@ -118,61 +124,61 @@ if (defined $TicksINI and -f $TicksINI) {
 $Para{pRefticks} = $pRefticks;
 $Para{pVirticks} = $pVirticks;
 
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m2D';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen1;
 $Para{OutPrefix} = $outp . '_m2Dty1';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen2;
 $Para{OutPrefix} = $outp . '_m2Dty2';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $TinyLen3;
 $Para{OutPrefix} = $outp . '_m2Dty3';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[3];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m458AE';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[2];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m9';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[1];
 $Para{VirFrag} = $LongLen;
 $Para{OutPrefix} = $outp . '_m6';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[1];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_m7C';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 $Para{PEinsertLen} = $PEins[0];
 $Para{VirFrag} = $ShortLen;
 $Para{OutPrefix} = $outp . '_mB';
-dosim($Refstr,$Virstr,\%Para);
+dosim($pRefHash,$pVirHash,\%Para);
 $fqFiles{$Para{OutPrefix}} = [$Para{PEinsertLen},$Para{VirFrag}];
 
 my @fps = sort keys %fqFiles;
