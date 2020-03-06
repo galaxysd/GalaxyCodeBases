@@ -47,13 +47,13 @@ $(cxxobjects): $(OBJDIR)%.o: %.c tmpdir
 $(c99objects): $(OBJDIR)%.o: %.c tmpdir
 	$(CC) $(CFLAGS) $(OPT) -c $< -o $@
 
-debug: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
+debug: override OPT := -O -D DEBUGa -g
 debug: all
 
 tmpdir:
 	-mkdir ./objects
 
-test: override MAKEARG := $(CFLAGS) -O -D DEBUGa -g
+test: override OPT := -O -D DEBUGa -g
 test: $(exefiles)
 	valgrind --leak-check=yes ./$(exefiles) -p g ToGrep.ini
 run: $(exefiles)

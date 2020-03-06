@@ -119,7 +119,7 @@ int getPairedSam(htsFile *fp, hts_idx_t *idx, bam1_t *b, bam1_t *d) {
 	uint16_t flag1 = c->flag & (BAM_FREAD1 | BAM_FREAD2);
 	hts_itr_t *iter;
 	if ((iter = sam_itr_queryi(idx, c->mtid, c->mpos, c->mpos+1)) == 0) {
-		fprintf(stderr, "[E::%s] fail to parse region '(%d):%d'\n", __func__, c->mtid, c->mpos);
+		fprintf(stderr, "[E::%s] fail to parse region '(%d):%lld'\n", __func__, c->mtid, c->mpos);
 		ret = 1;
 	}
 	while ((r = sam_itr_next(fp2, iter, d)) >= 0) {	// 存在 第一个左端点符合的 && Read1 with Read2 only. Read12互补 && qname一致

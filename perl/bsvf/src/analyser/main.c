@@ -138,7 +138,7 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 			while((word = strsep((char**)&value, sep)) != NULL) {
 				if (*word) {
 #ifdef DEBUGa
-					printf("-[%s]-",word);
+					printf("-R[%s]-",word);
 #endif
 					kv_push(char*, aRefChrIDs, strdup(word));
 				}
@@ -154,8 +154,12 @@ static int ReadGrepINI(void* user, const char* section, const char* name, const 
 		} else if (strcmp(name, "VirusChrIDs") == 0) {
 			for (word = strtok_r( (char*)value, sep, &strtok_lasts);
 				word;	// We need to alter this 'const char *' of `value`.
-				word = strtok_r(NULL, sep, &strtok_lasts))
+				word = strtok_r(NULL, sep, &strtok_lasts)) {
+#ifdef DEBUGa
+				printf("-V[%s]-",word);
+#endif
 				kv_push(char*, aVirusChrIDs, strdup(word));
+			}
 		} else if (strcmp(name, "Refilename") == 0) {
 			myConfig.RefileName = strdup(value);
 		} else {
