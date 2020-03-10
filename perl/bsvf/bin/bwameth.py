@@ -264,6 +264,7 @@ def bwa_mem(fa, mfq, extra_args, threads=1, rg=None,
 
     # penalize clipping and unpaired. lower penalty on mismatches (-B)
     cmd = "|bwa mem -T 40 -B 2 -L 10 -CMY "
+    #cmd = "|bwa mem -T 40 -B 2 -L 10 -CMY -qa " # the tailing space must be KEPT.
 
     if paired:
         cmd += ("-U 100 -p ")

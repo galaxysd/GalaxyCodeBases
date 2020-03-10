@@ -235,8 +235,10 @@ sub do_grep($) {
 				if ($flagHV == 3) {
 					$flagHV = 0;
 				#unless ($skipflag)
-					my $MergedHds = grepmerge(\@hReads,$main::Aligner);
-				my $MergedVds = grepmerge(\@vReads,$main::Aligner);
+					my ($MergedHds,$mostHchr,$mostVchr) = grepmerge(\@hReads,$main::Aligner);
+					my ($MergedVds,$mostRchr,$mostMchr) = grepmerge(\@vReads,$main::Aligner);
+					print STDERR ',' if $mostHchr ne $mostMchr;
+					print STDERR ';' if $mostVchr ne $mostRchr;
 					#ddx [$MergedHds,$MergedVds];
 # BSuitLib.pm:240: [
 #   {
@@ -260,7 +262,7 @@ sub do_grep($) {
 					}
 					($strandOdd,$strandEven)=(0,0);
 					my @Keys = sort {$b <=> $a} keys %{$MergedHds};
-				my @VKeys = sort {$b <=> $a} keys %{$MergedVds};
+					my @VKeys = sort {$b <=> $a} keys %{$MergedVds};
 					my @Vchrs = sort { $Vchr{$b} <=> $Vchr{$a} } keys %Vchr;
 					%Vchr = ();
 				my @Vposes=(-1,-1);

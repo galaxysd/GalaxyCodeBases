@@ -554,8 +554,16 @@ sub grepmerge($$) {
 	#   ]
 my $DEBGUHERE = 0;
 	my ($minLeft,$maxLS,@clipReads,%relPoses,%relPosesFR,$chr)=(5000000000,0);
-	my %Results;
+	my (%Results,%ChrMRNMs,%ChrREf);
 	for my $i (@{$_[0]}) {
+		my $MRNM = $i->[6];
+		++$ChrMRNMs{$MRNM};	# use the most abondunce one.
+		++$ChrREf{$i->[2]}
+	}
+	my $mostVchr = (sort {$ChrMRNMs{$b}<=>$ChrMRNMs{$a}} keys %ChrMRNMs)[0];
+	my $mostHchr = (sort {$ChrREf{$b}<=>$ChrREf{$a}} keys %ChrREf)[0];
+	for my $i (@{$_[0]}) {
+		next if ( $i->[6] ne $mostVchr ) or ($i->[6] ne $i->[2]) or ($i->[2] ne $mostHchr);	# skip other MRNMs
 		my @cigar = $i->[5] =~ /(\d+[MIDNSHP=XB])/g;
 		my $flag = 0;
 		#ddx \@cigar; die $i->[5];
@@ -785,7 +793,7 @@ print "@usingPoses\t",'-' x 25,"\n" if $DEBGUHERE;
 	# 		$absPosesFR{$_ - $minLeft} = $relPosesFR{$_};
 	# 	}
 	# }
-	return (\%Results);
+	return (\%Results,$mostHchr,$mostVchr);
 }
 sub mergeStr($) {
 	#   [
@@ -842,7 +850,11 @@ sub mergeStr($) {
 			@Bps = sort { $Col{$a} <=> $Col{$b} } keys %Col;	# choose the smaller one.
 			if ( $Col{$Bps[1]} - $Col{$Bps[0]} < 0.02 ) {	# q=3时，-10*($lgbp-$lgbq)=0.020624399283,最小。
 				my @t = sort { $a cmp $b } @Bps[0,1];
-				$res = $REV_IUB{$t[0].$t[1]};
+				if (@t > 1) {
+					$res = $REV_IUB{$t[0].$t[1]};
+				} else {
+					$res = $REV_IUB{$t[0]};	# Same bases がな?
+				}
 			} else {
 				$res = $Bps[0];
 			}
