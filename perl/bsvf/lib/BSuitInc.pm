@@ -588,7 +588,7 @@ my $DEBGUHERE = 0;
 			$minLeft = $left if $minLeft > $left;
 		}
 	}
-	return \%Results unless @clipReads;
+	return (\%Results,'','') unless @clipReads;
 	#ddx \@clipReads;
 	#my (@b2pCIGAR,@b2pDeriv);
 	my @ReadsCIGAR;
