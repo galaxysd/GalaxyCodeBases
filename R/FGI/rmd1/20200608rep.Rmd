@@ -17,6 +17,26 @@ output:
 
 ```{r include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+###### Color Format	https://stackoverflow.com/a/37122306/159695
+colFmt = function(x,color){
+  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if(outputFormat == 'latex')
+    paste("\\textcolor{",color,"}{",x,"}",sep="")
+  else if(outputFormat == 'html')
+    paste("<font color='",color,"'>",x,"</font>",sep="")
+  else
+    x
+}
+###### CENTER TXT
+ctrFmt = function(x){
+  out_type = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if(out_type == 'latex' || out_type == 'beamer')
+    paste0("\\begin{center}\n", x, "\n\\end{center}")
+  else if(out_type == 'html')
+    paste0("<center>\n", x, "\n</center>")
+  else
+    x
+}
 ```
 
 # 感谢信
@@ -73,11 +93,11 @@ knitr::kable(myResult, caption = '位点信息表')
 \noindent 答：当家人发生意外走失、失踪等情况时首先应立即报警。
 若需要亲子关系比对，请拨打华大司法客户服务热线4 0 0 - 9 0 0 - 2 6 1 6， 根据语音提示，选择“寻亲求助”，获得专业的寻亲帮助。
 
-\begin{center}如需帮助，可致电华大司法客户服务热线400-900-2616\end{center}
+`r ctrFmt("如需帮助，可致电华大司法客户服务热线400-900-2616")`
 
 \newpage
 
-
+`r colFmt("MY RED TEXT",'red')`
 
 # 位点信息：
 ## 位点信息：
@@ -100,4 +120,7 @@ header-includes:
 
 需要R包：`library(rmarkdown)`与`library(rticles)`。
 需要安装LaTeX与pandoc。
+
+# install.packages('kableExtra')
+
 
