@@ -45,8 +45,7 @@ else
 	uname -a > ${MAIN}.out 2>>${MAIN}.err
 	sleep 2
 	ARG1=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $1}')
-	ARG2=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $2}')
-	perl sperm_1_startplot.pl $PATH $MAIN
+	#ARG2=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $2}')
 	cutadapt ${CUTADAPTARG} ${PEADAPTERSTR} --interleaved -o fq/${ARG1}.fq.gz ${INPATH}/${ARG1}_1.fq.gz ${INPATH}/${ARG1}_2.fq.gz >fq/${ARG1}.log
 # jobs end
 	ENDVALUE=$?
@@ -64,7 +63,6 @@ QUEUE is [$QUEUE]
 RESTARTED is [$RESTARTED] 0 or 1
 TMPDIR is [$TMPDIR] and TMP is [$TMP]
 
-[$ENVA] [$ENVB] [$ENVC]
 PERL5LIB is [$PERL5LIB]
 PYTHONPATH is [$PYTHONPATH]
 HOME is [$HOME] 
