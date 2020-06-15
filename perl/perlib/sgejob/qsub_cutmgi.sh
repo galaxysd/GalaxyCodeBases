@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -q fgi.q -P fgi
-#$ -l vf=2G,num_proc=3
+#$ -l vf=3G,num_proc=3
 #$ -binding linear:4
 #$ -cwd -r y
 #$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
@@ -35,11 +35,11 @@ if [ "$JOB_ID" = "" ]; then
 	done
 else
 	if [ "$1" = "" ]; then
-		MAIN=${JOB_NAME}_${JOB_ID}${TASK_ID}
+		MAIN=${JOB_NAME}_${JOB_ID}${SGE_TASK_ID}
 	else
 		MAIN=$1
 	fi
-	echo \#Running @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$TASK_ID] >${MAIN}.err
+	echo \#Running @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$SGE_TASK_ID] >${MAIN}.err
 	echo \#Begin @ `date` >>${MAIN}.err
 # jobs here
 	uname -a > ${MAIN}.out 2>>${MAIN}.err

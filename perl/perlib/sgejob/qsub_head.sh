@@ -40,7 +40,7 @@ if [ "$JOB_ID" = "" ]; then
 	done
 else
 	if [ "$1" = "" ]; then
-		MAIN=${JOB_NAME}_${JOB_ID}${TASK_ID}
+		MAIN=${JOB_NAME}_${JOB_ID}${SGE_TASK_ID}
 	else
 		MAIN=$1
 	fi
@@ -52,7 +52,7 @@ else
 		echo >>${MAIN}.out
 		echo \#Restart @ `date` [$RESTARTED]>>${MAIN}.err
 	fi
-	echo \#$ENVIRONMENT $JOB_NAME of $QUEUE @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$TASK_ID] >>${MAIN}.err
+	echo \#$ENVIRONMENT $JOB_NAME of $QUEUE @ Host:$HOSTNAME as Job:[$JOB_ID],Task:[$SGE_TASK_ID] >>${MAIN}.err
 # jobs here
 	uname -a >>${MAIN}.out 2>>${MAIN}.err
 	perl -e 'for (1..20000000) {$a{$_}=$_;print $a{$_},"\n";};exit 1;'
