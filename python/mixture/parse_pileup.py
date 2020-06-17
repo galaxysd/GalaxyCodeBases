@@ -21,12 +21,12 @@ def openPileup(pileup_file, log=False):
     """
     #pileup file loading
     try:
-        if pileup_file.endwith('.zstd'):
+        if pileup_file.endswith('.zstd'):
             fh = open(pileup_file, 'rb')
             dctx = zstandard.ZstdDecompressor()
             stream_reader = dctx.stream_reader(fh)
             pileup = io.TextIOWrapper(stream_reader, encoding='utf-8')
-        elif pileup_file.endwith('.gz'):
+        elif pileup_file.endswith('.gz'):
             pileup = gzip.open(pileup_file, 'rt')
         else:
             pileup = open(pileup_file, 'rt')
@@ -38,9 +38,7 @@ def openPileup(pileup_file, log=False):
         print ("Could not open input file %s" %  pileup_file)
         sys.exit()
 
-
-    
-def get_pileup_parser(line):
+def mpileup_parser(line):
     if line == "\n":
         print ("pileup parser empty line provided")
         sys.exit(8)
@@ -57,11 +55,13 @@ def get_pileup_parser(line):
     LineSplited = len(line_items)
     if (LineSplited % 3) == 0 and LineSplited >= 6:
         SampleCnt = (LineSplited-3) / 3
-        
-    if len(line_items) == 6:
-        (ch, pos, rc, cov, nucs, qual) = line_items
+        (ch, pos, rc) = line_items
+    SampleRows=['cov', 'nucs', 'qual']
+    SampleNO = range(1,SampleCnt+1)
+    SampleID = [[str(i)+str(j) for j in SampleRows] for i in SampleNO]
+        #(ch, pos, rc, cov, nucs, qual) = line_items
     else:
-        print ("wrong number of columns in pileup line: %s" % (line))
+        print ("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
         sys.exit()
 
     #nucs is filtered
@@ -171,26 +171,26 @@ def get_pileup_parser(line):
         alleles += 1
     #...
     
-  allele_code = "na"
+    allele_code = "na"
     if alleles == 1:
         allele_code = "M"
     elif alleles == 2:
         allele_code = "S"
     elif alleles >2:
         allele_code = "T"
-  entry['allele_code'] = allele_code        
-  #..
+    entry['allele_code'] = allele_code        
+    #..
 
     valid = 1
     if  entry['del'] >0 or entry['eucov'] < self.minCoverage or entry['eucov'] > self.maxCoverage:
         valid = 0
-  entry["valid"] = valid
+    entry["valid"] = valid
 
-  entry['ancestral_allele']="N"
-  entry['derived_allele']="N"
-  entry['removed_alleles']= 0
-  entry['unfolded']=1
-  entry['refc']=entry['refc'].upper()
+    entry['ancestral_allele']="N"
+    entry['derived_allele']="N"
+    entry['removed_alleles']= 0
+    entry['unfolded']=1
+    entry['refc']=entry['refc'].upper()
 
     return entry
 #...
@@ -200,5 +200,8 @@ if __name__ == "__main__":
     #import doctest
     #doctest.testmod()
     import sys
-    #print(bytes2human(sys.argv[1]))
-    #print(human2bytes(sys.argv[2]))
+    with openPileup(sys.argv[1]) as TextIn:
+        for line in TextIn:
+            record = mpileup_parser(line)
+            print(record)
+    exit()
