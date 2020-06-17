@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Modified by Daniel Gomez-Sanchez: adding opening bgzipped pileups
-# from <https://github.com/magicDGS/PoolHMM/blob/master/Modules/parse_pileup.py>
+# <https://github.com/magicDGS/PoolHMM/blob/master/Modules/parse_pileup.py>
+# <https://github.com/bihealth/vcfpy/blob/master/vcfpy/parser.py>
 import sys
 import getopt
 import re
