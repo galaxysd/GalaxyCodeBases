@@ -52,15 +52,18 @@ def mpileup_parser(line):
         print ("could not parse pileup entry %s" % (line))
         sys.exit(9)
     #...
-
+    RowIDpre = ['ChrID','Pos','Ref']
     LineSplited = len(line_items)
     if (LineSplited % 3) == 0 and LineSplited >= 6:
-        SampleCnt = (LineSplited-3) / 3
-        (ch, pos, rc) = line_items
-    SampleRows=['cov', 'nucs', 'qual']
-    SampleNO = range(1,SampleCnt+1)
-    SampleID = [[str(i)+str(j) for j in SampleRows] for i in SampleNO]
+        SampleCnt = int(LineSplited / 3) -1
+        SampleRows=['Depth','Bases','Quals']
+        SampleNO = range(1,SampleCnt+1)
+        RowIDsmp = [[str(i)+str(j) for j in SampleRows] for i in SampleNO]
+        for i in RowIDsmp:
+            RowIDpre.extend(i)
         #(ch, pos, rc, cov, nucs, qual) = line_items
+        for rid, raw_data in zip(RowIDpre, line_items):
+            print(rid,'=',raw_data)
     else:
         print ("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
         sys.exit()
