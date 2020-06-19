@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -q fgi.q -P fgi
-#$ -l vf=8G,num_proc=9
+#$ -l vf=11G,num_proc=9
 #$ -binding linear:12
 #$ -cwd -r y
 #$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
@@ -18,6 +18,7 @@ SLEEP=20
 
 cmd="$QSUB -t 1-$SEEDLINES $0 $0 $@"
 
+GATKBIN="./gatk"
 BWAREF="./ref/Homo_sapiens_assembly38.fasta"
 
 # started by SGE or manually
@@ -41,7 +42,9 @@ else
 	uname -a > ${MAIN}.out 2>>${MAIN}.err
 	sleep 2
 	ARG1=$(/bin/sed -n -e "${SGE_TASK_ID} p" $SEEDFILE|/bin/awk -F"\t" '{print $1}')
-	bwa mem -t 12 -Y ${BWAREF} -R "@RG\tID:${ARG1}\tSM:${ARG1}" -p fq/${ARG1}.fq.gz 2>bam/${ARG1}.log | samtools view -bS - | samtools sort -m 2G -T bam/${ARG1}.tmp -o bam/${ARG1}.bam
+	bwa mem -t 12 -Y ${BWAREF} -R "@RG\tID:${ARG1}\tSM:${ARG1}\tPL:ILLUMINA" -p fq/${ARG1}.fq.gz 2>bam/${ARG1}.log | samblaster | samtools view -bS - | samtools sort -m 2G -T bam/${ARG1}.tmp -o bam/${ARG1}.bam
+	${GATKBIN} BaseRecalibrator -I bam/${ARG1}.bam -R ${BWAREF} --known-sites ref/Homo_sapiens_assembly38.dbsnp138.vcf --known-sites ref/1000G_phase3_v4_20130502.sites.hg38.vcf -O bam/${ARG1}.recal.table
+	${GATKBIN} ApplyBQSR -I bam/${ARG1}.bam -R ${BWAREF} --bqsr-recal-file nbam/${ARG1}.recal.table -O bam/${ARG1}.BQSR.bam
 # jobs end
 	ENDVALUE=$?
 	cat <<EOFSTAT >> ${MAIN}.err
