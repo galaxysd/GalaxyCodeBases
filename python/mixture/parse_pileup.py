@@ -68,6 +68,11 @@ def mpileup_parser(line):
         print ("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
         sys.exit()
 
+def mpileup_sample_parser(items):
+    #
+    return
+
+def xxxx(line):
     #nucs is filtered
     #step 1
     s1 = re.findall(r"[-+](\d+)", nucs)
