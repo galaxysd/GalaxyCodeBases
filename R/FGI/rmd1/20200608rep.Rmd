@@ -13,6 +13,15 @@ output:
   html_document:
     toc: yes
     theme: united
+header-includes:
+  \usepackage{booktabs}
+  \usepackage{longtable}
+  \usepackage{array}
+  \usepackage{multirow}
+  \usepackage[table]{xcolor}
+  \usepackage{wrapfig}
+  \usepackage{float}
+  \floatplacement{figure}{H}
 ---
 
 ```{r include = FALSE}
@@ -55,19 +64,37 @@ ctrFmt = function(x){
 
 #### 您的基本信息
 
-\noindent 姓名：路人甲 \hfill 性别：男 \hfill 出生日期：1994-6-3 \newline
+\noindent 姓名：路人甲 \hfill 性别：男 \hfill 出生日期：1999-6-3 \newline
 \noindent 检测日期：2020-6-3 \hfill 样本编号：1234567 \newline
 \noindent 联系电话：13612345678 \newline
 \noindent 联系地址：
 
 #### 位点信息
 
-```{r tables-Result}
+```{r tResult, tab.align='center'}
 myResult=read.csv('20200608rep.csv', colClasses='character')
-knitr::kable(myResult, caption = '位点信息表')
+knitr::kable(myResult, caption='位点信息表', longtable=TRUE, booktabs=TRUE, label='tResult')
 ```
 
 \noindent 注：本报告所检测位点均为非隐私位点，不涉及任何医学疾病相关信息，无医学参考意义。
+
+#### 位点分布示意图：
+
+```{r fSTRdist, out.width='75%', fig.align='center', fig.cap='STR标记位点分布示意图'}
+knitr::include_graphics('inc/Sites.png')
+```
+
+\noindent 注：
+
+1. 图片仅为展示效果，不代表真实染色体形态；
+2. 检测位点仅涉及1-22号常染色体，不涉及性染色体。
+
+#### 应用场景：
+
+* 新生儿建档
+* 个人身份识别
+* 儿童老人走失寻回
+* 需要永久身份证明的人员
 
 #### FAQ：
 
@@ -107,6 +134,8 @@ knitr::kable(myResult, caption = '位点信息表')
 
 ##### 位点信息：
 
+in Figure \ref{fig:fSTRdist} we see examples of plotting in R.
+Also Table \\ref{table:tResult}.
 
 \newpage
 
