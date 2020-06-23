@@ -58,19 +58,30 @@ def mpileup_parser(line):
         SampleCnt = int(LineSplited / 3) -1
         SampleRows=['Depth','Bases','Quals']
         SampleNO = range(1,SampleCnt+1)
-        RowIDsmp = [[str(i)+str(j) for j in SampleRows] for i in SampleNO]
+        RowIDsmp = [[str(j)+str(i) for j in SampleRows] for i in SampleNO]
+        RowIDall = RowIDpre
         for i in RowIDsmp:
-            RowIDpre.extend(i)
+            RowIDall.extend(i)
         #(ch, pos, rc, cov, nucs, qual) = line_items
-        for rid, raw_data in zip(RowIDpre, line_items):
+        for rid, raw_data in zip(RowIDall, line_items):
             print(rid,'=',raw_data)
+        LineData = dict(zip(RowIDall, line_items))
+        for i in SampleNO:
+            (d,b,q) = mpileup_item_parser(LineData['Ref'], LineData['Depth'+str(i)],LineData['Bases'+str(i)],LineData['Quals'+str(i)])
+            #print('ret:',d,b,q)
     else:
         print ("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
         sys.exit()
 
-def mpileup_sample_parser(items):
-    #
-    return
+def mpileup_item_parser(Ref,Depth,Bases,Quals):
+    print(Ref,Depth,Bases,Quals)
+    s1 = re.findall(r"[-+](\d+)", Bases)
+    for n in s1:
+        l1 = ['[-+]',n,'[ACGTNacgtn]{',n, '}']
+        pattern = r''.join(l1)
+        Bases = re.sub(pattern, '', Bases)
+    
+    return [Depth,Bases,Quals]
 
 def xxxx(line):
     #nucs is filtered
