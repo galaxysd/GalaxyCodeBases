@@ -11,6 +11,11 @@ import gzip
 import zstandard
 import io
 
+import pileup_parser_classes
+
+PileObj = pileup_parser_classes.Pile()
+parseBase = pileup_parser_classes.PileSanitizer()
+
 def openPileup(pileup_file, log=False):
     """
     Open pileup in text format or gzipped
@@ -70,17 +75,13 @@ def mpileup_parser(line):
             (d,b,q) = mpileup_item_parser(LineData['Ref'], LineData['Depth'+str(i)],LineData['Bases'+str(i)],LineData['Quals'+str(i)])
             #print('ret:',d,b,q)
     else:
-        print ("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
+        print("wrong number of columns in pileup line (SampleCnt=%d): %s" % (SampleCnt,line))
         sys.exit()
 
 def mpileup_item_parser(Ref,Depth,Bases,Quals):
     print(Ref,Depth,Bases,Quals)
-    s1 = re.findall(r"[-+](\d+)", Bases)
-    for n in s1:
-        l1 = ['[-+]',n,'[ACGTNacgtn]{',n, '}']
-        pattern = r''.join(l1)
-        Bases = re.sub(pattern, '', Bases)
-    
+    result1 = parseBase.sanitize(Bases)
+    print(result1)
     return [Depth,Bases,Quals]
 
 def xxxx(line):
