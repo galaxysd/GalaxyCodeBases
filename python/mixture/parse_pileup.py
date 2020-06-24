@@ -2,6 +2,7 @@
 # Modified by Daniel Gomez-Sanchez: adding opening bgzipped pileups
 # <https://github.com/magicDGS/PoolHMM/blob/master/Modules/parse_pileup.py>
 # <https://github.com/bihealth/vcfpy/blob/master/vcfpy/parser.py>
+# <https://github.com/genomeannotation/pileup_analyzer>
 import sys
 import getopt
 import re
