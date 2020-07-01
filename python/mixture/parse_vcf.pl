@@ -25,6 +25,14 @@ while(<SID>) {
 close SID;
 ddx \@SampleIDs;
 # ["T10C", "T3C", "mixed"] => v,k,m
+
+sub mergeGT($) {
+	my $hashref = $_[0];
+	my @GTs = sort keys %{$hashref};
+	return join('',@GTs);
+}
+
+my %COUNTING;
 open(IN,"-|",$cmd) or die "Error opening [$filename]: $!\n";
 while (<IN>) {
 	print $_;
@@ -42,12 +50,27 @@ while (<IN>) {
 		#my @result = sort(keys %counter);
 		$GTs{$SampleIDs[$i]} = \%counter;
 	}
-	$GTs{'_R'} = {%{$GTs{'mixed'}}};
+	$GTs{'__R'} = {%{$GTs{'mixed'}}};
 	for (keys %{$GTs{'T10C'}}) {
-		if (exists $GTs{'_R'}{$_}) {
-			delete $GTs{'_R'}{$_};
+		if (exists $GTs{'__R'}{$_}) {
+			delete $GTs{'__R'}{$_};
 		}
 	}
+	$GTs{'_V'} = mergeGT($GTs{'T10C'});
+	$GTs{'_K'} = mergeGT($GTs{'T3C'});
+	$GTs{'_M'} = mergeGT($GTs{'mixed'});
+	$GTs{'_R'} = mergeGT($GTs{'__R'});
 	ddx \%GTs;
+	++$COUNTING{'_All'};
+	if ($GTs{'_R'} eq '') {
+		++$COUNTING{'0noR'};
+	} elsif ($GTs{'_R'} eq $GTs{'_K'}) {
+		++$COUNTING{'1fulEQ'};
+	} elsif ($GTs{'_K'} =~ /($GTs{'_R'})/) {
+		++$COUNTING{'2inc'};
+	} else {
+		++$COUNTING{'3ne'};
+	}
 }
+ddx \%COUNTING;
 close IN;
