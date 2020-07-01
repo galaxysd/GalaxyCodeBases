@@ -45,6 +45,13 @@ while (<IN>) {
 		my @aGT = split /[|\/]/,$sGT;
 		my @aAD = split /\,/,$sAD;
 		my %counter;
+=pod
+		if ($SampleIDs[$i] eq 'mixed') {
+			++$counter{$_} for @aGT;
+		} else {
+			++$counter{$_} for @aGT[0,1];
+		}
+=cut
 		for (@aGT) {
 			++$counter{$_};
 		}
@@ -62,6 +69,8 @@ while (<IN>) {
 	$GTs{'_M'} = mergeGT($GTs{'mixed'});
 	$GTs{'_R'} = mergeGT($GTs{'__R'});
 	ddx \%GTs;
+	my $str1 = $GTs{'_R'};
+	my $str2 = join('.+',split(//,$str1));
 	++$COUNTING{'_All'};
 	if ($GTs{'_R'} eq '') {
 		++$COUNTING{'0noR'};
@@ -69,8 +78,11 @@ while (<IN>) {
 		++$COUNTING{'1fulEQ'};
 	} elsif (length($GTs{'_R'})==1 and $GTs{'_K'} =~ /$GTs{'_R'}/) {
 		++$COUNTING{'2inc'};
+	} elsif ($GTs{'_K'} =~ /$str2/) {
+		++$COUNTING{'3incT'};
 	} else {
-		++$COUNTING{'3ne'};
+		++$COUNTING{'4ne'};
+		print STDERR "$_\n";
 	}
 }
 ddx \%COUNTING;
