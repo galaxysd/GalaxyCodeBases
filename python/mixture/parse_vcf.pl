@@ -35,10 +35,10 @@ sub mergeGT($) {
 my %COUNTING;
 open(IN,"-|",$cmd) or die "Error opening [$filename]: $!\n";
 while (<IN>) {
-	print $_;
 	chomp;
 	my ($Chrom,$Pos,$RefAlt,$Qual,@GTs) = split /\t/,$_;
 	next if $Chrom =~ /_/;
+	print "$_\n";
 	my %GTs;
 	for my $i (0 .. $#SampleIDs) {
 		my ($sGT,$sAD,$sGQ) = split /:/,$GTs[$i];
@@ -67,7 +67,7 @@ while (<IN>) {
 		++$COUNTING{'0noR'};
 	} elsif ($GTs{'_R'} eq $GTs{'_K'}) {
 		++$COUNTING{'1fulEQ'};
-	} elsif ($GTs{'_K'} =~ /($GTs{'_R'})/) {
+	} elsif (length($GTs{'_R'})==1 and $GTs{'_K'} =~ /$GTs{'_R'}/) {
 		++$COUNTING{'2inc'};
 	} else {
 		++$COUNTING{'3ne'};
