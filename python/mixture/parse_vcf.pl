@@ -9,7 +9,7 @@ die $Usage if @ARGV < 1;
 
 my ($filename) = @ARGV;
 #my $cmd = "bcftools view -m3 -v snps $filename | bcftools query -f '%CHROM\t%POS\t%REF,%ALT\t%QUAL[\t%TGT:%AD:%GQ]\n'";
-my $cmd = "bcftools view -U -m2 -i '%QUAL>=40 & MIN(FMT/GQ)>20 & GT[2]=\"het\"' -v snps $filename | bcftools query -f '%CHROM\t%POS\t%REF,%ALT\t%QUAL[\t%TGT:%AD:%GQ]\n'";
+my $cmd = "bcftools view -U -m2 -i '%QUAL>=40 & MIN(FMT/GQ)>20 & GT[2]=\"het\"' -v snps $filename |bcftools view -e 'FMT/DP=\".\"'| bcftools query -f '%CHROM\t%POS\t%REF,%ALT\t%QUAL[\t%TGT:%AD:%GQ]\n'";
 =pod
 chr1	102951	C,T	1575.58	C/C/C/T:23,6:25	C/C/C/T:88,27:67	C/C/C/T:111,33:93
 chr1	633963	C,T	6936.96	T/T/T/T:5,242:99	C/C/C/C:250,0:99	C/C/C/T:172,77:75
@@ -38,6 +38,7 @@ while (<IN>) {
 	print $_;
 	chomp;
 	my ($Chrom,$Pos,$RefAlt,$Qual,@GTs) = split /\t/,$_;
+	next if $Chrom =~ /_/;
 	my %GTs;
 	for my $i (0 .. $#SampleIDs) {
 		my ($sGT,$sAD,$sGQ) = split /:/,$GTs[$i];
