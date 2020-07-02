@@ -1,0 +1,163 @@
+---
+title: "解觅检测存储报告"
+author:
+  - 解基因，觅安心
+date: \today
+documentclass: ctexrep
+output:
+  pdf_document:
+    latex_engine: xelatex
+    fig_caption: yes
+    number_sections: no
+    toc: no
+    keep_tex: yes
+  html_document:
+    toc: yes
+    theme: united
+---
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+###### Color Format	https://stackoverflow.com/a/37122306/159695
+colFmt = function(x,color){
+  outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if(outputFormat == 'latex')
+    paste("\\textcolor{",color,"}{",x,"}",sep="")
+  else if(outputFormat == 'html')
+    paste("<font color='",color,"'>",x,"</font>",sep="")
+  else
+    x
+}
+###### CENTER TXT
+ctrFmt = function(x){
+  out_type = knitr::opts_knit$get("rmarkdown.pandoc.to")
+  if(out_type == 'latex' || out_type == 'beamer')
+    paste0("\\begin{center}\n", x, "\n\\end{center}")
+  else if(out_type == 'html')
+    paste0("<center>\n", x, "\n</center>")
+  else
+    x
+}
+```
+
+# 感谢信
+
+\noindent 您好！
+
+首先感谢您的选择与信任。我们始终秉持“公正、科学、严谨”的理念，通过一流的科技创新、一流的司法服务、一流的团队管理，对实验负责，对结果负责，从而为您提供专业权威的DNA检测服务。
+
+报告阅读过程如有任何疑问，欢迎来电垂询（400-900-2616）。深圳华大法医科技有限公司（简称华大司法）为华大集团旗下全资子公司，致力于通过自主知识产权的技术、试剂及仪器为全球司法鉴定提供更加严谨，更加高效的DNA检测服务。我们立足深圳，在全国拥有香港、北京、深圳、天津、西安五大鉴定中心，业务辐射全球30多个国家或地区，300,000余份鉴定报告零差错，精准率高达99.999999%，是您的信任之选。
+
+再次感谢您的支持，愿您平安喜乐，顺遂无忧。
+
+\begin{flushright}华大司法\end{flushright}
+
+\newpage
+
+#### 您的基本信息
+
+\noindent 姓名：路人甲 \hfill 性别：男 \hfill 出生日期：1994-6-3 \newline
+\noindent 检测日期：2020-6-3 \hfill 样本编号：1234567 \newline
+\noindent 联系电话：13612345678 \newline
+\noindent 联系地址：
+
+#### 位点信息
+
+```{r tResult}
+inDat=read.csv(file.path('dat','JK_report.csv'), colClasses='character')
+myResult=inDat[,c(1,2,3)]
+colnames(myResult)<-c('Gene ID','Genotype', '与我相同的比例')
+knitr::kable(myResult, caption='位点信息表', longtable=TRUE, booktabs=TRUE, label='tResult')
+```
+
+\noindent 注：本报告所检测位点均为非隐私位点，不涉及任何医学疾病相关信息，无医学参考意义。"Null"表示该位点未测出。
+
+#### 位点分布示意图：
+
+```{r fSTRdist, out.width='75%', fig.align='center', fig.cap='STR标记位点分布示意图'}
+knitr::include_graphics('inc/Sites.png')
+```
+
+\noindent 注：①图片仅为展示效果，不代表真实染色体形态；\newline
+②检测位点仅涉及1-22号常染色体，不涉及性染色体。
+
+in Figure \ref{fig:fSTRdist} we see examples of plotting in R.
+Also Table \ref{tab:tResult}.
+
+# A section {#sec:FirstSection}
+
+The dataset in Table \@ref(tab:aTable) contains some data.
+
+# Another section
+
+(ref:aTable-caption) See Section \ref{sec:FirstSection}.
+
+```{r, aTable, echo = FALSE}
+knitr::kable(
+  cars[1:5, ],
+  caption  = "(ref:aTable-caption)"
+)
+```
+
+#### 应用场景：
+
+* 新生儿建档
+* 个人身份识别
+* 儿童老人走失寻回
+* 需要永久身份证明的人员
+
+#### FAQ：
+
+#### 01 解觅是什么？
+
+\noindent 答：解觅是是基于二代SNP分型，利用质谱平台测序的高精准度个体识别技术。对样本DNA进行SNP分型检测，识别并存储相关位点信息。
+个体识别概率（TDP）高达1-1E(-30)，识别力超过亿亿分之一，可精准识别个人、准确判定亲子关系。
+
+#### 02 怎么看解觅的报告？
+
+\noindent 答：报告的“位点信息”部分展示了受检者样本测序得出的57个高多态性精选SNP位点信息。
+这些位点集合信息对每个人来说像指纹一样独一无二，可以说是一个终身不变的“基因身份证”，能做到精准的个人身份识别。
+在遇到需要亲子关系比对的特殊场景，此数据还可以做到准确的亲子关系判定。
+
+#### 03 我存储的解觅数据安全吗？会不会隐私泄露？
+
+\noindent 答：首先，解觅的数据存储于深圳国家基因库。
+深圳国家基因库已经通过了已通过信息安全等级保护三级评审以及可信云服务数据保护能力评审，具有完备的网络信息安全保护体系，我们的数据存在里面是安全的。
+其次，解觅测序存储的57个SNP位点均为中立DNA信息，是用来识别个人身份的个体特征信息，不涉及任何已知的家族遗传疾病基因、缺陷基因、疾病相关基因等信息。
+
+#### 04 解觅的数据要怎么使用？
+
+\noindent 答：当家人发生意外走失、失踪等情况时首先应立即报警。
+若需要亲子关系比对，请拨打华大司法客户服务热线4 0 0 - 9 0 0 - 2 6 1 6， 根据语音提示，选择“寻亲求助”，获得专业的寻亲帮助。
+
+`r ctrFmt("如需帮助，可致电华大司法客户服务热线400-900-2616")`
+
+\newpage
+
+`r colFmt("MY RED TEXT",'red')`
+
+# 位点信息：
+## 位点信息：
+### 位点信息：
+#### 位点信息：
+位点信息：
+
+##### 位点信息：
+
+
+\newpage
+
+```R
+rmarkdown::render('20200608rep.Rmd',output_format='all',output_dir='./out')
+
+
+header-includes:
+   - \usepackage[en-GB]{datetime2}
+```
+
+需要R包：`library(rmarkdown)`与`library(rticles)`。
+需要安装LaTeX与pandoc。
+
+# install.packages('kableExtra')
+
+
