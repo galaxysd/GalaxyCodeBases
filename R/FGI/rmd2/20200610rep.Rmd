@@ -68,14 +68,16 @@ inDat=read.csv(file.path('dat','JK_report.csv'), colClasses='character')
 myResult=inDat[,c(1,2,3)]
 colnames(myResult)<-c('Gene ID','Genotype', '与我相同的比例')
 knitr::kable(myResult, caption='位点信息表', longtable=TRUE, booktabs=TRUE, label='tResult')
+SampleName <- inDat[1,7]
 ```
 
 \noindent 注：本报告所检测位点均为非隐私位点，不涉及任何医学疾病相关信息，无医学参考意义。"Null"表示该位点未测出。
 
 #### 位点分布示意图：
 
-```{r fSTRdist, out.width='75%', fig.align='center', fig.cap='STR标记位点分布示意图'}
-knitr::include_graphics('inc/Sites.png')
+```{r fSTRdist, out.width='100%', fig.align='center', fig.cap='STR标记位点分布示意图'}
+imgFile <- file.path('dat',paste0(SampleName,'_report.pdf'))
+knitr::include_graphics(imgFile)
 ```
 
 \noindent 注：①图片仅为展示效果，不代表真实染色体形态；\newline
