@@ -76,7 +76,7 @@ SampleName <- inDat[1,7]
 #### 位点分布示意图：
 
 ```{r fSTRdist, out.width='100%', fig.align='center', fig.cap='STR标记位点分布示意图'}
-imgFile <- file.path('dat',paste0(SampleName,'_report.pdf'))
+imgFile <- file.path('dat',paste0(SampleName,'_report.png'))
 knitr::include_graphics(imgFile)
 ```
 

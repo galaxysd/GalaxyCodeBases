@@ -64,7 +64,7 @@ rcircos.params$track.padding <- 0
 RCircos.Reset.Plot.Parameters(rcircos.params)
 
 RCircos.Set.Plot.Area(margins=0)
-legend("center", legend=c("A", "C", "G", "T"), col=c("#5050FF", "#E00000","#00C000","#CC9900"), lwd=4)
+legend("center", legend=c("A", "C", "G", "T"), col=c("#5050FF", "#E00000","#00C000","#CC9900"), lwd=16)
 
 RCircos.Chromosome.Ideogram.Plot()
 
