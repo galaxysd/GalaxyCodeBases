@@ -94,16 +94,16 @@ imgFile <- file.path('dat',paste0(SampleID,'_report.png'))
 knitr::include_graphics(imgFile)
 ```
 
+\newpage
+
 #### SNP标记位点分布示意图：
 
-```{r fSNPdist, out.width='80%', fig.align='center', fig.cap=''}
+```{r fSNPdist, out.width='66%', fig.align='center', fig.cap=''}
 knitr::include_graphics('inc/Sites.png')
 ```
 
-\noindent 注：
-
-1. 图片仅为展示效果，不代表真实染色体形态；
-2. 检测位点仅涉及1-22号常染色体，不涉及性染色体。
+\noindent 注：图片仅为展示效果，不代表真实染色体形态。
+检测位点仅涉及1-22号常染色体，不涉及性染色体。
 
 #### 应用场景：
 

@@ -90,6 +90,8 @@ imgFile <- file.path('dat',paste0(SampleID,'_report.png'))
 knitr::include_graphics(imgFile)
 ```
 
+\newpage
+
 #### SNP标记位点分布示意图：
 
 &nbsp;
