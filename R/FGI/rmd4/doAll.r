@@ -249,7 +249,7 @@ for (suspect in rownames(input_geno_df)){
   cat(' done.\n')
 }
 
-qcfilecon <- file(file.path(out_dir_name, '_QC.txt'),'wt',encoding='UTF-8')
+qcfilecon <- file(file.path('pdf', '_QC.txt'),'wt',encoding='UTF-8')
 if (length(NeedRerun)) {
 	QCstate <- paste(sep="\n",'下列样品需要重测：',NeedRerun,'')
 } else {
