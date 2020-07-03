@@ -11,3 +11,6 @@ Rscript --vanilla -e "thePrefix='JK_report';rmarkdown::render('20200608rep.Rmd',
 mkdir pdf
 #qpdf --empty --pages *.pdf -- out.pdf
 qpdf --empty --pages inc/Cover.pdf out/JK_report.pdf -- pdf/JK_report.pdf
+
+
+./doAll.r -i _TabIn/msSNP.csv -m _TabIn/meta.txt

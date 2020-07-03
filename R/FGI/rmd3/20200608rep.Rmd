@@ -25,6 +25,7 @@ header-includes:
 
 ```{r include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+#knitr::opts_chunk$set(message = FALSE)
 ###### Color Format	https://stackoverflow.com/a/37122306/159695
 colFmt = function(x,color){
   outputFormat = knitr::opts_knit$get("rmarkdown.pandoc.to")
@@ -85,7 +86,7 @@ cat(paste0('\\noindent 联系地址：',SampleAddr,' \\newline\n'))
 #### 您的鉴定结果
 
 ```{r tState, results='asis'}
-cat(paste0('\\noindent 鉴定结论：',SampleState,'。 \\newline\n'))
+cat(paste0('\\noindent 鉴定结论：',SampleState,'。似然值为：',SampleLH,'。 \\newline\n'))
 ```
 
 #### 位点信息
@@ -100,7 +101,7 @@ SampleName <- inDat[1,7]
 \noindent 注：本报告所检测位点均为非隐私位点，不涉及任何医学疾病相关信息，无医学参考意义。"Null"表示该位点未测出。
 
 ```{r fpGT, out.width='90%', fig.align='center', fig.cap='个人基因型Circos图'}
-imgFile <- file.path('out',paste0(SampleID,'_reportT.png'))
+imgFile <- file.path('out',paste0(SampleID,'.png'))
 knitr::include_graphics(imgFile)
 ```
 
