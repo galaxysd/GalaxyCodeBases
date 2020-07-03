@@ -54,13 +54,13 @@ calculate = function(input_geno_df, sample_geno_df, allele_freq_df){
 }
 
 # 读入文件
-input_geno_df = read.csv(opt$input, row.names = 1)
+input_geno_df = read.csv(opt$input, row.names = 1, stringsAsFactors=F)
 #allele_freq_df = read.csv(opt$allele_freq, row.names = 1)
 #database_df = read.csv(opt$database, row.names = 1)
 input_info_df = suppressWarnings(read.delim(opt$input_info, fileEncoding = "UTF-16", row.names = 1))
 #input_geno_df = read.csv("C:\\Users\\wangjingdong\\Desktop\\gene_id_rscript\\gene_id_rscript\\data\\input_csv.csv", row.names = 1)
 allele_freq_df = read.csv("files/allele_freq.csv", row.names = 1)
-database_df = read.csv("files/database.csv", row.names = 1)
+database_df = read.csv("files/database.csv", row.names = 1, stringsAsFactors=F)
 #input_info_df = read.delim("C:\\Users\\wangjingdong\\Desktop\\gene_id_rscript\\gene_id_rscript\\data\\input_info.txt", fileEncoding = "UTF-16", row.names = 1)
 
 # 创建样本比对结果输出文件夹
@@ -112,7 +112,7 @@ for (suspect in rownames(input_geno_df)){
     if (sorted_all_result_df[1,"tpm"] <= 8000000000){
       mid_match = subset(sorted_all_result_df, (tpm <= 8000000000) && (tpm >= 0.0001))
       samples = paste(rownames(mid_match), collapse = ',')
-      statement = paste("与样本", samples, "可能一致, 应增加其它检测")
+      statement = paste("与样本", samples, "可能一致, 应加测数据")
       QCstate = 'FAIL'
       NeedRerun <- c(NeedRerun,suspect)
     }else{
@@ -211,7 +211,7 @@ for (suspect in rownames(input_geno_df)){
   #RCircos.Set.Core.Components(cyto.info=UCSC.HG19.Human.CytoBandIdeogram, tracks.inside=4, tracks.outside=0, chr.exclude=c("chrX", "chrY"))
   suppressMessages(
 	  RCircos.Set.Core.Components(cyto.info=UCSC.HG19.Human.CytoBandIdeogram, tracks.inside=4, tracks.outside=0, chr.exclude=c("chrX", "chrY"))
-  , classes = "message")
+  )
 
   rcircos.params <- RCircos.Get.Plot.Parameters()
   rcircos.params$track.background <- 'white'
@@ -220,7 +220,7 @@ for (suspect in rownames(input_geno_df)){
   rcircos.params$track.padding <- 0
   suppressMessages(
 	  RCircos.Reset.Plot.Parameters(rcircos.params)
-  , classes = "message")
+  )
 
   RCircos.Set.Plot.Area(margins=0)
   legend("center", legend=c("A", "C", "G", "T"), col=c("#5050FF", "#E00000","#00C000","#CC9900"), lwd=16)
