@@ -4,6 +4,7 @@ author:
   - 解基因，觅安心
 date: \today
 documentclass: ctexrep
+#classoption: a4paper
 output:
   rticles::ctex:
     fig_caption: yes
@@ -19,6 +20,7 @@ header-includes:
   \usepackage{wrapfig}
   \usepackage{float}
   \floatplacement{figure}{H}
+  \AtBeginDocument{\let\maketitle\relax}
 ---
 
 ```{r include = FALSE}
