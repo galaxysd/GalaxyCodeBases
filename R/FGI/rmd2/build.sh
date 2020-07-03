@@ -5,4 +5,5 @@
 
 #rmarkdown::render('20200517rep.Rmd',output_format='all',output_dir='./out')
 #rmarkdown::render('20200608rep.Rmd',output_format='all',output_dir='./out')
+Rscript --vanilla -e "rmarkdown::render('20200608rep.Rmd',output_format='all',output_dir='./out')"
 Rscript --vanilla -e "rmarkdown::render('20200610rep.Rmd',output_format='all',output_dir='./out')"
