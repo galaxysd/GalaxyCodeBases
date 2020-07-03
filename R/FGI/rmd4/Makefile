@@ -16,4 +16,4 @@ reset: clean
 	-rm -fr pdf
 
 pkg:
-	tar -C .. -czvf ../rmd4.tgz rmd4/20200608rep.Rmd rmd4/doAll.r rmd4/files rmd4/inc rmd4/_TabIn rmd4/Makefile
+	tar -C .. -czvf ../rmd4.tgz rmd4/20200608rep.Rmd rmd4/doAll.r rmd4/files rmd4/inc rmd4/_TabIn rmd4/Makefile rmd4/_TabIn.example
