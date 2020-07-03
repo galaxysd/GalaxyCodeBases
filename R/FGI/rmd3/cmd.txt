@@ -6,7 +6,7 @@
 convert -trim +repage -bordercolor none -border 0x20 out/JK_report.png out/JK_reportT.png
 
 #Rscript --vanilla -e "rmarkdown::render('20200608rep.Rmd',output_format='all',output_dir='./pdf')"
-Rscript --vanilla -e "thePrefix='JK_report';rmarkdown::render('20200608rep.Rmd',output_dir='out',output_file=paste0(thePrefix,'.pdf'))"
+Rscript --vanilla -e "thePrefix='JK_report';rmarkdown::render('20200608rep.Rmd',output_dir='out',output_file=paste0(thePrefix,'.pdf'),quiet=T)"
 
 mkdir pdf
 #qpdf --empty --pages *.pdf -- out.pdf
