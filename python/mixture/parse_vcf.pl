@@ -33,6 +33,12 @@ sub mergeGT($) {
 }
 
 my %COUNTING;
+sub doCnt($) {
+	my $s = $_[0];
+	++$COUNTING{$s};
+	print " $s";
+}
+
 open(IN,"-|",$cmd) or die "Error opening [$filename]: $!\n";
 while (<IN>) {
 	chomp;
@@ -72,6 +78,41 @@ while (<IN>) {
 	my $str1 = $GTs{'_R'};
 	my $str2 = join('.+',split(//,$str1));
 	++$COUNTING{'_All'};
+	if (length($GTs{'_M'})==1) {
+		doCnt('0M1');
+	} elsif (length($GTs{'_M'})==2) {
+		doCnt('0M2');
+		if ($GTs{'_R'} eq '') {
+			doCnt('1R0');
+			if ($GTs{'_M'} eq $GTs{'_V'}) {
+				doCnt('1R0e'); # M == V, het
+			} else {
+				doCnt('1R0nx');
+			}
+		} elsif (length($GTs{'_R'})==1) {
+			doCnt('1R1');
+			if (length($GTs{'_V'})==1) {
+				doCnt('1R1m');
+				if ($GTs{'_R'} eq $GTs{'_K'}) {
+					doCnt('2EQ'); # M-V=K
+				} elsif ($GTs{'_K'} =~ /$GTs{'_R'}/) {
+					doCnt('2LK'); # M-V ~= K
+				} else {
+					doCnt('2x'); # V=K, M:het
+				}
+			} else {
+				doCnt('1R1hx');
+				# V有第三碱基
+			}
+		} else {
+			doCnt('1Rx');
+			# V='.'
+		}
+	} else {
+		doCnt('0Mx');
+	}
+	print "\n";
+=pod
 	if ($GTs{'_R'} eq '') {
 		++$COUNTING{'0noR'};
 	} elsif ($GTs{'_R'} eq $GTs{'_K'}) {
@@ -84,6 +125,7 @@ while (<IN>) {
 		++$COUNTING{'4ne'};
 		print STDERR "$_\n";
 	}
+=cut
 }
 ddx \%COUNTING;
 close IN;
