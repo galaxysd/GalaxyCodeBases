@@ -57,7 +57,7 @@ calculate = function(input_geno_df, sample_geno_df, allele_freq_df){
 input_geno_df = read.csv(opt$input, row.names = 1, stringsAsFactors=F)
 #allele_freq_df = read.csv(opt$allele_freq, row.names = 1)
 #database_df = read.csv(opt$database, row.names = 1)
-input_info_df = suppressWarnings(read.delim(opt$input_info, fileEncoding = "UTF-16", row.names = 1))
+input_info_df = suppressWarnings(read.delim(opt$input_info, fileEncoding = "UTF-16", row.names = 1, colClasses = "character"))
 #input_geno_df = read.csv("C:\\Users\\wangjingdong\\Desktop\\gene_id_rscript\\gene_id_rscript\\data\\input_csv.csv", row.names = 1)
 allele_freq_df = read.csv("files/allele_freq.csv", row.names = 1)
 database_df = read.csv("files/database.csv", row.names = 1, stringsAsFactors=F)
