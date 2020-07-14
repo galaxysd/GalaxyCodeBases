@@ -17,3 +17,7 @@ qpdf --empty --pages inc/Cover.pdf out/JK_report.pdf -- pdf/JK_report.pdf
 
 ssh -i gbossh/id_ed25519 fgi@10.225.10.113 -p5922
 
+cat _TabIn/meta.txt | iconv -f utf16; echo
+
+ffmpeg -i '/Users/galaxy/Documents/Screen Recording 2020-07-14 at 14.03.12.mov' -c:v libx264 -preset slow  -profile:v high -level:v 4.0 -pix_fmt yuv420p -crf 24 -an  Output24.mp4
+
