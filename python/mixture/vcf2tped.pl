@@ -25,7 +25,7 @@ my @AllSID = (@SampleIDs,@addedSID);
 
 open O,'>',"$outp.tfam" or die "[$outp.tfam]:$!\n";
 for (@AllSID) {
-	my $FID = 'T';
+	my $FID = 'F';
 	my $IID = $_;
 	print O join(' ',$FID,$IID,0,0,0,0),"\n";
 	# https://www.cog-genomics.org/plink/1.9/formats#fam
@@ -36,23 +36,25 @@ my %COUNTING;
 sub doCnt($) {
 	my $s = $_[0];
 	++$COUNTING{$s};
-	print " $s";
+	#print " $s";
 }
 sub mergeGT($) {
 	my $hashref = $_[0];
 	my @GTs = sort keys %{$hashref};
+	s/\./0/ for @GTs;
 	if (scalar @GTs ==1) {
 		push @GTs,@GTs;
 	}
 	return join(' ',@GTs);
 }
+my $vCounter=0;
 open O,'>',"$outp.tped" or die "[$outp.tped]:$!\n";
 open(IN,"-|",$cmd) or die "Error opening [$filename]: $!\n";
 while (<IN>) {
 	chomp;
 	my ($Chrom,$Pos,$RefAlt,$Qual,@GTs) = split /\t/,$_;
 	next if $Chrom =~ /_/;
-	print "$_\n";
+	#print "$_\n";
 	my (%GTs,%GTstr,%GTped);
 	@GTstr{@SampleIDs} = @GTs;
 	#ddx \%GTstr;
@@ -81,9 +83,31 @@ while (<IN>) {
 		doCnt('0same');
 		next;
 	}
-	ddx \%GTs;
-	ddx \%GTped;
+	if (length($RefAlt)>3) {
+		doCnt('1triallelic');
+		next;
+	}
+	#ddx \%GTs;
+	#ddx \%GTped;
+	my $ChrCode = $Chrom;
+	$ChrCode =~ s/^chr//i;
+	++$vCounter;
+	my $VarID = 'p'.$vCounter.$RefAlt;
+	$VarID =~ s/\,//g;
+	print O join("\t",$ChrCode,$VarID,0,$Pos);
+	for my $k (@AllSID) {
+		print O "\t",$GTped{$k};
+	}
+	print O "\n";
 }
 close IN;
 # https://www.cog-genomics.org/plink/1.9/formats#tped
+# https://www.cog-genomics.org/plink/1.9/formats#map
+# Chromosome code. PLINK 1.9 also permits contig names here, but most older programs do not.
+# Variant identifier
+# Position in morgans or centimorgans (optional; also safe to use dummy value of '0')
+# Base-pair coordinate
 close O;
+ddx \%COUNTING;
+
+print "plink --noweb --tfile $outp --make-bed --out xxx\n";
