@@ -20,7 +20,7 @@ ddx \@SampleIDs;
 
 my $theKiller = 'T3C';
 my $theVictim = 'T10C';
-my @addedSID = qw(Rsin Rdip);
+my @addedSID = qw(Rsin);
 my @AllSID = (@SampleIDs,@addedSID);
 
 open O,'>',"$outp.tfam" or die "[$outp.tfam]:$!\n";
@@ -70,7 +70,7 @@ while (<IN>) {
 		$GTs{$k} = \%counter;
 	}
 	$GTs{$addedSID[0]} = {%{$GTs{'mixed'}}};
-	$GTs{$addedSID[1]} = {%{$GTs{'mixed'}}};
+	#$GTs{$addedSID[1]} = {%{$GTs{'mixed'}}};
 	for (keys %{$GTs{$theVictim}}) {
 		if (exists $GTs{$addedSID[0]}{$_}) {
 			delete $GTs{$addedSID[0]}{$_};
