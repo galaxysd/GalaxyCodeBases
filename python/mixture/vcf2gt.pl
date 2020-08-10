@@ -22,6 +22,15 @@ my $theKiller = 'T3C';
 my $theVictim = 'T10C';
 my $Mixture = 'mixed';
 
+sub mergeGT($) {
+	my $hashref = $_[0];
+	my @GTs = sort keys %{$hashref};
+	s/\./0/ for @GTs;
+	if (scalar @GTs ==1) {
+		push @GTs,@GTs;
+	}
+	return join(' ',@GTs);
+}
 my $HetR = 0.2;
 sub doCal($$) {
 	my ($mix,$vit) = @_;
@@ -35,7 +44,8 @@ sub doCal($$) {
 		}
 	}
 	my @extraBase = keys %mixGT;
-	die if scalar @extraBase > 1;
+	#ddx ($mix,$vit);
+	die "[@extraBase]" if scalar @extraBase > 1;
 	my $Extradepth = $mix->{$extraBase[0]};
 	my $Totaldepth = 0;
 	for (values %{$mix}) {
@@ -44,7 +54,7 @@ sub doCal($$) {
 	my $depth0 = $Extradepth / $Totaldepth;
 	my $ret1 = $depth0 / (1-0.5*$HetR);
 	my $ret2 = $depth0 * (2/3) / 0.6;
-	ddx [$ret1,$ret2];
+	#ddx [$ret1,$ret2];
 	return $ret1;
 }
 
@@ -75,7 +85,11 @@ while (<IN>) {
 	my %Mixture = %{$GTs{$Mixture}};
 	next if scalar(keys %Mixture) != 2;
 	next if scalar(keys %Victim) != 1;
-	#ddx [\%Killer,\%Victim,\%Mixture]
+	my $gt1 = mergeGT(\%Mixture);
+	next if $gt1 =~ /0/;
+	my $gt2 = mergeGT(\%Victim);
+	next if $gt2 =~ /0/;
+	ddx [\%Killer,\%Victim,\%Mixture,$gt1,$gt2];
 	my $ret = doCal(\%Mixture,\%Victim);
 	++$Results{$ret};
 	$Calcu{'S'} += $ret;
