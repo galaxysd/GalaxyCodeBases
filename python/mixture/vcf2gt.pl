@@ -8,7 +8,7 @@ my $Usage = "Usage: $0 <vcf.gz> <out prefix>\n";
 die $Usage if @ARGV < 1;
 
 my ($filename,$outp) = @ARGV;
-my $cmd = "bcftools view -U -m2 -i '%QUAL>=40 & MIN(FMT/GQ)>20 & GT[2]=\"het\"' -v snps $filename |bcftools view -e 'FMT/DP=\".\"'| bcftools query -f '%CHROM\t%POS\t%REF,%ALT\t%QUAL[\t%TGT:%AD:%GQ]\n'";
+my $cmd = "bcftools view -U -m2 -i '%QUAL>=40 & MIN(FMT/GQ)>20' -v snps $filename |bcftools view -e 'FMT/DP=\".\"'| bcftools query -f '%CHROM\t%POS\t%REF,%ALT\t%QUAL[\t%TGT:%AD:%GQ]\n'";
 my @SampleIDs;
 open(SID,'-|',"bcftools query -l $filename") or die "Error opening [$filename]: $!\n";
 while(<SID>) {
@@ -45,7 +45,10 @@ sub doCal($$) {
 	}
 	my @extraBase = keys %mixGT;
 	#ddx ($mix,$vit);
-	die "[@extraBase]" if scalar @extraBase > 1;
+	if (scalar @extraBase > 1) {
+		warn "[@extraBase]";
+		return -1;
+	}
 	my $Extradepth = $mix->{$extraBase[0]};
 	my $Totaldepth = 0;
 	for (values %{$mix}) {
@@ -84,10 +87,14 @@ while (<IN>) {
 	next if scalar(keys %Victim) != 1;
 	my $gt1 = mergeGT(\%Mixture);
 	next if $gt1 =~ /0/;
+	next if length($gt1)>3;
 	my $gt2 = mergeGT(\%Victim);
 	next if $gt2 =~ /0/;
+	next if length($gt2)>3;
 	ddx [\%Killer,\%Victim,\%Mixture,$gt1,$gt2];
 	my $ret = doCal(\%Mixture,\%Victim);
+	#my $ret = doCal(\%Mixture,\%Killer);
+	next if $ret == -1;
 	++$Results{int($ret*100)/100};
 	$Calcu{'S'} += $ret;
 	$Calcu{'SS'} += $ret*$ret;
@@ -96,7 +103,20 @@ while (<IN>) {
 }
 
 my $mean = $Calcu{'S'} / $Calcu{'N'};
-my $std = sqrt($Calcu{'SS'} - $mean*$mean);
+my $std = sqrt($Calcu{'SS'}/$Calcu{'N'} - $mean*$mean);
 my $var = $std/$mean;
 
 print "$mean ± $std, $var\n";
+
+__END__
+my $theKiller = 'T3C';
+my $theVictim = 'T10C';
+
+T3C: 85,982,846,136 bp
+T10C:18,277,246,581 bp
+
+K% = 82%
+
+#   { N => 3859, S => 1342.27179667765, SS => 676.187587538486 },
+# )
+0.347828918548237 ± 0.232891755122676, 0.669558345219586
