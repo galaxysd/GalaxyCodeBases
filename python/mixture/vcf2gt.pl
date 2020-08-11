@@ -54,7 +54,7 @@ sub doCal($$) {
 	my $depth0 = $Extradepth / $Totaldepth;
 	my $ret1 = $depth0 / (1-0.5*$HetR);
 	my $ret2 = $depth0 * (2/3) / 0.6;
-	#ddx [$ret1,$ret2];
+	#ddx [$ret1,$ret2,$Extradepth,$Totaldepth];
 	return $ret1;
 }
 
@@ -72,12 +72,9 @@ while (<IN>) {
 		my ($sGT,$sAD,$sGQ) = split /:/,$GTstr{$k};
 		my @aGT = split /[|\/]/,$sGT;
 		my @aAD = split /\,/,$sAD;
-		my %counter;
-		for (@aGT) {
-			++$counter{$_};
-		}
-		#my @result = sort(keys %counter);
-		$GTs{$k} = \%counter;
+		my %tmp;
+		@tmp{@aGT} = @aAD;
+		$GTs{$k} = \%tmp;
 	}
 	#ddx \%GTs;
 	my %Killer = %{$GTs{$theKiller}};
@@ -91,9 +88,15 @@ while (<IN>) {
 	next if $gt2 =~ /0/;
 	ddx [\%Killer,\%Victim,\%Mixture,$gt1,$gt2];
 	my $ret = doCal(\%Mixture,\%Victim);
-	++$Results{$ret};
+	++$Results{int($ret*100)/100};
 	$Calcu{'S'} += $ret;
 	$Calcu{'SS'} += $ret*$ret;
 	++$Calcu{'N'};
 	ddx \%Results,\%Calcu;
 }
+
+my $mean = $Calcu{'S'} / $Calcu{'N'};
+my $std = sqrt($Calcu{'SS'} - $mean*$mean);
+my $var = $std/$mean;
+
+print "$mean ± $std, $var\n";
