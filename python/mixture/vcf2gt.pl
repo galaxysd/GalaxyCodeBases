@@ -58,9 +58,10 @@ sub doCal($$) {
 	my $ret1 = $depth0 / (1-0.5*$HetR);
 	my $ret2 = $depth0 * (2/3) / 0.6;
 	#ddx [$ret1,$ret2,$Extradepth,$Totaldepth];
-	return $ret1;
+	return ($ret1,$Extradepth,$Totaldepth);
 }
 
+open O,'>',"$outp.tsv" or die "[$outp.tsv]:$!\n";
 my (%Calcu,%Results);
 open(IN,"-|",$cmd) or die "Error opening [$filename]: $!\n";
 while (<IN>) {
@@ -91,21 +92,24 @@ while (<IN>) {
 	my $gt2 = mergeGT(\%Victim);
 	next if $gt2 =~ /0/;
 	next if length($gt2)>3;
-	ddx [\%Killer,\%Victim,\%Mixture,$gt1,$gt2];
-	my $ret = doCal(\%Mixture,\%Victim);
+	#ddx [\%Killer,\%Victim,\%Mixture,$gt1,$gt2];
+	my ($ret,$Extradepth,$Totaldepth) = doCal(\%Mixture,\%Victim);
 	#my $ret = doCal(\%Mixture,\%Killer);
 	next if $ret == -1;
 	++$Results{int($ret*100)/100};
 	$Calcu{'S'} += $ret;
 	$Calcu{'SS'} += $ret*$ret;
 	++$Calcu{'N'};
-	ddx \%Results,\%Calcu;
+	#ddx \%Results,\%Calcu;
+	print O join("\t",$Chrom,$Pos,$Qual,$gt1,$gt2,$ret,$Extradepth,$Totaldepth),"\n";
 }
 
 my $mean = $Calcu{'S'} / $Calcu{'N'};
 my $std = sqrt($Calcu{'SS'}/$Calcu{'N'} - $mean*$mean);
 my $var = $std/$mean;
 
+print O "# $mean ± $std, $var\n";
+close O;
 print "$mean ± $std, $var\n";
 
 __END__
