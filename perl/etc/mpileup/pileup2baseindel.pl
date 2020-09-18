@@ -137,6 +137,15 @@ sub dumpPileup($$$$$$) {
 		}
 		$bases=~s/\+$k[ACGTNacgtn]{$k}//g;
 	}
+	my @base=split (//,$bases);
+	my @bq=split(//,$bq);
+	my @nq;
+	for(my $i=0;$i<@base;$i++){
+		my $ch=$base[$i];
+		my $score=ord($bq[$i])-$offset;
+		push @nq,$score;
+	}
+	my $sbq = join(',',@nq);
 
 	my $insertion="NA";
 	my $deletion="NA";
@@ -155,7 +164,7 @@ sub dumpPileup($$$$$$) {
 		}
 		chop($deletion);
 	}
-	my $str=join("\t",$dp,$bases,$bq,$insertion,$deletion)."\n";
+	my $str=join("\t",$dp,$bases,$sbq,$insertion,$deletion)."\n";
 	return $str;
 }
 
