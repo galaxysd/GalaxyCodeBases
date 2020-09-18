@@ -24,6 +24,7 @@ use IO::File;
 my $usage = <<USAGE;
 Usage: perl pileup2base.pl -i <pileupfile> -bq [BQcutoff] -prefix [sample] -offset [33]
         -i        input pileup file, could be from 1 sample or multiple samples
+        -s        pileupfile with mapping quality
         -bq       base quality score cutoff for each mapped/unmapped base,
                   only those larger than cutoff will be output in the result, default is -5, means no filter
         -prefix   output file prefix, default is sample, the output will be named as prefix1.txt, prefix2.txt, etc.
@@ -31,12 +32,13 @@ Usage: perl pileup2base.pl -i <pileupfile> -bq [BQcutoff] -prefix [sample] -offs
         -h        print out this
 USAGE
 
-my ($input,$BQcut,$offset,$prefix,$help) = (undef,-5,33,"sample",undef);
+my ($input,$BQcut,$offset,$prefix,$help,$hasMQ) = (undef,-5,33,"sample",undef,undef);
 GetOptions(
 	"i=s"=>\$input,
 	"bq=i"=>\$BQcut,
 	"offset=i"=>\$offset,
 	"prefix=s"=>\$prefix,
+	"s"=>\$hasMQ,
 	"h"=>\$help
 );
 
@@ -44,6 +46,8 @@ if($help){
 	print $usage;
 	exit(0);
 }
+my $itemLen = 3;
+$itemLen = 4 if $hasMQ;
 
 unless ($input){
 	print "Input file does not provide yet\n";
@@ -63,14 +67,14 @@ print "[",scalar(localtime),"] Begin parsing...\n";
 my $line = <FILE>;
 $line=~s/\r|\n//g;
 my ($chr,$loc,$ref,@dp_bases_bq) = split /\s+/, $line;
-my $n = int (scalar(@dp_bases_bq)/3); #determine how many samples, use int just in safe
+my $n = int (scalar(@dp_bases_bq)/$itemLen); #determine how many samples, use int just in safe
 my %files;
 foreach my $i (1..$n){
 	my $fh = new IO::File;
 	$fh->open("> ${prefix}${i}.txt");
 	print $fh "chr\t"."loc\t"."ref\t"."A\t"."T\t"."C\t"."G\t"."a\t"."t\t"."c\t"."g\t"."Insertion\t"."Deletion\n";
 	
-	my @region=(3*($i-1),3*($i-1)+1,3*($i-1)+2);
+	my @region=($itemLen*($i-1),$itemLen*($i-1)+1,$itemLen*($i-1)+2);
 	my ($dp,$bases,$bq) = @dp_bases_bq[@region];
 	my $str = parsePileup($ref,$bases,$bq,$BQcut,$offset);
 	
@@ -83,10 +87,10 @@ foreach my $i (1..$n){
 while(<FILE>){
 	s/\r|\n//g;
 	my ($chr,$loc,$ref,@dp_bases_bq) = split /\s+/;
-	my $n = int (scalar(@dp_bases_bq)/3); #determine how many samples, use int just in safe
+	my $n = int (scalar(@dp_bases_bq)/$itemLen); #determine how many samples, use int just in safe
 	foreach my $i (1..$n){
 		my $fh = $files{$i};
-		my @region=(3*($i-1),3*($i-1)+1,3*($i-1)+2);
+		my @region=($itemLen*($i-1),$itemLen*($i-1)+1,$itemLen*($i-1)+2);
 		my ($dp,$bases,$bq) = @dp_bases_bq[@region];
 		my $str = parsePileup($ref,$bases,$bq,$BQcut,$offset);
 		if($str ne "*"){
