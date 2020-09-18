@@ -73,17 +73,10 @@ foreach my $i (1..$n){
 	my $fh = new IO::File;
 	$fh->open("> ${prefix}${i}.txt");
 	print $fh "chr\t"."loc\t"."ref\t"."A\t"."T\t"."C\t"."G\t"."a\t"."t\t"."c\t"."g\t"."Insertion\t"."Deletion\n";
-	
-	my @region=($itemLen*($i-1),$itemLen*($i-1)+1,$itemLen*($i-1)+2);
-	my ($dp,$bases,$bq) = @dp_bases_bq[@region];
-	my $str = parsePileup($ref,$bases,$bq,$BQcut,$offset);
-	
-	if($str ne "*"){
-		print $fh join "\t",($chr,$loc,$ref,$str);
-	}
 	$files{$i}=$fh;
 }
 
+seek FILE, 0, 0;
 while(<FILE>){
 	s/\r|\n//g;
 	my ($chr,$loc,$ref,@dp_bases_bq) = split /\s+/;
@@ -214,7 +207,7 @@ sub parsePileup{
 	my $deletion="NA";
 	if(scalar(keys %insertion)){
 		$insertion="";
-		foreach my $k (sort {$insertion{$b}<=>$insertion{$a}} keys %insertion){
+		foreach my $k (sort {$insertion{$b}<=>$insertion{$a} || $b cmp $a} keys %insertion){
 			$insertion.=$insertion{$k}.":".$k."|";
 		}
 		chop($insertion);
@@ -222,7 +215,7 @@ sub parsePileup{
 	
 	if(scalar(keys %deletion)){
 		$deletion="";
-		foreach my $k (sort {$deletion{$b}<=>$deletion{$a}} keys %deletion){
+		foreach my $k (sort {$deletion{$b}<=>$deletion{$a} || $b cmp $a} keys %deletion){
 			$deletion.=$deletion{$k}.":".$k."|";
 		}
 		chop($deletion);
