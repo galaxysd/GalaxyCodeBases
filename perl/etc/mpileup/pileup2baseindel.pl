@@ -29,16 +29,18 @@ Usage: perl pileup2base.pl -i <pileupfile> -bq [BQcutoff] -prefix [sample] -offs
                   only those larger than cutoff will be output in the result, default is -5, means no filter
         -prefix   output file prefix, default is sample, the output will be named as prefix1.txt, prefix2.txt, etc.
         -offset   Offset to change ASCII character to base quality score, default is 33 (sanger format).
+        -d        DUMP mode
         -h        print out this
 USAGE
 
-my ($input,$BQcut,$offset,$prefix,$help,$hasMQ) = (undef,-5,33,"sample",undef,undef);
+my ($input,$BQcut,$offset,$prefix,$help,$hasMQ,$doDUMP) = (undef,-5,33,"sample",undef,undef);
 GetOptions(
 	"i=s"=>\$input,
 	"bq=i"=>\$BQcut,
 	"offset=i"=>\$offset,
 	"prefix=s"=>\$prefix,
 	"s"=>\$hasMQ,
+	"d"=>\$doDUMP,
 	"h"=>\$help
 );
 
@@ -72,9 +74,16 @@ my %files;
 foreach my $i (1..$n){
 	my $fh = new IO::File;
 	$fh->open("> ${prefix}${i}.txt");
-	print $fh "chr\t"."loc\t"."ref\t"."A\t"."T\t"."C\t"."G\t"."a\t"."t\t"."c\t"."g\t"."Insertion\t"."Deletion\n";
+	if ($doDUMP) {
+		print $fh join("\t",qw(chr loc ref Depth Bases BaseQs Insertion Deletion)),"\n";
+	} else {
+		print $fh "chr\t"."loc\t"."ref\t"."A\t"."T\t"."C\t"."G\t"."a\t"."t\t"."c\t"."g\t"."Insertion\t"."Deletion\n";
+	}
 	$files{$i}=$fh;
 }
+
+my $theFunc = \&parsePileup;
+$theFunc = \&dumpPileup if $doDUMP;
 
 seek FILE, 0, 0;
 while(<FILE>){
@@ -85,7 +94,7 @@ while(<FILE>){
 		my $fh = $files{$i};
 		my @region=($itemLen*($i-1),$itemLen*($i-1)+1,$itemLen*($i-1)+2);
 		my ($dp,$bases,$bq) = @dp_bases_bq[@region];
-		my $str = parsePileup($ref,$bases,$bq,$BQcut,$offset);
+		my $str = $theFunc->($ref,$bases,$bq,$BQcut,$offset,$dp);
 		if($str ne "*"){
 			print $fh join "\t",($chr,$loc,$ref,$str);
 		}
@@ -98,6 +107,57 @@ foreach my $k (keys %files){
 }
 print "[",scalar(localtime),"] Finished\n";
 
+sub dumpPileup($$$$$$) {
+	my ($ref,$bases,$bq,$BQcut,$offset,$dp) = @_;
+	if($bases eq "*"){
+		return "*";
+	}
+	$bases=~s/\^.//g;
+	$bases=~s/\$//g;
+	my %hash=();
+	my %deletion=();
+	while($bases=~/-(\d+)/g){
+		$hash{$1}=1;
+	}
+	foreach my $k (keys %hash){
+		while($bases=~/-$k([ACGTNacgtn]{$k})/g){
+			$deletion{$1}++;
+		}
+		$bases=~s/-$k[ACGTNacgtn]{$k}//g;
+	}
+	
+	%hash=();
+	my %insertion=();
+	while($bases=~/\+(\d+)/g){
+		$hash{$1}=1;
+	}
+	foreach my $k (keys %hash){
+		while($bases=~/\+$k([ACGTNacgtn]{$k})/g){
+			$insertion{$1}++;
+		}
+		$bases=~s/\+$k[ACGTNacgtn]{$k}//g;
+	}
+
+	my $insertion="NA";
+	my $deletion="NA";
+	if(scalar(keys %insertion)){
+		$insertion="";
+		foreach my $k (sort {$insertion{$b}<=>$insertion{$a} || $b cmp $a} keys %insertion){
+			$insertion.=$insertion{$k}.":".$k."|";
+		}
+		chop($insertion);
+	}
+	
+	if(scalar(keys %deletion)){
+		$deletion="";
+		foreach my $k (sort {$deletion{$b}<=>$deletion{$a} || $b cmp $a} keys %deletion){
+			$deletion.=$deletion{$k}.":".$k."|";
+		}
+		chop($deletion);
+	}
+	my $str=join("\t",$dp,$bases,$bq,$insertion,$deletion)."\n";
+	return $str;
+}
 
 sub parsePileup{
 	my ($ref,$bases,$bq,$BQcut,$offset) = @_;
