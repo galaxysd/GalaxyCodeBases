@@ -139,12 +139,20 @@ sub dumpPileup($$$$$$) {
 	}
 	my @base=split (//,$bases);
 	my @bq=split(//,$bq);
-	my @nq;
+	my (@nq,@newBases);
 	for(my $i=0;$i<@base;$i++){
 		my $ch=$base[$i];
+		if($ch eq "."){
+			push @newBases,uc $ref;
+		}elsif($ch eq ","){
+			push @newBases,lc $ref;
+		}else{
+			push @newBases,$ch;
+		}
 		my $score=ord($bq[$i])-$offset;
 		push @nq,$score;
 	}
+	my $sbases = join('',@newBases);
 	my $sbq = join(',',@nq);
 
 	my $insertion="NA";
@@ -164,7 +172,7 @@ sub dumpPileup($$$$$$) {
 		}
 		chop($deletion);
 	}
-	my $str=join("\t",$dp,$bases,$sbq,$insertion,$deletion)."\n";
+	my $str=join("\t",$dp,$sbases,$sbq,$insertion,$deletion)."\n";
 	return $str;
 }
 
