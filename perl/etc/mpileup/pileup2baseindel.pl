@@ -75,7 +75,7 @@ foreach my $i (1..$n){
 	my $fh = new IO::File;
 	$fh->open("> ${prefix}${i}.txt");
 	if ($doDUMP) {
-		print $fh join("\t",qw(chr loc ref Depth Bases BaseQs Insertion Deletion)),"\n";
+		print $fh join("\t",qw(chr loc ref Depth La Lc Lg Lt Bases BaseQs Insertion Deletion)),"\n";
 	} else {
 		print $fh "chr\t"."loc\t"."ref\t"."A\t"."T\t"."C\t"."G\t"."a\t"."t\t"."c\t"."g\t"."Insertion\t"."Deletion\n";
 	}
@@ -140,18 +140,27 @@ sub dumpPileup($$$$$$) {
 	my @base=split (//,$bases);
 	my @bq=split(//,$bq);
 	my (@nq,@newBases);
+	#my $realdep=0;
+	my $skipped=0;
 	for(my $i=0;$i<@base;$i++){
 		my $ch=$base[$i];
 		if($ch eq "."){
 			push @newBases,uc $ref;
 		}elsif($ch eq ","){
 			push @newBases,lc $ref;
+		}elsif($ch eq '*' or $ch eq '#'){
+			++$skipped;
+			next;
 		}else{
 			push @newBases,$ch;
 		}
 		my $score=ord($bq[$i])-$offset;
 		push @nq,$score;
+		#++$realdep;
 	}
+	#if(scalar(@newBases) ne scalar(@nq)){
+	#	die ">>> $_\n";
+	#}
 	my $sbases = join('',@newBases);
 	my $sbq = join(',',@nq);
 
@@ -172,7 +181,30 @@ sub dumpPileup($$$$$$) {
 		}
 		chop($deletion);
 	}
-	my $str=join("\t",$dp,$sbases,$sbq,$insertion,$deletion)."\n";
+	my ($La,$Lc,$Lt,$Lg)=(0,0,0,0);
+	for(my $i=0;$i<@newBases;$i++){
+		my $ch=$newBases[$i];
+		my $score=$nq[$i];
+		if ($score>40) {
+			#print STDERR '^';
+			$score=40;
+		}
+		my $Erate = 10**(-$score/10);
+		#print "$ch $score $Erate\n";
+		if ($ch eq 'A' or $ch eq 'a') {
+			$La += log(3*(1-$Erate)/$Erate);
+		} elsif ($ch eq 'C' or $ch eq 'c') {
+			$Lc += log(3*(1-$Erate)/$Erate);
+		} elsif ($ch eq 'T' or $ch eq 't') {
+			$Lt += log(3*(1-$Erate)/$Erate);
+		} elsif ($ch eq 'G' or $ch eq 'g') {
+			$Lg += log(3*(1-$Erate)/$Erate);
+		} else {
+			die "[$ch] @newBases\n$ref,$bases,$bq,$BQcut,$offset,$dp\n";
+		}
+		#print "$La,$Lc,$Lt,$Lg\n";
+	}
+	my $str=join("\t",$dp-$skipped,$La,$Lc,$Lg,$Lt,$sbases,$sbq,$insertion,$deletion)."\n";
 	return $str;
 }
 
