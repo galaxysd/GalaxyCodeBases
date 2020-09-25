@@ -13,7 +13,7 @@ open O,'>',$outF or die "[x]Cannot open file [$outF], $!";
 while (my $file = readdir DIR) {
 	next unless $file =~ /\.dat$/i;
 	my $fname = catfile($theDir,$file);
-	print STDERR "[$fname]\t";
+	print STDERR "[$file]";
 	my ($Fcur,$Fcnt,$ret,@Fdat)=(0,0);
 	open FIN,'<',$fname or die "[x]Cannot open file [$fname], $!";
 	@Fdat = <FIN>;
@@ -23,7 +23,7 @@ while (my $file = readdir DIR) {
 		s/\r[\n]*//gm;
 	}
 	my $fDate = $Fdat[5];
-	print STDERR "@[$fDate]:\t";
+	print STDERR "@[$fDate]: ";
 	my $app = $Fdat[7];
 	if ($app ne 'GeneMapper ID-X') {
 		die "\n[x]Unsupported AppID:[$app].\n"
@@ -62,8 +62,24 @@ sub parseAsample {
 	#ddx \$pSdat;
 	die if $$pSdat[0] ne '1.0';
 	die if $$pSdat[1] ne 'PCR';
-	my $Scur=2;
-	for (my $i=$Scur;$i<=$#$pSdat;$i++) {
-		#print $$pSdat[$i];
+	my $Sid = $$pSdat[2];
+	my $STRcnt = $$pSdat[8];
+	my ($STRcur,$STRc)=(9,0);
+	#print "> $STRcur\n";
+	while ($STRcur <= $#$pSdat) {
+		#print ">>>$Sid $STRcnt $STRcur $$pSdat[$STRcur]\n";
+		my $strID = $$pSdat[$STRcur];
+		die if $$pSdat[$STRcur+1] != 1;
+		my $strAcnt = $$pSdat[$STRcur+5];
+		die $strAcnt if $strAcnt < 0;
+		my @strA=();
+		if ($strAcnt > 0) {
+			for my $x (($STRcur+6) .. ($STRcur+5+$strAcnt)) {
+				push @strA,$$pSdat[$x];
+			}
+		}
+		++$STRc;
+		#ddx [$STRc,$strID,@strA];
+		$STRcur += $strAcnt+6;
 	}
 }
