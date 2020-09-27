@@ -27,7 +27,7 @@ if (-d $theDir) {
 		$Fcnt = scalar @Fdat;
 		close FIN;
 		for (@Fdat) {
-			s/\r[\n]*//gm;
+			s/\r*[\n]*//gm;
 		}
 		my $fDate = $Fdat[5];
 		#print STDERR "@[$fDate]: ";
