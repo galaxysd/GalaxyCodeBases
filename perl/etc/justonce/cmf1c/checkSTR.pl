@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use File::Spec::Functions;
 
-use Data::Dump qw(ddx);
+#use Data::Dump qw(ddx);
 
 my %toCheck = (
 	'DYS643' => 16,
@@ -12,40 +12,67 @@ my %toCheck = (
 );
 my $theDir='dat';
 my $outF='Checked.tsv';
-opendir (DIR, $theDir) or die "[x]Cannot open directory [$theDir], $!";
-open O,'>',$outF or die "[x]Cannot open file [$outF], $!";
-while (my $file = readdir DIR) {
-	next unless $file =~ /\.dat$/i;
-	my $fname = catfile($theDir,$file);
-	print STDERR "[$file]: ";
-	my ($Fcur,$Fcnt,$ret,@Fdat)=(0,0);
-	open FIN,'<',$fname or die "[x]Cannot open file [$fname], $!";
-	@Fdat = <FIN>;
-	$Fcnt = scalar @Fdat;
-	close FIN;
-	for (@Fdat) {
-		s/\r[\n]*//gm;
+if (-d $theDir) {
+	my $Ocnt=0;
+	# $pathname exists and is a directory
+	opendir (DIR, $theDir) or die "[x]Cannot open directory [$theDir], $!";
+	open O,'>',$outF or die "[x]Cannot open file [$outF], $!";
+	while (my $file = readdir DIR) {
+		next unless $file =~ /\.dat$/i;
+		my $fname = catfile($theDir,$file);
+		print STDERR "[$file]: ";
+		my ($Fcur,$Fcnt,$ret,@Fdat)=(0,0);
+		open FIN,'<',$fname or die "[x]Cannot open file [$fname], $!";
+		@Fdat = <FIN>;
+		$Fcnt = scalar @Fdat;
+		close FIN;
+		for (@Fdat) {
+			s/\r[\n]*//gm;
+		}
+		my $fDate = $Fdat[5];
+		#print STDERR "@[$fDate]: ";
+		my $app = $Fdat[7];
+		if ($app ne 'GeneMapper ID-X') {
+			die "\n[x]Unsupported AppID:[$app].\n"
+		}
+		my $Scnt = $Fdat[8];
+		if ($Scnt < 1) {
+			print STDERR "Empty.\n";
+			next;
+		} else {
+			print STDERR "$Scnt";
+		}
+		$Fcur=9;
+		$ret = readCMF1($file,\@Fdat,$Fcur);
+		print STDERR "\n";
+		#ddx $ret;
+		if (keys(%{$ret})>0) {
+			for my $k (keys %{$ret}) {
+				my $str;
+				for my $kk (keys %{$ret->{$k}}) {
+					$str .= ' '.$kk.':'.$ret->{$k}->{$kk};
+				}
+				print O join("\t",$file,$k,$str),"\n";
+				++$Ocnt;
+			}
+		}
 	}
-	my $fDate = $Fdat[5];
-	#print STDERR "@[$fDate]: ";
-	my $app = $Fdat[7];
-	if ($app ne 'GeneMapper ID-X') {
-		die "\n[x]Unsupported AppID:[$app].\n"
-	}
-	my $Scnt = $Fdat[8];
-	if ($Scnt < 1) {
-		print STDERR "Empty.\n";
-		next;
+	close O;
+	closedir DIR;
+	if ($Ocnt > 0) {
+		die "[!]See [$outF] for [$Ocnt] results.\n";
 	} else {
-		print STDERR "$Scnt";
+		unlink $outF;
+		die "[!]No results found.\n";
 	}
-	$Fcur=9;
-	$ret = readCMF1($file,\@Fdat,$Fcur);
-	print STDERR "\n";
-	ddx $ret;
+} elsif (-e $theDir) {
+	# $pathname exists, but is NOT a directory
+	unlink $theDir;
+	mkdir $theDir or die '[x]Please create folder [$theDir] beside me !\n';
+} else {
+	mkdir $theDir or die '[x]Please create folder [$theDir] beside me !\n';
 }
-close O;
-closedir DIR;
+die "[!]Put .dat file in [$theDir] and run me again.\n";
 
 sub readCMF1 {
 	my ($file,$pfdat,$Fcur) = @_;
