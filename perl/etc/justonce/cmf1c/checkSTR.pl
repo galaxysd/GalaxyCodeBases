@@ -6,6 +6,10 @@ use File::Spec::Functions;
 
 use Data::Dump qw(ddx);
 
+my %toCheck = (
+	'DYS643' => 16,
+	'DYS557' => 23,
+);
 my $theDir='dat';
 my $outF='Checked.tsv';
 opendir (DIR, $theDir) or die "[x]Cannot open directory [$theDir], $!";
@@ -13,7 +17,7 @@ open O,'>',$outF or die "[x]Cannot open file [$outF], $!";
 while (my $file = readdir DIR) {
 	next unless $file =~ /\.dat$/i;
 	my $fname = catfile($theDir,$file);
-	print STDERR "[$file]";
+	print STDERR "[$file]: ";
 	my ($Fcur,$Fcnt,$ret,@Fdat)=(0,0);
 	open FIN,'<',$fname or die "[x]Cannot open file [$fname], $!";
 	@Fdat = <FIN>;
@@ -23,7 +27,7 @@ while (my $file = readdir DIR) {
 		s/\r[\n]*//gm;
 	}
 	my $fDate = $Fdat[5];
-	print STDERR "@[$fDate]: ";
+	#print STDERR "@[$fDate]: ";
 	my $app = $Fdat[7];
 	if ($app ne 'GeneMapper ID-X') {
 		die "\n[x]Unsupported AppID:[$app].\n"
@@ -38,6 +42,7 @@ while (my $file = readdir DIR) {
 	$Fcur=9;
 	$ret = readCMF1($file,\@Fdat,$Fcur);
 	print STDERR "\n";
+	ddx $ret;
 }
 close O;
 closedir DIR;
@@ -47,14 +52,19 @@ sub readCMF1 {
 	die if $$pfdat[$Fcur] ne 'DNA Analysis Result';
 	++$Fcur;
 	my @aSample;
+	my %retS;
 	for (my $i=$Fcur;$i<=$#$pfdat;$i++) {
 		if ($$pfdat[$i] eq 'DNA Analysis Result') {
-			parseAsample(\@aSample);
+			my ($sid,$retp) = parseAsample(\@aSample);
+			if (keys(%{$retp})>0) {
+				$retS{$sid}=$retp;
+			}
 			@aSample=();
 			next;
 		}
 		push @aSample,$$pfdat[$i];
 	}
+	return \%retS;
 }
 
 sub parseAsample {
@@ -66,6 +76,7 @@ sub parseAsample {
 	my $STRcnt = $$pSdat[8];
 	my ($STRcur,$STRc)=(9,0);
 	#print "> $STRcur\n";
+	my %ret;
 	while ($STRcur <= $#$pSdat) {
 		#print ">>>$Sid $STRcnt $STRcur $$pSdat[$STRcur]\n";
 		my $strID = $$pSdat[$STRcur];
@@ -73,13 +84,27 @@ sub parseAsample {
 		my $strAcnt = $$pSdat[$STRcur+5];
 		die $strAcnt if $strAcnt < 0;
 		my @strA=();
+		my $flag=0;
+		my @tmp=();
 		if ($strAcnt > 0) {
 			for my $x (($STRcur+6) .. ($STRcur+5+$strAcnt)) {
 				push @strA,$$pSdat[$x];
+				if (exists $toCheck{$strID}) {
+					if ($$pSdat[$x] > $toCheck{$strID}) {
+						$flag=1;
+						#print STDERR " ($strID:$$pSdat[$x])";
+						print STDERR '.';
+						push @tmp,$$pSdat[$x];
+					}
+				}
 			}
+		}
+		if ($flag) {
+			$ret{$strID} = join(',',@tmp);
 		}
 		++$STRc;
 		#ddx [$STRc,$strID,@strA];
 		$STRcur += $strAcnt+6;
 	}
+	return ($Sid,\%ret);
 }
