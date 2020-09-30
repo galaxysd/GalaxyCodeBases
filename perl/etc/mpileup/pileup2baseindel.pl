@@ -11,6 +11,8 @@ use File::Basename;
 use Getopt::Long;
 use IO::File;
 
+use Data::Dump qw(ddx);
+
 ######### Update from pile2base.pl ####################
 # 1).it will parse the insert and deletion too, 
 # 2).it can parse pileups from multiple sample,
@@ -181,7 +183,11 @@ sub dumpPileup($$$$$$) {
 		}
 		chop($deletion);
 	}
-	my ($La,$Lc,$Lt,$Lg)=(0,0,0,0);
+	my ($La,$Lc,$Lt,$Lg,$Lcnt)=(0,0,0,0,0);
+	my %doCal;
+	for my $x (qw[A C G T]) {
+		$doCal{$x}=[0,0,0];
+	}
 	for(my $i=0;$i<@newBases;$i++){
 		my $ch=$newBases[$i];
 		my $score=$nq[$i];
@@ -191,20 +197,31 @@ sub dumpPileup($$$$$$) {
 		}
 		my $Erate = 10**(-$score/10);
 		#print "$ch $score $Erate\n";
-		if ($ch eq 'A' or $ch eq 'a') {
-			$La += log(3*(1-$Erate)/$Erate);
-		} elsif ($ch eq 'C' or $ch eq 'c') {
-			$Lc += log(3*(1-$Erate)/$Erate);
-		} elsif ($ch eq 'T' or $ch eq 't') {
-			$Lt += log(3*(1-$Erate)/$Erate);
-		} elsif ($ch eq 'G' or $ch eq 'g') {
-			$Lg += log(3*(1-$Erate)/$Erate);
+		if ($ch =~ /[ATCGatcg]/) {
+			++$doCal{uc($ch)}->[0];
+			$doCal{uc($ch)}->[1] += log(1-$Erate);
+			$doCal{uc($ch)}->[2] += log($Erate/3);
 		} else {
 			die "[$ch] @newBases\n$ref,$bases,$bq,$BQcut,$offset,$dp\n";
 		}
+		my @theBaseOrder = sort {$doCal{$b}->[0] <=> $doCal{$a}->[0] || $a cmp $b} (keys %doCal);
+		my $theBaseCount = 0;
+		for (@theBaseOrder) {
+			++$theBaseCount if $doCal{$_}->[0] > 0;
+		}
+		ddx \%doCal,\@theBaseOrder,$theBaseCount if $theBaseCount>1;
 		#print "$La,$Lc,$Lt,$Lg\n";
 	}
-	my $str=join("\t",$dp-$skipped,$La,$Lc,$Lg,$Lt,$sbases,$sbq,$insertion,$deletion)."\n";
+	for my $i ($La,$Lc,$Lt,$Lg) {
+		if ($i>0) {
+			++$Lcnt;
+		}
+	}
+	if ($Lcnt<2) {
+		return "*";
+	}
+	my $lg10=log(10);
+	my $str=join("\t",$dp-$skipped,$La/$lg10,$Lc/$lg10,$Lg/$lg10,$Lt/$lg10,$sbases,$sbq,$insertion,$deletion)."\n";
 	return $str;
 }
 
