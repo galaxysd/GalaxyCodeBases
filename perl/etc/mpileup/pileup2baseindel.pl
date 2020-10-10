@@ -204,12 +204,28 @@ sub dumpPileup($$$$$$) {
 		} else {
 			die "[$ch] @newBases\n$ref,$bases,$bq,$BQcut,$offset,$dp\n";
 		}
-		my @theBaseOrder = sort {$doCal{$b}->[0] <=> $doCal{$a}->[0] || $a cmp $b} (keys %doCal);
+		my @theBaseOrder = sort {$doCal{$b}->[0] <=> $doCal{$a}->[0] || $doCal{$b}->[1] <=> $doCal{$a}->[1] || $a cmp $b} (keys %doCal);
 		my $theBaseCount = 0;
 		for (@theBaseOrder) {
 			++$theBaseCount if $doCal{$_}->[0] > 0;
 		}
-		ddx \%doCal,\@theBaseOrder,$theBaseCount if $theBaseCount>1;
+		my ($tBases,%tResult)=('');
+		$tResult{0}=['x',0];
+		for my $i (1 .. $theBaseCount) {
+			my $x = $theBaseOrder[$i-1];
+			$tResult{0}->[1] += $doCal{$x}->[2];
+			$tBases .= $x;
+			$tResult{$i} = [$tBases,0];
+			for my $j (1 .. $i) {
+				my $x = $theBaseOrder[$j-1];
+				$tResult{$i}->[1] += $doCal{$x}->[1];
+			}
+			for my $k ( ($i+1) .. $theBaseCount) {
+				my $x = $theBaseOrder[$k-1];
+				$tResult{$i}->[1] += $doCal{$x}->[2];
+			}
+		}
+		ddx \%doCal,\@theBaseOrder,$theBaseCount,\%tResult if $theBaseCount>1;
 		#print "$La,$Lc,$Lt,$Lg\n";
 	}
 	for my $i ($La,$Lc,$Lt,$Lg) {
