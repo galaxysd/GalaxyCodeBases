@@ -27,6 +27,13 @@ if ( tFileDim[2] != tExpSize ) {
     quit()
 }
 
+cat("[!]File Data preview:\n")
 print(head(countdata))
-cat(colnames(countdata),"\n")
-cat(dim(countdata),"\n")
+
+(condition <- factor(c(rep("ctl", ExpCnt[1]), rep("exp", ExpCnt[2]))))
+#print(condition)
+
+library(DESeq2)
+(coldata <- data.frame(row.names=colnames(countdata), condition))
+dds <- DESeqDataSetFromMatrix(countData=countdata, colData=coldata, design=~condition)
+dds <- DESeq(dds)
