@@ -29,9 +29,11 @@ for (( i = 0 ; i < ${#INFILEC[@]} ; i++ )); do
 	for (( y = 0 ; y < cntB ; y++ )); do
 		FGROUPB[$y]="alnSTAT/${GROUPB[$y]}Aligned.sortedByCoord.out.bam";
 	done;
-	strA=`array::join ' ' ${FGROUPA[@]}`;
-	strB=`array::join ' ' ${FGROUPB[@]}`;
-	theCmd="featureCounts -a gencode.v35.primary_assembly.annotation.gtf -o fcSTARg/${INDAT[0]}.txt -T 48 -t exon -g gene_id $strA $strB";
+	#strA=`array::join ' ' ${FGROUPA[@]}`;
+	#strB=`array::join ' ' ${FGROUPB[@]}`;
+	theCmd="featureCounts -a gencode.v35.primary_assembly.annotation.gtf -o fcSTARg/${INDAT[0]}.txt -T 48 -t exon -g gene_id ${FGROUPA[@]} ${FGROUPB[@]}";
 	#echo "$i $theCmd";
 	bash -c "$theCmd";
+	unset FGROUPA;
+	unset FGROUPB;
 done
