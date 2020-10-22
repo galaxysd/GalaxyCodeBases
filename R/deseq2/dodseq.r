@@ -35,7 +35,7 @@ print(head(countdata))
 
 #quit()
 
-library(DESeq2)
+suppressPackageStartupMessages(library(DESeq2))
 (coldata <- data.frame(row.names=colnames(countdata), condition))
 dds <- DESeqDataSetFromMatrix(countData=countdata, colData=coldata, design=~condition)
 # Run the DESeq pipeline
@@ -55,12 +55,12 @@ rld <- rlogTransformation(dds)
 ## Ugly:
 ## (mycols <- 1:length(unique(condition)))
 ## Use RColorBrewer, better
-library(RColorBrewer)
+suppressPackageStartupMessages(library(RColorBrewer))
 (mycols <- brewer.pal(8, "Dark2")[1:length(unique(condition))])
 
 # Sample distance heatmap
 sampleDists <- as.matrix(dist(t(assay(rld))))
-library(gplots)
+suppressPackageStartupMessages(library(gplots))
 png(paste0(outP,".qc-heatmap-samples.png"), w=1000, h=1000, pointsize=20)
 heatmap.2(as.matrix(sampleDists), key=F, trace="none",
           col=colorpanel(100, "black", "white"),
@@ -73,9 +73,11 @@ dev.off()
 ## DESeq2::plotPCA(rld, intgroup="condition")
 ## I like mine better:
 rld_pca <- function (rld, intgroup = "condition", ntop = 500, colors=NULL, legendpos="bottomleft", main="PCA Biplot", textcx=1, ...) {
-  require(genefilter)
-  require(calibrate)
-  require(RColorBrewer)
+  suppressPackageStartupMessages({
+      require(genefilter)
+      require(calibrate)
+      require(RColorBrewer)
+  })
   rv = rowVars(assay(rld))
   select = order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
   pca = prcomp(t(assay(rld)[select, ]))
