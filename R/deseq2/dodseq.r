@@ -16,6 +16,8 @@ countdata <- read.table(inFile, header=TRUE, row.names=1)
 countdata <- countdata[ ,6:ncol(countdata)]
 colnames(countdata) <- gsub("^alnSTAT\\.", "", colnames(countdata))
 colnames(countdata) <- gsub("Aligned\\.sortedByCoord\\.out\\.[sb]am$", "", colnames(countdata))
+colnames(countdata) <- gsub("^alnHISAT\\.", "", colnames(countdata))
+colnames(countdata) <- gsub(".[sb]am$", "", colnames(countdata))
 countdata <- as.matrix(countdata)
 
 tFileDim <- dim(countdata)
