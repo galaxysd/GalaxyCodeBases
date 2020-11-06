@@ -16,6 +16,7 @@ while (my $data_string = <DATA>) {
 }
 ddx \%STRs;
 
+# bcftools query -f '%CHROM\t%POS\t%ID\t%REF,%ALT[\t%TGT]\n' ALL.chrY.phase3_integrated_v2a.20130502.genotypes.vcf.gz|less -S
 
 
 __DATA__
