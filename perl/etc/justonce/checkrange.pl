@@ -18,7 +18,19 @@ ddx \%STRs;
 
 # bcftools query -f '%CHROM\t%POS\t%ID\t%REF,%ALT[\t%TGT]\n' ALL.chrY.phase3_integrated_v2a.20130502.genotypes.vcf.gz|less -S
 
-
+while (<>) {
+	chomp;
+	my ($chr,$pos,$id) = split /\t/;
+	#print "$chr,$pos,$id\n";
+	next if $chr ne 'Y';
+	for my $k (sort keys %STRs) {
+		my ($st,$ed) = @{$STRs{$k}};
+		#print "$st,$ed $pos\n";
+		if (($st <= $pos+200) and ($ed >= $pos-200)) {
+			print join("\t",$k,$st,$ed,$chr,$pos,$id),"\n";
+		}
+	}
+}
 __DATA__
 #Tag	ID	Chr	Start	End
 Y-STR	AMEL	Y	6868712	6868744
