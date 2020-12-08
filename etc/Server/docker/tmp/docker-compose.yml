@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+    titian:
+      build:
+        context: .
+        dockerfile: TitanDocker
+        labels:
+          - "com.bgi.description=YouKnowIt"
+        network: bridge
+        ports:
+          - "80:80"
+          - "443:443"
+          - "8001:8001"
+          - "8002:8002"
+          - "6677:6677"
+          - "7788:7788"
+          - "7789:7789"
+          - "8443:8443"
+
