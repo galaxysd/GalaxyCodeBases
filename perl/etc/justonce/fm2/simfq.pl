@@ -32,6 +32,6 @@ while (my $row = $csv->getline_hr ($fh)) {
 	unless ($PCRed > 0) {
 		$PCRed = $row->{'repeat_end'} + $defaultExtends;
 	}
-	print join("\t",$ChrID,$PCRst,$PCRed,@$row{qw(name motif motif_length)}),"\n";
+	print join("\t",$ChrID,$PCRst,$PCRed,@$row{qw(name motif motif_length refseq repeat_start repeat_end min max)}),"\n";
 }
 
