@@ -48,14 +48,17 @@ with open(InFile) as tsvfile:
             hp=primer3.calcHairpin(oneKmer)
             hd=primer3.calcHomodimer(oneKmer)
             if hp.structure_found or hd.structure_found:
-                print(' '.join(['ST',str(round(hp.tm,2)),str(round(hd.tm,2)),oneKmer,str(round(thisE[0],2)),str(round(thisE[1],2))]))
+                print(' '.join(['ST',str(round(hp.tm,2)),str(round(hd.tm,2)),oneKmer,str(thisE[0]),str(thisE[1])]))
             else:
-                print(' '.join(['OK','0','0',oneKmer,str(round(thisE[0],2)),str(round(thisE[1],2))]))
+                print(' '.join(['OK','0','0',oneKmer,str(thisE[0]),str(thisE[1])]))
 
 exit()
 
 hp=primer3.calcHairpin('CCCCCATCCGATCAGGGGG')
 hd=primer3.calcHomodimer('CCCCCATCCGATCAGGGGG')
 
-print(t)
+"""
+grep OK out.kmers.f1 | awk -v size=2.5 '{ b=int($5/size); a[b]++; bmax=b>bmax?b:bmax; bmin=b<bmin?b:bmin } END { for(i=bmin;i<=bmax;++i) print i*size,(i+1)*size,a[i] }'
 
+grep OK out.kmers.f1 | awk -v size=0.5 '{ b=int($6/size); a[b]++; bmax=b>bmax?b:bmax; bmin=b<bmin?b:bmin } END { for(i=bmin;i<=bmax;++i) print i*size,(i+1)*size,a[i] }'
+"""
