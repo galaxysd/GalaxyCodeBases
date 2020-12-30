@@ -42,7 +42,8 @@ for my $k (keys %StrDat) {
 	} else {
 		@GT = ('Unknown');
 	}
-	ddx \@GT;
+	#ddx \@GT;
+	print "STR\t$k: ",join(",",@GT),"\n";
 }
 
 
