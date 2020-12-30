@@ -23,7 +23,7 @@ while(<>) {
 
 sub SumArryItr { my $agg = 0; $agg += $_ for @_;  return $agg }
 
-for my $k (keys %StrDat) {
+for my $k (sort { my $x=($a=~/^DY/);my $y=($b=~/^DY/);$x-$y ||$a cmp $b} keys %StrDat) {
 	my %oneSTR = %{$StrDat{$k}};
 	#ddx \%oneSTR;
 	my @Allels = sort {$oneSTR{$b} <=> $oneSTR{$a}} keys %oneSTR;
