@@ -45,6 +45,8 @@ with open(InFile) as tsvfile:
         else:
             #print(oneKmer)
             thisE = entropy(oneKmer,15)
+            if thisE[1] < 53:
+                continue
             hp=primer3.calcHairpin(oneKmer)
             hd=primer3.calcHomodimer(oneKmer)
             if hp.structure_found or hd.structure_found:
