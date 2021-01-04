@@ -131,4 +131,22 @@ for (keys %pPrefixs) {
 }
 
 ################################
+# fq.lst, q0cutadapter.sh, q1bwa.sh #
+################################
+my (%fqInfo,%Samples);
+while ( my $value = $cinfo->fetch ) {
+	next if $value->{Cell} eq '';
+	my $usid = join('_',$value->{Sample},$value->{UID});
+	$fqInfo{$usid} = [$value->{Cell},$value->{Lane},$value->{Index}];
+	push @{$Samples{$value->{Sample}}},$usid;
+	#die "[x]Column PESE must be either PE or SE.\n" unless $value->{PESE} =~ /(P|S)E/i;
+}
+die $cinfo->errstr if $cinfo->errstr;
+ddx \%fqInfo,\%Samples;
+
+my (%SampleCnt,@sCnt);
+for (keys %Samples) {
+	++$SampleCnt{scalar @{$Samples{$_}}};
+}
+ddx \%SampleCnt;
 
