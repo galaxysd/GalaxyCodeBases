@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Cwd qw(abs_path cwd);
 use Parse::CSV;
-#use Data::Dump qw(ddx);
+use Data::Dump qw(ddx);
 use FindBin qw($RealBin);
 if ($FindBin::VERSION < 1.51) {
 	warn "[!]Your Perl is too old, thus there can only be ONE `fmpipe.pl` file in your PATH. [FindBin Version: $FindBin::VERSION < 1.51]\n\n"
@@ -25,25 +25,18 @@ my %pPrefixs = (
 	qc => '5qc',
 );
 
-my @Modes = qw(CHIP PCR);
+my @Modes = qw(BGISEQ PROTON);
 my %Mode = map { $_ => 1 } @Modes;
-my @Machines = qw(BGISEQ PROTON);
-my %Machine = map { $_ => 1 } @Machines;
-my @Parentages = qw(DUO TRIO);
-my %Parentage = map { $_ => 1 } @Parentages;
 
-my ($theMode,$theMachine,$theParentage,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
+
+my ($theMode,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
 $pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
 my $listFamily = "$pout/family.lst";
 our $rRefn = "ref/ForensicN.fa.gz";
 
-my $Usage = "Usage: $0 <mode/help/example> <BGISEQ|PROTON> <Trio|Duo> <info.csv> <details.csv> <chip path> [out path]\n
-[Mode]: PCR mode require 2 repeats while Chip mode require 1.
-[Machine]: PROTON for bam files from IonTorrent.
-[Parentage]: A duo test involves the child and an alleged father. eg. gestational/full surrogacy。
-In contrast, a trio test involves the mother, child, and the alleged father.
+my $Usage = "Usage: $0 <do/help/example> <info.csv> <details.csv> <chip path> [out path]\n
 ";
 
 my $egInfo = <<'END_EG';
@@ -62,9 +55,6 @@ HK19M241F,钟连杰,M,232102195812116215,13812345678,zhonglj@sina.com
 HK19M241M,常淑萍,F,152530196203041362,13612345678,changsp@163.com
 END_EG
 my $takeoutNFO = <<"END_NFO";
-#### If the chip path is not in BGISEQ schema, you must ensure Sample names are correct, and then modify [$listFQ].
-#### [BGISEQ]/nanoballs fq.gz can be SE(favored) or PE, [PROTON]/IonTorrent bams are all treated as SE.
-####    If you do have PE Ion Torrent data, convert to *_[12].fq.gz pairs first.
 #### To skip `cutadapt`, run `SKIP=1 $pout/1fq.sh` manually WITHOUT qsub it.
 #### If you then regret to use `cutadapt`, you must clean "$pout/$pPrefixs{fq}/", but KEEP the directory itself, before qsub it.
 END_NFO
@@ -97,21 +87,14 @@ END_MESSAGE
 	}
 }
 
-if (@ARGV < 4) {
+if (@ARGV < 2) {
 	die $Usage;
 }
 $theMode = uc $theMode;
 if (! exists $Mode{$theMode}) {
 	die "[x]mode can only be:[",join(',',@Modes),"].\n";
 }
-$theMachine = uc $theMachine;
-if (! exists $Machine{$theMachine}) {
-	die "[x]machine can only be:[",join(',',@Machines),"].\n";
-}
-$theParentage = uc $theParentage;
-if (! exists $Parentage{$theParentage}) {
-	die "[x]parentage can only be:[",join(',',@Parentages),"].\n";
-}
+
 my $cwd = cwd() or die $!;
 die "[x]Cannot read info.csv [$fninfo].\n" unless -r -s $fninfo;
 die "[x]Cannot read details.csv [$fnfam].\n" unless -r -s $fnfam;
@@ -149,4 +132,34 @@ for (keys %Samples) {
 	++$SampleCnt{scalar @{$Samples{$_}}};
 }
 ddx \%SampleCnt;
+open O,'>',$listFQ or die $?;
+for (sort keys %fqInfo) {
+	my @d = @{$fqInfo{$_}};
+	my $fqNameP;
+	if ($theMode eq 'BGISEQ') {
+		$fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$d[2]));
+	} elsif ($theMode eq 'PROTON') {
+		$fqNameP = join('/',$pchip,$d[0],$d[1],"basecaller_results",join('_',"IonXpress",$d[2]));
+	}
+	print O join("\t",$_,$fqNameP),"\n";
+}
+close O;
+my $fSHcutadapt = "$pout/q0cutadapter.sh";
+open O,'>',$fSHcutadapt or die $?;
+my $FQprefix = "$pout/$pPrefixs{fq}";
+print O Scutadapt($cwd,scalar(keys %fqInfo),$listFQ,$FQprefix);
+close O;
+chmod 0755,$fSHcutadapt;
+my $fSHbwa = "$pout/q1bwa.sh";
+open O,'>',$fSHbwa or die $?;
+my $BAMprefix = "$pout/$pPrefixs{bam}";
+my $VCFprefix = "$pout/$pPrefixs{vcf}";
+my $OYKprefix = "$pout/$pPrefixs{oyk}";
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$VCFprefix,$FQprefix);
+close O;
+################################
 
+
+
+__END__
+./fmpipe.pl BGISEQ info.csv details.csv intt outtt
