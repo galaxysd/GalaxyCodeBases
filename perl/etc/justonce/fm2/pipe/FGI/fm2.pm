@@ -71,8 +71,8 @@ END_SH
 	return $SHcutadapt;
 }
 
-sub Sbwamem($$$$$$) {
-	my ($cwd,$cnt,$flst,$outP,$VCFprefix,$FQprefix) = @_;
+sub Sbwamem($$$$$$$) {
+	my ($cwd,$cnt,$flst,$outP,$VCFprefix,$FQprefix,$OYKprefix) = @_;
 	my $SHbwa = <<"END_SH";
 #!/bin/bash
 #\$ -S /bin/bash
@@ -100,8 +100,17 @@ fi
 
 samtools index $outP/\${INDAT[0]}.bam
 
+java -jar $RealBin/bin/picard.jar FilterSamReads I=$outP/\${INDAT[0]}.bam O=$VCFprefix/\${INDAT[0]}_M.bam JAVASCRIPT_FILE=$RealBin/bin/f200M.js FILTER=includeJavascript
+samtools mpileup -l $RealBin/bin/LN-mid.bed $VCFprefix/\${INDAT[0]}_M.bam |awk '{print \$1"\\t"\$4}' > $VCFprefix/\${INDAT[0]}.0str
+$RealBin/bin/fstr.pl $VCFprefix/\${INDAT[0]}.0str >$OYKprefix/\${INDAT[0]}.str
+
 bcftools mpileup --threads 6 $outP/\${INDAT[0]}.bam -d 30000 -Q 30 -f $RealBin/$rRefn -p -Ob -o $VCFprefix/\${INDAT[0]}.bcf
 bcftools call -Oz -A -m $VCFprefix/\${INDAT[0]}.bcf -o $VCFprefix/\${INDAT[0]}.snp.gz
+bcftools index $VCFprefix/\${INDAT[0]}.snp.gz
+bcftools query -f'%CHROM\\t[%DP\\t%QUAL\\t%TGT\\n]' -i 'POS==501' $VCFprefix/\${INDAT[0]}.snp.gz >$VCFprefix/\${INDAT[0]}.0snp
+$RealBin/bin/fsnp.pl $VCFprefix/\${INDAT[0]}.0snp >$OYKprefix/\${INDAT[0]}.snp
+
+cat $OYKprefix/\${INDAT[0]}.snp $OYKprefix/\${INDAT[0]}.str >$OYKprefix/\${INDAT[0]}.result
 
 samtools stats -@ 12 $outP/\${INDAT[0]}.bam >$outP/\${INDAT[0]}.bam.stat
 grep ^IS $outP/\${INDAT[0]}.bam.stat | cut -f 2- > $outP/\${INDAT[0]}.fragstats

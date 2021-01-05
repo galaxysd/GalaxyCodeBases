@@ -155,7 +155,7 @@ open O,'>',$fSHbwa or die $?;
 my $BAMprefix = "$pout/$pPrefixs{bam}";
 my $VCFprefix = "$pout/$pPrefixs{vcf}";
 my $OYKprefix = "$pout/$pPrefixs{oyk}";
-print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$VCFprefix,$FQprefix);
+print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$VCFprefix,$FQprefix,$OYKprefix);
 close O;
 ################################
 
