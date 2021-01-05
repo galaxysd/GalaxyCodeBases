@@ -14,7 +14,7 @@ sub Scutadapt($$$$) {
 #\$ -S /bin/bash
 #\$ -q $SgeQueue -P $SgeProject
 #\$ -N p0${SgeJobPrefix}cut
-#\$ -l vf=600M,num_proc=2,h=cngb-compute-f8-*
+#\$ -l vf=600M,num_proc=2
 #\$ -binding linear:3
 #\$ -cwd -r y
 #\$ -v PERL5LIB,PATH,LD_LIBRARY_PATH
@@ -54,9 +54,9 @@ HISEQSEADAPTERSTR='-g AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT
 HISEQPEADAPTERSTR="\$HISEQSEADAPTERSTR -G GATCGGTCTCGGCATTCCTGCTGAACCGCTCTTCCGATCT -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -G CAAGCAGAAGACGGCATACGAGATnnnnnnnnGTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT"
 
 if [ -e "\${INDAT[1]}.fq.gz" ]; then
-	cutadapt -j 2 -m 1 -O 6 -n 2 \$SEADAPTERSTR -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
+	cutadapt -j 2 -m 1 -O 6 -n 2 \$HISEQSEADAPTERSTR -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}.fq.gz >$outP/\${INDAT[0]}.log
 elif [ -e "\${INDAT[1]}_1.fq.gz" ] && [ -e "\${INDAT[1]}_2.fq.gz" ]; then
-	cutadapt -j 2 -m 1 -O 6 -n 2 \$PEADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
+	cutadapt -j 2 -m 1 -O 6 -n 2 \$HISEQPEADAPTERSTR --interleaved -o $outP/\${INDAT[0]}.fq.gz \${INDAT[1]}_1.fq.gz \${INDAT[1]}_2.fq.gz >$outP/\${INDAT[0]}.log
 elif [ -e "\${INDAT[1]}_rawlib.basecaller.bam" ]; then
 	samtools fastq \${INDAT[1]}_rawlib.basecaller.bam | cutadapt -j 2 -m 1 -O 6 -n 2 \$IONSEADAPTERSTR -o $outP/\${INDAT[0]}.fq.gz - >$outP/\${INDAT[0]}.log
 else

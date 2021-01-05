@@ -40,16 +40,16 @@ my $Usage = "Usage: $0 <do/help/example> <info.csv> <details.csv> <chip path> [o
 ";
 
 my $egInfo = <<'END_EG';
-UID,Sample,Cell,Lane,Index
-1,HK19M241C,V300016438,L02,520
-2,HK19M241F,V300016438,L02,563
-3,HK19M241M,V300016438,L02,564
-34,NS19M342C,V300016438,L01,555
-35,NS19M342F-N,V300016438,L01,519
-37,NS19M342M,V300016438,L01,520
+uid,sample,cell,lane,index
+1,HK19M241C,V300083793,L02,385-331
+2,HK19M241F,V300083793,L02,385-333
+3,HK19M241M,V300083793,L02,386-335
+34,NS19M342C,V300083793,L02,384-334
+35,NS19M342F-N,V300083793,L02,470-335
+37,NS19M342M,V300083793,L02,383-333
 END_EG
 my $egDetail = <<'END_EG';
-Sample,Name,Sex,IDCard,MobilePhone,Email
+sample,name,sex,idcard,mobilephone,email
 HK19M241C,曹亚旭,M,110101199108120047,13712345678,CYX@qq.com
 HK19M241F,钟连杰,M,232102195812116215,13812345678,zhonglj@sina.com
 HK19M241M,常淑萍,F,152530196203041362,13612345678,changsp@163.com
@@ -118,20 +118,21 @@ for (keys %pPrefixs) {
 ################################
 my (%fqInfo,%Samples);
 while ( my $value = $cinfo->fetch ) {
-	next if $value->{Cell} eq '';
-	my $usid = join('_',$value->{Sample},$value->{UID});
-	$fqInfo{$usid} = [$value->{Cell},$value->{Lane},$value->{Index}];
-	push @{$Samples{$value->{Sample}}},$usid;
+	next if $value->{cell} eq '';
+	my $usid = join('_',$value->{sample},$value->{uid});
+	$fqInfo{$usid} = [$value->{cell},$value->{lane},$value->{index}];
+	push @{$Samples{$value->{sample}}},$usid;
 	#die "[x]Column PESE must be either PE or SE.\n" unless $value->{PESE} =~ /(P|S)E/i;
 }
 die $cinfo->errstr if $cinfo->errstr;
-ddx \%fqInfo,\%Samples;
-
+#ddx \%fqInfo,\%Samples;
 my (%SampleCnt,@sCnt);
 for (keys %Samples) {
 	++$SampleCnt{scalar @{$Samples{$_}}};
 }
-ddx \%SampleCnt;
+#ddx \%SampleCnt;
+@sCnt = keys %SampleCnt;
+die "[x]One fq, one sample, for now.\n" if @sCnt > 1;
 open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
@@ -163,3 +164,4 @@ close O;
 
 __END__
 ./fmpipe.pl BGISEQ info.csv details.csv intt outtt
+./fmpipe.pl BGISEQ info.csv details.csv fq out
