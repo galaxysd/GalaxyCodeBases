@@ -25,7 +25,7 @@ my %pPrefixs = (
 	qc => '5qc',
 );
 
-my @Modes = qw(BGISEQ PROTON);
+my @Modes = qw(BGISEQ PROTON DO);
 my %Mode = map { $_ => 1 } @Modes;
 
 
