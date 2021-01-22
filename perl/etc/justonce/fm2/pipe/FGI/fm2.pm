@@ -110,7 +110,7 @@ bcftools index $VCFprefix/\${INDAT[0]}.snp.gz
 bcftools query -f'%CHROM\\t[%DP\\t%QUAL\\t%TGT\\n]' -i 'POS==501' $VCFprefix/\${INDAT[0]}.snp.gz >$VCFprefix/\${INDAT[0]}.0snp
 $RealBin/bin/fsnp.pl $VCFprefix/\${INDAT[0]}.0snp >$OYKprefix/\${INDAT[0]}.snp
 
-cat $OYKprefix/\${INDAT[0]}.snp $OYKprefix/\${INDAT[0]}.str >$OYKprefix/\${INDAT[0]}.result
+grep -hE '^S(NP|TR)' $OYKprefix/\${INDAT[0]}.snp $OYKprefix/\${INDAT[0]}.str >$OYKprefix/\${INDAT[0]}.result
 
 samtools stats -@ 12 $outP/\${INDAT[0]}.bam >$outP/\${INDAT[0]}.bam.stat
 grep ^IS $outP/\${INDAT[0]}.bam.stat | cut -f 2- > $outP/\${INDAT[0]}.fragstats
