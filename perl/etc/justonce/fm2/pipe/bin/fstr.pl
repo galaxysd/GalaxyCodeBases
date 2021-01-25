@@ -11,6 +11,12 @@ my $s2HeteLevela = 0.3;
 my $s2HeteLevelb = 0.2;
 my $minAllelDepth = 100;
 
+my @STRids = qw[
+CSF1PO D10S1248 D10S1435 D12S391 D13S317 D15S659 D16S539 D19S253 D19S433 D1S1656 D21S11 D22S1045 D2S1338 D2S441 D3S1358 D3S3045 D5S818 D6S1043 D6S477 D7S820 D8S1132 D8S1179 DXS6795 FGA PentaE SE33 TH01 TPOX Y_GATA_A10 Y_GATA_H4 vWA DYF387 DYF404S1 DYS19 DYS385 DYS388 DYS390 DYS391 DYS392 DYS393 DYS437 DYS438 DYS439 DYS444 DYS447 DYS448 DYS449 DYS456 DYS458 DYS459 DYS460 DYS481 DYS510 DYS518 DYS522 DYS527 DYS531 DYS533 DYS549 DYS557 DYS570 DYS576 DYS593 DYS596 DYS627 DYS635 DYS645
+];
+my %STRid;
+$STRid{$_}++ for (@STRids);
+
 my (%StrZones,%StrStat);
 <DATA>;
 while(<DATA>) {
@@ -34,42 +40,55 @@ while(<>) {
 
 sub SumArryItr { my $agg = 0; $agg += $_ for @_;  return $agg }
 
-for my $k (sort { my $x=($a=~/^DY/);my $y=($b=~/^DY/);$x-$y ||$a cmp $b} keys %StrDat) {
-	my %oneSTR = %{$StrDat{$k}};
-	#ddx \%oneSTR;
-	my @Allels = sort {$oneSTR{$b} <=> $oneSTR{$a}} keys %oneSTR;
-	#ddx \@Allels;
-	my $Sum = SumArryItr(values %oneSTR);
-	#print $Sum,"\n---\n";
-	my @GT;
+for my $k (sort { my $x=($a=~/^DY/);my $y=($b=~/^DY/);$x-$y ||$a cmp $b} keys %STRid) {
 	my $strLen = 0;
 	$strLen = $StrZones{$k}->[1] if exists $StrZones{$k};
-	if ($oneSTR{$Allels[0]} <= 100) {
-		@GT = ('NA');
-	} elsif ($oneSTR{$Allels[0]} >= $Sum * $s1HomoLevel ) {
-		@GT = ($Allels[0]);
-		push @{$StrStat{$strLen}},$StrDat{$k}{$Allels[0]};
-	} elsif ( ($oneSTR{$Allels[0]} >= $Sum * $s2HomoLevela) and ($oneSTR{$Allels[1]} < $Sum * $s2HeteLevelb) ) {
-		@GT = ($Allels[0]);
-		push @{$StrStat{$strLen}},$StrDat{$k}{$Allels[0]};
-	} elsif ( ($oneSTR{$Allels[0]} >= $Sum * $s2HeteLevela) and ($oneSTR{$Allels[1]} >= $Sum * $s2HeteLevelb) ) {
-		@GT = ($Allels[0],$Allels[1]);
-		push @{$StrStat{$strLen}},($StrDat{$k}{$Allels[0]}+$StrDat{$k}{$Allels[1]});
+	unless (exists $StrDat{$k}) {
+		print "STR\t$k: Unknown\n";
+		push @{$StrStat{$strLen}},'N';
 	} else {
-		@GT = ('Unknown');
+		my %oneSTR = %{$StrDat{$k}};
+		#ddx \%oneSTR;
+		my @Allels = sort {$oneSTR{$b} <=> $oneSTR{$a}} keys %oneSTR;
+		#ddx \@Allels;
+		my $Sum = SumArryItr(values %oneSTR);
+		#print $Sum,"\n---\n";
+		my @GT;
+		if ($oneSTR{$Allels[0]} <= 100) {
+			@GT = ('NA');
+			push @{$StrStat{$strLen}},'N';
+		} elsif ($oneSTR{$Allels[0]} >= $Sum * $s1HomoLevel ) {
+			@GT = ($Allels[0]);
+			push @{$StrStat{$strLen}},$StrDat{$k}{$Allels[0]};
+		} elsif ( ($oneSTR{$Allels[0]} >= $Sum * $s2HomoLevela) and ($oneSTR{$Allels[1]} < $Sum * $s2HeteLevelb) ) {
+			@GT = ($Allels[0]);
+			push @{$StrStat{$strLen}},$StrDat{$k}{$Allels[0]};
+		} elsif ( ($oneSTR{$Allels[0]} >= $Sum * $s2HeteLevela) and ($oneSTR{$Allels[1]} >= $Sum * $s2HeteLevelb) ) {
+			@GT = ($Allels[0],$Allels[1]);
+			push @{$StrStat{$strLen}},($StrDat{$k}{$Allels[0]}+$StrDat{$k}{$Allels[1]});
+		} else {
+			@GT = ('UnknownE');
+			push @{$StrStat{$strLen}},'N';
+		}
+		#ddx \@GT;
+		print "STR\t$k: ",join(",",@GT),"\n";
 	}
-	#ddx \@GT;
-	print "STR\t$k: ",join(",",@GT),"\n";
 }
 
 #ddx \%StrStat;
 for my $plen (sort {$a <=> $b} keys %StrStat) {
 	next if $plen == 0;
 	my @deps = @{$StrStat{$plen}};
-	my $sum;
-	$sum += $_ for @deps;
-	my $avg = $sum/(scalar @deps);
-	print join("\t",'DEPTH',$plen,sprintf("%.1f", $avg),@deps),"\n";
+	my ($cnt,$sum,$avg)=(0,0,'NA');
+	for (@deps) {
+		next if $_ eq 'N';
+		$sum += $_;
+		$cnt += 1;
+	}
+	if ($cnt) {
+		$avg = sprintf("%.1f", $sum/$cnt);
+	}
+	print join("\t",'DEPTH',$plen,$avg,@deps),"\n";
 }
 
 __DATA__
