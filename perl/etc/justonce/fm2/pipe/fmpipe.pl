@@ -5,6 +5,7 @@ Version: 1.0.0 @ 20180516
 =cut
 use strict;
 use warnings;
+use utf8;
 use Cwd qw(abs_path cwd);
 use Parse::CSV;
 use Data::Dump qw(ddx);
@@ -15,6 +16,8 @@ if ($FindBin::VERSION < 1.51) {
 FindBin::again();
 use lib "$RealBin";
 use FGI::fm2;
+
+use open qw(:std :utf8);
 # ====================================
 my %pPrefixs = (
 	lst => '0lst',
@@ -33,8 +36,8 @@ my ($theMode,$fninfo,$fnfam,$pchip,$pout) = @ARGV;
 $pout = '.' unless $pout;
 $pout =~ s/\/+$//g;
 my $listFQ = "$pout/fq.lst";
-my $listFamily = "$pout/family.lst";
-our $rRefn = "ref/ForensicN.fa.gz";
+my $listSample = "$pout/sample.lst";
+our $rRefn = "ref/ForensicM.fa.gz";
 
 my $Usage = "Usage: $0 <do/help/example> <info.csv> <details.csv> <chip path> [out path]\n
 ";
@@ -46,7 +49,7 @@ uid,sample,cell,lane,index
 3,HK19M241M,V300083793,L02,386-335
 34,NS19M342C,V300083793,L02,384-334
 35,NS19M342F-N,V300083793,L02,470-335
-37,NS19M342M,V300083793,L02,383-333
+37,NS19M342C,V300083793,L02,383-333
 END_EG
 my $egDetail = <<'END_EG';
 sample,name,sex,idcard,mobilephone,email
@@ -125,19 +128,19 @@ while ( my $value = $cinfo->fetch ) {
 	#die "[x]Column PESE must be either PE or SE.\n" unless $value->{PESE} =~ /(P|S)E/i;
 }
 die $cinfo->errstr if $cinfo->errstr;
-#ddx \%fqInfo,\%Samples;
+ddx \%fqInfo,\%Samples;
 my (%SampleCnt,@sCnt);
 for (keys %Samples) {
 	++$SampleCnt{scalar @{$Samples{$_}}};
 }
-#ddx \%SampleCnt;
+ddx \%SampleCnt;
 @sCnt = keys %SampleCnt;
-die "[x]One fq, one sample, for now.\n" if @sCnt > 1;
+#die "[x]One fq, one sample, for now.\n" if @sCnt > 1;
 open O,'>',$listFQ or die $?;
 for (sort keys %fqInfo) {
 	my @d = @{$fqInfo{$_}};
 	my $fqNameP;
-	if ($theMode eq 'BGISEQ') {
+	if ($theMode eq 'BGISEQ' or $theMode eq 'DO') {
 		$fqNameP = join('/',$pchip,$d[0],$d[1],join('_',$d[0],$d[1],$d[2]));
 	} elsif ($theMode eq 'PROTON') {
 		$fqNameP = join('/',$pchip,$d[0],$d[1],"basecaller_results",join('_',"IonXpress",$d[2]));
@@ -145,6 +148,19 @@ for (sort keys %fqInfo) {
 	print O join("\t",$_,$fqNameP),"\n";
 }
 close O;
+
+my %SampleNFO;
+while ( my $value = $cfam->fetch ) {
+	next if $value->{sample} eq '';
+	$SampleNFO{$value->{sample}} = [$value->{name},$value->{sex},$value->{idcard},$value->{mobilephone},$value->{email}];
+}
+ddx \%SampleNFO;
+
+print $SampleNFO{'HK19M241F'}->[0],"\n";
+open O,'>',$listSample or die $?;
+
+close O;
+
 my $fSHcutadapt = "$pout/q0cutadapter.sh";
 open O,'>',$fSHcutadapt or die $?;
 my $FQprefix = "$pout/$pPrefixs{fq}";
@@ -158,6 +174,7 @@ my $VCFprefix = "$pout/$pPrefixs{vcf}";
 my $OYKprefix = "$pout/$pPrefixs{oyk}";
 print O Sbwamem($cwd,scalar(keys %fqInfo),$listFQ,$BAMprefix,$VCFprefix,$FQprefix,$OYKprefix);
 close O;
+chmod 0755,$fSHbwa;
 ################################
 
 
@@ -165,3 +182,4 @@ close O;
 __END__
 ./fmpipe.pl BGISEQ info.csv details.csv intt outtt
 ./fmpipe.pl BGISEQ info.csv details.csv fq out
+./fmpipe.pl do info.csv details.csv fq out
