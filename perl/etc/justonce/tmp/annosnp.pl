@@ -41,3 +41,12 @@ for my $rsid (sort keys %rsDB) {
 		print join("\t",$rsid,$n,@{$dat[$n]}),"\n";
 	}
 }
+
+__END__
+./annosnp.pl > bgi2.anno &
+
+grep -v _alt bgi2.anno > bgi2.anno.m
+
+perl -lane '
+print "samtools faidx GRCh38_no_alt_analysis_set.fna.bgz $F[2]:",$F[3]-500,"-",$F[3]+500," \| sed \"s/\>/\>$F[0]_$F[3] /\" "
+' bgi2.anno.m
