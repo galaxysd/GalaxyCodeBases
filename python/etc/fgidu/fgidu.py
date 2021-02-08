@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import os
 
+import os
+# https://stackoverflow.com/a/62000501/159695
 def du(path):
     if os.path.islink(path):
         return (os.lstat(path).st_size, 0)
