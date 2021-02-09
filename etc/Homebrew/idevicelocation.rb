@@ -1,5 +1,5 @@
 class Idevicelocation < Formula
-  desc "Library to communicate with iOS devices natively"
+  desc "Tool to set the location on iOS Devices"
   homepage "https://github.com/JonGabilondoAngulo/idevicelocation"
   url "https://github.com/galaxy001/idevicelocation/archive/v101.tar.gz"
   sha256 "cfaf45a431d872676c688389bd25a6399da210c243971203b32e5bcb7de6b641"
