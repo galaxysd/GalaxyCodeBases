@@ -18,10 +18,6 @@ class Idevicelocation < Formula
     system "./autogen.sh", "--disable-dependency-tracking",
                            "--disable-silent-rules",
                            "--prefix=#{prefix}"
-                           # As long as libplist builds without Cython
-                           # bindings, libimobiledevice must as well.
-                           #"--without-cython",
-                           #"--enable-debug-code"
     system "make", "install"
   end
 
