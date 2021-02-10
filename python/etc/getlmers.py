@@ -2,8 +2,8 @@
 
 #InFile = 'out.kmers.1k'
 
-import csv
-#import primer3
+#import csv
+import primer3
 import itertools
 import re
 
@@ -11,6 +11,10 @@ from pprint import pprint
 
 import math
 from collections import Counter
+
+myKmerLen = 18
+myEntropyKmer = myKmerLen - 3
+myMinEntropy = myKmerLen * 3
 
 def entropy(seq, max_k=5):
     #p, lns = Counter(s), float(len(s))
@@ -39,17 +43,26 @@ def entropy(seq, max_k=5):
 
 reTri = re.compile(r"(\w)\1{2,}")
 
-for i in itertools.product('ACTG', repeat=18):
+for i in itertools.product('ACTG', repeat=myKmerLen):
+    if len(set(i)) < 4:
+        continue
     oneKmer = ''.join(i)
     reTriFound = reTri.search(oneKmer)
     if reTriFound:
         continue
-    print(oneKmer)
-    print(reTriFound)
-    thisE = entropy(oneKmer,15)
-    if thisE[1] < 53:
+    #print(oneKmer)
+    #print(reTriFound)
+    thisE = entropy(oneKmer,myEntropyKmer)
+    if thisE[1] < myMinEntropy:
         continue
-    print(' '.join([oneKmer,str(thisE[0]),str(thisE[1])]))
+    hp=primer3.calcHairpin(oneKmer)
+    hd=primer3.calcHomodimer(oneKmer)
+    primer3Flag = ['pF','dF']
+    if hp.structure_found:
+        primer3Flag[0] = 'pT'
+    if hd.structure_found:
+        primer3Flag[1] = 'dT'
+    print(' '.join([oneKmer,str(thisE[0]),str(thisE[1]),primer3Flag[0],primer3Flag[1],str(round(hp.tm,2)),str(round(hd.tm,2))]))
 
 exit()
 
