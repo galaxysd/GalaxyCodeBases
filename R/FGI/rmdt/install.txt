@@ -2,14 +2,22 @@ PowerShell 5
 
 iwr -useb get.scoop.sh | iex
 
-scoop install git
-scoop install R pshazz rtools
+# scoop install git
 # scoop install git-with-openssh
+scoop install R pshazz rtools
 
 
 
 R
 
+chcp 936
+
 install.packages('tinytex')
-tinytex::install_tinytex()
+#tinytex::install_tinytex()
+# https://github.com/yihui/tinytex-releases/releases
+tinytex:::install_prebuilt('C:/Users/galaxy/Documents/rmdt/install/TinyTeX-v2021.02.zip')
 tinytex::tlmgr_repo('http://mirrors.ustc.edu.cn/CTAN/')
+
+install.packages("rmarkdown")
+install.packages("bookdown")
+#remotes::install_github('rstudio/pagedown')
