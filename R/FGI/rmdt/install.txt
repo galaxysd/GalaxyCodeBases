@@ -1,0 +1,15 @@
+PowerShell 5
+
+iwr -useb get.scoop.sh | iex
+
+scoop install git
+scoop install R pshazz rtools
+# scoop install git-with-openssh
+
+
+
+R
+
+install.packages('tinytex')
+tinytex::install_tinytex()
+tinytex::tlmgr_repo('http://mirrors.ustc.edu.cn/CTAN/')
