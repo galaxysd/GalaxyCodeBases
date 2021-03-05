@@ -4,7 +4,10 @@ iwr -useb get.scoop.sh | iex
 
 # scoop install git
 # scoop install git-with-openssh
-scoop install R pshazz rtools
+scoop install R pshazz
+#scoop install rtools
+#scoop install aria2
+scoop install pandoc
 
 
 
