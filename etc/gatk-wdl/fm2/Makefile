@@ -6,6 +6,7 @@ OUT1 = $(addsuffix .json.wom,$(WDLF))
 
 all: $(OUT1)
 	@echo "[$(WDLS)] -> [$(OUT1)]"
+	@echo Run with:\"cromwell run -o options.json [-i inputs.json] workflow.wdl\".
 
 %.json.wom: %.wdl
 	womtool validate $(*).wdl && womtool inputs $(*).wdl >$@

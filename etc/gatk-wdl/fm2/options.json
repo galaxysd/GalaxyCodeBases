@@ -1,0 +1,10 @@
+{
+    "continueOnReturnCode": false,
+    "backend": "Local",
+    "workflow_failure_mode": "ContinueWhilePossible",
+    "use_relative_output_paths": true,
+    "final_workflow_outputs_dir": "/tmp/cromwell/outputs",
+    "memory_retry_multiplier" : 1.1,
+	"__comment1__": "https://cromwell.readthedocs.io/en/stable/wf_options/Overview/",
+	"__comment2__": "https://github.com/rhpvorderman/cromwell/tree/develop/centaur/src/main/resources/standardTestCases/relative_output_paths"
+}
