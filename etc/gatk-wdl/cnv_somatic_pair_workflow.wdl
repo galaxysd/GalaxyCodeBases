@@ -435,7 +435,6 @@ workflow CNVSomaticPairWorkflow {
                 disk_space_gb = plot_normal_disk,
                 preemptible_attempts = preemptible_attempts
         }
-
         call PlotModeledSegments as PlotModeledSegmentsNormal {
             input:
                 entity_id = CollectCountsNormal.entity_id,
@@ -813,7 +812,9 @@ task PlotDenoisedCopyRatios {
         File delta_MAD = "${output_dir_}/${entity_id}.deltaMAD.txt"
         Float delta_MAD_value = read_float(delta_MAD)
         File scaled_delta_MAD = "${output_dir_}/${entity_id}.scaledDeltaMAD.txt"
-        Float scaled_delta_MAD_value = read_float(scaled_delta_MAD)
+        String scaled_delta_MAD_str = read_string(scaled_delta_MAD)
+        Float scaled_delta_MAD_value = if scaled_delta_MAD_str == "NA" then 0 else read_float(scaled_delta_MAD)
+        #Float scaled_delta_MAD_value = read_float(scaled_delta_MAD)
     }
 }
 
