@@ -1,0 +1,34 @@
+{
+	"samples":[
+		{
+			"readgroups":[
+				{
+					"id":"V300083793_L02_384",
+					"R1":"/share/FGI2017B/users/huxs/2020Q4_fm2/fq/V300083793_L02_384-331.fq.gz",
+					"lib_id":"LIBRARY01"
+				}
+			],
+			"id":"HK19M241C"
+		},
+		{
+			"readgroups":[
+				{
+					"id":"V300083793_L02_384",
+					"R1":"/share/FGI2017B/users/huxs/2020Q4_fm2/fq/V300083793_L02_384-333.fq.gz",
+					"lib_id":"LIBRARY01"
+				}
+			],
+			"id":"HK19M242C"
+		},
+		{
+			"readgroups":[
+				{
+					"id":"V300083793_L02_474",
+					"R1":"/share/FGI2017B/users/huxs/2020Q4_fm2/fq/V300083793_L02_474-338.fq.gz",
+					"lib_id":"LIBRARY03"
+				}
+			],
+			"id":"HK19M242F"
+		}
+	]
+}
