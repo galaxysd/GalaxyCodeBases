@@ -6,7 +6,7 @@ OUT1 = $(addsuffix .json.wom,$(WDLF))
 
 all: $(OUT1) fm2.samples.json
 	@echo "[$(WDLS)] -> [$(OUT1)]"
-	@echo Run with:\"cromwell run -o options.json [-i inputs.json] workflow.wdl\".
+	@echo Run with:{JAVA_OPTS=\"-Dbackend.providers.Local.config.concurrent-job-limit=16\" cromwell run -o cromwell_options_no_user.json [-i inputs.json] workflow.wdl}.
 
 %.json.wom: %.wdl
 	womtool validate $(*).wdl && womtool inputs $(*).wdl >$@
