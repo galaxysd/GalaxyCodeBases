@@ -12,4 +12,4 @@ all: $(OUT1) fm2.samples.json
 	womtool validate $(*).wdl && womtool inputs $(*).wdl >$@
 
 fm2.samples.json: fm2.csv
-	biowdl-input-converter --skip-file-check fm2.csv > fm2.samples.json
+	biowdl-input-converter --skip-file-check fm2.csv |python3 -mjson.tool >fm2.samples.json

@@ -1,3 +1,4 @@
 {
-  "fm2.sampleConfigFile": "fm2.samples.json"
+  "fm2.sampleConfigFile": "fm2.samples.json",
+  "fm2.dockerImagesFile": "dockerImages.yml"
 }

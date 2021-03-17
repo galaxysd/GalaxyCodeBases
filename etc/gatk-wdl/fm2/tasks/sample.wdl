@@ -23,7 +23,7 @@ version 1.0
 #import "BamMetrics/bammetrics.wdl" as bammetrics
 #import "gatk-preprocess/gatk-preprocess.wdl" as preprocess
 import "structs.wdl" as structs
-#import "tasks/bwa.wdl" as bwa
+import "tasks/bwa.wdl" as bwa
 #import "tasks/bwa-mem2.wdl" as bwamem2
 #import "tasks/sambamba.wdl" as sambamba
 #import "tasks/picard.wdl" as picard
@@ -35,11 +35,14 @@ workflow SampleWorkflow {
 		Sample sample
 		String sampleDir
 		String platform = "illumina"
+		Boolean useBwaKit = false
 
+		BwaIndex? bwaIndex
 		String? adapterForward
 		String? adapterReverse
 
 		Int bwaThreads = 4
+		Map[String, String] dockerImages
 	}
 
 	scatter (readgroup in sample.readgroups) {
@@ -51,6 +54,17 @@ workflow SampleWorkflow {
 				read2 = readgroup.R2,
 				adapterForward = adapterForward,
 				adapterReverse = adapterReverse,
+		}
+		call bwa.Mem as bwaMem {
+			input:
+				read1 = qualityControl.qcRead1,
+				read2 = qualityControl.qcRead2,
+				outputPrefix = readgroupDir + "/" + sample.id + "-" + readgroup.lib_id + "-" + readgroup.id,
+				readgroup = "@RG\\tID:~{sample.id}-~{readgroup.lib_id}-~{readgroup.id}\\tLB:~{readgroup.lib_id}\\tSM:~{sample.id}\\tPL:~{platform}",
+				bwaIndex = select_first([bwaIndex]),
+				threads = bwaThreads,
+				usePostalt = useBwaKit,
+				dockerImage = dockerImages["bwakit+samtools"]
 		}
 	}
 	output {
