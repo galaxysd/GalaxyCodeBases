@@ -59,7 +59,7 @@ task CheckFileMD5 {
 	}
 
 	runtime {
-		docker: dockerImage
+		#docker: dockerImage
 	}
 }
 
@@ -111,7 +111,7 @@ task Copy {
 	}
 
 	runtime {
-		docker: dockerImage
+		#docker: dockerImage
 	}
 }
 
@@ -151,7 +151,7 @@ task MapMd5 {
 
 	runtime {
 		memory: "1G"
-		docker: dockerImage
+		#docker: dockerImage
 	}
 }
 
@@ -174,7 +174,7 @@ task StringArrayMd5 {
 
 	runtime {
 		memory: "1G"
-		docker: dockerImage
+		#docker: dockerImage
 	}
 }
 
@@ -198,7 +198,7 @@ task TextToFile {
 	runtime {
 		memory: "1G"
 		time_minutes: timeMinutes
-		docker: dockerImage
+		#docker: dockerImage
 	}
 
 	parameter_meta {
@@ -244,7 +244,7 @@ task YamlToJson {
 	runtime {
 		memory: memory
 		time_minutes: timeMinutes
-		docker: dockerImage
+		#docker: dockerImage
 	}
 
 	parameter_meta {
