@@ -63,8 +63,8 @@ workflow fm2 {
 		Array[File] reports = allReports
 		#Array[File] recalibratedBams = sampleWorkflow.recalibratedBam
 		#Array[File] recalibratedBamIndexes = sampleWorkflow.recalibratedBamIndex
-		#Array[File] markdupBams = sampleWorkflow.markdupBam
-		#Array[File] markdupBamIndexes = sampleWorkflow.markdupBamIndex
+		Array[File] markdupBams = sampleWorkflow.markdupBam
+		Array[File] markdupBamIndexes = sampleWorkflow.markdupBamIndex
 		#Array[File?] cleverVCFs = svCalling.cleverVcf
 		#Array[File?] matecleverVCFs = svCalling.cleverVcf
 		#Array[File?] mantaVCFs = svCalling.mantaVcf

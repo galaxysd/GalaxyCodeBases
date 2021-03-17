@@ -1,4 +1,14 @@
 {
-  "fm2.sampleConfigFile": "fm2.samples.json",
-  "fm2.dockerImagesFile": "dockerImages.yml"
+	"fm2.sampleConfigFile": "fm2.samples.json",
+	"fm2.bwaIndex": {
+		"fastaFile": "ref/ForensicM.fa.gz",
+		"indexFiles": [
+			"ref/ForensicM.fa.gz.sa",
+			"ref/ForensicM.fa.gz.amb",
+			"ref/ForensicM.fa.gz.ann",
+			"ref/ForensicM.fa.gz.bwt",
+			"ref/ForensicM.fa.gz.pac"
+		]
+	},
+	"fm2.dockerImagesFile": "dockerImages.yml"
 }

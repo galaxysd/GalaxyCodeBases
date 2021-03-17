@@ -23,9 +23,9 @@ version 1.0
 #import "BamMetrics/bammetrics.wdl" as bammetrics
 #import "gatk-preprocess/gatk-preprocess.wdl" as preprocess
 import "structs.wdl" as structs
-import "tasks/bwa.wdl" as bwa
+import "bwa.wdl" as bwa
 #import "tasks/bwa-mem2.wdl" as bwamem2
-#import "tasks/sambamba.wdl" as sambamba
+import "sambamba.wdl" as sambamba
 #import "tasks/picard.wdl" as picard
 import "QC.wdl" as qc
 #import "tasks/umi-tools.wdl" as umiTools
@@ -66,10 +66,38 @@ workflow SampleWorkflow {
 				usePostalt = useBwaKit,
 				dockerImage = dockerImages["bwakit+samtools"]
 		}
+		Boolean paired = defined(readgroup.R2)
+
 	}
+	call sambamba.Markdup as markdup {
+		input:
+			inputBams = select_all(bwaMem.outputBam),
+			outputPath = sampleDir + "/" + sample.id + ".markdup.bam",
+			dockerImage = dockerImages["sambamba"]
+	}
+
 	output {
-		Array[File] reports = flatten([flatten(qualityControl.reports),
-		])
+		File markdupBam = markdup.outputBam
+		File markdupBamIndex = markdup.outputBamIndex
+		Array[File] reports = flatten(qualityControl.reports)
+	}
+
+	parameter_meta {
+		# inputs
+		sample: {description: "The sample information: sample id, readgroups, etc.", category: "required"}
+		sampleDir: {description: "The directory the output should be written to.", category: "required"}
+		platform: {description: "The platform used for sequencing.", category: "advanced"}
+		useBwaKit: {description: "Whether or not BWA kit should be used. If false BWA mem will be used.", category: "advanced"}
+		bwaIndex: {description: "The BWA index files. These or the bwaMem2Index should be provided.", category: "common"}
+		adapterForward: {description: "The adapter to be removed from the reads first or single end reads.", category: "common"}
+		adapterReverse: {description: "The adapter to be removed from the reads second end reads.", category: "common"}
+		bwaThreads: {description: "The amount of threads for the alignment process.", category: "advanced"}
+		dockerImages: {description: "The docker images used.", category: "required"}
+
+		# outputs
+		markdupBam: {description: ""}
+		markdupBamIndex: {description: ""}
+		reports: {description: ""}
 	}
 }
 
