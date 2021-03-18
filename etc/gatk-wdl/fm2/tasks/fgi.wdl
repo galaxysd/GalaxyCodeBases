@@ -16,17 +16,17 @@ task FilterSamReads {
 		String? dockerImage = "quay.io/biocontainers/picard:2.23.8--0"
 	}
 	Array[String] FilterScriptContents = [
-		'function accept(rec) {'
-		'  if (rec.getReadUnmappedFlag()) return false;'
-		'  var cigar = rec.getCigar();'
-		'  if (cigar == null) return false;'
-		'  var readMatch = 0;'
-		'  for (var i=0;i < cigar.numCigarElements();++i) {'
-		'    var ce = cigar.getCigarElement(i);'
-		'    if (ce.getOperator().name() == "M") readMatch += ce.length;'
-		'  }'
-		'  if (readMatch > 200) return true;'
-		'}'
+		'function accept(rec) {',
+		'  if (rec.getReadUnmappedFlag()) return false;',
+		'  var cigar = rec.getCigar();',
+		'  if (cigar == null) return false;',
+		'  var readMatch = 0;',
+		'  for (var i=0;i < cigar.numCigarElements();++i) {',
+		'    var ce = cigar.getCigarElement(i);',
+		'    if (ce.getOperator().name() == "M") readMatch += ce.length;',
+		'  }',
+		'  if (readMatch > 200) return true;',
+		'}',
 		'accept(record);'
 	]
 
