@@ -24,7 +24,7 @@ version 1.0
 #import "gatk-preprocess/gatk-preprocess.wdl" as preprocess
 import "structs.wdl" as structs
 import "bwa.wdl" as bwa
-import "tasks/fgi.wdl" as fgifm2
+import "fgi.wdl" as fgifm2
 import "sambamba.wdl" as sambamba
 #import "tasks/picard.wdl" as picard
 import "QC.wdl" as qc
