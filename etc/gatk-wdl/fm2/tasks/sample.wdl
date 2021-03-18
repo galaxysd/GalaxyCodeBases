@@ -40,6 +40,7 @@ workflow SampleWorkflow {
 		BwaIndex? bwaIndex
 		String? adapterForward
 		String? adapterReverse
+		Int? minBWAmatchLen = 200
 
 		Int bwaThreads = 4
 		Map[String, String] dockerImages
@@ -76,12 +77,12 @@ workflow SampleWorkflow {
 			dockerImage = dockerImages["sambamba"]
 	}
 
-	String outputBamPath = sampleDir + "/" + sample.id + ".fM.bam"
 	call fgifm2.FilterSamReads as FilterSam {
 		input:
 			inputBam = markdup.outputBam,
 			inputBamIndex = markdup.outputBamIndex,
-			outputBamPath = outputBamPath,
+			outputBamPath = sampleDir + "/" + sample.id + ".fM.bam",
+			minMatchLen = minBWAmatchLen
 	}
 
 	output {

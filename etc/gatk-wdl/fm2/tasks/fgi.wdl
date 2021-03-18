@@ -5,6 +5,7 @@ task FilterSamReads {
 		File inputBam
 		File inputBamIndex
 		String outputBamPath
+		Int minMatchLen = 200
 		Boolean? createMd5File = false
 
 		Int? compressionLevel
@@ -25,7 +26,7 @@ task FilterSamReads {
 		'    var ce = cigar.getCigarElement(i);',
 		'    if (ce.getOperator().name() == "M") readMatch += ce.length;',
 		'  }',
-		'  if (readMatch > 50) return true;',
+		'  if (readMatch > '+ minMatchLen +') return true;',
 		'}',
 		'accept(record);'
 	]

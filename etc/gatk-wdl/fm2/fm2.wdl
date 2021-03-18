@@ -11,6 +11,7 @@ workflow fm2 {
 		String platform = "illumina"
 		Boolean useBwaKit = false
 		Int scatterSizeMillions = 1000
+		Int? minBWAmatchLen = 200
 		BwaIndex? bwaIndex
 		String? adapterForward = "AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"  # Illumina universal adapter.
 		String? adapterReverse = "AAGTCGGATCGTAGCCATGTCGTTC"  # Illumina universal adapter.
@@ -46,7 +47,8 @@ workflow fm2 {
 				dockerImages = dockerImages,
 				#scatters = scatterList.scatters,
 				bwaThreads = bwaThreads,
-				platform = platform
+				platform = platform,
+				minBWAmatchLen = minBWAmatchLen
 				#sampleName = sample.id,
 				#gender = select_first([sample.gender, "unknown"]),
 		}
