@@ -41,6 +41,6 @@ task FilterSamReads {
 	runtime {
 		memory: "~{memoryMb}M"
 		time_minutes: timeMinutes
-		docker: dockerImage
+		#docker: dockerImage
 	}
 }
