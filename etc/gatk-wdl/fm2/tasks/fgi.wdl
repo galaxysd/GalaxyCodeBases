@@ -18,7 +18,6 @@ task FilterSamReads {
 	String FilterScriptContent = "function accept(e){if(e.getReadUnmappedFlag())return!1;var r=e.getCigar();if(null==r)return!1;for(var t=0,a=0;a<r.numCigarElements();++a){var n=r.getCigarElement(a);\\"M\\"==n.getOperator().name()&&(t+=n.length)}return 200<t||void 0}accept(record);"
 
 	command {
-		echo ~{FilterScriptContent} >f200M.js
 		set -e
 		mkdir -p "$(dirname ~{outputBamPath})"
 		picard -Xmx~{javaXmxMb}M -XX:ParallelGCThreads=1 \
