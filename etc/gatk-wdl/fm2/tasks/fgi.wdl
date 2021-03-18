@@ -15,17 +15,30 @@ task FilterSamReads {
 		Int? timeMinutes = 1 + ceil(size(inputBam, "G") * 1)
 		String? dockerImage = "quay.io/biocontainers/picard:2.23.8--0"
 	}
-	String FilterScriptContent = "function accept(e){if(e.getReadUnmappedFlag())return!1;var r=e.getCigar();if(null==r)return!1;for(var t=0,a=0;a<r.numCigarElements();++a){var n=r.getCigarElement(a);\\"M\\"==n.getOperator().name()&&(t+=n.length)}return 200<t||void 0}accept(record);"
+	Array[String] FilterScriptContents = [
+		'function accept(rec) {'
+		'  if (rec.getReadUnmappedFlag()) return false;'
+		'  var cigar = rec.getCigar();'
+		'  if (cigar == null) return false;'
+		'  var readMatch = 0;'
+		'  for (var i=0;i < cigar.numCigarElements();++i) {'
+		'    var ce = cigar.getCigarElement(i);'
+		'    if (ce.getOperator().name() == "M") readMatch += ce.length;'
+		'  }'
+		'  if (readMatch > 200) return true;'
+		'}'
+		'accept(record);'
+	]
 
 	command {
 		set -e
 		mkdir -p "$(dirname ~{outputBamPath})"
-		JAVA_OPTS="-Xmx~{javaXmxMb}M -XX:ParallelGCThreads=1" picard
+		JAVA_OPTS="-Xmx~{javaXmxMb}M -XX:ParallelGCThreads=1" picard \
 		FilterSamReads \
 		INPUT=~{sep=' INPUT=' inputBam} \
 		OUTPUT=~{outputBamPath} \
 		~{"COMPRESSION_LEVEL=" + compressionLevel} \
-		JAVASCRIPT_FILE=${write_lines([FilterScriptContent])} \
+		JAVASCRIPT_FILE=${write_lines(FilterScriptContents)} \
 		FILTER=includeJavascript \
 		CREATE_INDEX=true \
 		CREATE_MD5_FILE=~{true="true" false="false" createMd5File}
