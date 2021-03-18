@@ -10,5 +10,6 @@
 			"ref/ForensicM.fa.gz.pac"
 		]
 	},
+	"fm2.bwaThreads": 8,
 	"fm2.dockerImagesFile": "dockerImages.yml"
 }

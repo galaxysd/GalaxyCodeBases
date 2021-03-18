@@ -24,7 +24,7 @@ version 1.0
 #import "gatk-preprocess/gatk-preprocess.wdl" as preprocess
 import "structs.wdl" as structs
 import "bwa.wdl" as bwa
-#import "tasks/bwa-mem2.wdl" as bwamem2
+import "tasks/fgi.wdl" as fgifm2
 import "sambamba.wdl" as sambamba
 #import "tasks/picard.wdl" as picard
 import "QC.wdl" as qc
@@ -76,9 +76,19 @@ workflow SampleWorkflow {
 			dockerImage = dockerImages["sambamba"]
 	}
 
+	String outputBamPath = sampleDir + "/" + sample.id + ".fM.bam"
+	call fgifm2.FilterSamReads as FilterSam {
+		input:
+			inputBam = markdup.outputBam,
+			inputBamIndex = markdup.outputBamIndex,
+			outputBamPath = outputBamPath,
+	}
+
 	output {
 		File markdupBam = markdup.outputBam
 		File markdupBamIndex = markdup.outputBamIndex
+		File FilteredBam = FilterSam.outputBam
+		File FilteredBamIndex = FilterSam.outputBamIndex
 		Array[File] reports = flatten(qualityControl.reports)
 	}
 
