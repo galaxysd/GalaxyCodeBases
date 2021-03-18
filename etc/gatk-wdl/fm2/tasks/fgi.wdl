@@ -25,7 +25,7 @@ task FilterSamReads {
 		'    var ce = cigar.getCigarElement(i);',
 		'    if (ce.getOperator().name() == "M") readMatch += ce.length;',
 		'  }',
-		'  if (readMatch > 200) return true;',
+		'  if (readMatch > 50) return true;',
 		'}',
 		'accept(record);'
 	]
