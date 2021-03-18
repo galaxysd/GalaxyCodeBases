@@ -57,3 +57,24 @@ task FilterSamReads {
 		#docker: dockerImage
 	}
 }
+
+task callSNP {
+	input {
+		File inputBam
+		File inputBamIndex
+		File referenceFasta
+		String outputPath
+	}
+	command {
+	}
+}
+
+task callSTR {
+	input {
+		File inputBam
+		File inputBamIndex
+		String outputPath
+	}
+	command {
+	}
+}

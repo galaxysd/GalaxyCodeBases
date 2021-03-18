@@ -3,6 +3,7 @@
 	"fm2.bwaIndex": {
 		"fastaFile": "ref/ForensicM.fa.gz",
 		"indexFiles": [
+			"ref/ForensicM.fa.gz.fai",
 			"ref/ForensicM.fa.gz.sa",
 			"ref/ForensicM.fa.gz.amb",
 			"ref/ForensicM.fa.gz.ann",

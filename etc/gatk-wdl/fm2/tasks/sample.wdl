@@ -84,6 +84,19 @@ workflow SampleWorkflow {
 			outputBamPath = sampleDir + "/" + sample.id + ".fM.bam",
 			minMatchLen = minBWAmatchLen
 	}
+	call fgifm2.callSNP as fm2callSNP {
+		input:
+			inputBam = markdup.outputBam,
+			inputBamIndex = markdup.outputBamIndex,
+			referenceFasta = select_first([bwaIndex]).fastaFile,
+			outputPath = sampleDir + "/" + sample.id + "/SNP"
+	}
+	call fgifm2.callSTR as fm2callSTR {
+		input:
+			inputBam = FilterSam.outputBam,
+			inputBamIndex = FilterSam.outputBamIndex,
+			outputPath = sampleDir + "/" + sample.id + "/STR"
+	}
 
 	output {
 		File markdupBam = markdup.outputBam
