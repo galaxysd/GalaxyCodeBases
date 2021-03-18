@@ -65,6 +65,8 @@ workflow fm2 {
 		#Array[File] recalibratedBamIndexes = sampleWorkflow.recalibratedBamIndex
 		Array[File] markdupBams = sampleWorkflow.markdupBam
 		Array[File] markdupBamIndexes = sampleWorkflow.markdupBamIndex
+		Array[File] filteredBam = sampleWorkflow.filteredBam
+		Array[File] filteredBamIndex = sampleWorkflow.filteredBamIndex
 		#Array[File?] cleverVCFs = svCalling.cleverVcf
 		#Array[File?] matecleverVCFs = svCalling.cleverVcf
 		#Array[File?] mantaVCFs = svCalling.mantaVcf

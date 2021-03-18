@@ -87,8 +87,8 @@ workflow SampleWorkflow {
 	output {
 		File markdupBam = markdup.outputBam
 		File markdupBamIndex = markdup.outputBamIndex
-		File FilteredBam = FilterSam.outputBam
-		File FilteredBamIndex = FilterSam.outputBamIndex
+		File filteredBam = FilterSam.outputBam
+		File filteredBamIndex = FilterSam.outputBamIndex
 		Array[File] reports = flatten(qualityControl.reports)
 	}
 
