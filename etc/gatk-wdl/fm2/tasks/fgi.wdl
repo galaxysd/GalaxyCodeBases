@@ -20,7 +20,7 @@ task FilterSamReads {
 	command {
 		set -e
 		mkdir -p "$(dirname ~{outputBamPath})"
-		picard -Xmx~{javaXmxMb}M -XX:ParallelGCThreads=1 \
+		JAVA_OPTS="-Xmx~{javaXmxMb}M -XX:ParallelGCThreads=1" picard
 		FilterSamReads \
 		INPUT=~{sep=' INPUT=' inputBam} \
 		OUTPUT=~{outputBamPath} \
