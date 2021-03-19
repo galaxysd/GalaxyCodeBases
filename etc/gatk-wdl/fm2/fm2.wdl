@@ -12,7 +12,8 @@ workflow fm2 {
 		Boolean useBwaKit = false
 		Int scatterSizeMillions = 1000
 		Int? minBWAmatchLen = 200
-		BwaIndex? bwaIndex
+		BwaIndex bwaIndex
+		GatkIndex GatkIndex
 		String? adapterForward = "AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"  # Illumina universal adapter.
 		String? adapterReverse = "AAGTCGGATCGTAGCCATGTCGTTC"  # Illumina universal adapter.
 		Int? scatterSize
@@ -41,6 +42,7 @@ workflow fm2 {
 				bwaThreads = bwaThreads,
 				bwaIndex = bwaIndex,
 				#bwaMem2Index = bwaMem2Index,
+				GatkIndex = GatkIndex,
 				adapterForward = adapterForward,
 				adapterReverse = adapterReverse,
 				useBwaKit = useBwaKit,
@@ -69,7 +71,7 @@ workflow fm2 {
 		Array[File] markdupBamIndexes = sampleWorkflow.markdupBamIndex
 		Array[File] filteredBam = sampleWorkflow.filteredBam
 		Array[File] filteredBamIndex = sampleWorkflow.filteredBamIndex
-		#Array[File?] cleverVCFs = svCalling.cleverVcf
+		Array[File] outSNPtxts = sampleWorkflow.outSNPtxt
 		#Array[File?] matecleverVCFs = svCalling.cleverVcf
 		#Array[File?] mantaVCFs = svCalling.mantaVcf
 		#Array[File?] dellyVCFs = svCalling.dellyVcf

@@ -62,10 +62,24 @@ task callSNP {
 	input {
 		File inputBam
 		File inputBamIndex
-		File referenceFasta
+		GatkIndex GatkIndex
 		String outputPath
+		File helperPl
 	}
+	File referenceFasta = GatkIndex.fastaFile
+	String bcfFile = outputPath + "/mpileup.bcf"
+	String snpFile = outputPath + "/snp.gz"
 	command {
+		set -e
+		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob -o ~{bcfFile}
+		bcftools call -Oz -A -m ~{bcfFile} -o ~{snpFile}
+		bcftools index ~{snpFile}
+		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
+		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
+	}
+
+	output {
+		File outSNPtxt = outputPath + "/../snp.txt"
 	}
 }
 
@@ -74,7 +88,14 @@ task callSTR {
 		File inputBam
 		File inputBamIndex
 		String outputPath
+		File helperBED
+		File helperPl
 	}
 	command {
 	}
+}
+
+struct GatkIndex {
+    File fastaFile
+    Array[File] indexFiles
 }

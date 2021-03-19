@@ -37,7 +37,8 @@ workflow SampleWorkflow {
 		String platform = "illumina"
 		Boolean useBwaKit = false
 
-		BwaIndex? bwaIndex
+		BwaIndex bwaIndex
+		GatkIndex GatkIndex
 		String? adapterForward
 		String? adapterReverse
 		Int? minBWAmatchLen = 200
@@ -88,14 +89,17 @@ workflow SampleWorkflow {
 		input:
 			inputBam = markdup.outputBam,
 			inputBamIndex = markdup.outputBamIndex,
-			referenceFasta = select_first([bwaIndex]).fastaFile,
-			outputPath = sampleDir + "/" + sample.id + "/SNP"
+			GatkIndex = GatkIndex,
+			outputPath = sampleDir + "/" + sample.id + "/SNP",
+			helperPl = "bin/fsnp.pl"
 	}
 	call fgifm2.callSTR as fm2callSTR {
 		input:
 			inputBam = FilterSam.outputBam,
 			inputBamIndex = FilterSam.outputBamIndex,
-			outputPath = sampleDir + "/" + sample.id + "/STR"
+			outputPath = sampleDir + "/" + sample.id + "/STR",
+			helperBED = "bin/LN-mid.bed",
+			helperPl = "bin/fstr.pl"
 	}
 
 	output {
@@ -103,6 +107,7 @@ workflow SampleWorkflow {
 		File markdupBamIndex = markdup.outputBamIndex
 		File filteredBam = FilterSam.outputBam
 		File filteredBamIndex = FilterSam.outputBamIndex
+		File outSNPtxt = fm2callSNP.outSNPtxt
 		Array[File] reports = flatten(qualityControl.reports)
 	}
 

@@ -3,7 +3,6 @@
 	"fm2.bwaIndex": {
 		"fastaFile": "ref/ForensicM.fa.gz",
 		"indexFiles": [
-			"ref/ForensicM.fa.gz.fai",
 			"ref/ForensicM.fa.gz.sa",
 			"ref/ForensicM.fa.gz.amb",
 			"ref/ForensicM.fa.gz.ann",
@@ -11,6 +10,13 @@
 			"ref/ForensicM.fa.gz.pac"
 		]
 	},
+	"fm2.GatkIndex": {
+		"fastaFile": "ref/ForensicM.fa.gz",
+		"indexFiles": [
+			"ref/ForensicM.fa.gz.fai",
+			"ref/ForensicM.fa.gz.gzi"
+		}
+	}
 	"fm2.bwaThreads": 8,
 	"fm2.minBWAmatchLen": 50,
 	"fm2.dockerImagesFile": "dockerImages.yml"
