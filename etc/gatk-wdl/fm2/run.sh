@@ -1,4 +1,5 @@
 #!/bin/sh
+# biowdl-input-converter fm2.csv >fm2.samples.json
 
 echo Begin: `date`
 
