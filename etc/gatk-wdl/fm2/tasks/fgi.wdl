@@ -92,9 +92,15 @@ task callSTR {
 		File helperBED
 		File helperPl
 	}
+	String awkStr = "'\{print $1\"\\t\"$4\}'"
 	command {
 		set -e
 		mkdir -p "~{outputPath}"
+		samtools mpileup -l ~{helperBED} ~{inputBam} |awk ~{awkStr} > ~{outputPath + "/str0.txt"}
+		perl ~{helperPl} ~{outputPath + "/str0.txt"} > ~{outputPath + "/../str.txt"}
+	}
+	output {
+		File outSTRtxt = outputPath + "/../str.txt"
 	}
 }
 

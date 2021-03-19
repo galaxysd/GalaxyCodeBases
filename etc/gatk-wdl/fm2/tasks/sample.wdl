@@ -108,6 +108,7 @@ workflow SampleWorkflow {
 		File filteredBam = FilterSam.outputBam
 		File filteredBamIndex = FilterSam.outputBamIndex
 		File outSNPtxt = fm2callSNP.outSNPtxt
+		File outSTRtxt = fm2callSTR.outSTRtxt
 		Array[File] reports = flatten(qualityControl.reports)
 	}
 

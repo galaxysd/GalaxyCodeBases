@@ -72,7 +72,7 @@ workflow fm2 {
 		Array[File] filteredBam = sampleWorkflow.filteredBam
 		Array[File] filteredBamIndex = sampleWorkflow.filteredBamIndex
 		Array[File] outSNPtxts = sampleWorkflow.outSNPtxt
-		#Array[File?] matecleverVCFs = svCalling.cleverVcf
+		Array[File] outSTRtxts = sampleWorkflow.outSTRtxt
 		#Array[File?] mantaVCFs = svCalling.mantaVcf
 		#Array[File?] dellyVCFs = svCalling.dellyVcf
 		#Array[File?] survivorVCFs = svCalling.survivorVcf
