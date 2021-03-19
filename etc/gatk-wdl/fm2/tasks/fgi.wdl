@@ -71,7 +71,7 @@ task callSNP {
 	String snpFile = outputPath + "/snp.gz"
 	command {
 		set -e
-		mkdir -p "$(dirname ~{outputPath})"
+		mkdir -p "~{outputPath}"
 		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob -o ~{bcfFile}
 		bcftools call -Oz -A -m ~{bcfFile} -o ~{snpFile}
 		bcftools index ~{snpFile}
@@ -94,7 +94,7 @@ task callSTR {
 	}
 	command {
 		set -e
-		mkdir -p "$(dirname ~{outputPath})"
+		mkdir -p "~{outputPath}"
 	}
 }
 
