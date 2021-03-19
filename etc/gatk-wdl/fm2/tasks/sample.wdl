@@ -90,14 +90,14 @@ workflow SampleWorkflow {
 			inputBam = markdup.outputBam,
 			inputBamIndex = markdup.outputBamIndex,
 			GatkIndex = GatkIndex,
-			outputPath = sampleDir + "/" + sample.id + "/SNP",
+			outputPath = sampleDir + "/SNP/",
 			helperPl = "bin/fsnp.pl"
 	}
 	call fgifm2.callSTR as fm2callSTR {
 		input:
 			inputBam = FilterSam.outputBam,
 			inputBamIndex = FilterSam.outputBamIndex,
-			outputPath = sampleDir + "/" + sample.id + "/STR",
+			outputPath = sampleDir + "/STR/",
 			helperBED = "bin/LN-mid.bed",
 			helperPl = "bin/fstr.pl"
 	}
