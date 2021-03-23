@@ -47,7 +47,7 @@ task BedToIntervalList {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -156,7 +156,7 @@ task CollectMultipleMetrics {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -226,7 +226,7 @@ task CollectRnaSeqMetrics {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -287,7 +287,7 @@ task CollectTargetedPcrMetrics {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -341,7 +341,7 @@ task CreateSequenceDictionary {
 
     runtime {
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -392,7 +392,7 @@ task GatherBamFiles {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -439,7 +439,7 @@ task GatherVcfs {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         memory: memory
         time_minutes: timeMinutes
     }
@@ -520,7 +520,7 @@ task MarkDuplicates {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -584,7 +584,7 @@ task MergeVCFs {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -640,7 +640,7 @@ task SamToFastq {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         memory: memory
     }
 }
@@ -674,7 +674,7 @@ task ScatterIntervalList {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         memory: memory
     }
 }
@@ -720,7 +720,7 @@ task SortSam {
         cpu: 1
         memory: "~{1 + XmxGb}G"
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -763,7 +763,7 @@ task SortVcf {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -809,7 +809,7 @@ task RenameSample {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }

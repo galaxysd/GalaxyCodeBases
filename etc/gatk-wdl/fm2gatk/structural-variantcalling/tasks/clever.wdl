@@ -65,7 +65,7 @@ task Mateclever {
         cpu: threads
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -119,7 +119,7 @@ task Prediction {
         cpu: threads
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

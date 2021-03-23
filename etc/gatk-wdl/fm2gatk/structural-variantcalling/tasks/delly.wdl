@@ -51,7 +51,7 @@ task CallSV {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

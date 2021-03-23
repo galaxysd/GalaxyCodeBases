@@ -52,7 +52,7 @@ task View {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -135,7 +135,7 @@ task Stats {
         cpu: threads + 1
         time_minutes: timeMinutes
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

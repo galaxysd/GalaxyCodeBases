@@ -71,7 +71,7 @@ task Mem {
         cpu: threads
         memory: "~{select_first([memoryGb, estimatedMemoryGb])}G"
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -150,7 +150,7 @@ task Kit {
         cpu: threads  
         memory: "~{select_first([memoryGb, estimatedMemoryGb])}G"
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

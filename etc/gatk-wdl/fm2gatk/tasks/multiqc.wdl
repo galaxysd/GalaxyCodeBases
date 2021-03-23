@@ -134,7 +134,7 @@ task MultiQC {
     runtime {
         memory: select_first([memory, "~{memoryGb}G"])
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

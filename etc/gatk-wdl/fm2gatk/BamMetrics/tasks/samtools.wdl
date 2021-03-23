@@ -46,7 +46,7 @@ task BgzipAndIndex {
 
     runtime {
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -83,7 +83,7 @@ task Faidx {
 
     runtime {
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -141,7 +141,7 @@ task Fastq {
     runtime {
         cpu: threads
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
@@ -192,7 +192,7 @@ task FilterShortReadsBam {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -227,7 +227,7 @@ task Flagstat {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -275,7 +275,7 @@ task Index {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -310,7 +310,7 @@ task Markdup {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
@@ -354,7 +354,7 @@ task Merge {
 
     runtime {
         cpu: threads
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
@@ -408,7 +408,7 @@ task Sort {
     runtime {
         cpu: 1
         memory: "~{memoryGb}G"
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
@@ -455,7 +455,7 @@ task Tabix {
 
     runtime {
         time_minutes: timeMinutes
-       docker: dockerImage
+       #docker: dockerImage
     }
 
     parameter_meta {
@@ -514,7 +514,7 @@ task View {
         cpu: threads
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

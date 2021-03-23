@@ -70,7 +70,7 @@ task Markdup {
         memory: "~{memoryMb}M"
         cpu: threads
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -130,7 +130,7 @@ task Sort {
     runtime {
         cpu: threads
         memory: "~{memoryGb}G"
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 

@@ -57,7 +57,7 @@ task AnnotateIntervals {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -124,7 +124,7 @@ task ApplyBQSR {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -190,7 +190,7 @@ task BaseRecalibrator {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -246,7 +246,7 @@ task CalculateContamination {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -289,7 +289,7 @@ task CallCopyRatioSegments {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -339,7 +339,7 @@ task CollectAllelicCounts {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -397,7 +397,7 @@ task CollectReadCounts {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -453,7 +453,7 @@ task CombineGVCFs {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -526,7 +526,7 @@ task CombineVariants {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -578,7 +578,7 @@ task CreateReadCountPanelOfNormals {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -628,7 +628,7 @@ task DenoiseReadCounts {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -692,7 +692,7 @@ task FilterMutectCalls {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -745,7 +745,7 @@ task GatherBqsrReports {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -794,7 +794,7 @@ task GenomicsDBImport {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -858,7 +858,7 @@ task GenotypeGVCFs {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -917,7 +917,7 @@ task GetPileupSummaries {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -995,7 +995,7 @@ task HaplotypeCaller {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: "~{memoryMb}M"
     }
@@ -1056,7 +1056,7 @@ task LearnReadOrientationModel {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1095,7 +1095,7 @@ task MergeStats {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1158,7 +1158,7 @@ task ModelSegments {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minute: timeMinutes
         memory: memory
     }
@@ -1229,7 +1229,7 @@ task MuTect2 {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1297,7 +1297,7 @@ task PlotDenoisedCopyRatios {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1353,7 +1353,7 @@ task PlotModeledSegments {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1411,7 +1411,7 @@ task PreprocessIntervals {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1468,7 +1468,7 @@ task SelectVariants {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minute: timeMinutes
         memory: memory
     }
@@ -1527,7 +1527,7 @@ task SplitNCigarReads {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }
@@ -1604,7 +1604,7 @@ task VariantEval {
 
     runtime {
         cpu: 1
-        docker: dockerImage
+        #docker: dockerImage
         memory: memory
         time_minutes: timeMinutes
     }
@@ -1668,7 +1668,7 @@ task VariantFiltration {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
         memory: memory
     }

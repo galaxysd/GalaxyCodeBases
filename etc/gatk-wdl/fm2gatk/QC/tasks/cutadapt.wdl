@@ -169,7 +169,7 @@ task Cutadapt {
         cpu: cores
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

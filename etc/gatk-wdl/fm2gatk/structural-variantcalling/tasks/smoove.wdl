@@ -52,7 +52,7 @@ task Call {
 
     runtime {
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
 
     }

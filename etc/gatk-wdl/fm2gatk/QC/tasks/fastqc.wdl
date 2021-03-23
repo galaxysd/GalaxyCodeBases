@@ -96,7 +96,7 @@ task Fastqc {
     runtime {
         cpu: threads
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
@@ -157,7 +157,7 @@ task GetConfiguration {
     runtime {
         memory: "2G" # Needs more than 1 to pull the docker image
         time_minute: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

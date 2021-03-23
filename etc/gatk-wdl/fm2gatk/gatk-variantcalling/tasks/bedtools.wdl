@@ -48,7 +48,7 @@ task Complement {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -82,7 +82,7 @@ task Merge {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -118,7 +118,7 @@ task MergeBedFiles {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
     parameter_meta {
         bedFiles: {description: "The bed files to merge.", category: "required"}
@@ -166,7 +166,7 @@ task Sort {
     }
 
     runtime {
-        docker: dockerImage
+        #docker: dockerImage
     }
 }
 
@@ -201,7 +201,7 @@ task Intersect {
     runtime {
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {

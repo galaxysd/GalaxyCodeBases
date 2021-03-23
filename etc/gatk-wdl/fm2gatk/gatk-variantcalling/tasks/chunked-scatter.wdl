@@ -51,7 +51,7 @@ task ChunkedScatter {
         cpu: 1
         memory: memory
         time_minutes: timeMinutes
-        docker: dockerImage
+        #docker: dockerImage
     }
 
     parameter_meta {
@@ -98,7 +98,7 @@ task ScatterRegions {
     runtime {
         cpu: 1
         memory: memory
-        docker: dockerImage
+        #docker: dockerImage
         time_minutes: timeMinutes
     }
 
