@@ -71,6 +71,8 @@ workflow fm2 {
 		Array[File] markdupBamIndexes = sampleWorkflow.markdupBamIndex
 		Array[File] filteredBam = sampleWorkflow.filteredBam
 		Array[File] filteredBamIndex = sampleWorkflow.filteredBamIndex
+		Array[File] outSNP0txts = sampleWorkflow.outSNP0txt
+		Array[File] outSTR0txts = sampleWorkflow.outSTR0txt
 		Array[File] outSNPtxts = sampleWorkflow.outSNPtxt
 		Array[File] outSTRtxts = sampleWorkflow.outSTRtxt
 		#Array[File?] mantaVCFs = svCalling.mantaVcf

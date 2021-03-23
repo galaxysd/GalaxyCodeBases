@@ -80,6 +80,7 @@ task callSNP {
 	}
 
 	output {
+		File outSNP0txt = outputPath + "/../snp0.txt"
 		File outSNPtxt = outputPath + "/../snp.txt"
 	}
 }
@@ -100,6 +101,7 @@ task callSTR {
 		perl ~{helperPl} ~{outputPath + "/str0.txt"} > ~{outputPath + "/../str.txt"}
 	}
 	output {
+		File outSTR0txt = outputPath + "/../str0.txt"
 		File outSTRtxt = outputPath + "/../str.txt"
 	}
 }
