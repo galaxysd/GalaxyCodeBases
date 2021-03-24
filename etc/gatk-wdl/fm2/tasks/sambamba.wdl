@@ -31,7 +31,7 @@ task Merge {
         Int timeMinutes = 1 + ceil(size(inputBams, "G") * 8) / threads
         String dockerImage = "quay.io/biocontainers/sambamba:0.7.1--h148d290_2"
     }
-    String bamIndexPath = sub(outputPath, "\.bam$", ".bai")
+    String bamIndexPath = sub(outputPath, "\.bam$", ".csi")
 
     command {
         set -e
@@ -42,7 +42,7 @@ task Merge {
         --write-index \
         ~{outputPath} ~{sep=' ' inputBams}
         # sambamba creates an index for us.
-        mv ~{outputPath}.bai ~{bamIndexPath}
+        mv ~{outputPath}.csi ~{bamIndexPath}
     }
     output {
         File outputBam = outputPath
