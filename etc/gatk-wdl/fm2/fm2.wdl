@@ -77,6 +77,7 @@ workflow fm2 {
 		Array[File] outSTRtxts = sampleWorkflow.outSTRtxt
 		Array[File] outbcfFiles = sampleWorkflow.outbcfFile
 		Array[File] outsnpFiles = sampleWorkflow.outsnpFile
+		Array[File] outsnpIndexFiles = sampleWorkflow.outsnpIndexFile
 		#Array[File?] mantaVCFs = svCalling.mantaVcf
 		#Array[File?] dellyVCFs = svCalling.dellyVcf
 		#Array[File?] survivorVCFs = svCalling.survivorVcf

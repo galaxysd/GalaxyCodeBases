@@ -114,6 +114,7 @@ workflow SampleWorkflow {
 		Array[File] reports = flatten(qualityControl.reports)
 		File outbcfFile = fm2callSNP.outbcfFile
 		File outsnpFile = fm2callSNP.outsnpFile
+		File outsnpIndexFile = fm2callSNP.outsnpIndexFile
 	}
 
 	parameter_meta {
