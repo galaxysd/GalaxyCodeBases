@@ -71,7 +71,7 @@ workflow SampleWorkflow {
 		Boolean paired = defined(readgroup.R2)
 
 	}
-	call sambamba.Markdup as markdup {
+	call sambamba.Merge as markdup {
 		input:
 			inputBams = select_all(bwaMem.outputBam),
 			outputPath = sampleDir + "/" + sample.id + ".markdup.bam",

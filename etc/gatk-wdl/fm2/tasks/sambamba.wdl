@@ -20,6 +20,43 @@ version 1.0
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+task Merge {
+    input {
+        Array[File] inputBams
+        String outputPath
+        Int compressionLevel = 1
+        Int threads = 2
+        Int memoryMb = 1024
+        # Time minute calculation does not work well for higher number of threads.
+        Int timeMinutes = 1 + ceil(size(inputBams, "G") * 8) / threads
+        String dockerImage = "quay.io/biocontainers/sambamba:0.7.1--h148d290_2"
+    }
+    String bamIndexPath = sub(outputPath, "\.bam$", ".bai")
+
+    command {
+        set -e
+        mkdir -p "$(dirname ~{outputPath})"
+        samtools merge \
+        --threads ~{threads} \
+        -l ~{compressionLevel} \
+        --write-index \
+        ~{outputPath} ~{sep=' ' inputBams}
+        # sambamba creates an index for us.
+        mv ~{outputPath}.bai ~{bamIndexPath}
+    }
+    output {
+        File outputBam = outputPath
+        File outputBamIndex = bamIndexPath
+    }
+
+    runtime {
+        cpu: threads
+        memory: "~{memoryMb}M"
+        time_minutes: timeMinutes
+        #docker: dockerImage
+    }
+}
+
 task Markdup {
     input {
         Array[File] inputBams
