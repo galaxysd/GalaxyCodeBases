@@ -82,6 +82,8 @@ task callSNP {
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
 		File outSNPtxt = outputPath + "/../snp.txt"
+		File outbcfFile = bcfFile
+		File outsnpFile = snpFile
 	}
 }
 
