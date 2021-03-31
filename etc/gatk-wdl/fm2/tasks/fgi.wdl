@@ -84,13 +84,13 @@ task callSNP {
 		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
 		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
-		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -R ~{SNPosFile} ~{snpFile} -o ~{outputPath + "/snp1.txt"}
+		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -R ~{SNPosFile} ~{snpFile} -o ~{outputPath + "/../snpG.txt"}
 		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
 	}
 
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
-		File outSNP1txt = outputPath + "/snp1.txt"
+		File outSNP1txt = outputPath + "/../snpG.txt"
 		File outSNPtxt = outputPath + "/../snp.txt"
 		File outbcfFile = bcfFile
 		File outsnpFile = snpFile
