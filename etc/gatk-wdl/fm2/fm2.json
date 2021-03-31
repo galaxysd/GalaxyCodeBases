@@ -12,7 +12,9 @@
 	},
 	"fm2.GatkIndex": {
 		"fastaFile": "ref/ForensicM.fa.gz",
+		"dbsnpVCF": "ref/dbsnp154.vcf.gz",
 		"indexFiles": [
+			"ref/dbsnp154.vcf.gz.csi",
 			"ref/ForensicM.fa.gz.fai",
 			"ref/ForensicM.fa.gz.gzi"
 		]

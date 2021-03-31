@@ -67,20 +67,30 @@ task callSNP {
 		File helperPl
 	}
 	File referenceFasta = GatkIndex.fastaFile
+	File dbsnpVCF = GatkIndex.dbsnpVCF
 	String bcfFile = outputPath + "/mpileup.bcf"
+	String snp0File = outputPath + "/snp0.gz"
 	String snpFile = outputPath + "/snp.gz"
+	File SNPosFile = "bin/snpos.lst"
 	command {
 		set -e
 		mkdir -p "~{outputPath}"
-		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob -o ~{bcfFile}
-		bcftools call -Oz -A -m ~{bcfFile} -o ~{snpFile}
+		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob \
+		-a FORMAT/AD,FORMAT/SCR,FORMAT/ADF,FORMAT/ADR \
+		--ff UNMAP,SECONDARY,QCFAIL \
+		-o ~{bcfFile}
+		bcftools call -Oz -A -m ~{bcfFile} -o ~{snp0File}
+		bcftools index ~{snp0File}
+		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
 		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
+		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -R ~{SNPosFile} ~{snpFile} -o ~{outputPath + "/snp1.txt"}
 		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
 	}
 
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
+		File outSNP1txt = outputPath + "/snp1.txt"
 		File outSNPtxt = outputPath + "/../snp.txt"
 		File outbcfFile = bcfFile
 		File outsnpFile = snpFile
@@ -110,6 +120,7 @@ task callSTR {
 }
 
 struct GatkIndex {
-    File fastaFile
-    Array[File] indexFiles
+	File fastaFile
+	File dbsnpVCF
+	Array[File] indexFiles
 }
