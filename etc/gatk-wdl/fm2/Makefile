@@ -29,6 +29,7 @@ ref/dbsnp154.vcf.gz: dbsnp/GCF_000001405.38.gz dbsnp/GRCh38.chrids
 	@# curl -OJR https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.39_GRCh38.p13/GCF_000001405.39_GRCh38.p13_assembly_report.txt
 	-mkdir ref
 	bcftools annotate --rename-chrs dbsnp/GRCh38.chrids -Oz -o $@ dbsnp/GCF_000001405.38.gz
+	bcftools index $@
 
 dbsnp/GRCh38.chrids:
 	-mkdir dbsnp
