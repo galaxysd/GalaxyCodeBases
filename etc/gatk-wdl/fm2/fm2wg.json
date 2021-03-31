@@ -1,0 +1,25 @@
+{
+	"fm2.sampleConfigFile": "fm2.samples.json",
+	"fm2.bwaIndex": {
+		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
+		"indexFiles": [
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.sa",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.amb",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.ann",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.bwt",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.pac"
+		]
+	},
+	"fm2.GatkIndex": {
+		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
+		"dbsnpVCF": "ref/dbsnp154.vcf.gz",
+		"indexFiles": [
+			"ref/dbsnp154.vcf.gz.csi",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.fai",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.gzi"
+		]
+	},
+	"fm2.bwaThreads": 8,
+	"fm2.minBWAmatchLen": 50,
+	"fm2.dockerImagesFile": "dockerImages.yml"
+}
