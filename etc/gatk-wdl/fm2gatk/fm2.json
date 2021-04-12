@@ -16,15 +16,12 @@
 	"Germline.dockerImagesFile": "dockerImages.yml",
 	"Germline.dbsnpVCF": "/share/FGI2017B/users/huxs/2020Q4_fm2/20210323/ref/dbsnp154.vcf.gz",
 	"Germline.dbsnpVCFIndex": "/share/FGI2017B/users/huxs/2020Q4_fm2/gatk/ref/dbsnp154.vcf.gz.tbi",
-	"Germline.regions###": "File? (optional)",
 	"Germline.jointgenotyping": "false",
 	"Germline.singleSampleGvcf": "true",
 	"Germline.adapterForward": "AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA",
 	"Germline.adapterReverse": "AAGTCGGATCGTAGCCATGTCGTTC",
-	"Germline.useBwaKit###": "Boolean (optional, default = false)",
-	"Germline.runSVcalling###": "Boolean (optional, default = false)",
-	"Germline.outputDir###": "String (optional, default = \".\")",
-	"Germline.sampleWorkflow.metrics.ampliconIntervals###": "File? (optional)",
-	"Germline.sampleWorkflow.metrics.targetIntervals###": "Array[File]+? (optional)",
-	"Germline.SingleSampleCalling.dontUseSoftClippedBases###": "Boolean (optional, default = false)"
+	"Germline.useBwaKit": "false",
+	"Germline.runSVcalling": "false",
+	"Germline.outputDir": ".",
+	"Germline.SingleSampleCalling.dontUseSoftClippedBases": "false"
 }
