@@ -1,21 +1,21 @@
 {
 	"Germline.sampleConfigFile": "fm2.csv",
-	"Germline.referenceFasta": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
-	"Germline.referenceFastaFai": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
-	"Germline.referenceFastaDict": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
+	"Germline.referenceFasta": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
+	"Germline.referenceFastaFai": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.fai",
+	"Germline.referenceFastaDict": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.dict",
 	"Germline.bwaIndex": {
-		"fastaFile": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
+		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
 		"indexFiles": [
-			"/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.sa",
-			"/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.amb",
-			"/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.ann",
-			"/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.bwt",
-			"/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.pac"
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.sa",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.amb",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.ann",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.bwt",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.pac"
 		]
 	},
 	"Germline.dockerImagesFile": "dockerImages.yml",
-	"Germline.dbsnpVCF": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf",
-	"Germline.dbsnpVCFIndex": "/zfssz3/pub/database/storage.googleapis.com/gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf.idx",
+	"Germline.dbsnpVCF": "/share/FGI2017B/users/huxs/2020Q4_fm2/20210323/ref/dbsnp154.vcf.gz",
+	"Germline.dbsnpVCFIndex": "/share/FGI2017B/users/huxs/2020Q4_fm2/gatk/ref/dbsnp154.vcf.gz.tbi",
 	"Germline.regions###": "File? (optional)",
 	"Germline.jointgenotyping": "false",
 	"Germline.singleSampleGvcf": "true",

@@ -977,6 +977,7 @@ task HaplotypeCaller {
         -R ~{referenceFasta} \
         -O ~{outputPath} \
         -I ~{sep=" -I " inputBams} \
+        -DF NotDuplicateReadFilter \
         ~{"--sample-ploidy " + ploidy} \
         ~{true="-L" false="" defined(intervalList)} ~{sep=' -L ' intervalList} \
         ~{true="-XL" false="" defined(excludeIntervalList)} ~{sep=' -XL ' excludeIntervalList} \
