@@ -77,9 +77,9 @@ task callSNP {
 		mkdir -p "~{outputPath}"
 		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob \
 		-a FORMAT/AD,FORMAT/SCR,FORMAT/ADF,FORMAT/ADR \
-		--ff UNMAP,SECONDARY,QCFAIL \
+		--ff UNMAP,SECONDARY,QCFAIL -B \
 		-o ~{bcfFile}
-		bcftools call -Oz -A -m ~{bcfFile} -o ~{snp0File}
+		bcftools call -Oz -A -c -p 0.9 ~{bcfFile} -o ~{snp0File}
 		bcftools index ~{snp0File}
 		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
@@ -87,6 +87,7 @@ task callSNP {
 		bcftools query -f'%ID\t[%DP\t%QUAL\t%TGT]\t%CHROM:%POS\n' ~{snpFile} -o ~{outputPath + "/../snpG.txt"}
 		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
 	}
+	# See <https://github.com/samtools/bcftools/issues/658> for `-c -p 0.9`. This fix low recalculated BaseQ next to INDEL.
 
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
