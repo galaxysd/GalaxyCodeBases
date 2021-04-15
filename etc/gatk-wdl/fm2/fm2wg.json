@@ -1,22 +1,22 @@
 {
 	"fm2.sampleConfigFile": "fm2.samples.json",
 	"fm2.bwaIndex": {
-		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
+		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz",
 		"indexFiles": [
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.sa",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.amb",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.ann",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.bwt",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.pac"
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.sa",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.amb",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.ann",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.bwt",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.pac"
 		]
 	},
 	"fm2.GatkIndex": {
-		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz",
-		"dbsnpVCF": "ref/dbsnp154.vcf.gz",
+		"fastaFile": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz",
+		"dbsnpVCF": "/share/FGI2017B/users/huxs/2020Q4_fm2/ref/dbsnp154.vcf.gz",
 		"indexFiles": [
-			"ref/dbsnp154.vcf.gz.csi",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.fai",
-			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/Homo_sapiens_assembly38.fasta.gz.gzi"
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/dbsnp154.vcf.gz.csi",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.fai",
+			"/share/FGI2017B/users/huxs/2020Q4_fm2/ref/hg38.fa.gz.gzi"
 		]
 	},
 	"fm2.bwaThreads": 8,

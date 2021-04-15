@@ -79,7 +79,7 @@ task callSNP {
 		-a FORMAT/AD,FORMAT/SCR,FORMAT/ADF,FORMAT/ADR \
 		--ff UNMAP,SECONDARY,QCFAIL -B \
 		-o ~{bcfFile}
-		bcftools call -Oz -A -c -p 0.9 ~{bcfFile} -o ~{snp0File}
+		bcftools call -Oz -A -m -P 5.1e-1 ~{bcfFile} -o ~{snp0File}
 		bcftools index ~{snp0File}
 		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
@@ -88,6 +88,7 @@ task callSNP {
 		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
 	}
 	# See <https://github.com/samtools/bcftools/issues/658> for `-c -p 0.9`. This fix low recalculated BaseQ next to INDEL.
+	# `bcftools call -m -P 0.5` is not working, so use `-m -P 5.1e-1`.
 
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
