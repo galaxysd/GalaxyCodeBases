@@ -11,12 +11,12 @@ fpath <- argv[1]
 fpattern <- "(NFO|HLA|SNP|MED).xlsx?$"
 
 readXLS <- function(xlsname) {
-	read <- read_excel(xlsname,col_types="text",col_names=FALSE)
+	read <- read_excel(xlsname,col_types="text",col_names=FALSE,.name_repair = ~ LETTERS[seq_along(.x)])
 	tres <- regexpr('(?<Type>\\w{3}).xls',xlsname,perl=TRUE)
 	st <- attr(tres, "capture.start")[1, ]
 	tstr <- toupper(substring(xlsname,st,st + attr(tres, "capture.length")[1, ] -1))
-	rdat <- as.data.frame(t(column_to_rownames(read,var='...1')),row.names=tstr)
-	print(rdat)
+	rdat <- as.data.frame(t(column_to_rownames(read,var='A')),row.names=make.names(rep_len(tstr,length(read)-1),unique=TRUE))
+	return(rdat)
 }
 
 analyze <- function(dirname) {
@@ -30,6 +30,8 @@ analyze <- function(dirname) {
 	readXLS(NFOname)
 	readXLS(HLAname)
 	readXLS(SNPname)
+	reads <- sapply(c(NFOname,HLAname,SNPname),readXLS,USE.NAMES=F)
+	print(reads)
 	return(c(fnGot,'---'))
 }
 
