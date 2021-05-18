@@ -1,6 +1,7 @@
 #!/usr/bin/env littler
 
 require(readxl)
+require(tibble)
 
 # 设置数值显示位数
 options(scipen = 200)
@@ -11,7 +12,11 @@ fpattern <- "(NFO|HLA|SNP|MED).xlsx?$"
 
 readXLS <- function(xlsname) {
 	read <- read_excel(xlsname,col_types="text",col_names=c('k','v'))
-	print(read)
+	tres <- regexpr('(?<Type>\\w{3}).xls',xlsname,perl=TRUE)
+	st <- attr(tres, "capture.start")[1, ]
+	tstr <- toupper(substring(xlsname,st,st + attr(tres, "capture.length")[1, ] -1))
+	rdat <- as.data.frame(t(column_to_rownames(read,var='k')),row.names=tstr)
+	print(rdat)
 }
 
 analyze <- function(dirname) {
