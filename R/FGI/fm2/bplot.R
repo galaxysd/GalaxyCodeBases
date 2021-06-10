@@ -2,7 +2,7 @@ library(tidyverse)
 snpdat <- read.csv('snps.csv')
 plotdat <- pivot_longer(snpdat, cols = starts_with("DEP"), names_to = "SNPs",values_to = "Depth")
 
-PlotPointsize <- 12
+PlotPointsize <- 8
 pdf('boxType.pdf', pointsize = PlotPointsize)
 ggplot(plotdat, aes(Type, Depth)) + geom_boxplot()
 dev.off()
