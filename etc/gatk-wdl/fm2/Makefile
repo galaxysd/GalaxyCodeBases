@@ -41,4 +41,4 @@ dbsnp/GCF_000001405.38.gz:
 
 bin/snpos.lst: bin/snplst.txt
 	@# awk 'x=gensub(/^rs/,"",1,$1) {print $1"\t"$2"\t"$3"\t"x}' bin/snplst.txt|sort -nk4|awk '{print $1"\t"$2"\t"$3}'
-	awk 'x=gensub(/^chr/,"",1,$$2) {print $$1"\t"$$2"\t"$$3"\t"x}' $< |sort -nk4 -nk3| awk '{print $$2"\t"$$3}' >$@
+	awk 'x=gensub(/^chr/,"",1,$$2) {print $$1"\t"$$2"\t"$$3"\t"x"\t"$$4}' $< |sort -nk4 -nk3| awk '{print $$2"\t"$$3"\t"$$5}'|gsed 's/	$$//' >$@
