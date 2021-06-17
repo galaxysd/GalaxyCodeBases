@@ -84,8 +84,9 @@ task callSNP {
 		bcftools call -Oz -A -m -P 5.1e-1 ~{bcfFile} -o ~{snp0File}
 		bcftools index ~{snp0File}
 		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snp1File}
+		bcftools index ~{snp1File}
 		tabix ~{SNPannotsFile}
-		bcftools annotate -a ~{SNPannotsFile} ~{snp1File} -c CHROM,FROM,TO,ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
+		bcftools annotate -a ~{SNPannotsFile} ~{snp1File} -c CHROM,FROM,TO,ID --collapse all -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
 		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
 		bcftools query -f'%ID\t[%DP\t%QUAL\t%TGT]\t%CHROM:%POS\n' ~{snpFile} -o ~{outputPath + "/../snpG.txt"}
@@ -101,6 +102,8 @@ task callSNP {
 		File outbcfFile = bcfFile
 		File outsnpFile = snpFile
 		File outsnpIndexFile = snpFile + ".csi"
+		File outsnp0File = snp0File
+		File outsnp0IndexFile = snp0File + ".csi"
 	}
 }
 

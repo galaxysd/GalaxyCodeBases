@@ -116,6 +116,8 @@ workflow SampleWorkflow {
 		File outbcfFile = fm2callSNP.outbcfFile
 		File outsnpFile = fm2callSNP.outsnpFile
 		File outsnpIndexFile = fm2callSNP.outsnpIndexFile
+		File outsnp0File = fm2callSNP.outsnp0File
+		File outsnp0IndexFile = fm2callSNP.outsnp0IndexFile
 	}
 
 	parameter_meta {
