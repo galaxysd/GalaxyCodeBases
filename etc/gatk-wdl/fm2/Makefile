@@ -47,5 +47,5 @@ bin/snpos.lst: bin/snplst.txt
 .PHONY ANNOTFILES: bin/snplst.txt bin/annot.bed
 	awk '{print $$2 "\t" $$3 "\t" $$4}' bin/snplst.txt |sort -Vk 1 -k 2n|sed 's/	$$//' >bin/snpos.lst
 	cp bin/annot.bed bin/annots.bed
-	bgzip bin/annots.bed
+	bgzip -f bin/annots.bed
 	tabix bin/annots.bed.gz
