@@ -70,8 +70,10 @@ task callSNP {
 	File dbsnpVCF = GatkIndex.dbsnpVCF
 	String bcfFile = outputPath + "/mpileup.bcf"
 	String snp0File = outputPath + "/snp0.gz"
+	String snp1File = outputPath + "/snp1.gz"
 	String snpFile = outputPath + "/snp.gz"
 	File SNPosFile = "bin/snpos.lst"
+	File SNPannotsFile = "bin/annots.bed.gz"
 	command {
 		set -e
 		mkdir -p "~{outputPath}"
@@ -81,7 +83,9 @@ task callSNP {
 		-o ~{bcfFile}
 		bcftools call -Oz -A -m -P 5.1e-1 ~{bcfFile} -o ~{snp0File}
 		bcftools index ~{snp0File}
-		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
+		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snp1File}
+		tabix ~{SNPannotsFile}
+		bcftools annotate -a ~{SNPannotsFile} ~{snp1File} -c CHROM,FROM,TO,ID --collapse all -R ~{SNPosFile} -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
 		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
 		bcftools query -f'%ID\t[%DP\t%QUAL\t%TGT]\t%CHROM:%POS\n' ~{snpFile} -o ~{outputPath + "/../snpG.txt"}
