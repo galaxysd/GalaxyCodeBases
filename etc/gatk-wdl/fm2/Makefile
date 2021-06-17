@@ -4,7 +4,7 @@ OUT1 = $(addsuffix .json.wom,$(WDLF))
 
 .PHONY: all release dbsnp dbsnp/GCF_000001405.38.gz
 
-all: $(OUT1) fm2.samples.json bin/snpos.lst
+all: $(OUT1) fm2.samples.json ANNOTFILES
 	@echo "[$(WDLS)] -> [$(OUT1)]"
 	@echo Run with:{JAVA_OPTS=\"-Dbackend.providers.Local.config.concurrent-job-limit=16\" cromwell run -o cromwell_options_no_user.json [-i inputs.json] workflow.wdl}.
 
@@ -14,7 +14,7 @@ all: $(OUT1) fm2.samples.json bin/snpos.lst
 fm2.samples.json: fm2.csv
 	biowdl-input-converter --skip-file-check fm2.csv |python3 -mjson.tool >fm2.samples.json
 
-release: fm2.samples.json bin/snpos.lst
+release: fm2.samples.json ANNOTFILES
 	tar -cLzvf release.tgz fm2.csv fm2.samples.json fm2.json fm2wg.json fm2.wdl cromwell_options_no_user.json run.sh tasks bin ref/ForensicM.fa.* dockerImages.yml
 	@echo [!]Use \"/share/FGI2017B/prefix/jdk/jdk1.8.0_281/bin/java\" in \"/share/FGI2017B/brew/bin/picard\".
 	@echo [!]Remember to execute \"ln -s /share/FGI2017B/users/huxs/2020Q4_fm2/wdl/fq\" for FASTQ files.
@@ -43,3 +43,9 @@ bin/snpos.lst: bin/snplst.txt
 	@# awk 'x=gensub(/^rs/,"",1,$1) {print $1"\t"$2"\t"$3"\t"x}' bin/snplst.txt|sort -nk4|awk '{print $1"\t"$2"\t"$3}'
 	#awk 'x=gensub(/^chr/,"",1,$$2) {print $$1"\t"$$2"\t"$$3"\t"x"\t"$$4}' $< |sort -nk4 -nk3| awk '{print $$2"\t"$$3"\t"$$5}'|gsed 's/	$$//' >$@
 	awk '{print $$2 "\t" $$3 "\t" $$4}' $< |sort -Vk 1 -k 2n|sed 's/	$$//' >$@
+
+.PHONY ANNOTFILES: bin/snplst.txt bin/annot.bed
+	awk '{print $$2 "\t" $$3 "\t" $$4}' bin/snplst.txt |sort -Vk 1 -k 2n|sed 's/	$$//' >bin/snpos.lst
+	cp bin/annot.bed bin/annots.bed
+	bgzip bin/annots.bed
+	tabix bin/annots.bed.gz
