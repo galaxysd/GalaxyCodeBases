@@ -49,3 +49,7 @@ bin/snpos.lst: bin/snplst.txt
 	cp bin/annot.bed bin/annots.bed
 	bgzip -f bin/annots.bed
 	tabix bin/annots.bed.gz
+
+.PHONY pkg:
+	-rm fm2wdl.zip
+	zip -9r fm2wdl.zip fm2.wdl cromwell_options_no_user.json fm2wg.json dockerImages.yml tasks/ bin/ run.sh
