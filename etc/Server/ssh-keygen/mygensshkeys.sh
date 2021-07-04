@@ -52,7 +52,7 @@ for thePlace in ${aPLACES[@]}; do
 	PREFIX="c${FULLDATE}.${thePlace}"
 	echo ${PREFIX}
 	mkdir ${PREFIX}
-	ssh-keygen -q -b 4096 -t rsa -C " $(whoami)@${thePlace}.rsa4k.${JUSTDATE}" -N '' -f ${PREFIX}/id_rsa
+	ssh-keygen -q -b 3072 -t rsa -C " $(whoami)@${thePlace}.rsa4k.${JUSTDATE}" -N '' -f ${PREFIX}/id_rsa
 	ssh-keygen -q -t ecdsa -b 521 -C " $(whoami)@${thePlace}.ecdsa521.${JUSTDATE}" -N '' -f ${PREFIX}/id_ecdsa
 	ssh-keygen -q -t ed25519 -C " $(whoami)@${thePlace}.ed25519.${JUSTDATE}" -N '' -f ${PREFIX}/id_ed25519
 	#cat ${PREFIX}/id_{ed25519,ecdsa,rsa}.pub >authorized_keys.${thePlace}.${FULLDATE}
