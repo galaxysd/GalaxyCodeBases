@@ -1,0 +1,25 @@
+{
+  "fm2.sampleConfigFile": "/share/dat0/test/fm2test.samples.json",
+  "fm2.bwaIndex": {
+    "fastaFile": "/share/dat0/ref/hg38.fa.gz",
+    "indexFiles": [
+      "/share/dat0/ref/hg38.fa.gz.sa",
+      "/share/dat0/ref/hg38.fa.gz.amb",
+      "/share/dat0/ref/hg38.fa.gz.ann",
+      "/share/dat0/ref/hg38.fa.gz.bwt",
+      "/share/dat0/ref/hg38.fa.gz.pac"
+    ]
+  },
+  "fm2.GatkIndex": {
+    "fastaFile": "/share/dat0/ref/hg38.fa.gz",
+    "dbsnpVCF": "/share/dat0/ref/dbsnp154.vcf.gz",
+    "indexFiles": [
+      "/share/dat0/ref/dbsnp154.vcf.gz.csi",
+      "/share/dat0/ref/hg38.fa.gz.fai",
+      "/share/dat0/ref/hg38.fa.gz.gzi"
+    ]
+  },
+  "fm2.bwaThreads": 8,
+  "fm2.minBWAmatchLen": 50,
+  "fm2.dockerImagesFile": "/share/dat0/test/dockerImages.yml"
+}
