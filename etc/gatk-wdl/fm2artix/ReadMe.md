@@ -378,3 +378,13 @@ expac --timefmt='%F %T' '%l %n' | sort -n > expac.lst
 2021-07-13 18:12:05 python-yaml
 2021-07-13 18:16:09 expac
 ```
+
+```bash
+$ ls -1 ~/.local/lib/python3.9/site-packages/ |grep info
+PyYAML-5.4.1.dist-info
+biowdl_input_converter-0.3.0.dist-info
+cutadapt-3.4.dist-info
+dnaio-0.5.1.dist-info
+isal-0.10.0.dist-info
+xopen-1.1.0.dist-info
+```
