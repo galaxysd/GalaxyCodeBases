@@ -9,15 +9,20 @@ all: $(OUT1) fm2test.samples.json
 %.json.wom: %.wdl
 	womtool validate $(*).wdl && womtool inputs $(*).wdl >$@
 
-fm2test.samples.json: fm2test.csv
+example/fm2test.samples.json: example/fm2test.csv
 	biowdl-input-converter --skip-file-check $< |python3 -mjson.tool > $@
 
-release: pkg fm2test.samples.json
-	tar -cLzvf release.tgz fm2test.csv fm2test.samples.json dockerImages.yml bin/ fmtest.json fm2.wdl cromwell_options_no_user.json fm2wdl.zip
-	@echo [!]Use \"/share/FGI2017B/prefix/jdk/jdk1.8.0_281/bin/java\" in \"/share/FGI2017B/brew/bin/picard\".
-	@echo [!]Remember to execute \"ln -s /share/FGI2017B/users/huxs/2020Q4_fm2/wdl/fq\" for FASTQ files.
-	@ls -lh release.tgz
-
 .PHONY pkg:
-	-rm fm2wdl.zip
-	zip -9r fm2wdl.zip fm2.wdl  tasks/
+	-rm fm2wdl.zip fm2pkg.tgz
+	zip -9r fm2wdl.zip tasks/
+	tar -czvf fm2pkg.tgz fm2.wdl fm2wdl.zip bin report db example
+
+p0FILE := "report/style.html"
+p1FILE := "db/annots.bed.gz"
+.PHONY etc:
+	sed 's/.markdown-body //g' report/github-markdown.css >.build/github-markdownA.css
+	css-html-js-minify .build/github-markdownA.css
+	echo "<!DOCTYPE html><html><head><style>" >$(p0FILE)
+	cat .build/github-markdownA.min.css >>$(p0FILE)
+	echo "</style></head><body>" >>$(p0FILE)
+	perl bin/MkBed.pl db/snplst.txt db/annots.bed

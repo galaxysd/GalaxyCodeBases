@@ -72,15 +72,12 @@ workflow fm2 {
 		Array[File] filteredBam = sampleWorkflow.filteredBam
 		Array[File] filteredBamIndex = sampleWorkflow.filteredBamIndex
 		Array[File] outSNP0txts = sampleWorkflow.outSNP0txt
-		Array[File] outSTR0txts = sampleWorkflow.outSTR0txt
-		Array[File] outSNP1txts = sampleWorkflow.outSNP1txt
 		Array[File] outSNPtxts = sampleWorkflow.outSNPtxt
-		Array[File] outSTRtxts = sampleWorkflow.outSTRtxt
 		Array[File] outbcfFiles = sampleWorkflow.outbcfFile
 		Array[File] outsnpFiles = sampleWorkflow.outsnpFile
 		Array[File] outsnpIndexFiles = sampleWorkflow.outsnpIndexFile
-		Array[File] outsnp0Files = sampleWorkflow.outsnp0File
-		Array[File] outsnp0IndexFiles = sampleWorkflow.outsnp0IndexFile
+		Array[File] mdReports = sampleWorkflow.mdReport
+		Array[File] htmlReports = sampleWorkflow.htmlReport
 		#Array[File?] mantaVCFs = svCalling.mantaVcf
 		#Array[File?] dellyVCFs = svCalling.dellyVcf
 		#Array[File?] survivorVCFs = svCalling.survivorVcf
@@ -108,5 +105,6 @@ workflow fm2 {
 		recalibratedBamIndexes: {description: ""}
 		markdupBams: {description: ""}
 		markdupBamIndexes: {description: ""}
+		htmlReports: {description: ""}
 	}
 }

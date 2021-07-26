@@ -32,7 +32,7 @@ workflow QC {
         String readgroupName = sub(basename(read1),"(\.fq)?(\.fastq)?(\.gz)?", "")
         # Only run cutadapt if it makes sense.
         Boolean runAdapterClipping = defined(adapterForward) || defined(adapterReverse) || length(select_first([contaminations, []])) > 0
-        Boolean extractFastqcZip = false
+        Boolean extractFastqcZip = true
 
         String? adapterForward = "AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"  # MGISEQ universal adapter
         String? adapterReverse = "AAGTCGGATCGTAGCCATGTCGTTC"  # MGISEQ universal adapter
@@ -123,7 +123,13 @@ workflow QC {
         File? read2afterHtmlReport = FastqcRead2After.htmlReport
         File? read2afterReportZip = FastqcRead2After.reportZip
         File? cutadaptReport = Cutadapt.report
-        Array[File] fastqcSummaries = select_all([FastqcRead1.summary, FastqcRead2.summary ,FastqcRead1After.summary, FastqcRead2After.summary]) 
+        Array[File] fastqcSummaries = select_all([FastqcRead1.summary, FastqcRead2.summary ,FastqcRead1After.summary, FastqcRead2After.summary])
+        Array[File] QualPNG = select_all([FastqcRead1.per_base_quality_images, FastqcRead2.per_base_quality_images])
+        Array[File] QCdata = select_all([FastqcRead1.rawReport,FastqcRead2.rawReport])
+        Array[File] reportZips = select_all([
+            read1reportZip,
+            read2reportZip
+        ])
         Array[File] reports = select_all([
             read1htmlReport,
             read1reportZip,

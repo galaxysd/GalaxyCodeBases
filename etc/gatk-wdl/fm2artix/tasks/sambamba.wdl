@@ -83,6 +83,7 @@ task Markdup {
     }
 
     String bamIndexPath = sub(outputPath, "\.bam$", ".bai")
+    String bamstatsPath = sub(outputPath, "\.bam$", "bamstats")
 
     command {
         set -e 
@@ -98,11 +99,13 @@ task Markdup {
         ~{sep=' ' inputBams} ~{outputPath}
         # sambamba creates an index for us.
         mv ~{outputPath}.bai ~{bamIndexPath}
+        samtools stats ~{outputPath} > ~{bamstatsPath}
     }
 
     output {
         File outputBam = outputPath
         File outputBamIndex = bamIndexPath
+        File outputBamstats = bamstatsPath
     }
 
     runtime {
@@ -130,6 +133,7 @@ task Markdup {
         # outputs
         outputBam: {description: "Sorted BAM file."}
         outputBamIndex: {description: "Sorted BAM file index."}
+        outputBamstats: {description: "Sorted BAM file statics."}
     }
 }
 

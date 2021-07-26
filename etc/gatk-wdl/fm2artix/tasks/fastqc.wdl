@@ -94,7 +94,14 @@ task Fastqc {
         File reportZip = reportDir + ".zip"
         File? summary = if extract then reportDir + "/summary.txt" else noneFile
         File? rawReport = if extract then reportDir + "/fastqc_data.txt" else noneFile
-        Array[File]? images = if extract then glob(reportDir + "/Images/*.png") else noneArray
+        File? adapter_content_images = if extract then reportDir + "/Images/adapter_content.png" else noneFile
+        File? duplication_levels_images = if extract then reportDir + "/Images/duplication_levels.png" else noneFile
+        File? per_base_n_content_images = if extract then reportDir + "/Images/per_base_n_content.png" else noneFile
+        File? per_base_quality_images = if extract then reportDir + "/Images/per_base_quality.png" else noneFile
+        File? per_base_sequence_content_images = if extract then reportDir + "/Images/per_base_sequence_content.png" else noneFile
+        File? per_sequence_gc_content_images = if extract then reportDir + "/Images/per_sequence_gc_content.png" else noneFile
+        File? per_sequence_quality_images = if extract then reportDir + "/Images/per_sequence_quality.png" else noneFile
+        File? sequence_length_distribution_images = if extract then reportDir + "/Images/sequence_length_distribution.png" else noneFile
     }
 
     runtime {
@@ -131,7 +138,14 @@ task Fastqc {
         reportZip: {description: "Source data file."}
         summary: {description: "Summary file."}
         rawReport: {description: "Raw report file."}
-        images: {description: "Images in report file."}
+        adapter_content_images: {description: "Images in report file."}
+        duplication_levels_images: {description: "Images in report file."}
+        per_base_n_content_images: {description: "Images in report file."}
+        per_base_quality_images: {description: "Images in report file."}
+        per_base_sequence_content_images: {description: "Images in report file."}
+        per_sequence_gc_content_images: {description: "Images in report file."}
+        per_sequence_quality_images: {description: "Images in report file."}
+        sequence_length_distribution_images: {description: "Images in report file."}
     }
 
     meta {

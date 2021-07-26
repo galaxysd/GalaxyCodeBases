@@ -72,32 +72,30 @@ task callSNP {
 	String snp0File = outputPath + "/snp0.gz"
 	String snp1File = outputPath + "/snp1.gz"
 	String snpFile = outputPath + "/snp.gz"
-	File SNPosFile = "bin/snpos.lst"
-	File SNPannotsFile = "bin/annots.bed.gz"
+	String awkPara = '{print "SNP\\t" $1 ": " $4}'
+	File SNPannotsFile = "db/annots.bed.gz"
 	command {
 		set -e
 		mkdir -p "~{outputPath}"
 		bcftools mpileup --threads 6 ~{inputBam} -d 30000 -Q 30 -f ~{referenceFasta} -p -Ob \
-		-a FORMAT/AD,FORMAT/SCR,FORMAT/ADF,FORMAT/ADR \
+		-a FORMAT/AD,FORMAT/ADF,FORMAT/ADR \
 		--ff UNMAP,SECONDARY,QCFAIL -B \
 		-o ~{bcfFile}
 		bcftools call -Oz -A -m -P 5.1e-1 ~{bcfFile} -o ~{snp0File}
 		bcftools index ~{snp0File}
-		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPosFile} -Oz -o ~{snp1File}
+		bcftools annotate -a ~{dbsnpVCF} ~{snp0File} -c ID --collapse all -R ~{SNPannotsFile} -Oz -o ~{snp1File}
 		bcftools index ~{snp1File}
 		tabix ~{SNPannotsFile}
 		bcftools annotate -a ~{SNPannotsFile} ~{snp1File} -c CHROM,FROM,TO,ID --collapse all -Oz -o ~{snpFile}
 		bcftools index ~{snpFile}
-		bcftools query -f'%CHROM\t[%DP\t%QUAL\t%TGT\n]' -i 'POS==501' ~{snpFile} > ~{outputPath + "/snp0.txt"}
-		bcftools query -f'%ID\t[%DP\t%QUAL\t%TGT]\t%CHROM:%POS\n' ~{snpFile} -o ~{outputPath + "/../snpG.txt"}
-		perl ~{helperPl} ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
+		bcftools view ~{snpFile} | perl ~{helperPl} /dev/stdin ~{SNPannotsFile} > ~{outputPath + "/snp0.txt"}
+		awk -F "\t" '~{awkPara}' ~{outputPath + "/snp0.txt"} > ~{outputPath + "/../snp.txt"}
 	}
 	# See <https://github.com/samtools/bcftools/issues/658> for `-c -p 0.9`. This fix low recalculated BaseQ next to INDEL.
 	# `bcftools call -m -P 0.5` is not working, so use `-m -P 5.1e-1`.
 
 	output {
 		File outSNP0txt = outputPath + "/snp0.txt"
-		File outSNP1txt = outputPath + "/../snpG.txt"
 		File outSNPtxt = outputPath + "/../snp.txt"
 		File outbcfFile = bcfFile
 		File outsnpFile = snpFile

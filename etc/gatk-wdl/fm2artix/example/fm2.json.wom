@@ -1,0 +1,26 @@
+{
+  "fm2.convertDockerImagesFile.memory": "String (optional, default = \"128M\")",
+  "fm2.GatkIndex": {
+    "fastaFile": "File",
+    "dbsnpVCF": "File",
+    "indexFiles": "Array[File]"
+  },
+  "fm2.convertDockerImagesFile.timeMinutes": "Int (optional, default = 1)",
+  "fm2.outputDir": "String (optional, default = \".\")",
+  "fm2.bwaIndex": {
+    "fastaFile": "File",
+    "indexFiles": "Array[File]"
+  },
+  "fm2.useBwaKit": "Boolean (optional, default = false)",
+  "fm2.scatterSizeMillions": "Int (optional, default = 1000)",
+  "fm2.dockerImagesFile": "File",
+  "fm2.minBWAmatchLen": "Int? (optional, default = 200)",
+  "fm2.sampleConfigFile": "File",
+  "fm2.platform": "String (optional, default = \"illumina\")",
+  "fm2.adapterReverse": "String? (optional, default = \"AAGTCGGATCGTAGCCATGTCGTTC\")",
+  "fm2.bwaThreads": "Int (optional, default = 4)",
+  "fm2.adapterForward": "String? (optional, default = \"AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA\")",
+  "fm2.convertDockerImagesFile.dockerImage": "String (optional, default = \"quay.io/biocontainers/biowdl-input-converter:0.2.1--py_0\")",
+  "fm2.scatterSize": "Int? (optional)"
+}
+

@@ -28,6 +28,7 @@ import "fgi.wdl" as fgifm2
 import "sambamba.wdl" as sambamba
 #import "tasks/picard.wdl" as picard
 import "QC.wdl" as qc
+import "mkreport.wdl" as mkr
 #import "tasks/umi-tools.wdl" as umiTools
 
 workflow SampleWorkflow {
@@ -93,13 +94,19 @@ workflow SampleWorkflow {
 			outputPath = sampleDir + "/SNP/",
 			helperPl = "bin/fsnp.pl"
 	}
-	call fgifm2.callSTR as fm2callSTR {
+	call mkr.markdown as fm2report {
 		input:
-			inputBam = FilterSam.outputBam,
-			inputBamIndex = FilterSam.outputBamIndex,
-			outputPath = sampleDir + "/STR/",
-			helperBED = "bin/LN-mid.bed",
-			helperPl = "bin/fstr.pl"
+			ReportID = sample.id,
+			libNum = length(select_all(bwaMem.outputBam)),
+			makerPL = "bin/markdown.pl",
+			renderPY = "bin/md2html.py",
+			template = "report/ReportTemplate.markdown",
+			addStyle = "report/style.html",
+			snptxt = fm2callSNP.outSNP0txt,
+			bamStats = markdup.outputBamstats,
+			outputPath = sampleDir,
+			quals = flatten(qualityControl.QualPNG),
+			datas = flatten(qualityControl.QCdata)
 	}
 
 	output {
@@ -108,16 +115,13 @@ workflow SampleWorkflow {
 		File filteredBam = FilterSam.outputBam
 		File filteredBamIndex = FilterSam.outputBamIndex
 		File outSNP0txt = fm2callSNP.outSNP0txt
-		File outSTR0txt = fm2callSTR.outSTR0txt
-		File outSNP1txt = fm2callSNP.outSNP1txt
 		File outSNPtxt = fm2callSNP.outSNPtxt
-		File outSTRtxt = fm2callSTR.outSTRtxt
 		Array[File] reports = flatten(qualityControl.reports)
 		File outbcfFile = fm2callSNP.outbcfFile
 		File outsnpFile = fm2callSNP.outsnpFile
 		File outsnpIndexFile = fm2callSNP.outsnpIndexFile
-		File outsnp0File = fm2callSNP.outsnp0File
-		File outsnp0IndexFile = fm2callSNP.outsnp0IndexFile
+		File mdReport = fm2report.mdReport
+		File htmlReport = fm2report.htmlReport
 	}
 
 	parameter_meta {
@@ -136,6 +140,7 @@ workflow SampleWorkflow {
 		markdupBam: {description: ""}
 		markdupBamIndex: {description: ""}
 		reports: {description: ""}
+		htmlReport: {description: ""}
 	}
 }
 
