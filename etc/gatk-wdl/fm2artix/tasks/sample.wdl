@@ -122,6 +122,7 @@ workflow SampleWorkflow {
 		File outsnpIndexFile = fm2callSNP.outsnpIndexFile
 		File mdReport = fm2report.mdReport
 		File htmlReport = fm2report.htmlReport
+		File pdfReport = fm2report.pdfReport
 	}
 
 	parameter_meta {

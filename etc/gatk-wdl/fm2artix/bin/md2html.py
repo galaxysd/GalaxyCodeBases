@@ -23,5 +23,6 @@ htmlfile=open(options.outfile,"w")
 with open(options.stfile,'r') as style:
     htmlfile.write(style.read())
 htmlfile.write(html)
+htmlfile.write("</body></html>")
 htmlfile.close()
 mdfile.close()

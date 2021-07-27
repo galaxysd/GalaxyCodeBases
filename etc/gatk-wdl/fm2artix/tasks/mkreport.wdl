@@ -18,6 +18,7 @@ task markdown {
 	String tmpFile = outputPath + "/" + ReportID + "_include.txt"
 	String mdFile = outputPath + "/" + ReportID + ".md"
 	String htmlFile = outputPath + "/" + ReportID + ".html"
+	String pdfFile = outputPath + "/" + ReportID + ".pdf"
 	command {
 		set -e
 		mkdir -p "~{outputPath}"
@@ -30,10 +31,12 @@ task markdown {
 		echo "qual plot	~{sep=',' quals}" >> ~{tmpFile}
 		perl ~{makerPL} ~{template} ~{tmpFile} > ~{mdFile}
 		python3 ~{renderPY} -i ~{mdFile} -o ~{htmlFile} -s ~{addStyle}
+		weasyprint ~{htmlFile} ~{pdfFile}
 	}
 
 	output {
 		File mdReport = mdFile
 		File htmlReport = htmlFile
+		File pdfReport = pdfFile
 	}
 }

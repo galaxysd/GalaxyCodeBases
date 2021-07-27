@@ -22,7 +22,7 @@ p1FILE := "db/annots.bed.gz"
 .PHONY etc:
 	sed 's/.markdown-body //g' report/github-markdown.css >.build/github-markdownA.css
 	css-html-js-minify .build/github-markdownA.css
-	echo "<!DOCTYPE html><html><head><style>" >$(p0FILE)
+	echo "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /><style>" >$(p0FILE)
 	cat .build/github-markdownA.min.css >>$(p0FILE)
 	echo "</style></head><body>" >>$(p0FILE)
 	perl bin/MkBed.pl db/snplst.txt db/annots.bed
