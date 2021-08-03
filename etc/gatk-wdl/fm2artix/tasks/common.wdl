@@ -227,7 +227,7 @@ task YamlToJson {
 	command {
 		set -e
 		mkdir -p "$(dirname ~{outputJson})"
-		python <<CODE
+		python3 <<CODE
 		import json
 		import yaml
 		with open("~{yaml}", "r") as input_yaml:

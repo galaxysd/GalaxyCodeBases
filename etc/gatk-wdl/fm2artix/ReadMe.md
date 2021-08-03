@@ -24,6 +24,7 @@ cromwell submit -i fmtest.json fm2.wdl -o cromwell_options_no_user.json -p fm2wd
 ```bash
 pacman -S python-yaml
 expac --timefmt='%F %T' '%l %n' | sort -n > expac.lst
+yay -S jre11-openjdk imagej
 pacman -S adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts
 ```
 
