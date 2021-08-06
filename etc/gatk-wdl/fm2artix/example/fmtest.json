@@ -21,5 +21,6 @@
   },
   "fm2.bwaThreads": 8,
   "fm2.minBWAmatchLen": 50,
+  "fm2.sampleWorkflow.sortMemory": "512M",
   "fm2.dockerImagesFile": "/share/dat0/test/dockerImages.yml"
 }

@@ -43,6 +43,7 @@ workflow SampleWorkflow {
 		String? adapterForward
 		String? adapterReverse
 		Int? minBWAmatchLen = 200
+		String? sortMemory
 
 		Int bwaThreads = 4
 		Map[String, String] dockerImages
@@ -67,6 +68,7 @@ workflow SampleWorkflow {
 				bwaIndex = select_first([bwaIndex]),
 				threads = bwaThreads,
 				usePostalt = useBwaKit,
+				sortMemory = sortMemory,
 				dockerImage = dockerImages["bwakit+samtools"]
 		}
 		Boolean paired = defined(readgroup.R2)

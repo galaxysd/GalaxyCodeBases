@@ -33,6 +33,7 @@ task Mem {
 
         String? readgroup
         Int? sortThreads
+        String? sortMemory
 
         Int threads = 4
         Int? memoryGb
@@ -65,6 +66,7 @@ task Mem {
           samtools sort \
           ~{"-@ " + totalSortThreads} \
           -m ~{sortMemoryPerThreadGb}G \
+          ~{"-m " + sortMemory} \
           -l ~{compressionLevel} \
           - \
           -o ~{outputPrefix}.aln.bam
