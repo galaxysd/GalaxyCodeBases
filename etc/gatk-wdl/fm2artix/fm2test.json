@@ -1,0 +1,26 @@
+{
+  "fm2.sampleConfigFile": "/var/www/cromwell-backend/samples_man/data/fm2test.samples.json",
+  "fm2.bwaIndex": {
+    "fastaFile": "ref/hg38.fa.gz",
+    "indexFiles": [
+      "ref/hg38.fa.gz.sa",
+      "ref/hg38.fa.gz.amb",
+      "ref/hg38.fa.gz.ann",
+      "ref/hg38.fa.gz.bwt",
+      "ref/hg38.fa.gz.pac"
+    ]
+  },
+  "fm2.GatkIndex": {
+    "fastaFile": "ref/hg38.fa.gz",
+    "dbsnpVCF": "ref/dbsnp154.vcf.gz",
+    "indexFiles": [
+      "ref/dbsnp154.vcf.gz.csi",
+      "ref/hg38.fa.gz.fai",
+      "ref/hg38.fa.gz.gzi"
+    ]
+  },
+  "fm2.bwaThreads": 4,
+  "fm2.minBWAmatchLen": 50,
+  "fm2.sampleWorkflow.sortMemory": "512M",
+  "fm2.dockerImagesFile": "db/dockerImages.yml"
+}
