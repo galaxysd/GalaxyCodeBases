@@ -15,7 +15,7 @@ example/fm2test.samples.json: example/fm2test.csv
 .PHONY pkg:
 	-rm fm2wdl.zip fm2pkg.tgz
 	zip -9r fm2wdl.zip tasks/
-	tar -czvf fm2pkg.tgz fm2.wdl fm2wdl.zip bin report db example
+	tar -czvf fm2pkg.tgz fm2.wdl fm2wdl.zip bin report db ref fm2test.json example
 
 p0FILE := "report/style.html"
 p1FILE := "db/annots.bed.gz"
