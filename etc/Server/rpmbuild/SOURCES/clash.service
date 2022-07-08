@@ -1,0 +1,11 @@
+[Unit]
+Description=A rule based proxy tunnel
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=on-aboard
+ExecStart=/usr/bin/clash -d /etc/clash
+
+[Install]
+WantedBy=default.target
