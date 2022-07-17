@@ -37,7 +37,7 @@ if [[ "$IMAGE" =~ .xz$ ]]; then
     exit 1
 fi
 
-if [ ! -f "$IMAGE" ]; then
+if [ ! -e "$IMAGE" ]; then
     >&2 echo "Can't find image file \"$IMAGE\""
     exit 1
 fi
