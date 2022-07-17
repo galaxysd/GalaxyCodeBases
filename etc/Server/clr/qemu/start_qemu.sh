@@ -53,12 +53,17 @@ fi
 
 VMN=${VMN:=1}
 
+#echo "Access with: ssh 127.0.0.1 -p10022"
+#echo "Use remote-viewer or vinagre spice://127.0.0.1:5924 to view."
+
 qemu-system-x86_64 \
     -enable-kvm \
     ${UEFI_BIOS} \
     -smp sockets=1,cpus=4,cores=2 -cpu host \
-    -m 1024 \
-    -vga none -nographic \
+    -m 4096 \
+    -vga qxl -nographic \
+    -spice port=5924,disable-ticketing \
+    -usb -device usb-tablet,bus=usb-bus.0 \
     -drive file="$IMAGE",if=virtio,aio=threads,format=raw \
     -netdev user,id=mynet0,hostfwd=tcp::${VMN}0022-:22,hostfwd=tcp::${VMN}2375-:2375 \
     -device virtio-net-pci,netdev=mynet0 \
