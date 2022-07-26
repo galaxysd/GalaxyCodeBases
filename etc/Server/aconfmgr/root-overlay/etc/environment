@@ -1,0 +1,3 @@
+QT_STYLE_OVERRIDE=gtk2
+QT_QPA_PLATFORMTHEME=gtk
+QTWEBENGINE_CHROMIUM_FLAGS="-blink-settings=darkModeEnabled=true -enable-features=OverlayScrollbar,OverlayScrollbarFlashAfterAnyScrollUpdate,OverlayScrollbarFlashWhenMouseEnter"

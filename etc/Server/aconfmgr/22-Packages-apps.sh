@@ -1,0 +1,2 @@
+AddPackage powertop
+AddPackage inxi
