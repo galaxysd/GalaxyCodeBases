@@ -1,0 +1,4 @@
+#!/bin/sh
+
+neofetch --no_config >| /etc/issue
+

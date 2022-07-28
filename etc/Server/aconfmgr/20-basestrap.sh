@@ -26,4 +26,3 @@ AddPackage os-prober
 #CopyFile /etc/arch-release
 #CopyFile /etc/artix-release
 CreateLink /etc/os-release ../usr/lib/os-release
-

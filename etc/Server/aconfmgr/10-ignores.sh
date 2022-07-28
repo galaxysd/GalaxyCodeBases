@@ -4,6 +4,13 @@ IgnorePath '/boot/initramfs-linux-zen.img'
 IgnorePath '/boot/initramfs-linux-zen-fallback.img'
 IgnorePath '/etc/mkinitcpio.d/linux-zen.preset'
 IgnorePath '/usr/lib/modules/*-zen*'
+IgnorePath '/boot/vmlinuz-linux'
+IgnorePath '/boot/initramfs-linux*'
+IgnorePath '/etc/mkinitcpio.d/linux.preset'
+IgnorePath '/usr/lib/modules/*-artix1-*'
+
+# GRUB2
+IgnorePath '/boot/grub/*'
 
 # UEFI
 IgnorePath '/boot/efi/*'

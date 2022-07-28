@@ -1,14 +1,10 @@
 # set time
-#CopyFile /etc/adjtime
+IgnorePath '/etc/adjtime'
 if [[ $aconfmgr_action == "apply" ]]; then
 	sudo /usr/bin/ntpdate -u time.asia.apple.com
 	sudo /usr/bin/hwclock --systohc
 fi
-
-# set locale
 CreateLink /etc/localtime /usr/share/zoneinfo/Asia/Hong_Kong
-#CopyFile /etc/locale.gen
-#CopyFile /etc/locale.conf
 
 # dns
 #CopyFile /etc/hostname
@@ -18,12 +14,8 @@ CreateLink /etc/localtime /usr/share/zoneinfo/Asia/Hong_Kong
 #CopyFile /etc/pacman.conf
 #CopyFile /etc/pacman.d/mirrorlist
 
-# ssh
-AddPackage openssh
-AddPackage openssh-dinit
-
 # sudo wheel
-echo '%wheel ALL=(ALL) ALL' > "$(CreateFile /etc/sudoers.d/wheel)"
+echo '%wheel ALL=(ALL) ALL' > "$(CreateFile /etc/sudoers.d/wheel 440)"
 
 # Add user
 if [[ $aconfmgr_action == "apply" ]]; then
@@ -49,4 +41,8 @@ AddPackage python-markdown
 AddPackage poppler-data
 #AddPackage gocryptfs
 AddPackage unarchiver
+AddPackage htop
+#AddPackage iotop
 
+AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
+AddPackage --foreign yay # Yet another yogurt. Pacman wrapper and AUR helper written in go.

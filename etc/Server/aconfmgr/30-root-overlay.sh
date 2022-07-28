@@ -11,18 +11,23 @@ QT_QPA_PLATFORMTHEME=gtk
 QTWEBENGINE_CHROMIUM_FLAGS="-blink-settings=darkModeEnabled=true -enable-features=OverlayScrollbar,OverlayScrollbarFlashAfterAnyScrollUpdate,OverlayScrollbarFlashWhenMouseEnter"
 EOF
 
-cat >> "$(GetPackageOriginalFile filesystem /etc/hosts)" <<EOF
+IgnorePath '/etc/hosts'
+IgnorePath '/etc/hostname'
+HostsFile="$(GetPackageOriginalFile filesystem /etc/hosts)"
+cat >> "$HostsFile" <<EOF
 127.0.0.1	localhost
 ::1		localhost ip6-localhost ip6-loopback
 ff02::1		ip6-allnodes
 ff02::2		ip6-allrouters
 EOF
 
+CopyFileTo "calamares/etc/local.d/hostself.sh" "/etc/local.d/hostself.sh"
 CopyFileTo "root-overlay/etc/sddm.conf" "/etc/sddm.conf"
 CopyFileTo "root-overlay/usr/share/gtk-2.0/gtkrc" "/usr/share/gtk-2.0/gtkrc"
 
 cat > "$(CreateFile /etc/udev/rules.d/jms580583trim.rules)" <<EOF
 ACTION=="add|change", ATTRS{idVendor}=="152d", ATTRS{idProduct}=="a583", SUBSYSTEM=="scsi_disk", ATTR{provisioning_mode}="unmap", ATTR{manage_start_stop}="1"
+ACTION=="add|change", ATTRS{idVendor}=="152d", ATTRS{idProduct}=="a583", SUBSYSTEM=="scsi_disk", ATTR{thin_provisioning}="1"
 EOF
 
 # Specify locales
@@ -37,3 +42,9 @@ if [[ $aconfmgr_action == "apply" ]]; then
 	sudo /usr/bin/locale-gen
 fi
 
+f="$(GetPackageOriginalFile mkinitcpio /etc/mkinitcpio.conf)"
+sed -i 's/MODULES=()/MODULES=(crc32c-intel)/' "$f"
+sed -i -E 's/(^HOOKS=\(.+)\)/\1 keymap consolefont)/' "$f"
+
+f="$(GetPackageOriginalFile bash /etc/bash/bashrc)"
+sed -i 's/^PS1/#PS1/' "$f"
