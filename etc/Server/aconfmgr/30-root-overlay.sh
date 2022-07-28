@@ -12,7 +12,9 @@ QTWEBENGINE_CHROMIUM_FLAGS="-blink-settings=darkModeEnabled=true -enable-feature
 EOF
 
 IgnorePath '/etc/hosts'
+IgnorePath '/etc/hosts.*'
 IgnorePath '/etc/hostname'
+IgnorePath '/etc/hostname.*'
 HostsFile="$(GetPackageOriginalFile filesystem /etc/hosts)"
 cat >> "$HostsFile" <<EOF
 127.0.0.1	localhost
@@ -20,8 +22,9 @@ cat >> "$HostsFile" <<EOF
 ff02::1		ip6-allnodes
 ff02::2		ip6-allrouters
 EOF
+mv "$HostsFile" "$HostsFile".init
 
-CopyFileTo "calamares/etc/local.d/hostself.start" "/etc/local.d/hostself.start 755"
+CopyFileTo "calamares/etc/local.d/hostself.start" "/etc/local.d/hostself.start" 755
 CopyFileTo "root-overlay/etc/sddm.conf" "/etc/sddm.conf"
 CopyFileTo "root-overlay/usr/share/gtk-2.0/gtkrc" "/usr/share/gtk-2.0/gtkrc"
 

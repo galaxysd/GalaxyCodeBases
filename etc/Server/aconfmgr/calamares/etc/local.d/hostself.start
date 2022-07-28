@@ -1,13 +1,31 @@
 #!/bin/sh
 
+# https://stackoverflow.com/a/106223/159695
+#Valid952HostnameRegex="^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$"
+#ValidHostnameRegex="^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+ExHostnameRegEx="[A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9]"	# Or -P "\w|\w[\w\-]*\w" with extra '_'.
+DefaultHostname="GalaxyVM"
 if [ ! -s /etc/hostname ]; then
-	echo 'GalaxyVM' > /etc/hostname
+	echo "$DefaultHostname" > /etc/hostname
+elif ( ! grep -Exq "$ExHostnameRegEx" /etc/hostname ) || (( $(wc -l < /etc/hostname) > 1 )); then
+	echo "$DefaultHostname" > /etc/hostname
+fi
+#HostnameSize=$(stat -c%s "/etc/hostname")
+
+HostsHeader="# This host address"
+if ( ! grep -Fxq "$HostsHeader" /etc/hosts.init ); then
+	echo -e "\n$HostsHeader\n127.0.0.1\t$(cat /etc/hostname)" >> /etc/hosts.init
 fi
 
-if [ -f /etc/hostname ]; then
-	echo -ne '\n# This host address\n127.0.0.1\t' >> /etc/hosts
-	cat /etc/hostname >> /etc/hosts
-	cp --reflink=auto -Pp /etc/hosts /etc/hosts.init
+if [ -s /etc/hosts ]; then
+	HostsInitSize=$(stat -c%s "/etc/hosts.init")
+	HostsSize=$(stat -c%s "/etc/hosts")
+	if (( HostsInitSize > HostsSize )); then
+		mv /etc/hosts /etc/hosts.ibak
+		cp --reflink=auto -Pp /etc/hosts.init /etc/hosts
+	fi
+else
+	cp --reflink=auto -Pp /etc/hosts.init /etc/hosts
 fi
 
 rm -f $0

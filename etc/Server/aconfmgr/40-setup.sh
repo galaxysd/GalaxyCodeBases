@@ -46,3 +46,8 @@ AddPackage htop
 
 AddPackage --foreign aconfmgr-git # A configuration manager for Arch Linux
 AddPackage --foreign yay # Yet another yogurt. Pacman wrapper and AUR helper written in go.
+
+AddPackage vim
+AddPackage lsof
+#AddPackage strace
+AddPackage ed
