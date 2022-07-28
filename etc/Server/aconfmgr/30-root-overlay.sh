@@ -21,7 +21,7 @@ ff02::1		ip6-allnodes
 ff02::2		ip6-allrouters
 EOF
 
-CopyFileTo "calamares/etc/local.d/hostself.sh" "/etc/local.d/hostself.sh"
+CopyFileTo "calamares/etc/local.d/hostself.start" "/etc/local.d/hostself.start 755"
 CopyFileTo "root-overlay/etc/sddm.conf" "/etc/sddm.conf"
 CopyFileTo "root-overlay/usr/share/gtk-2.0/gtkrc" "/usr/share/gtk-2.0/gtkrc"
 
