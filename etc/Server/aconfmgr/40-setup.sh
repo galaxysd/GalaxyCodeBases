@@ -1,7 +1,7 @@
 # set time
 IgnorePath '/etc/adjtime'
 if [[ $aconfmgr_action == "apply" ]]; then
-	sudo /usr/bin/ntpdate -u time.asia.apple.com
+	sudo /usr/bin/ntpdate -u time.asia.apple.com || true
 	sudo /usr/bin/hwclock --systohc
 fi
 CreateLink /etc/localtime /usr/share/zoneinfo/Asia/Hong_Kong
@@ -51,3 +51,8 @@ AddPackage vim
 AddPackage lsof
 #AddPackage strace
 AddPackage ed
+
+AddPackage linux-zen
+AddPackage linux-zen-headers
+AddPackage go
+
