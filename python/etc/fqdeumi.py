@@ -25,7 +25,9 @@ with open(fn, 'r') as fh:
         if len(lines) == n:
             record = process(lines)
             #record['umi'] = record['sequence'][:9]
-            record['name'] = ' '.join((record['name'],record['sequence'][:UMI_LENGTH]))
+            record['name'] = ' '.join((record['name'][1:],record['sequence'][:UMI_LENGTH]))
             record['sequence'] = record['sequence'][UMI_LENGTH:]
-            sys.stdout.write("Record: %s\n" % (str(record)))
+            #sys.stdout.write("Record: %s\n" % (str(record)))
+            print(''.join(('>',record['name'])))
+            print(record['sequence'])
             lines = []
