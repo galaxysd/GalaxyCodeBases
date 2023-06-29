@@ -27,5 +27,5 @@ with open(fn, 'r') as fh:
             #record['umi'] = record['sequence'][:9]
             record['name'] = ' '.join((record['name'],record['sequence'][:UMI_LENGTH]))
             record['sequence'] = record['sequence'][UMI_LENGTH:]
-            sys.stderr.write("Record: %s\n" % (str(record)))
+            sys.stdout.write("Record: %s\n" % (str(record)))
             lines = []
