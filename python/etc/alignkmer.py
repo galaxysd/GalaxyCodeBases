@@ -2,6 +2,9 @@
 
 import sys
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def buildQuery():
     from skbio import DNA
     from skbio.alignment import StripedSmithWaterman
@@ -39,29 +42,44 @@ def aliOneSeq(QuerySSWs,targetSeq):
     maxAlignments = {k: Alignments[k] for k in maxScores}
     return maxAlignments
 
-def main():
-    if len(sys.argv) < 3 :
-        print('Usage:',sys.argv[0],'<kmc_dump.output_file> <min count>',file=sys.stderr,flush=True);
-        exit(0);
-
-    QuerySSWs = buildQuery()
-    targetSeq = 'ACATAGTCTGGCGTCATTCTTGTGTACA'
-    maxAlignments = aliOneSeq(QuerySSWs,targetSeq)
-
+def printAli(maxAlignments,kmer,kCount):
+    #targetSeq = 'ACATAGTCTGGCGTCATTCTTGTGTACA'
+    #maxAlignments = aliOneSeq(QuerySSWs,targetSeq)
     for tid in maxAlignments.keys():
         ali = maxAlignments[tid]
         prnStr = ' '.join((
+            ':'.join((kmer,str(kCount))),
             tid, ali[1], ali[0].cigar,
             str(ali[0].optimal_alignment_score),
             str(ali[0].suboptimal_alignment_score)
         ))
         print(prnStr)
-        prnStr = ' -> '.join((
+        prnStr = '\n'.join((
             ali[0].aligned_target_sequence,
             ali[0].aligned_query_sequence
         ))
         print(prnStr)
         print()
+    return
+
+def main():
+    if len(sys.argv) < 3 :
+        print('Usage:',sys.argv[0],'<kmc_dump file> <min count> >alignments.out',file=sys.stderr,flush=True);
+        exit(0);
+    kmcDumpFile = sys.argv[1]
+    minCount = int(sys.argv[2])
+
+    QuerySSWs = buildQuery()
+
+    with open(kmcDumpFile) as kmcfile:
+        for line in kmcfile:
+            kmer,kCount = line.split()  # rstrip('\n') only needed when split("\t"), since whitespace include "\n".
+            #print(':'.join(('[',kmer,kCount,']')))
+            if int(kCount) < minCount:
+                eprint(':'.join(('[!]Stop reading before',kmer,kCount)))
+                break
+            maxAlignments = aliOneSeq(QuerySSWs,kmer)
+            printAli(maxAlignments,kmer,kCount)
 
 if __name__ == "__main__":
-    main()
+    main()  # time ./alignkmer.py deumi31-9.out.rnk2 1000000 |head
