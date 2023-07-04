@@ -74,6 +74,7 @@ def printAli(Alignments,seq,seqid):
         print(prnStr)
         prnStr = ''.join(tmp[1:3])
         print(prnStr)
+    sys.stdout.flush()
     return
 
 def process(lines=None):
