@@ -104,6 +104,6 @@ def main():
                 printAli(maxAlignments,record['sequence'],record['name'])
 
 if __name__ == "__main__":
-    main()  # time ./alignkmer.py deumi31-9.out.rnk2 1000000 2>/dev/null |head
+    main()  # time ./alignfq.py Unmapped.out.mate1 0 2>/dev/null >Unmapped.out.mate1.adapterali
 
 # GGAGTTGCAAAAGGTCTGCGAGAGTCGAGAGTGCTGTAGTCACAAGATATGACGCCAGACATGTTGCGAACGGGTAAAACTACCCTACACT
