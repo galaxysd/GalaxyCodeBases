@@ -16,9 +16,9 @@ def main():
     nfoName = ''.join((outPrefix,'.info'))
     readCnt = {'Uniq':0, 'Multi':0, 'Secondary':0, 'Total':0}
 
-    with pysam.AlignmentFile(bamFile, "rb") as samIn:
-        uniqBam = pysam.AlignmentFile(uniqBamName, "w", template=samIn)
-        multiBam = pysam.AlignmentFile(multiBamName, "w", template=samIn)
+    with pysam.AlignmentFile(bamFile, "rb", threads=4) as samIn:
+        uniqBam = pysam.AlignmentFile(uniqBamName, "wb", template=samIn,threads=4)
+        multiBam = pysam.AlignmentFile(multiBamName, "wb", template=samIn,threads=4)
         for aln in samIn:
             readCnt['Total'] += 1
             if aln.mapq == 255:
@@ -33,7 +33,7 @@ def main():
         multiBam.close()
 
     with open(nfoName,'w') as nfo:
-        nfo.write(readCnt)
+        nfo.write(str(readCnt))
 
 if __name__ == "__main__":
     main()  # ./separateSTARbam.py Aligned.sortedByCoord.out.bam Separated &
