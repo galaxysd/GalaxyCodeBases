@@ -107,3 +107,7 @@ if __name__ == "__main__":
     main()  # time ./alignfq.py Unmapped.out.mate1 0 2>/dev/null >Unmapped.out.mate1.adapterali
 
 # GGAGTTGCAAAAGGTCTGCGAGAGTCGAGAGTGCTGTAGTCACAAGATATGACGCCAGACATGTTGCGAACGGGTAAAACTACCCTACACT
+
+#cutadapt --poly-a -m 30 -a MidA="GCGAGAGTCGAGGGTGCTGTAGTCACAAGATATGACGCCAGACATGTTGCGAACGGG;anywhere" -a LeftA="AGATCGGAAGAGCGTCGTGTAGGGAAAGAATCTCGTATGCCGTCTTCTGCTTG;anywhere" -O 21 -n 2 -j 32 Unmapped.out.mate1 --json=Unmapped.out.mate1.cutadapter4.json --info-file=Unmapped.out.mate1.cutadapter4.tsv -o Unmapped.out.mate1.cutadapter4.gz --too-short-output Unmapped.out.mate1.cutadapter4.short.gz > Unmapped.out.mate1.cutadapter4.log
+
+#cutadapt --poly-a -m 30 -a AdapterL="GCGAGAGTCGAGGGTGCTGTAGTCACAAGATATGACGCCAGACATGTTGCGAACGGGNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNAGATCGGAAGAGCGTCGTGTAGGGAAAGAATCTCGTATGCCGTCTTCTGCTTG;anywhere" -O 21 -j 32 Unmapped.out.mate1 --json=Unmapped.out.mate1.cutadapter5.json --info-file=Unmapped.out.mate1.cutadapter5.tsv -o Unmapped.out.mate1.cutadapter5.gz --too-short-output Unmapped.out.mate1.cutadapter5.short.gz > Unmapped.out.mate1.cutadapter5.log
