@@ -2,6 +2,8 @@
 
 import sys
 import io
+import os
+import tqdm
 import functools
 import gtfparse
 from collections import defaultdict
@@ -87,22 +89,24 @@ def main():
         exit(0);
     gtfFile = sys.argv[1]   # 'GCF_000001405.40_GRCh38.p14_genomic.gtf', 'h200.p14_genomic.gtf'
     Genes = defaultdict(functools.partial(defaultdict, list))
-    with open(gtfFile) as gtfileh:
-        for line in gtfileh:
-            gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
-            if 'gene_name' in gtfline:
-                for k in ('start','end'):
-                    Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0]))][k].append(gtfline[k][0])
-            else:
-                print(str(gtfline))
-    for k in Genes.keys():
-        Genes[k]['MinStart'] = min(Genes[k]['start'])
-        Genes[k]['MaxEnd'] = max(Genes[k]['end'])
-        #print(Genes[k])
-        print('\t'.join((k,str(Genes[k]['MinStart']),str(Genes[k]['MaxEnd']))))
-        print('\t'.join(('#',str(Genes[k]['start']),str(Genes[k]['end']))))
-        sys.stdout.flush()
-    #print(Genes)
+    with tqdm.tqdm(total=os.path.getsize(gtfFile)) as pbar:
+        with open(gtfFile) as gtfileh:
+            for line in gtfileh:
+                gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
+                if 'gene_name' in gtfline:
+                    for k in ('start','end'):
+                        Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0]))][k].append(gtfline[k][0])
+                else:
+                    print(str(gtfline))
+                pbar.update(len(line))
+        for k in sorted(Genes.keys()):
+            Genes[k]['MinStart'] = min(Genes[k]['start'])
+            Genes[k]['MaxEnd'] = max(Genes[k]['end'])
+            #print(Genes[k])
+            print('\t'.join((k,str(Genes[k]['MinStart']),str(Genes[k]['MaxEnd']))))
+            print('\t'.join(('#',str(Genes[k]['start']),str(Genes[k]['end']))))
+            sys.stdout.flush()
+        #print(Genes)
 
 if __name__ == "__main__":
     main()  # time ./gtfGeneRange.py h200.p14_genomic.gtf
