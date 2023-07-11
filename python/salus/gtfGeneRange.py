@@ -90,14 +90,18 @@ def main():
     with open(gtfFile) as gtfileh:
         for line in gtfileh:
             gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
-            Genes['\t'.join((gtfline.gene_name[0],gtfline.strand[0]))]['start'].append(gtfline.start[0])
-            Genes['\t'.join((gtfline.gene_name[0],gtfline.strand[0]))]['end'].append(gtfline.end[0])
+            if 'gene_name' in gtfline:
+                for k in ('start','end'):
+                    Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0]))][k].append(gtfline[k][0])
+            else:
+                print(str(gtfline))
     for k in Genes.keys():
         Genes[k]['MinStart'] = min(Genes[k]['start'])
         Genes[k]['MaxEnd'] = max(Genes[k]['end'])
         #print(Genes[k])
         print('\t'.join((k,str(Genes[k]['MinStart']),str(Genes[k]['MaxEnd']))))
         print('\t'.join(('#',str(Genes[k]['start']),str(Genes[k]['end']))))
+        sys.stdout.flush()
     #print(Genes)
 
 if __name__ == "__main__":
