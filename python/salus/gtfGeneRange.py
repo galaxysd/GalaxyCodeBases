@@ -90,8 +90,15 @@ def main():
     gtfFile = sys.argv[1]   # 'GCF_000001405.40_GRCh38.p14_genomic.gtf', 'h200.p14_genomic.gtf'
     Genes = defaultdict(functools.partial(defaultdict, list))
     with tqdm.tqdm(total=os.path.getsize(gtfFile)) as pbar:
-        with open(gtfFile) as gtfileh:
-            for line in gtfileh:
+        sumLen = 0
+        with open(gtfFile,'r') as gtfileh:
+            #for line in gtfileh:
+            for i, line in enumerate(gtfileh):
+                sumLen += len(line)
+                if not i % 1000:
+                    #pbar.update(gtfileh.tell() - pbar.n)
+                    pbar.update(sumLen - pbar.n)
+                    #eprint(i)
                 gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
                 if 'gene_name' in gtfline:
                     for k in ('start','end'):
