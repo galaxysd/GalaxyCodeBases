@@ -90,19 +90,21 @@ def main():
     gtfFile = sys.argv[1]   # 'GCF_000001405.40_GRCh38.p14_genomic.gtf', 'h200.p14_genomic.gtf'
     Genes = defaultdict(functools.partial(defaultdict, list))
     with tqdm.tqdm(total=os.path.getsize(gtfFile)) as pbar:
-        sumLen = 0
+        i = 0
         with open(gtfFile,'r') as gtfileh:
             #for line in gtfileh:
-            for i, line in enumerate(gtfileh):
-                sumLen += len(line)
+            while line:= gtfileh.readline():
+            #for i, line in enumerate(gtfileh):
+                #i += len(line)
+                i += 1
                 if not i % 1000:
-                    #pbar.update(gtfileh.tell() - pbar.n)
-                    pbar.update(sumLen - pbar.n)
+                    pbar.update(gtfileh.tell() - pbar.n)
+                    #pbar.update(i - pbar.n)
                     #eprint(i)
                 gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
                 if 'gene_name' in gtfline:
                     for k in ('start','end'):
-                        Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0]))][k].append(gtfline[k][0])
+                        Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0],gtfline['seqname'][0]))][k].append(gtfline[k][0])
                 else:
                     print(str(gtfline))
                 pbar.update(len(line))
