@@ -7,13 +7,14 @@ import tqdm
 import functools
 import gtfparse
 from collections import defaultdict
-
 import logging
 #logging.getLogger("gtfparse").setLevel(logging.WARNING)
 #gtfparse.logger.setLevel(logging.WARNING)
 for handler in logging.root.handlers:
     handler.setLevel(logging.WARNING)
 
+SelectedAttribute = 'gene_name'
+SelectedAttribute = 'gene_id'
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -101,10 +102,10 @@ def main():
                     pbar.update(gtfileh.tell() - pbar.n)
                     #pbar.update(i - pbar.n)
                     #eprint(i)
-                gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=['gene_name'])
-                if 'gene_name' in gtfline:
+                gtfline = gtfparse.parse_gtf_and_expand_attributes(io.StringIO(line), restrict_attribute_columns=[SelectedAttribute])
+                if SelectedAttribute in gtfline:
                     for k in ('start','end'):
-                        Genes['\t'.join((gtfline['gene_name'][0],gtfline['strand'][0],gtfline['seqname'][0]))][k].append(gtfline[k][0])
+                        Genes['\t'.join((gtfline[SelectedAttribute][0],gtfline['strand'][0],gtfline['seqname'][0]))][k].append(gtfline[k][0])
                 else:
                     print(str(gtfline))
                 pbar.update(len(line))
