@@ -5,6 +5,7 @@ import os
 import argparse
 import pathlib
 import graphblas as gb
+from speedict import Rdict
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -51,7 +52,7 @@ def main() -> None:
         exit(0);
     args = parser.parse_args()
     pp.pprint(args)
-    eprint('[!]scSeq:[',args.scSeqPath,'|',args.scSeqFiles,'], Spatial:[',args.spatial,'], GridBin=[',args.bin,'], SplitZone:[',args.zones,']. OutPut:[',args.outprefix,']',sep='');
+    eprint('[!]GridBin=[',args.bin,'], SplitZone:[',args.zones,']. OutPut:[',args.outprefix,']',sep='');
     if args.dryrun: exit(0);
     if os.path.dirname(args.outprefix): os.makedirs(os.path.dirname(args.outprefix), exist_ok=True)
     if args.scSeqPath == None:
@@ -65,7 +66,9 @@ def main() -> None:
     FileBarcodes = checkFile([scSeqFiles[1]], FileDotExts)
     FileFeatures = checkFile([scSeqFiles[2],scSeqFiles[3]], FileDotExts)
     FileSpatial = checkFile([args.spatial], FileDotExts)
-    pp.pprint([FileMatrix, FileBarcodes, FileFeatures, FileSpatial])
+    inFiles = (FileSpatial, FileMatrix, FileBarcodes, FileFeatures)
+    #pp.pprint(inFiles)
+    eprint('[!]Confirmed Input Files:[',', '.join([ str(x) if x else '<Missing>' for x in inFiles]),'].\n',sep='')
     if FileSpatial==None or FileMatrix==None or FileBarcodes==None:
         exit(1)
     exit(0);
