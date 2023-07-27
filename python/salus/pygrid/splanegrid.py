@@ -18,7 +18,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description='merge scSeq data with spBarcode coordinates that gridded by given binning size ',
         epilog='Contact: <huxs@salus-bio.com>')
-    parser.add_argument('-i', '--spatial', default='spatial.txt.gz', metavar='txt', help='For spatial.txt.gz')
+    parser.add_argument('-i', '--spatial', type=pathlib.Path, default='spatial.txt', metavar='txt', help='For spatial.txt[.gz]')
     parser.add_argument('-b', '--bin', type=int, required = True, help='grid binning pixels')
     parser.add_argument('-o', '--output-prefix', type=pathlib.Path, default='./gridded/sp', dest='outprefix')
     #parser.add_argument('-r', '--scseq-path', type=pathlib.Path, default='.', dest='scSeqPath')
@@ -35,6 +35,15 @@ def init_argparse() -> argparse.ArgumentParser:
     )
     return parser
 
+def checkFile(PathList, suffixStrs):
+    for onePath in PathList:
+        for oneExt in suffixStrs:
+            thisPath = pathlib.Path(''.join((onePath.as_posix(),oneExt)))
+            #print(thisPath)
+            if thisPath.exists():
+                return thisPath;
+    return None;
+
 def main() -> None:
     parser = init_argparse()
     if len(sys.argv) == 1:
@@ -45,6 +54,20 @@ def main() -> None:
     eprint('[!]scSeq:[',args.scSeqPath,'|',args.scSeqFiles,'], Spatial:[',args.spatial,'], GridBin=[',args.bin,'], SplitZone:[',args.zones,']. OutPut:[',args.outprefix,']',sep='');
     if args.dryrun: exit(0);
     if os.path.dirname(args.outprefix): os.makedirs(os.path.dirname(args.outprefix), exist_ok=True)
+    if args.scSeqPath == None:
+        args.scSeqFiles.append( args.scSeqFiles[2].with_stem('genes') )
+        scSeqFiles = tuple( args.scSeqFiles )
+    else:
+        scSeqFiles = tuple( args.scSeqPath.joinpath(x) for x in ['matrix.mtx', 'barcodes.tsv', 'features.tsv', 'genes.tsv'] )
+    FileDotExts = ('', '.gz')
+    #pp.pprint(scSeqFiles)
+    FileMatrix = checkFile([scSeqFiles[0]], FileDotExts)
+    FileBarcodes = checkFile([scSeqFiles[1]], FileDotExts)
+    FileFeatures = checkFile([scSeqFiles[2],scSeqFiles[3]], FileDotExts)
+    FileSpatial = checkFile([args.spatial], FileDotExts)
+    pp.pprint([FileMatrix, FileBarcodes, FileFeatures, FileSpatial])
+    if FileSpatial==None or FileMatrix==None or FileBarcodes==None:
+        exit(1)
     exit(0);
     outMtx = ''.join((outPrefix,'.mtx'))
     matrixData = gb.io.mmread(matrixFile)
