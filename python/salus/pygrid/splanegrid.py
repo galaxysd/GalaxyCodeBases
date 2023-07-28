@@ -86,18 +86,30 @@ def fileOpener(filename):
     return fht
 
 maxBarcodeLen = 0
+SpatialBarcodeRange_xXyY = [0,0,0,0]
 def readSpatial(infile, db):
     global maxBarcodeLen
+    global SpatialBarcodeRange_xXyY
     with fileOpener(infile) as f:
         for index,line in enumerate(f, start=1):
             [ seq, Xpos, Ypos, *_ ] = line.split()
             seqLen = len(seq)
             if seqLen > maxBarcodeLen:
                 maxBarcodeLen = seqLen
+            theXpos = int(float(Xpos))
+            theYpos = int(float(Ypos))
+            if (not SpatialBarcodeRange_xXyY[0]) or (SpatialBarcodeRange_xXyY[0] > theXpos):
+                SpatialBarcodeRange_xXyY[0] = theXpos
+            if (not SpatialBarcodeRange_xXyY[1]) or (SpatialBarcodeRange_xXyY[1] < theXpos):
+                SpatialBarcodeRange_xXyY[1] = theXpos
+            if (not SpatialBarcodeRange_xXyY[2]) or (SpatialBarcodeRange_xXyY[2] > theYpos):
+                SpatialBarcodeRange_xXyY[2] = theYpos
+            if (not SpatialBarcodeRange_xXyY[3]) or (SpatialBarcodeRange_xXyY[3] < theYpos):
+                SpatialBarcodeRange_xXyY[3] = theYpos
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
             #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
-            db[intSeq] = [ int(float(Xpos)), int(float(Ypos)), 0 ]
+            db[intSeq] = [ theXpos, theYpos, 0 ]
     return index
 
 def updateBarcodesID(infile, db):
@@ -158,7 +170,8 @@ def main() -> None:
     eprint('[!]Reading spatial file ...', end='')
     spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
-    eprint('\b\b\b\b. Finished with [',lineCnt,'] records.')
+    eprint('\b\b\b\b. Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='')
+    #pp.pprint(SpatialBarcodeRange_xXyY)
     eprint('[!]Reading barcodes file ...', end='')
     missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB)
     eprint('\b\b\b\b. Finished with [',missingCnt,'] missing barcodes.')
