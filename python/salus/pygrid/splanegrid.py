@@ -109,18 +109,27 @@ def readSpatial(infile, db):
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
             #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
-            db[intSeq] = [ theXpos, theYpos, 0 ]
+            db[intSeq] = [ theXpos, theYpos, -1, -1 ]
     return index
 
-def updateBarcodesID(infile, db):
+def updateBarcodesID(infile, db, binPixels):
     missingCnt = 0
+    global SpatialBarcodeRange_xXyY
+    SpatialGridRange_xXyY = [ (x // binPixels) for x in SpatialBarcodeRange_xXyY ]
+    gridRangeX = 1 + SpatialGridRange_xXyY[1] - SpatialGridRange_xXyY[0]
+    gridRangeY = 1 + SpatialGridRange_xXyY[3] - SpatialGridRange_xXyY[2]
+    gridCnt = gridRangeX * gridRangeY
     with fileOpener(infile) as f:
         for index,line in enumerate(f, start=1):
             seq = line.strip()
             intSeq = dinopy.conversion.encode_twobit(seq)
             if db.key_may_exist(intSeq):
                 thisValue = db[intSeq]
+                Xgrid = thisValue[0] // binPixels
+                Ygrid = thisValue[1] // binPixels
+                gridID = Xgrid * gridRangeY + Ygrid
                 thisValue[2] = index
+                thisValue[3] = gridID
                 db[intSeq] = thisValue
             else:
                 ++missingCnt
@@ -170,10 +179,10 @@ def main() -> None:
     eprint('[!]Reading spatial file ...', end='')
     spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
-    eprint('\b\b\b\b. Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='')
+    eprint('\b\b\b\b. Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='') # X∈[8000,38000], Y∈[9000,39000]
     #pp.pprint(SpatialBarcodeRange_xXyY)
     eprint('[!]Reading barcodes file ...', end='')
-    missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB)
+    missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB, args.bin)
     eprint('\b\b\b\b. Finished with [',missingCnt,'] missing barcodes.')
     spatialDB.close()
     exit(0);
