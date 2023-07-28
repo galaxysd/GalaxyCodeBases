@@ -2,12 +2,13 @@
 
 import sys
 import os
+import io
 import argparse
 import pathlib
 import gzip
 import graphblas as gb
 import dinopy
-from speedict import Rdict
+import speedict
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -47,6 +48,72 @@ def checkFile(PathList, suffixStrs):
                 return thisPath;
     return None;
 
+def db_options():
+    opt = speedict.Options(raw_mode=False)
+    # create table
+    opt.create_if_missing(True)
+    # config to more jobs
+    opt.set_max_background_jobs(os.cpu_count())
+    # configure mem-table to a large value (256 MB)
+    opt.set_write_buffer_size(0x10000000)
+    opt.set_level_zero_file_num_compaction_trigger(4)
+    # configure l0 and l1 size, let them have the same size (1 GB)
+    opt.set_max_bytes_for_level_base(0x40000000)
+    # 256 MB file size
+    opt.set_target_file_size_base(0x10000000)
+    # use a smaller compaction multiplier
+    opt.set_max_bytes_for_level_multiplier(4.0)
+    # use 8-byte prefix (2 ^ 64 is far enough for transaction counts)
+    opt.set_prefix_extractor(speedict.SliceTransform.create_max_len_prefix(8))
+    # set to plain-table
+    opt.set_plain_table_factory(speedict.PlainTableFactoryOptions())
+    # by Galaxy
+    opt.set_compaction_style(speedict.DBCompactionStyle.level())
+    opt.optimize_level_style_compaction(0x20000000) # 512 MB
+    opt.increase_parallelism(os.cpu_count())
+    opt.set_compression_type(speedict.DBCompressionType.snappy())
+    return opt
+
+def fileOpener(filename):
+    f = open(filename,'rb')
+    fh = f
+    if (f.read(2) == b'\x1f\x8b'):
+        f.seek(0)
+        fh = gzip.GzipFile(fileobj=f, mode='rb')
+    else:
+        f.seek(0)
+    fht = io.TextIOWrapper(fh, encoding='utf-8', line_buffering=True)
+    return fht
+
+maxBarcodeLen = 0
+def readSpatial(infile, db):
+    global maxBarcodeLen
+    with fileOpener(infile) as f:
+        for index,line in enumerate(f, start=1):
+            [ seq, Xpos, Ypos, *_ ] = line.split()
+            seqLen = len(seq)
+            if seqLen > maxBarcodeLen:
+                maxBarcodeLen = seqLen
+            intSeq = dinopy.conversion.encode_twobit(seq)
+            #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
+            #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
+            db[intSeq] = [ int(float(Xpos)), int(float(Ypos)), 0 ]
+    return index
+
+def updateBarcodesID(infile, db):
+    missingCnt = 0
+    with fileOpener(infile) as f:
+        for index,line in enumerate(f, start=1):
+            seq = line.strip()
+            intSeq = dinopy.conversion.encode_twobit(seq)
+            if db.key_may_exist(intSeq):
+                thisValue = db[intSeq]
+                thisValue[2] = index
+                db[intSeq] = thisValue
+            else:
+                ++missingCnt
+    return missingCnt
+
 def main() -> None:
     parser = init_argparse()
     if len(sys.argv) == 1:
@@ -82,10 +149,22 @@ def main() -> None:
     OutFileDict={}
     for fname in spNameTuple:
         OutFileDict[fname] = args.outpath.joinpath(spStandardNameDict[fname])
+    OutFileDict['Rdict'] = args.outpath.joinpath('_rdict').as_posix()
     #pp.pprint(OutFileDict)
     args.outpath.mkdir(parents=True, exist_ok=True)
-    eprint('[!]Output Files:[',', '.join([ x.as_posix() for x in OutFileDict.values()]),'].',sep='')
+    eprint('[!]Output Files:[',', '.join([ OutFileDict[x].as_posix() for x in spNameTuple]),'].',sep='')
     if args.dryrun: exit(0);
+
+    eprint('[!]Reading spatial file ...', end='')
+    spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
+    lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
+    eprint('\b\b\b\b. Finished with [',lineCnt,'] records.')
+    eprint('[!]Reading barcodes file ...', end='')
+    missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB)
+    eprint('\b\b\b\b. Finished with [',missingCnt,'] missing barcodes.')
+    spatialDB.close()
+    exit(0);
+    spatialDB.destroy(OutFileDict['Rdict'])
     exit(0);
     #outMtx = ''.join((outPrefix,'.mtx'))
     #matrixData = gb.io.mmread(matrixFile)
