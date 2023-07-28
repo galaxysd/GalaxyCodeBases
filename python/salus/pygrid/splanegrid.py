@@ -89,8 +89,23 @@ def fileOpener(filename):
     fht = io.TextIOWrapper(fh, encoding='utf-8', line_buffering=True)
     return fht
 
+def cmpGridID(a, b):
+    print("comparing ", a, " and ", b)
+    global spatialDB, args
+    #pp.pprint(gridRangeCnt)
+    Va = spatialDB[a]
+    aXgrid = Va[0] // args.bin
+    aYgrid = Va[1] // args.bin
+    agridID = aXgrid * gridRangeY + aYgrid
+    Vb = spatialDB[b]
+    bXgrid = Vb[0] // args.bin
+    bYgrid = Vb[1] // args.bin
+    bgridID = bXgrid * gridRangeY + bYgrid
+    return cmp(agridID,bgridID)
+
 maxBarcodeLen = 0
 SpatialBarcodeRange_xXyY = [0,0,0,0]
+gridRangeCnt = ()
 def readSpatial(infile, db):
     global maxBarcodeLen
     global SpatialBarcodeRange_xXyY
@@ -116,10 +131,9 @@ def readSpatial(infile, db):
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
             #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
-            #db[intSeq] = [ theXpos, theYpos, -1, -1 ]
-            db[intSeq] = ( theXpos, theYpos )
-            #if not index % 1000:
-            pbar.update(index - pbar.n)
+            db[intSeq] = [ theXpos, theYpos, -1, -1 ]
+            if not index % 1000:
+                pbar.update(index - pbar.n)
     return index
 
 def updateBarcodesID(infile, db, binPixels):
@@ -139,9 +153,9 @@ def updateBarcodesID(infile, db, binPixels):
                 Xgrid = thisValue[0] // binPixels
                 Ygrid = thisValue[1] // binPixels
                 gridID = Xgrid * gridRangeY + Ygrid
-                #thisValue[2] = index
-                #thisValue[3] = gridID
-                #db[intSeq] = thisValue
+                thisValue[2] = index
+                thisValue[3] = gridID
+                db[intSeq] = thisValue
             else:
                 ++missingCnt
             pbar.update(index - pbar.n)
@@ -199,13 +213,20 @@ def main() -> None:
     checkmtx(InFileDict['matrix'])
     eprint('[!]Matrix Size: Gene count(nrows)=',GenesCnt,', Barcode count(ncols)=',BarcodesCnt,', Values(nnz)=',mtxNNZ,'.',sep='')
     if args.dryrun: exit(0);
+    global SpatialBarcodeRange_xXyY, gridRangeCnt
 
     eprint('[!]Reading spatial file ...')
     spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
     eprint('[!]Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='') # X∈[8000,38000], Y∈[9000,39000]
     #pp.pprint(SpatialBarcodeRange_xXyY)
+    SpatialGridRange_xXyY = [ (x // args.bin) for x in SpatialBarcodeRange_xXyY ]
+    gridRangeX = 1 + SpatialGridRange_xXyY[1] - SpatialGridRange_xXyY[0]
+    gridRangeY = 1 + SpatialGridRange_xXyY[3] - SpatialGridRange_xXyY[2]
+    gridRangeCnt = (gridRangeX, gridRangeY, gridRangeX * gridRangeY)
+
     eprint('[!]Reading barcodes file ...')
+    cmpGridID(1,2)
     missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB, args.bin)
     eprint('[!]Finished with [',missingCnt,'] missing barcodes.')
     spatialDB.close()
