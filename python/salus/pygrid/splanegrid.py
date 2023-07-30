@@ -247,6 +247,13 @@ def main() -> None:
     eprint('[!]Finished with [',missingCnt,'] missing barcodes.',sep='')
     gb.io.mmwrite(target=OutFileDict['mgBoolMtx'], matrix=mgBoolMtx)
     spatialDB.close()
+    eprint('[!]Reading Matrix file ...')
+    scMtx = gb.io.mmread(source=InFileDict['matrix'], engine='fmm')
+    outGrid = scMtx.mxm(mgBoolMtx)  # lazy
+    eprint('[!]Calculating Matrix file ...')
+    outGridResult = outGrid.new()
+    eprint('[!]Writing Matrix file ...')
+    gb.io.mmwrite(target=OutFileDict['matrix'], matrix=outGridResult)
     exit(0);
     spatialDB.destroy(OutFileDict['Rdict'])
     exit(0);
