@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # pip3 install python-graphblas speedict dinopy fast-matrix-market tqdm
 
+#from numba import jit
 import concurrent.futures
 import sys
 import os
@@ -16,6 +17,7 @@ import speedict
 import fast_matrix_market
 import tqdm
 #from collections import defaultdict
+import time
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -232,6 +234,7 @@ def main() -> None:
     global spatialDB, SpatialBarcodeRange_xXyY, gridRangeCnt, mgBoolMtx
     #mtxBar2sp = [None] * BarcodesCnt
 
+    start = time.perf_counter()
     eprint('[!]Reading spatial file ...')
     spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
@@ -244,6 +247,8 @@ def main() -> None:
     gridRangeCnt = (gridRangeX, gridRangeY, gridRangeX * gridRangeY)
     eprint('[!]Gridded by Bin [',args.bin,'], GridSize=','×'.join(map(str,(gridRangeX,gridRangeY))),'=',str(gridRangeCnt[2]),'.',sep='' )
     mgBoolMtx = gb.Matrix(bool, BarcodesCnt, gridRangeCnt[2])
+    end1p = time.perf_counter()
+    eprint("\tElapsed {}s".format((end1p - start)))
 
     eprint('[!]Reading barcodes file ...')
     #cmpGridID(1,2)
@@ -253,15 +258,26 @@ def main() -> None:
     gb.io.mmwrite(target=fh, matrix=mgBoolMtx)
     fh.close()
     spatialDB.close()
+    end2p = time.perf_counter()
+    eprint("\tElapsed {}s".format((end2p - end1p)))
+
     eprint('[!]Reading Matrix file ...')
     scMtx = gb.io.mmread(source=InFileDict['matrix'], engine='fmm')
     outGrid = scMtx.mxm(mgBoolMtx)  # lazy
+    end3p = time.perf_counter()
+    eprint("\tElapsed {}s".format((end3p - end2p)))
+
     eprint('[!]Calculating Matrix file ...')
     outGridResult = outGrid.new()
+    end4p = time.perf_counter()
+    eprint("\tElapsed {}s".format((end4p - end3p)))
+
     eprint('[!]Writing Matrix file ...')
     fh = write2gzip(OutFileDict['matrix'])
     gb.io.mmwrite(target=fh, matrix=outGridResult)
     fh.close()
+    end5p = time.perf_counter()
+    eprint("\tElapsed {}s".format((end5p - end4p)))
     exit(0);
     spatialDB.destroy(OutFileDict['Rdict'])
     exit(0);
