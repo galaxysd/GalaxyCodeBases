@@ -189,6 +189,40 @@ def write2gzip(outfile):
     fh = gzip.open(outfile, mode='wb', compresslevel=1)
     return fh
 
+def mkcopy(fromFile, toFile):
+    if toFile.exists():
+        if toFile.samefile(fromFile):
+            return 0
+        else:
+            return 1
+    else:
+        try:
+            toFile.hardlink_to(fromFile)
+            return 0
+        except OSError as error :
+            eprint(error)
+            try:
+                toFile.symlink_to(fromFile)
+                return 0
+            except OSError as error :
+                eprint(error)
+                return 1
+
+def mkGridSpatial(spFile, scBarcodeFile, gridRangeCnt):
+    spFh = gzip.open(spFile, mode='wt', compresslevel=1)
+    scFh = gzip.open(scBarcodeFile, mode='wt', compresslevel=1)
+    numLen = len(str(gridRangeCnt[2]))
+    for i in range(gridRangeCnt[2]):
+        barcodeStr = "Barcode{:0{}d}".format(i,numLen)
+        ### gridID = Xgrid * gridRangeY + Ygrid
+        Ygrid = i // gridRangeCnt[1]
+        Xgrid = i - (Ygrid * gridRangeCnt[1])
+        #eprint(barcodeStr,str(Xgrid),str(Ygrid))
+        print(barcodeStr, file=scFh)
+        print(barcodeStr,str(Xgrid),str(Ygrid), file=spFh)
+    spFh.close()
+    scFh.close()
+
 def main() -> None:
     parser = init_argparse()
     if len(sys.argv) == 1:
@@ -234,6 +268,7 @@ def main() -> None:
     if args.dryrun: exit(0);
     global spatialDB, SpatialBarcodeRange_xXyY, gridRangeCnt, mgBoolMtx
     #mtxBar2sp = [None] * BarcodesCnt
+    mkcopy(InFileDict['features'], OutFileDict['features'])
 
     start = time.perf_counter()
     eprint('[!]Reading spatial file ...')
@@ -251,6 +286,9 @@ def main() -> None:
     mgBoolMtx = gb.Matrix(bool, BarcodesCnt, gridRangeCnt[2])
     end1p = time.perf_counter()
     eprint("\tElapsed {}s".format((end1p - start)))
+
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+    executor.submit( mkGridSpatial, OutFileDict['spatial'],OutFileDict['barcodes'], gridRangeCnt )
 
     eprint('[!]Reading barcodes file ...')
     #cmpGridID(1,2)
@@ -280,6 +318,9 @@ def main() -> None:
     fh.close()
     end5p = time.perf_counter()
     eprint("\tElapsed {}s".format((end5p - end4p)))
+
+    executor.shutdown(wait=True)
+    eprint('[!]All done !')
     exit(0);
     #spatialDB.destroy(OutFileDict['Rdict'])    # It is better to keep db file to enable supporting restore running.
     exit(0);
