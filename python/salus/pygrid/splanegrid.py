@@ -269,7 +269,7 @@ def main() -> None:
     #matrixData = gb.io.mmread(matrixFile)
 
 if __name__ == "__main__":
-    gb.init("suitesparse", blocking=True)
+    gb.init("suitesparse", blocking=False)
     main()  # time ./splanegrid.py -b20 -f matrix2.mtx.gz barcodes.tsv.gz features.tsv.gz -i spatial.txt.gz
 
 # ./splanegrid.py -b20 -i GSE166635_RAW/GSM5076750_HCC2.barcodes.spatial.txt -f GSE166635_RAW/GSM5076750_HCC2.matrix.mtx.gz GSE166635_RAW/GSM5076750_HCC2.barcodes.tsv.gz GSE166635_RAW/GSM5076750_HCC2.features.tsv.gz
