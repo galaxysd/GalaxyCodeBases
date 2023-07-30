@@ -182,6 +182,10 @@ def checkmtx(mtxfile) -> None:
     BarcodesCnt = mheader.ncols
     mtxNNZ = mheader.nnz
 
+def write2gzip(outfile):
+    fh = gzip.open(outfile, mode='wb', compresslevel=1)
+    return fh
+
 def main() -> None:
     parser = init_argparse()
     if len(sys.argv) == 1:
@@ -218,7 +222,7 @@ def main() -> None:
     for fname in spNameTuple:
         OutFileDict[fname] = args.outpath.joinpath(spStandardNameDict[fname])
     OutFileDict['Rdict'] = args.outpath.joinpath('_rdict').as_posix()
-    OutFileDict['mgBoolMtx'] = args.outpath.joinpath('mgBoolMtx.mtx').as_posix()
+    OutFileDict['mgBoolMtx'] = args.outpath.joinpath('mgBoolMtx.mtx.gz').as_posix()
     #pp.pprint(OutFileDict)
     args.outpath.mkdir(parents=True, exist_ok=True)
     eprint('[!]Output Files:[',', '.join([ OutFileDict[x].as_posix() for x in spNameTuple]),'].',sep='')
@@ -245,7 +249,9 @@ def main() -> None:
     #cmpGridID(1,2)
     missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB, args.bin)
     eprint('[!]Finished with [',missingCnt,'] missing barcodes.',sep='')
-    gb.io.mmwrite(target=OutFileDict['mgBoolMtx'], matrix=mgBoolMtx)
+    fh = write2gzip(OutFileDict['mgBoolMtx'])
+    gb.io.mmwrite(target=fh, matrix=mgBoolMtx)
+    fh.close()
     spatialDB.close()
     eprint('[!]Reading Matrix file ...')
     scMtx = gb.io.mmread(source=InFileDict['matrix'], engine='fmm')
@@ -253,7 +259,9 @@ def main() -> None:
     eprint('[!]Calculating Matrix file ...')
     outGridResult = outGrid.new()
     eprint('[!]Writing Matrix file ...')
-    gb.io.mmwrite(target=OutFileDict['matrix'], matrix=outGridResult)
+    fh = write2gzip(OutFileDict['matrix'])
+    gb.io.mmwrite(target=fh, matrix=outGridResult)
+    fh.close()
     exit(0);
     spatialDB.destroy(OutFileDict['Rdict'])
     exit(0);
