@@ -159,6 +159,7 @@ def updateBarcodesID(infile, db, binPixels):
             #seq = line.strip()
             intSeq = dinopy.conversion.encode_twobit(seq)
             if db.key_may_exist(intSeq):
+            #if intSeq in db:
                 thisValue = db[intSeq]
                 Xgrid = thisValue[0] // binPixels
                 Ygrid = thisValue[1] // binPixels
@@ -237,6 +238,7 @@ def main() -> None:
     start = time.perf_counter()
     eprint('[!]Reading spatial file ...')
     spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
+    #spatialDB = {}
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
     eprint('[!]Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='') # X∈[8000,38000], Y∈[9000,39000]
     #pp.pprint(SpatialBarcodeRange_xXyY)
@@ -279,7 +281,7 @@ def main() -> None:
     end5p = time.perf_counter()
     eprint("\tElapsed {}s".format((end5p - end4p)))
     exit(0);
-    spatialDB.destroy(OutFileDict['Rdict'])
+    #spatialDB.destroy(OutFileDict['Rdict'])    # It is better to keep db file to enable supporting restore running.
     exit(0);
     #outMtx = ''.join((outPrefix,'.mtx'))
     #matrixData = gb.io.mmread(matrixFile)
