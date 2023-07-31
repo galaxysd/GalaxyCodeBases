@@ -19,6 +19,7 @@ import fast_matrix_market
 import tqdm
 #from collections import defaultdict
 import time
+import recordclass
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -27,6 +28,7 @@ pp = pprint.PrettyPrinter(indent=4)
 
 spatialDB = None
 mgBoolMtx = None
+spPosition = recordclass.make_dataclass("Point", [("x",int), ("y",int)], readonly=True)
 
 def eprint(*args, **kwargs) -> None:
     print(*args, **kwargs, file=sys.stderr, flush=True)
@@ -140,7 +142,8 @@ def readSpatial(infile, db):
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
             #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
-            db[intSeq] = [ theXpos, theYpos, None, None ]
+            db[intSeq] = spPosition(theXpos,theYpos)
+            #db[intSeq] = [ theXpos, theYpos, None, None ]
             if not index % 1000:
                 pbar.update(index - pbar.n)
     pbar.update(index - pbar.n)
@@ -162,8 +165,10 @@ def updateBarcodesID(infile, db, binPixels):
             #if db.key_may_exist(intSeq):
             if intSeq in db:
                 thisValue = db[intSeq]
-                Xgrid = thisValue[0] // binPixels
-                Ygrid = thisValue[1] // binPixels
+                #Xgrid = thisValue[0] // binPixels
+                #Ygrid = thisValue[1] // binPixels
+                Xgrid = thisValue.x // binPixels
+                Ygrid = thisValue.y // binPixels
                 gridID = Xgrid * gridRangeY + Ygrid
                 #thisValue[2] = index
                 #thisValue[3] = gridID
@@ -331,6 +336,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     gb.init("suitesparse", blocking=False)
-    main()  # time ./splanegrid.py -b20 -f matrix2.mtx.gz barcodes.tsv.gz features.tsv.gz -i spatial.txt.gz
+    main()  # time ./splanegridict.py -b20 -f matrix2.mtx.gz barcodes.tsv.gz features.tsv.gz -i spatial.txt.gz
 
-# ./splanegrid.py -b20 -i GSE166635_RAW/GSM5076750_HCC2.barcodes.spatial.txt -f GSE166635_RAW/GSM5076750_HCC2.matrix.mtx.gz GSE166635_RAW/GSM5076750_HCC2.barcodes.tsv.gz GSE166635_RAW/GSM5076750_HCC2.features.tsv.gz
+# ./splanegridict.py -b20 -i GSE166635_RAW/GSM5076750_HCC2.barcodes.spatial.txt -f GSE166635_RAW/GSM5076750_HCC2.matrix.mtx.gz GSE166635_RAW/GSM5076750_HCC2.barcodes.tsv.gz GSE166635_RAW/GSM5076750_HCC2.features.tsv.gz
