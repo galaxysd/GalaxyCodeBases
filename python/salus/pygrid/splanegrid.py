@@ -283,7 +283,7 @@ def main() -> None:
     (gridRangeX, gridRangeY) = (1+SpatialGridRange_xXyY[1], 1+SpatialGridRange_xXyY[3])
     gridRangeCnt = (gridRangeX, gridRangeY, gridRangeX * gridRangeY)
     eprint('[!]Gridded by Bin [',args.bin,'], GridSize=','×'.join(map(str,(gridRangeX,gridRangeY))),'=',str(gridRangeCnt[2]),'.',sep='' )
-    mgBoolMtx = gb.Matrix(bool, BarcodesCnt, gridRangeCnt[2])
+    mgBoolMtx = gb.Matrix(gb.dtypes.BOOL, BarcodesCnt, gridRangeCnt[2])
     end1p = time.perf_counter()
     eprint("\tElapsed {}s".format((end1p - start)))
 
