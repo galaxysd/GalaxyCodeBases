@@ -5,6 +5,7 @@ import io
 import argparse
 import pathlib
 import gzip
+import re
 import pyfastx
 import pafpy
 
@@ -58,25 +59,31 @@ Requirements:
     pp.pprint(args)
     eprint('[!]Read1:[',args.read1,'], Read2.PAF:[',args.read2_paf,']. OutFile:[',args.outfile,']',sep='');
     skipped = 0
-    found = 0
+    accepted = 0
+    notfound = 0
+    #with open(args.outfile, mode='wt') as fh:
+    IndelPatten = re.compile(r"[ID]")
     with gzip.open(args.outfile, mode='wt', compresslevel=1) as fh:
         with fileOpener(args.read2_paf) as fp2:
             with pafpy.PafFile(fp2) as paf:
                 for record in paf:
                     if record.is_primary():
-                    #pp.pprint(record)
+                        (barcode, xpos, ypos) = record.tname.split('_')
+                        match = IndelPatten.match(record.tags['cg'].value)
+                        if match:
+                            skipped +=1
+                            pp.pprint(record)
+                            continue
                         for name,seq,qual in pyfastx.Fastq(args.read1.as_posix(), build_index=False):
                             #print('|'.join((name, seq, qual)))
                             if record.qname == name:
-                                print( '|'.join((
-                                    str(found), str(skipped),
-                                    str(record.tags['cg']),str(record.tags['cs']),
-                                    name
-                                )) )
-                                found +=1
+                                print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], file=fh)
+                                print(seq,'+',qual,sep="\n", file=fh)
+                                accepted +=1
                                 break
                             else:
-                                skipped +=1
+                                notfound +=1
+    eprint('[!]FastQ items:[{}], Matched: [{}], accepted: [{}]'.format(notfound+skipped+accepted, skipped+accepted, accepted))
 
 if __name__ == "__main__":
     main()  # time ./spffq.py -1 n4457360.Unmapped.out.mate1.gz -p n175410.Unmapped.mate2.paf.gz
@@ -84,4 +91,6 @@ if __name__ == "__main__":
 '''
 [1]+  Running                 perl -lane 'print ">",join("_",@F),"\n$F[0]"' spatial.txt | minimap2 -k 15 -d spatial.miniref - 2> spatial.miniref.log &
 [2]+  Running                 seqtk trimfq -L 30 Unmapped.out.mate2 | minimap2 -x sr spatial.miniref - -k15 -w10 -N1 -t8 -QL2c --eqx --cs --sr --end-bonus 200 --for-only -A4 -B0 -o Unmapped2.paf 2> Unmapped2.err &
+
+zgrep -v 'cg:Z:30=' n175410.Unmapped.mate2.paf.gz|grep 'cg:Z' |less -S
 '''
