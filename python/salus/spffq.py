@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+###!/scratch/src/mambaforge/envs/py311/bin/python3
 
 import sys
+#sys.path.append('/scratch/src/mambaforge/envs/py311/lib/python3.11/site-packages')
 import io
 import argparse
 import pathlib
