@@ -8,6 +8,7 @@ import gzip
 import re
 import pyfastx
 import pafpy
+import tqdm
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -56,34 +57,45 @@ Requirements:
 ''')
         exit(0);
     args = parser.parse_args()
-    pp.pprint(args)
+    #pp.pprint(args)
     eprint('[!]Read1:[',args.read1,'], Read2.PAF:[',args.read2_paf,']. OutFile:[',args.outfile,']',sep='');
     skipped = 0
     accepted = 0
-    notfound = 0
+    totalReads = 1
+    pbar = tqdm.tqdm(desc='FastQ', ncols=70, mininterval=0.5, maxinterval=10, unit='', unit_scale=True, dynamic_ncols=True)
     #with open(args.outfile, mode='wt') as fh:
     IndelPatten = re.compile(r"[ID]")
+    fqitem = pyfastx.Fastq(args.read1.as_posix(), build_index=False)
+    iter(fqitem)
+    name,seq,qual = fqitem.__next__()
     with gzip.open(args.outfile, mode='wt', compresslevel=1) as fh:
         with fileOpener(args.read2_paf) as fp2:
             with pafpy.PafFile(fp2) as paf:
                 for record in paf:
+                    #pbar.update(1)
                     if record.is_primary():
                         (barcode, xpos, ypos) = record.tname.split('_')
-                        match = IndelPatten.match(record.tags['cg'].value)
-                        if match:
+                        search = IndelPatten.search(record.tags['cg'].value)
+                        if search:
                             skipped +=1
-                            pp.pprint(record)
+                            #pp.pprint(record)
                             continue
-                        for name,seq,qual in pyfastx.Fastq(args.read1.as_posix(), build_index=False):
-                            #print('|'.join((name, seq, qual)))
-                            if record.qname == name:
-                                print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], file=fh)
-                                print(seq,'+',qual,sep="\n", file=fh)
-                                accepted +=1
-                                break
-                            else:
-                                notfound +=1
-    eprint('[!]FastQ items:[{}], Matched: [{}], accepted: [{}]'.format(notfound+skipped+accepted, skipped+accepted, accepted))
+                        while(record.qname != name):
+                            name,seq,qual = fqitem.__next__()
+                            totalReads +=1
+                            pbar.update(1)
+                        else:
+                            print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], file=fh)
+                            print(seq,'+',qual,sep="\n", file=fh)
+                            accepted +=1
+    try:
+        while(fqitem.__next__()):
+            totalReads +=1
+            pbar.update(1)
+    except StopIteration as e:
+        None
+    pbar.close()
+    eprint('[!]FastQ:[{}]-notFound:[{}] <=> Matched:[{}]=Accepted:[{}]+Skipped[{}].'.format(totalReads,totalReads-accepted-skipped, skipped+accepted, accepted, skipped))
 
 if __name__ == "__main__":
     main()  # time ./spffq.py -1 n4457360.Unmapped.out.mate1.gz -p n175410.Unmapped.mate2.paf.gz
