@@ -28,6 +28,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument('-p', '--read2-paf', type=pathlib.Path, default='Unmapped.mate2.paf', metavar='file', help='For Unmapped.mate2.paf')
     #parser.add_argument('-m', '--max-mismatch', dest='mismatch', type=int, default=1, help='max allowed mismatch, default=1')
     parser.add_argument('-o', '--output', type=pathlib.Path, default='Unmapped.fq.gz', dest='outfile')
+    parser.add_argument('-d', '--dropped-output', type=pathlib.Path, dest='droppedfile')
     #parser.add_argument('-z', '--gzip', action=argparse.BooleanOptionalAction, default=True, help='Output gzipped files, default on', dest='gzip')
     #parser.add_argument('-n', '--dryrun', '--dry-run', action='store_true', dest='dryrun')
     parser.add_argument(
@@ -60,7 +61,11 @@ Requirements:
         exit(0);
     args = parser.parse_args()
     #pp.pprint(args)
-    eprint('[!]Read1:[',args.read1,'], Read2.PAF:[',args.read2_paf,']. OutFile:[',args.outfile,']',sep='');
+    eprint('[!]Read1:[',args.read1,'], Read2.PAF:[',args.read2_paf,']. OutFile:[',args.outfile,']',sep='',end='');
+    if args.droppedfile != None:
+        eprint(', Dropped:[',args.droppedfile,'].',sep='');
+    else:
+        eprint()
     skipped = 0
     accepted = 0
     totalReads = 1
@@ -70,41 +75,57 @@ Requirements:
     fqitem = pyfastx.Fastq(args.read1.as_posix(), build_index=False)
     iter(fqitem)
     name,seq,qual = fqitem.__next__()
+    if args.droppedfile != None:
+        dfh = gzip.open(args.droppedfile, mode='wt', compresslevel=1)
     with gzip.open(args.outfile, mode='wt', compresslevel=1) as fh:
         with fileOpener(args.read2_paf) as fp2:
             with pafpy.PafFile(fp2) as paf:
                 for record in paf:
                     #pbar.update(1)
                     if record.is_primary():
-                        (barcode, xpos, ypos) = record.tname.split('_')
-                        search = IndelPatten.search(record.tags['cg'].value)
-                        if search:
-                            skipped +=1
-                            #pp.pprint(record)
-                            continue
-                        while(record.qname != name):
-                            name,seq,qual = fqitem.__next__()
-                            totalReads +=1
-                            pbar.update(1)
+                        if record.qstart==0 and record.qend==30 and record.tstart==0 and record.tend==30:
+                            (barcode, xpos, ypos) = record.tname.split('_')
+                            search = IndelPatten.search(record.tags['cg'].value)
+                            if search:
+                                skipped +=1
+                                if args.droppedfile != None:
+                                    print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], 'zz:Z:withIndel', file=dfh)
+                                    print(seq,'+',qual,sep="\n", file=dfh)
+                                continue
+                            while(record.qname != name):
+                                name,seq,qual = next(fqitem)
+                                totalReads +=1
+                                pbar.update(1)
+                            else:
+                                print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], file=fh)
+                                print(seq,'+',qual,sep="\n", file=fh)
+                                accepted +=1
                         else:
-                            print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], file=fh)
-                            print(seq,'+',qual,sep="\n", file=fh)
-                            accepted +=1
+                            skipped +=1
+                            if args.droppedfile != None:
+                                tmpstr = '_'.join( map(str,(record.qstart,record.qend,record.tstart,record.tend)) )
+                                print('@{}'.format(name), xpos, ypos, record.tags['cg'], record.tags['cs'], ':'.join(('zz:Z:Shifted',tmpstr)), file=dfh)
+                                print(seq,'+',qual,sep="\n", file=dfh)
+                            #continue
     try:
         while(fqitem.__next__()):
             totalReads +=1
             pbar.update(1)
     except StopIteration as e:
         None
+    if args.droppedfile != None:
+        dfh.close()
     pbar.close()
     eprint('[!]FastQ:[{}]-notFound:[{}] <=> Matched:[{}]=Accepted:[{}]+Skipped[{}].'.format(totalReads,totalReads-accepted-skipped, skipped+accepted, accepted, skipped))
 
 if __name__ == "__main__":
-    main()  # time ./spffq.py -1 n4457360.Unmapped.out.mate1.gz -p n175410.Unmapped.mate2.paf.gz
+    main()  # time ./spffq.py -1 n4457360.Unmapped.out.mate1.gz -p n175410.Unmapped.mate2.paf.gz -d Unmapped.dropped.gz
 
 '''
 [1]+  Running                 perl -lane 'print ">",join("_",@F),"\n$F[0]"' spatial.txt | minimap2 -k 15 -d spatial.miniref - 2> spatial.miniref.log &
 [2]+  Running                 seqtk trimfq -L 30 Unmapped.out.mate2 | minimap2 -x sr spatial.miniref - -k15 -w10 -N1 -t8 -QL2c --eqx --cs --sr --end-bonus 200 --for-only -A4 -B0 -o Unmapped2.paf 2> Unmapped2.err &
 
 zgrep -v 'cg:Z:30=' n175410.Unmapped.mate2.paf.gz|grep 'cg:Z' |less -S
+
+For 230605Evo_mouse s03C2, [!]FastQ:[18057073]-notFound:[14454975] <=> Matched:[3602098]=Accepted:[3600463]+Skipped[1635].
 '''
