@@ -37,6 +37,7 @@ def main() -> None:
         exit(0);
     args = parser.parse_args()
     pp.pprint(args)
+    matchNumbers = list('1234567890'*15)
     for name,seq,qual in mappy.fastx_read(args.infile.as_posix()):
         seqF = seq[:100]
         seqR = seq[100:]
@@ -63,9 +64,12 @@ def main() -> None:
                     qStr = ' '*secondPadding + queryStr
                     pairs = zip( list(rStr),list(qStr) )
                     matchStr = ''
+                    matchNumberIndex = 0
                     for item in pairs:
                         if item[0].lower() == item[1].lower():
-                            matchStr += '|'
+                            #matchStr += '|'
+                            matchStr += matchNumbers[matchNumberIndex]
+                            matchNumberIndex += 1
                         else:
                             if item[0] == ' ':
                                 matchStr += '_'
@@ -74,6 +78,7 @@ def main() -> None:
                             else:
                                 matchStr += '●'
                     print( rStr,matchStr,qStr,sep='\n', file=args.outfile)
+        args.outfile.flush()
     exit(0);
 
 if __name__ == "__main__":
