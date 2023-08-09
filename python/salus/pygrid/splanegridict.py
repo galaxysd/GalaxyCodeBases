@@ -1,8 +1,7 @@
-#!/share/src/third_party/brew/linuxbrew/bin/python3
-###!/usr/bin/env python3
-# pip3 install python-graphblas speedict dinopy fast-matrix-market tqdm
+#!/usr/bin/env python3
+###!/share/src/third_party/miniconda/miniconda_py39_23/bin/python3
+# pip3 install python-graphblas dinopy fast-matrix-market tqdm
 
-#from numba import jit
 import concurrent.futures
 import sys
 import os
@@ -14,17 +13,10 @@ import pathlib
 import gzip
 import graphblas as gb
 import dinopy
-import speedict
 import fast_matrix_market
 import tqdm
-#from collections import defaultdict
 import time
 import recordclass
-
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-# import gc
-# gc.collect()
 
 spatialDB = None
 mgBoolMtx = None
@@ -63,32 +55,6 @@ def checkFile(PathList, suffixStrs):
                 return thisPath;
     return None;
 
-def db_options():
-    opt = speedict.Options(raw_mode=False)
-    # create table
-    opt.create_if_missing(True)
-    # config to more jobs
-    opt.set_max_background_jobs(24)
-    # configure mem-table to a large value (2GB)
-    opt.set_write_buffer_size(0x80000000)
-    opt.set_level_zero_file_num_compaction_trigger(4)
-    # configure l0 and l1 size, let them have the same size (4 GB)
-    opt.set_max_bytes_for_level_base(0x100000000)
-    # 512 MB file size
-    opt.set_target_file_size_base(0x20000000)
-    # use a smaller compaction multiplier
-    opt.set_max_bytes_for_level_multiplier(4.0)
-    # use 8-byte prefix (2 ^ 64 is far enough for transaction counts)
-    opt.set_prefix_extractor(speedict.SliceTransform.create_max_len_prefix(8))
-    # set to plain-table
-    opt.set_plain_table_factory(speedict.PlainTableFactoryOptions())
-    # by Galaxy
-    opt.set_compaction_style(speedict.DBCompactionStyle.level())
-    opt.optimize_level_style_compaction(0x40000000) # 1024 MB
-    opt.increase_parallelism(16)
-    #opt.set_compression_type(speedict.DBCompressionType.snappy())
-    return opt
-
 def fileOpener(filename):
     f = open(filename,'rb')
     fh = f
@@ -103,7 +69,6 @@ def fileOpener(filename):
 def cmpGridID(a, b):
     print("comparing ", a, " and ", b)
     global spatialDB, args
-    #pp.pprint(gridRangeCnt)
     Va = spatialDB[a]
     aXgrid = Va[0] // args.bin
     aYgrid = Va[1] // args.bin
@@ -141,7 +106,6 @@ def readSpatial(infile, db):
                 SpatialBarcodeRange_xXyY[3] = theYpos
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
-            #pp.pprint([seq, Xpos, Ypos, f'{intSeq:b}', strSeq])
             db[intSeq] = spPosition(theXpos,theYpos)
             #db[intSeq] = [ theXpos, theYpos, None, None ]
             if not index % 1000:
@@ -162,11 +126,8 @@ def updateBarcodesID(infile, db, binPixels):
             [ seq, *_ ] = RePattern.split(line)
             #seq = line.strip()
             intSeq = dinopy.conversion.encode_twobit(seq)
-            #if db.key_may_exist(intSeq):
             if intSeq in db:
                 thisValue = db[intSeq]
-                #Xgrid = thisValue[0] // binPixels
-                #Ygrid = thisValue[1] // binPixels
                 Xgrid = thisValue.x // binPixels
                 Ygrid = thisValue.y // binPixels
                 gridID = Xgrid * gridRangeY + Ygrid
@@ -203,7 +164,10 @@ def mkcopy(fromFile, toFile):
             return 1
     else:
         try:
-            toFile.hardlink_to(fromFile)
+            if sys.version_info < (3, 10):
+                fromFile.link_to(toFile)
+            else:
+                toFile.hardlink_to(fromFile)
             return 0
         except OSError as error :
             eprint(error)
@@ -213,6 +177,8 @@ def mkcopy(fromFile, toFile):
             except OSError as error :
                 eprint(error)
                 return 1
+        except AttributeError as error :
+            toFile.symlink_to(fromFile)
 
 def mkGridSpatial(spFile, scBarcodeFile, gridRangeCnt):
     spFh = gzip.open(spFile, mode='wt', compresslevel=1)
@@ -235,27 +201,22 @@ def main() -> None:
         parser.print_help()
         exit(0);
     args = parser.parse_args()
-    #pp.pprint(args)
     eprint('[!]GridBin=[',args.bin,'], SplitZone:[',args.zones,']. OutPath:[',args.outpath,']',sep='');
     scFileNameTuple = ('matrix.mtx', 'barcodes.tsv', 'features.tsv', 'genes.tsv')
     spFileNameList = ['spatial.txt']; spFileNameList.extend(scFileNameTuple[0:3])
-    #pp.pprint(spFileNameList)
     if args.scSeqPath == None:
         #args.scSeqFiles.append( args.scSeqFiles[2].with_stem('genes') )
         scSeqFiles = tuple( args.scSeqFiles )
     else:
         scSeqFiles = tuple( args.scSeqPath.joinpath(x) for x in scFileNameTuple )
     FileDotExts = ('', '.gz')
-    #pp.pprint(scSeqFiles)
     spNameTuple = ('spatial', 'matrix', 'barcodes', 'features')
     spStandardNameDict = dict(zip(spNameTuple,[ '.'.join((fn,'gz')) if args.gzip else fn for fn in spFileNameList ]))
-    #pp.pprint(spStandardNameDict)
     InFileDict={}
     InFileDict['spatial'] = checkFile([args.spatial], FileDotExts)
     InFileDict['matrix'] = checkFile([scSeqFiles[0]], FileDotExts)
     InFileDict['barcodes'] = checkFile([scSeqFiles[1]], FileDotExts)
     InFileDict['features'] = checkFile(scSeqFiles[2:], FileDotExts)
-    #pp.pprint(inFiles)
     eprint('[!]Confirmed Input Files:[',', '.join([ str(x) if x else '<Missing>' for x in InFileDict.values() ]),'].',sep='')
     for fname in spNameTuple:
         if InFileDict[fname]==None:
@@ -266,7 +227,6 @@ def main() -> None:
         OutFileDict[fname] = args.outpath.joinpath(spStandardNameDict[fname])
     OutFileDict['Rdict'] = args.outpath.joinpath('_rdict').as_posix()
     OutFileDict['mgBoolMtx'] = args.outpath.joinpath('mgBoolMtx.mtx.gz').as_posix()
-    #pp.pprint(OutFileDict)
     args.outpath.mkdir(parents=True, exist_ok=True)
     eprint('[!]Output Files:[',', '.join([ OutFileDict[x].as_posix() for x in spNameTuple]),'].',sep='')
     checkmtx(InFileDict['matrix'])
@@ -278,11 +238,9 @@ def main() -> None:
 
     start = time.perf_counter()
     eprint('[!]Reading spatial file ...')
-    #spatialDB = speedict.Rdict(OutFileDict['Rdict'],db_options())
     spatialDB = {}
     lineCnt = readSpatial(InFileDict['spatial'], spatialDB)
     eprint('[!]Finished with [',lineCnt,'] records. X∈[',','.join(map(str,SpatialBarcodeRange_xXyY[0:2])),'], Y∈[',','.join(map(str,SpatialBarcodeRange_xXyY[2:4])),'].',sep='') # X∈[8000,38000], Y∈[9000,39000]
-    #pp.pprint(SpatialBarcodeRange_xXyY)
     SpatialGridRange_xXyY = [ (x // args.bin) for x in SpatialBarcodeRange_xXyY ]
     #gridRangeX = 1 + SpatialGridRange_xXyY[1] - SpatialGridRange_xXyY[0]
     #gridRangeY = 1 + SpatialGridRange_xXyY[3] - SpatialGridRange_xXyY[2]
@@ -329,13 +287,9 @@ def main() -> None:
     executor.shutdown(wait=True)
     eprint('[!]All done !')
     exit(0);
-    #spatialDB.destroy(OutFileDict['Rdict'])    # It is better to keep db file to enable supporting restore running.
-    exit(0);
-    #outMtx = ''.join((outPrefix,'.mtx'))
-    #matrixData = gb.io.mmread(matrixFile)
 
 if __name__ == "__main__":
     gb.init("suitesparse", blocking=False)
     main()  # time ./splanegridict.py -b20 -f matrix2.mtx.gz barcodes.tsv.gz features.tsv.gz -i spatial.txt.gz
 
-# ./splanegridict.py -b20 -i GSE166635_RAW/GSM5076750_HCC2.barcodes.spatial.txt -f GSE166635_RAW/GSM5076750_HCC2.matrix.mtx.gz GSE166635_RAW/GSM5076750_HCC2.barcodes.tsv.gz GSE166635_RAW/GSM5076750_HCC2.features.tsv.gz
+# ./splanegridict.py -b100 -i GSE166635_RAW/GSM5076749_HCC1.barcodes.spatial.txt -f GSE166635_RAW/GSM5076749_HCC1.matrix.mtx.gz GSE166635_RAW/GSM5076749_HCC1.barcodes.tsv.gz GSE166635_RAW/GSM5076749_HCC1.features.tsv.gz -o gridded
