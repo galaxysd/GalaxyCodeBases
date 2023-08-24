@@ -40,6 +40,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument('-o', '--output-path', type=pathlib.Path, default='./gridded/', dest='outpath')
     parser.add_argument('-z', '--gzip', action=argparse.BooleanOptionalAction, default=True, help='Output gzipped files, default on', dest='gzip')
     parser.add_argument('-n', '--dryrun', '--dry-run', action='store_true', dest='dryrun')
+    parser.add_argument('-d', '--debug', action='store_true', dest='dodebug')
     parser.add_argument(
         "-v", "--version", action="version",
         version=f"{parser.prog} version 1.0.0"
@@ -96,13 +97,13 @@ def readSpatial(infile, db):
                 maxBarcodeLen = seqLen
             theXpos = int(float(Xpos))
             theYpos = int(float(Ypos))
-            if (not SpatialBarcodeRange_xXyY[0]) or (SpatialBarcodeRange_xXyY[0] > theXpos):
+            if (SpatialBarcodeRange_xXyY[0]==0) or (SpatialBarcodeRange_xXyY[0] > theXpos):
                 SpatialBarcodeRange_xXyY[0] = theXpos
-            if (not SpatialBarcodeRange_xXyY[1]) or (SpatialBarcodeRange_xXyY[1] < theXpos):
+            if (SpatialBarcodeRange_xXyY[1]==0) or (SpatialBarcodeRange_xXyY[1] < theXpos):
                 SpatialBarcodeRange_xXyY[1] = theXpos
-            if (not SpatialBarcodeRange_xXyY[2]) or (SpatialBarcodeRange_xXyY[2] > theYpos):
+            if (SpatialBarcodeRange_xXyY[2]==0) or (SpatialBarcodeRange_xXyY[2] > theYpos):
                 SpatialBarcodeRange_xXyY[2] = theYpos
-            if (not SpatialBarcodeRange_xXyY[3]) or (SpatialBarcodeRange_xXyY[3] < theYpos):
+            if (SpatialBarcodeRange_xXyY[3]==0) or (SpatialBarcodeRange_xXyY[3] < theYpos):
                 SpatialBarcodeRange_xXyY[3] = theYpos
             intSeq = dinopy.conversion.encode_twobit(seq)
             #strSeq = dinopy.conversion.decode_twobit(intSeq, maxBarcodeLen, str)
@@ -118,7 +119,7 @@ def updateBarcodesID(infile, db, binPixels):
     global gridRangeCnt
     global mgBoolMtx
     #eprint(len(mtxBar2sp))
-    (gridRangeX, gridRangeY, gridCnt) = gridRangeCnt
+    (gridRangeX, gridRangeY, gridCnt, minX, minY) = gridRangeCnt
     pbar = tqdm.tqdm(desc='Barcodes', total=BarcodesCnt, ncols=70, mininterval=0.5, maxinterval=10, unit='', unit_scale=True, dynamic_ncols=True)
     RePattern = re.compile("[-_|,./\\:;`\'!~!@#$%^&*()+= \t\r\n]+")
     with fileOpener(infile) as f:
@@ -128,8 +129,8 @@ def updateBarcodesID(infile, db, binPixels):
             intSeq = dinopy.conversion.encode_twobit(seq)
             if intSeq in db:
                 thisValue = db[intSeq]
-                Xgrid = thisValue.x // binPixels
-                Ygrid = thisValue.y // binPixels
+                Xgrid = (thisValue.x - minX) // binPixels
+                Ygrid = (thisValue.y - minY) // binPixels
                 gridID = Xgrid * gridRangeY + Ygrid
                 #thisValue[2] = index
                 #thisValue[3] = gridID
@@ -170,17 +171,17 @@ def mkcopy(fromFile, toFile):
                 toFile.hardlink_to(fromFile)
             return 0
         except OSError as error :
-            eprint(error)
+            #eprint(error)
             try:
-                toFile.symlink_to(fromFile)
+                toFile.symlink_to(fromFile.absolute())
                 return 0
             except OSError as error :
                 eprint(error)
                 return 1
         except AttributeError as error :
-            toFile.symlink_to(fromFile)
+            toFile.symlink_to(fromFile.absolute())
 
-def mkGridSpatial(spFile, scBarcodeFile, gridRangeCnt):
+def mkGridSpatial(spFile, scBarcodeFile, gridRangeCnt, binSize):
     spFh = gzip.open(spFile, mode='wt', compresslevel=1)
     scFh = gzip.open(scBarcodeFile, mode='wt', compresslevel=1)
     numLen = len(str(gridRangeCnt[2]))
@@ -191,7 +192,7 @@ def mkGridSpatial(spFile, scBarcodeFile, gridRangeCnt):
         Xgrid = i - (Ygrid * gridRangeCnt[1])
         #eprint(barcodeStr,str(Xgrid),str(Ygrid))
         print(barcodeStr, file=scFh)
-        print(barcodeStr,str(Xgrid),str(Ygrid), file=spFh)
+        print(barcodeStr,str(gridRangeCnt[3]+Xgrid*binSize),str(gridRangeCnt[4]+Ygrid*binSize), file=spFh)
     spFh.close()
     scFh.close()
 
@@ -217,6 +218,7 @@ def main() -> None:
     InFileDict['matrix'] = checkFile([scSeqFiles[0]], FileDotExts)
     InFileDict['barcodes'] = checkFile([scSeqFiles[1]], FileDotExts)
     InFileDict['features'] = checkFile(scSeqFiles[2:], FileDotExts)
+    spStandardNameDict['features'] = InFileDict['features'].name
     eprint('[!]Confirmed Input Files:[',', '.join([ str(x) if x else '<Missing>' for x in InFileDict.values() ]),'].',sep='')
     for fname in spNameTuple:
         if InFileDict[fname]==None:
@@ -244,23 +246,24 @@ def main() -> None:
     SpatialGridRange_xXyY = [ (x // args.bin) for x in SpatialBarcodeRange_xXyY ]
     #gridRangeX = 1 + SpatialGridRange_xXyY[1] - SpatialGridRange_xXyY[0]
     #gridRangeY = 1 + SpatialGridRange_xXyY[3] - SpatialGridRange_xXyY[2]
-    (gridRangeX, gridRangeY) = (1+SpatialGridRange_xXyY[1], 1+SpatialGridRange_xXyY[3])
-    gridRangeCnt = (gridRangeX, gridRangeY, gridRangeX * gridRangeY)
+    (gridRangeX, gridRangeY) = (1+SpatialGridRange_xXyY[1]-SpatialGridRange_xXyY[0], 1+SpatialGridRange_xXyY[3]-SpatialGridRange_xXyY[2])
+    gridRangeCnt = (gridRangeX, gridRangeY, gridRangeX * gridRangeY, SpatialBarcodeRange_xXyY[0], SpatialBarcodeRange_xXyY[2])
     eprint('[!]Gridded by Bin [',args.bin,'], GridSize=','×'.join(map(str,(gridRangeX,gridRangeY))),'=',str(gridRangeCnt[2]),'.',sep='' )
     mgBoolMtx = gb.Matrix(gb.dtypes.BOOL, BarcodesCnt, gridRangeCnt[2])
     end1p = time.perf_counter()
     eprint("\tElapsed {}s".format((end1p - start)))
 
     executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
-    executor.submit( mkGridSpatial, OutFileDict['spatial'],OutFileDict['barcodes'], gridRangeCnt )
+    executor.submit( mkGridSpatial, OutFileDict['spatial'],OutFileDict['barcodes'], gridRangeCnt, args.bin )
 
     eprint('[!]Reading barcodes file ...')
     #cmpGridID(1,2)
     missingCnt = updateBarcodesID(InFileDict['barcodes'], spatialDB, args.bin)
     eprint('[!]Finished with [',missingCnt,'] missing barcodes.',sep='')
-    fh = write2gzip(OutFileDict['mgBoolMtx'])
-    gb.io.mmwrite(target=fh, matrix=mgBoolMtx)
-    fh.close()
+    if args.dodebug:
+        fh = write2gzip(OutFileDict['mgBoolMtx'])
+        gb.io.mmwrite(target=fh, matrix=mgBoolMtx)
+        fh.close()
     #spatialDB.close()
     end2p = time.perf_counter()
     eprint("\tElapsed {}s".format((end2p - end1p)))
