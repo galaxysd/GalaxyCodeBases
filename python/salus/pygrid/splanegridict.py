@@ -218,7 +218,7 @@ def main() -> None:
     InFileDict['matrix'] = checkFile([scSeqFiles[0]], FileDotExts)
     InFileDict['barcodes'] = checkFile([scSeqFiles[1]], FileDotExts)
     InFileDict['features'] = checkFile(scSeqFiles[2:], FileDotExts)
-    spStandardNameDict['features'] = InFileDict['features'].name
+    #spStandardNameDict['features'] = InFileDict['features'].name
     eprint('[!]Confirmed Input Files:[',', '.join([ str(x) if x else '<Missing>' for x in InFileDict.values() ]),'].',sep='')
     for fname in spNameTuple:
         if InFileDict[fname]==None:
