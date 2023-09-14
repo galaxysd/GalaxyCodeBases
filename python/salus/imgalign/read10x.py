@@ -16,9 +16,9 @@ import time
 #import recordclass
 
 import dahuffman
-# rANS4x16 as used in CRAM should be the best option. See <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8896640/> and <https://github.com/samtools/htscodecs>.
+# rANS4x16 as used in CRAM should be the best option. See <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8896640/> and <https://github.com/samtools/htscodecs> or *<https://github.com/jkbonfield/rans_static>.
 # Others like Arithmetic Coding <https://github.com/fab-jul/torchac>, <https://marknelson.us/posts/2014/10/19/data-compression-with-arithmetic-coding.html>. Or <https://github.com/ahmedfgad/ArithmeticEncodingPython>. And <https://michaeldipperstein.github.io/arithmetic.html#download>.
-# Range coding <https://en.wikipedia.org/wiki/Range_coding>. <https://github.com/richgel999/sserangecoding> <https://github.com/powturbo/Turbo-Range-Coder>.
+# Range coding <https://en.wikipedia.org/wiki/Range_coding>. *<https://github.com/richgel999/sserangecoding> <https://github.com/powturbo/Turbo-Range-Coder>.
 
 spatialDB = None
 mgBoolMtx = None
