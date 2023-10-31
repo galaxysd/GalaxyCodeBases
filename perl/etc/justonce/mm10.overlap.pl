@@ -9,6 +9,7 @@ while(<>) {
   my ($chr,undef,$type,$start,$end,undef,$strand,undef,undef,$geneid) = split;
   next if $type ne 'transcript';
   $geneid =~ s/[\";\,]//g;
+  #$geneid =~ s/(\.\d+$)//g;
   $Dat{"$chr\t$strand"}{$start}{$end} = $geneid;
   #push @{$Dat{"$chr\t$strand"}{$start}},[$end,$geneid];
 }
