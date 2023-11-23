@@ -1,0 +1,4 @@
+deb https://esm.ubuntu.com/infra/ubuntu jammy-infra-security main
+# deb-src https://esm.ubuntu.com/infra/ubuntu jammy-infra-security main
+deb https://esm.ubuntu.com/infra/ubuntu jammy-infra-updates main
+# deb-src https://esm.ubuntu.com/infra/ubuntu jammy-infra-updates main

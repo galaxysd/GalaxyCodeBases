@@ -1,0 +1,57 @@
+from snakemake.utils import min_version
+min_version("7.17.0")
+
+configfile: "config/config.yaml"
+
+StarRefdict = {
+    'mouse': '/share/data/reference/mouse/mm10/10Xrefdata-gex-mm10-2020-A/index99',
+    'human': '/share/data/reference/human/hg38/10Xrefdata-gex-GRCh38-2020-A/index99',
+    'amphioxus': '/share/data/reference/amphioxus/star_customGene_sjdbOverhang100'
+}
+
+include: "rules/functions.smk"
+
+FileList = []
+with open(config["fqs"],'r') as fp:
+    count = 0
+    for line in fp:
+        count += 1
+        line = line.strip()
+        FileList.append(line)
+        print("[!]Readling line{}: {}".format(count, line))
+
+pp.pprint(config)
+pp.pprint(FileList)
+eprint('[!]Version: 1.0')
+
+rule all:
+    "Final target"
+    input:
+        "results/example.sha2",
+    threads: 1
+    shell: "cp -av {input} results.sha2\nmkdir -p .Trash\nmv results .Trash/"
+
+rule hash:
+    "a demo target with tew output files"
+    input: "exampleData/{fn}.list",
+    output:
+        ofile="results/{fn}.sha2",
+        otime="results/{fn}.time"
+    threads: 1
+    shell:
+        "shasum -a256 {input} >{output.ofile}"
+        "\ndate >{output.otime}"
+
+import shutil
+rule merge:
+    "Merge SHA256 files"
+    input: get_all_sha2,
+    output: "results/example.sha2",
+    threads: 1
+    #shell: "cat {input} >{output}"
+    run:
+        with open(output[0], 'wb') as outfh:
+            for fname in input:
+                with open(fname, 'rb') as infh:
+                    shutil.copyfileobj(infh, outfh, 1048576)
+                    eprint('[!]Merging '+fname)

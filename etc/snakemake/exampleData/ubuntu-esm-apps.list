@@ -1,0 +1,4 @@
+deb https://esm.ubuntu.com/apps/ubuntu jammy-apps-security main
+# deb-src https://esm.ubuntu.com/apps/ubuntu jammy-apps-security main
+deb https://esm.ubuntu.com/apps/ubuntu jammy-apps-updates main
+# deb-src https://esm.ubuntu.com/apps/ubuntu jammy-apps-updates main

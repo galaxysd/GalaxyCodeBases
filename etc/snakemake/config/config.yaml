@@ -1,0 +1,43 @@
+fqs: files.lst
+
+ChipType: Dual   # Solo, DualUpper, DualLower, Dual = DualBoth
+defaultChipID: dChip01
+STARref: mouse  # human or mouse
+umilength: 10
+PEmode: normal  # normal or dark
+
+# step1 seq
+fst:
+  qualified_quality_phred: 20
+  unqualified_percent_limit: 30
+  n_base_limit: 1
+  length_required: 30
+  bclength: 30
+  verify30bp: no
+  dumpAllZones: no
+
+# step2 seq
+sndBC:
+  qualified_quality_phred: 20
+  unqualified_percent_limit: 30
+  n_base_limit: 1
+  length_required: 30
+  bclength: 30
+
+sndRNA:
+  qualified_quality_phred: 20
+  unqualified_percent_limit: 30
+  n_base_limit: 5
+  length_required: 50
+  complexity_threshold: 30
+  cutDownAdapters: no
+  EnableSoloCBwhitelist: yes
+
+pseudo_cell:
+  # binsize=400 # 100um x 100um
+  # binsize=40  # 10um x 10 um
+  # binsize=100 # 25um x 25 um
+  binsize:
+    - 400
+    - 100
+    - 40
