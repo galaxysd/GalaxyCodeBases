@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# https://stackoverflow.com/a/62524752/159695
+
+set -e
+
+url=$1
+name=${url##*/}
+
+git init --bare "${name}"
+cd "${name}"
+git config remote.origin.url "$url"
+git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+git fetch
+
+firstCommit=$(git rev-list --all --max-parents=0 --date-order --reverse | head -n1)
+git branch bare-dummy $firstCommit
+git symbolic-ref HEAD refs/heads/bare-dummy
