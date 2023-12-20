@@ -2,7 +2,8 @@
 
 mkdir salusSpatialOmics
 cd salusSpatialOmics
-git clone --bare --recursive --filter=blob:none --also-filter-submodules github-BGI:salusbio/SpatialOmics.git
+#git clone --bare --recursive --filter=blob:none --also-filter-submodules github-BGI:salusbio/SpatialOmics.git
+git clone --bare --recursive --filter=blob:none git@github.com:salusbio/SpatialOmics.git
 
 cd SpatialOmics.git/
 git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
