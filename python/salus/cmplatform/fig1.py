@@ -39,7 +39,7 @@ SamplesDict = {
     }
 }
 
-def importModules() -> None:
+def checkModules() -> None:
     import importlib.metadata
     from packaging import version
     pkgname = "squidpy"
@@ -48,13 +48,13 @@ def importModules() -> None:
     if version.parse(got_ver) < version.parse(min_ver):
         raise importlib.VersionConflict(f"{pkgname}>={min_ver} is needed, but found {pkgname}=={got_ver}")
 
+def main() -> None:
     import matplotlib; matplotlib.use("module://mplcairo.base")
     from matplotlib import pyplot as plt
     import mplcairo
 
     import numpy as np
     import pandas as pd
-
     import anndata as ad
     import scanpy as sc
     import squidpy as sq
@@ -69,7 +69,6 @@ def importModules() -> None:
         def __repr__(self) -> str:
             return f'<scDatItem:{self.name}, Raw_BC*Gene={self.bgRaw[0]}x{self.bgRaw[1]}, NonZero_BC*Gene={self.bgFlt[0]}x{self.bgFlt[1]}, ann={self.annDat.n_obs}x{self.annDat.n_vars}>'
 
-def main() -> None:
     scDat = []
     nfoDict = SamplesDict[thisID]
     for platform in PlatformTuple:
@@ -123,7 +122,7 @@ if __name__ == "__main__":
     print(sys.argv, file=sys.stderr)
     print(f"[i]{thisID}")
     sys.stdout.flush()
-    importModules()
+    checkModules()
     main()
 
 '''
