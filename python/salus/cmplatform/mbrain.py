@@ -43,14 +43,14 @@ figA=sns.JointGrid(data=p1df, x="total_counts", y="n_genes_by_counts", hue='Plat
 #figA.plot(sns.scatterplot, sns.histplot, alpha=.7, edgecolor=".2", linewidth=.5)
 figA.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
 figA.plot_marginals(sns.histplot, kde=True, alpha=.618)
-figA.figure.suptitle('Gene to UMI plot')
+figA.figure.suptitle('Gene to UMI plot - Mouse Brain')
 figA.set_axis_labels(xlabel='UMIs per Barcode', ylabel='Genes per Barcode')
 figA.savefig('Dmbrain.pdf', transparent=True, dpi=300, metadata={'Title': 'Gene to UMI plot', 'Subject': 'Mouse Brain Data', 'Author': 'HU Xuesong'})
 
 figB=sns.JointGrid(data=p2df, x="total_counts_Illumina", y="total_counts_Salus", dropna=True)
 figB.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
 figB.plot_marginals(sns.histplot, kde=True, alpha=.618)
-figB.figure.suptitle('UMI per Barcode Counts Comparing')
+figB.figure.suptitle('UMI per Barcode Counts Comparing - Mouse Brain')
 figB.set_axis_labels(xlabel='UMI Counts from Illumina', ylabel='UMI Counts from Salus')
 figB.savefig('Embrain.pdf', transparent=True, dpi=300, metadata={'Title': 'UMI per Barcode Counts Comparing', 'Subject': 'Mouse Brain Data', 'Author': 'HU Xuesong'})
 
