@@ -67,7 +67,7 @@ def main() -> None:
         annDat: ad.AnnData
 
         def __repr__(self) -> str:
-            return f'<scDatItem:{self.name}, Raw_BC*Gene={self.bgRaw[0]}x{self.bgRaw[1]}, NonZero_BC*Gene={self.bgFlt[0]}x{self.bgFlt[1]}, ann={self.annDat.n_obs}x{self.annDat.n_vars}>'
+            return f'[sc:{self.name}, Raw_BC*Gene={self.bgRaw[0]}x{self.bgRaw[1]}, NonZero_BC*Gene={self.bgFlt[0]}x{self.bgFlt[1]} ({self.annDat.n_obs}x{self.annDat.n_vars})]'
 
     scDat = []
     nfoDict = SamplesDict[thisID]
