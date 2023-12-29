@@ -53,6 +53,12 @@ def main() -> None:
     from matplotlib import pyplot as plt
     import mplcairo
 
+    plt.rcParams['figure.figsize'] = (6.0, 6.0) # set default size of plots
+    font = {'family' : 'STIX Two Text',
+            #'size'   : 22,
+            'weight' : 'normal'}
+    matplotlib.rc('font', **font)
+
     import numpy as np
     import pandas as pd
     import anndata as ad
@@ -72,6 +78,7 @@ def main() -> None:
     scDat = []
     nfoDict = SamplesDict[thisID]
     for platform in PlatformTuple:
+        nfoDict['platformK']  = platform
         nfoDict['platformV']  = nfoDict['platforms'][platform]
         nfoDict['suffixOutV'] = nfoDict['suffixOut'][platform]
         mtxPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern']] )
@@ -93,6 +100,7 @@ def main() -> None:
         obsmbs = scDat[1].annDat.obs[['n_genes_by_counts', 'total_counts']].copy(deep=False)
         p1df = pd.concat([obsmbi.assign(Platform=scDat[0].name), obsmbs.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
         p2df = obsmbi.join(obsmbs,lsuffix='_'+scDat[0].name,rsuffix='_'+scDat[1].name,how='inner').replace([np.inf, -np.inf, 0], np.nan).dropna()
+        p3tuple = (frozenset(scDat[0].annDat.var.index), frozenset(scDat[1].annDat.var.index))
 
     custom_params = {"axes.spines.right": False, "axes.spines.top": False}
     sns.set_theme(style="ticks", rc=custom_params, font="STIX Two Text")
@@ -110,6 +118,20 @@ def main() -> None:
     figB.figure.suptitle(f"UMI per Barcode Counts Comparing - {nfoDict['sub']}")
     figB.set_axis_labels(xlabel='UMI Counts from Illumina', ylabel='UMI Counts from Salus')
     figB.savefig(f"1E_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'UMI per Barcode Counts Comparing', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+    from matplotlib_venn import venn2
+    plt.figure(figsize=(4,4))
+    plt.title("Sample Venn diagram")
+    p3intersection = p3tuple[0] & p3tuple[1]
+    p3veen = (p3tuple[0]-p3intersection, p3tuple[1]-p3intersection, p3intersection)
+    GenesA = scDat[0].annDat.var.loc[p3veen[0]-p3veen[2]]
+    GenesB = scDat[1].annDat.var.loc[p3veen[1]-p3veen[2]]
+    GenesC = scDat[0].annDat.var.loc[p3veen[2]]
+    p3vd=venn2(subsets=tuple(map(len,p3veen)), set_labels=(scDat[0].name, scDat[1].name))
+    plt.savefig(f"1F_Genes_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Veen of Genes', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    GenesA.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[0].name}_only.csv",encoding='utf-8')
+    GenesB.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[1].name}_only.csv",encoding='utf-8')
+    GenesC.to_csv(f"1F_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
