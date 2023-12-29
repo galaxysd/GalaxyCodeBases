@@ -168,22 +168,38 @@ def main() -> None:
     var_names = scDat[0].annDat.var_names.intersection(scDat[1].annDat.var_names)
     xadata = scDat[0].annDat[:, var_names]
     yadata = scDat[1].annDat[:, var_names]
-    xdf=getPCAdf(xadata)
-    ydf=getPCAdf(yadata)
+    xdf=getOBSMdf(xadata)
+    ydf=getOBSMdf(yadata)
     #p4df = xdf.assign(Platform=scDat[0].name).join(ydf.assign(Platform=scDat[1].name),lsuffix='_'+scDat[0].name,rsuffix='_'+scDat[1].name,how='inner')
     p4df = pd.concat([xdf.assign(Platform=scDat[0].name), ydf.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
-    figD=sns.JointGrid(data=p4df, x="PC1", y="PC2", hue='Platform', dropna=True)
+    figD=sns.JointGrid(data=p4df, x="P1", y="P2", hue='Platform', dropna=True)
     figD.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
     figD.plot_marginals(sns.histplot, kde=True, alpha=.618)
     figD.figure.suptitle(f"PCA - {nfoDict['sub']}")
     figD.set_axis_labels(xlabel='PC1', ylabel='PC2')
-    figD.savefig(f"2B_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    figD.savefig(f"2B_PCA_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    print("[i]Begin fig E. 2C", file=sys.stderr)
+    xdf=getOBSMdf(xadata,'X_umap')
+    ydf=getOBSMdf(yadata,'X_umap')
+    p5df = pd.concat([xdf.assign(Platform=scDat[0].name), ydf.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
+    figE=sns.JointGrid(data=p5df, x="P1", y="P2", hue='Platform', dropna=True)
+    figE.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
+    figE.plot_marginals(sns.histplot, kde=True, alpha=.618)
+    figE.figure.suptitle(f"UMAP - {nfoDict['sub']}")
+    figE.set_axis_labels(xlabel='UMAP1', ylabel='UMAP2')
+    figE.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
 
-def getPCAdf(anndata) -> pd.DataFrame:
-    sc.pp.pca(anndata)
-    data=anndata.obsm['X_pca'][0:,0:4]
-    df=pd.DataFrame(data=data[0:,0:], index=[anndata.obs_names[i] for i in range(data.shape[0])], columns=['PC'+str(1+i) for i in range(data.shape[1])])
+def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
+    if not obsmkey in anndata.obsm:
+        if obsmkey=='X_pca':
+            sc.tl.pca(anndata,zero_center=True)
+        elif obsmkey=='X_umap':
+            if not 'neighbors' in anndata.uns:
+                sc.pp.neighbors(anndata)
+            sc.tl.umap(anndata)
+    data=anndata.obsm[obsmkey][0:,0:2]
+    df=pd.DataFrame(data=data[0:,0:], index=[anndata.obs_names[i] for i in range(data.shape[0])], columns=['P'+str(1+i) for i in range(data.shape[1])])
     return df
 
 if __name__ == "__main__":
