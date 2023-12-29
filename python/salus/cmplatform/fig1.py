@@ -188,6 +188,16 @@ def main() -> None:
     figE.figure.suptitle(f"UMAP - {nfoDict['sub']}")
     figE.set_axis_labels(xlabel='UMAP1', ylabel='UMAP2')
     figE.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    print("[i]Begin fig E. 2Cn", file=sys.stderr)
+    xdf=getOBSMdf(xadata,'X_draw_graph_fa')
+    ydf=getOBSMdf(yadata,'X_draw_graph_fa')
+    p5df = pd.concat([xdf.assign(Platform=scDat[0].name), ydf.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
+    figE=sns.JointGrid(data=p5df, x="P1", y="P2", hue='Platform', dropna=True)
+    figE.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
+    figE.plot_marginals(sns.histplot, kde=True, alpha=.618)
+    figE.figure.suptitle(f"ForceAtlas2 - {nfoDict['sub']}")
+    figE.set_axis_labels(xlabel='FA1', ylabel='FA2')
+    figE.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
 
 def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
@@ -196,8 +206,16 @@ def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
             sc.tl.pca(anndata,zero_center=True)
         elif obsmkey=='X_umap':
             if not 'neighbors' in anndata.uns:
+                if not 'X_pca' in anndata.obsm:
+                    sc.pp.pca(anndata,zero_center=True)
                 sc.pp.neighbors(anndata)
             sc.tl.umap(anndata)
+        elif obsmkey=='X_draw_graph_fa':
+            if not 'neighbors' in anndata.uns:
+                if not 'X_pca' in anndata.obsm:
+                    sc.pp.pca(anndata,zero_center=True)
+                sc.pp.neighbors(anndata)
+            sc.tl.draw_graph(anndata)
     data=anndata.obsm[obsmkey][0:,0:2]
     df=pd.DataFrame(data=data[0:,0:], index=[anndata.obs_names[i] for i in range(data.shape[0])], columns=['P'+str(1+i) for i in range(data.shape[1])])
     return df
