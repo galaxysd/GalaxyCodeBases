@@ -73,6 +73,7 @@ matplotlib.rc('font', **font)
 
 import numpy as np
 import pandas as pd
+import fast_matrix_market
 import anndata as ad
 import scanpy as sc
 import squidpy as sq
@@ -92,12 +93,13 @@ def main() -> None:
 
     scDat = []
     nfoDict = SamplesDict[thisID]
+    print("[i]Start.", file=sys.stderr)
     for platform in PlatformTuple:
         nfoDict['platformK']  = platform
         nfoDict['platformV']  = nfoDict['platforms'][platform]
         nfoDict['suffixOutV'] = nfoDict['suffixOut'][platform]
         mtxPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern']] )
-        #print(mtxPath)
+        print(f"[i]Reading {mtxPath}", file=sys.stderr)
         adata=sc.read_10x_mtx(mtxPath, var_names='gene_symbols', make_unique=True, gex_only=True)
         adata.var_names_make_unique()  # this is necessary if using `var_names='gene_symbols'` in `sc.read_10x_mtx`
         nnRaw = (adata.n_obs,adata.n_vars)
@@ -117,6 +119,7 @@ def main() -> None:
         p2df = obsmbi.join(obsmbs,lsuffix='_'+scDat[0].name,rsuffix='_'+scDat[1].name,how='inner').replace([np.inf, -np.inf, 0], np.nan).dropna()
         p3tuple = (frozenset(scDat[0].annDat.var_names), frozenset(scDat[1].annDat.var_names))
 
+    print("[i]Begin fig A. 1D", file=sys.stderr)
     custom_params = {"axes.spines.right": False, "axes.spines.top": False}
     sns.set_theme(style="ticks", rc=custom_params, font="STIX Two Text")
     figA=sns.JointGrid(data=p1df, x="total_counts", y="n_genes_by_counts", hue='Platform', dropna=True)
@@ -127,6 +130,7 @@ def main() -> None:
     figA.set_axis_labels(xlabel='UMIs per Barcode', ylabel='Genes per Barcode')
     figA.savefig(f"1D_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Gene to UMI plot', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
+    print("[i]Begin fig B. 1E", file=sys.stderr)
     figB=sns.JointGrid(data=p2df, x="total_counts_Illumina", y="total_counts_Salus", dropna=True)
     figB.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
     figB.plot_marginals(sns.histplot, kde=True, alpha=.618)
@@ -134,6 +138,7 @@ def main() -> None:
     figB.set_axis_labels(xlabel='UMI Counts from Illumina', ylabel='UMI Counts from Salus')
     figB.savefig(f"1E_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'UMI per Barcode Counts Comparing', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
+    print("[i]Begin fig . 1F", file=sys.stderr)
     from matplotlib_venn import venn2
     plt.figure(figsize=(4,4))
     plt.title("Sample Venn diagram")
@@ -148,6 +153,7 @@ def main() -> None:
     GenesB.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[1].name}_only.csv",encoding='utf-8')
     GenesC.to_csv(f"1F_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
 
+    print("[i]Begin fig C. 2A", file=sys.stderr)
     # https://www.kaggle.com/code/lizabogdan/top-correlated-genes?scriptVersionId=109838203&cellId=21
     p4xdf = scDat[0].annDat.to_df()
     p4ydf = scDat[1].annDat.to_df()
@@ -158,6 +164,27 @@ def main() -> None:
     figC=sns.histplot(p4corr,stat='percent',binwidth=0.01)
     plt.savefig(f"2A_Correlation_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Pearson correlation', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
+    print("[i]Begin fig D. 2B", file=sys.stderr)
+    var_names = scDat[0].annDat.var_names.intersection(scDat[1].annDat.var_names)
+    xadata = scDat[0].annDat[:, var_names]
+    yadata = scDat[1].annDat[:, var_names]
+    xdf=getPCAdf(xadata)
+    ydf=getPCAdf(yadata)
+    #p4df = xdf.assign(Platform=scDat[0].name).join(ydf.assign(Platform=scDat[1].name),lsuffix='_'+scDat[0].name,rsuffix='_'+scDat[1].name,how='inner')
+    p4df = pd.concat([xdf.assign(Platform=scDat[0].name), ydf.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
+    figD=sns.JointGrid(data=p4df, x="PC1", y="PC2", hue='Platform', dropna=True)
+    figD.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
+    figD.plot_marginals(sns.histplot, kde=True, alpha=.618)
+    figD.figure.suptitle(f"PCA - {nfoDict['sub']}")
+    figD.set_axis_labels(xlabel='PC1', ylabel='PC2')
+    figD.savefig(f"2B_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+
+def getPCAdf(anndata) -> pd.DataFrame:
+    sc.pp.pca(anndata)
+    data=anndata.obsm['X_pca'][0:,0:4]
+    df=pd.DataFrame(data=data[0:,0:], index=[anndata.obs_names[i] for i in range(data.shape[0])], columns=['PC'+str(1+i) for i in range(data.shape[1])])
+    return df
 
 if __name__ == "__main__":
     main()  # time (./fig1.py human; ./fig1.py mbrain ; ./fig1.py mkidney ) | tee plot.log
