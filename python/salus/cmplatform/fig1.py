@@ -48,23 +48,38 @@ def checkModules() -> None:
     if version.parse(got_ver) < version.parse(min_ver):
         raise importlib.VersionConflict(f"{pkgname}>={min_ver} is needed, but found {pkgname}=={got_ver}")
 
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        thisID = sys.argv[1]
+        if thisID not in SamplesDict:
+            print(f"[x]sid can only be {SamplesDict.keys()}", file=sys.stderr)
+            exit(1)
+    else:
+        thisID = 'mbrain'
+    print(sys.argv, file=sys.stderr)
+    print(f"[i]{thisID}")
+    sys.stdout.flush()
+    checkModules()
+
+import matplotlib; matplotlib.use("module://mplcairo.base")
+from matplotlib import pyplot as plt
+import mplcairo
+
+plt.rcParams['figure.figsize'] = (6.0, 6.0) # set default size of plots
+font = {'family' : 'STIX Two Text',
+        #'size'   : 22,
+        'weight' : 'normal'}
+matplotlib.rc('font', **font)
+
+import numpy as np
+import pandas as pd
+import anndata as ad
+import scanpy as sc
+import squidpy as sq
+import seaborn as sns
+import scipy
+
 def main() -> None:
-    import matplotlib; matplotlib.use("module://mplcairo.base")
-    from matplotlib import pyplot as plt
-    import mplcairo
-
-    plt.rcParams['figure.figsize'] = (6.0, 6.0) # set default size of plots
-    font = {'family' : 'STIX Two Text',
-            #'size'   : 22,
-            'weight' : 'normal'}
-    matplotlib.rc('font', **font)
-
-    import numpy as np
-    import pandas as pd
-    import anndata as ad
-    import scanpy as sc
-    import squidpy as sq
-    import seaborn as sns
 
     class scDatItem(NamedTuple):
         name: str
@@ -134,18 +149,7 @@ def main() -> None:
     GenesC.to_csv(f"1F_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        thisID = sys.argv[1]
-        if thisID not in SamplesDict:
-            print(f"[x]sid can only be {SamplesDict.keys()}", file=sys.stderr)
-            exit(1)
-    else:
-        thisID = 'mbrain'
-    print(sys.argv, file=sys.stderr)
-    print(f"[i]{thisID}")
-    sys.stdout.flush()
-    checkModules()
-    main()
+    main()  # time (./fig1.py human; ./fig1.py mbrain ; ./fig1.py mkidney ) | tee plot.log
 
 '''
 x1 = np.random.randn(1000)
@@ -160,4 +164,11 @@ pc1 = ax.scatter(x1, y1, c='b', edgecolors='none')
 pc2 = ax.scatter(x2, y2, c='r', edgecolors='none')
 mplcairo.operator_t.ADD.patch_artist(pc2)  # Use additive blending.
 plt.show()
+
+1、N和Q<5比率大于4%
+2、Q平均值小于20
+3、Q<20和purity<0.6的比率大于18%
+
+import patchworklib as pw
+#from blend_modes import addition
 '''
