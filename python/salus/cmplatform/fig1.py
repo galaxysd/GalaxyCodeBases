@@ -115,7 +115,7 @@ def main() -> None:
         obsmbs = scDat[1].annDat.obs[['n_genes_by_counts', 'total_counts']].copy(deep=False)
         p1df = pd.concat([obsmbi.assign(Platform=scDat[0].name), obsmbs.assign(Platform=scDat[1].name)], ignore_index=True).replace([np.inf, -np.inf, 0], np.nan).dropna()
         p2df = obsmbi.join(obsmbs,lsuffix='_'+scDat[0].name,rsuffix='_'+scDat[1].name,how='inner').replace([np.inf, -np.inf, 0], np.nan).dropna()
-        p3tuple = (frozenset(scDat[0].annDat.var.index), frozenset(scDat[1].annDat.var.index))
+        p3tuple = (frozenset(scDat[0].annDat.var_names), frozenset(scDat[1].annDat.var_names))
 
     custom_params = {"axes.spines.right": False, "axes.spines.top": False}
     sns.set_theme(style="ticks", rc=custom_params, font="STIX Two Text")
@@ -151,7 +151,7 @@ def main() -> None:
     # https://www.kaggle.com/code/lizabogdan/top-correlated-genes?scriptVersionId=109838203&cellId=21
     p4xdf = scDat[0].annDat.to_df()
     p4ydf = scDat[1].annDat.to_df()
-    p4corraw = xdf.corrwith(ydf,axis=1)
+    p4corraw = p4xdf.corrwith(p4ydf,axis=1)
     p4corr = p4corraw.dropna()
     plt.figure(figsize=(6,4))
     plt.title("Pearson correlation")
