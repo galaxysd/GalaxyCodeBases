@@ -148,6 +148,17 @@ def main() -> None:
     GenesB.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[1].name}_only.csv",encoding='utf-8')
     GenesC.to_csv(f"1F_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
 
+    # https://www.kaggle.com/code/lizabogdan/top-correlated-genes?scriptVersionId=109838203&cellId=21
+    p4xdf = scDat[0].annDat.to_df()
+    p4ydf = scDat[1].annDat.to_df()
+    p4corraw = xdf.corrwith(ydf,axis=1)
+    p4corr = p4corraw.dropna()
+    plt.figure(figsize=(6,4))
+    plt.title("Pearson correlation")
+    figC=sns.histplot(p4corr,stat='percent',binwidth=0.01)
+    plt.savefig(f"2A_Correlation_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Pearson correlation', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+
 if __name__ == "__main__":
     main()  # time (./fig1.py human; ./fig1.py mbrain ; ./fig1.py mkidney ) | tee plot.log
 
