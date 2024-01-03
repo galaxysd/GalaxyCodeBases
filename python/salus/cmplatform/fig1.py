@@ -46,7 +46,7 @@ def checkModules() -> None:
     min_ver = "1.2.3"
     got_ver = importlib.metadata.version(pkgname)
     if version.parse(got_ver) < version.parse(min_ver):
-        raise importlib.VersionConflict(f"{pkgname}>={min_ver} is needed, but found {pkgname}=={got_ver}")
+        raise Exception(f"{pkgname}>={min_ver} is needed, but found {pkgname}=={got_ver}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     print(sys.argv, file=sys.stderr)
     print(f"[i]{thisID}")
     sys.stdout.flush()
-    checkModules()
+    #checkModules()
 
 import matplotlib; matplotlib.use("module://mplcairo.base")
 from matplotlib import pyplot as plt
@@ -76,9 +76,10 @@ import pandas as pd
 import fast_matrix_market
 import anndata as ad
 import scanpy as sc
-import squidpy as sq
+#import squidpy as sq
 import seaborn as sns
 import scipy
+import pynndescent
 
 def main() -> None:
 
@@ -108,7 +109,12 @@ def main() -> None:
         sc.pp.filter_cells(adata, min_genes=1)
         sc.pp.filter_genes(adata, min_cells=1)
         nnFlt = (adata.n_obs,adata.n_vars)
+        sc.pp.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.umap(adata,random_state=369)
+        #sc.tl.draw_graph(adata)
         scDat.append(scDatItem(platform,nnRaw,nnFlt,adata))
+        adata.write_h5ad(f"{nfoDict['sid']}_{platform}.h5ad",compression='lzf')
 
     print("\n".join(map(str,scDat)))
 
@@ -141,7 +147,7 @@ def main() -> None:
     print("[i]Begin fig . 1F", file=sys.stderr)
     from matplotlib_venn import venn2
     plt.figure(figsize=(4,4))
-    plt.title("Sample Venn diagram")
+    plt.title(f"Genes Venn diagram - {nfoDict['sub']}")
     p3intersection = p3tuple[0] & p3tuple[1]
     p3veen = (p3tuple[0]-p3intersection, p3tuple[1]-p3intersection, p3intersection)
     GenesA = scDat[0].annDat.var.loc[p3veen[0]-p3veen[2]]
@@ -160,8 +166,8 @@ def main() -> None:
     p4corraw = p4xdf.corrwith(p4ydf,axis=1)
     p4corr = p4corraw.dropna()
     plt.figure(figsize=(6,4))
-    plt.title("Pearson correlation")
-    figC=sns.histplot(p4corr,stat='percent',binwidth=0.01)
+    plt.title(f"Pearson correlation - {nfoDict['sub']}")
+    figC=sns.histplot(p4corr,stat='count',binwidth=0.01)
     plt.savefig(f"2A_Correlation_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Pearson correlation', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
     print("[i]Begin fig D. 2B", file=sys.stderr)
@@ -209,13 +215,13 @@ def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
                 if not 'X_pca' in anndata.obsm:
                     sc.pp.pca(anndata,zero_center=True)
                 sc.pp.neighbors(anndata)
-            sc.tl.umap(anndata)
+            sc.tl.umap(anndata,random_state=369)
         elif obsmkey=='X_draw_graph_fa':
             if not 'neighbors' in anndata.uns:
                 if not 'X_pca' in anndata.obsm:
                     sc.pp.pca(anndata,zero_center=True)
                 sc.pp.neighbors(anndata)
-            sc.tl.draw_graph(anndata)
+            sc.tl.draw_graph(anndata,random_state=369)
     data=anndata.obsm[obsmkey][0:,0:2]
     df=pd.DataFrame(data=data[0:,0:], index=[anndata.obs_names[i] for i in range(data.shape[0])], columns=['P'+str(1+i) for i in range(data.shape[1])])
     return df
@@ -243,7 +249,11 @@ plt.show()
 
 import patchworklib as pw
 #from blend_modes import addition
+matplotlib_venn
 
 ToDo:
  * Try layers of annData.
+   * Res: layers share obs and var, thus useless. Even MuData shares obs.
+
+ls -1 *.pdf|while read a;do convert -density 1200 $a -resize 25% $a.png;done
 '''
