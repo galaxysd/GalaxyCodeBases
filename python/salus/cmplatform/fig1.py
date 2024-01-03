@@ -66,6 +66,9 @@ from matplotlib import pyplot as plt
 import mplcairo
 
 plt.rcParams['figure.figsize'] = (6.0, 6.0) # set default size of plots
+plt.rcParams['figure.dpi'] = 300
+plt.rcParams['savefig.bbox'] = 'tight'
+plt.rcParams["savefig.transparent"] = True
 font = {'family' : 'STIX Two Text',
         #'size'   : 22,
         'weight' : 'normal'}
