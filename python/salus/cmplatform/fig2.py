@@ -14,6 +14,11 @@ def main(thisID) -> None:
         h5Path = f"{nfoDict['sid']}_{platform}.h5ad"
         print(f"[i]Reading {h5Path}", file=sys.stderr)
         adata = ad.read_h5ad(h5Path)
+        adata.layers["raw"] = adata.X.copy()
+        adata.layers["prnorm"] = adata.X.copy()
+        sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
+        sc.pp.normalize_total(adata,target_sum=1e6,key_added='CPMnormFactor')
+        adata.layers["norm"] = adata.X.copy()
         scDat[platform] = adata
         print(f"[i]Read {thisID}.{platform}: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
     #print(scDat)
@@ -36,7 +41,7 @@ def main(thisID) -> None:
     ax1.set_title("Axis 1 title")
     ax1.set_xlabel("X-label for axis 1")
     '''
-    print("[i]Begin fig E. 2C", file=sys.stderr)
+    print("[i]Begin fig E. 2Ca", file=sys.stderr)
     plt.figure(1)
     ax=sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}")
     plt.savefig(f"2C_PCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
@@ -49,6 +54,20 @@ def main(thisID) -> None:
     plt.figure(4)
     ax=sc.pl.draw_graph(adata, color='Platform', show=False, title=f"ForceAtlas2 - {nfoDict['sub']}")
     plt.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+    fig, ax = plt.subplots()
+    fig.patch.set(alpha=0)
+    ax.patch.set(alpha=0)
+    sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", ax=ax)
+    arts=ax.findobj()
+    for art in arts:
+        mplcairo.operator_t.ADD.patch_artist(art)
+    plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+    adata = None
+    print("[i]Begin fig E. 2Cb", file=sys.stderr)
+    for platform in PlatformTuple:
+        adata = scDat[platform]
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
