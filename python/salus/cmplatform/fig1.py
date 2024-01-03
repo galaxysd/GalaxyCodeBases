@@ -81,6 +81,9 @@ import seaborn as sns
 import scipy
 import pynndescent
 
+import warnings
+warnings.filterwarnings('ignore')
+
 def main() -> None:
 
     class scDatItem(NamedTuple):
@@ -103,15 +106,16 @@ def main() -> None:
         print(f"[i]Reading {mtxPath}", file=sys.stderr)
         adata=sc.read_10x_mtx(mtxPath, var_names='gene_symbols', make_unique=True, gex_only=True)
         adata.var_names_make_unique()  # this is necessary if using `var_names='gene_symbols'` in `sc.read_10x_mtx`
-        nnRaw = (adata.n_obs,adata.n_vars)
+        nnRaw = adata.shape
         adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
         sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
+        adata.raw = adata
         sc.pp.filter_cells(adata, min_genes=1)
         sc.pp.filter_genes(adata, min_cells=1)
         nnFlt = (adata.n_obs,adata.n_vars)
         sc.pp.pca(adata)
-        sc.pp.neighbors(adata)
-        sc.tl.umap(adata,random_state=369)
+        #sc.pp.neighbors(adata)
+        #sc.tl.umap(adata,random_state=369)
         #sc.tl.draw_graph(adata)
         scDat.append(scDatItem(platform,nnRaw,nnFlt,adata))
         adata.write_h5ad(f"{nfoDict['sid']}_{platform}.h5ad",compression='lzf')
@@ -184,6 +188,7 @@ def main() -> None:
     figD.figure.suptitle(f"PCA - {nfoDict['sub']}")
     figD.set_axis_labels(xlabel='PC1', ylabel='PC2')
     figD.savefig(f"2B_PCA_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+"""
     print("[i]Begin fig E. 2C", file=sys.stderr)
     xdf=getOBSMdf(xadata,'X_umap')
     ydf=getOBSMdf(yadata,'X_umap')
@@ -204,7 +209,7 @@ def main() -> None:
     figE.figure.suptitle(f"ForceAtlas2 - {nfoDict['sub']}")
     figE.set_axis_labels(xlabel='FA1', ylabel='FA2')
     figE.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-
+"""
 
 def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
     if not obsmkey in anndata.obsm:
