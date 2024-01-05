@@ -28,14 +28,15 @@ def main(thisID) -> None:
     sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
     adata.obs['sqrt_inv_total_counts'] = 1 / np.sqrt(adata.obs['total_counts'])
     p995 = np.percentile(adata.obs['sqrt_inv_total_counts'].values, 99.5)
-    print(f"[i] {nfoDict['sub']} sqrt_inv_total_counts: {p995} ({round(1/(p995*p995),3)})", file=sys.stderr)
+    c995 = 1/(p995*p995)
+    print(f"[i] {nfoDict['sub']} sqrt_inv_total_counts: {p995} ({round(c995,3)})", file=sys.stderr)
     plt.figure(1)
     ax=sc.pl.violin(adata,['sqrt_inv_total_counts'],jitter=0.4, stripplot=True,show=False)
-    ax.set_title(f"sqrt_inv_total_counts Violin - {nfoDict['sub']} @ {round(p995,9)}({round(1/(p995*p995),3)})")
+    ax.set_title(f"sqrt_inv_total_counts Violin - {nfoDict['sub']} @ {round(p995,9)}({round(c995,3)})")
     ax.axhline(y=p995, color='red', linestyle='dotted', label=f'p995={p995}')
-    plt.savefig(f"2C_umiEstd_{nfoDict['sid']}.pdf", metadata={'Title': 'sqrt_inv_total_counts Violin', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_umiEstd_{nfoDict['sid']}_{round(c995)}.pdf", metadata={'Title': 'sqrt_inv_total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}", 'Author': 'HU Xuesong'})
     adata.raw = adata.copy()
-    sc.pp.filter_cells(adata, min_counts=2000)   # sqrt_inv_total_counts < 0.02236 按照样品均值的标准差考虑。
+    sc.pp.filter_cells(adata, min_counts=round(c995))   # sqrt_inv_total_counts < p995 按照样品均值的标准差考虑。写作round(c995)。
     sc.pp.filter_genes(adata, min_cells=1)  # adata.var[adata.var['n_cells']<2].sort_values(by='sqrt_inv_total_counts') 有800个，就不过滤了。
     print(f"[i]Filtered: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
 
@@ -116,7 +117,7 @@ def main(thisID) -> None:
     adata.obs['study_id'] = adata.obs['Platform'].astype(str)
     pymn.variableGenes(adata, study_col='Platform')
     pymn.MetaNeighborUS(adata, study_col='study_id', ct_col='cell.cluster', fast_version=True)
-    pymn.topHits(adata, threshold=0.9)
+    pymn.topHits(adata, threshold=0)
     mmdf = adata.uns['MetaNeighborUS_topHits']
     plt.figure(figsize=(6,4))
     plt.title(f"Mean_AUROC Between Platforms - {nfoDict['sub']}")
