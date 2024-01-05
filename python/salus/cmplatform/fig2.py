@@ -117,11 +117,17 @@ def main(thisID) -> None:
     adata.obs['study_id'] = adata.obs['Platform'].astype(str)
     pymn.variableGenes(adata, study_col='Platform')
     pymn.MetaNeighborUS(adata, study_col='study_id', ct_col='cell.cluster', fast_version=True)
+    plt.figure(figsize=(6,4))
+    plt.title(f"MetaNeighborUS - {nfoDict['sub']}")
+    pymn.plotMetaNeighborUS(adata, figsize=(10, 10), cmap='coolwarm')
+    plt.savefig(f"2D_MetaNeighborUS_{nfoDict['sid']}.pdf", metadata={'Title': 'MetaNeighborUS', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     pymn.topHits(adata, threshold=0)
-    mmdf = adata.uns['MetaNeighborUS_topHits']
+    mndf = adata.uns['MetaNeighborUS_topHits']
+    mndf['ClusterID'] = mndf['Study_ID|Celltype_1'].str.split('|').str[1].astype(int)
+    pndf=mndf[mndf['Match_type']=='Reciprocal_top_hit']
     plt.figure(figsize=(6,4))
     plt.title(f"Mean_AUROC Between Platforms - {nfoDict['sub']}")
-    axC = sns.barplot(mmdf,x=mmdf.index,y='Mean_AUROC')
+    axC = sns.barplot(pndf,x='ClusterID',y='Mean_AUROC')
     axC.set_xlabel('leiden Cluster NO.')
     plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={'Title': 'AUROC', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     #adata = None
