@@ -14,11 +14,11 @@ def main(thisID) -> None:
         h5Path = f"{nfoDict['sid']}_{platform}.h5ad"
         print(f"[i]Reading {h5Path}", file=sys.stderr)
         adata = ad.read_h5ad(h5Path)
-        adata.layers["raw"] = adata.X.copy()
-        adata.layers["prnorm"] = adata.X.copy()
-        sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
-        sc.pp.normalize_total(adata,target_sum=1e6,key_added='CPMnormFactor')
-        adata.layers["norm"] = adata.X.copy()
+        #adata.layers["raw"] = adata.X.copy()
+        #adata.layers["prnorm"] = adata.X.copy()
+        #sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
+        #sc.pp.normalize_total(adata,target_sum=1e6,key_added='CPMnormFactor')
+        #adata.layers["norm"] = adata.X.copy()
         scDat[platform] = adata
         print(f"[i]Read {thisID}.{platform}: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
     #print(scDat)
@@ -26,15 +26,25 @@ def main(thisID) -> None:
     adata=ad.concat(rawList, label='Platform', keys=PlatformTuple, index_unique='-')
     adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
     sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
-    adata.raw = adata
-    sc.pp.filter_cells(adata, min_genes=1)
-    sc.pp.filter_genes(adata, min_cells=1)
+    adata.obs['sqrt_inv_total_counts'] = 1 / np.sqrt(adata.obs['total_counts'])
+    adata.raw = adata.copy()
+    sc.pp.filter_cells(adata, min_counts=2000)   # sqrt_inv_total_counts < 0.02236 按照样品均值的标准差考虑。
+    sc.pp.filter_genes(adata, min_cells=1)  # adata.var[adata.var['n_cells']<2].sort_values(by='sqrt_inv_total_counts') 有800个，就不过滤了。
     print(f"[i]Filtered: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
+
+    #adata.layers["raw"] = adata.X.copy()
+    adata.layers["prnorm"] = adata.X.copy()
+    sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
+    sc.pp.normalize_total(adata,target_sum=1e6, key_added='CPMnormFactor')
+    adata.layers["norm"] = adata.X.copy()
+    sc.pp.log1p(adata)
+
     sc.pp.pca(adata)
     sc.pp.neighbors(adata)
     sc.tl.umap(adata,random_state=369)
     sc.tl.draw_graph(adata,random_state=369)
     sc.tl.tsne(adata,random_state=369)
+    sc.tl.leiden(adata,random_state=0)
     '''
     fig1, ax1 = plt.subplots()
     ax1.plot(x, y)
@@ -43,14 +53,14 @@ def main(thisID) -> None:
     '''
     print("[i]Begin fig E. 2Ca", file=sys.stderr)
     plt.figure(1)
-    ax=sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}")
+    ax=sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", annotate_var_explained=True)
     plt.savefig(f"2C_PCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     plt.figure(2)
     ax=sc.pl.umap(adata,color='Platform', show=False, title=f"UMAP - {nfoDict['sub']}")
     plt.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     plt.figure(3)
     ax=sc.pl.tsne(adata, color='Platform', show=False, title=f"t-SNE - {nfoDict['sub']}")
-    plt.savefig(f"2C_tsne_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_tSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     plt.figure(4)
     ax=sc.pl.draw_graph(adata, color='Platform', show=False, title=f"ForceAtlas2 - {nfoDict['sub']}")
     plt.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
@@ -58,11 +68,29 @@ def main(thisID) -> None:
     fig, ax = plt.subplots()
     fig.patch.set(alpha=0)
     ax.patch.set(alpha=0)
-    sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", ax=ax)
-    arts=ax.findobj()
+    palette = ['#CC0000','#00CC00','#CCCC00']
+    sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", ax=ax, palette=palette, annotate_var_explained=True)
+    arts=ax.findobj(matplotlib.collections.PathCollection)
     for art in arts:
         mplcairo.operator_t.ADD.patch_artist(art)
+    newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
+    legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
+    ax.legend(handles=legend_elements, loc = 'right margin')
     plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
+    fig, ax = plt.subplots()
+    fig.patch.set(alpha=0)
+    ax.patch.set(alpha=0)
+    palette = ['#CC0000','#00CC00','#CCCC00']
+    sc.pl.tsne(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", ax=ax, palette=palette)
+    arts=ax.findobj(matplotlib.collections.PathCollection)
+    for art in arts:
+        mplcairo.operator_t.ADD.patch_artist(art)
+    newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
+    legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
+    ax.legend(handles=legend_elements, loc = 'right margin')
+    plt.savefig(f"2C_mtSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+
 
     adata = None
     print("[i]Begin fig E. 2Cb", file=sys.stderr)

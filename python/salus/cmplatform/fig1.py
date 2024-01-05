@@ -79,6 +79,7 @@ import pandas as pd
 import fast_matrix_market
 import anndata as ad
 import scanpy as sc
+sc._settings.ScanpyConfig.n_jobs = -1
 #import squidpy as sq
 import seaborn as sns
 import scipy
@@ -254,6 +255,13 @@ plt.show()
 1、N和Q<5比率大于4%
 2、Q平均值小于20
 3、Q<20和purity<0.6的比率大于18%
+
+fastp --thread 4 -z -A --max_len1 28 --max_len2 0 --dont_eval_duplication -q 20 -u 30 -n 4 --average_qual 20 --length_required 28 -y -Y 30 -g -x
+
+fastp -w 4 -A -q 20 -u 30 -n 5 -l 28 -y -Y 30 -g -x --max_len1 28 --max_len2 1000 \
+	-i ${prefix}_R1_001.fastq.gz -I ${prefix}_R2_001.fastq.gz \
+	-o ./cleanfq/${basepx}_R1_001.fastq.gz -O ./cleanfq/${basepx}_R2_001.fastq.gz \
+	-j ./cleanfq/${basepx}.json -h ./cleanfq/${basepx}.html 2>./cleanfq/${basepx}.log
 
 import patchworklib as pw
 #from blend_modes import addition
