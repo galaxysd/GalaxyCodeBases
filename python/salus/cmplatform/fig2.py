@@ -123,7 +123,7 @@ def main(thisID) -> None:
     plt.close('all')
 
     print("[i]Begin fig E. 2D", file=sys.stderr)
-    plt.switch_backend(matplotlib.backends.backend_pdf)
+    plt.switch_backend('pdf')
     import pymn
     adata.obs['cell.cluster'] = adata.obs['leiden'].astype(str)
     adata.obs['study_id'] = adata.obs['Platform'].astype(str)
