@@ -27,14 +27,20 @@ def main(thisID) -> None:
     adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
     sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
     adata.obs['sqrt_inv_total_counts'] = 1 / np.sqrt(adata.obs['total_counts'])
+    p995 = np.percentile(adata.obs['sqrt_inv_total_counts'].values, 99.5)
+    print(f"[i] {nfoDict['sub']} sqrt_inv_total_counts: {p995} ({round(1/(p995*p995),3)})", file=sys.stderr)
+    plt.figure(1)
+    ax=sc.pl.violin(adata,['sqrt_inv_total_counts'],jitter=0.4, stripplot=True,show=False)
+    ax.set_title(f"sqrt_inv_total_counts Violin - {nfoDict['sub']} @ {round(p995,9)}({round(1/(p995*p995),3)})")
+    ax.axhline(y=p995, color='red', linestyle='dotted', label=f'p995={p995}')
+    plt.savefig(f"2C_umiEstd_{nfoDict['sid']}.pdf", metadata={'Title': 'sqrt_inv_total_counts Violin', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     adata.raw = adata.copy()
     sc.pp.filter_cells(adata, min_counts=2000)   # sqrt_inv_total_counts < 0.02236 按照样品均值的标准差考虑。
     sc.pp.filter_genes(adata, min_cells=1)  # adata.var[adata.var['n_cells']<2].sort_values(by='sqrt_inv_total_counts') 有800个，就不过滤了。
     print(f"[i]Filtered: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
 
-    #adata.layers["raw"] = adata.X.copy()
-    adata.layers["prnorm"] = adata.X.copy()
-    sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
+    #adata.layers["prnorm"] = adata.X.copy()
+    #sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
     sc.pp.normalize_total(adata,target_sum=1e6, key_added='CPMnormFactor')
     adata.layers["norm"] = adata.X.copy()
     sc.pp.log1p(adata)
@@ -52,16 +58,16 @@ def main(thisID) -> None:
     ax1.set_xlabel("X-label for axis 1")
     '''
     print("[i]Begin fig E. 2Ca", file=sys.stderr)
-    plt.figure(1)
+    plt.figure(2)
     ax=sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", annotate_var_explained=True)
     plt.savefig(f"2C_PCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-    plt.figure(2)
+    plt.figure(3)
     ax=sc.pl.umap(adata,color='Platform', show=False, title=f"UMAP - {nfoDict['sub']}")
     plt.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-    plt.figure(3)
+    plt.figure(4)
     ax=sc.pl.tsne(adata, color='Platform', show=False, title=f"t-SNE - {nfoDict['sub']}")
     plt.savefig(f"2C_tSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-    plt.figure(4)
+    plt.figure(5)
     ax=sc.pl.draw_graph(adata, color='Platform', show=False, title=f"ForceAtlas2 - {nfoDict['sub']}")
     plt.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
@@ -104,11 +110,20 @@ def main(thisID) -> None:
     axB.set_xlabel('leiden Cluster NO.')
     axB.set_ylabel('Cluster Size')
     plt.savefig(f"2C_leidenHist_{nfoDict['sid']}.pdf", metadata={'Title': 'Cluster Size Histogram', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-
-    adata = None
-    print("[i]Begin fig E. 2Cb", file=sys.stderr)
-    for platform in PlatformTuple:
-        adata = scDat[platform]
+    print("[i]Begin fig E. 2D", file=sys.stderr)
+    import pymn
+    adata.obs['cell.cluster'] = adata.obs['leiden'].astype(str)
+    adata.obs['study_id'] = adata.obs['Platform'].astype(str)
+    pymn.variableGenes(adata, study_col='Platform')
+    pymn.MetaNeighborUS(adata, study_col='study_id', ct_col='cell.cluster', fast_version=True)
+    pymn.topHits(adata, threshold=0.9)
+    mmdf = adata.uns['MetaNeighborUS_topHits']
+    plt.figure(figsize=(6,4))
+    plt.title(f"Mean_AUROC Between Platforms - {nfoDict['sub']}")
+    axC = sns.barplot(mmdf,x=mmdf.index,y='Mean_AUROC')
+    axB.set_xlabel('leiden Cluster NO.')
+    plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={'Title': 'AUROC', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    #adata = None
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
