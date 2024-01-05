@@ -122,7 +122,7 @@ def main(thisID) -> None:
     plt.figure(figsize=(6,4))
     plt.title(f"Mean_AUROC Between Platforms - {nfoDict['sub']}")
     axC = sns.barplot(mmdf,x=mmdf.index,y='Mean_AUROC')
-    axB.set_xlabel('leiden Cluster NO.')
+    axC.set_xlabel('leiden Cluster NO.')
     plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={'Title': 'AUROC', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     #adata = None
 
