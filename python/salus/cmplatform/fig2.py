@@ -74,8 +74,8 @@ def main(thisID) -> None:
     for art in arts:
         mplcairo.operator_t.ADD.patch_artist(art)
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
-    legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
-    ax.legend(handles=legend_elements)
+    legend_elements = [plt.scatter([],[],linewidths=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
+    ax.legend(handles=legend_elements,bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.2)
     plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
     fig, ax = plt.subplots()
@@ -87,10 +87,23 @@ def main(thisID) -> None:
     for art in arts:
         mplcairo.operator_t.ADD.patch_artist(art)
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
-    legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
-    ax.legend(handles=legend_elements)
+    legend_elements = [plt.scatter([],[],linewidths=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
+    ax.legend(handles=legend_elements,bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.2)
     plt.savefig(f"2C_mtSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-
+    print("[i]Begin fig E. 2Cb", file=sys.stderr)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    plt.subplots_adjust(wspace=0.1)
+    sc.pl.umap(adata[adata.obs['Platform']=='Illumina'], color='leiden', ax=axes[0], title=f'UMAP - Illumina')
+    sc.pl.umap(adata[adata.obs['Platform']=='Salus'], color='leiden', ax=axes[1], title=f'UMAP - Salus')
+    axes[0].legend().set_visible(False)
+    fig.suptitle(f"Clusters by Leiden - {nfoDict['sub']}")
+    fig.savefig(f"2C_leidenUMAP_{nfoDict['sid']}.pdf", metadata={'Title': 'Cluster UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.figure(figsize=(6,4))
+    plt.title(f"Cluster Size Histogram - {nfoDict['sub']}")
+    axB = sns.histplot(adata.obs,x='leiden',hue='Platform',multiple="dodge",shrink=.66)
+    axB.set_xlabel('leiden Cluster NO.')
+    axB.set_ylabel('Cluster Size')
+    plt.savefig(f"2C_leidenHist_{nfoDict['sid']}.pdf", metadata={'Title': 'Cluster Size Histogram', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
     adata = None
     print("[i]Begin fig E. 2Cb", file=sys.stderr)
