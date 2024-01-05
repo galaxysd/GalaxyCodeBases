@@ -75,7 +75,7 @@ def main(thisID) -> None:
         mplcairo.operator_t.ADD.patch_artist(art)
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
     legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
-    ax.legend(handles=legend_elements, loc = 'right margin')
+    ax.legend(handles=legend_elements)
     plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
     fig, ax = plt.subplots()
@@ -88,7 +88,7 @@ def main(thisID) -> None:
         mplcairo.operator_t.ADD.patch_artist(art)
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
     legend_elements = [plt.scatter([],[],s=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
-    ax.legend(handles=legend_elements, loc = 'right margin')
+    ax.legend(handles=legend_elements)
     plt.savefig(f"2C_mtSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
 
 
