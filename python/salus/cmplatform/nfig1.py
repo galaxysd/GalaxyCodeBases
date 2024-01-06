@@ -41,14 +41,15 @@ SamplesDict = {
     }
 }
 
+thisID = 'mbrain'
+nfoDict = SamplesDict[thisID]
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         thisID = sys.argv[1]
         if thisID not in SamplesDict:
             print(f"[x]sid can only be {SamplesDict.keys()}", file=sys.stderr)
             exit(1)
-    else:
-        thisID = 'mbrain'
     print(sys.argv, file=sys.stderr)
     print(f"[i]{thisID}")
     sys.stdout.flush()
@@ -90,7 +91,6 @@ class scDatItem(NamedTuple):
 
 def main() -> None:
     scDat = []
-    nfoDict = SamplesDict[thisID]
     print("[i]Start.", file=sys.stderr)
     for platform in PlatformTuple:
         nfoDict['platformK']  = platform
@@ -185,17 +185,17 @@ def main() -> None:
         elif len(rawList) == 2:
             adata=ad.concat(rawList, label='Platform', keys=PlatformTuple, index_unique='-')
             dataID = 'Both'
-        doDropOutstat(dataID,adata)
+        print(f"[i]Begin Tab 1. 1F Dropout rates - {dataID}. With scvi {scvi.__version__}", file=sys.stderr)
+        adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
+        sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
+        if dataID == 'Both':
+            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000,batch_key='Platform')
+        else:
+            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000)
+        doDropOutPlot(dataID,adata)
         adata = None
 
-def doDropOutstat(dataID,adata) -> None:
-    print(f"[i]Begin Tab 1. 1F Dropout rates - {dataID}. With scvi {scvi.__version__}", file=sys.stderr)
-    adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
-    sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
-    if dataID == 'Both':
-        scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000,batch_key='Platform')
-    else:
-        scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000)
+def doDropOutPlot(dataID,adata) -> None:
     adata.var['mean_'] = np.array(adata.X.mean(0))[0]
     GenesM = adata.var.sort_values(by='prob_zero_enrichment_rank', ascending=False)
     GenesM.to_csv(f"1F_GenesDropout_{nfoDict['sid']}_{dataID}_PlatformAsBatch.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})

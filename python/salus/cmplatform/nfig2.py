@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 
+def checkModules() -> None:
+    import importlib.metadata
+    from packaging import version
+    pkgname = "squidpy"
+    min_ver = "1.2.3"
+    got_ver = importlib.metadata.version(pkgname)
+    if version.parse(got_ver) < version.parse(min_ver):
+        raise Exception(f"{pkgname}>={min_ver} is needed, but found {pkgname}=={got_ver}")
+
+if __name__ == "__main__":
+    checkModules()
+
 from nfig1 import *
 #print(SamplesDict)
 
 def main(thisID) -> None:
+    import squidpy as sq
     scDat = {}
     nfoDict = SamplesDict[thisID]
     print("[i]Start.", file=sys.stderr)
@@ -16,7 +29,16 @@ def main(thisID) -> None:
             print(f"[i]Reading {h5Path}", file=sys.stderr)
             adata = ad.read_h5ad(h5Path)
         elif nfoDict['type'] == 'visium':
-            exit(2);
+            h5Path = f"{nfoDict['sid']}_{platform}.rsp.h5ad"
+            if os.path.exists(h5Path) and os.access(h5Path, os.R_OK) and os.path.getsize(h5Path) > 0:
+                print(f"[i]Reading {h5Path}", file=sys.stderr)
+                adata = ad.read_h5ad(h5Path)
+            else:
+                visiumPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern'][:-1] ] )
+                print(f"[i]Reading {visiumPath}", file=sys.stderr)
+                adata=sq.read.visium(visiumPath, library_id=platform)
+                print(f"[i]Saving {h5Path}", file=sys.stderr)
+                adata.write_h5ad(h5Path,compression='lzf')
         else:
             print(f"[x]Unknow Type {nfoDict['type']}", file=sys.stderr)
             exit(1)
@@ -52,7 +74,7 @@ def main(thisID) -> None:
         adata.layers["norm"] = adata.X.copy()
         sc.pp.log1p(adata)
     elif nfoDict['type'] == 'visium':
-        ;
+        exit(2)
     else:
         print(f"[x]Unknow Type {nfoDict['type']}", file=sys.stderr)
         exit(1)
@@ -155,8 +177,6 @@ if __name__ == "__main__":
         if thisID not in SamplesDict:
             print(f"[x]sid can only be {SamplesDict.keys()}", file=sys.stderr)
             exit(1)
-    else:
-        thisID = 'mbrain'
     print(sys.argv, file=sys.stderr)
     print(f"[i]{thisID}")
     sys.stdout.flush()
