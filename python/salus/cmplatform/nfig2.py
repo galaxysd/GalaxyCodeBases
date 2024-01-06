@@ -37,6 +37,7 @@ def main(thisID) -> None:
                 visiumPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern'][:-1] ] )
                 print(f"[i]Reading {visiumPath}", file=sys.stderr)
                 adata=sq.read.visium(visiumPath, library_id=platform)
+                adata.var_names_make_unique()
                 print(f"[i]Saving {h5Path}", file=sys.stderr)
                 adata.write_h5ad(h5Path,compression='lzf')
         else:
