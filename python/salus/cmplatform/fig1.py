@@ -162,10 +162,10 @@ def main() -> None:
     GenesB = scDat[1].annDat.var.loc[p3veen[1]-p3veen[2]]
     GenesC = scDat[0].annDat.var.loc[p3veen[2]]
     p3vd=venn2(subsets=tuple(map(len,p3veen)), set_labels=(scDat[0].name, scDat[1].name))
-    plt.savefig(f"1F_Genes_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Veen of Genes', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
-    GenesA.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[0].name}_only.csv",encoding='utf-8')
-    GenesB.to_csv(f"1F_Genes_{nfoDict['sid']}_{scDat[1].name}_only.csv",encoding='utf-8')
-    GenesC.to_csv(f"1F_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
+    plt.savefig(f"1G_Genes_{nfoDict['sid']}.pdf", transparent=True, dpi=300, metadata={'Title': 'Veen of Genes', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    GenesA.to_csv(f"1G_Genes_{nfoDict['sid']}_{scDat[0].name}_only.csv",encoding='utf-8')
+    GenesB.to_csv(f"1G_Genes_{nfoDict['sid']}_{scDat[1].name}_only.csv",encoding='utf-8')
+    GenesC.to_csv(f"1G_Genes_{nfoDict['sid']}_intersection.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
 
     print("[i]Begin fig C. 2A", file=sys.stderr)
     # https://www.kaggle.com/code/lizabogdan/top-correlated-genes?scriptVersionId=109838203&cellId=21

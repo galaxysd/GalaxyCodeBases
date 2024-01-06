@@ -143,7 +143,57 @@ def main(thisID) -> None:
     axC.set_xlabel('leiden Cluster NO.')
     plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={'Title': 'AUROC', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
     plt.close('all')
-    #adata = None
+
+    adata = None
+    import scvi
+    print(f"[i]Begin Tab 1. 1F Dropout rates. With scvi {scvi.__version__}", file=sys.stderr)
+    #rawList=[scDat[v].raw.to_adata() for v in PlatformTuple]
+    adata=ad.concat(rawList, label='Platform', keys=PlatformTuple, index_unique='-')
+    adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
+    sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
+    scvi.data.poisson_gene_selection(adata,n_top_genes=5000,n_samples=100000,batch_key='Platform')
+    adata.var['mean_'] = np.array(adata.X.mean(0))[0]
+    GenesM = adata.var.sort_values(by='prob_zero_enrichment_rank', ascending=False)
+    GenesM.to_csv(f"1F_GenesDropout_{nfoDict['sid']}_PlatformAsBatch.csv.zst",encoding='utf-8',compression={'method': 'zstd', 'level': 9, 'write_checksum': True})
+
+    highly_variable_df = adata.var.query('highly_variable')
+    # Set up the figure and axes
+    fig, ax = plt.subplots(figsize=(10, 6))
+    # Create the scatter plot for the main points with color bar
+    scatter = sns.scatterplot(x='mean_', y='observed_fraction_zeros', hue='prob_zero_enrichment', data=adata.var, palette='viridis', legend='brief')
+    # Create the line plot for expected_fraction_zeros
+    sns.lineplot(x='mean_', y='expected_fraction_zeros', data=adata.var, color='r', label='Expected Fraction Zeros')
+    # Highlight highly variable points
+    sns.scatterplot(x='mean_', y='observed_fraction_zeros', data=highly_variable_df, color='pink', marker='.', s=5, alpha=0.5)
+    box_coords = adata.var.query('highly_variable').agg({'mean_': ['min', 'max'], 'observed_fraction_zeros': ['min', 'max']})
+    # Draw a rectangle to cover highly variable points
+    rect = plt.Rectangle(box_coords.loc['min'],
+                         box_coords['mean_'].diff()['max'], box_coords['observed_fraction_zeros'].diff()['max'],
+                         fill=None, edgecolor='blue', linewidth=2, alpha=0.5)
+    ax.add_patch(rect)
+    # Annotate right-top and left-bottom points
+    fmt = '.4f'
+    for mean_val, obs_frac_val in zip(box_coords['mean_'], box_coords['observed_fraction_zeros']):
+        label = f'({mean_val:{fmt}},{obs_frac_val:{fmt}})'
+        # Add padding to avoid overlapping with the rectangle
+        bbox_props = dict(boxstyle="round,pad=0.3", fc="white", ec="white", lw=1, alpha=0.62)
+        ax.text(mean_val, obs_frac_val, label, bbox=bbox_props)
+    # Set x-axis to log scale
+    ax.set_xscale('log')
+    # Set plot title
+    ax.set_title(f'Mean vs Observed Fraction Zeros - {nfoDict["sub"]}')
+    # Create a color bar for Prob Zero Enrichment
+    cbar = fig.colorbar(scatter.get_children()[0], ax=ax, orientation='vertical', pad=0.1)
+    cbar.set_label('Prob Zero Enrichment')
+    plt.savefig(f"1F_GenesM3DropSelected_{nfoDict['sid']}_PlatformAsBatch.pdf", metadata={'Title': 'scvi.data.poisson_gene_selection', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.close('all')
+    plt.figure(figsize=(6,4))
+    plt.title(f"Gene DropRatio Histogram - {nfoDict['sub']}")
+    histplot = sns.histplot(adata.var, x='observed_fraction_zeros', bins=30, kde=False, hue='highly_variable', multiple="dodge", shrink=.8)
+    bars_heights = [p.get_height() for p in histplot.patches if p.get_facecolor()[:3] == sns.color_palette()[1]]
+    plt.ylim(0, max(bars_heights)*1.1)  # Adjust the margin as needed
+    plt.savefig(f"1F_GenesDropoutHist_{nfoDict['sid']}_PlatformAsBatch.pdf", metadata={'Title': 'Gene DropRatio Histogram', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.close('all')
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
