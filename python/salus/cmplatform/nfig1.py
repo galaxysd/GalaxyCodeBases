@@ -42,8 +42,6 @@ SamplesDict = {
 }
 
 thisID = 'mbrain'
-nfoDict = SamplesDict[thisID]
-
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         thisID = sys.argv[1]
@@ -53,6 +51,7 @@ if __name__ == "__main__":
     print(sys.argv, file=sys.stderr)
     print(f"[i]{thisID}")
     sys.stdout.flush()
+nfoDict = SamplesDict[thisID]
 
 import matplotlib; matplotlib.use("module://mplcairo.base")
 from matplotlib import pyplot as plt
@@ -91,6 +90,7 @@ class scDatItem(NamedTuple):
 
 def main() -> None:
     scDat = []
+    #nfoDict = SamplesDict[thisID]
     print("[i]Start.", file=sys.stderr)
     for platform in PlatformTuple:
         nfoDict['platformK']  = platform
@@ -134,7 +134,7 @@ def main() -> None:
     figB.set_axis_labels(xlabel='UMI Counts from Illumina', ylabel='UMI Counts from Salus')
     figB.savefig(f"1E_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'UMI per Barcode Counts Comparing'})
 
-    print("[i]Begin fig . 1F", file=sys.stderr)
+    print("[i]Begin fig . 1G", file=sys.stderr)
     from matplotlib_venn import venn2
     plt.figure(figsize=(4,4))
     plt.title(f"Genes Venn diagram - {nfoDict['sub']}")
@@ -250,3 +250,5 @@ def getOBSMdf(anndata, obsmkey='X_pca') -> pd.DataFrame:
 
 if __name__ == "__main__":
     main()  # time (./nfig1.py human; ./nfig1.py mbrain ; ./nfig1.py mkidney ) | tee nplot.log
+
+# pip install -U --force-reinstall lightning

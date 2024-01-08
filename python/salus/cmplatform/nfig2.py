@@ -26,8 +26,15 @@ def main(thisID) -> None:
         nfoDict['suffixOutV'] = nfoDict['suffixOut'][platform]
         if nfoDict['type'] == 'mobivision':
             h5Path = f"{nfoDict['sid']}_{platform}.raw.h5ad"
-            print(f"[i]Reading {h5Path}", file=sys.stderr)
-            adata = ad.read_h5ad(h5Path)
+            if os.path.exists(h5Path) and os.access(h5Path, os.R_OK) and os.path.getsize(h5Path) > 0:
+                print(f"[i]Reading {h5Path}", file=sys.stderr)
+                adata = ad.read_h5ad(h5Path)
+            else:
+                mtxPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern']] )
+                print(f"[i]Reading {mtxPath}", file=sys.stderr)
+                adata=sc.read_10x_mtx(mtxPath, var_names='gene_symbols', make_unique=True, gex_only=True)
+                print(f"[i]Saving {h5Path}", file=sys.stderr)
+                adata.write_h5ad(h5Path,compression='lzf')
         elif nfoDict['type'] == 'visium':
             h5Path = f"{nfoDict['sid']}_{platform}.rsp.h5ad"
             if os.path.exists(h5Path) and os.access(h5Path, os.R_OK) and os.path.getsize(h5Path) > 0:
