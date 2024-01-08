@@ -189,9 +189,9 @@ def main() -> None:
         adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
         sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
         if dataID == 'Both':
-            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000,batch_key='Platform')
+            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=10000,batch_key='Platform')
         else:
-            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=100000)
+            scvi.data.poisson_gene_selection(adata,n_top_genes=8000,n_samples=10000)
         doDropOutPlot(dataID,adata)
         adata = None
 

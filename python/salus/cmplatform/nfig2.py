@@ -193,6 +193,12 @@ def main(thisID) -> None:
     axC.set_xlabel('leiden Cluster NO.')
     plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'AUROC'})
     plt.close('all')
+    if nfoDict['type'] == 'visium':
+        for platform in PlatformTuple:
+            plt.figure()
+            ax=sc.pl.embedding(adata[adata.obs['Platform'] == platform], basis="spatial", color=["leiden"], show=False, title=f'{platform}')
+            plt.savefig(f"2C_spLeiden_{platform}_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': f'spLeiden - {platform}'})
+            plt.close('all')
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
