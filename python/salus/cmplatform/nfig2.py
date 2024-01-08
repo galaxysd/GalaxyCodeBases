@@ -72,7 +72,8 @@ def main(thisID) -> None:
     ax.axhline(y=round(c995), color='red', linestyle='dotted', label=f'c995={round(c995)}')
     plt.savefig(f"2C_umiEcnt_{nfoDict['sid']}_{round(c995)}.pdf", metadata={**metapdf, 'Title': 'total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}"})
     adata.raw = adata.copy()
-    sc.pp.filter_cells(adata, min_counts=round(c995))   # sqrt_inv_total_counts < p995 按照样品均值的标准差考虑。写作round(c995)。
+    #sc.pp.filter_cells(adata, min_counts=round(c995))   # sqrt_inv_total_counts < p995 按照样品均值的标准差考虑。写作round(c995)。
+    sc.pp.filter_cells(adata, min_counts=1)
     sc.pp.filter_genes(adata, min_cells=1)  # adata.var[adata.var['n_cells']<2].sort_values(by='sqrt_inv_total_counts') 有800个，就不过滤了。
     print(f"[i]Filtered: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
     plt.close('all')
@@ -106,7 +107,7 @@ def main(thisID) -> None:
         exit(1)
     sc.tl.umap(adata,random_state=369)
     sc.tl.draw_graph(adata,random_state=369)
-    sc.tl.leiden(adata,random_state=0)
+    sc.tl.leiden(adata,random_state=0,resolution=0.25)
     '''
     fig1, ax1 = plt.subplots()
     ax1.plot(x, y)
