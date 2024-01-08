@@ -45,6 +45,7 @@ def main(thisID) -> None:
             exit(1)
         scDat[platform] = adata
         print(f"[i]Read {thisID}.{platform}.raw: {adata.shape}", file=sys.stderr)
+    metapdf={'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'}
     rawList=[scDat[v] for v in PlatformTuple]
     adata=ad.concat(rawList, label='Platform', keys=PlatformTuple, index_unique='-')
     adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
@@ -57,33 +58,47 @@ def main(thisID) -> None:
     ax=sc.pl.violin(adata,['sqrt_inv_total_counts'],jitter=0.4, stripplot=True,show=False)
     ax.set_title(f"sqrt_inv_total_counts Violin - {nfoDict['sub']} @ {round(p995,9)}({round(c995,3)})")
     ax.axhline(y=p995, color='red', linestyle='dotted', label=f'p995={p995}')
-    plt.savefig(f"2C_umiEstd_{nfoDict['sid']}_{round(c995)}.pdf", metadata={'Title': 'sqrt_inv_total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_umiEstd_{nfoDict['sid']}_{round(c995)}.pdf", metadata={**metapdf, 'Title': 'sqrt_inv_total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}"})
     plt.figure(2)
     ax=sc.pl.violin(adata,['total_counts'],jitter=0.4, stripplot=True,show=False)
     ax.set_title(f"total_counts Violin - {nfoDict['sub']} @ {round(c995)}")
     ax.axhline(y=round(c995), color='red', linestyle='dotted', label=f'c995={round(c995)}')
-    plt.savefig(f"2C_umiEcnt_{nfoDict['sid']}_{round(c995)}.pdf", metadata={'Title': 'total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_umiEcnt_{nfoDict['sid']}_{round(c995)}.pdf", metadata={**metapdf, 'Title': 'total_counts Violin', 'Subject': f"{nfoDict['sub']} Data @ {round(c995)}"})
     adata.raw = adata.copy()
     sc.pp.filter_cells(adata, min_counts=round(c995))   # sqrt_inv_total_counts < p995 按照样品均值的标准差考虑。写作round(c995)。
     sc.pp.filter_genes(adata, min_cells=1)  # adata.var[adata.var['n_cells']<2].sort_values(by='sqrt_inv_total_counts') 有800个，就不过滤了。
     print(f"[i]Filtered: {adata.raw.shape} -> {adata.shape}", file=sys.stderr)
     plt.close('all')
+    sc.pp.highly_variable_genes(adata, flavor="seurat_v3", n_top_genes=3000)
+    sc.pp.normalize_total(adata,target_sum=1e6, key_added='CPMnormFactor')
+    adata.layers["norm"] = adata.X.copy()
+    sc.pp.log1p(adata)
     if nfoDict['type'] == 'mobivision':
-        #adata.layers["prnorm"] = adata.X.copy()
-        #sc.experimental.pp.normalize_pearson_residuals(adata,layer='prnorm')
-        sc.pp.normalize_total(adata,target_sum=1e6, key_added='CPMnormFactor')
-        adata.layers["norm"] = adata.X.copy()
-        sc.pp.log1p(adata)
+        sc.pp.pca(adata)
+        sc.pp.neighbors(adata)
+        sc.tl.tsne(adata,random_state=369)
     elif nfoDict['type'] == 'visium':
-        exit(2)
+        import torch
+        import STAGATE_pyG
+        STAGATE_pyG.Cal_Spatial_Net(adata, rad_cutoff=150)
+        STAGATE_pyG.Stats_Spatial_Net(adata)
+        adata = STAGATE_pyG.train_STAGATE(adata, device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'))
+        sc.pp.neighbors(adata, use_rep='STAGATE')
+        sc.tl.tsne(adata, use_rep='STAGATE', random_state=369)
+        sc.pp.pca(adata)
+        data=adata.obsm['STAGATE'][0:,0:2]
+        df=pd.DataFrame(data=data[0:,0:], index=[adata.obs_names[i] for i in range(data.shape[0])], columns=['STA'+str(1+i) for i in range(data.shape[1])])
+        df['Platform'] = adata.obs['Platform']
+        figD=sns.JointGrid(data=df, x="STA1", y="STA2", hue='Platform', dropna=True)
+        figD.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
+        figD.plot_marginals(sns.histplot, kde=True, alpha=.618)
+        figD.figure.suptitle(f"STAGATE - {nfoDict['sub']}")
+        figD.savefig(f"2C_STAGATE_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'STAGATE'})
     else:
         print(f"[x]Unknow Type {nfoDict['type']}", file=sys.stderr)
         exit(1)
-    sc.pp.pca(adata)
-    sc.pp.neighbors(adata)
     sc.tl.umap(adata,random_state=369)
     sc.tl.draw_graph(adata,random_state=369)
-    sc.tl.tsne(adata,random_state=369)
     sc.tl.leiden(adata,random_state=0)
     '''
     fig1, ax1 = plt.subplots()
@@ -94,16 +109,16 @@ def main(thisID) -> None:
     print("[i]Begin fig E. 2Ca", file=sys.stderr)
     plt.figure()
     ax=sc.pl.pca(adata, color='Platform', show=False, title=f"PCA - {nfoDict['sub']}", annotate_var_explained=True)
-    plt.savefig(f"2C_PCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_PCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 'PCA'})
     plt.figure()
     ax=sc.pl.umap(adata,color='Platform', show=False, title=f"UMAP - {nfoDict['sub']}")
-    plt.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_UMAP_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 'UMAP'})
     plt.figure()
     ax=sc.pl.tsne(adata, color='Platform', show=False, title=f"t-SNE - {nfoDict['sub']}")
-    plt.savefig(f"2C_tSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_tSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 't-SNE'})
     plt.figure()
     ax=sc.pl.draw_graph(adata, color='Platform', show=False, title=f"ForceAtlas2 - {nfoDict['sub']}")
-    plt.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'ForceAtlas2', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_ForceAtlas2_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 'ForceAtlas2'})
     plt.close('all')
 
     fig, ax = plt.subplots()
@@ -117,7 +132,7 @@ def main(thisID) -> None:
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
     legend_elements = [plt.scatter([],[],linewidths=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
     ax.legend(handles=legend_elements,bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.2)
-    plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 'PCA', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_mPCA_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 'PCA'})
     plt.close('all')
 
     fig, ax = plt.subplots()
@@ -131,7 +146,7 @@ def main(thisID) -> None:
     newlabels = adata.obs['Platform'].unique().tolist() + ['Both']
     legend_elements = [plt.scatter([],[],linewidths=0, marker='o', label=label, color=color) for label, color in zip(newlabels, palette)]
     ax.legend(handles=legend_elements,bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.2)
-    plt.savefig(f"2C_mtSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={'Title': 't-SNE', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_mtSNE_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': 't-SNE'})
     plt.close('all')
 
     print("[i]Begin fig E. 2Cb", file=sys.stderr)
@@ -141,13 +156,13 @@ def main(thisID) -> None:
     sc.pl.umap(adata[adata.obs['Platform']=='Salus'], color='leiden', ax=axes[1], title=f'UMAP - Salus')
     axes[0].legend().set_visible(False)
     fig.suptitle(f"Clusters by Leiden - {nfoDict['sub']}")
-    fig.savefig(f"2C_leidenUMAP_{nfoDict['sid']}.pdf", metadata={'Title': 'Cluster UMAP', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    fig.savefig(f"2C_leidenUMAP_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'Cluster UMAP'})
     plt.figure(figsize=(6,4))
     plt.title(f"Cluster Size Histogram - {nfoDict['sub']}")
     axB = sns.histplot(adata.obs,x='leiden',hue='Platform',multiple="dodge",shrink=.66)
     axB.set_xlabel('leiden Cluster NO.')
     axB.set_ylabel('Cluster Size')
-    plt.savefig(f"2C_leidenHist_{nfoDict['sid']}.pdf", metadata={'Title': 'Cluster Size Histogram', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2C_leidenHist_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'Cluster Size Histogram'})
     plt.close('all')
 
     print("[i]Begin fig E. 2D", file=sys.stderr)
@@ -160,7 +175,7 @@ def main(thisID) -> None:
     plt.figure(figsize=(16,16))
     plt.title(f"MetaNeighborUS - {nfoDict['sub']}")
     cm=pymn.plotMetaNeighborUS(adata, cmap='coolwarm',show=False)
-    cm.savefig(f"2D_MetaNeighborUS_{nfoDict['sid']}.pdf", metadata={'Title': 'MetaNeighborUS', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    cm.savefig(f"2D_MetaNeighborUS_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'MetaNeighborUS'})
     pymn.topHits(adata, threshold=0)
     mndf = adata.uns['MetaNeighborUS_topHits']
     mndf['ClusterID'] = mndf['Study_ID|Celltype_1'].str.split('|').str[1].astype(int)
@@ -169,7 +184,7 @@ def main(thisID) -> None:
     plt.title(f"Mean_AUROC Between Platforms - {nfoDict['sub']}")
     axC = sns.barplot(pndf,x='ClusterID',y='Mean_AUROC')
     axC.set_xlabel('leiden Cluster NO.')
-    plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={'Title': 'AUROC', 'Subject': f"{nfoDict['sub']} Data", 'Author': 'HU Xuesong'})
+    plt.savefig(f"2D_AUROC_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'AUROC'})
     plt.close('all')
 
 if __name__ == "__main__":
