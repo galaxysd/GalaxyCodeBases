@@ -3,6 +3,8 @@ LANEID_Illumina := L001
 LANEID_Salus := L001 L002 L003 L004
 PLATFORMS := Illumina Salus
 
+SRBIN := /share/result/spatial/test_huxs/10x/space-ranger/spaceranger-2.1.1/bin/spaceranger
+
 define platform_rule
 TAGS_$1 := $$(foreach s, $$(SAMPLEID), $1/$$(s)_S1_L001)
 endef
@@ -13,9 +15,11 @@ RAW_Salus := $(foreach a, $(SAMPLEID), $(foreach b, $(LANEID_Salus), $(foreach r
 MERGE_Salus := $(foreach tag,$(TAGS_Salus),raw_$(tag) )
 MERGE_Illumina := $(foreach a, $(SAMPLEID), $(foreach r,R1 R2,raw_Illumina/$(a)_S1_L001 ))
 FASTP_TAGS := $(foreach tag,$(ALLTAGS),fastp_$(tag) )
+SUBFQ_TAGS := $(foreach tag,$(ALLTAGS),sub_$(tag) )
 FQ_DIRS := $(foreach p,raw fastp sub,$(foreach pf,$(PLATFORMS),$(p)_$(pf)))
+SRLOGS := $(foreach smp, $(SAMPLEID), $(foreach pf,$(PLATFORMS),sr_$(pf)/sub_$(pf)_$(smp).log ))
 
-all:	$(MERGE_Salus) $(FASTP_TAGS) $(foreach d,$(FQ_DIRS),$(d).stats)
+all:	$(MERGE_Salus) $(FASTP_TAGS) $(foreach d,$(FQ_DIRS),$(d).stats) $(SRLOGS)
 	@echo $^
 
 define smp_rule
@@ -46,6 +50,16 @@ endef
 $(foreach pf, $(PLATFORMS), $(foreach sample, $(SAMPLEID), $(eval $(call pf_smp_rule,$(pf),$(sample)))) )
 
 define pf_rule
+sr_$(1)/sub_$(1)_mbrain.log: $$(filter sub_$1/mbrain_S1_L001,$$(SUBFQ_TAGS))
+	mkdir -p $$(dir $$@)
+	micromamba run -n salus $$(SRBIN) count --id=srp_$(1)_mbrain --transcriptome=refdata-gex-mm10-2020-A --fastqs=sub_$1 --sample=mbrain \
+    --slide=V12A25-031 --slidefile=V12A25-031.gpr --localcores=36 --localmem=64 --vdrmode=disable \
+    --area=A1 --image=mbrain.tif >$$@
+sr_$(1)/sub_$(1)_mkidney.log: $$(filter sub_$1/mkidney_S1_L001,$$(SUBFQ_TAGS))
+	mkdir -p $$(dir $$@)
+	micromamba run -n salus $$(SRBIN) count --id=srp_$(1)_mkidney --transcriptome=refdata-gex-mm10-2020-A --fastqs=sub_$1 --sample=mkidney \
+    --slide=V12A25-031 --slidefile=V12A25-031.gpr --localcores=36 --localmem=64 --vdrmode=disable \
+    --area=A1 --image=mkidney.tif >$$@
 endef
 $(foreach pf, $(PLATFORMS), $(eval $(call pf_rule,$(pf))))
 
