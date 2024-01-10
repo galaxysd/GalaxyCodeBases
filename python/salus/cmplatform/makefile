@@ -28,8 +28,8 @@ raw_Salus/$1_S1_L001: $$(filter raw4_Salus/$1_S1_%,$$(RAW_Salus))
 #	touch $$@
 sub_Illumina/$1_S1_L001: $$(filter fastp_Illumina/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
-	cp --reflink=auto -l $$^_R1_001.fastq.gz $$@_R1_001.fastq.gz
-	cp --reflink=auto -l $$^_R2_001.fastq.gz $$@_R2_001.fastq.gz
+	cp --reflink=auto -l $$^_R1_001.cut.gz $$@_R1_001.fastq.gz
+	cp --reflink=auto -l $$^_R2_001.cut.gz $$@_R2_001.fastq.gz
 	touch $$@
 endef
 $(foreach sample, $(SAMPLEID), $(eval $(call smp_rule,$(sample))))
