@@ -24,17 +24,17 @@ raw_Salus/$1_S1_L001: $$(filter raw4_Salus/$1_S1_%,$$(RAW_Salus))
 	@cat $$(filter %_R1_001.fastq.gz,$$^) > $$@_R1_001.fastq.gz
 	@cat $$(filter %_R2_001.fastq.gz,$$^) > $$@_R2_001.fastq.gz
 	touch $$@
-raw_Illumina/$1_S1_L001:
-	touch $$@
+.PHONY raw_Illumina/$1_S1_L001:
+#	touch $$@
 sub_Salus/$1_S1_L001: $$(filter fastp_Salus/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
-	micromamba run -n salus seqkit --compress-level 4 -o $@_R1_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R1_001.cut.gz
-	micromamba run -n salus seqkit --compress-level 4 -o $@_R2_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R2_001.cut.gz
+	micromamba run -n salus seqkit --compress-level 4 -o $$@_R1_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R1_001.cut.gz
+	micromamba run -n salus seqkit --compress-level 4 -o $$@_R2_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R2_001.cut.gz
 	touch $$@
 sub_Illumina/$1_S1_L001: $$(filter fastp_Illumina/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
-	cp --reflink=auto -l $^_R1_001.fastq.gz $@_R1_001.fastq.gz
-	cp --reflink=auto -l $^_R2_001.fastq.gz $@_R2_001.fastq.gz
+	cp --reflink=auto -l $$^_R1_001.fastq.gz $$@_R1_001.fastq.gz
+	cp --reflink=auto -l $$^_R2_001.fastq.gz $$@_R2_001.fastq.gz
 	touch $$@
 endef
 $(foreach sample, $(SAMPLEID), $(eval $(call smp_rule,$(sample))))
@@ -55,7 +55,7 @@ endef
 $(foreach pf, $(PLATFORMS), $(eval $(call pf_rule,$(pf))))
 
 %.stats: $(foreach sample, $(SAMPLEID), %/$(sample)_S1_L001)
-	micromamba run -n salus seqkit stats -a -o $@ -j8 $(dir $<)*.fastq.gz
+	micromamba run -n salus seqkit stats -a -o $@ -j8 $(dir $<)*.gz
 
 .PHONY scp:
 	scp makefile s0:/share/result/spatial/data/BoAo_sp/sub/
