@@ -198,6 +198,7 @@ def main(thisID) -> None:
         for platform in PlatformTuple:
             plt.figure()
             ax=sc.pl.embedding(adata[adata.obs['Platform'] == platform], s=135, basis="spatial", color=["leiden"], show=False, title=f'{platform}')
+            plt.axis('off')
             plt.savefig(f"2C_spLeiden_{platform}_{nfoDict['sid']}.pdf", bbox_extra_artists=(ax.get_legend(),), metadata={**metapdf, 'Title': f'spLeiden - {platform}'})
             plt.close('all')
 
