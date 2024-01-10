@@ -28,8 +28,8 @@ raw_Illumina/$1_S1_L001:
 	touch $$@
 sub_Salus/$1_S1_L001: $$(filter fastp_Salus/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
-	micromamba run -n salus seqkit --compress-level 4 -o $@_R1_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $^_R1_001.fastq.gz
-	micromamba run -n salus seqkit --compress-level 4 -o $@_R2_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $^_R2_001.fastq.gz
+	micromamba run -n salus seqkit --compress-level 4 -o $@_R1_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R1_001.cut.gz
+	micromamba run -n salus seqkit --compress-level 4 -o $@_R2_001.fastq.gz -w 200 -j 1 sample -p 0.666 -s 123456 $$^_R2_001.cut.gz
 	touch $$@
 sub_Illumina/$1_S1_L001: $$(filter fastp_Illumina/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
@@ -43,7 +43,9 @@ define pf_smp_rule
 fastp_$1/$2_S1_L001: $$(filter raw_$1/$2_S1_L001,$$(MERGE_Salus) $$(MERGE_Illumina))
 	mkdir -p $$(dir $$@)
 	micromamba run -n salus fastp --thread 4 -z 4 -A --max_len1 28 --max_len2 0 --dont_eval_duplication -q 20 -u 82 -n 4 --average_qual 20 --length_required 28 -y -Y 30 -g -x \
-    -i $$<_R1_001.fastq.gz -I $$<_R2_001.fastq.gz -o $$@_R1_001.fastq.gz -O $$@_R2_001.fastq.gz -j $$@.json -h $$@.html 2>$$@.log
+    -i $$<_R1_001.fastq.gz -I $$<_R2_001.fastq.gz -o $$@_R1_001.fastp.gz -O $$@_R2_001.fastp.gz -j $$@.fastp.json -h $$@.fastp.html 2>$$@.fastp.log
+	micromamba run -n salus cutadapt -Z -j8 --pair-filter=any --minimum-length 28:50 --length 100 --times 0 --report full --json=$$@.cut.json \
+	  -o $$@_R1_001.cut.gz -p $$@_R2_001.cut.gz $$@_R1_001.fastp.gz $$@_R2_001.fastp.gz >$$@.cut.log
 	touch $$@
 endef
 $(foreach pf, $(PLATFORMS), $(foreach sample, $(SAMPLEID), $(eval $(call pf_smp_rule,$(pf),$(sample)))) )
