@@ -24,8 +24,8 @@ raw_Salus/$1_S1_L001: $$(filter raw4_Salus/$1_S1_%,$$(RAW_Salus))
 	@cat $$(filter %_R1_001.fastq.gz,$$^) > $$@_R1_001.fastq.gz
 	@cat $$(filter %_R2_001.fastq.gz,$$^) > $$@_R2_001.fastq.gz
 	touch $$@
-.PHONY raw_Illumina/$1_S1_L001:
-#	touch $$@
+raw_Illumina/$1_S1_L001:
+	touch $$@
 sub_Illumina/$1_S1_L001: $$(filter fastp_Illumina/$1_S1_L001,$$(FASTP_TAGS))
 	mkdir -p $$(dir $$@)
 	cp --reflink=auto -l $$^_R1_001.cut.gz $$@_R1_001.fastq.gz
