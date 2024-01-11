@@ -70,6 +70,7 @@ import numpy as np
 import pandas as pd
 import fast_matrix_market
 import anndata as ad
+import leidenalg
 import scanpy as sc
 sc._settings.ScanpyConfig.n_jobs = -1
 #import squidpy as sq
@@ -99,6 +100,7 @@ def main() -> None:
         mtxPath = os.path.join( *[nfoDict[v] for v in nfoDict['pattern']] )
         print(f"[i]Reading {mtxPath}", file=sys.stderr)
         adata=sc.read_10x_mtx(mtxPath, var_names='gene_symbols', make_unique=True, gex_only=True)
+        adata.var_names_make_unique()
         adata.var['mt'] = adata.var_names.str.startswith('MT-') | adata.var_names.str.startswith('mt-')
         rdata = deepcopy(adata)
         sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=True, inplace=True)
@@ -121,7 +123,7 @@ def main() -> None:
     figA=sns.JointGrid(data=p1df, x="total_counts", y="n_genes_by_counts", hue='Platform', dropna=True)
     #figA.plot(sns.scatterplot, sns.histplot, alpha=.7, edgecolor=".2", linewidth=.5)
     figA.plot_joint(sns.scatterplot, s=12.7, alpha=.6)
-    figA.plot_marginals(sns.histplot, kde=True, alpha=.618)
+    figA.plot_marginals(sns.histplot, kde=False, alpha=.618)
     figA.figure.suptitle(f"Gene to UMI plot - {nfoDict['sub']}")
     figA.set_axis_labels(xlabel='UMIs per Barcode', ylabel='Genes per Barcode')
     figA.savefig(f"1D_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'Gene to UMI plot'})
@@ -159,7 +161,7 @@ def main() -> None:
     plt.title(f"Pearson correlation - {nfoDict['sub']}")
     figC=sns.histplot(p4corr,stat='count',binwidth=0.01)
     plt.savefig(f"2A_Correlation_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'Pearson correlation'})
-
+    '''
     print("[i]Begin fig D. 2B", file=sys.stderr)
     var_names = scDat[0].annDat.var_names.intersection(scDat[1].annDat.var_names)
     xadata = scDat[0].annDat[:, var_names]
@@ -174,7 +176,7 @@ def main() -> None:
     figD.figure.suptitle(f"PCA - {nfoDict['sub']}")
     figD.set_axis_labels(xlabel='PC1', ylabel='PC2')
     figD.savefig(f"2B_rawPCA_{nfoDict['sid']}.pdf", metadata={**metapdf, 'Title': 'PCA'})
-    
+    '''
     import scvi
     for IDlist in ([0],[1],[0,1]):
         rawList = [scDat[i].rawDat for i in IDlist]
@@ -252,3 +254,7 @@ if __name__ == "__main__":
     main()  # time (./nfig1.py human; ./nfig1.py mbrain ; ./nfig1.py mkidney ) | tee nplot.log
 
 # pip install -U --force-reinstall lightning
+"""
+pip3 install git+https://github.com/matplotlib/mplcairo
+pip3 install matplotlib_venn
+"""
