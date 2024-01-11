@@ -258,4 +258,7 @@ if __name__ == "__main__":
 """
 pip3 install git+https://github.com/matplotlib/mplcairo
 pip3 install matplotlib_venn
+
+# salus
+micromamba install 'scvi-tools>1'
 """

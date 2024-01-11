@@ -217,4 +217,15 @@ if __name__ == "__main__":
 ./nfig1.py human; ./nfig2.py human ; ./nfig1.py mbrain; ./nfig2.py mbrain ; ./nfig1.py mkidney; ./nfig2.py mkidney
 time (./nfig1.py human; ./nfig1.py mbrain ; ./nfig1.py mkidney ) | tee nplot.log
 time (./nfig2.py human; ./nfig2.py mbrain ; ./nfig2.py mkidney )
+
+pip install git+https://github.com/gillislab/pyMN#egg=pymetaneighbor
+pip install git+https://github.com/scverse/squidpy@main   # or 'squidpy>=1.2.3'
+pip install git+https://github.com/QIFEIDKN/STAGATE_pyG
+pip install torch_scatter torch_sparse -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+
+# salus
+pip3 install --upgrade --upgrade-strategy only-if-needed torch_geometric
+pip3 install torch_scatter torch_sparse -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+pip3 install --upgrade --upgrade-strategy only-if-needed ~/conda/wheels/STAGATE_pyG-1.0.0-py3-none-any.whl  ~/conda/wheels/pyMetaNeighbor-0.1.0-py3-none-any.whl
+pip3 install --upgrade --upgrade-strategy only-if-needed ~/conda/wheels/squidpy-1.3.2.dev9+g4fdb801-py3-none-any.whl
 '''
