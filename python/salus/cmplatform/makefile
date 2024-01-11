@@ -19,7 +19,8 @@ SUBFQ_TAGS := $(foreach tag,$(ALLTAGS),sub_$(tag) )
 FQ_DIRS := $(foreach p,raw fastp sub,$(foreach pf,$(PLATFORMS),$(p)_$(pf)))
 SRLOGS := $(foreach smp, $(SAMPLEID), $(foreach pf,$(PLATFORMS),sr_$(pf)/sub_$(pf)_$(smp).log ))
 
-all:	$(MERGE_Salus) $(FASTP_TAGS) $(foreach d,$(FQ_DIRS),$(d).stats) $(SRLOGS)
+#all:	$(MERGE_Salus) $(FASTP_TAGS) $(foreach d,$(FQ_DIRS),$(d).stats) $(SRLOGS)
+all:	$(foreach d,$(FQ_DIRS),$(d).stats) $(SRLOGS)
 	@echo $^
 
 define smp_rule
