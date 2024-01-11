@@ -90,6 +90,7 @@ class scDatItem(NamedTuple):
         return f'[sc:{self.name}, BC*Gene: Raw={self.rawDat.shape}, Filtered={self.annDat.shape}]'
 
 def main() -> None:
+    plt.switch_backend('pdf')
     scDat = []
     #nfoDict = SamplesDict[thisID]
     print("[i]Start.", file=sys.stderr)
