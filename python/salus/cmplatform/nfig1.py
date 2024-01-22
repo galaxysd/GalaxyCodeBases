@@ -260,5 +260,5 @@ pip3 install git+https://github.com/matplotlib/mplcairo
 pip3 install matplotlib_venn
 
 # salus
-micromamba install 'scvi-tools>1'
+micromamba install scvi-tools[version='>1'] # Changing lightning-2.1.3-pyhd8ed1ab_1 ==> lightning-2.0.9.post0-pyhd8ed1ab_0
 """
