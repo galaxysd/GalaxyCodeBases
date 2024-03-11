@@ -29,7 +29,9 @@ printf '#!/bin/sh\nPYDEVD_DISABLE_FILE_VALIDATION=1 micromamba run -n nb python3
 chmod +x ${MAMBA_ROOT_PREFIX}/envs/nb/bin/nb
 ls -l ${MAMBA_ROOT_PREFIX}/envs/nb/bin/nb
 
-#micromamba install -c conda-forge ipykernel r-irkernel -n salus
+exit
+
+micromamba install -c conda-forge ipykernel r-irkernel -n salus
 micromamba run -n nb python -m nb_conda_kernels list
 
 micromamba run -n salus jupyter kernelspec list
