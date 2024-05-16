@@ -38,7 +38,7 @@ for onefactor in factors:
     tmpDF[colids[1]]=diffout[colids[1]]
     plt.figure()
     sns.jointplot(data=tmpDF, x=colids[0], y=colids[1],kind="scatter",marginal_ticks=True,s=1)
-    fig.suptitle(f'Corr: {onecorr}')
+    plt.suptitle(f'{onefactor}, Corr: {onecorr}')
     pdf.savefig()
     plt.close()
 pdf.close()
