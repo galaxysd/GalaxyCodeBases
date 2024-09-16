@@ -1,0 +1,45 @@
+name: spacemake
+channels:
+    - bih-cubi
+    - conda-forge
+    - bioconda
+    - defaults
+dependencies:
+    - python>=3.6,<3.12
+    - snakemake>=5.32.0,<6.4.0
+    - star>=2.7.1a
+    - samtools>=1.13
+    - sambamba>=0.6.8
+    - bowtie2>=2.3.4
+    - bcl2fastq2>=2.19
+    - fastqc>=0.11.9
+    - pip>=21.1
+    - r-base>=4.0.3
+    - r-rmarkdown>=2.7
+    - r-tidyverse>=1.3.1
+    - r-kableextra>=1.3.4
+    - r-cowplot>=1.1.1
+    - r-pals>=1.7
+    - r-hexbin
+    - r-scales
+    - pysam>=0.16.0.1
+    - pot
+    - openjdk<11.1
+    - pigz
+    - opencv
+    - pandas>=1.3.0,<=1.5.1
+    - scanpy>=1.8.1
+    - leidenalg>=0.8.1
+    - numpy>=1.18.1
+    - more-itertools>=8.7.0
+    - biopython>=1.78
+    - scipy>=1.5.0
+    - scikit-misc>=0.1.3
+    - scikit-learn>=0.23.1
+    - squidpy>=1.0.0
+    - recommonmark
+    - matplotlib
+    - anndata
+    - pip:
+        - novosparc
+        - spacemake

@@ -1,0 +1,44 @@
+name: openst
+channels:
+    - nvidia
+    - conda-forge
+    - deliangus
+    - https://software.repos.intel.com/python/conda/
+    - nodefaults
+dependencies:
+    - python>=3.9,<3.12
+    - qtpy
+    - napari
+    - anndata
+    - numpy
+    - scipy
+    - matplotlib
+    - pandas
+    - h5py
+    - tqdm
+    - scikit-learn
+    - natsort
+    - joblib
+    - dask
+    - dask-image
+    - kornia
+    - scikit-image==0.19.3
+    - opencv
+    - cellpose
+    - pyqt
+    - pyqt5-sip
+    - pyqt5-qt5
+    - ome-zarr
+    - napari-ome-zarr
+    - s3fs
+    - fsspec
+    - aiobotocore
+    - botocore
+    - jmespath
+    - pytorch-cuda=12.4
+    - pytorch
+    - torchvision
+    - torchaudio
+    - pyqtgraph
+    - pip:
+        - openst
