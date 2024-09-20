@@ -39,6 +39,7 @@ dependencies:
     - pytorch
     - torchvision
     - torchaudio
+    - llvm-openmp
     - pyqtgraph
     - pip:
         - openst
