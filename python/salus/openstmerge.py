@@ -34,6 +34,27 @@ def cs_read(incsv, dgepath):
     csdfused = csdf[csdf['h5ad_path'].notna()].drop(columns=['z_offset'])
     return csdfused
 
+def sp_concat(csdf):
+    adatas = []
+    for index, row in csdf.iterrows():
+        h5ad_path = row['h5ad_path']
+        adata = sc.read_h5ad(h5ad_path)
+        logger.info(f'Load anndata {row["puck_id"]}: {adata.shape}')
+        # Apply x_offset and y_offset
+        x_offset = row['x_offset']
+        y_offset = row['y_offset']
+        # Shift the spatial coordinates
+        if 'spatial' in adata.obsm.keys():
+            # Create a 1D array for offsets
+            offsets = np.array([x_offset, y_offset])
+            adata.obsm['spatial'] += offsets  # Adjust the spatial coordinates
+            logger.info(f'Shift anndata {row["puck_id"]}: x+={x_offset}, y+={y_offset}')
+        # Append the modified AnnData object to the list
+        adatas.append(adata)
+    # Step 2: Use anndata.concat to merge all AnnData objects with outer join on .var
+    combined_adata = ad.concat(adatas, join='outer', label='source')
+    return combined_adata
+
 def main() -> None:
     if len(sys.argv) < 4:
         print(f'Usage: {sys.argv[0]} <coordinate_system.csv> <spacemake dge path> <outpath>', file=sys.stderr, flush=True)
@@ -43,9 +64,15 @@ def main() -> None:
         dgepath = sys.argv[2]
         outpath = sys.argv[3]
         logger.info(f'Coordinate:[{incsv}],DGE:[{dgepath}] => [{outpath}]/xxx')
-    csdf = pd.cs_read(incsv,dgepath)
+    csdf = cs_read(incsv,dgepath)
     logger.info(f'Load Coordinate_system: {len(csdf)}')
     print(csdf)
+    os.makedirs(outpath, exist_ok=True)
+    combined_adata = sp_concat(csdf)
+    logger.info(f'Merged anndata: {combined_adata.shape}')
+    h5adfilename = os.path.join(outpath, 'raw_puck_collection.h5ad')
+    combined_adata.write_h5ad(h5adfilename,compression='lzf')
+    logger.info(f'Saved anndata: {h5adfilename}')
 
 if __name__ == "__main__":
     main()
