@@ -159,4 +159,4 @@ def main() -> None:
     logger.info(f'Exported anndata: {mtxpath}')
 
 if __name__ == "__main__":
-    main()
+    main()  # ./openstmerge.py puck_data/fc_2_coordinate_system.csv projects/mbrain/processed_data/openst_musbrain/illumina/complete_data/dge combined_mtx4
