@@ -68,7 +68,7 @@ def export_adata(adata, path):
         barcodes_with_spatial.index.to_series().to_csv(
             barcodes_path,
             sep="\t",
-            index=True,
+            index=False,
             header=False,
             compression=compression_parameters
         )
