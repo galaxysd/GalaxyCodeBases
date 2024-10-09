@@ -37,5 +37,7 @@ micromamba run -n nb python -m nb_conda_kernels list
 micromamba run -n salus jupyter kernelspec list
 micromamba run -n salus python -m ipykernel install --user --name salus --display-name "Python (salus)"
 micromamba run -n salusg python -m ipykernel install --user --name salusg --display-name "Python (salusG)"
+# IRkernel::installspec(name = 'atacR', displayname = 'atacR')
+Rscript -e "IRkernel::installspec(name = 'atacR2', displayname = 'atacR2')"
 
 micromamba run -n nb jupyter kernelspec list
