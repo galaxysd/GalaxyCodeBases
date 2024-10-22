@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #micromamba create -n nb
-#micromamba install -n nb -c conda-forge jupyterlab python[version='>=3.12'] git[version='>=2.44'] conda   #nodejs "libuv[version='>=1.48']"
+#micromamba install -n nb -c conda-forge jupyterlab ipywidgets python[version='>=3.12'] git[version='>=2.44'] conda   #nodejs "libuv[version='>=1.48']"
 ######micromamba run -n nb pip3 wheel --no-input --use-pep517 --no-deps -w ./pywhls git+https://github.com/Anaconda-Platform/nb_conda_kernels.git
 #micromamba run -n nb pip3 install --no-input --use-pep517 git+https://github.com/Anaconda-Platform/nb_conda_kernels.git
 
