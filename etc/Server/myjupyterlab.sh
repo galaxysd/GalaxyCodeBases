@@ -31,7 +31,7 @@ ls -l ${MAMBA_ROOT_PREFIX}/envs/nb/bin/nb
 
 exit
 
-micromamba install -c conda-forge ipykernel r-irkernel -n salus
+micromamba install -c conda-forge ipykernel ipywidgets r-irkernel -n salus
 micromamba run -n nb python -m nb_conda_kernels list
 
 micromamba run -n salus jupyter kernelspec list
