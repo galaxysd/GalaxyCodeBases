@@ -30,7 +30,7 @@ void worker(int_least16_t worker_id) {
 	uint64_t index = 0;
 	regmatch_t matches[2];
 	char **splitSets = worker->tokens;
-	char buffer[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
+	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
 	char fovRC[9] = {0};                // R123C567
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
@@ -38,20 +38,20 @@ void worker(int_least16_t worker_id) {
 			break;
 		}
 		fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
-		memcpy(buffer, (char *)fstBCdata_p->name, sizeof(fstBCdata_p->name));
-		assert(buffer[sizeof(fstBCdata_p->name)] == '\0');
-		printf("%d\t[%s] <--\n", index, buffer);
+		memcpy(readName, (char *)fstBCdata_p->name, sizeof(fstBCdata_p->name));
+		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
+		printf("%d\t[%s] <--\n", index, readName);
 		int_least16_t RowCol[2] = {0};
-		double oldXY[2] = {0};
-		double newXY[2];
+		double oldXY[2] = {0.0};
+		double newXY[2] = {0.0};
 		char *delim = ":";
-		if (regexec(&Parameters.regex, buffer, 2, matches, 0) != 0) {
+		if (regexec(&Parameters.regex, readName, 2, matches, 0) != 0) {
 			continue;
 		}
 		//__builtin_dump_struct(&matches[0], &printf);
 		//__builtin_dump_struct(&matches[1], &printf);
 		size_t relen = matches[0].rm_eo - matches[0].rm_so;
-		strncpy_no_colon(fovRC, buffer + matches[0].rm_so, relen);
+		strncpy_no_colon(fovRC, readName + matches[0].rm_so, relen);
 		// fovRC[relen-1] = '\0';
 		assert(fovRC[sizeof(fovRC) - 1] == '\0');
 		RowCol[0] = atoi(fovRC + 1);
@@ -62,27 +62,34 @@ void worker(int_least16_t worker_id) {
 			delim = ":";
 		}
 		assert(relen == (delim[0] == ':' ? sizeof(fovRC) : sizeof(fovRC) - 1));
-		printf("%d\t[%s], delim:[%s], fov[%s]\n", index, buffer, delim, fovRC);
+		printf("%d\t[%s], delim:[%s], fov[%s]\n", index, readName, delim, fovRC);
 		const char *theDelim = delim;
 		char *saveptr = NULL;
-		char *token = strtok_r(buffer, theDelim, &saveptr);
-		printf("-f- [%zu] [%zu] [%s]\n", buffer, token, token);
+		char *token = strtok_r(readName, theDelim, &saveptr);
+		//printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
 		if (unlikely(token == NULL)) {
-			printf("-b->\t[%s], delim:[%s]\n", buffer, theDelim);
+			printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
 			break;
 		} else {
 			int_least16_t idx = 0;
-			for (idx = 0; likely((token = strtok_r(NULL, theDelim, &saveptr)) != NULL); idx++) {
+			for (idx = 0; likely(token != NULL); token = strtok_r(NULL, theDelim, &saveptr), idx++) {
 				splitSets[idx] = token;
-				printf("-s- %d:[%zu] [%s]\n", idx, splitSets[idx], token);
+				//printf("-s- %d:[%zu] [%s]\n", idx, splitSets[idx], token);
 			}
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
-			printf("[%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
-			printf("[%s]->[%s]=(%d,%d), X:%f Y:%f\n", buffer, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
+			printf("RC: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
+			printf("[%s]->[%s]=(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
 			for (idx = 0; idx < MAXDELIMITEMS; idx++) {
 				printf("-t- %d:[%zu] [%s]\n", idx, splitSets[idx], splitSets[idx]);
 			}
+		}
+		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
+			oldXY[0] -= FOV_X_MIN;
+			oldXY[1] -= FOV_Y_MIN;
+			// transCorrd(new_pos, pos_x, pos_y, row, col);
+			printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
+			snprintf(fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readName, newXY[0], newXY[1]);
 		}
 	}
 }
