@@ -1,4 +1,5 @@
-#include <stdio.h>  // printf, fopen
+#include <stdio.h>   // printf, fopen
+#include <stdlib.h>  // calloc
 
 #include "common.h"
 
@@ -27,7 +28,6 @@ parameters_t Parameters = {
     .fqValid = 0,
 };
 // static_assert(VARTYPE(Parameters.jobDataState)==1, "It is not uint8_t");
-workerArray_t *workerArray;
 
 int main(int argc, char *argv[]) {
 	if (argc != 3) {
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
 	printf("[i]%s %s %s\n", argv[0], argv[1], argv[2]);
 	Parameters.inFastqFilename = argv[1];
 	// 没printf拖时间就得加 barrier
+	fqReader_init();
 	Parameters.outSpatialFilename = argv[2];
 	errno = 0; /* extern int, but do not declare errno manually */
 	Parameters.outfp = fopen(Parameters.outSpatialFilename, "w");
@@ -44,10 +45,14 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "[x]Error on opening output file [%s]: %s.\n", Parameters.outSpatialFilename, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	// defLoop_p = uv_default_loop();
-
 	int_least16_t n_threads = 1;
-	workerArray_t *workerArray = (workerArray_t *)calloc(n_threads, sizeof(workerArray_t));
+	Parameters.workerArray = (workerArray_t *)calloc(n_threads, sizeof(workerArray_t));
+
+	// defLoop_p = uv_default_loop();
+	{
+		fill_worker(0);
+	}
+	fprintf(stderr, "done: %s.\n", strerror(errno));
 
 #ifndef RELEASE
 #if __has_builtin(__builtin_dump_struct)
@@ -58,7 +63,7 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
-	free(workerArray);
+	free(Parameters.workerArray);
 	fclose(Parameters.outfp);
 	fprintf(stderr, "[i]Run to the end.\n");
 	return 0;
