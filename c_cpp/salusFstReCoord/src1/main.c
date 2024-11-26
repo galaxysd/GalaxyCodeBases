@@ -45,12 +45,13 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "[x]Error on opening output file [%s]: %s.\n", Parameters.outSpatialFilename, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
-	int_least16_t n_threads = 1;
+	int_least16_t n_threads = 2;  // for multi-threads demo, we use threads 1 of [0,1].
 	Parameters.workerArray = (workerArray_t *)calloc(n_threads, sizeof(workerArray_t));
 
 	// defLoop_p = uv_default_loop();
 	{
-		fill_worker(0);
+		fill_worker(1);
+		worker(1);
 	}
 	fprintf(stderr, "done: %s.\n", strerror(errno));
 
@@ -64,6 +65,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	free(Parameters.workerArray);
+	fqReader_destroy();
 	fclose(Parameters.outfp);
 	fprintf(stderr, "[i]Run to the end.\n");
 	return 0;
