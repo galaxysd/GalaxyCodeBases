@@ -55,6 +55,8 @@ void fill_worker(int_least16_t worker_id) {
 					} else {
 						STRcpySTR(fstBCdata_p->comment, seq->comment.s);
 					}
+				} else {
+					fstBCdata_p->comment = strdup(seq->comment.s);
 				}
 			} else {
 				if (unlikely(fstBCdata_p->comment != NULL)) {
@@ -66,7 +68,7 @@ void fill_worker(int_least16_t worker_id) {
 			fprintf(stderr, "- %llu -\n", index);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->name);
 			// snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->name), "%s", fstBCdata_p->name);
-			fprintf(stderr, "->Name:[%s]\n", Parameters.buffer);
+			fprintf(stderr, "->Name:[%s] Comment:[%s]\n", Parameters.buffer, fstBCdata_p->comment);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->seq);
 			fprintf(stderr, "->Sequ:[%s]\n", Parameters.buffer);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->qual);
@@ -76,6 +78,8 @@ void fill_worker(int_least16_t worker_id) {
 			fstBCdata_p->name[0] = '\0';
 			fstBCdata_p->seq[0] = '\0';
 			fstBCdata_p->qual[0] = '\0';
+			free(fstBCdata_p->comment);
+			fstBCdata_p->comment = NULL;
 		}
 		// continue;
 	}
