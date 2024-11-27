@@ -47,16 +47,12 @@ void fill_worker(int_least16_t worker_id) {
 			STRcpyARRAY(fstBCdata_p->seq, seq->seq.s);
 			STRcpyARRAY(fstBCdata_p->qual, seq->qual.s);
 			if (unlikely(seq->comment.l > 0)) {
-				if (likely(fstBCdata_p->comment != NULL)) {
-					size_t oldSize = MALLOCSIZE(fstBCdata_p->comment);
-					if (unlikely(1 + seq->comment.l > oldSize)) {
-						free(fstBCdata_p->comment);
-						fstBCdata_p->comment = strdup(seq->comment.s);
-					} else {
-						STRcpySTR(fstBCdata_p->comment, seq->comment.s);
-					}
-				} else {
+				size_t oldSize = MALLOCSIZE(fstBCdata_p->comment);
+				if (unlikely(1 + seq->comment.l > oldSize)) {
+					free(fstBCdata_p->comment);
 					fstBCdata_p->comment = strdup(seq->comment.s);
+				} else {
+					STRcpySTR(fstBCdata_p->comment, seq->comment.s);
 				}
 			} else {
 				if (unlikely(fstBCdata_p->comment != NULL)) {
