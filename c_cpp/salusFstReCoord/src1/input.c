@@ -41,17 +41,19 @@ void fill_worker(int_least16_t worker_id) {
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
 		if (kseq_read(seq) >= MINBARCODELEN) {
-			strncpy((char *)fstBCdata_p->name, seq->name.s, sizeof(fstBCdata_p->name));
+			// strncpy((char *)fstBCdata_p->name, seq->name.s, sizeof(fstBCdata_p->name));
+			STRcpyARRAY(fstBCdata_p->name, seq->name.s);
 			/* seq->comment.s is discarded */
-			strncpy((char *)fstBCdata_p->seq, seq->seq.s, sizeof(fstBCdata_p->seq));
-			strncpy((char *)fstBCdata_p->qual, seq->qual.s, sizeof(fstBCdata_p->qual));
+			STRcpyARRAY(fstBCdata_p->seq, seq->seq.s);
+			STRcpyARRAY(fstBCdata_p->qual, seq->qual.s);
 #ifndef RELEASE
 			fprintf(stderr, "- %llu -\n", index);
-			snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->name), "%s", fstBCdata_p->name);
+			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->name);
+			// snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->name), "%s", fstBCdata_p->name);
 			fprintf(stderr, "->Name:[%s]\n", Parameters.buffer);
-			snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->seq), "%s", fstBCdata_p->seq);
+			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->seq);
 			fprintf(stderr, "->Sequ:[%s]\n", Parameters.buffer);
-			snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->qual), "%s", fstBCdata_p->qual);
+			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->qual);
 			fprintf(stderr, "->Qual:[%s]\n", Parameters.buffer);
 #endif
 		} else {

@@ -2,14 +2,14 @@
 
 #include "common.h"
 
-static inline void transCorrd(double *ChipXY, const double* FovXY, const int_least16_t* FovRowCol) {
+static inline void transCorrd(double *ChipXY, const double *FovXY, const int_least16_t *FovRowCol) {
 	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
 	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
 	ChipXY[0] = floor(new_x * 100.0) / 100.0;
 	ChipXY[1] = floor(new_y * 100.0) / 100.0;
 }
 
-static inline char *strncpy_no_colon(char *dest, const char *src, size_t n) {
+static inline char *strncpy_no_colon(char *restrict dest, const char *restrict src, size_t n) {
 	size_t j = 0;  // destination index
 	for (size_t i = 0; i < n && src[i] != '\0'; i++) {
 		if (src[i] != ':') dest[j++] = src[i];
@@ -23,17 +23,18 @@ void worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.workerArray[worker_id];
 	regmatch_t matches[2];
 	char **splitSets = worker->tokens;
+	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
-	char fovRC[9] = {0};                // R123C567
+	char fovRC[9] = {0};                  // R123C567
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
 		if (fstBCdata_p->name[0] == 0) {
 			break;
 		}
 		fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
-		memcpy(readName, (char *)fstBCdata_p->name, sizeof(fstBCdata_p->name));
+		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
-		printf("%d\t[%s] <--\n", index, readName);
+		printf("%llu\t[%s] %d <--\n", index, readName, readName[sizeof(fstBCdata_p->name)]);
 		int_least16_t RowCol[2] = {0};
 		double oldXY[2] = {0.0};
 		double newXY[2] = {0.0};
@@ -55,11 +56,11 @@ void worker(int_least16_t worker_id) {
 			delim = ":";
 		}
 		assert(relen == (delim[0] == ':' ? sizeof(fovRC) : sizeof(fovRC) - 1));
-		printf("%d\t[%s], delim:[%s], fov[%s]\n", index, readName, delim, fovRC);
+		printf("%llu\t[%s], delim:[%s], fov[%s]\n", index, readName, delim, fovRC);
 		const char *theDelim = delim;
 		char *saveptr = NULL;
 		char *token = strtok_r(readName, theDelim, &saveptr);
-		//printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
+		// printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
 		if (unlikely(token == NULL)) {
 			printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
 			break;
@@ -67,14 +68,14 @@ void worker(int_least16_t worker_id) {
 			int_least16_t idx = 0;
 			for (idx = 0; likely(token != NULL); token = strtok_r(NULL, theDelim, &saveptr), idx++) {
 				splitSets[idx] = token;
-				//printf("-s- %d:[%zu] [%s]\n", idx, splitSets[idx], token);
+				// printf("-s- %d:[%zu] [%s]\n", idx, splitSets[idx], token);
 			}
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
 			printf("oldXY: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
 			printf("[%s]->[%s]=RC(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
 			for (idx = 0; idx < MAXDELIMITEMS; idx++) {
-				printf("-t- %d:[%zu] [%s]\n", idx, splitSets[idx], splitSets[idx]);
+				printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
 			}
 		}
 		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
@@ -82,7 +83,7 @@ void worker(int_least16_t worker_id) {
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
 			printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
-			snprintf(fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readName, newXY[0], newXY[1]);
+			snprintf((char *)fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readName, newXY[0], newXY[1]);
 		}
 	}
 }

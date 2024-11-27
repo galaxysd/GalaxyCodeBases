@@ -3,10 +3,6 @@
 
 #include "common.h"
 
-#ifdef TARGET_OS_OSX
-#include <malloc/malloc.h>
-#endif
-
 const char *argp_program_version = "fstBC transCorrd demo 0.1 @" __TIME__ "," __DATE__;
 const char *argp_program_bug_address = "huxs@salus-bio.com";
 
