@@ -62,7 +62,7 @@ void fill_worker(int_least16_t worker_id) {
 					fstBCdata_p->comment = NULL;
 				}
 			}
-#ifndef RELEASE
+#ifdef DEBUG
 			fprintf(stderr, "- %llu -\n", index);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->name);
 			// snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->name), "%s", fstBCdata_p->name);
