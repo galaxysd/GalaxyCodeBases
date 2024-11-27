@@ -25,7 +25,8 @@ void worker(int_least16_t worker_id) {
 	char **splitSets = worker->tokens;
 	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
-	char fovRC[9] = {0};                  // R123C567
+	char readSeq[BARCODELEN + 1] = {0};
+	char fovRC[9] = {0};  // R123C567
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
 		if (fstBCdata_p->name[0] == 0) {
@@ -34,7 +35,7 @@ void worker(int_least16_t worker_id) {
 		fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
 		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
-		printf("%llu\t[%s] %d <--\n", index, readName, readName[sizeof(fstBCdata_p->name)]);
+		printf("###### %llu\t[%s] %d <--\n", index, readName, readName[sizeof(fstBCdata_p->name)]);
 		int_least16_t RowCol[2] = {0};
 		double oldXY[2] = {0.0};
 		double newXY[2] = {0.0};
@@ -62,7 +63,7 @@ void worker(int_least16_t worker_id) {
 		char *token = strtok_r(readName, theDelim, &saveptr);
 		// printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
 		if (unlikely(token == NULL)) {
-			printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
+			// printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
 			break;
 		} else {
 			int_least16_t idx = 0;
@@ -74,16 +75,23 @@ void worker(int_least16_t worker_id) {
 			oldXY[0] = atof(splitSets[idx - 2]);
 			printf("oldXY: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
 			printf("[%s]->[%s]=RC(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
-			for (idx = 0; idx < MAXDELIMITEMS; idx++) {
-				printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
-			}
+			/* for (idx = 0; idx < MAXDELIMITEMS; idx++) {
+			    printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
+			} */
 		}
 		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
 			oldXY[0] -= FOV_X_MIN;
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
 			printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
-			snprintf((char *)fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readName, newXY[0], newXY[1]);
+			ARRAYcpySTR(readSeq, fstBCdata_p->seq);
+			snprintf((char *)fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readSeq, newXY[0], newXY[1]);
+			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaStr);
+			fprintf(stderr, "->SpatiaStr:[%s]\n", Parameters.buffer);
+			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaDat.seq);
+			fprintf(stderr, "->Seq:[%s]\n", Parameters.buffer);
+			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaDat.xy);
+			fprintf(stderr, "->XY:[%s]\n", Parameters.buffer);
 		}
 	}
 }

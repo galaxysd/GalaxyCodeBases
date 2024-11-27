@@ -43,6 +43,20 @@ extern "C" {
 #error "Unknown compiler"
 #endif
 
+#ifdef _MSC_VER
+    #define forceinline static __forceinline
+#elif defined(__GNUC__)
+    #define forceinline static inline __attribute__((__always_inline__))
+#elif defined(__CLANG__)
+    #if __has_attribute(__always_inline__)
+        #define forceinline static inline __attribute__((__always_inline__))
+    #else
+        #define forceinline static inline
+    #endif
+#else
+    #define forceinline static inline
+#endif
+
 #include <assert.h>
 #include <ctype.h>      // in "kseq.h"
 #include <errno.h>      // extern int errno
@@ -52,7 +66,7 @@ extern "C" {
 #include <stdint.h>     // in "stdatomic.h"
 #include <stdio.h>      // FILE
 #include <stdlib.h>     // in "kseq.h"
-#include <string.h>     // in "kseq.h", memccpy
+#include <string.h>     // in "kseq.h", memccpy, and so on.
 
 #ifndef KSEQ_INIT
 #include <zlib-ng.h>
@@ -93,6 +107,20 @@ KSEQ_DECLARE(gzFile)
 		if (after_c) {                                     \
 			*after_c = '\0';                               \
 		}                                                  \
+	} while (0)
+
+#define STRcpySTR(d, s)                                    \
+	do {                                                   \
+		size_t dst_size = MALLOCSIZE(d);                   \
+		if (dst_size == 0) {                               \
+			dst_size = sizeof(d);                          \
+		}                                                  \
+		assert(dst_size >= 1 + strlen(s));                 \
+		char* after_c = memccpy((d), (s), '\0', dst_size); \
+		if (after_c) {                                     \
+			*after_c = '\0';                               \
+		}                                                  \
+		assert(after_c == NULL);                           \
 	} while (0)
 
 #define FSTREPOS_VERSION "1.0.1"
@@ -190,6 +218,7 @@ https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-termina
 // #pragma pack(push, 1)
 struct fstBCdata_s {
 	int8_t name[MAXFQIDLEN];
+	char* comment;
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
 };
@@ -198,7 +227,8 @@ typedef struct fstBCdata_s fstBCdata_t;
 union fstBCoutput_u {
 	int8_t SpatiaStr[BARCODELEN + 1 + MAXCOORDSTRLEN];
 	struct SpatiaDat_s {
-		int8_t seq[BARCODELEN + 1];
+		int8_t seq[BARCODELEN];
+		int8_t delim;
 		int8_t xy[MAXCOORDSTRLEN];
 	} SpatiaDat;
 };
