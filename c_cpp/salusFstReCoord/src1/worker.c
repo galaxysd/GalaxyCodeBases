@@ -2,17 +2,11 @@
 
 #include "common.h"
 
-static inline void transCorrd(double *new_pos, double pos_x, double pos_y, int_least16_t fovC, int_least16_t fovR) {
-	/*
-	    : pos_x - The original x coordinates
-	    : pos_y - The original y coordinates
-	    : fovR - The row number of fov
-	    : fovC - The col number of fov
-	*/
-	double new_x = (fovC - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - pos_y - 1;
-	double new_y = pos_x + (fovR - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
-	new_pos[0] = floor(new_x * 100) / 100;
-	new_pos[1] = floor(new_y * 100) / 100;
+static inline void transCorrd(double *ChipXY, const double* FovXY, const int_least16_t* FovRowCol) {
+	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
+	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
+	ChipXY[0] = floor(new_x * 100.0) / 100.0;
+	ChipXY[1] = floor(new_y * 100.0) / 100.0;
 }
 
 static inline char *strncpy_no_colon(char *dest, const char *src, size_t n) {
@@ -27,7 +21,6 @@ static inline char *strncpy_no_colon(char *dest, const char *src, size_t n) {
 
 void worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.workerArray[worker_id];
-	uint64_t index = 0;
 	regmatch_t matches[2];
 	char **splitSets = worker->tokens;
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
@@ -78,8 +71,8 @@ void worker(int_least16_t worker_id) {
 			}
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
-			printf("RC: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
-			printf("[%s]->[%s]=(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
+			printf("oldXY: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
+			printf("[%s]->[%s]=RC(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
 			for (idx = 0; idx < MAXDELIMITEMS; idx++) {
 				printf("-t- %d:[%zu] [%s]\n", idx, splitSets[idx], splitSets[idx]);
 			}
@@ -87,7 +80,7 @@ void worker(int_least16_t worker_id) {
 		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
 			oldXY[0] -= FOV_X_MIN;
 			oldXY[1] -= FOV_Y_MIN;
-			// transCorrd(new_pos, pos_x, pos_y, row, col);
+			transCorrd(newXY, oldXY, RowCol);
 			printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
 			snprintf(fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readName, newXY[0], newXY[1]);
 		}
