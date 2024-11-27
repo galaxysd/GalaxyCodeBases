@@ -44,17 +44,17 @@ extern "C" {
 #endif
 
 #ifdef _MSC_VER
-    #define forceinline static __forceinline
+#define FORCEINLINE static __forceinline
 #elif defined(__GNUC__)
-    #define forceinline static inline __attribute__((__always_inline__))
+#define FORCEINLINE static inline __attribute__((__always_inline__))
 #elif defined(__CLANG__)
-    #if __has_attribute(__always_inline__)
-        #define forceinline static inline __attribute__((__always_inline__))
-    #else
-        #define forceinline static inline
-    #endif
+#if __has_attribute(__always_inline__)
+#define FORCEINLINE static inline __attribute__((__always_inline__))
 #else
-    #define forceinline static inline
+#define FORCEINLINE static inline
+#endif
+#else
+#define FORCEINLINE static inline
 #endif
 
 #include <assert.h>
