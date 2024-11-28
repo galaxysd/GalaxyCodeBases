@@ -48,12 +48,14 @@
 #define COM_LVL_DEFAULT 3 // was 2
 #endif
 
-const int com_lvls[4] = {
-	ISAL_DEF_LVL0_DEFAULT,
-	ISAL_DEF_LVL1_DEFAULT,
-	ISAL_DEF_LVL2_DEFAULT,
-	ISAL_DEF_LVL3_DEFAULT
-};
+#ifndef com_lvls
+#define com_lvls (const int[]){ \
+	ISAL_DEF_LVL0_DEFAULT,      \
+	ISAL_DEF_LVL1_DEFAULT,      \
+	ISAL_DEF_LVL2_DEFAULT,      \
+	ISAL_DEF_LVL3_DEFAULT       \
+}
+#endif
 
 typedef struct
 {
