@@ -48,8 +48,8 @@
 #define COM_LVL_DEFAULT 3 // was 2
 #endif
 
-#ifndef com_lvls
-#define com_lvls (const int[]){ \
+#ifndef COM_LVLS
+#define COM_LVLS (const int[]){ \
 	ISAL_DEF_LVL0_DEFAULT,      \
 	ISAL_DEF_LVL1_DEFAULT,      \
 	ISAL_DEF_LVL2_DEFAULT,      \
@@ -201,7 +201,7 @@ gzFile gzopen(const char *in, const char *mode)
 		fp->zstream->avail_in = 0;
 		fp->zstream->flush = NO_FLUSH;
 		fp->zstream->level = COM_LVL_DEFAULT;
-		fp->zstream->level_buf_size = com_lvls[fp->zstream->level];
+		fp->zstream->level_buf_size = COM_LVLS[fp->zstream->level];
 		fp->zstream->level_buf = (uint8_t *)calloc(fp->zstream->level_buf_size, sizeof(uint8_t));
 		fp->zstream->gzip_flag = IGZIP_GZIP_NO_HDR;
 		fp->zstream->avail_out = fp->buf_out_size;
@@ -262,7 +262,7 @@ gzFile gzdopen(int fd, const char *mode)
 		fp->zstream->avail_in = 0;
 		fp->zstream->flush = NO_FLUSH;
 		fp->zstream->level = COM_LVL_DEFAULT;
-		fp->zstream->level_buf_size = com_lvls[fp->zstream->level];
+		fp->zstream->level_buf_size = COM_LVLS[fp->zstream->level];
 		fp->zstream->level_buf = (uint8_t *)calloc(fp->zstream->level_buf_size, sizeof(uint8_t));
 		fp->zstream->gzip_flag = IGZIP_GZIP_NO_HDR;
 		fp->zstream->avail_out = fp->buf_out_size;
@@ -467,7 +467,7 @@ int set_compress_level(gzFile fp, int level)
 	if (fp->zstream->level != level)
 	{
 		fp->zstream->level = level;
-		fp->zstream->level_buf_size = com_lvls[fp->zstream->level];
+		fp->zstream->level_buf_size = COM_LVLS[fp->zstream->level];
 		fp->zstream->level_buf = (uint8_t *)realloc(fp->zstream->level_buf,
 				fp->zstream->level_buf_size * sizeof(uint8_t));
 	}
