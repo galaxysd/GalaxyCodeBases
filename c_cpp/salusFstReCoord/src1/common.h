@@ -224,18 +224,20 @@ struct fstBCdata_s {
 #endif
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
+	double newXY[2];
 };
 typedef struct fstBCdata_s fstBCdata_t;
-
+/*
 union fstBCoutput_u {
-	int8_t SpatiaStr[BARCODELEN + 1 + MAXCOORDSTRLEN];
-	struct SpatiaDat_s {
-		int8_t seq[BARCODELEN];
-		int8_t delim;
-		int8_t xy[MAXCOORDSTRLEN];
-	} SpatiaDat;
+    int8_t SpatiaStr[BARCODELEN + 1 + MAXCOORDSTRLEN];
+    struct SpatiaDat_s {
+        int8_t seq[BARCODELEN];
+        int8_t delim;
+        int8_t xy[MAXCOORDSTRLEN];
+    } SpatiaDat;
 };
 typedef union fstBCoutput_u fstBCoutput_t;
+*/
 // #pragma pack(pop)
 #pragma pack()
 
@@ -243,9 +245,9 @@ struct workerArray_s {
 	int_least16_t workerID;
 	uint64_t fqSliceID;
 	atomic_int_least8_t flag;  // one day, it will be useful.
-	fstBCdata_t input_array[JOBITEMSIZE];
+	fstBCdata_t jobDatArray[JOBITEMSIZE];
 	char* tokens[MAXDELIMITEMS];
-	fstBCoutput_t output_array[JOBITEMSIZE];
+	// fstBCoutput_t output_array[JOBITEMSIZE];
 };
 typedef struct workerArray_s workerArray_t;
 

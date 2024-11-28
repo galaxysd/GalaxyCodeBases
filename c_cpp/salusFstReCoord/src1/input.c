@@ -39,10 +39,8 @@ void fill_worker(int_least16_t worker_id) {
 	kseq_t *seq = Parameters.kseq;
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
 	uint64_t index = 0;
-	regmatch_t matches[2];
-
-	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
-		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
+	for (index = 0; index < JOBITEMSIZE; index++) {
+		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
 		if (kseq_read(seq) >= MINBARCODELEN) {
 			// strncpy((char *)fstBCdata_p->name, seq->name.s, sizeof(fstBCdata_p->name));
 			STRcpyARRAY(fstBCdata_p->name, seq->name.s);

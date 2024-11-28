@@ -25,14 +25,13 @@ void worker(int_least16_t worker_id) {
 	char **splitSets = worker->tokens;
 	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
-	char readSeq[BARCODELEN + 1] = {0};
-	char fovRC[9] = {0};  // R123C567
+	char fovRC[9] = {0};                  // R123C567
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
-		fstBCdata_t *fstBCdata_p = &worker->input_array[index];
+		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
 		if (fstBCdata_p->name[0] == 0) {
 			break;
 		}
-		fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
+		// fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
 		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
 #ifndef RELEASE
@@ -88,15 +87,11 @@ void worker(int_least16_t worker_id) {
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
 			// printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
+			memcpy(fstBCdata_p->newXY, newXY, sizeof(newXY));
 #ifdef DEBUG
+			char readSeq[BARCODELEN + 1];
 			ARRAYcpySTR(readSeq, fstBCdata_p->seq);
-			snprintf((char *)fstBCoutput_p->SpatiaStr, sizeof(worker->output_array[index].SpatiaStr), "%s %.2f %.2f", readSeq, newXY[0], newXY[1]);
-			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaStr);
-			fprintf(stderr, "->SpatiaStr:[%s]\n", Parameters.buffer);
-			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaDat.seq);
-			fprintf(stderr, "->Seq:[%s]\n", Parameters.buffer);
-			ARRAYcpySTR(Parameters.buffer, fstBCoutput_p->SpatiaDat.xy);
-			fprintf(stderr, "->XY:[%s]\n", Parameters.buffer);
+			fprintf(stderr, "->SpatiaStr:[%s %.2f %.2f]\n", readSeq, fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
 #endif
 		}
 	}
