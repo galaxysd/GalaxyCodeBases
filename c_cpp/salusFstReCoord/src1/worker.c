@@ -2,14 +2,14 @@
 
 #include "common.h"
 
-FORCEINLINE void transCorrd(double *ChipXY, const double *FovXY, const int_least16_t *FovRowCol) {
+FORCE_INLINE void transCorrd(double *ChipXY, const double *FovXY, const int_least16_t *FovRowCol) {
 	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
 	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
 	ChipXY[0] = floor(new_x * 100.0) / 100.0;
 	ChipXY[1] = floor(new_y * 100.0) / 100.0;
 }
 
-FORCEINLINE char *strncpy_no_colon(char *restrict dest, const char *restrict src, size_t n) {
+FORCE_INLINE char *strncpy_no_colon(char *restrict dest, const char *restrict src, size_t n) {
 	size_t j = 0;  // destination index
 	for (size_t i = 0; i < n && src[i] != '\0'; i++) {
 		if (src[i] != ':') dest[j++] = src[i];

@@ -43,18 +43,20 @@ extern "C" {
 #error "Unknown compiler"
 #endif
 
-#ifdef _MSC_VER
-#define FORCEINLINE static __forceinline
+// https://meghprkh.github.io/blog/posts/c++-force-inline/
+#if defined(__clang__)
+#define FORCE_INLINE __attribute__((__always_inline__, __gnu_inline__)) extern inline
+
 #elif defined(__GNUC__)
-#define FORCEINLINE static inline __attribute__((__always_inline__))
-#elif defined(__CLANG__)
-#if __has_attribute(__always_inline__)
-#define FORCEINLINE static inline __attribute__((__always_inline__))
+#define FORCE_INLINE __attribute__((__always_inline__)) inline
+
+#elif defined(_MSC_VER)
+#pragma warning(error : 4714)
+#define FORCE_INLINE __forceinline
+
 #else
-#define FORCEINLINE static inline
-#endif
-#else
-#define FORCEINLINE static inline
+#warning Unsupported compiler, fall back to `static inline`.
+#define FORCE_INLINE static inline
 #endif
 
 #include <assert.h>
