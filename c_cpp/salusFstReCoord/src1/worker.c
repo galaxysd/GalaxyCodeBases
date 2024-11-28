@@ -35,7 +35,11 @@ void worker(int_least16_t worker_id) {
 		fstBCoutput_t *fstBCoutput_p = &worker->output_array[index];
 		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
-		printf("###### %llu\t[%s] %d [%s]<--\n", index, readName, readName[sizeof(fstBCdata_p->name)],fstBCdata_p->comment);
+#ifndef RELEASE
+		printf("###### %llu\t[%s] %d [%s]<--\n", index, readName, readName[sizeof(fstBCdata_p->name)], fstBCdata_p->comment);
+#else
+		printf("###### %llu\t[%s] %d <--\n", index, readName, readName[sizeof(fstBCdata_p->name)]);
+#endif
 		int_least16_t RowCol[2] = {0};
 		double oldXY[2] = {0.0};
 		double newXY[2] = {0.0};

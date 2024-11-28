@@ -218,7 +218,9 @@ https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-termina
 // #pragma pack(push, 1)
 struct fstBCdata_s {
 	int8_t name[MAXFQIDLEN];
+#ifndef RELEASE
 	char* comment;
+#endif
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
 };
