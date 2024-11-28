@@ -94,7 +94,7 @@ static inline int gzputc(gzFile fp, int c);
 static inline int gzputs(gzFile fp, const char *s);
 static inline int gzeof(gzFile fp);
 static inline int64_t gzoffset(gzFile fp);
-static inline int set_compress_level(gzFile fp, int level);
+static inline int set_compress_level(gzFile fp, unsigned int level);
 static inline int gzclose(gzFile fp);
 #ifdef __cplusplus
 }
@@ -373,7 +373,7 @@ char* gzgets(gzFile fp, char *buf, int len)
 			return fgets(buf, len, fp->fp);
 		return NULL;
 	}
-	if (len > fp->buf_get_size)
+	if ((size_t)len > fp->buf_get_size)
 	{
 		fp->buf_get_size = 2 * len;
 		fp->buf_get = (char *)realloc(fp->buf_get, 2*len*sizeof(char));
@@ -460,7 +460,7 @@ char* gzgets(gzFile fp, char *buf, int len)
 	} while(1);
 }
 
-int set_compress_level(gzFile fp, int level)
+int set_compress_level(gzFile fp, unsigned int level)
 {
 	if (!fp || !fp->mode || *fp->mode != 'w') return -1;
 	if (level < MIN_COM_LVL || level > MAX_COM_LVL) return -1;
