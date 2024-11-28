@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <sys/stat.h>
-#include "igzip_lib.h"
+#include <isa-l/igzip_lib.h>
 
 // exported from zlib.h
 #ifndef Z_OK
@@ -79,21 +79,21 @@ typedef gzFile_t* gzFile;
 #ifdef __cplusplus
 extern "C" {
 #endif
-inline int is_gz(FILE* fp);
-inline int is_plain(FILE* fp);
-inline uint32_t get_posix_filetime(FILE* fp);
-inline int ingest_gzip_header(gzFile fp);
-inline gzFile gzopen(const char *in, const char *mode);
-inline gzFile gzdopen(int fd, const char *mode);
-inline int gzread(gzFile fp, void *buf, size_t len);
-inline char* gzgets(gzFile fp, char *buf, int len);
-inline int gzwrite(gzFile fp, const void *buf, size_t len);
-inline int gzputc(gzFile fp, int c);
-inline int gzputs(gzFile fp, const char *s);
-inline int gzeof(gzFile fp);
-inline int64_t gzoffset(gzFile fp);
-inline int set_compress_level(gzFile fp, int level);
-inline int gzclose(gzFile fp);
+static inline int is_gz(FILE* fp);
+static inline int is_plain(FILE* fp);
+static inline uint32_t get_posix_filetime(FILE* fp);
+static inline int ingest_gzip_header(gzFile fp);
+static inline gzFile gzopen(const char *in, const char *mode);
+static inline gzFile gzdopen(int fd, const char *mode);
+static inline int gzread(gzFile fp, void *buf, size_t len);
+static inline char* gzgets(gzFile fp, char *buf, int len);
+static inline int gzwrite(gzFile fp, const void *buf, size_t len);
+static inline int gzputc(gzFile fp, int c);
+static inline int gzputs(gzFile fp, const char *s);
+static inline int gzeof(gzFile fp);
+static inline int64_t gzoffset(gzFile fp);
+static inline int set_compress_level(gzFile fp, int level);
+static inline int gzclose(gzFile fp);
 #ifdef __cplusplus
 }
 #endif
