@@ -20,7 +20,7 @@ FORCEINLINE char *strncpy_no_colon(char *restrict dest, const char *restrict src
 }
 
 void worker(int_least16_t worker_id) {
-	workerArray_t *worker = &Parameters.workerArray[worker_id];
+	workerArray_t *worker = &Parameters.worksQuene[worker_id];
 	regmatch_t matches[2];
 	char **splitSets = worker->tokens;
 	// char* readName = malloc(91);          // for testing CHARsCPYSTR

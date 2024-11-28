@@ -263,7 +263,7 @@ struct parameters_s {
 	uint64_t fqValid;
 	uint64_t fqSkipped;
 	char buffer[PARAMETERS_BUFFER_SIZE];
-	workerArray_t* workerArray;
+	workerArray_t* worksQuene;
 };
 typedef struct parameters_s parameters_t;
 extern parameters_t Parameters;
