@@ -195,9 +195,10 @@ y=2159   y=0,x=0              w=0,h=0      h=2159
 #define CenterFOV_ROW 8
 #define CenterFOV_COL 66
 
-#define CPUCORES 2
+#define MAXCPUCORES 1024
+#define JOBQUEUESIZE ((MAXCPUCORES * 3) >> 1)
+// 任务队列数设为CPU最大核心数的1.5倍，则肯定塞满 workers 后会有剩的。
 #define JOBITEMSIZE 4
-#define JOBQUEUESIZE ((CPUCORES * 3) >> 1)
 
 #define GZBUFSIZE (131072 * 2)
 #define MAXFQIDLEN 80

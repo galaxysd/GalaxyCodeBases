@@ -24,12 +24,15 @@ void fqReader_init(void) {
 		exit(1);
 	}
 	Parameters.kseq = kseq_init(Parameters.ksfp);
+	// Parameters.workerArray = (workerArray_t *)calloc(JOBQUEUESIZE, sizeof(workerArray_t));
+	Parameters.workerArray = (workerArray_t *)calloc(4, sizeof(workerArray_t));
 }
 
 void fqReader_destroy(void) {
 	regfree(&Parameters.regex);
 	kseq_destroy(Parameters.kseq);
 	zng_gzclose(Parameters.ksfp);
+	free(Parameters.workerArray);
 }
 
 void fill_worker(int_least16_t worker_id) {
