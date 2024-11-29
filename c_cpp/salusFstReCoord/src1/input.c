@@ -26,7 +26,7 @@ void fqReader_init(void) {
 	const char *pattern = "R[0-9]{3}(:)?C[0-9]{3}";
 	if ((rc = regcomp(&Parameters.regex, pattern, REG_EXTENDED)) != 0) {
 		regerror(rc, &Parameters.regex, Parameters.buffer, PARAMETERS_BUFFER_SIZE);
-		printf("[x]=%d=regcomp(\"%s\") failed with '%s'.\n", rc, pattern, Parameters.buffer);
+		fprintf(stderr, "[x]=%d=regcomp(\"%s\") failed with '%s'.\n", rc, pattern, Parameters.buffer);
 		exit(EXIT_FAILURE);
 	}
 	Parameters.ksfp = _GZ_OPEN_(Parameters.inFastqFilename, "r");

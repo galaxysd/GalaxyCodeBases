@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
 #if __has_builtin(__builtin_dump_struct)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-pedantic"
-	__builtin_dump_struct(&Parameters, &printf);
+	__builtin_dump_struct(&Parameters, &fprintf, stderr);
 #pragma GCC diagnostic pop
 #endif
 #endif
