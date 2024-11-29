@@ -45,7 +45,7 @@
 #endif
 
 #ifndef COM_LVL_DEFAULT
-#define COM_LVL_DEFAULT 3 // was 2
+#define COM_LVL_DEFAULT 3 /* was 2 */
 #endif
 
 #ifndef COM_LVLS
