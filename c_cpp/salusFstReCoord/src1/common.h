@@ -66,7 +66,7 @@ extern "C" {
 #include <stdatomic.h>  // atomic_int_least8_t
 #include <stddef.h>     // in "stdatomic.h"
 #include <stdint.h>     // in "stdatomic.h"
-#include <stdio.h>      // FILE
+#include <stdio.h>      // FILE, fflush
 #include <stdlib.h>     // in "kseq.h", strtof
 #include <string.h>     // in "kseq.h", memccpy, and so on.
 
@@ -222,7 +222,7 @@ y=2159   y=0,x=0              w=0,h=0      h=2159
 #define MAXCOORDSTRLEN (9 + 1 + 10)
 #define MAXSPATIALEN (BARCODELEN + 1 + MAXCOORDSTRLEN)
 /* MAXSPATIALEN+1 == BARCODELEN+1+MAXCOORDSTRLEN+1 */
-
+#define ROWCOLSIZE 8 /* R014C130 */
 /*
 https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-terminated-string
     printf("%.*s", stringLength, pointerToString);
@@ -237,6 +237,7 @@ struct fstBCdata_s {
 #endif
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
+	int8_t RowCol[ROWCOLSIZE];
 	double newXY[2];
 };
 typedef struct fstBCdata_s fstBCdata_t;
