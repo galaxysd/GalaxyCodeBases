@@ -61,7 +61,7 @@ void fill_worker(int_least16_t worker_id) {
 	int kseq_ret = 0;
 	for (index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
-		if ( (kseq_ret = kseq_read(seq)) >= MINBARCODELEN) {
+		if ((kseq_ret = kseq_read(seq)) >= MINBARCODELEN) {
 			// strncpy((char *)fstBCdata_p->name, seq->name.s, sizeof(fstBCdata_p->name));
 			STRcpyARRAY(fstBCdata_p->name, seq->name.s);
 			/* seq->comment.s is discarded */
