@@ -8,7 +8,6 @@ void output_worker(int_least16_t worker_id) {
 	char readName[MAXFQIDLEN + 1] = {0};
 	char readSeq[BARCODELEN + 1] = {0};
 	char readQual[BARCODELEN + 1] = {0};
-	char readRowCol[ROWCOLSIZE + 1] = {0};
 #endif
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
@@ -25,16 +24,13 @@ void output_worker(int_least16_t worker_id) {
 		ARRAYcpySTR(readQual, fstBCdata_p->qual);
 		assert(readQual[sizeof(fstBCdata_p->qual)] == '\0');
 		fprintf(stderr, "Qual:[%s]\n", readQual);
-		ARRAYcpySTR(readRowCol, fstBCdata_p->RowCol);
-		assert(readRowCol[sizeof(fstBCdata_p->RowCol)] == '\0');
-		fprintf(stderr, "RoCo:[%s]\t", readRowCol);
-		fprintf(stderr, "XY:[%.2f],[%.2f]\n\n", fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
+		fprintf(stderr, "R%03uC%03u XY:[%.2f],[%.2f]\n\n", fstBCdata_p->fov_row, fstBCdata_p->fov_column, fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
 #endif
-		fprintf(stdout, "@%.*s %.2f %.2f" "%c" "%.*s\n" "%.*s\n+\n%.*s\n",
+		fprintf(stdout, "@%.*s %.2f %.2f" "%c" "R%03uC%03u\n" "%.*s\n+\n%.*s\n",
 			sizeof(fstBCdata_p->name), fstBCdata_p->name,
 			fstBCdata_p->newXY[0], fstBCdata_p->newXY[1],
 			_US_CHR_,
-			sizeof(fstBCdata_p->RowCol), fstBCdata_p->RowCol,
+			fstBCdata_p->fov_row, fstBCdata_p->fov_column,
 			sizeof(fstBCdata_p->seq), fstBCdata_p->seq,
 			sizeof(fstBCdata_p->qual), fstBCdata_p->qual
 		);

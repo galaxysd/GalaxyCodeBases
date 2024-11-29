@@ -248,7 +248,8 @@ struct fstBCdata_s {
 #endif
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
-	int8_t RowCol[ROWCOLSIZE];
+	uint8_t fov_row;
+	uint8_t fov_column;
 	double newXY[2];
 };
 typedef struct fstBCdata_s fstBCdata_t;
