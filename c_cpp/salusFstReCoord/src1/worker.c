@@ -26,6 +26,7 @@ void worker(int_least16_t worker_id) {
 	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
 	char fovRC[9] = {0};                  // R123C567
+	double unZoomRatio = (double)Parameters.unZoomRatio;
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
 		if (fstBCdata_p->name[0] == 0) {
@@ -83,6 +84,10 @@ void worker(int_least16_t worker_id) {
 			} */
 		}
 		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
+			if (unlikely(unZoomRatio != 1.0f)) {
+				oldXY[0] /= unZoomRatio;
+				oldXY[1] /= unZoomRatio;
+			}
 			oldXY[0] -= FOV_X_MIN;
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
