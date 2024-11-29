@@ -133,7 +133,6 @@ izlib(isa-l): KSEQ_INIT(gzFile, gzread)
 		if (after_c) {                                     \
 			*after_c = '\0';                               \
 		}                                                  \
-		assert(after_c == NULL);                           \
 	} while (0)
 
 #define FSTREPOS_VERSION "1.0.1"
@@ -285,6 +284,7 @@ struct parameters_s {
 	float unZoomRatio;  // 1 or 1.25, float is (1,8,23), thus enough for [- 2^{23} + 1, 2^{23} - 1]
 	kseq_t* kseq;
 	gzFile ksfp;
+	atomic_int_least8_t ksflag;
 	regex_t regex;
 	uint64_t fqRead;
 	uint64_t fqValid;

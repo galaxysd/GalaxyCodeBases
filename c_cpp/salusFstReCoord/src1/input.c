@@ -42,6 +42,7 @@ void fqReader_init(void) {
 	}
 #endif
 	Parameters.kseq = kseq_init(Parameters.ksfp);
+	Parameters.ksflag = 1;
 	// Parameters.worksQuene = (workerArray_t *)calloc(JOBQUEUESIZE, sizeof(workerArray_t));
 	Parameters.worksQuene = (workerArray_t *)calloc(4, sizeof(workerArray_t));
 }
@@ -57,9 +58,10 @@ void fill_worker(int_least16_t worker_id) {
 	kseq_t *seq = Parameters.kseq;
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
 	uint64_t index = 0;
+	int kseq_ret = 0;
 	for (index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
-		if (kseq_read(seq) >= MINBARCODELEN) {
+		if ( (kseq_ret = kseq_read(seq)) >= MINBARCODELEN) {
 			// strncpy((char *)fstBCdata_p->name, seq->name.s, sizeof(fstBCdata_p->name));
 			STRcpyARRAY(fstBCdata_p->name, seq->name.s);
 			/* seq->comment.s is discarded */
@@ -99,6 +101,9 @@ void fill_worker(int_least16_t worker_id) {
 			free(fstBCdata_p->comment);
 			fstBCdata_p->comment = NULL;
 #endif
+			if (kseq_ret == -3) {
+				Parameters.ksflag = -1;
+			}
 		}
 		// continue;
 	}

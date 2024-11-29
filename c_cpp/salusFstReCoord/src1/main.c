@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 		Parameters.unZoomRatio = 1.0f;
 	}
 	// defLoop_p = uv_default_loop();
-	{  // for multi-threads demo, we use workQueue 1 of [0,JOBQUEUESIZE-1].
+	while (Parameters.ksflag > 0) {  // for multi-threads demo, we use workQueue 1 of [0,JOBQUEUESIZE-1].
 		fill_worker(1);
 		worker(1);
 		output_worker(1);
