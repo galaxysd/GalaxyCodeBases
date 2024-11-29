@@ -67,7 +67,7 @@ extern "C" {
 #include <stddef.h>     // in "stdatomic.h"
 #include <stdint.h>     // in "stdatomic.h"
 #include <stdio.h>      // FILE
-#include <stdlib.h>     // in "kseq.h"
+#include <stdlib.h>     // in "kseq.h", strtof
 #include <string.h>     // in "kseq.h", memccpy, and so on.
 
 #ifndef KSEQ_INIT
@@ -269,11 +269,10 @@ struct parameters_s {
 	// ArrayStateEnum_t jobDataState;
 	// ArrayStateEnum_t outDataState;
 	char* inFastqFilename;
-	char* outSpatialFilename;
+	float unZoomRatio;	// 1 or 1.25, float is (1,8,23) thus enough for [- 2^{23} + 1, 2^{23} - 1]
 	kseq_t* kseq;
 	gzFile ksfp;
 	regex_t regex;
-	FILE* outfp;
 	uint64_t fqRead;
 	uint64_t fqValid;
 	uint64_t fqSkipped;
@@ -285,9 +284,10 @@ extern parameters_t Parameters;
 // extern struct parameters_s parameters;
 
 void fqReader_init(void);
-void fill_worker(int_least16_t worker_id);
 void fqReader_destroy(void);
+void fill_worker(int_least16_t worker_id);
 void worker(int_least16_t worker_id);
+void output_worker(int_least16_t worker_id);
 
 /* ################ */
 

@@ -73,11 +73,11 @@ all: $(BUILT_PROGRAMS)
 
 debug: override CPPFLAGS += -DDEBUG -g -fsanitize=address
 debug: override OPT := -Og
-debug: all
+debug: clean all
 
 release: override CPPFLAGS += -DNDEBUG -DRELEASE
 release: override OPT := -Ofast -finline-functions -funswitch-loops
-release: all
+release: clean all
 
 z1: clean
 	$(MAKE) release ZLIBNAME=zlib-ng

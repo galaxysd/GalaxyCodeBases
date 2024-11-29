@@ -10,13 +10,20 @@ const char *argp_program_bug_address = "huxs@salus-bio.com";
 static char doc[] =
     "fstBC transCorrd single threaded"
 #if defined(DEBUG)
-    " (Debug Version)"
+    " Debug Version"
 #elif defined(NDEBUG)
-    " (Release Version)"
+    " Release Version"
 #else
-    " (with assert)"
+    " with assert"
 #endif
-    ;
+#ifdef USE_ZLIBNG
+    " (zlib-ng)"
+#elif defined(USE_ZLIB)
+    " (zlib)"
+#else /* USE_LIBISAL */
+    " (ISA-L)"
+#endif
+;
 
 /* Global Var for "common.h" */
 parameters_t Parameters = {
@@ -26,25 +33,42 @@ parameters_t Parameters = {
 // static_assert(VARTYPE(Parameters.jobDataState)==1, "It is not uint8_t");
 
 int main(int argc, char *argv[]) {
-	if (argc != 3) {
-		fprintf(stderr, "====== %s ======\n[i]Usage: %s <fstBC.fq[.gz]> <spatial.txt>\n", doc, argv[0]);
+	errno = 0; /* extern int, but do not declare errno manually */
+	if (argc < 2) {
+		// https://github.com/facebook/zstd/issues/1155#issuecomment-400052833 Both rsync block-size and zfs recordsize are 128K max.
+		fprintf(stderr, "====== %s ======\n[i]Usage: %s <fstBC.fq[.gz]> [unZoomRatio=1] 2>run.log | zstd -B131072 --rsyncable --adapt -T12 -fo spatialBC.fq.zstd \n", doc, argv[0]);
 		return 2;
+	} else {
+		fprintf(stderr, "[!]Arguments[%d]:", argc);
+		for (int i = 0; i < argc; i++) {
+			fprintf(stderr, " [%s]", argv[i]);
+		}
+		fputs(".\n", stderr);
 	}
-	printf("[i]%s %s %s\n", argv[0], argv[1], argv[2]);
 	Parameters.inFastqFilename = argv[1];
 	// 没printf拖时间就得加 barrier
 	fqReader_init();
-	Parameters.outSpatialFilename = argv[2];
-	errno = 0; /* extern int, but do not declare errno manually */
-	Parameters.outfp = fopen(Parameters.outSpatialFilename, "w");
-	if (errno != 0) {
-		fprintf(stderr, "[x]Error on opening output file [%s]: %s.\n", Parameters.outSpatialFilename, strerror(errno));
-		exit(EXIT_FAILURE);
+	if (argc >= 3) {
+		Parameters.unZoomRatio = strtof(argv[2], NULL);
+		if (errno != 0) {
+			fprintf(stderr, "[x]Error on strtof(%s) to [%f]: %s.\n", argv[2], Parameters.unZoomRatio, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		if (Parameters.unZoomRatio < 0) {
+			Parameters.unZoomRatio = - Parameters.unZoomRatio;
+		} else if (Parameters.unZoomRatio == 0) {
+			Parameters.unZoomRatio = 1.0f;
+		} else if (Parameters.unZoomRatio > 1000) {
+			Parameters.unZoomRatio = 1.0f;
+		}
+	} else {
+		Parameters.unZoomRatio = 1.0f;
 	}
 	// defLoop_p = uv_default_loop();
 	{  // for multi-threads demo, we use workQueue 1 of [0,JOBQUEUESIZE-1].
 		fill_worker(1);
 		worker(1);
+		output_worker(1);
 	}
 	fprintf(stderr, "done: %s.\n", strerror(errno));
 
@@ -58,7 +82,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 	fqReader_destroy();
-	fclose(Parameters.outfp);
 	fprintf(stderr, "[i]Run to the end.\n");
 	return 0;
 }
