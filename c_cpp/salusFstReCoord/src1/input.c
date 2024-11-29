@@ -1,8 +1,24 @@
 #include <stdio.h>  // fprintf
-#include <zlib-ng.h>
 
 #include "kseq.h"
+#if ZLIB_ID == 1
+#include <zlib-ng.h>
 KSEQ_INIT(gzFile, zng_gzread)
+#define _GZ_OPEN_ zng_gzopen
+#define _GZ_BUFFER_ zng_gzbuffer
+#define _GZ_CLOSE_ zng_gzclose
+#else
+#if ZLIB_ID == 2
+#include "izlib.h"
+#else
+#include <zlib.h>
+#define _GZ_BUFFER_ gzbuffer
+#endif
+#define _GZ_OPEN_ gzopen
+#define _GZ_CLOSE_ gzclose
+KSEQ_INIT(gzFile, gzread)
+#endif
+
 #include "common.h"
 
 void fqReader_init(void) {
@@ -13,16 +29,18 @@ void fqReader_init(void) {
 		printf("[x]=%d=regcomp(\"%s\") failed with '%s'.\n", rc, pattern, Parameters.buffer);
 		exit(EXIT_FAILURE);
 	}
-	Parameters.ksfp = zng_gzopen(Parameters.inFastqFilename, "r");
+	Parameters.ksfp = _GZ_OPEN_(Parameters.inFastqFilename, "r");
 	if (unlikely(Parameters.ksfp == NULL)) {
 		fprintf(stderr, "[x]gzopen error on opening [%s]: %s.\n", Parameters.inFastqFilename, strerror(errno));
 		exit(1);
 	}
-	rc = zng_gzbuffer(Parameters.ksfp, GZBUFSIZE);
+#if defined(_GZ_BUFFER_)
+	rc = _GZ_BUFFER_(Parameters.ksfp, GZBUFSIZE);
 	if (unlikely(rc != 0)) {
 		fprintf(stderr, "[x]gzbuffer error: %s.\n", strerror(errno));
 		exit(1);
 	}
+#endif
 	Parameters.kseq = kseq_init(Parameters.ksfp);
 	// Parameters.worksQuene = (workerArray_t *)calloc(JOBQUEUESIZE, sizeof(workerArray_t));
 	Parameters.worksQuene = (workerArray_t *)calloc(4, sizeof(workerArray_t));
@@ -31,7 +49,7 @@ void fqReader_init(void) {
 void fqReader_destroy(void) {
 	regfree(&Parameters.regex);
 	kseq_destroy(Parameters.kseq);
-	zng_gzclose(Parameters.ksfp);
+	_GZ_CLOSE_(Parameters.ksfp);
 	free(Parameters.worksQuene);
 }
 

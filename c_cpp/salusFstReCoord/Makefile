@@ -2,14 +2,17 @@ CC ?= gcc
 CXX ?= g++
 PKGCONFIG ?= pkg-config
 
+ZLIBNAME ?= libisal
+ZLIB_ID ?= 2
+
 MKDIR_P = mkdir -p
 
-PKGLIBS := zlib-ng
+PKGLIBS = $(ZLIBNAME)
 
 PKGCPPFLAGS := $(shell $(PKGCONFIG) --cflags $(PKGLIBS))
 PKGLDFLAGS := $(shell $(PKGCONFIG) --libs $(PKGLIBS))
-PKGLIBPATH := $(shell $(PKGCONFIG) --variable=libdir zlib-ng)
-WARNINGFLAGS := -Wall -Wextra -Wpedantic -Werror=odr -Werror=strict-aliasing# -Wconversion
+PKGLIBPATH := $(shell $(PKGCONFIG) --variable=libdir $(PKGLIBS))
+WARNINGFLAGS := -Wall -Wextra -Wpedantic -Werror=odr -Werror=strict-aliasing # -Wconversion
 
 CFLAGS := -pipe -march=x86-64-v3 -mtune=generic -funroll-loops -flto -fPIE
 # https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
@@ -59,7 +62,7 @@ OBJFILES := $(SOURCES:$(SRCDIR)/%.c=$(BUILDIR)/%.o)
 VPATH := $(SRCDIR) klib
 vpath %.o $(BUILDIR)
 
-CPPFLAGS := $(addprefix -I,$(VPATH)) $(PKGCPPFLAGS) -D_FORTIFY_SOURCE=2 -DE4C_THREADSAFE -DE4C_NOKEYWORDS
+CPPFLAGS := $(addprefix -I,$(VPATH)) $(PKGCPPFLAGS) -DZLIB_ID=$(ZLIB_ID) -D_FORTIFY_SOURCE=2
 CSTANDARD := -std=gnu2x# -std=c23
 
 all: $(BUILT_PROGRAMS)
@@ -72,6 +75,12 @@ debug: all
 release: override CPPFLAGS += -DNDEBUG -DRELEASE
 release: override OPT := -Ofast -finline-functions -funswitch-loops
 release: all
+
+z1: clean
+	$(MAKE) ZLIBNAME=zlib-ng ZLIB_ID=1
+
+z0: clean
+	$(MAKE) ZLIBNAME=zlib ZLIB_ID=0
 
 clean:
 	@: # Clean objects and executables.
@@ -96,10 +105,10 @@ $(BUILT_PROGRAMS): $(OBJFILES)
 echo:
 	@echo $(LOCALPCPATH)
 	@echo $(THISDIR) $(MAKEFILE_LIST)
-	@echo $(PKGCPPFLAGS)
-	@echo $(PKGLDFLAGS)
-	@echo $(SOURCES)
-	@echo $(OBJFILES)
+	@echo PKGCPPFLAGS:[$(PKGCPPFLAGS)]
+	@echo PKGLDFLAGS:[$(PKGLDFLAGS)]
+	@echo SOURCES:[$(SOURCES)]
+	@echo OBJFILES:[$(OBJFILES)]
 
 test:
 	UV_THREADPOOL_SIZE=1 MallocNanoZone=0 ./$(BUILT_PROGRAMS) n.fq xx
@@ -108,4 +117,4 @@ test:
 fmt:
 	find $(SRCDIR) -type f -exec clang-format -i {} \;
 
-.PHONY: all clean debug release test echo
+.PHONY: all clean debug release test echo z0 z1

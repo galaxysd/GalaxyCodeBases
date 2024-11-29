@@ -71,11 +71,22 @@ extern "C" {
 #include <string.h>     // in "kseq.h", memccpy, and so on.
 
 #ifndef KSEQ_INIT
+// #define STR_HELPER(x) #x
+// #define STR(x) STR_HELPER(x)
+// #pragma message "ZLIB_ID: " STR(ZLIB_ID)
+#if ZLIB_ID == 1
 #include <zlib-ng.h>
-
+#elif ZLIB_ID == 2
+#include "izlib.h"
+#else
+#include <zlib.h>
+#endif
 #include "kseq.h"
 KSEQ_DECLARE(gzFile)
-// KSEQ_INIT(gzFile, zng_gzread)
+/*
+zlib-ng:      KSEQ_INIT(gzFile, zng_gzread)
+izlib(isa-l): KSEQ_INIT(gzFile, gzread)
+*/
 #endif /* KSEQ_INIT */
 
 #define unlikely(expr) __builtin_expect(!!(expr), 0)
