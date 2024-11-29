@@ -85,3 +85,7 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "[i]Run to the end.\n");
 	return 0;
 }
+
+/*
+seqkit fx2tab t.fq |awk -F'[\t \037]' -v OFS='\t' '{print $5,$6,$4,$2" "$3}'|awk -F'\t' '{print $1,$NF}'
+*/

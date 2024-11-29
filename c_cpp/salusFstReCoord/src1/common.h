@@ -223,6 +223,17 @@ y=2159   y=0,x=0              w=0,h=0      h=2159
 #define MAXSPATIALEN (BARCODELEN + 1 + MAXCOORDSTRLEN)
 /* MAXSPATIALEN+1 == BARCODELEN+1+MAXCOORDSTRLEN+1 */
 #define ROWCOLSIZE 8 /* R014C130 */
+
+/*
+	https://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+	https://en.wikipedia.org/wiki/C0_and_C1_control_codes#Field_separators
+	https://www.cs.cmu.edu/~pattis/15-1XX/common/handouts/ascii.html
+*/
+#define _US_CHR_ '\037' /* 31,US (unit separator): Between fields of a record, or members of a row. */
+#define _RS_CHR_ '\036' /* 30,RS (record separator): End of a record or row. */
+#define _GS_CHR_ '\035' /* 29,GS (group separator): Between sections of data. Not needed in simple data files. */
+#define _FS_CHR_ '\034' /* 28,FS (file separator): End of file. Or between a concatenation of what might otherwise be separate files. */
+
 /*
 https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-terminated-string
     printf("%.*s", stringLength, pointerToString);

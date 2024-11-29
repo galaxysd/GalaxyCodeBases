@@ -30,9 +30,10 @@ void output_worker(int_least16_t worker_id) {
 		fprintf(stderr, "RoCo:[%s]\t", readRowCol);
 		fprintf(stderr, "XY:[%.2f],[%.2f]\n\n", fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
 #endif
-		fprintf(stdout, "@%.*s %.2f %.2f\t%.*s\n" "%.*s\n+\n%.*s\n",
+		fprintf(stdout, "@%.*s %.2f %.2f" "%c" "%.*s\n" "%.*s\n+\n%.*s\n",
 			sizeof(fstBCdata_p->name), fstBCdata_p->name,
 			fstBCdata_p->newXY[0], fstBCdata_p->newXY[1],
+			_US_CHR_,
 			sizeof(fstBCdata_p->RowCol), fstBCdata_p->RowCol,
 			sizeof(fstBCdata_p->seq), fstBCdata_p->seq,
 			sizeof(fstBCdata_p->qual), fstBCdata_p->qual
