@@ -23,7 +23,7 @@ static char doc[] =
 #else /* USE_LIBISAL */
     " (ISA-L)"
 #endif
-;
+    ;
 
 /* Global Var for "common.h" */
 parameters_t Parameters = {
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 		if (Parameters.unZoomRatio < 0) {
-			Parameters.unZoomRatio = - Parameters.unZoomRatio;
+			Parameters.unZoomRatio = -Parameters.unZoomRatio;
 		} else if (Parameters.unZoomRatio == 0) {
 			Parameters.unZoomRatio = 1.0f;
 		} else if (Parameters.unZoomRatio > 1000) {

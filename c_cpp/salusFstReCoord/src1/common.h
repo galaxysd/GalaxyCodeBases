@@ -269,7 +269,7 @@ struct parameters_s {
 	// ArrayStateEnum_t jobDataState;
 	// ArrayStateEnum_t outDataState;
 	char* inFastqFilename;
-	float unZoomRatio;	// 1 or 1.25, float is (1,8,23) thus enough for [- 2^{23} + 1, 2^{23} - 1]
+	float unZoomRatio;  // 1 or 1.25, float is (1,8,23), thus enough for [- 2^{23} + 1, 2^{23} - 1]
 	kseq_t* kseq;
 	gzFile ksfp;
 	regex_t regex;
