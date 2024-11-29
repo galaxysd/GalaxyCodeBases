@@ -101,8 +101,8 @@ void fill_worker(int_least16_t worker_id) {
 			free(fstBCdata_p->comment);
 			fstBCdata_p->comment = NULL;
 #endif
-			if (kseq_ret == -3) {
-				Parameters.ksflag = -1;
+			if (kseq_ret < 0) {  // -1 for FEOF
+				Parameters.ksflag = kseq_ret;
 			}
 		}
 		// continue;
