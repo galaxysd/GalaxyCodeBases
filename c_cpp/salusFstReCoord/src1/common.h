@@ -74,9 +74,9 @@ extern "C" {
 // #define STR_HELPER(x) #x
 // #define STR(x) STR_HELPER(x)
 // #pragma message "ZLIB_ID: " STR(ZLIB_ID)
-#if ZLIB_ID == 1
+#ifdef USE_ZLIBNG
 #include <zlib-ng.h>
-#elif ZLIB_ID == 2
+#elif defined(USE_LIBISAL)
 #include "izlib.h"
 #else
 #include <zlib.h>

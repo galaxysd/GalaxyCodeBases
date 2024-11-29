@@ -1,14 +1,14 @@
 #include <stdio.h>  // fprintf
 
 #include "kseq.h"
-#if ZLIB_ID == 1
+#ifdef USE_ZLIBNG
 #include <zlib-ng.h>
 KSEQ_INIT(gzFile, zng_gzread)
 #define _GZ_OPEN_ zng_gzopen
 #define _GZ_BUFFER_ zng_gzbuffer
 #define _GZ_CLOSE_ zng_gzclose
 #else
-#if ZLIB_ID == 2
+#ifdef USE_LIBISAL
 #include "izlib.h"
 #else
 #include <zlib.h>

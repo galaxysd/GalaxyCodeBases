@@ -1,9 +1,7 @@
 CC ?= gcc
 CXX ?= g++
 PKGCONFIG ?= pkg-config
-
 ZLIBNAME ?= libisal
-ZLIB_ID ?= 2
 
 MKDIR_P = mkdir -p
 
@@ -19,6 +17,11 @@ CFLAGS := -pipe -march=x86-64-v3 -mtune=generic -funroll-loops -flto -fPIE
 LDFLAGS := $(PKGLDFLAGS) -Wl,-pie -lc -lm -pthread
 OPT := -Os
 CFLAGS += -fstack-protector-strong -fcf-protection
+
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+uc = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$1))))))))))))))))))))))))))
+
+ZLIBID := $(call uc,$(subst -,,$(ZLIBNAME)))
 
 ifeq ($(OS),Windows_NT) 
     detected_OS := Windows
@@ -62,7 +65,7 @@ OBJFILES := $(SOURCES:$(SRCDIR)/%.c=$(BUILDIR)/%.o)
 VPATH := $(SRCDIR) klib
 vpath %.o $(BUILDIR)
 
-CPPFLAGS := $(addprefix -I,$(VPATH)) $(PKGCPPFLAGS) -DZLIB_ID=$(ZLIB_ID) -D_FORTIFY_SOURCE=2
+CPPFLAGS := $(addprefix -I,$(VPATH)) $(PKGCPPFLAGS) -DUSE_${ZLIBID} -D_FORTIFY_SOURCE=2
 CSTANDARD := -std=gnu2x# -std=c23
 
 all: $(BUILT_PROGRAMS)
@@ -77,10 +80,10 @@ release: override OPT := -Ofast -finline-functions -funswitch-loops
 release: all
 
 z1: clean
-	$(MAKE) ZLIBNAME=zlib-ng ZLIB_ID=1
+	$(MAKE) release ZLIBNAME=zlib-ng
 
 z0: clean
-	$(MAKE) ZLIBNAME=zlib ZLIB_ID=0
+	$(MAKE) release ZLIBNAME=zlib
 
 clean:
 	@: # Clean objects and executables.
