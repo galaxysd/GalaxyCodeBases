@@ -8,11 +8,11 @@ KSEQ_INIT(gzFile, zng_gzread)
 #define _GZ_BUFFER_ zng_gzbuffer
 #define _GZ_CLOSE_ zng_gzclose
 #else
-#ifdef USE_LIBISAL
-#include "izlib.h"
-#else
+#ifdef USE_ZLIB
 #include <zlib.h>
 #define _GZ_BUFFER_ gzbuffer
+#else /* USE_LIBISAL */
+#include "izlib.h"
 #endif
 #define _GZ_OPEN_ gzopen
 #define _GZ_CLOSE_ gzclose

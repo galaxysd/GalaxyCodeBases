@@ -76,10 +76,10 @@ extern "C" {
 // #pragma message "ZLIB_ID: " STR(ZLIB_ID)
 #ifdef USE_ZLIBNG
 #include <zlib-ng.h>
-#elif defined(USE_LIBISAL)
-#include "izlib.h"
-#else
+#elif defined(USE_ZLIB)
 #include <zlib.h>
+#else /* USE_LIBISAL */
+#include "izlib.h"
 #endif
 #include "kseq.h"
 KSEQ_DECLARE(gzFile)
