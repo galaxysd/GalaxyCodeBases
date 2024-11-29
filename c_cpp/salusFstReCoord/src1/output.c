@@ -26,6 +26,7 @@ void output_worker(int_least16_t worker_id) {
 		fprintf(stderr, "Qual:[%s]\n", readQual);
 		fprintf(stderr, "R%03uC%03u XY:[%.2f],[%.2f]\n\n", fstBCdata_p->fov_row, fstBCdata_p->fov_column, fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
 #endif
+		// clang-format off
 		fprintf(stdout, "@%.*s %.2f %.2f" "%c" "R%03uC%03u\n" "%.*s\n+\n%.*s\n",
 			sizeof(fstBCdata_p->name), fstBCdata_p->name,
 			fstBCdata_p->newXY[0], fstBCdata_p->newXY[1],
@@ -34,6 +35,7 @@ void output_worker(int_least16_t worker_id) {
 			sizeof(fstBCdata_p->seq), fstBCdata_p->seq,
 			sizeof(fstBCdata_p->qual), fstBCdata_p->qual
 		);
+		// clang-format on
 		fflush(stdout);
 	}
 }

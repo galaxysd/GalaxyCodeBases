@@ -225,9 +225,9 @@ y=2159   y=0,x=0              w=0,h=0      h=2159
 #define ROWCOLSIZE 8 /* R014C130 */
 
 /*
-	https://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
-	https://en.wikipedia.org/wiki/C0_and_C1_control_codes#Field_separators
-	https://www.cs.cmu.edu/~pattis/15-1XX/common/handouts/ascii.html
+    https://en.wikipedia.org/wiki/Delimiter#ASCII_delimited_text
+    https://en.wikipedia.org/wiki/C0_and_C1_control_codes#Field_separators
+    https://www.cs.cmu.edu/~pattis/15-1XX/common/handouts/ascii.html
 */
 #define _US_CHR_ '\037' /* 31,US (unit separator): Between fields of a record, or members of a row. */
 #define _RS_CHR_ '\036' /* 30,RS (record separator): End of a record or row. */

@@ -53,9 +53,9 @@ void worker(int_least16_t worker_id) {
 		strncpy_no_colon(fovRC, readName + matches[0].rm_so, relen);
 		// fovRC[relen-1] = '\0';
 		assert(fovRC[sizeof(fovRC) - 1] == '\0');
-		//memcpy(fstBCdata_p->RowCol, fovRC, relen-1);
-		fstBCdata_p->fov_row    = (uint8_t) ( RowCol[0] = atoi(fovRC + 1) );
-		fstBCdata_p->fov_column = (uint8_t) ( RowCol[1] = atoi(fovRC + 5) );
+		// memcpy(fstBCdata_p->RowCol, fovRC, relen-1);
+		fstBCdata_p->fov_row = (uint8_t)(RowCol[0] = atoi(fovRC + 1));
+		fstBCdata_p->fov_column = (uint8_t)(RowCol[1] = atoi(fovRC + 5));
 		if (unlikely(matches[1].rm_so == -1)) {
 			delim = "_";
 		} else {
