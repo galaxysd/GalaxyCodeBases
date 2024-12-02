@@ -114,8 +114,8 @@ echo:
 	@echo OBJFILES:[$(OBJFILES)]
 
 test:
-	UV_THREADPOOL_SIZE=1 MallocNanoZone=0 ./$(BUILT_PROGRAMS) n.fq xx
-	UV_THREADPOOL_SIZE=2 valgrind -q --leak-check=yes ./$(BUILT_PROGRAMS) n.fq xx
+	#UV_THREADPOOL_SIZE=1 MallocNanoZone=0 ./$(BUILT_PROGRAMS) n.fq >t.fq
+	UV_THREADPOOL_SIZE=2 valgrind -q --leak-check=yes ./$(BUILT_PROGRAMS) n.fq >t.fq
 
 fmt:
 	find $(SRCDIR) -type f -exec clang-format -i {} \;
