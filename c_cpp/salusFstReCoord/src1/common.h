@@ -132,6 +132,8 @@ izlib(isa-l): KSEQ_INIT(gzFile, gzread)
 		char* after_c = memccpy((d), (s), '\0', dst_size); \
 		if (after_c) {                                     \
 			*after_c = '\0';                               \
+		} else {                                           \
+			assert(*(d + dst_size - 1) == '\0');           \
 		}                                                  \
 	} while (0)
 
