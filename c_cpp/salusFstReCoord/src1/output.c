@@ -2,7 +2,7 @@
 
 void output_worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
-	//if (atomic_load(&worker->flag) == 0) return;
+	// if (atomic_load(&worker->flag) == 0) return;
 #ifndef RELEASE
 	char readName[MAXFQIDLEN + 1] = {0};
 	char readSeq[BARCODELEN + 1] = {0};
@@ -10,6 +10,9 @@ void output_worker(int_least16_t worker_id) {
 #endif
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
+		if (fstBCdata_p->name[0] == 0) {
+			continue;
+		}
 #ifndef RELEASE
 		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');

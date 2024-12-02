@@ -57,7 +57,7 @@ void fqReader_destroy(void) {
 void fill_worker(int_least16_t worker_id) {
 	kseq_t *seq = Parameters.kseq;
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
-	//if (atomic_load(&worker->flag) == 1) return;
+	// if (atomic_load(&worker->flag) == 1) return;
 	uint64_t index = 0;
 	int kseq_ret = 0;
 	for (index = 0; index < JOBITEMSIZE; index++) {
