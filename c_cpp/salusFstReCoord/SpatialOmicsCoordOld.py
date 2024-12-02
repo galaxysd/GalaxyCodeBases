@@ -1,19 +1,16 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python3
 # coding=utf-8
 
 #### import Moduules
 import sys, os
-import numpy as np
 import math
 import csv
 import gzip
 import itertools
-import tkinter
+#import tkinter
 import zipfile
 import re
 #from tkinter import messagebox
-
-import matplotlib.pyplot as plt
 
 import xopen
 from isal import igzip, isal_zlib
@@ -28,7 +25,7 @@ PROG_DATE = '2022-06-16'
 ###### Usage
 usage = '''
      version %s
-     Usage: %s <fqFile><outputPath><imageHeight><imageWidth> >STDOUT
+     Usage: %s <fqFile> <outputPath> <1 or 1.25> >STDOUT
 ''' % (PROG_VERSION,  os.path.basename(sys.argv[0]))
 
 ######  global variable  #####
@@ -54,7 +51,7 @@ def transCorrd(pos_x, pos_y, FovR, FovC, imageHeight, imageWidth):
     return (math.floor(100*new_x)/100, math.floor(100*new_y)/100)
     #return (new_x, new_y)
 
-def coordTransfer(fqFile, output, imageHeight, imageWidth, ratioHeight, ratioWidth, ratioHeightStart, ratioWidthStart, show = False):
+def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeight, ratioWidth, ratioHeightStart, ratioWidthStart, show = False):
     '''
     Convert Fov coordinates to chip coordinates
     '''
@@ -90,7 +87,7 @@ def coordTransfer(fqFile, output, imageHeight, imageWidth, ratioHeight, ratioWid
         corrdRecord = []
 
     pre_row = 0
-    unZoomRate = 1.25
+    #unZoomRate = 1.25
     with xopen.xopen(fqFile, threads=0) as pf:
         for line in pf:
             ### read infor for xopen.xopen
@@ -136,15 +133,18 @@ def coordTransfer(fqFile, output, imageHeight, imageWidth, ratioHeight, ratioWid
                     if show:
                         corrdRecord.append(np.array(new_pos))
 
-                    splitSet[-1] = str(new_pos[1])
-                    splitSet[-2] = str(new_pos[0])
-                    new_title = "_".join(splitSet)
+                    #splitSet[-1] = str(new_pos[1])
+                    #splitSet[-2] = str(new_pos[0])
+                    #new_title = "_".join(splitSet)
+                    new_title = f"{title} {new_pos[0]:.2f} {new_pos[1]:.2f}\037{fov}"
 
                     outFastq.write((new_title+ '\n' + read_seq + '\n' + Links + Q_value + '\n').encode(encoding="utf-8"))
 
     outFastq.close()
 
     if show:
+        import numpy as np
+        import matplotlib.pyplot as plt
         corrdRecord = np.array(corrdRecord)
         corrdRecord = np.round(corrdRecord / 100).astype(int)
         corrdRecord = corrdRecord.T
@@ -177,18 +177,23 @@ def main():
     ArgParser.add_argument("-r1s", "--ratioWidthStart", action="store", dest="ratioWidthStart", type=float, default=-1.0, metavar="FLOAT", help="start Overlap ratio of width. [%(default)s]")
     ArgParser.add_argument("-r2", "--ratioHeight", action="store", dest="ratioHeight", type=float, default=0.0, metavar="FLOAT", help="Overlap ratio of heigh [%(default)s]")
     ArgParser.add_argument("-r2s", "--ratioHeightStart", action="store", dest="ratioHeightStart", type=float, default=-1.0, metavar="FLOAT", help="start Overlap ratio of heigh [%(default)s]")
-    ArgParser.add_argument("-s", "--showHeatmap", action="store_true", dest="showHeatmap", default=True, help="Display heatmap. [%(default)s]")
+    ArgParser.add_argument("-s", "--showHeatmap", action="store_true", dest="showHeatmap", default=False, help="Display heatmap. [%(default)s]")
 
     (para, args) = ArgParser.parse_known_args()
 
-    if len(args) != 4:
+    if len(args) < 3:
         ArgParser.print_help()
         print("\nERROR: The parameters number is not correct!", file=sys.stderr)
         sys.exit(1)
     else:
-        (fqFile, output, imageHight, imageWidth) = args
+        (fqFile, output, unZoomRate) = args
 
-    coordTransfer(fqFile, output, int(imageHight), int(imageWidth), float(para.ratioHeight), float(para.ratioWidth), float(para.ratioHeightStart), float(para.ratioWidthStart), bool(para.showHeatmap))
+    imageHight = 2160;
+    imageWidth = 4096;
+    para.ratioWidth = 0.296791;
+    para.ratioHeight = 0.192915;
+    para.ratioWidthStart = 0.25;
+    coordTransfer(float(unZoomRate), fqFile, output, int(imageHight), int(imageWidth), float(para.ratioHeight), float(para.ratioWidth), float(para.ratioHeightStart), float(para.ratioWidthStart), bool(para.showHeatmap))
 
 if __name__ == "__main__":
     main()  # 2160 4096 -r1 0.3 -r2 0.2 -r1s 0.25; 2160 4096 -r1 0.296791 -r2 0.192915 -r1s 0.25

@@ -45,6 +45,7 @@ void worker(int_least16_t worker_id) {
 		double newXY[2] = {0.0};
 		char *delim = ":";
 		if (regexec(&Parameters.regex, readName, 2, matches, 0) != 0) {
+			fstBCdata_p->name[0] = 0;
 			continue;
 		}
 		//__builtin_dump_struct(&matches[0], &printf);
@@ -69,6 +70,7 @@ void worker(int_least16_t worker_id) {
 		// printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
 		if (unlikely(token == NULL)) {
 			// printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
+			fstBCdata_p->name[0] = 0;
 			break;
 		} else {
 			int_least16_t idx = 0;
@@ -99,6 +101,8 @@ void worker(int_least16_t worker_id) {
 			ARRAYcpySTR(readSeq, fstBCdata_p->seq);
 			fprintf(stderr, "->SpatiaStr:[%s %.2f %.2f]\n", readSeq, fstBCdata_p->newXY[0], fstBCdata_p->newXY[1]);
 #endif
+		} else {
+			fstBCdata_p->name[0] = 0;
 		}
 	}
 }
