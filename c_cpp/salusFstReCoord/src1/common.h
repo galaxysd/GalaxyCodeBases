@@ -69,6 +69,7 @@ extern "C" {
 #include <stdio.h>      // FILE, fflush
 #include <stdlib.h>     // in "kseq.h", strtof
 #include <string.h>     // in "kseq.h", memccpy, and so on.
+#include <pthread.h>
 
 #ifndef KSEQ_INIT
 // #define STR_HELPER(x) #x
@@ -244,9 +245,7 @@ https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-termina
 // #pragma pack(push, 1)
 struct fstBCdata_s {
 	int8_t name[MAXFQIDLEN];
-#ifndef RELEASE
-	char* comment;
-#endif
+	//char* comment;
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
 	uint8_t fov_row;

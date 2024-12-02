@@ -2,6 +2,7 @@
 
 void output_worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
+	//if (atomic_load(&worker->flag) == 0) return;
 #ifndef RELEASE
 	char readName[MAXFQIDLEN + 1] = {0};
 	char readSeq[BARCODELEN + 1] = {0};
@@ -36,4 +37,6 @@ void output_worker(int_least16_t worker_id) {
 		// clang-format on
 		fflush(stdout);
 	}
+	// Update the workerArray's flag to indicate it is empty for filling.
+	atomic_store(&worker->flag, 0);
 }

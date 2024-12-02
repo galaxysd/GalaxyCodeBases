@@ -57,6 +57,7 @@ void fqReader_destroy(void) {
 void fill_worker(int_least16_t worker_id) {
 	kseq_t *seq = Parameters.kseq;
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
+	//if (atomic_load(&worker->flag) == 1) return;
 	uint64_t index = 0;
 	int kseq_ret = 0;
 	for (index = 0; index < JOBITEMSIZE; index++) {
@@ -67,7 +68,7 @@ void fill_worker(int_least16_t worker_id) {
 			/* seq->comment.s is discarded */
 			STRcpyARRAY(fstBCdata_p->seq, seq->seq.s);
 			STRcpyARRAY(fstBCdata_p->qual, seq->qual.s);
-#ifndef RELEASE
+			/* strdup may leads to heap-buffer-overflow, we should use kstring instead if need comment.
 			if (unlikely(seq->comment.l > 0)) {
 				size_t oldSize = MALLOCSIZE(fstBCdata_p->comment);
 				if (unlikely(1 + seq->comment.l > oldSize)) {
@@ -82,12 +83,12 @@ void fill_worker(int_least16_t worker_id) {
 					fstBCdata_p->comment = NULL;
 				}
 			}
-#endif
+			*/
 #ifdef DEBUG
 			fprintf(stderr, "- %llu -\n", index);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->name);
 			// snprintf(Parameters.buffer, 1 + sizeof(fstBCdata_p->name), "%s", fstBCdata_p->name);
-			fprintf(stderr, "->Name:[%s] Comment:[%s]\n", Parameters.buffer, fstBCdata_p->comment);
+			fprintf(stderr, "->Name:[%s]\n", Parameters.buffer);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->seq);
 			fprintf(stderr, "->Sequ:[%s]\n", Parameters.buffer);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->qual);
@@ -97,16 +98,14 @@ void fill_worker(int_least16_t worker_id) {
 			fstBCdata_p->name[0] = '\0';
 			fstBCdata_p->seq[0] = '\0';
 			fstBCdata_p->qual[0] = '\0';
-#ifndef RELEASE
-			free(fstBCdata_p->comment);
-			fstBCdata_p->comment = NULL;
-#endif
+			//free(fstBCdata_p->comment);
+			//fstBCdata_p->comment = NULL;
 			if (kseq_ret < 0) {  // -1 for FEOF
 				Parameters.ksflag = kseq_ret;
 			}
 		}
 		// continue;
 	}
-	// Update the worker's flag to indicate the processing is complete
+	// Update the workerArray's flag to indicate it is filled, thus ready for worker.
 	atomic_store(&worker->flag, 1);
 }

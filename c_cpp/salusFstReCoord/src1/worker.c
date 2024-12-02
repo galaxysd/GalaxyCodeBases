@@ -37,12 +37,7 @@ void worker(int_least16_t worker_id) {
 		ARRAYcpySTR(readName, fstBCdata_p->name);
 		assert(readName[sizeof(fstBCdata_p->name)] == '\0');
 #ifndef RELEASE
-		fprintf(stderr, "###### %llu\t[%s] %d [%s]<--\n", index, readName, readName[sizeof(fstBCdata_p->name)], fstBCdata_p->comment);
-#else
-#ifdef RELEASE
-#else
 		fprintf(stderr, "###### %llu\t[%s] %d <--\n", index, readName, readName[sizeof(fstBCdata_p->name)]);
-#endif
 #endif
 		int_least16_t RowCol[2] = {0};
 		double oldXY[2] = {0.0};
