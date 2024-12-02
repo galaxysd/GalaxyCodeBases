@@ -4,6 +4,7 @@ PKGCONFIG ?= pkg-config
 ZLIBNAME ?= libisal
 
 MKDIR_P = mkdir -p
+ZCAT = zcat
 
 PKGLIBS = $(ZLIBNAME)
 
@@ -38,6 +39,7 @@ ifeq ($(detected_OS),Darwin)
 	OBJECTOOL := otool -L
 	LDFLAGS += -L/usr/local/opt/llvm/lib/c++ -L/usr/local/opt/llvm/lib -lunwind
 	#PKGLDFLAGS := -Wl,-search_paths_first $(PKGLDFLAGS)
+	ZCAT = gzcat
 endif
 ifeq ($(detected_OS),Linux)
 	OBJECTOOL := ldd
@@ -123,8 +125,12 @@ fmt:
 cmp:
 	$(MKDIR_P) tmp
 	python3 SpatialOmicsCoord.py n.fq tmp 1
-	gzcat tmp/newCoord_n.gz >t2.fq
+	$(ZCAT) tmp/newCoord_n.gz >t2.fq
 	./$(BUILT_PROGRAMS) n.fq 1 >t1.fq
 	diff -Nau t1.fq t2.fq
+	shasum t1.fq t2.fq
 
-.PHONY: all clean debug release test echo z0 z1 cmp
+pkg:
+	tar -chz -f salusFstReCoord.tgz $(VPATH) SpatialOmicsCoord.py n.fq Makefile
+
+.PHONY: all clean debug release test echo z0 z1 cmp pkg
