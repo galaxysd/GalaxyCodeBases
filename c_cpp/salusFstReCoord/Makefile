@@ -124,9 +124,9 @@ fmt:
 
 cmp:
 	$(MKDIR_P) tmp
-	python3 SpatialOmicsCoord.py n.fq tmp 1
+	python3 SpatialOmicsCoord.py n.fq tmp 1.25
 	$(ZCAT) tmp/newCoord_n.gz >t2.fq
-	./$(BUILT_PROGRAMS) n.fq 1 >t1.fq
+	./$(BUILT_PROGRAMS) n.fq 1.25 >t1.fq
 	diff -Nau t1.fq t2.fq
 	shasum t1.fq t2.fq
 

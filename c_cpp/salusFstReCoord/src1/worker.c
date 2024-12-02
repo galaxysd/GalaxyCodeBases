@@ -26,7 +26,8 @@ void worker(int_least16_t worker_id) {
 	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
 	char fovRC[9] = {0};                  // R123C567
-	double unZoomRatio = (double)Parameters.unZoomRatio;
+	double GIVENunZoomRatio = (double)Parameters.unZoomRatio;
+	double unZoomRatio = 0;
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
 		if (fstBCdata_p->name[0] == 0) {
@@ -62,8 +63,10 @@ void worker(int_least16_t worker_id) {
 		fstBCdata_p->fov_column = (uint8_t)(RowCol[1] = atoi(fovRC + 5));
 		if (unlikely(matches[1].rm_so == -1)) {
 			delim = "_";
+			unZoomRatio = 1.0;
 		} else {
 			delim = ":";
+			unZoomRatio = GIVENunZoomRatio;
 		}
 		assert(relen == (delim[0] == ':' ? sizeof(fovRC) : sizeof(fovRC) - 1));
 		// printf("%llu\t[%s], delim:[%s], fov[%s]\n", index, readName, delim, fovRC);

@@ -105,13 +105,14 @@ def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeig
 
                 if pres[0][1] == '':
                     splitSet = title.split("_")
-                    unZoomRate = 1
+                    THEunZoomRate = 1
                 elif pres[0][1] == ':':
                     splitSet = title.split(":")
+                    THEunZoomRate = unZoomRate
                 else:
                     continue
-                pos_y = float(splitSet[-1]) / unZoomRate
-                pos_x = float(splitSet[-2]) / unZoomRate
+                pos_y = float(splitSet[-1]) / THEunZoomRate
+                pos_x = float(splitSet[-2]) / THEunZoomRate
 
                 '''if int(fov[1:4]) == 1:
                     min_x = 0
