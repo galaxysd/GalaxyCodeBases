@@ -86,17 +86,21 @@ void worker(int_least16_t worker_id) {
 			}
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
-			// printf("oldXY: [%s],[%s]\n", splitSets[idx - 2], splitSets[idx - 1]);
-			// printf("[%s]->[%s]=RC(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
+#ifdef DEBUG
+			fprintf(stderr, "oldXY: [%s],[%s] as [%.2f %.2f]\n", splitSets[idx - 2], splitSets[idx - 1], oldXY[0],oldXY[1]);
 			/* for (idx = 0; idx < MAXDELIMITEMS; idx++) {
 			    printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
 			} */
+#endif
 		}
+		if (unlikely(unZoomRatio != 1.0f)) {
+			oldXY[0] /= unZoomRatio;
+			oldXY[1] /= unZoomRatio;
+		}
+#ifdef DEBUG
+		fprintf(stderr, "[%s]->[%s]=RC(%d,%d), X:%f Y:%f\n", readName, fovRC, RowCol[0], RowCol[1], oldXY[0], oldXY[1]);
+#endif
 		if ((FOV_X_MIN < oldXY[0] && oldXY[0] <= FOV_X_MAX) && (FOV_Y_MIN < oldXY[1] && oldXY[1] <= FOV_Y_MAX)) {
-			if (unlikely(unZoomRatio != 1.0f)) {
-				oldXY[0] /= unZoomRatio;
-				oldXY[1] /= unZoomRatio;
-			}
 			oldXY[0] -= FOV_X_MIN;
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
