@@ -87,7 +87,7 @@ void worker(int_least16_t worker_id) {
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
 #ifdef DEBUG
-			fprintf(stderr, "oldXY: [%s],[%s] as [%.2f %.2f]\n", splitSets[idx - 2], splitSets[idx - 1], oldXY[0],oldXY[1]);
+			fprintf(stderr, "oldXY: [%s],[%s] as [%.2f %.2f]\n", splitSets[idx - 2], splitSets[idx - 1], oldXY[0], oldXY[1]);
 			/* for (idx = 0; idx < MAXDELIMITEMS; idx++) {
 			    printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
 			} */
