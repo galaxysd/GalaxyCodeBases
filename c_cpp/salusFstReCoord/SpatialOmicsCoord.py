@@ -124,7 +124,7 @@ def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeig
                 else:
                     min_y = y_range[0]'''
 
-                if (min_x < pos_x <= x_range[1]) & (min_y < pos_y <= y_range[1]): ##  Judge whether the coordinate is in the center of the image
+                if (min_x < pos_x <= x_range[1]) and (min_y < pos_y <= y_range[1]): ##  Judge whether the coordinate is in the center of the image
 
                     pos_x -= min_x
                     pos_y -= min_y
