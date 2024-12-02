@@ -10,7 +10,7 @@ void output_worker(int_least16_t worker_id) {
 	for (uint64_t index = 0; index < JOBITEMSIZE; index++) {
 		fstBCdata_t *fstBCdata_p = &worker->jobDatArray[index];
 		if (fstBCdata_p->name[0] == 0) {
-			break;
+			continue;
 		}
 #ifndef RELEASE
 		ARRAYcpySTR(readName, fstBCdata_p->name);

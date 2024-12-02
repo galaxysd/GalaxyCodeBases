@@ -91,7 +91,7 @@ clean:
 	rm -f $(BUILT_PROGRAMS)
 
 $(BUILDIR):
-	mkdir -p $(BUILDIR)
+	$(MKDIR_P) $(BUILDIR)
 
 $(BUILDIR)/%.o: $(SRCDIR)/%.c $(BUILDIR)
 	$(CC) -c $(CPPFLAGS) $(WARNINGFLAGS) $(CFLAGS) $(OPT) $< -o $@
@@ -115,9 +115,16 @@ echo:
 
 test:
 	#UV_THREADPOOL_SIZE=1 MallocNanoZone=0 ./$(BUILT_PROGRAMS) n.fq >t.fq
-	UV_THREADPOOL_SIZE=2 valgrind -q --leak-check=yes ./$(BUILT_PROGRAMS) n.fq >t.fq
+	UV_THREADPOOL_SIZE=2 valgrind -q --leak-check=yes ./$(BUILT_PROGRAMS) n.fq >t1.fq
 
 fmt:
 	find $(SRCDIR) -type f -exec clang-format -i {} \;
 
-.PHONY: all clean debug release test echo z0 z1
+cmp:
+	$(MKDIR_P) tmp
+	python3 SpatialOmicsCoord.py n.fq tmp 1
+	gzcat tmp/newCoord_n.gz >t2.fq
+	./$(BUILT_PROGRAMS) n.fq 1 >t1.fq
+	diff -Nau t1.fq t2.fq
+
+.PHONY: all clean debug release test echo z0 z1 cmp
