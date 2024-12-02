@@ -2,8 +2,6 @@
 
 void output_worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
-	regmatch_t matches[2];
-	char **splitSets = worker->tokens;
 #ifndef RELEASE
 	char readName[MAXFQIDLEN + 1] = {0};
 	char readSeq[BARCODELEN + 1] = {0};
@@ -28,12 +26,12 @@ void output_worker(int_least16_t worker_id) {
 #endif
 		// clang-format off
 		fprintf(stdout, "@%.*s %.2f %.2f" "%c" "R%03uC%03u\n" "%.*s\n+\n%.*s\n",
-			sizeof(fstBCdata_p->name), fstBCdata_p->name,
+			(int)sizeof(fstBCdata_p->name), fstBCdata_p->name,
 			fstBCdata_p->newXY[0], fstBCdata_p->newXY[1],
 			_US_CHR_,
 			fstBCdata_p->fov_row, fstBCdata_p->fov_column,
-			sizeof(fstBCdata_p->seq), fstBCdata_p->seq,
-			sizeof(fstBCdata_p->qual), fstBCdata_p->qual
+			(int)sizeof(fstBCdata_p->seq), fstBCdata_p->seq,
+			(int)sizeof(fstBCdata_p->qual), fstBCdata_p->qual
 		);
 		// clang-format on
 		fflush(stdout);
