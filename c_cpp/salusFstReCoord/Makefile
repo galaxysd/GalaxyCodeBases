@@ -13,9 +13,9 @@ PKGLDFLAGS := $(shell $(PKGCONFIG) --libs $(PKGLIBS))
 PKGLIBPATH := $(shell $(PKGCONFIG) --variable=libdir $(PKGLIBS))
 WARNINGFLAGS := -Wall -Wextra -Wpedantic -Werror=odr -Werror=strict-aliasing # -Wconversion
 
-CFLAGS := -pipe -march=x86-64-v3 -mtune=generic -funroll-loops -flto -fPIE
+CFLAGS := -pipe -march=x86-64-v3 -mtune=generic -funroll-loops -flto -fPIE # -pthread
 # https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
-LDFLAGS := $(PKGLDFLAGS) -Wl,-pie -lc -lm -pthread
+LDFLAGS := $(PKGLDFLAGS) -Wl,-pie -lc -lm # -pthread
 OPT := -Os
 CFLAGS += -fstack-protector-strong -fcf-protection
 

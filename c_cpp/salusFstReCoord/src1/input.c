@@ -68,6 +68,7 @@ void fill_worker(int_least16_t worker_id) {
 			/* seq->comment.s is discarded */
 			STRcpyARRAY(fstBCdata_p->seq, seq->seq.s);
 			STRcpyARRAY(fstBCdata_p->qual, seq->qual.s);
+			// clang-format off
 			/* strdup may leads to heap-buffer-overflow, we should use kstring instead if need comment.
 			if (unlikely(seq->comment.l > 0)) {
 				size_t oldSize = MALLOCSIZE(fstBCdata_p->comment);
@@ -84,6 +85,7 @@ void fill_worker(int_least16_t worker_id) {
 				}
 			}
 			*/
+			// clang-format on
 #ifdef DEBUG
 			fprintf(stderr, "- %llu -\n", index);
 			ARRAYcpySTR(Parameters.buffer, fstBCdata_p->name);
@@ -98,8 +100,8 @@ void fill_worker(int_least16_t worker_id) {
 			fstBCdata_p->name[0] = '\0';
 			fstBCdata_p->seq[0] = '\0';
 			fstBCdata_p->qual[0] = '\0';
-			//free(fstBCdata_p->comment);
-			//fstBCdata_p->comment = NULL;
+			// free(fstBCdata_p->comment);
+			// fstBCdata_p->comment = NULL;
 			if (kseq_ret < 0) {  // -1 for FEOF
 				Parameters.ksflag = kseq_ret;
 			}
