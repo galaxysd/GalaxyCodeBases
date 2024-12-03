@@ -48,8 +48,7 @@ def transCorrd(pos_x, pos_y, FovR, FovC, imageHeight, imageWidth):
     '''
     new_x = (FovC - CentCm1) * imageHeight - pos_y - 1
     new_y = pos_x + (FovR - CentRm1 - 1) * imageWidth
-    epsilon = 0.0075
-    return (epsilon + math.floor(100*new_x)/100, epsilon + math.floor(100*new_y)/100)
+    return (math.floor(math.nextafter(100*new_x,sys.float_info.max))/100, math.floor(math.nextafter(100*new_y,sys.float_info.max))/100)
     # >>> str(math.floor(78450.15*100)/100)
     #'78450.14'
     #return (new_x, new_y)
