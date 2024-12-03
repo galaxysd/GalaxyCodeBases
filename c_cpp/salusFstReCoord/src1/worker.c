@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-FORCE_INLINE void transCorrd(double *ChipXY, const double *FovXY, const int_least16_t *FovRowCol) {
+FORCE_INLINE void transCorrd(double *restrict ChipXY, const double *restrict FovXY, const int_least16_t *restrict FovRowCol) {
 	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
 	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
 	double epsilon = 0.75 * OUTPUTPRECISION; /* eps in (0.5,1)/100, thus 0.75/100 */
