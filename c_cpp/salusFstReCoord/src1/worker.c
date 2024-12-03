@@ -1,5 +1,5 @@
 #include <float.h>  // DBL_MAX
-#include <math.h>   // floor, nextafter
+#include <math.h>   // floor, nextafter, INFINITY
 
 #include "common.h"
 
