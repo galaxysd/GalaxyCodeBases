@@ -48,7 +48,10 @@ def transCorrd(pos_x, pos_y, FovR, FovC, imageHeight, imageWidth):
     '''
     new_x = (FovC - CentCm1) * imageHeight - pos_y - 1
     new_y = pos_x + (FovR - CentRm1 - 1) * imageWidth
-    return (math.floor(100*new_x)/100, math.floor(100*new_y)/100)
+    epsilon = 0.0075
+    return (epsilon + math.floor(100*new_x)/100, epsilon + math.floor(100*new_y)/100)
+    # >>> str(math.floor(78450.15*100)/100)
+    #'78450.14'
     #return (new_x, new_y)
 
 def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeight, ratioWidth, ratioHeightStart, ratioWidthStart, show = False):
@@ -80,8 +83,8 @@ def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeig
 
     #imageWidth_new = imageWidth * (1 - ratioWidth)
     #imageHeight_new = imageHeight * (1 - ratioHeight)
-    imageWidth_new = 709.8 * 14 / 3.45
-    imageHeight_new = 429.6 * 14 / 3.45
+    imageWidth_new = 709.8 * 14.0 / 3.45
+    imageHeight_new = 429.6 * 14.0 / 3.45
 
     if show:
         corrdRecord = []
