@@ -152,6 +152,9 @@ izlib(isa-l): KSEQ_INIT(gzFile, gzread)
 // @Pro019:S:123:2:000023:R001:C001:3390.2:0010.5 1:L:0
 #define MAXDELIMITEMS 12  // Old items is still 12 for contiguous delimiter,
 
+#define OUTPUTPRECISION 0.01
+/* without `-freciprocal-math`, thus multiplicative inverse is needed. */
+#define RECIPROCALPRECISION (1.0 / OUTPUTPRECISION)
 // um
 #define StepLane 11800
 #define FOVStepX 429.6

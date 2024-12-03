@@ -5,8 +5,9 @@
 FORCE_INLINE void transCorrd(double *ChipXY, const double *FovXY, const int_least16_t *FovRowCol) {
 	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
 	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
-	ChipXY[0] = floor(new_x * 100.0) / 100.0;
-	ChipXY[1] = floor(new_y * 100.0) / 100.0;
+	double epsilon = 0.75 * OUTPUTPRECISION; /* eps in (0.5,1)/100, thus 0.75/100 */
+	ChipXY[0] = epsilon + (floor(new_x * RECIPROCALPRECISION) * OUTPUTPRECISION);
+	ChipXY[1] = epsilon + (floor(new_y * RECIPROCALPRECISION) * OUTPUTPRECISION);
 }
 
 FORCE_INLINE char *strncpy_no_colon(char *restrict dest, const char *restrict src, size_t n) {
