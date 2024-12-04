@@ -17,7 +17,8 @@ CFLAGS := -pipe -march=x86-64-v3 -mtune=generic -funroll-loops -flto -fPIE -pthr
 # https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
 LDFLAGS := $(PKGLDFLAGS) -Wl,-pie -lc -lm -pthread
 OPT := -Os
-CFLAGS += -fstack-protector-strong -fcf-protection
+CFLAGS += -fstack-protector-strong -fcf-protection -ffast-math -fno-unsafe-math-optimizations
+# -funsafe-math-optimizations from -ffast-math from -Ofast will cause "R001:C019:2606.6" to -80193.62 instead of -80193.61.
 
 lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 uc = $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,$(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,$(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,$(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,$(subst y,Y,$(subst z,Z,$1))))))))))))))))))))))))))
@@ -59,7 +60,7 @@ endif
 SRCDIR := src3
 SRCEXTS := .c
 BUILDIR := build3
-BUILT_PROGRAMS = salustsFstCoord1
+BUILT_PROGRAMS = salustsFstCoord3
 
 SOURCES := $(foreach d,$(SRCDIR),$(wildcard $(addprefix $(d)/*,$(SRCEXTS))))
 OBJFILES := $(SOURCES:$(SRCDIR)/%.c=$(BUILDIR)/%.o)
@@ -96,7 +97,7 @@ $(BUILDIR):
 	$(MKDIR_P) $(BUILDIR)
 
 $(BUILDIR)/%.o: $(SRCDIR)/%.c $(BUILDIR)
-	$(CC) -c $(CPPFLAGS) $(WARNINGFLAGS) $(CFLAGS) $(OPT) $< -o $@
+	$(CC) -c $(OPT) $(CPPFLAGS) $(WARNINGFLAGS) $(CFLAGS) $< -o $@
 
 %: $(BUILDIR)/%.o	# sth. like `make uv_callback.test`
 	$(CC) $(CFLAGS) $(WARNINGFLAGS) $(CPPFLAGS) $^ $(LDFLAGS) $(TARGET_ARCH) $(LOADLIBES) $(LDLIBS) -o $@
