@@ -69,6 +69,7 @@ extern "C" {
 #include <stdio.h>      // FILE, fflush
 #include <stdlib.h>     // in "kseq.h", strtof
 #include <string.h>     // in "kseq.h", memccpy, and so on.
+#include <uv.h>
 // #include <pthread.h>
 
 #ifndef KSEQ_INIT
@@ -285,6 +286,7 @@ struct parameters_s {
 	// ArrayStateEnum_t outDataState;
 	char* inFastqFilename;
 	float unZoomRatio;  // 1 or 1.25, float is (1,8,23), thus enough for [- 2^{23} + 1, 2^{23} - 1]
+	uv_loop_t loop;
 	kseq_t* kseq;
 	gzFile ksfp;
 	atomic_int_least8_t ksflag;
@@ -304,6 +306,24 @@ void fqReader_destroy(void);
 void fill_worker(int_least16_t worker_id);
 void worker(int_least16_t worker_id);
 void output_worker(int_least16_t worker_id);
+
+static inline void int2hex(char* buffer, void* ptr, size_t size) {
+	unsigned char* byte_ptr = (unsigned char*)ptr;
+	size_t offset = 0;  // Offset in the buffer for writing
+	for (size_t i = 0; i < size; ++i) {
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+		uint8_t thebyte = byte_ptr[i];
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+		uint8_t thebyte = byte_ptr[size - 1 - i];
+#endif
+		// Only print if the byte is non-zero or if we've already started writing
+		if (thebyte || offset > 0) {
+			offset += snprintf(buffer + offset, 3, "%02x", thebyte);  // 3 for two hex digits and null terminator
+		}
+	}
+	// Null-terminate the string
+	buffer[offset] = '\0';  // Ensure the buffer is null-terminated
+}
 
 /* ################ */
 

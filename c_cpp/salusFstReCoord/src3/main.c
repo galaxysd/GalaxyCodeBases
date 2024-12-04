@@ -8,7 +8,7 @@ const char *argp_program_bug_address = "huxs@salus-bio.com";
 
 /* Program documentation. */
 static char doc[] =
-    "fstBC transCorrd single threaded"
+    "fstBC transCorrd multi-threaded"
 #if defined(DEBUG)
     " Debug Version"
 #elif defined(NDEBUG)
@@ -33,6 +33,7 @@ parameters_t Parameters = {
 // static_assert(VARTYPE(Parameters.jobDataState)==1, "It is not uint8_t");
 
 int main(int argc, char *argv[]) {
+	uv_thread_t main_tid = uv_thread_self();
 	errno = 0; /* extern int, but do not declare errno manually */
 	if (argc < 2) {
 		// https://github.com/facebook/zstd/issues/1155#issuecomment-400052833 Both rsync block-size and zfs recordsize are 128K max.
@@ -46,7 +47,6 @@ int main(int argc, char *argv[]) {
 		fputs(".\n", stderr);
 	}
 	Parameters.inFastqFilename = argv[1];
-	// 没printf拖时间就得加 barrier
 	fqReader_init();
 	if (argc >= 3) {
 		Parameters.unZoomRatio = strtof(argv[2], NULL);
@@ -64,13 +64,6 @@ int main(int argc, char *argv[]) {
 	} else {
 		Parameters.unZoomRatio = 1.0f;
 	}
-	// defLoop_p = uv_default_loop();
-	while (Parameters.ksflag > 0) {  // for multi-threads demo, we use workQueue 1 of [0,JOBQUEUESIZE-1].
-		fill_worker(1);
-		worker(1);
-		output_worker(1);
-	}
-	fprintf(stderr, "done: %s.\n", strerror(errno));
 
 #ifndef RELEASE
 #if __has_builtin(__builtin_dump_struct)
@@ -81,6 +74,20 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
+	int2hex(Parameters.buffer, &main_tid, sizeof(main_tid));
+	fprintf(stderr, "[!]P:[%d]%sh, Available_Cores:[%u].\n", uv_os_getpid(), Parameters.buffer, uv_available_parallelism());
+	// fprintf(stderr, "[!]P:[%d]0x%.*" PRIx64 ".\n", uv_os_getpid(), (int)2*sizeof(main_tid), (uint64_t) main_tid);
+	// fprintf(stderr, "[!]P:[%d]%" PRIx64 "h, Available_Cores:[%u].\n", uv_os_getpid(), (uint64_t)main_tid, uv_available_parallelism());
+	uv_loop_init(&Parameters.loop);
+
+	uv_loop_close(&Parameters.loop);
+	// defLoop_p = uv_default_loop();
+	while (Parameters.ksflag > 0) {  // for multi-threads demo, we use workQueue 1 of [0,JOBQUEUESIZE-1].
+		fill_worker(1);
+		worker(1);
+		output_worker(1);
+	}
+	fprintf(stderr, "done: %s.\n", strerror(errno));
 	fqReader_destroy();
 	fprintf(stderr, "[i]Run to the end.\n");
 	return 0;
