@@ -247,13 +247,13 @@ https://stackoverflow.com/questions/3767284/using-printf-with-a-non-null-termina
 #pragma pack(1)
 // #pragma pack(push, 1)
 struct fstBCdata_s {
+	double newXY[2];
+	uint8_t fov_row;
+	uint8_t fov_column;
 	int8_t name[MAXFQIDLEN];
 	// char* comment;
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
-	uint8_t fov_row;
-	uint8_t fov_column;
-	double newXY[2];
 };
 typedef struct fstBCdata_s fstBCdata_t;
 /*
