@@ -101,16 +101,17 @@ izlib(isa-l): KSEQ_INIT(gzFile, gzread)
 
 #define VARTYPE(N) _Generic((N), uint8_t: 1, uint16_t: 2, uint32_t: 4, uint64_t: 8, int8_t: -1, int16_t: -2, int32_t: -4, int64_t: -8, default: 0)
 
-#define ARRAYcpySTR(d, s)                                                    \
-	do {                                                                     \
-		size_t src_size = sizeof(s);                                         \
-		assert((MALLOCSIZE(d) ? MALLOCSIZE(d) : sizeof(d)) >= 1 + src_size); \
-		char* after_c = memccpy((d), (s), '\0', src_size);                   \
-		if (after_c) {                                                       \
-			*after_c = '\0';                                                 \
-		} else {                                                             \
-			(d)[src_size] = '\0';                                            \
-		}                                                                    \
+// AddressSanitizer Error on Linux if attempting to call malloc_usable_size() for pointer which is not owned
+#define ARRAYcpySTR(d, s)                                                                                                 \
+	do {                                                                                                                  \
+		size_t src_size = sizeof(s);                                                                                      \
+		assert(((sizeof(d) == sizeof(void*)) ? (MALLOCSIZE(d) ? MALLOCSIZE(d) : sizeof(d)) : sizeof(d)) >= 1 + src_size); \
+		char* after_c = memccpy((d), (s), '\0', src_size);                                                                \
+		if (after_c) {                                                                                                    \
+			*after_c = '\0';                                                                                              \
+		} else {                                                                                                          \
+			(d)[src_size] = '\0';                                                                                         \
+		}                                                                                                                 \
 	} while (0)
 
 #define STRcpyARRAY(d, s)                                  \
