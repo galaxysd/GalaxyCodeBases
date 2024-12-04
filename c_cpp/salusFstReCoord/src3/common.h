@@ -251,7 +251,6 @@ struct fstBCdata_s {
 	uint8_t fov_row;
 	uint8_t fov_column;
 	int8_t name[MAXFQIDLEN];
-	// char* comment;
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
 };

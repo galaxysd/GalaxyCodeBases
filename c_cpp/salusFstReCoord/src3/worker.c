@@ -24,7 +24,6 @@ void worker(int_least16_t worker_id) {
 	workerArray_t *worker = &Parameters.worksQuene[worker_id];
 	regmatch_t matches[2];
 	char **splitSets = worker->tokens;
-	// char* readName = malloc(91);          // for testing CHARsCPYSTR
 	char readName[MAXFQIDLEN + 1] = {0};  // 81 => [0,80]
 	char fovRC[9] = {0};                  // R123C567
 	double GIVENunZoomRatio = (double)Parameters.unZoomRatio;
@@ -48,13 +47,9 @@ void worker(int_least16_t worker_id) {
 			fstBCdata_p->name[0] = 0;
 			continue;
 		}
-		//__builtin_dump_struct(&matches[0], &printf);
-		//__builtin_dump_struct(&matches[1], &printf);
 		size_t relen = matches[0].rm_eo - matches[0].rm_so;
 		strncpy_no_colon(fovRC, readName + matches[0].rm_so, relen);
-		// fovRC[relen-1] = '\0';
 		assert(fovRC[sizeof(fovRC) - 1] == '\0');
-		// memcpy(fstBCdata_p->RowCol, fovRC, relen-1);
 		fstBCdata_p->fov_row = (uint8_t)(RowCol[0] = atoi(fovRC + 1));
 		fstBCdata_p->fov_column = (uint8_t)(RowCol[1] = atoi(fovRC + 5));
 		if (unlikely(matches[1].rm_so == -1)) {
@@ -65,28 +60,21 @@ void worker(int_least16_t worker_id) {
 			unZoomRatio = GIVENunZoomRatio;
 		}
 		assert(relen == (delim[0] == ':' ? sizeof(fovRC) : sizeof(fovRC) - 1));
-		// printf("%llu\t[%s], delim:[%s], fov[%s]\n", index, readName, delim, fovRC);
 		const char *theDelim = delim;
 		char *saveptr = NULL;
 		char *token = strtok_r(readName, theDelim, &saveptr);
-		// printf("-f- [%zu] [%zu] [%s]\n", readName, token, token);
 		if (unlikely(token == NULL)) {
-			// printf("-b->\t[%s], delim:[%s]\n", readName, theDelim);
 			fstBCdata_p->name[0] = 0;
 			break;
 		} else {
 			int_least16_t idx = 0;
 			for (idx = 0; likely(token != NULL); token = strtok_r(NULL, theDelim, &saveptr), idx++) {
 				splitSets[idx] = token;
-				// printf("-s- %d:[%zu] [%s]\n", idx, splitSets[idx], token);
 			}
 			oldXY[1] = atof(splitSets[idx - 1]);
 			oldXY[0] = atof(splitSets[idx - 2]);
 #ifdef DEBUG
 			fprintf(stderr, "oldXY: [%s],[%s] as [%.2f %.2f]\n", splitSets[idx - 2], splitSets[idx - 1], oldXY[0], oldXY[1]);
-			/* for (idx = 0; idx < MAXDELIMITEMS; idx++) {
-			    printf("-t- %d:[%zu] [%s]\n", idx, (void *)splitSets[idx], splitSets[idx]);
-			} */
 #endif
 		}
 		if (unlikely(unZoomRatio != 1.0f)) {
@@ -100,7 +88,6 @@ void worker(int_least16_t worker_id) {
 			oldXY[0] -= FOV_X_MIN;
 			oldXY[1] -= FOV_Y_MIN;
 			transCorrd(newXY, oldXY, RowCol);
-			// printf("-->gX:%.2f gY:%.2f\n", newXY[0], newXY[1]);
 			memcpy(fstBCdata_p->newXY, newXY, sizeof(newXY));
 #ifdef DEBUG
 			char readSeq[BARCODELEN + 1];
