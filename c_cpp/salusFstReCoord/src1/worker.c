@@ -6,8 +6,10 @@
 FORCE_INLINE void transCorrd(double *restrict ChipXY, const double *restrict FovXY, const int_least16_t *restrict FovRowCol) {
 	double new_x = (FovRowCol[1] - (CenterFOV_COL - 1)) * FOV_USED_WIDTH - FovXY[1] - 1;
 	double new_y = FovXY[0] + (FovRowCol[0] - (CenterFOV_ROW - 1) - 1) * FOV_USED_HEIGHT;
-	ChipXY[0] = floor(nextafter(new_x * RECIPROCALPRECISION, DBL_MAX)) * OUTPUTPRECISION;
-	ChipXY[1] = floor(nextafter(new_y * RECIPROCALPRECISION, DBL_MAX)) * OUTPUTPRECISION;
+	ChipXY[0] = floor(nextafter(new_x * RECIPROCALPRECISION, copysign(INFINITY, new_x))) * OUTPUTPRECISION;
+	ChipXY[1] = floor(nextafter(new_y * RECIPROCALPRECISION, copysign(INFINITY, new_y))) * OUTPUTPRECISION;
+	// ChipXY[0] = floor(new_x * RECIPROCALPRECISION) * OUTPUTPRECISION;
+	// ChipXY[1] = floor(new_y * RECIPROCALPRECISION) * OUTPUTPRECISION;
 }
 
 FORCE_INLINE char *strncpy_no_colon(char *restrict dest, const char *restrict src, size_t n) {
