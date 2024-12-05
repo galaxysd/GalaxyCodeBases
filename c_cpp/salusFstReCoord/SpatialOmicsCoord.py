@@ -96,9 +96,9 @@ def coordTransfer(unZoomRate, fqFile, output, imageHeight, imageWidth, ratioHeig
         for line in pf:
             ### read infor for xopen.xopen
             title = line[:-1].split()[0]
-            read_seq = pf.readline()[:-1]
+            read_seq = pf.readline()[:30]
             Links = pf.readline()
-            Q_value = pf.readline()[:-1]
+            Q_value = pf.readline()[:30]
 
             pres = p.findall(title) ## get the fov num of this read
 
