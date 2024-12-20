@@ -67,7 +67,7 @@ extern "C" {
 #include <stddef.h>     // in "stdatomic.h"
 #include <stdint.h>     // in "stdatomic.h"
 #include <stdio.h>      // FILE, fflush
-#include <stdlib.h>     // in "kseq.h", strtof
+#include <stdlib.h>     // in "kseq.h", strtof, aligned_alloc
 #include <string.h>     // in "kseq.h", memccpy, and so on.
 #include <uv.h>
 // #include <pthread.h>
@@ -219,9 +219,14 @@ y=2159   y=0,x=0              w=0,h=0      h=2159
 #define CenterFOV_COL 66
 
 #define MAXCPUCORES 1024
-#define JOBQUEUESIZE ((MAXCPUCORES * 3) >> 1)
+// #define JOBQUEUESIZE ((MAXCPUCORES * 3) >> 1)
 // 任务队列数设为CPU最大核心数的1.5倍，则肯定塞满 workers 后会有剩的。
-#define JOBITEMSIZE 4
+#define JOBQUEUESIZE 2
+// 使用双线程轮流做【O,I】与【W】，故只用两块。
+#define JOBITEMSIZE 278720
+// getconf -a | grep CACHE => LEVEL3_CACHE_SIZE=44040192; lscpu | grep cache => L3 cache: 84 MiB (2 instances). 278720*158 = 41.998 MiB
+#define WORKERTHREADS 12
+// LEVEL3_CACHE_ASSOC=12
 
 #define GZBUFSIZE (131072 * 2)
 #define MAXFQIDLEN 80
@@ -258,7 +263,7 @@ struct fstBCdata_s {
 	int8_t name[MAXFQIDLEN];
 	int8_t seq[BARCODELEN];
 	int8_t qual[BARCODELEN];
-};
+};  // sizeof(workerArray_t) = 158
 typedef struct fstBCdata_s fstBCdata_t;
 /*
 union fstBCoutput_u {

@@ -69,7 +69,7 @@ VPATH := $(SRCDIR) klib
 vpath %.o $(BUILDIR)
 
 CPPFLAGS := $(addprefix -I,$(VPATH)) $(PKGCPPFLAGS) -DUSE_${ZLIBID} -D_FORTIFY_SOURCE=2
-CSTANDARD := -std=gnu2x# -std=c23
+CSTANDARD := -std=gnu2x #c23 gnu23
 
 all: $(BUILT_PROGRAMS)
 	$(OBJECTOOL) $^

@@ -6,6 +6,14 @@
 const char *argp_program_version = "fstBC transCorrd demo 0.1 @" __TIME__ "," __DATE__;
 const char *argp_program_bug_address = "huxs@salus-bio.com";
 
+/*
+## ToDo
+
+    1. 基于libuv的消息驱动
+    2. 二级缓存友好的按行分配的并行模式
+    3. 坐标提取下放到inputer，提前跳过FOV四个border区域的数据，减少额外的strncpy。
+*/
+
 /* Program documentation. */
 static char doc[] =
     "fstBC transCorrd multi-threaded"

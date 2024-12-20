@@ -1,5 +1,9 @@
 #include <stdio.h>  // fprintf
 
+#ifdef __linux__
+#include <sys/mman.h>  // madvise
+#endif
+
 #include "kseq.h"
 #ifdef USE_ZLIBNG
 #include <zlib-ng.h>
@@ -44,7 +48,25 @@ void fqReader_init(void) {
 	Parameters.kseq = kseq_init(Parameters.ksfp);
 	Parameters.ksflag = 1;
 	// Parameters.worksQuene = (workerArray_t *)calloc(JOBQUEUESIZE, sizeof(workerArray_t));
-	Parameters.worksQuene = (workerArray_t *)calloc(4, sizeof(workerArray_t));
+	size_t HPAGE_shift = 21;  // 1 << 21 = 2M
+	size_t HPAGE_alignment = 1 << HPAGE_shift;
+	size_t worksQuene_size = JOBQUEUESIZE * sizeof(workerArray_t);
+	size_t worksQuene_aligned_cnt = worksQuene_size >> HPAGE_shift;
+	if (worksQuene_size % HPAGE_alignment != 0) {
+		worksQuene_aligned_cnt++;
+	}
+	size_t worksQuene_aligned_size = HPAGE_alignment * worksQuene_aligned_cnt;
+	fprintf(stderr, "[!]aligned_alloc(%zu, %zu) for [%zu].\n", HPAGE_alignment, worksQuene_aligned_size, worksQuene_size);
+	Parameters.worksQuene = (workerArray_t *)aligned_alloc(HPAGE_alignment, worksQuene_aligned_size);
+	if (Parameters.worksQuene != NULL) {
+#ifdef __linux__
+		madvise(Parameters.worksQuene, worksQuene_aligned_size, MADV_HUGEPAGE);
+#endif
+		memset(Parameters.worksQuene, 0, worksQuene_aligned_size);
+	} else {
+		perror("[x]aligned_alloc failed.");
+		exit(EXIT_FAILURE);
+	}
 }
 
 void fqReader_destroy(void) {
