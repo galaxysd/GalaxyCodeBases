@@ -15,6 +15,7 @@ libuv = ">=1.48"
 zlib-ng = ">=2.2.1,<2.3"
 llvm-openmp = ">=18.1"
 isa-l = ">=2.31"
+xopen = ">=2.0.2,<3"
 
 [build-dependencies]
 pkg-config = ">=0.29"
