@@ -41,3 +41,7 @@ micromamba run -n salusg python -m ipykernel install --user --name salusg --disp
 Rscript -e "IRkernel::installspec(name = 'atacR2', displayname = 'atacR2')"
 
 micromamba run -n nb jupyter kernelspec list
+
+#$ cat ~/micromamba/envs/nb/bin/nb
+#!/bin/sh
+PYDEVD_DISABLE_FILE_VALIDATION=1 micromamba run -n nb python3 -Xfrozen_modules=off -m jupyterlab_server
