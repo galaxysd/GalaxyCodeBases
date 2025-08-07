@@ -1,3 +1,7 @@
+From <https://github.com/aklomp/shrinkpdf>.
+
+---
+
 # Shrinkpdf: shrink PDF files with Ghostscript
 
 [![Shellcheck](https://github.com/aklomp/shrinkpdf/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/aklomp/shrinkpdf/actions/workflows/shellcheck.yml)
