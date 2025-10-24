@@ -31,3 +31,4 @@ git config --global alias.xpull '!f(){ for i in `git remote`; do git pull -v $i 
 git config --global core.editor "vim"
 
 # git submodule add git@bitbucket.org:galaxy001/mydoc.git mydoc
+#git submodule set-url mydoc git@bitbucket.org:galaxysd/mydoc.git
