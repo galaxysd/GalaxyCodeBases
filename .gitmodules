@@ -8,7 +8,7 @@
 	url = git@github.com:galaxy001/gentooxy.git
 [submodule "mydoc"]
 	path = mydoc
-	url = git@bitbucket.org:galaxy001/mydoc.git
+	url = git@bitbucket.org:galaxysd/mydoc.git
 [submodule "shared/bioinfo01"]
 	path = shared/bioinfo01
 	#url = git@bitbucket.org:fgisz/bioinfo01.git
